@@ -1,0 +1,59 @@
+project_name: "keys.pub"
+builds:
+  - id: keys
+    binary: keys
+    main: ./service/keys/main.go
+    env:
+      - CGO_ENABLED=1
+    goos:
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - 386
+    ignore:
+      - goos: darwin
+        goarch: 386
+    hooks:
+      post: ./scripts/codesign.sh dist/keys_darwin_amd64/keys
+  - id: keysd
+    binary: keysd
+    main: ./main.go
+    env:
+      - CGO_ENABLED=1
+    goos:
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - 386
+    ignore:
+      - goos: darwin
+        goarch: 386
+    hooks:
+      post: ./scripts/codesign.sh dist/keysd_darwin_amd64/keysd
+archives:
+  - replacements:
+      386: i386
+      amd64: x86_64
+snapshot:
+  name_template: "{{ .Tag }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+brews:
+  - name: "keys.pub"
+    homepage: "https://keys.pub"
+    github:
+      owner: keys-app
+      name: homebrew-tap
+scoop:
+  name: "keys.pub"
+  homepage: "https://keys.pub"
+  license: MIT
+  bucket:
+    owner: keys-app
+    name: scoop-bucket

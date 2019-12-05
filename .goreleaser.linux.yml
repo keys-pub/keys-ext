@@ -1,0 +1,48 @@
+project_name: "keys.pub"
+builds:
+  - id: keys
+    binary: keys
+    main: ./service/keys/main.go
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - 386
+      - arm
+  - id: keysd
+    binary: keysd
+    main: ./main.go
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - 386
+      - arm
+archives:
+  - replacements:
+      386: i386
+      amd64: x86_64
+checksum:
+  name_template: "{{ .ProjectName }}_linux_checksums.txt"
+snapshot:
+  name_template: "{{ .Tag }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+nfpms:
+  - description: "keys.pub"
+    homepage: "https://keys.pub"
+    license: MIT
+    maintainer: Gabriel Handford <gabrielh@gmail.com>
+    replacements:
+      386: i386
+    formats:
+      - deb
+      - rpm
