@@ -56,6 +56,8 @@ github.com/keys-pub/keysd/http/client v0.0.0-20191206000922-ce6885426ccc/go.mod 
 github.com/keys-pub/keysd/http/server v0.0.0-20191206000640-a95e3ade58b8/go.mod h1:v05dG4rWePZxXCePW1JaBHwKKj2iqu3DPN0RfSVFOds=
 github.com/keys-pub/keysd/service v0.0.0-20191206000922-ce6885426ccc h1:aTrYyq3+qK+cuyvRZsvo1TnSxtAJqxb7rPv2VV5L6As=
 github.com/keys-pub/keysd/service v0.0.0-20191206000922-ce6885426ccc/go.mod h1:cfJqc4Ohqu6wzG3HX+ikxc3Vtpg6+tnTjyvkAl7b1Z8=
+github.com/keys-pub/keysd/service v0.0.0-20191206025525-15c42ba3c429 h1:VUC75qj4EJ92/xD3tzB4plK3abKDuWjkcpWv79TVirA=
+github.com/keys-pub/keysd/service v0.0.0-20191206025525-15c42ba3c429/go.mod h1:cfJqc4Ohqu6wzG3HX+ikxc3Vtpg6+tnTjyvkAl7b1Z8=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=
 github.com/kisielk/errcheck v1.2.0/go.mod h1:/BMXB+zMLi60iA8Vv6Ksmxu/1UDYcXs4uQLJ+jE2L00=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=

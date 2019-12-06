@@ -6,7 +6,7 @@ require (
 	github.com/keys-pub/keysd/db v0.0.0-20191206000922-ce6885426ccc // indirect
 	github.com/keys-pub/keysd/http/api v0.0.0-20191206000922-ce6885426ccc // indirect
 	github.com/keys-pub/keysd/http/client v0.0.0-20191206000922-ce6885426ccc // indirect
-	github.com/keys-pub/keysd/service v0.0.0-20191206000922-ce6885426ccc
+	github.com/keys-pub/keysd/service v0.0.0-20191206025525-15c42ba3c429
 	github.com/sirupsen/logrus v1.4.2
 	github.com/stretchr/testify v1.4.0
 )
