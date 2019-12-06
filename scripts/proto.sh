@@ -6,7 +6,7 @@ dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd "$dir"
 cd ../service
 
-keysapp="$dir/../../keys-app"
+keysapp="$dir/../../app"
 
 inc1="-I=`go list -f '{{ .Dir }}' -m github.com/golang/protobuf`"
 inc2="-I=`go list -f '{{ .Dir }}' -m github.com/gogo/protobuf`"
