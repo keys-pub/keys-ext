@@ -45,13 +45,13 @@ changelog:
       - "^docs:"
       - "^test:"
 brews:
-  - name: "keys.pub"
+  - name: "keys"
     homepage: "https://keys.pub"
     github:
       owner: keys-pub
       name: homebrew-tap
 scoop:
-  name: "keys.pub"
+  name: "keys"
   homepage: "https://keys.pub"
   license: MIT
   bucket:
