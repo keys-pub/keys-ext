@@ -47,7 +47,7 @@ func (t KeyType) Emoji() string {
 	case PrivateKeyType:
 		return "🔑"
 	case PublicKeyType:
-		return "✉️"
+		return "📦"
 	default:
 		return "❓"
 	}
