@@ -28,6 +28,8 @@ if [ -d "$HOME/.aptly" ]; then
   rm -rf $HOME/.aptly
   mkdir -p $HOME/.aptly/public
   mv /tmp/pool $HOME/.aptly/public
+else
+  mkdir -p $HOME/.aptly/public
 fi
 
 gsutil -m rsync -r gs://aptly.keys.pub $HOME/.aptly/public
