@@ -1,4 +1,4 @@
-project_name: "keys.pub"
+project_name: "keys"
 builds:
   - id: keys
     binary: keys
