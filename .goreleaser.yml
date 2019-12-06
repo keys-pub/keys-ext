@@ -48,12 +48,12 @@ brews:
   - name: "keys.pub"
     homepage: "https://keys.pub"
     github:
-      owner: keys-app
+      owner: keys-pub
       name: homebrew-tap
 scoop:
   name: "keys.pub"
   homepage: "https://keys.pub"
   license: MIT
   bucket:
-    owner: keys-app
+    owner: keys-pub
     name: scoop-bucket
