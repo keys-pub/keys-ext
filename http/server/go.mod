@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	github.com/keys-pub/keys v0.0.0-20191205223248-af81f4ce20b7
-	github.com/keys-pub/keysd/http/api v0.0.0-00010101000000-000000000000
+	github.com/keys-pub/keysd/http/api v0.0.0-20191205235950-8ad6069098dd // indirect
 	github.com/labstack/echo/v4 v4.1.11
 	github.com/mattn/go-colorable v0.1.4 // indirect
 	github.com/mattn/go-isatty v0.0.10 // indirect
@@ -15,6 +15,4 @@ require (
 	golang.org/x/text v0.3.2 // indirect
 )
 
-replace github.com/keys-pub/keysd/firestore => ../../firestore
-
-replace github.com/keys-pub/keysd/http/api => ../api
+// replace github.com/keys-pub/keysd/http/api => ../api
