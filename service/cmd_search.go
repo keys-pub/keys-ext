@@ -3,7 +3,6 @@ package service
 import (
 	"bytes"
 	"context"
-	"io"
 
 	"fmt"
 	"text/tabwriter"
@@ -36,8 +35,8 @@ func searchCommands(client *Client) []cli.Command {
 				out := &bytes.Buffer{}
 				w := new(tabwriter.Writer)
 				w.Init(out, 0, 8, 1, ' ', 0)
-				for _, res := range searchResp.Results {
-					fmtSearchResult(w, res)
+				for _, key := range searchResp.Keys {
+					fmtKey(w, key)
 				}
 				w.Flush()
 				fmt.Printf(out.String())
@@ -47,13 +46,13 @@ func searchCommands(client *Client) []cli.Command {
 	}
 }
 
-func fmtSearchResult(w io.Writer, res *SearchResult) {
-	if res == nil {
-		return
-	}
-	typ := ""
-	if res.Type == PrivateKeyType {
-		typ = "🔑"
-	}
-	fmt.Fprintf(w, "%s\t%s\t%s\n", res.KID, fmtUsers(res.Users), typ)
-}
+// func fmtSearchResult(w io.Writer, res *SearchResult) {
+// 	if res == nil {
+// 		return
+// 	}
+// 	typ := ""
+// 	if res.Type == PrivateKeyType {
+// 		typ = "🔑"
+// 	}
+// 	fmt.Fprintf(w, "%s\t%s\t%s\n", res.KID, fmtUsers(res.Users), typ)
+// }

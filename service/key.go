@@ -64,6 +64,17 @@ func (s *service) key(ctx context.Context, kid keys.ID, check bool, update bool)
 	var savedAt time.Time
 	var updatedAt time.Time
 
+	key, err := s.loadPrivateKey(kid)
+	if err != nil {
+		return nil, err
+	}
+	if key != nil {
+		saved = true
+		typ = PrivateKeyType
+	} else {
+		typ = PublicKeyType
+	}
+
 	sc, err := s.scs.Sigchain(kid)
 	if err != nil {
 		return nil, err
@@ -73,12 +84,10 @@ func (s *service) key(ctx context.Context, kid keys.ID, check bool, update bool)
 		saved = true
 
 		if update {
-			ok, err := s.pull(ctx, kid)
+			// TODO: We update even if not published, should we?
+			_, err := s.pull(ctx, kid)
 			if err != nil {
 				return nil, err
-			}
-			if !ok {
-				return nil, keys.NewErrNotFound(kid, keys.SigchainType)
 			}
 		}
 
@@ -108,7 +117,7 @@ func (s *service) key(ctx context.Context, kid keys.ID, check bool, update bool)
 		logger.Debugf("Loading remote sigchain %s", kid)
 		resp, err := s.remote.Sigchain(kid)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrapf(err, "failed to load remote sigchain")
 		}
 		sc, err = resp.Sigchain()
 		if err != nil {
@@ -131,21 +140,13 @@ func (s *service) key(ctx context.Context, kid keys.ID, check bool, update bool)
 
 	if sc != nil {
 		if check {
-			_, usrsErr := keys.UserCheck(ctx, sc, nil, time.Now)
-			if usrsErr != nil {
-				return nil, usrsErr
+			logger.Debugf("Checking user %s", sc.KID())
+			_, err := keys.UserCheck(ctx, sc, nil, time.Now)
+			if err != nil {
+				return nil, err
 			}
 		}
 		usrs = sc.Users()
-	}
-
-	key, err := s.loadPrivateKey(kid)
-	if err != nil {
-		return nil, err
-	}
-	if key != nil {
-		saved = true
-		typ = PrivateKeyType
 	}
 
 	if key == nil && sc == nil {

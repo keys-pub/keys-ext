@@ -10,26 +10,25 @@ import (
 
 // Push (RPC) publishes user public key and sigchain.
 func (s *service) Push(ctx context.Context, req *PushRequest) (*PushResponse, error) {
-	if req.KID == "" {
-		return nil, errors.Errorf("no KID specified")
-	}
-	kid, err := keys.ParseID(req.KID)
+	key, err := s.parseKeyOrCurrent(req.KID)
 	if err != nil {
 		return nil, err
 	}
-	urls, err := s.push(kid)
+
+	urls, err := s.push(key.ID())
 	if err != nil {
 		return nil, err
 	}
-	ok, err := s.pull(ctx, kid)
+	ok, err := s.pull(ctx, key.ID())
 	if err != nil {
 		return nil, err
 	}
 	if !ok {
-		return nil, errors.Errorf("sigchain not found")
+		return nil, errors.Errorf("sigchain not found on remote after push")
 	}
 
 	return &PushResponse{
+		KID:  key.ID().String(),
 		URLs: urls,
 	}, nil
 }

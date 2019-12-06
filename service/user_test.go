@@ -71,7 +71,7 @@ func TestSearchUsers(t *testing.T) {
 
 	resp, err := service.Search(ctx, &SearchRequest{})
 	require.NoError(t, err)
-	require.Equal(t, 3, len(resp.Results))
+	require.Equal(t, 3, len(resp.Keys))
 }
 
 func TestUserAdd(t *testing.T) {
@@ -94,9 +94,9 @@ func TestUserAdd(t *testing.T) {
 
 	resp, err := service.Search(context.TODO(), &SearchRequest{})
 	require.NoError(t, err)
-	require.Equal(t, 1, len(resp.Results))
-	require.Equal(t, 1, len(resp.Results[0].Users))
-	require.Equal(t, "alice", resp.Results[0].Users[0].Name)
+	require.Equal(t, 1, len(resp.Keys))
+	require.Equal(t, 1, len(resp.Keys[0].Users))
+	require.Equal(t, "alice", resp.Keys[0].Users[0].Name)
 
 	_, err = service.UserAdd(ctx, &UserAddRequest{
 		KID:     alice.ID().String(),
@@ -112,10 +112,10 @@ func TestUserAdd(t *testing.T) {
 
 	resp, err = service.Search(context.TODO(), &SearchRequest{})
 	require.NoError(t, err)
-	require.Equal(t, 1, len(resp.Results))
-	require.Equal(t, 2, len(resp.Results[0].Users))
-	require.Equal(t, "alice", resp.Results[0].Users[0].Name)
-	require.Equal(t, "alice2", resp.Results[0].Users[1].Name)
+	require.Equal(t, 1, len(resp.Keys))
+	require.Equal(t, 2, len(resp.Keys[0].Users))
+	require.Equal(t, "alice", resp.Keys[0].Users[0].Name)
+	require.Equal(t, "alice2", resp.Keys[0].Users[1].Name)
 
 	// Try to add user for a public key (not owned)
 	randSPK := keys.GenerateSignKey()
@@ -168,8 +168,8 @@ func TestUserAddGithub(t *testing.T) {
 
 	resp, err := service.Search(ctx, &SearchRequest{Query: alice.ID().String()})
 	require.NoError(t, err)
-	require.Equal(t, 1, len(resp.Results))
-	require.Equal(t, 1, len(resp.Results[0].Users))
-	require.Equal(t, "gabriel", resp.Results[0].Users[0].Name)
-	require.Equal(t, "github", resp.Results[0].Users[0].Service)
+	require.Equal(t, 1, len(resp.Keys))
+	require.Equal(t, 1, len(resp.Keys[0].Users))
+	require.Equal(t, "gabriel", resp.Keys[0].Users[0].Name)
+	require.Equal(t, "github", resp.Keys[0].Users[0].Service)
 }

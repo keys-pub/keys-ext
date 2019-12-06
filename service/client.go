@@ -126,7 +126,7 @@ func RunClient(build Build) {
 
 func runClient(build Build, args []string, client *Client, errorFn func(err error)) {
 	app := cli.NewApp()
-	app.Name = "keys.pub"
+	app.Name = "keys"
 	app.Version = build.String()
 	app.Usage = "Cryptographic key management, signing and encryption."
 

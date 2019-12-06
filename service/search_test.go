@@ -20,15 +20,15 @@ func TestSearch(t *testing.T) {
 
 	resp, err := service.Search(ctx, &SearchRequest{})
 	require.NoError(t, err)
-	require.Equal(t, 2, len(resp.Results))
+	require.Equal(t, 2, len(resp.Keys))
 	// Alice
-	require.Equal(t, "ZoxBoAcN3zUr5A11Uyq1J6pscwKFo2oZSFbwfT7DztXg", resp.Results[0].KID)
-	require.Equal(t, 1, len(resp.Results[0].Users))
-	require.Equal(t, "alice", resp.Results[0].Users[0].Name)
-	require.Equal(t, PrivateKeyType, resp.Results[0].Type)
-	require.True(t, resp.Results[0].Saved)
+	require.Equal(t, "ZoxBoAcN3zUr5A11Uyq1J6pscwKFo2oZSFbwfT7DztXg", resp.Keys[0].KID)
+	require.Equal(t, 1, len(resp.Keys[0].Users))
+	require.Equal(t, "alice", resp.Keys[0].Users[0].Name)
+	require.Equal(t, PrivateKeyType, resp.Keys[0].Type)
+	require.True(t, resp.Keys[0].Saved)
 	// Charlie
-	require.Equal(t, "HBtyNnL4mJYQj2QtAb982yokS1Fgy5VYj7Bh5NFBkycS", resp.Results[1].KID)
-	require.Equal(t, PublicKeyType, resp.Results[1].Type)
-	require.False(t, resp.Results[1].Saved)
+	require.Equal(t, "HBtyNnL4mJYQj2QtAb982yokS1Fgy5VYj7Bh5NFBkycS", resp.Keys[1].KID)
+	require.Equal(t, PublicKeyType, resp.Keys[1].Type)
+	require.False(t, resp.Keys[1].Saved)
 }

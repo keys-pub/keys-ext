@@ -4,6 +4,7 @@ import (
 	"context"
 	"sort"
 
+	"github.com/keys-pub/keys"
 	"github.com/pkg/errors"
 )
 
@@ -19,8 +20,22 @@ func (s *service) Keys(ctx context.Context, req *KeysRequest) (*KeysResponse, er
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load keystore kids")
 	}
-	keys := make([]*Key, 0, kids.Size())
-	for _, kid := range kids.IDs() {
+
+	keys, err := s.keys(ctx, kids.IDs(), sortField, sortDirection)
+	if err != nil {
+		return nil, err
+	}
+
+	return &KeysResponse{
+		Keys:          keys,
+		SortField:     sortField,
+		SortDirection: sortDirection,
+	}, nil
+}
+
+func (s *service) keys(ctx context.Context, kids []keys.ID, sortField string, sortDirection SortDirection) ([]*Key, error) {
+	keys := make([]*Key, 0, len(kids))
+	for _, kid := range kids {
 		key, err := s.key(ctx, kid, false, false)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to load keystore key")
@@ -37,12 +52,7 @@ func (s *service) Keys(ctx context.Context, req *KeysRequest) (*KeysResponse, er
 	sort.Slice(keys, func(i, j int) bool {
 		return keysSort(keys, sortField, sortDirection, i, j)
 	})
-
-	return &KeysResponse{
-		Keys:          keys,
-		SortField:     sortField,
-		SortDirection: sortDirection,
-	}, nil
+	return keys, nil
 }
 
 func keysSort(pks []*Key, sortField string, sortDirection SortDirection, i, j int) bool {

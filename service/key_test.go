@@ -20,12 +20,24 @@ func TestKey(t *testing.T) {
 
 	testAuthSetup(t, service, alice, false, "alice")
 
-	// Alice
+	// Alice (unpublished, check, update)
 	resp, err := service.Key(ctx, &KeyRequest{
-		KID: "ZoxBoAcN3zUr5A11Uyq1J6pscwKFo2oZSFbwfT7DztXg",
+		KID:    alice.ID().String(),
+		Check:  true,
+		Update: true,
 	})
 	require.NoError(t, err)
-	require.Equal(t, "ZoxBoAcN3zUr5A11Uyq1J6pscwKFo2oZSFbwfT7DztXg", resp.Key.KID)
+	require.Equal(t, alice.ID().String(), resp.Key.KID)
+	require.Equal(t, int64(1234567890001), resp.Key.CreatedAt)
+	require.Equal(t, int64(0), resp.Key.PublishedAt)
+	require.Equal(t, int64(1234567890002), resp.Key.SavedAt)
+
+	// Alice
+	resp, err = service.Key(ctx, &KeyRequest{
+		KID: alice.ID().String(),
+	})
+	require.NoError(t, err)
+	require.Equal(t, alice.ID().String(), resp.Key.KID)
 	require.Equal(t, int64(1234567890001), resp.Key.CreatedAt)
 	require.Equal(t, int64(0), resp.Key.PublishedAt)
 	require.Equal(t, int64(1234567890002), resp.Key.SavedAt)
@@ -34,10 +46,10 @@ func TestKey(t *testing.T) {
 
 	// Alice (published)
 	resp, err = service.Key(ctx, &KeyRequest{
-		KID: "ZoxBoAcN3zUr5A11Uyq1J6pscwKFo2oZSFbwfT7DztXg",
+		KID: alice.ID().String(),
 	})
 	require.NoError(t, err)
-	require.Equal(t, "ZoxBoAcN3zUr5A11Uyq1J6pscwKFo2oZSFbwfT7DztXg", resp.Key.KID)
+	require.Equal(t, alice.ID().String(), resp.Key.KID)
 	require.Equal(t, int64(1234567890001), resp.Key.CreatedAt)
 	require.Equal(t, int64(1234567890005), resp.Key.PublishedAt)
 	require.Equal(t, int64(1234567890002), resp.Key.SavedAt)
@@ -47,7 +59,7 @@ func TestKey(t *testing.T) {
 		User: "alice@test",
 	})
 	require.NoError(t, err)
-	require.Equal(t, "ZoxBoAcN3zUr5A11Uyq1J6pscwKFo2oZSFbwfT7DztXg", resp.Key.KID)
+	require.Equal(t, alice.ID().String(), resp.Key.KID)
 	require.Equal(t, int64(1234567890001), resp.Key.CreatedAt)
 	require.Equal(t, int64(1234567890005), resp.Key.PublishedAt)
 	require.Equal(t, int64(1234567890002), resp.Key.SavedAt)
@@ -57,10 +69,10 @@ func TestKey(t *testing.T) {
 
 	// Bob (remote)
 	resp, err = service.Key(ctx, &KeyRequest{
-		KID:   "6d35v6U3GfePrTjFwtak5yTUpkEyWA7tQQ2gDzZdX89x",
+		KID:   bob.ID().String(),
 		Check: true,
 	})
-	require.Equal(t, "6d35v6U3GfePrTjFwtak5yTUpkEyWA7tQQ2gDzZdX89x", resp.Key.KID)
+	require.Equal(t, bob.ID().String(), resp.Key.KID)
 	require.Equal(t, int64(1234567890020), resp.Key.CreatedAt)
 	require.Equal(t, int64(1234567890022), resp.Key.PublishedAt)
 	require.Equal(t, int64(0), resp.Key.SavedAt)
@@ -70,11 +82,11 @@ func TestKey(t *testing.T) {
 
 	// Bob (update)
 	resp, err = service.Key(ctx, &KeyRequest{
-		KID:    "6d35v6U3GfePrTjFwtak5yTUpkEyWA7tQQ2gDzZdX89x",
+		KID:    bob.ID().String(),
 		Update: true,
 	})
 	require.NoError(t, err)
-	require.Equal(t, "6d35v6U3GfePrTjFwtak5yTUpkEyWA7tQQ2gDzZdX89x", resp.Key.KID)
+	require.Equal(t, bob.ID().String(), resp.Key.KID)
 	require.Equal(t, int64(1234567890020), resp.Key.CreatedAt)
 	require.Equal(t, int64(1234567890022), resp.Key.PublishedAt)
 	require.Equal(t, int64(1234567890021), resp.Key.SavedAt)
