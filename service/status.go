@@ -42,8 +42,8 @@ func (s *service) Status(ctx context.Context, req *StatusRequest) (*StatusRespon
 // RuntimeStatus (RPC) gets the current runtime status.
 // This call is NOT AUTHENTICATED.
 func (s *service) RuntimeStatus(ctx context.Context, req *RuntimeStatusRequest) (*RuntimeStatusResponse, error) {
-	runtime := os.Getenv("KEYUP_RUNTIME")
-	label := os.Getenv("KEYUP_LABEL")
+	runtime := os.Getenv("KEYS_RUNTIME")
+	label := os.Getenv("KEYS_LABEL")
 	exe, exeErr := ExecutablePath()
 	if exeErr != nil {
 		logger.Errorf("Failed to get current executable path: %s", exeErr)

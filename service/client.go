@@ -202,7 +202,7 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 			errorFn(err)
 		}
 
-		authToken := os.Getenv("keys_AUTH")
+		authToken := os.Getenv("KEYS_AUTH")
 
 		if err := connect(cfg, client, build, authToken, true); err != nil {
 			errorFn(err)
