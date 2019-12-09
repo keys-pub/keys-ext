@@ -143,6 +143,16 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 		},
 	}
 
+	// Default action, show keys
+	app.Action = func(c *cli.Context) error {
+		resp, err := client.ProtoClient().Keys(context.TODO(), &KeysRequest{})
+		if err != nil {
+			return err
+		}
+		fmtKeys(resp.Keys)
+		return nil
+	}
+
 	logger := logrus.StandardLogger()
 	formatter := &logrus.TextFormatter{
 		FullTimestamp:   true,
