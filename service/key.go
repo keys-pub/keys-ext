@@ -45,9 +45,9 @@ func (s *service) Key(ctx context.Context, req *KeyRequest) (*KeyResponse, error
 func (t KeyType) Emoji() string {
 	switch t {
 	case PrivateKeyType:
-		return "🔑"
+		return "🔑" // 🔐
 	case PublicKeyType:
-		return "📦"
+		return "🖋️" // 🔏
 	default:
 		return "❓"
 	}

@@ -29,7 +29,7 @@ type auth struct {
 	sync.Mutex
 	cfg       *Config
 	keyring   keyring.Keyring
-	token     string
+	tokens    map[string]string
 	whitelist *keys.StringSet
 }
 
@@ -49,8 +49,9 @@ func newAuth(cfg *Config) (*auth, error) {
 
 	return &auth{
 		cfg:       cfg,
-		whitelist: whitelist,
 		keyring:   kr,
+		tokens:    map[string]string{},
+		whitelist: whitelist,
 	}, nil
 }
 
@@ -78,31 +79,31 @@ func (a *auth) lock() {
 	// TODO: Lock after running for a certain amount of time (maybe a few hours?)
 	logger.Infof("Locking")
 	a.keyring.Lock()
-	a.token = ""
+	a.tokens = map[string]string{}
 }
 
-func (a *auth) unlock(password string) error {
+func (a *auth) unlock(password string, client string) (string, error) {
 	logger.Infof("Unlock")
 	salt, err := a.keyring.Salt()
 	if err != nil {
-		return errors.Wrapf(err, "failed to load salt")
+		return "", errors.Wrapf(err, "failed to load salt")
 	}
 	auth, err := keyring.NewPasswordAuth(password, salt)
 	if err != nil {
-		return err
+		return "", err
 	}
 	if err := a.keyring.Unlock(auth); err != nil {
 		if err == keyring.ErrInvalidAuth {
-			return status.Error(codes.PermissionDenied, "invalid password")
+			return "", status.Error(codes.PermissionDenied, "invalid password")
 		}
-		return err
+		return "", err
 	}
 
 	token := generateToken()
-	a.token = token
+	a.tokens[client] = token
 	logger.Infof("Unlocked")
 
-	return nil
+	return token, nil
 }
 
 func (a *auth) key(password string, salt []byte) (keys.Key, error) {
@@ -140,16 +141,15 @@ func (a *auth) authorize(ctx context.Context, method string) error {
 			logger.Warningf("Auth token missing from request")
 			return status.Error(codes.PermissionDenied, "authorization missing")
 		}
-		if a.token == "" {
-			logger.Infof("No authorization set")
-			return status.Error(codes.PermissionDenied, "no authorization set")
-		}
 		token := md["authorization"][0]
-		if token != a.token {
-			logger.Infof("Invalid auth token")
-			return status.Error(codes.PermissionDenied, "invalid token")
+		for _, t := range a.tokens {
+			if t == token {
+				return nil
+			}
 		}
-		return nil
+
+		logger.Infof("Invalid auth token")
+		return status.Error(codes.PermissionDenied, "invalid token")
 	}
 	return status.Error(codes.PermissionDenied, "no authorization in context")
 }
@@ -206,7 +206,8 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 		return nil, status.Error(codes.NotFound, "key not found or wasn't published (use -force to bypass)")
 	}
 
-	if err := s.auth.unlock(req.Password); err != nil {
+	token, err := s.auth.unlock(req.Password, req.Client)
+	if err != nil {
 		return nil, err
 	}
 
@@ -239,7 +240,7 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 
 	return &AuthSetupResponse{
 		KID:       key.ID().String(),
-		AuthToken: s.auth.token,
+		AuthToken: token,
 	}, nil
 }
 
@@ -248,12 +249,12 @@ func (s *service) AuthUnlock(ctx context.Context, req *AuthUnlockRequest) (*Auth
 	if req.Password == "" {
 		return nil, errors.Errorf("no password specified")
 	}
-
-	if err := s.auth.unlock(req.Password); err != nil {
+	token, err := s.auth.unlock(req.Password, req.Client)
+	if err != nil {
 		return nil, err
 	}
 	return &AuthUnlockResponse{
-		AuthToken: s.auth.token,
+		AuthToken: token,
 	}, nil
 }
 

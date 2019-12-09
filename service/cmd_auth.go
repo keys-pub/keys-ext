@@ -128,6 +128,7 @@ func authCommands(client *Client) []cli.Command {
 						Password:         string(password),
 						PublishPublicKey: publish,
 						Force:            c.Bool("force"),
+						Client:           "cli",
 					})
 					if err != nil {
 						return err
@@ -158,6 +159,7 @@ func authCommands(client *Client) []cli.Command {
 						Password: string(password),
 						Recover:  true,
 						Force:    c.Bool("force"),
+						Client:   "cli",
 					})
 					if err != nil {
 						return err
@@ -177,6 +179,7 @@ func authCommands(client *Client) []cli.Command {
 					logger.Infof("Auth unlock...")
 					unlock, unlockErr := client.ProtoClient().AuthUnlock(context.TODO(), &AuthUnlockRequest{
 						Password: string(password),
+						Client:   "cli",
 					})
 					if unlockErr != nil {
 						return unlockErr

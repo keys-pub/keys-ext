@@ -91,17 +91,6 @@ func fmtItem(w io.Writer, item *Item) {
 	fmt.Fprintf(w, "%s\t%s\n", item.ID, item.Type)
 }
 
-// func fmtSearchResult(w io.Writer, res *SearchResult) {
-// 	if res == nil {
-// 		return
-// 	}
-// 	typ := ""
-// 	if res.Type == PrivateKeyType {
-// 		typ = "🔑"
-// 	}
-// 	fmt.Fprintf(w, "%s\t%s\t%s\n", res.KID, fmtUsers(res.Users), typ)
-// }
-
 func argString(c *cli.Context, name string, optional bool) (string, error) {
 	val := c.String(name)
 	if val != "" {
@@ -111,7 +100,7 @@ func argString(c *cli.Context, name string, optional bool) (string, error) {
 		return val, nil
 	}
 
-	args := strings.TrimSpace(c.Args().First() + " " + strings.Join(c.Args().Tail(), " "))
+	args := c.Args().First()
 	if args != "" {
 		return args, nil
 	}

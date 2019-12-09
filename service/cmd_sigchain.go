@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/keys-pub/keys"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
@@ -16,7 +15,7 @@ func sigchainCommands(client *Client) []cli.Command {
 	return []cli.Command{
 		cli.Command{
 			Name:  "sigchain",
-			Usage: "Manage a sigchain",
+			Usage: "Sigchains",
 			Subcommands: []cli.Command{
 				cli.Command{
 					Name:  "show",
@@ -26,24 +25,20 @@ func sigchainCommands(client *Client) []cli.Command {
 						cli.IntFlag{Name: "seq, s", Usage: "seq"},
 					},
 					Action: func(c *cli.Context) error {
-						kid, err := argString(c, "kid", false)
+						kid, err := argString(c, "kid", true)
 						if err != nil {
 							return err
 						}
 						seq := c.Int("seq")
-						resp, err := client.ProtoClient().Sigchain(context.TODO(), &SigchainRequest{
-							KID: kid,
-							Seq: int32(seq),
-						})
-						if err != nil {
-							return err
-						}
-
 						if seq != 0 {
-							if len(resp.Statements) == 0 {
-								return errors.Errorf("no statement")
+							resp, err := client.ProtoClient().Statement(context.TODO(), &StatementRequest{
+								KID: kid,
+								Seq: int32(seq),
+							})
+							if err != nil {
+								return err
 							}
-							st, err := statementFromRPC(resp.Statements[0])
+							st, err := statementFromRPC(resp.Statement)
 							if err != nil {
 								return err
 							}
@@ -51,37 +46,26 @@ func sigchainCommands(client *Client) []cli.Command {
 							return nil
 						}
 
+						resp, err := client.ProtoClient().Sigchain(context.TODO(), &SigchainRequest{
+							KID: kid,
+						})
+						if err != nil {
+							return err
+						}
 						logger.Infof("Resolving statements")
-						sts, stsErr := statementsFromRPC(resp.Statements)
-						if stsErr != nil {
-							return errors.Wrapf(stsErr, "failed to resolve statements")
-						}
-						rkid, err := keys.ParseID(resp.KID)
+						sc, err := sigchainFromRPC(resp.Key.KID, resp.Statements)
 						if err != nil {
 							return err
 						}
-						logger.Infof("Resolving sigchain from statements")
-						sc, err := keys.NewSigchainForKID(rkid)
-						if err != nil {
-							return err
-						}
-						if err := sc.AddAll(sts); err != nil {
-							return errors.Wrapf(err, "failed to resolve sigchain from statements")
-						}
-						for _, st := range sts {
+						for _, st := range sc.Statements() {
 							fmt.Println(string(st.Bytes()))
 						}
-						// spew, err := keys.Spew(sc.EntryIterator(), nil)
-						// if err != nil {
-						// 	return err
-						// }
-						// fmt.Println(spew.String())
 						return nil
 					},
 				},
 				cli.Command{
 					Name:  "statement",
-					Usage: "Manage sigchain statements",
+					Usage: "Sigchain statements",
 					Subcommands: []cli.Command{
 						cli.Command{
 							Name:      "add",
@@ -106,7 +90,7 @@ func sigchainCommands(client *Client) []cli.Command {
 									return errors.Errorf("sigchain data restricted to 16KB")
 								}
 
-								resp, err := client.ProtoClient().SigchainStatementCreate(context.TODO(), &SigchainStatementCreateRequest{
+								resp, err := client.ProtoClient().StatementCreate(context.TODO(), &StatementCreateRequest{
 									KID:    c.String("kid"),
 									DryRun: c.Bool("dry-run"),
 									Local:  c.Bool("local"),
@@ -132,7 +116,7 @@ func sigchainCommands(client *Client) []cli.Command {
 								cli.BoolFlag{Name: "local"},
 							},
 							Action: func(c *cli.Context) error {
-								resp, err := client.ProtoClient().SigchainStatementRevoke(context.TODO(), &SigchainStatementRevokeRequest{
+								resp, err := client.ProtoClient().StatementRevoke(context.TODO(), &StatementRevokeRequest{
 									KID:    c.String("kid"),
 									Seq:    int32(c.Int("seq")),
 									DryRun: c.Bool("dry-run"),

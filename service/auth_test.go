@@ -26,24 +26,26 @@ func TestAuth(t *testing.T) {
 	require.False(t, authed)
 
 	// Unlock (setup)
-	err = auth.unlock("password123")
+	_, err = auth.unlock("password123", "test")
 	require.NoError(t, err)
 
 	authed2, err := kr.Authed()
 	require.NoError(t, err)
 	require.True(t, authed2)
 
-	err = auth.unlock("password123")
+	token, err := auth.unlock("password123", "test")
 	require.NoError(t, err)
-	require.NotEmpty(t, auth.token)
+	require.NotEmpty(t, auth.tokens)
+	require.NotEmpty(t, token)
 
 	// Lock
 	auth.lock()
 
 	// Unlock with invalid password
-	err = auth.unlock("invalidpassword")
+	_, err = auth.unlock("invalidpassword", "test")
 	require.EqualError(t, err, "rpc error: code = PermissionDenied desc = invalid password")
-	require.Empty(t, auth.token)
+	require.Empty(t, auth.tokens)
+	require.Empty(t, auth.tokens)
 }
 
 func TestAuthorize(t *testing.T) {
@@ -61,21 +63,22 @@ func TestAuthorize(t *testing.T) {
 		"authorization": []string{""},
 	})
 	err = auth.authorize(ctx2, "/service.Keys/SomeMethod")
-	require.EqualError(t, err, "rpc error: code = PermissionDenied desc = no authorization set")
+	require.EqualError(t, err, "rpc error: code = PermissionDenied desc = invalid token")
 
 	ctx3 := metadata.NewIncomingContext(context.TODO(), metadata.MD{
 		"authorization": []string{"badtoken"},
 	})
 	err = auth.authorize(ctx3, "/service.Keys/SomeMethod")
-	require.EqualError(t, err, "rpc error: code = PermissionDenied desc = no authorization set")
+	require.EqualError(t, err, "rpc error: code = PermissionDenied desc = invalid token")
 
 	// Unlock
-	err = auth.unlock("password123")
+	token, err := auth.unlock("password123", "test")
 	require.NoError(t, err)
-	require.NotEmpty(t, auth.token)
+	require.NotEmpty(t, auth.tokens)
+	require.NotEmpty(t, token)
 
 	ctx4 := metadata.NewIncomingContext(context.TODO(), metadata.MD{
-		"authorization": []string{auth.token},
+		"authorization": []string{token},
 	})
 	err = auth.authorize(ctx4, "/service.Keys/SomeMethod")
 	require.NoError(t, err)
@@ -110,7 +113,7 @@ func TestAuthLock(t *testing.T) {
 
 	_, err = service.AuthLock(ctx, &AuthLockRequest{})
 	require.NoError(t, err)
-	require.Empty(t, service.auth.token)
+	require.Empty(t, service.auth.tokens)
 
 	_, err = service.Sign(context.TODO(), &SignRequest{Data: []byte("test"), KID: kid})
 	require.EqualError(t, err, "keyring is locked")
