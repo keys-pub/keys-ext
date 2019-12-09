@@ -1,12 +1,8 @@
 package service
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"io"
-	strings "strings"
-	"text/tabwriter"
 
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
@@ -14,19 +10,19 @@ import (
 
 func itemCommands(client *Client) []cli.Command {
 	return []cli.Command{
-		cli.Command{
-			Name:  "list",
-			Usage: "List keys",
-			Flags: []cli.Flag{},
-			Action: func(c *cli.Context) error {
-				resp, err := client.ProtoClient().Keys(context.TODO(), &KeysRequest{})
-				if err != nil {
-					return err
-				}
-				fmtKeys(resp.Keys)
-				return nil
-			},
-		},
+		// cli.Command{
+		// 	Name:  "list",
+		// 	Usage: "List keys",
+		// 	Flags: []cli.Flag{},
+		// 	Action: func(c *cli.Context) error {
+		// 		resp, err := client.ProtoClient().Keys(context.TODO(), &KeysRequest{})
+		// 		if err != nil {
+		// 			return err
+		// 		}
+		// 		fmtKeys(resp.Keys)
+		// 		return nil
+		// 	},
+		// },
 		cli.Command{
 			Name:  "keyring",
 			Usage: "Keyring",
@@ -50,8 +46,12 @@ func itemCommands(client *Client) []cli.Command {
 				cli.BoolFlag{Name: "update"},
 			},
 			Action: func(c *cli.Context) error {
+				kid, err := argString(c, "kid", false)
+				if err != nil {
+					return err
+				}
 				resp, err := client.ProtoClient().Key(context.TODO(), &KeyRequest{
-					KID:    c.String("kid"),
+					KID:    kid,
 					User:   c.String("user"),
 					Check:  c.Bool("check"),
 					Update: c.Bool("update"),
@@ -91,11 +91,12 @@ func itemCommands(client *Client) []cli.Command {
 				cli.StringFlag{Name: "kid, k", Usage: "kid"},
 			},
 			Action: func(c *cli.Context) error {
-				if c.String("kid") == "" {
-					return errors.Errorf("no kid specified")
+				kid, err := argString(c, "kid", false)
+				if err != nil {
+					return err
 				}
 				req := &KeyBackupRequest{
-					KID: c.String("kid"),
+					KID: kid,
 				}
 				resp, err := client.ProtoClient().KeyBackup(context.TODO(), req)
 				if err != nil {
@@ -135,14 +136,14 @@ func itemCommands(client *Client) []cli.Command {
 				cli.StringFlag{Name: "seed-phrase", Usage: "seed phrase for confirming removal of a key"},
 			},
 			Action: func(c *cli.Context) error {
-				if c.String("kid") == "" {
-					return errors.Errorf("no kid specified")
-				}
-				_, err := client.ProtoClient().KeyRemove(context.TODO(), &KeyRemoveRequest{
-					KID:        c.String("kid"),
-					SeedPhrase: c.String("seed-phrase"),
-				})
+				kid, err := argString(c, "kid", false)
 				if err != nil {
+					return err
+				}
+				if _, err := client.ProtoClient().KeyRemove(context.TODO(), &KeyRemoveRequest{
+					KID:        kid,
+					SeedPhrase: c.String("seed-phrase"),
+				}); err != nil {
 					return err
 				}
 				return nil
@@ -197,49 +198,4 @@ func itemCommands(client *Client) []cli.Command {
 			},
 		},
 	}
-}
-
-func fmtKeys(keys []*Key) {
-	out := &bytes.Buffer{}
-	w := new(tabwriter.Writer)
-	w.Init(out, 0, 8, 1, ' ', 0)
-	for _, key := range keys {
-		fmtKey(w, key)
-	}
-	w.Flush()
-	fmt.Print(out.String())
-}
-
-func fmtUsers(usrs []*User) string {
-	out := []string{}
-	for _, usr := range usrs {
-		out = append(out, fmt.Sprintf("%s@%s", usr.Name, usr.Service))
-	}
-	return strings.Join(out, ",")
-}
-
-func fmtKey(w io.Writer, key *Key) {
-	if key == nil {
-		fmt.Fprintf(w, "∅\n")
-		return
-	}
-	fmt.Fprintf(w, "%s\t%s\t%s\n", key.KID, fmtUsers(key.Users), key.Type.Emoji())
-}
-
-func fmtItems(items []*Item) {
-	out := &bytes.Buffer{}
-	w := new(tabwriter.Writer)
-	w.Init(out, 0, 8, 1, ' ', 0)
-	for _, item := range items {
-		fmtItem(w, item)
-	}
-	w.Flush()
-	fmt.Print(out.String())
-}
-
-func fmtItem(w io.Writer, item *Item) {
-	if item == nil {
-		return
-	}
-	fmt.Fprintf(w, "%s\t%s\n", item.ID, item.Type)
 }

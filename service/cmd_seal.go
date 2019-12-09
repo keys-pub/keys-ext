@@ -154,14 +154,3 @@ func sealCommands(client *Client) []cli.Command {
 		},
 	}
 }
-
-func writeAll(writer io.Writer, b []byte) error {
-	n, writeErr := writer.Write(b)
-	if writeErr != nil {
-		return writeErr
-	}
-	if n != len(b) {
-		return io.ErrShortWrite
-	}
-	return nil
-}

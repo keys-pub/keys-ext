@@ -17,8 +17,12 @@ func messagesCommands(client *Client) []cli.Command {
 				cli.StringFlag{Name: "kid, k", Usage: "kid"},
 			},
 			Action: func(c *cli.Context) error {
+				kid, err := argString(c, "kid", false)
+				if err != nil {
+					return err
+				}
 				resp, err := client.ProtoClient().Messages(context.TODO(), &MessagesRequest{
-					KID: c.String("kid"),
+					KID: kid,
 				})
 				if err != nil {
 					return err

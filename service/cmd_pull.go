@@ -18,8 +18,12 @@ func pullCommands(client *Client) []cli.Command {
 				cli.StringFlag{Name: "user, u", Usage: "user, eg. gabriel@github"},
 			},
 			Action: func(c *cli.Context) error {
+				kid, err := argString(c, "kid", false)
+				if err != nil {
+					return err
+				}
 				req := &PullRequest{
-					KID:  c.String("kid"),
+					KID:  kid,
 					User: c.String("user"),
 					All:  c.Bool("all"),
 				}
@@ -41,8 +45,12 @@ func pullCommands(client *Client) []cli.Command {
 				cli.StringFlag{Name: "kid, k", Usage: "kid"},
 			},
 			Action: func(c *cli.Context) error {
+				kid, err := argString(c, "kid", false)
+				if err != nil {
+					return err
+				}
 				req := &PushRequest{
-					KID: c.String("kid"),
+					KID: kid,
 				}
 				resp, err := client.ProtoClient().Push(context.TODO(), req)
 				if err != nil {

@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"text/tabwriter"
 
-	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
 
@@ -21,11 +20,12 @@ func searchCommands(client *Client) []cli.Command {
 				cli.IntFlag{Name: "limit, l", Usage: "limit number of results"},
 			},
 			Action: func(c *cli.Context) error {
-				if c.NArg() > 0 {
-					return errors.Errorf("too many arguments")
+				query, err := argString(c, "query", true)
+				if err != nil {
+					return err
 				}
 				searchResp, err := client.ProtoClient().Search(context.TODO(), &SearchRequest{
-					Query: c.String("query"),
+					Query: query,
 					Limit: int32(c.Int("limit")),
 				})
 				if err != nil {
@@ -45,14 +45,3 @@ func searchCommands(client *Client) []cli.Command {
 		},
 	}
 }
-
-// func fmtSearchResult(w io.Writer, res *SearchResult) {
-// 	if res == nil {
-// 		return
-// 	}
-// 	typ := ""
-// 	if res.Type == PrivateKeyType {
-// 		typ = "🔑"
-// 	}
-// 	fmt.Fprintf(w, "%s\t%s\t%s\n", res.KID, fmtUsers(res.Users), typ)
-// }

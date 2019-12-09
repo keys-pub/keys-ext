@@ -26,9 +26,13 @@ func sigchainCommands(client *Client) []cli.Command {
 						cli.IntFlag{Name: "seq, s", Usage: "seq"},
 					},
 					Action: func(c *cli.Context) error {
+						kid, err := argString(c, "kid", false)
+						if err != nil {
+							return err
+						}
 						seq := c.Int("seq")
 						resp, err := client.ProtoClient().Sigchain(context.TODO(), &SigchainRequest{
-							KID: c.String("kid"),
+							KID: kid,
 							Seq: int32(seq),
 						})
 						if err != nil {
@@ -52,12 +56,12 @@ func sigchainCommands(client *Client) []cli.Command {
 						if stsErr != nil {
 							return errors.Wrapf(stsErr, "failed to resolve statements")
 						}
-						kid, err := keys.ParseID(resp.KID)
+						rkid, err := keys.ParseID(resp.KID)
 						if err != nil {
 							return err
 						}
 						logger.Infof("Resolving sigchain from statements")
-						sc, err := keys.NewSigchainForKID(kid)
+						sc, err := keys.NewSigchainForKID(rkid)
 						if err != nil {
 							return err
 						}
