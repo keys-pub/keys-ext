@@ -18,6 +18,8 @@ echo "recover"
 keys recover -seed-phrase "$seed"
 seed=`keys backup $kid`
 echo "backup $seed"
+echo "remove"
+keys remove -seed-phrase "$seed" "$kid"
 echo "pull"
 keys pull -kid "$kid"
 echo "pull"
