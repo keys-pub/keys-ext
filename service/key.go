@@ -154,14 +154,16 @@ func (s *service) key(ctx context.Context, kid keys.ID, check bool, update bool)
 	}
 
 	return &Key{
-		KID:         kid.String(),
-		Users:       usersToRPC(usrs),
-		Type:        typ,
-		Saved:       saved,
-		CreatedAt:   int64(keys.TimeToMillis(createdAt)),
-		PublishedAt: int64(keys.TimeToMillis(publishedAt)),
-		SavedAt:     int64(keys.TimeToMillis(savedAt)),
-		UpdatedAt:   int64(keys.TimeToMillis(updatedAt)),
+		KID:           kid.String(),
+		Users:         usersToRPC(usrs),
+		Type:          typ,
+		SignPublicKey: sc.SignPublicKey()[:],
+		BoxPublicKey:  sc.BoxPublicKey()[:],
+		Saved:         saved,
+		CreatedAt:     int64(keys.TimeToMillis(createdAt)),
+		PublishedAt:   int64(keys.TimeToMillis(publishedAt)),
+		SavedAt:       int64(keys.TimeToMillis(savedAt)),
+		UpdatedAt:     int64(keys.TimeToMillis(updatedAt)),
 	}, nil
 }
 

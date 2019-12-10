@@ -145,6 +145,9 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 
 	// Default action, show keys
 	app.Action = func(c *cli.Context) error {
+		if c.NArg() > 0 {
+			return errors.Errorf("invalid arguments")
+		}
 		resp, err := client.ProtoClient().Keys(context.TODO(), &KeysRequest{})
 		if err != nil {
 			return err

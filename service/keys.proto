@@ -393,13 +393,26 @@ enum KeyType {
 }
 
 message Key {
+  // KID is key identifier, which is the public key (Base58 encoded).
   string kid = 1 [(gogoproto.customname) = "KID"];
-  repeated User users = 2;
+  // Type of key.
   KeyType type = 3;
+  // SignPublicKey is the sign public key.
+  bytes signPublicKey = 4; 
+  // BoxPublicKey is the current encryption public key.
+  bytes boxPublicKey = 5; 
+  // Users signed into sigchain.
+  repeated User users = 6;  
+  // Saved if saved locally.
   bool saved = 10;
+
+  // CreatedAt is when the key was created.
   int64 createdAt = 20;
+  // PublishedAt is when the key published to the key server.
   int64 publishedAt = 21;
+  // SavedAt is when the key was saved locally.
   int64 savedAt = 22;
+  // UpdatedAt is when the key (sigchain) was last updated.
   int64 updatedAt = 23;
 }
 

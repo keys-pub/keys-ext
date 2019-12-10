@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"testing"
 
@@ -28,6 +29,8 @@ func TestKey(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Equal(t, alice.ID().String(), resp.Key.KID)
+	require.Equal(t, "b337a7e588772fdb7c57e5d1ffd1cac9155574db2b547a656223b44f9a40f207", hex.EncodeToString(resp.Key.SignPublicKey))
+	require.Equal(t, "abc7e932a4a470808a453f71d8c1317e413a7843bd0df111eedbb2410cf16007", hex.EncodeToString(resp.Key.BoxPublicKey))
 	require.Equal(t, int64(1234567890001), resp.Key.CreatedAt)
 	require.Equal(t, int64(0), resp.Key.PublishedAt)
 	require.Equal(t, int64(1234567890002), resp.Key.SavedAt)
