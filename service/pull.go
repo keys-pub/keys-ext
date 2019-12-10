@@ -250,7 +250,7 @@ func (s *service) saveResource(ctx context.Context, path string, md api.Metadata
 	if err != nil {
 		return err
 	}
-	rp := keys.Path("pull", path)
+	rp := keys.Path(".resource", path)
 	logger.Debugf("Saving pull resource: %s", rp)
 	if err := s.db.Set(ctx, rp, b); err != nil {
 		return err
@@ -259,7 +259,7 @@ func (s *service) saveResource(ctx context.Context, path string, md api.Metadata
 }
 
 func (s *service) loadResource(ctx context.Context, path string) (*resource, error) {
-	rp := keys.Path("pull", path)
+	rp := keys.Path(".resource", path)
 	logger.Debugf("Load pull resource: %s", rp)
 	doc, err := s.db.Get(ctx, rp)
 	if err != nil {

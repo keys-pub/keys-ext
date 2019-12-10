@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	strings "strings"
 	"unicode/utf8"
 
 	"github.com/davecgh/go-spew/spew"
@@ -23,6 +24,9 @@ func (s *service) Collections(ctx context.Context, req *CollectionsRequest) (*Co
 		}
 		if col == nil {
 			break
+		}
+		if strings.HasPrefix(col.Path, "/.") {
+			continue
 		}
 		cols = append(cols, &Collection{
 			Path: col.Path,
