@@ -47,6 +47,7 @@ func (c *clock) Now() time.Time {
 }
 
 func TestFirestore(t *testing.T) {
+	SetContextLogger(NewContextLogger(DebugLevel))
 	fs := testFirestore(t, true)
 	testDocumentStore(t, fs)
 }
@@ -71,6 +72,14 @@ func TestFirestoreChanges(t *testing.T) {
 	// SetContextLogger(NewContextLogger(DebugLevel))
 	fs := testFirestore(t, true)
 	testChanges(t, fs, fs)
+}
+
+func TestEmptyIterator(t *testing.T) {
+	iter := &docsIterator{}
+	doc, err := iter.Next()
+	require.NoError(t, err)
+	require.Nil(t, doc)
+	iter.Release()
 }
 
 func testDocumentStore(t *testing.T, ds keys.DocumentStore) {

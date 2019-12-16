@@ -327,14 +327,14 @@ func (f *Firestore) Documents(ctx context.Context, parent string, opts *keys.Doc
 	// TODO: Handle context Done()
 	path := normalizePath(parent)
 
-	if path == "/" {
+	if path == "" {
 		return nil, errors.Errorf("list root not supported")
 	}
 
 	logger.Infof(ctx, "Query (firestore) %q (%+v)...", path, opts)
 	col := f.client.Collection(path)
 	if col == nil {
-		return nil, nil
+		return &docsIterator{parent: path}, nil
 	}
 	q := col.Offset(0)
 

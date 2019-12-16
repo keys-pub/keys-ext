@@ -17,6 +17,9 @@ type docsIterator struct {
 }
 
 func (i *docsIterator) Next() (*keys.Document, error) {
+	if i.iter == nil {
+		return nil, nil
+	}
 	doc, err := i.iter.Next()
 	if err == iterator.Done {
 		return nil, nil
@@ -51,7 +54,9 @@ func (i *docsIterator) Next() (*keys.Document, error) {
 }
 
 func (i *docsIterator) Release() {
-	i.iter.Stop()
+	if i.iter != nil {
+		i.iter.Stop()
+	}
 }
 
 type colsIterator struct {
