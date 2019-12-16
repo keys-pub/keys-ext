@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -68,11 +69,10 @@ func testFire(t *testing.T, clock *clock) Fire {
 	return fi
 }
 
-func newTestServer(t *testing.T, clock *clock, fs Fire) *testServer {
+func newTestServer(t *testing.T, clock *clock, fs Fire, uc *keys.UserContext) *testServer {
 	mc := NewMemTestCache(clock.Now)
-	server := NewServer(fs, mc)
+	server := NewServer(fs, mc, uc)
 	tasks := NewTestTasks(server)
-	server.search.SetNowFn(clock.Now)
 	server.SetTasks(tasks)
 	server.SetInternalAuth(keys.RandString(32))
 	server.SetNowFn(clock.Now)
@@ -116,10 +116,36 @@ func (s *testServer) Serve(req *http.Request) (int, http.Header, string) {
 // 	return resp.StatusCode, resp.Header, string(b)
 // }
 
+func userMock(t *testing.T, uc *keys.UserContext, key keys.Key, name string, service string, clock *clock, mock *keys.MockRequestor) *keys.Statement {
+	url := ""
+	switch service {
+	case "github":
+		url = fmt.Sprintf("https://gist.github.com/%s/1", name)
+	case "twitter":
+		url = fmt.Sprintf("https://twitter.com/%s/status/1", name)
+	default:
+		t.Fatal("unsupported service in test")
+	}
+
+	sc := keys.NewSigchain(key.PublicKey().SignPublicKey())
+	usr, err := keys.NewUser(uc, key.ID(), service, name, url, sc.LastSeq()+1)
+	require.NoError(t, err)
+	st, err := keys.GenerateUserStatement(sc, usr, key.SignKey(), clock.Now())
+	require.NoError(t, err)
+
+	msg, err := usr.Sign(key.SignKey())
+	require.NoError(t, err)
+	mock.SetResponse(url, []byte(msg))
+
+	return st
+}
+
 func TestAccess(t *testing.T) {
 	clock := newClock()
 	fi := testFire(t, clock)
-	srv := newTestServer(t, clock, fi)
+	rq := keys.NewMockRequestor()
+	uc := keys.NewTestUserContext(rq, clock.Now)
+	srv := newTestServer(t, clock, fi, uc)
 
 	alice, err := keys.NewKeyFromSeedPhrase(aliceSeed, false)
 	require.NoError(t, err)

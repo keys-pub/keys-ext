@@ -15,21 +15,18 @@ func TestUserCheck(t *testing.T) {
 
 	clock := newClock()
 	fi := testFire(t, clock)
-	srv := newTestServer(t, clock, fi)
+	rq := keys.NewMockRequestor()
+	uc := keys.NewTestUserContext(rq, clock.Now)
+	srv := newTestServer(t, clock, fi, uc)
 
 	alice, err := keys.NewKeyFromSeedPhrase(aliceSeed, false)
 	require.NoError(t, err)
-	aliceID := alice.ID()
 
 	// Alice sign user statement
-	aliceSc := keys.NewSigchain(alice.PublicKey().SignPublicKey())
-	usr, err := keys.NewUser(aliceID, "test", "alice", "test://", 1)
-	require.NoError(t, err)
-	aliceSt, err := keys.GenerateUserStatement(aliceSc, usr, alice.SignKey(), clock.Now())
-	require.NoError(t, err)
+	st := userMock(t, uc, alice, "alice", "github", clock, rq)
 
 	// PUT /sigchain/:id/:seq
-	req, err := http.NewRequest("PUT", aliceSt.URLPath(), bytes.NewReader(aliceSt.Bytes()))
+	req, err := http.NewRequest("PUT", st.URLPath(), bytes.NewReader(st.Bytes()))
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)

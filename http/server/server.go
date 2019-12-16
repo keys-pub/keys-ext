@@ -37,9 +37,9 @@ type Fire interface {
 }
 
 // NewServer creates a Server.
-func NewServer(fi Fire, mc MemCache) *Server {
+func NewServer(fi Fire, mc MemCache, uc *keys.UserContext) *Server {
 	scs := keys.NewSigchainStore(fi)
-	search := keys.NewSearch(fi, scs)
+	search := keys.NewSearch(fi, scs, uc)
 	return &Server{
 		fi:     fi,
 		mc:     mc,
@@ -60,11 +60,6 @@ func (s *Server) SetInternalAuth(internalAuth string) {
 // SetTasks ...
 func (s *Server) SetTasks(tasks Tasks) {
 	s.tasks = tasks
-}
-
-// SetRequestor ...
-func (s *Server) SetRequestor(req keys.Requestor) {
-	s.search.SetRequestor(req)
 }
 
 // NewHandler returns http.Handler for Server.

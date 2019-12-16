@@ -19,7 +19,9 @@ func TestVault(t *testing.T) {
 
 	clock := newClock()
 	fi := testFire(t, clock)
-	srv := newTestServer(t, clock, fi)
+	rq := keys.NewMockRequestor()
+	uc := keys.NewTestUserContext(rq, clock.Now)
+	srv := newTestServer(t, clock, fi, uc)
 
 	vault, err := keys.NewKeyFromSeedPhrase(vaultSeed, false)
 	require.NoError(t, err)
@@ -72,7 +74,9 @@ func TestVaultAuth(t *testing.T) {
 	// SetContextLogger(NewContextLogger(DebugLevel))
 	clock := newClock()
 	fi := testFire(t, clock)
-	srv := newTestServer(t, clock, fi)
+	rq := keys.NewMockRequestor()
+	uc := keys.NewTestUserContext(rq, clock.Now)
+	srv := newTestServer(t, clock, fi, uc)
 
 	vault, err := keys.NewKeyFromSeedPhrase(vaultSeed, false)
 	require.NoError(t, err)
