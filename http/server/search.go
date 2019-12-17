@@ -17,15 +17,6 @@ func (s *Server) getSearch(c echo.Context) error {
 
 	q := c.QueryParam("q")
 
-	pindex := c.QueryParam("index")
-	if pindex == "" {
-		pindex = "0"
-	}
-	index, err := strconv.Atoi(pindex)
-	if err != nil {
-		return ErrBadRequest(c, errors.Wrapf(err, "invalid index"))
-	}
-
 	plimit := c.QueryParam("limit")
 	if plimit == "" {
 		plimit = "100"
@@ -35,11 +26,7 @@ func (s *Server) getSearch(c echo.Context) error {
 		return ErrBadRequest(c, errors.Wrapf(err, "invalid limit"))
 	}
 
-	// cat := c.QueryParam("cat")
-	// cats := keys.NewStringSetSplit(cat, ",")
-
-	// if cats.Size() == 0 || cats.Contains("user") {
-	results, err := s.search.Search(ctx, &keys.SearchRequest{Query: q, Index: index, Limit: limit, KIDs: true})
+	results, err := s.search.Search(ctx, &keys.SearchRequest{Query: q, Limit: limit})
 	if err != nil {
 		return internalError(c, err)
 	}

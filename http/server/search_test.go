@@ -55,7 +55,7 @@ func TestSearch(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, `{"results":[{"kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","users":[{"status":"ok","ts":"2009-02-13T15:31:30.005-08:00","user":{"kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","name":"alice","seq":1,"service":"github","url":"https://gist.github.com/alice/1"},"vts":"2009-02-13T15:31:30.006-08:00"}]},{"kid":"KNLPD1zD35FpXxP8q2B7JEWVqeJTxYH5RQKtGgrgNAtU","users":[]}]}`, body)
+	require.Equal(t, `{"results":[{"kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","users":[{"status":"ok","ts":"2009-02-13T15:31:30.005-08:00","user":{"kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","name":"alice","seq":1,"service":"github","url":"https://gist.github.com/alice/1"},"vts":"2009-02-13T15:31:30.006-08:00"}]},{"kid":"KNLPD1zD35FpXxP8q2B7JEWVqeJTxYH5RQKtGgrgNAtU"}]}`, body)
 
 	// GET /search?q=alice
 	req, err = http.NewRequest("GET", "/search?q=alice", nil)
@@ -83,7 +83,7 @@ func TestSearch(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, `{"results":[{"kid":"KNLPD1zD35FpXxP8q2B7JEWVqeJTxYH5RQKtGgrgNAtU","users":[]}]}`, body)
+	require.Equal(t, `{"results":[{"kid":"KNLPD1zD35FpXxP8q2B7JEWVqeJTxYH5RQKtGgrgNAtU"}]}`, body)
 
 	// GET /search?q=HX7DWqV9FtkXWJ (alice)
 	req, err = http.NewRequest("GET", "/search?q=HX7DWqV9FtkXWJ", nil)
