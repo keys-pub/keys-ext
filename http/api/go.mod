@@ -10,3 +10,5 @@ require (
 	golang.org/x/crypto v0.0.0-20191205180655-e7c4368fe9dd // indirect
 	golang.org/x/sys v0.0.0-20191204072324-ce4227a45e2e // indirect
 )
+
+// replace github.com/keys-pub/keys => ../../../keys
