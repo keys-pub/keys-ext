@@ -131,7 +131,7 @@ func TestSigchains(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	expectedSigchain2 := `{"kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","md":{"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec/1":{"createdAt":"2009-02-13T15:31:30.002-08:00","updatedAt":"2009-02-13T15:31:30.002-08:00"}},"statements":[{".sig":"RQcZiGchACuPFiIIulcrfJ7d7Sb44EERqgxhlnZg4DFa6GstTY3dx0j+MaQVx42VcHm4E8Xi29CxrVZ+dcwyCg==","data":"dGVzdGluZw==","kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","seq":1,"ts":1234567890001}]}`
+	expectedSigchain2 := `{"kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","md":{"/HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec/1":{"createdAt":"2009-02-13T15:31:30.002-08:00","updatedAt":"2009-02-13T15:31:30.002-08:00"}},"statements":[{".sig":"RQcZiGchACuPFiIIulcrfJ7d7Sb44EERqgxhlnZg4DFa6GstTY3dx0j+MaQVx42VcHm4E8Xi29CxrVZ+dcwyCg==","data":"dGVzdGluZw==","kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","seq":1,"ts":1234567890001}]}`
 	require.Equal(t, expectedSigchain2, body)
 
 	// GET /sigchains
@@ -147,7 +147,7 @@ func TestSigchains(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	expectedSigsWithMetadata := `{"md":{"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec/1":{"createdAt":"2009-02-13T15:31:30.002-08:00","updatedAt":"2009-02-13T15:31:30.002-08:00"}},"statements":[{".sig":"RQcZiGchACuPFiIIulcrfJ7d7Sb44EERqgxhlnZg4DFa6GstTY3dx0j+MaQVx42VcHm4E8Xi29CxrVZ+dcwyCg==","data":"dGVzdGluZw==","kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","seq":1,"ts":1234567890001}],"version":"1234567890003"}`
+	expectedSigsWithMetadata := `{"md":{"/HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec/1":{"createdAt":"2009-02-13T15:31:30.002-08:00","updatedAt":"2009-02-13T15:31:30.002-08:00"}},"statements":[{".sig":"RQcZiGchACuPFiIIulcrfJ7d7Sb44EERqgxhlnZg4DFa6GstTY3dx0j+MaQVx42VcHm4E8Xi29CxrVZ+dcwyCg==","data":"dGVzdGluZw==","kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","seq":1,"ts":1234567890001}],"version":"1234567890003"}`
 	require.Equal(t, expectedSigsWithMetadata, body)
 
 	// GET /:kid

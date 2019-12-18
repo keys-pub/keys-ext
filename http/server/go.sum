@@ -22,6 +22,8 @@ github.com/keys-pub/keys v0.0.0-20191217002459-17f4cb63c332 h1:7VmEPyfT38/O/AtWL
 github.com/keys-pub/keys v0.0.0-20191217002459-17f4cb63c332/go.mod h1:NaHBZtCTywQZvGCW9i2yTv1LJcCA6G3OOfwG8dBPdEQ=
 github.com/keys-pub/keys v0.0.0-20191218203548-c5bfe183d571 h1:tvbPkMvuhB4tR8d2a4M/Ec++m1cux1RBNLvCDLQ50kE=
 github.com/keys-pub/keys v0.0.0-20191218203548-c5bfe183d571/go.mod h1:NaHBZtCTywQZvGCW9i2yTv1LJcCA6G3OOfwG8dBPdEQ=
+github.com/keys-pub/keys v0.0.0-20191218212024-b35d6b05a135 h1:SuqLNNi/fJO7+j6c/ulRXPDWNCbTbkG4kPzdPLn94rg=
+github.com/keys-pub/keys v0.0.0-20191218212024-b35d6b05a135/go.mod h1:NaHBZtCTywQZvGCW9i2yTv1LJcCA6G3OOfwG8dBPdEQ=
 github.com/keys-pub/keysd v0.0.0-20191205235950-8ad6069098dd h1:3bVSW6t7y8Yokg5lbZTygLaf/Yd9N+NSoiOTNGqaJwE=
 github.com/keys-pub/keysd/http/api v0.0.0-20191205235950-8ad6069098dd h1:MuiZrXacS/mexnnJx9WtZWUBPVf/T5w+fShBdz/Loho=
 github.com/keys-pub/keysd/http/api v0.0.0-20191205235950-8ad6069098dd/go.mod h1:Qwr0ZddfAMLhzOGI1vcc8WgR5V5ozBEpd5Jz5gcR02w=
