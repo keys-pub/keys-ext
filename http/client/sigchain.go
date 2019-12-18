@@ -12,7 +12,7 @@ import (
 
 // PutSigchainStatement ...
 func (c *Client) PutSigchainStatement(st *keys.Statement) error {
-	path := st.URLPath()
+	path := keys.Path(st.URL())
 	_, err := c.put(path, url.Values{}, nil, bytes.NewReader(st.Bytes()))
 	return err
 }

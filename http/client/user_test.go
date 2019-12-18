@@ -8,25 +8,13 @@ import (
 )
 
 func TestCheck(t *testing.T) {
-	clock := newClock()
-	testClient := testClient(t, clock)
-	cl := testClient.client
-	defer testClient.closeFn()
+	env := testEnv(t)
+	defer env.closeFn()
 
-	key := keys.GenerateKey()
-	spk := key.PublicKey().SignPublicKey()
-	kid := key.ID()
-	sc := keys.NewSigchain(spk)
+	key, err := keys.NewKeyFromSeedPhrase(aliceSeed, true)
+	require.NoError(t, err)
+	saveUser(t, env, key, "alice", "github")
 
-	usr, err := keys.NewUser(kid, "test", "testuser", "test://", 1)
-	require.NoError(t, err)
-	st, err := keys.GenerateUserStatement(sc, usr, key.SignKey(), clock.Now())
-	require.NoError(t, err)
-	err = sc.Add(st)
-	require.NoError(t, err)
-	perr := cl.PutSigchainStatement(st)
-	require.NoError(t, perr)
-
-	err = cl.Check(key)
+	err = env.client.Check(key)
 	require.NoError(t, err)
 }

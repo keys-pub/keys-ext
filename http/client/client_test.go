@@ -35,26 +35,27 @@ func (c *clock) Now() time.Time {
 	return c.t
 }
 
-type testcl struct {
+type env struct {
+	clock   *clock
 	client  *Client
 	srv     *server.Server
 	dst     keys.DocumentStore
 	ks      *keys.Keystore
 	crypto  keys.CryptoProvider
+	uc      *keys.UserContext
+	req     *keys.MockRequestor
 	closeFn func()
 }
 
-func testFire(t *testing.T, clock *clock) server.Fire {
+func testEnv(t *testing.T) *env {
+	clock := newClock()
 	fi := keys.NewMem()
 	fi.SetTimeNow(clock.Now)
-	return fi
-}
-
-func testClient(t *testing.T, clock *clock) *testcl {
-	fi := testFire(t, clock)
 	ns := server.NewMemTestCache(clock.Now)
+	req := keys.NewMockRequestor()
+	uc := keys.NewTestUserContext(req, clock.Now)
 
-	svr := server.NewServer(fi, ns)
+	svr := server.NewServer(fi, ns, uc)
 	svr.SetNowFn(clock.Now)
 	tasks := server.NewTestTasks(svr)
 	svr.SetTasks(tasks)
@@ -70,12 +71,12 @@ func testClient(t *testing.T, clock *clock) *testcl {
 	ks.SetSigchainStore(keys.NewSigchainStore(keys.NewMem()))
 	crypto := saltpack.NewSaltpack(ks)
 
-	cl, err := NewClient(httpServer.URL, crypto)
+	client, err := NewClient(httpServer.URL, crypto)
 	require.NoError(t, err)
-	require.NotNil(t, cl.nowFn)
-	require.NotNil(t, cl.httpClient)
-	cl.SetHTTPClient(httpServer.Client())
-	cl.SetTimeNow(clock.Now)
+	require.NotNil(t, client.nowFn)
+	require.NotNil(t, client.httpClient)
+	client.SetHTTPClient(httpServer.Client())
+	client.SetTimeNow(clock.Now)
 	svr.URL = httpServer.URL
-	return &testcl{cl, svr, fi, ks, crypto, func() { httpServer.Close() }}
+	return &env{clock, client, svr, fi, ks, crypto, uc, req, func() { httpServer.Close() }}
 }
