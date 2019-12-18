@@ -15,6 +15,8 @@ github.com/keybase/saltpack v0.0.0-20190828020936-3f47e8e2e6ec h1:ejQ18jEAjyiFen
 github.com/keybase/saltpack v0.0.0-20190828020936-3f47e8e2e6ec/go.mod h1:loEJH62iafRcA8ZYlUEq9WgJh/Z9BHdHHfAmxzacQng=
 github.com/keys-pub/keys v0.0.0-20191205223248-af81f4ce20b7 h1:M8GMhLJEIk2RUT0cWnb+ZeD5oHJnQWly1r7hW7qRiag=
 github.com/keys-pub/keys v0.0.0-20191205223248-af81f4ce20b7/go.mod h1:NaHBZtCTywQZvGCW9i2yTv1LJcCA6G3OOfwG8dBPdEQ=
+github.com/keys-pub/keys v0.0.0-20191218203548-c5bfe183d571 h1:tvbPkMvuhB4tR8d2a4M/Ec++m1cux1RBNLvCDLQ50kE=
+github.com/keys-pub/keys v0.0.0-20191218203548-c5bfe183d571/go.mod h1:NaHBZtCTywQZvGCW9i2yTv1LJcCA6G3OOfwG8dBPdEQ=
 github.com/pkg/errors v0.8.1 h1:iURUrRGxPUNPdy5/HRSm+Yj6okJ6UtLINN0Q9M4+h3I=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=

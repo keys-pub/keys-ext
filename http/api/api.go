@@ -25,14 +25,14 @@ type Metadata struct {
 
 // SigchainResponse is the response format for a Sigchain request.
 type SigchainResponse struct {
-	KID        keys.ID            `json:"kid"`
+	KID        keys.ID             `json:"kid"`
 	Metadata   map[string]Metadata `json:"md,omitempty"`
-	Statements []*keys.Statement  `json:"statements"`
+	Statements []*keys.Statement   `json:"statements"`
 }
 
 // MetadataFor returns metadata for Signed.
 func (r SigchainResponse) MetadataFor(st *keys.Statement) Metadata {
-	md, ok := r.Metadata[st.URLPath()]
+	md, ok := r.Metadata[st.URL()]
 	if !ok {
 		return Metadata{}
 	}
@@ -62,13 +62,13 @@ func (r SigchainResponse) Sigchain() (*keys.Sigchain, error) {
 // statements.
 type SigchainsResponse struct {
 	Metadata   map[string]Metadata `json:"md,omitempty"`
-	Statements []*keys.Statement  `json:"statements"`
+	Statements []*keys.Statement   `json:"statements"`
 	Version    string              `json:"version"`
 }
 
 // MetadataFor returns metadata for Signed.
 func (r SigchainsResponse) MetadataFor(st *keys.Statement) Metadata {
-	md, ok := r.Metadata[st.URLPath()]
+	md, ok := r.Metadata[st.URL()]
 	if !ok {
 		return Metadata{}
 	}
@@ -77,14 +77,14 @@ func (r SigchainsResponse) MetadataFor(st *keys.Statement) Metadata {
 
 // Message ...
 type Message struct {
-	Data []byte   `json:"data"`
+	Data []byte  `json:"data"`
 	ID   keys.ID `json:"id"`
-	Path string   `json:"path"`
+	Path string  `json:"path"`
 }
 
 // MessagesResponse is the response from messages.
 type MessagesResponse struct {
-	KID      keys.ID            `json:"kid"`
+	KID      keys.ID             `json:"kid"`
 	Messages []*Message          `json:"messages"`
 	Metadata map[string]Metadata `json:"md,omitempty"`
 	Version  string              `json:"version"`
@@ -106,14 +106,14 @@ type SearchResponse struct {
 
 // Item ...
 type Item struct {
-	Data []byte   `json:"data"`
+	Data []byte  `json:"data"`
 	ID   keys.ID `json:"id"`
-	Path string   `json:"path"`
+	Path string  `json:"path"`
 }
 
 // VaultResponse ...
 type VaultResponse struct {
-	KID      keys.ID            `json:"kid"`
+	KID      keys.ID             `json:"kid"`
 	Items    []*Item             `json:"items"`
 	Metadata map[string]Metadata `json:"md,omitempty"`
 	Version  string              `json:"version"`
