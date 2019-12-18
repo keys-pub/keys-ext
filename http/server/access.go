@@ -15,6 +15,10 @@ const (
 	SigchainResource AccessResource = "sigchain"
 )
 
+func (r AccessResource) String() string {
+	return string(r)
+}
+
 // AccessAction is action for access control.
 type AccessAction string
 

@@ -101,6 +101,10 @@ func AddRoutes(s *Server, e *echo.Echo) {
 	e.GET("/task/create/check/:kid", s.createTaskCheck)
 	// Cron
 	e.POST("/cron/check", s.cronCheck)
+
+	e.GET("/:kid", s.getSigchain)
+	e.GET("/:kid/:seq", s.getSigchainStatement)
+	e.PUT("/:kid/:seq", s.putSigchainStatement)
 }
 
 // SetNowFn sets clock Now function.

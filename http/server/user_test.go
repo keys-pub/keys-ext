@@ -26,7 +26,7 @@ func TestUserCheck(t *testing.T) {
 	st := userMock(t, uc, alice, "alice", "github", clock, rq)
 
 	// PUT /sigchain/:id/:seq
-	req, err := http.NewRequest("PUT", st.URLPath(), bytes.NewReader(st.Bytes()))
+	req, err := http.NewRequest("PUT", "/sigchain/HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec/1", bytes.NewReader(st.Bytes()))
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)

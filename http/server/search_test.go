@@ -32,7 +32,7 @@ func TestSearch(t *testing.T) {
 	// Alice sign user statement
 	st := userMock(t, uc, alice, "alice", "github", clock, rq)
 	// PUT alice
-	req, err = http.NewRequest("PUT", st.URLPath(), bytes.NewReader(st.Bytes()))
+	req, err = http.NewRequest("PUT", "/sigchain/HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec/1", bytes.NewReader(st.Bytes()))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
@@ -44,7 +44,7 @@ func TestSearch(t *testing.T) {
 	bobSc := keys.GenerateSigchain(bob, clock.Now())
 	bobSt := bobSc.Statements()[0]
 	// PUT bob
-	req, err = http.NewRequest("PUT", bobSt.URLPath(), bytes.NewReader(bobSt.Bytes()))
+	req, err = http.NewRequest("PUT", "/sigchain/KNLPD1zD35FpXxP8q2B7JEWVqeJTxYH5RQKtGgrgNAtU/1", bytes.NewReader(bobSt.Bytes()))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)

@@ -68,7 +68,7 @@ func (s *Server) listSigchains(c echo.Context) error {
 
 		statements = append(statements, st)
 
-		md[st.URLPath()] = api.Metadata{
+		md[st.URL()] = api.Metadata{
 			CreatedAt: doc.CreatedAt,
 			UpdatedAt: doc.UpdatedAt,
 		}
@@ -87,7 +87,7 @@ func (s *Server) listSigchains(c echo.Context) error {
 
 func (s *Server) sigchain(c echo.Context, kid keys.ID) (*keys.Sigchain, map[string]api.Metadata, error) {
 	ctx := c.Request().Context()
-	iter, err := s.fi.Documents(ctx, "sigchain", &keys.DocumentsOpts{Prefix: kid.String()})
+	iter, err := s.fi.Documents(ctx, SigchainResource.String(), &keys.DocumentsOpts{Prefix: kid.String()})
 	defer iter.Release()
 	if err != nil {
 		return nil, nil, err
@@ -113,7 +113,7 @@ func (s *Server) sigchain(c echo.Context, kid keys.ID) (*keys.Sigchain, map[stri
 		if err := sc.Add(st); err != nil {
 			return nil, nil, err
 		}
-		md[st.URLPath()] = api.Metadata{
+		md[st.URL()] = api.Metadata{
 			CreatedAt: doc.CreatedAt,
 			UpdatedAt: doc.UpdatedAt,
 		}
@@ -128,7 +128,7 @@ func (s *Server) getSigchain(c echo.Context) error {
 
 	kid, err := keys.ParseID(c.Param("kid"))
 	if err != nil {
-		return ErrBadRequest(c, err)
+		return ErrNotFound(c, nil)
 	}
 	logger.Infof(ctx, "Loading sigchain: %s", kid)
 	sc, md, err := s.sigchain(c, kid)
@@ -161,7 +161,7 @@ func (s *Server) getSigchainStatement(c echo.Context) error {
 	if err != nil {
 		return internalError(c, err)
 	}
-	path := keys.Path("sigchain", kid.WithSeq(i))
+	path := keys.Path(SigchainResource, kid.WithSeq(i))
 	st, doc, err := s.statement(ctx, path)
 	if st == nil {
 		return ErrNotFound(c, errors.Errorf("statement not found"))
@@ -208,7 +208,7 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 		return ErrBadRequest(c, errors.Errorf("invalid seq"))
 	}
 
-	path := st.KeyPath()
+	path := keys.Path(SigchainResource, st.Key())
 
 	exists, err := s.fi.Exists(ctx, path)
 	if err != nil {

@@ -34,7 +34,7 @@ func TestSigchains(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)
-	expected := `{"error":{"code":404,"message":"not found"}}`
+	expected := `{"error":{"code":404,"message":"resource not found"}}`
 	require.Equal(t, expected, body)
 
 	// PUT /sigchains (method not allowed)
@@ -54,15 +54,15 @@ func TestSigchains(t *testing.T) {
 	require.NoError(t, err)
 	aliceStBytes := aliceSt.Bytes()
 
-	// PUT /sigchain/:id/:seq
-	req, err = http.NewRequest("PUT", aliceSt.URLPath(), bytes.NewReader(aliceStBytes))
+	// PUT /sigchain/:kid/:seq
+	req, err = http.NewRequest("PUT", "/sigchain/HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec/1", bytes.NewReader(aliceStBytes))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, "", body)
 
-	// PUT /sigchain/:id/:seq again (conflict error)
-	req, err = http.NewRequest("PUT", aliceSt.URLPath(), bytes.NewReader(aliceStBytes))
+	// PUT /sigchain/:kid/:seq again (conflict error)
+	req, err = http.NewRequest("PUT", "/sigchain/HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec/1", bytes.NewReader(aliceStBytes))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusConflict, code)
@@ -75,32 +75,32 @@ func TestSigchains(t *testing.T) {
 	bobSt, err := keys.GenerateStatement(bobSc, []byte("testing"), bob.SignKey(), "", clock.Now())
 	require.NoError(t, err)
 
-	// PUT /sigchain/:id/:seq (invalid, bob's statement)
-	req, err = http.NewRequest("PUT", aliceSt.URLPath(), bytes.NewReader([]byte(bobSt.Bytes())))
+	// PUT /sigchain/:kid/:seq (invalid, bob's statement)
+	req, err = http.NewRequest("PUT", "/sigchain/HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec/1", bytes.NewReader([]byte(bobSt.Bytes())))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusBadRequest, code)
 	expected = `{"error":{"code":400,"message":"invalid kid"}}`
 	require.Equal(t, expected, body)
 
-	// PUT /sigchain/:id/:seq (empty json)
-	req, err = http.NewRequest("PUT", aliceSt.URLPath(), bytes.NewReader([]byte("{}")))
+	// PUT /sigchain/:kid/:seq (empty json)
+	req, err = http.NewRequest("PUT", "/sigchain/HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec/1", bytes.NewReader([]byte("{}")))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusBadRequest, code)
 	expected = `{"error":{"code":400,"message":"not enough bytes for statement"}}`
 	require.Equal(t, expected, body)
 
-	// PUT /sigchain/:id/:seq (no body)
-	req, err = http.NewRequest("PUT", aliceSt.URLPath(), nil)
+	// PUT /sigchain/:kid/:seq (no body)
+	req, err = http.NewRequest("PUT", "/sigchain/HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec/1", nil)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusBadRequest, code)
 	expected = `{"error":{"code":400,"message":"missing body"}}`
 	require.Equal(t, expected, body)
 
-	// GET /sigchain/:id/:seq
-	req, err = http.NewRequest("GET", aliceSt.URLPath(), nil)
+	// GET /sigchain/:kid/:seq
+	req, err = http.NewRequest("GET", "/sigchain/HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec/1", nil)
 	require.NoError(t, err)
 	code, header, body := srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
@@ -111,27 +111,27 @@ func TestSigchains(t *testing.T) {
 	expectedSigned := `{".sig":"RQcZiGchACuPFiIIulcrfJ7d7Sb44EERqgxhlnZg4DFa6GstTY3dx0j+MaQVx42VcHm4E8Xi29CxrVZ+dcwyCg==","data":"dGVzdGluZw==","kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","seq":1,"ts":1234567890001}`
 	require.Equal(t, expectedSigned, body)
 
-	// GET /sigchain/:id
-	req, err = http.NewRequest("GET", keys.Path("sigchain", aliceID), nil)
+	// GET /sigchain/:kid
+	req, err = http.NewRequest("GET", "/sigchain/HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec", nil)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	expectedSigchain := `{"kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","statements":[{".sig":"RQcZiGchACuPFiIIulcrfJ7d7Sb44EERqgxhlnZg4DFa6GstTY3dx0j+MaQVx42VcHm4E8Xi29CxrVZ+dcwyCg==","data":"dGVzdGluZw==","kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","seq":1,"ts":1234567890001}]}`
 	require.Equal(t, expectedSigchain, body)
 
-	// GET /sigchain/:id (not found)
+	// GET /sigchain/:kid (not found)
 	req, err = http.NewRequest("GET", keys.Path("sigchain", keys.RandID()), nil)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)
 	require.Equal(t, `{"error":{"code":404,"message":"sigchain not found"}}`, body)
 
-	// GET /sigchain/:id?include=md
-	req, err = http.NewRequest("GET", keys.Path("sigchain", aliceID)+"?include=md", nil)
+	// GET /sigchain/:kid?include=md
+	req, err = http.NewRequest("GET", "/sigchain/HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec?include=md", nil)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	expectedSigchain2 := `{"kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","md":{"/sigchain/HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec/1":{"createdAt":"2009-02-13T15:31:30.002-08:00","updatedAt":"2009-02-13T15:31:30.002-08:00"}},"statements":[{".sig":"RQcZiGchACuPFiIIulcrfJ7d7Sb44EERqgxhlnZg4DFa6GstTY3dx0j+MaQVx42VcHm4E8Xi29CxrVZ+dcwyCg==","data":"dGVzdGluZw==","kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","seq":1,"ts":1234567890001}]}`
+	expectedSigchain2 := `{"kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","md":{"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec/1":{"createdAt":"2009-02-13T15:31:30.002-08:00","updatedAt":"2009-02-13T15:31:30.002-08:00"}},"statements":[{".sig":"RQcZiGchACuPFiIIulcrfJ7d7Sb44EERqgxhlnZg4DFa6GstTY3dx0j+MaQVx42VcHm4E8Xi29CxrVZ+dcwyCg==","data":"dGVzdGluZw==","kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","seq":1,"ts":1234567890001}]}`
 	require.Equal(t, expectedSigchain2, body)
 
 	// GET /sigchains
@@ -147,6 +147,45 @@ func TestSigchains(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	expectedSigsWithMetadata := `{"md":{"/sigchain/HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec/1":{"createdAt":"2009-02-13T15:31:30.002-08:00","updatedAt":"2009-02-13T15:31:30.002-08:00"}},"statements":[{".sig":"RQcZiGchACuPFiIIulcrfJ7d7Sb44EERqgxhlnZg4DFa6GstTY3dx0j+MaQVx42VcHm4E8Xi29CxrVZ+dcwyCg==","data":"dGVzdGluZw==","kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","seq":1,"ts":1234567890001}],"version":"1234567890003"}`
+	expectedSigsWithMetadata := `{"md":{"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec/1":{"createdAt":"2009-02-13T15:31:30.002-08:00","updatedAt":"2009-02-13T15:31:30.002-08:00"}},"statements":[{".sig":"RQcZiGchACuPFiIIulcrfJ7d7Sb44EERqgxhlnZg4DFa6GstTY3dx0j+MaQVx42VcHm4E8Xi29CxrVZ+dcwyCg==","data":"dGVzdGluZw==","kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","seq":1,"ts":1234567890001}],"version":"1234567890003"}`
 	require.Equal(t, expectedSigsWithMetadata, body)
+
+	// GET /:kid
+	req, err = http.NewRequest("GET", keys.Path(aliceID), nil)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusOK, code)
+	expectedSigchain = `{"kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","statements":[{".sig":"RQcZiGchACuPFiIIulcrfJ7d7Sb44EERqgxhlnZg4DFa6GstTY3dx0j+MaQVx42VcHm4E8Xi29CxrVZ+dcwyCg==","data":"dGVzdGluZw==","kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","seq":1,"ts":1234567890001}]}`
+	require.Equal(t, expectedSigchain, body)
+
+	// Alice sign "testing2"
+	aliceSt2, err := keys.GenerateStatement(aliceSc, []byte("testing2"), alice.SignKey(), "", clock.Now())
+	require.NoError(t, err)
+	err = aliceSc.Add(aliceSt2)
+	require.NoError(t, err)
+
+	// GET /:kid/:seq
+	req, err = http.NewRequest("GET", "/HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec/1", nil)
+	require.NoError(t, err)
+	code, header, body = srv.Serve(req)
+	require.Equal(t, http.StatusOK, code)
+	require.Equal(t, "Fri, 13 Feb 2009 15:31:30 GMT", header.Get("CreatedAt"))
+	require.Equal(t, "2009-02-13T15:31:30.002-08:00", header.Get("CreatedAt-RFC3339M"))
+	require.Equal(t, "Fri, 13 Feb 2009 15:31:30 GMT", header.Get("Last-Modified"))
+	require.Equal(t, "2009-02-13T15:31:30.002-08:00", header.Get("Last-Modified-RFC3339M"))
+	expectedSigned = `{".sig":"RQcZiGchACuPFiIIulcrfJ7d7Sb44EERqgxhlnZg4DFa6GstTY3dx0j+MaQVx42VcHm4E8Xi29CxrVZ+dcwyCg==","data":"dGVzdGluZw==","kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","seq":1,"ts":1234567890001}`
+
+	// PUT /:kid/:seq
+	req, err = http.NewRequest("PUT", "/HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec/2", bytes.NewReader(aliceSt2.Bytes()))
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusOK, code)
+	require.Equal(t, "", body)
+
+	// PUT /invalidloc/:seq
+	req, err = http.NewRequest("PUT", keys.Path("invalidloc", 1), bytes.NewReader(aliceSt2.Bytes()))
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusBadRequest, code)
+	require.Equal(t, `{"error":{"code":400,"message":"invalid kid"}}`, body)
 }
