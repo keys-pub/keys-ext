@@ -8,7 +8,7 @@ import (
 )
 
 func TestConfigDirs(t *testing.T) {
-	cfg, err := NewConfig("KeysTest", 2000)
+	cfg, err := NewConfig("KeysTest")
 	require.NoError(t, err)
 	require.Equal(t, "KeysTest", cfg.AppName())
 
