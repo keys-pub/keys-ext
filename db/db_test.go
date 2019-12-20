@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -21,7 +20,8 @@ func testDB(t *testing.T) *DB {
 	db := NewDB()
 	db.SetTimeNow(newClock().Now)
 	path := testPath()
-	err := db.OpenAtPath(path)
+	key := keys.GenerateSecretKey()
+	err := db.OpenAtPath(path, key, nil)
 	require.NoError(t, err)
 	return db
 }
@@ -293,7 +293,10 @@ func testMetadata(t *testing.T, ds keys.DocumentStore) {
 func ExampleDB_OpenAtPath() {
 	db := NewDB()
 	defer db.Close()
-	if err := db.OpenAtPath("/tmp/keys.db"); err != nil {
+	key := keys.GenerateSecretKey()
+
+	path := filepath.Join(os.TempDir(), fmt.Sprintf("example-%s.leveldb", keys.RandID()))
+	if err := db.OpenAtPath(path, key, nil); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -301,7 +304,10 @@ func ExampleDB_OpenAtPath() {
 func ExampleDB_Create() {
 	db := NewDB()
 	defer db.Close()
-	if err := db.OpenAtPath("/tmp/keys.db"); err != nil {
+	key := keys.GenerateSecretKey()
+
+	path := filepath.Join(os.TempDir(), fmt.Sprintf("example-%s.leveldb", keys.RandID()))
+	if err := db.OpenAtPath(path, key, nil); err != nil {
 		log.Fatal(err)
 	}
 
@@ -313,12 +319,10 @@ func ExampleDB_Create() {
 func ExampleDB_Get() {
 	db := NewDB()
 	defer db.Close()
-	dir, err := ioutil.TempDir("", "keys")
-	if err != nil {
-		log.Fatal(err)
-	}
-	path := filepath.Join(dir, "keys.db")
-	if err := db.OpenAtPath(path); err != nil {
+	key := keys.GenerateSecretKey()
+
+	path := filepath.Join(os.TempDir(), fmt.Sprintf("example-%s.leveldb", keys.RandID()))
+	if err := db.OpenAtPath(path, key, nil); err != nil {
 		log.Fatal(err)
 	}
 

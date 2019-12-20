@@ -37,6 +37,8 @@ github.com/stretchr/testify v1.4.0 h1:2E4SXV/wtOkTonXsotYi4li6zVWxYlZuYNCXe9XRJy
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
 github.com/syndtr/goleveldb v1.0.0 h1:fBdIW9lB4Iz0n9khmH8w27SJ3QEJ7+IgjPEwGSZiFdE=
 github.com/syndtr/goleveldb v1.0.0/go.mod h1:ZVVdQEZoIme9iO1Ch2Jdy24qqXrMMOU6lpPAyBWyWuQ=
+github.com/tenta-browser/goleveldb-encrypted v0.0.0-20190130005046-b88f7382a0ae h1:EZ7zfDYUeQkb+9o9B1bat1UOeI1nYPJX0RwSvggdOZI=
+github.com/tenta-browser/goleveldb-encrypted v0.0.0-20190130005046-b88f7382a0ae/go.mod h1:n9S/AZg2p8VJNIPI7y718VY8k16/fdxMAOs7Z+jRbsQ=
 github.com/tyler-smith/go-bip39 v1.0.2 h1:+t3w+KwLXO6154GNJY+qUtIxLTmFjfUmpguQT1OlOT8=
 github.com/tyler-smith/go-bip39 v1.0.2/go.mod h1:sJ5fKU0s6JVwZjjcUEX2zFOnvq0ASQ2K9Zr6cf67kNs=
 github.com/zalando/go-keyring v0.0.0-20190913082157-62750a1ff80d h1:4A0ij77iFgd+mHJxzzTlpAZve9SrZ6fuksQr6NfoA/I=
