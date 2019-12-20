@@ -8,7 +8,7 @@ require (
 	github.com/gogo/protobuf v1.3.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.1.0
 	github.com/keys-pub/keys v0.0.0-20191220021600-7407239bfc38
-	github.com/keys-pub/keysd/db v0.0.0-20191220001338-4bdf8f8b05af
+	github.com/keys-pub/keysd/db v0.0.0-20191220211111-48535c56ca93
 	github.com/keys-pub/keysd/http/api v0.0.0-20191218230032-d1ab04ca724f
 	github.com/keys-pub/keysd/http/client v0.0.0-20191218230032-d1ab04ca724f
 	github.com/keys-pub/keysd/http/server v0.0.0-20191218225836-3a17c4a9b7cc
@@ -22,7 +22,7 @@ require (
 	github.com/sirupsen/logrus v1.4.2
 	github.com/stretchr/testify v1.4.0
 	github.com/urfave/cli v1.22.2
-	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413
+	golang.org/x/crypto v0.0.0-20191219195013-becbf705a915
 	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553 // indirect
 	google.golang.org/genproto v0.0.0-20191216205247-b31c10ee225f // indirect
 	google.golang.org/grpc v1.26.0
