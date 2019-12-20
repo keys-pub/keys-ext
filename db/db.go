@@ -6,13 +6,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gabriel/goleveldb-encrypted/aesgcm"
 	"github.com/keys-pub/keys"
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 	ldbutil "github.com/syndtr/goleveldb/leveldb/util"
-	"github.com/tenta-browser/goleveldb-encrypted/aesgcm"
 )
 
 var _ keys.DocumentStore = &DB{}
