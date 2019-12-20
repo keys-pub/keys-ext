@@ -75,23 +75,22 @@ func authCommands(client *Client) []cli.Command {
 						}
 					}
 
-					rand, randErr := client.ProtoClient().Rand(context.TODO(), &RandRequest{
-						Length:   32,
-						Encoding: BIP39,
+					genResp, err := client.ProtoClient().AuthGenerate(context.TODO(), &AuthGenerateRequest{
+						Password: string(password),
 					})
-					if randErr != nil {
-						return randErr
+					if err != nil {
+						return err
 					}
-					pepper := string(rand.Data)
+					keyBackup := genResp.KeyBackup
 
 					fmt.Fprintf(os.Stderr, "\n")
-					fmt.Fprintf(os.Stderr, wordWrap("Now you'll need to backup a (secret) recovery phrase. This phrase by itself can't be used by itself to access your keys. A good way to backup this phrase is to email it to yourself or save it in the cloud in a place only you can access. This allows you to recover your account if your devices go missing.", 80))
+					fmt.Fprintf(os.Stderr, wordWrap("Now you'll need to backup your key. This backup is encrypted with your password. You can email this to yourself or save it in the cloud in a place only you can access. This allows you to recover your key if your devices go missing.", 80))
 					fmt.Fprintf(os.Stderr, "\n\n")
-					fmt.Fprintf(os.Stderr, "Your recovery phrase is:\n\n%s\n\n", wordWrap(pepper, 80))
+					fmt.Fprintf(os.Stderr, "Your key backup is:\n\n%s\n\n", keyBackup)
 
 				confirmRecovery:
 					for {
-						fmt.Fprintf(os.Stderr, wordWrap("Have you backed up this recovery phrase (y/n)?", 80)+" ")
+						fmt.Fprintf(os.Stderr, wordWrap("Have you backed this up (y/n)?", 80)+" ")
 						in, err := reader.ReadString('\n')
 						if err != nil {
 							return err
@@ -103,32 +102,12 @@ func authCommands(client *Client) []cli.Command {
 						}
 					}
 
-					publish := false
-				confirmPublish:
-					for {
-						fmt.Fprintf(os.Stderr, wordWrap("Do you want to publish your public key to the key server (keys.pub) (Y/n)?", 80)+" ")
-						in, err := reader.ReadString('\n')
-						if err != nil {
-							return err
-						}
-						switch strings.TrimSpace(strings.ToLower(in)) {
-						case "y", "yes", "":
-							publish = true
-							break confirmPublish
-						case "n", "no":
-							break confirmPublish
-						default:
-						}
-					}
-
 					fmt.Fprintf(os.Stderr, "\nSaving...")
 
 					auth, err := client.ProtoClient().AuthSetup(context.TODO(), &AuthSetupRequest{
-						Pepper:           pepper,
-						Password:         string(password),
-						PublishPublicKey: publish,
-						Force:            c.Bool("force"),
-						Client:           "cli",
+						Password:   string(password),
+						KeyBackup:  keyBackup,
+						ClientName: "cli",
 					})
 					if err != nil {
 						return err
@@ -145,21 +124,19 @@ func authCommands(client *Client) []cli.Command {
 						}
 					}
 
-					fmt.Fprintf(os.Stderr, "What's your recovery phrase? ")
+					fmt.Fprintf(os.Stderr, "Enter your key backup: ")
 					in, err := reader.ReadString('\n')
 					if err != nil {
 						return err
 					}
-					pepper := strings.TrimSpace(strings.ToLower(in))
+					keyBackup := strings.TrimSpace(strings.ToLower(in))
 
 					logger.Infof("Auth recover...")
 					fmt.Fprintf(os.Stderr, "\nRecovering...")
 					auth, err := client.ProtoClient().AuthSetup(context.TODO(), &AuthSetupRequest{
-						Pepper:   pepper,
-						Password: string(password),
-						Recover:  true,
-						Force:    c.Bool("force"),
-						Client:   "cli",
+						Password:   string(password),
+						KeyBackup:  keyBackup,
+						ClientName: "cli",
 					})
 					if err != nil {
 						return err

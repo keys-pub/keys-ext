@@ -18,7 +18,7 @@ func (s *service) UserService(ctx context.Context, req *UserServiceRequest) (*Us
 	if err != nil {
 		return nil, err
 	}
-	_, err = keys.NewUserForSigning(key.ID(), req.Service, "test")
+	_, err = keys.NewUserForSigning(s.uc, key.ID(), req.Service, "test")
 	if err != nil {
 		return nil, err
 	}
@@ -38,18 +38,18 @@ func (s *service) UserSign(ctx context.Context, req *UserSignRequest) (*UserSign
 		return nil, err
 	}
 
-	usr, err := keys.NewUserForSigning(key.ID(), req.Service, req.Name)
+	user, err := keys.NewUserForSigning(s.uc, key.ID(), req.Service, req.Name)
 	if err != nil {
 		return nil, err
 	}
-	msg, err := usr.Sign(key.SignKey())
+	msg, err := user.Sign(key.SignKey())
 	if err != nil {
 		return nil, err
 	}
 
 	return &UserSignResponse{
 		Message: msg,
-		Name:    usr.Name,
+		Name:    user.Name,
 	}, nil
 }
 
@@ -69,33 +69,45 @@ func (s *service) UserAdd(ctx context.Context, req *UserAddRequest) (*UserAddRes
 		return nil, err
 	}
 
-	usr, st, linkErr := s.sigchainUserAdd(ctx, key, req.Service, req.Name, req.URL, req.Local)
-	if linkErr != nil {
-		return nil, linkErr
+	// Check if key is published (if not local user add)
+	if !req.Local {
+		resp, err := s.remote.Sigchain(key.ID())
+		if err != nil {
+			return nil, err
+		}
+		if resp == nil {
+			return nil, errors.Errorf("key is not published")
+		}
+	}
+
+	user, st, err := s.sigchainUserAdd(ctx, key, req.Service, req.Name, req.URL, req.Local)
+	if err != nil {
+		return nil, err
 	}
 
 	return &UserAddResponse{
-		User:      userToRPC(usr),
+		User:      userCheckToRPC(user),
 		Statement: statementToRPC(st),
 	}, nil
 }
 
-func (s *service) sigchainUserAdd(ctx context.Context, key keys.Key, service, name, url string, local bool) (*keys.User, *keys.Statement, error) {
+func (s *service) sigchainUserAdd(ctx context.Context, key keys.Key, service, name, url string, local bool) (*keys.UserCheck, *keys.Statement, error) {
 	sc, err := s.scs.Sigchain(key.ID())
 	if err != nil {
 		return nil, nil, err
 	}
 
-	usr, err := keys.NewUser(key.ID(), service, name, url, sc.LastSeq()+1)
+	user, err := keys.NewUser(s.uc, key.ID(), service, name, url, sc.LastSeq()+1)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to create user")
 	}
 
-	if err := keys.UserCheckWithKey(ctx, usr, key.PublicKey().SignPublicKey(), keys.NewHTTPRequestor()); err != nil {
+	userCheck, err := s.uc.Check(ctx, user, key.PublicKey().SignPublicKey())
+	if err != nil {
 		return nil, nil, errors.Wrapf(err, "failed to check user")
 	}
 
-	st, err := keys.GenerateUserStatement(sc, usr, key.SignKey(), s.Now())
+	st, err := keys.GenerateUserStatement(sc, user, key.SignKey(), s.Now())
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "failed to generate user statement")
 	}
@@ -115,7 +127,7 @@ func (s *service) sigchainUserAdd(ctx context.Context, key keys.Key, service, na
 	if err := s.scs.AddStatement(st, key.SignKey()); err != nil {
 		return nil, nil, err
 	}
-	return usr, st, nil
+	return userCheck, st, nil
 }
 
 // SigchainURL is the sigchain URL for the user, or empty string if not set.
@@ -126,16 +138,63 @@ func (u User) SigchainURL() string {
 	return fmt.Sprintf("https://keys.pub/sigchain/%s/%d", u.KID, u.Seq)
 }
 
-func userToRPC(usr *keys.User) *User {
-	if usr == nil {
+func userStatus(s keys.UserStatus) UserStatus {
+	switch s {
+	case keys.UserStatusUnknown:
+		return UserStatusUnknown
+	case keys.UserStatusOK:
+		return UserStatusOK
+	case keys.UserStatusResourceNotFound:
+		return UserStatusResourceNotFound
+	case keys.UserStatusContentNotFound:
+		return UserStatusContentNotFound
+	case keys.UserStatusConnFailure:
+		return UserStatusConnFailure
+	case keys.UserStatusFailure:
+		return UserStatusFailure
+	default:
+		panic(errors.Errorf("Unknown user status %s", s))
+	}
+}
+
+func userCheckToRPC(user *keys.UserCheck) *User {
+	if user == nil {
 		return nil
 	}
 	return &User{
-		KID:     usr.KID.String(),
-		Seq:     int32(usr.Seq),
-		Service: usr.Service,
-		Name:    usr.Name,
-		URL:     usr.URL,
+		KID:        user.User.KID.String(),
+		Seq:        int32(user.User.Seq),
+		Service:    user.User.Service,
+		Name:       user.User.Name,
+		URL:        user.User.URL,
+		Status:     userStatus(user.Status),
+		VerifiedAt: int64(keys.TimeToMillis(user.VerifiedAt)),
+		Err:        user.Err,
+	}
+}
+
+func userChecksToRPC(in []*keys.UserCheck) []*User {
+	if in == nil {
+		return nil
+	}
+	users := make([]*User, 0, len(in))
+	for _, u := range in {
+		users = append(users, userCheckToRPC(u))
+	}
+	return users
+}
+
+func userToRPC(user *keys.User) *User {
+	if user == nil {
+		return nil
+	}
+	return &User{
+		KID:     user.KID.String(),
+		Seq:     int32(user.Seq),
+		Service: user.Service,
+		Name:    user.Name,
+		URL:     user.URL,
+		Status:  UserStatusUnknown,
 	}
 }
 
@@ -143,11 +202,11 @@ func usersToRPC(in []*keys.User) []*User {
 	if in == nil {
 		return nil
 	}
-	usrs := make([]*User, 0, len(in))
+	users := make([]*User, 0, len(in))
 	for _, u := range in {
-		usrs = append(usrs, userToRPC(u))
+		users = append(users, userToRPC(u))
 	}
-	return usrs
+	return users
 }
 
 func (s *service) findUser(ctx context.Context, kid keys.ID) (*keys.User, error) {
@@ -158,14 +217,14 @@ func (s *service) findUser(ctx context.Context, kid keys.ID) (*keys.User, error)
 	if sc == nil {
 		return nil, nil
 	}
-	usrs := sc.Users()
-	if len(usrs) == 0 {
+	users := sc.Users()
+	if len(users) == 0 {
 		return nil, nil
 	}
-	return usrs[len(usrs)-1], nil
+	return users[len(users)-1], nil
 }
 
-func (s *service) findUserByName(ctx context.Context, name string) (*keys.User, error) {
+func (s *service) searchUserByName(ctx context.Context, name string) (*keys.UserCheck, error) {
 	if s.remote == nil {
 		return nil, errors.Errorf("no remote set")
 	}
@@ -185,9 +244,9 @@ func (s *service) findUserByName(ctx context.Context, name string) (*keys.User, 
 	if len(resp.Results) > 1 {
 		return nil, errors.Errorf("too many user results")
 	}
-	for _, usr := range resp.Results[0].Users {
-		if name == fmt.Sprintf("%s@%s", usr.Name, usr.Service) {
-			return usr, nil
+	for _, user := range resp.Results[0].Users {
+		if name == fmt.Sprintf("%s@%s", user.User.Name, user.User.Service) {
+			return user, nil
 		}
 	}
 	return nil, errors.Errorf("missing user in key")

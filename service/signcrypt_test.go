@@ -16,22 +16,21 @@ func TestEncryptDecrypt(t *testing.T) {
 	// SetLogger(newLog(DebugLevel))
 	// saltpack.SetLogger(newLog(DebugLevel))
 	// client.SetLogger(newLog(DebugLevel))
-	clock := newClock()
-	fi := testFire(t, clock)
+	env := newTestEnv(t)
 
-	aliceService, aliceCloseFn := testServiceFire(t, fi, clock)
+	aliceService, aliceCloseFn := newTestService(t, env)
 	defer aliceCloseFn()
-	testAuthSetup(t, aliceService, alice, false, "")
+	testAuthSetup(t, aliceService, alice, false)
 
-	bobService, bobCloseFn := testServiceFire(t, fi, clock)
+	bobService, bobCloseFn := newTestService(t, env)
 	defer bobCloseFn()
-	testAuthSetup(t, bobService, bob, false, "")
+	testAuthSetup(t, bobService, bob, false)
 
 	message := "Hey bob"
 
 	// Try to encrypt to unknown recipient
 	_, err := aliceService.Encrypt(context.TODO(), &EncryptRequest{Data: []byte(message), Sender: alice.ID().String(), Recipients: bob.ID().String()})
-	require.EqualError(t, err, "public key not found 6d35v6U3GfePrTjFwtak5yTUpkEyWA7tQQ2gDzZdX89x")
+	require.EqualError(t, err, "public key not found bDM13g2wsoBE8WN2jrPdLRHg2LFgNt2ZrLcP2bG4iuNi")
 
 	// Push, pull bob public key
 	_, pushErr := bobService.Push(context.TODO(), &PushRequest{KID: bob.ID().String()})
@@ -64,9 +63,10 @@ func TestEncryptDecrypt(t *testing.T) {
 }
 
 func TestEncryptUnknownRecipient(t *testing.T) {
-	service, closeFn := testService(t)
+	env := newTestEnv(t)
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
-	testAuthSetup(t, service, alice, false, "")
+	testAuthSetup(t, service, alice, false)
 
 	message := "Hey bob"
 	unknown := keys.RandID()
@@ -78,10 +78,11 @@ func TestEncryptUnknownRecipient(t *testing.T) {
 }
 
 func TestEncryptStream(t *testing.T) {
-	service, closeFn := testService(t)
+	env := newTestEnv(t)
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
-	testAuthSetup(t, service, alice, false, "")
-	testRecoverKey(t, service, bob, false, "")
+	testAuthSetup(t, service, alice, false)
+	testRecoverKey(t, service, bob, false)
 
 	testEncryptStream(t, service, bytes.Repeat([]byte{0x31}, 5), alice.ID().String(), bob.ID().String())
 	testEncryptStream(t, service, bytes.Repeat([]byte{0x31}, 5), "", bob.ID().String())
@@ -90,8 +91,7 @@ func TestEncryptStream(t *testing.T) {
 }
 
 func testEncryptStream(t *testing.T, service *service, plaintext []byte, sender string, recipients string) {
-
-	client, clientCloseFn := newTestClient(t, service)
+	client, clientCloseFn := newTestRPCClient(t, service)
 	defer clientCloseFn()
 
 	ctx, cancel := context.WithCancel(context.TODO())

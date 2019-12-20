@@ -5,7 +5,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/keys-pub/keys"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -13,7 +12,7 @@ import (
 )
 
 func TestAuth(t *testing.T) {
-	cfg, closeFn := testConfig(t)
+	cfg, closeFn := testConfig(t, "")
 	defer closeFn()
 	auth, err := newAuth(cfg)
 	require.NoError(t, err)
@@ -49,7 +48,7 @@ func TestAuth(t *testing.T) {
 }
 
 func TestAuthorize(t *testing.T) {
-	cfg, closeFn := testConfig(t)
+	cfg, closeFn := testConfig(t, "")
 	defer closeFn()
 	auth, err := newAuth(cfg)
 	require.NoError(t, err)
@@ -96,15 +95,18 @@ func TestGenerateToken(t *testing.T) {
 }
 
 func TestAuthLock(t *testing.T) {
-	clock := newClock()
-	fi := testFire(t, clock)
-	service, closeFn := testServiceFire(t, fi, clock)
+	env := newTestEnv(t)
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	ctx := context.TODO()
 
-	pepper, err := keys.BytesToPhrase(keys.Rand32()[:])
-	require.NoError(t, err)
-	setupResp, err := service.AuthSetup(ctx, &AuthSetupRequest{Password: "password123", Pepper: pepper})
+	password := "password123"
+	seed := bytes.Repeat([]byte{0x01}, 32)
+	keyBackup := seedToBackup(password, seed)
+	setupResp, err := service.AuthSetup(ctx, &AuthSetupRequest{
+		Password:  password,
+		KeyBackup: keyBackup,
+	})
 	require.NoError(t, err)
 	kid := setupResp.KID
 
@@ -120,105 +122,63 @@ func TestAuthLock(t *testing.T) {
 }
 
 func TestAuthSetup(t *testing.T) {
-	clock := newClock()
-	fi := testFire(t, clock)
-	service, closeFn := testServiceFire(t, fi, clock)
+	env := newTestEnv(t)
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	ctx := context.TODO()
 
-	b := bytes.Repeat([]byte{0x01}, 32)
-	pepper, err := keys.BytesToPhrase(b)
+	genResp, err := service.AuthGenerate(ctx, &AuthGenerateRequest{Password: "password123"})
 	require.NoError(t, err)
-	setupResp, err := service.AuthSetup(ctx, &AuthSetupRequest{Password: "short", Pepper: pepper, PublishPublicKey: true})
+	require.NotEmpty(t, genResp.KeyBackup)
+
+	seed := bytes.Repeat([]byte{0x01}, 32)
+	setupResp, err := service.AuthSetup(ctx, &AuthSetupRequest{Password: "short", KeyBackup: seedToBackup("short", seed)})
 	require.EqualError(t, err, "password too short")
-	setupResp, err = service.AuthSetup(ctx, &AuthSetupRequest{Password: "password123", Pepper: "invalid pepper", PublishPublicKey: true})
-	require.EqualError(t, err, "invalid pepper: invalid phrase")
-	setupResp, err = service.AuthSetup(ctx, &AuthSetupRequest{Password: "password123", Pepper: pepper, PublishPublicKey: true})
+
+	keyBackup := seedToBackup("password123", seed)
+	setupResp, err = service.AuthSetup(ctx, &AuthSetupRequest{Password: "password123", KeyBackup: "invalid recovery"})
+	st, _ := status.FromError(err)
+	require.NotNil(t, st)
+	require.Equal(t, codes.PermissionDenied, st.Code())
+	require.Equal(t, "invalid key backup: failed to parse key backup: missing saltpack start", st.Message())
+
+	setupResp, err = service.AuthSetup(ctx, &AuthSetupRequest{Password: "password123", KeyBackup: keyBackup})
 	require.NoError(t, err)
 	kid := setupResp.KID
-	require.Equal(t, "DP1ALkPtRQrCEmXrEDFKbL1S5b5TiGdU5hCTVfwwVcaj", kid)
+	require.Equal(t, "QcCryFxU6wcYxQ4DME9PP1kbq76nf2YtAqk2GwHQqfqR", kid)
 
 	keysResp, err := service.Keys(ctx, &KeysRequest{})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(keysResp.Keys))
-	require.Equal(t, "DP1ALkPtRQrCEmXrEDFKbL1S5b5TiGdU5hCTVfwwVcaj", keysResp.Keys[0].KID)
-
-	// New service to recover
-	recover, closeFn := testServiceFire(t, fi, clock)
-	defer closeFn()
-
-	_, err = recover.AuthSetup(ctx, &AuthSetupRequest{
-		Password: "password123",
-		Pepper:   pepper,
-	})
-	st, _ := status.FromError(err)
-	require.NotNil(t, st)
-	require.Equal(t, st.Code(), codes.AlreadyExists)
-	require.Equal(t, st.Message(), "key already exists (use recover instead)")
-
-	recoverResp, err := recover.AuthSetup(ctx, &AuthSetupRequest{
-		Password: "password123",
-		Pepper:   pepper,
-		Recover:  true,
-	})
-	require.NoError(t, err)
-	require.Equal(t, "DP1ALkPtRQrCEmXrEDFKbL1S5b5TiGdU5hCTVfwwVcaj", recoverResp.KID)
-
-	keysResp, err = recover.Keys(ctx, &KeysRequest{})
-	require.NoError(t, err)
-	require.Equal(t, 1, len(keysResp.Keys))
-	require.Equal(t, "DP1ALkPtRQrCEmXrEDFKbL1S5b5TiGdU5hCTVfwwVcaj", keysResp.Keys[0].KID)
-
-	_, err = recover.AuthSetup(ctx, &AuthSetupRequest{
-		Password: "password1234",
-		Pepper:   pepper,
-		Recover:  true,
-	})
-	st, _ = status.FromError(err)
-	require.NotNil(t, st)
-	require.Equal(t, st.Code(), codes.NotFound)
-	require.Equal(t, st.Message(), "key not found or wasn't published (use -force to bypass)")
+	require.Equal(t, "QcCryFxU6wcYxQ4DME9PP1kbq76nf2YtAqk2GwHQqfqR", keysResp.Keys[0].KID)
 }
 
-func TestAuthRecoverNoPublish(t *testing.T) {
-	clock := newClock()
-	fi := testFire(t, clock)
-	service, closeFn := testServiceFire(t, fi, clock)
+func TestAuthRecover(t *testing.T) {
+	// SetLogger(NewLogger(DebugLevel))
+	env := newTestEnv(t)
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	ctx := context.TODO()
 
-	b := bytes.Repeat([]byte{0x01}, 32)
-	pepper, err := keys.BytesToPhrase(b)
-	require.NoError(t, err)
-	setupResp, err := service.AuthSetup(ctx, &AuthSetupRequest{Password: "password123", Pepper: pepper})
-	require.NoError(t, err)
-	kid := setupResp.KID
-	require.Equal(t, "DP1ALkPtRQrCEmXrEDFKbL1S5b5TiGdU5hCTVfwwVcaj", kid)
+	password := "password123"
+	seed := bytes.Repeat([]byte{0x01}, 32)
+	keyBackup := seedToBackup(password, seed)
 
-	keysResp, err := service.Keys(ctx, &KeysRequest{})
-	require.NoError(t, err)
-	require.Equal(t, 1, len(keysResp.Keys))
-	require.Equal(t, "DP1ALkPtRQrCEmXrEDFKbL1S5b5TiGdU5hCTVfwwVcaj", keysResp.Keys[0].KID)
-
-	// New service to recover
-	recover, closeFn := testServiceFire(t, fi, clock)
-	defer closeFn()
-
-	_, err = recover.AuthSetup(ctx, &AuthSetupRequest{
-		Password: "password123",
-		Pepper:   pepper,
-		Recover:  true,
+	// Invalid password
+	_, err := service.AuthSetup(ctx, &AuthSetupRequest{
+		Password:  "password1234",
+		KeyBackup: keyBackup,
 	})
 	st, _ := status.FromError(err)
 	require.NotNil(t, st)
-	require.Equal(t, st.Code(), codes.NotFound)
-	require.Equal(t, st.Message(), "key not found or wasn't published (use -force to bypass)")
+	require.Equal(t, codes.PermissionDenied, st.Code())
+	require.Equal(t, "invalid key backup: failed to decrypt key backup: failed to decrypt with a password: secretbox open failed", st.Message())
 
-	recoverResp, err := recover.AuthSetup(ctx, &AuthSetupRequest{
-		Password: "password123",
-		Pepper:   pepper,
-		Recover:  true,
-		Force:    true,
+	// Valid recovery
+	recoverResp, err := service.AuthSetup(ctx, &AuthSetupRequest{
+		Password:  "password123",
+		KeyBackup: keyBackup,
 	})
-	require.Equal(t, "DP1ALkPtRQrCEmXrEDFKbL1S5b5TiGdU5hCTVfwwVcaj", recoverResp.KID)
+	require.NoError(t, err)
+	require.Equal(t, "QcCryFxU6wcYxQ4DME9PP1kbq76nf2YtAqk2GwHQqfqR", recoverResp.KID)
 }

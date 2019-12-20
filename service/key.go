@@ -13,26 +13,24 @@ import (
 // Key (RPC) ...
 func (s *service) Key(ctx context.Context, req *KeyRequest) (*KeyResponse, error) {
 	var kid keys.ID
-	if req.KID != "" {
-		k, err := keys.ParseID(req.KID)
-		if err != nil {
-			return nil, err
-		}
-		kid = k
-	} else if req.User != "" {
-		usr, err := s.findUserByName(ctx, req.User)
+	if req.User != "" {
+		usr, err := s.searchUserByName(ctx, req.User)
 		if err != nil {
 			return nil, err
 		}
 		if usr == nil {
 			return &KeyResponse{}, nil
 		}
-		kid = usr.KID
+		kid = usr.User.KID
 	} else {
-		return nil, errors.Errorf("no kid or user specified")
+		k, err := s.parseKIDOrCurrent(req.KID)
+		if err != nil {
+			return nil, err
+		}
+		kid = k
 	}
 
-	keyOut, err := s.key(ctx, kid, req.Check, req.Update)
+	keyOut, err := s.key(ctx, kid, !req.SkipCheck, req.Update)
 	if err != nil {
 		return nil, err
 	}
@@ -55,10 +53,15 @@ func (t KeyType) Emoji() string {
 
 func (s *service) key(ctx context.Context, kid keys.ID, check bool, update bool) (*Key, error) {
 	logger.Debugf("Loading key %s", kid)
+	if s.db == nil {
+		return nil, errors.Errorf("db is locked")
+	}
 
 	typ := PublicKeyType
-	var usrs []*keys.User
+	var users []*User
 	saved := false
+	var spk []byte
+	var bpk []byte
 	var createdAt time.Time
 	var publishedAt time.Time
 	var savedAt time.Time
@@ -91,10 +94,13 @@ func (s *service) key(ctx context.Context, kid keys.ID, check bool, update bool)
 			}
 		}
 
+		spk = sc.SignPublicKey()[:]
+		bpk = sc.BoxPublicKey()[:]
+
 		sts := sc.Statements()
 		if len(sts) > 0 {
 			st := sts[0]
-			res, err := s.loadResource(ctx, st.KeyPath())
+			res, err := s.loadResource(ctx, keys.Path("sigchain", st.Key()))
 			if err != nil {
 				return nil, err
 			}
@@ -104,7 +110,7 @@ func (s *service) key(ctx context.Context, kid keys.ID, check bool, update bool)
 			}
 
 			// Lookup when it was saved
-			doc, err := s.db.Get(ctx, st.KeyPath())
+			doc, err := s.db.Get(ctx, keys.Path("sigchain", st.Key()))
 			if err != nil {
 				return nil, err
 			}
@@ -114,20 +120,23 @@ func (s *service) key(ctx context.Context, kid keys.ID, check bool, update bool)
 			}
 		}
 	} else {
-		logger.Debugf("Loading remote sigchain %s", kid)
-		resp, err := s.remote.Sigchain(kid)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to load remote sigchain")
-		}
-		sc, err = resp.Sigchain()
-		if err != nil {
-			return nil, err
-		}
-		sts := sc.Statements()
-		if len(sts) > 0 {
-			st := sts[0]
-			publishedAt = resp.MetadataFor(st).CreatedAt
-		}
+		// TODO: Published at if we have no local sigchain
+		// logger.Debugf("Loading remote sigchain %s", kid)
+		// resp, err := s.remote.Sigchain(kid)
+		// if err != nil {
+		// 	return nil, errors.Wrapf(err, "failed to load remote sigchain")
+		// }
+		// if resp != nil {
+		// 	sc, err = resp.Sigchain()
+		// 	if err != nil {
+		// 		return nil, err
+		// 	}
+		// 	sts := sc.Statements()
+		// 	if len(sts) > 0 {
+		// 		st := sts[0]
+		// 		publishedAt = resp.MetadataFor(st).CreatedAt
+		// 	}
+		// }
 	}
 
 	if sc != nil {
@@ -140,13 +149,15 @@ func (s *service) key(ctx context.Context, kid keys.ID, check bool, update bool)
 
 	if sc != nil {
 		if check {
-			logger.Debugf("Checking user %s", sc.KID())
-			_, err := keys.UserCheck(ctx, sc, nil, time.Now)
+			logger.Debugf("Checking users %s", sc.KID())
+			u, err := s.uc.CheckSigchain(ctx, sc)
 			if err != nil {
 				return nil, err
 			}
+			users = userChecksToRPC(u)
+		} else {
+			users = usersToRPC(sc.Users())
 		}
-		usrs = sc.Users()
 	}
 
 	if key == nil && sc == nil {
@@ -155,10 +166,10 @@ func (s *service) key(ctx context.Context, kid keys.ID, check bool, update bool)
 
 	return &Key{
 		KID:           kid.String(),
-		Users:         usersToRPC(usrs),
+		Users:         users,
 		Type:          typ,
-		SignPublicKey: sc.SignPublicKey()[:],
-		BoxPublicKey:  sc.BoxPublicKey()[:],
+		SignPublicKey: spk,
+		BoxPublicKey:  bpk,
 		Saved:         saved,
 		CreatedAt:     int64(keys.TimeToMillis(createdAt)),
 		PublishedAt:   int64(keys.TimeToMillis(publishedAt)),
@@ -247,15 +258,13 @@ func (s *service) KeyRemove(ctx context.Context, req *KeyRemoveRequest) (*KeyRem
 		}
 		kid := key.ID()
 
-		// If current key, clear it
-		ck, ckErr := s.loadCurrentKey()
-		if ckErr != nil {
-			return nil, ckErr
+		// Don't remove master key
+		ck, err := s.loadMasterKey()
+		if err != nil {
+			return nil, err
 		}
 		if ck != nil && ck.ID() == kid {
-			if err := s.clearCurrentKey(); err != nil {
-				return nil, err
-			}
+			return nil, errors.Errorf("failed to remove master key")
 		}
 
 		seedPhrase := strings.TrimSpace(req.SeedPhrase)
@@ -311,9 +320,9 @@ func (s *service) KeyGenerate(ctx context.Context, req *KeyGenerateRequest) (*Ke
 }
 
 func (s *service) kidsSet(all bool) (*keys.IDSet, error) {
-	ks, ksErr := s.loadPrivateKeys()
-	if ksErr != nil {
-		return nil, ksErr
+	ks, err := s.loadPrivateKeys()
+	if err != nil {
+		return nil, err
 	}
 	kids := keys.NewIDSet()
 	for _, k := range ks {
@@ -415,25 +424,18 @@ func (s *service) saveKey(key keys.Key, auth bool, generateSigchain bool) error 
 		return err
 	}
 
-	// Set default key if none set and we generated our first key
-	ck, ckErr := s.loadCurrentKey()
-	if ckErr != nil {
-		return ckErr
-	}
-	ks, ksErr := s.ks.Keys()
-	if ksErr != nil {
-		return ksErr
-	}
-	if ck == nil && len(ks) == 1 && auth {
-		if err := s.setCurrentKey(ks[0].ID()); err != nil {
+	// Set master key if auth setup.
+	if auth {
+		item := keyring.NewItem(".master", keyring.NewStringSecret(key.ID().String()), "")
+		if err := s.ks.Set(item); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (s *service) loadCurrentKey() (keys.Key, error) {
-	item, err := s.ks.Get(".current")
+func (s *service) loadMasterKey() (keys.Key, error) {
+	item, err := s.ks.Get(".master")
 	if err != nil {
 		return nil, err
 	}
@@ -447,18 +449,6 @@ func (s *service) loadCurrentKey() (keys.Key, error) {
 	return s.loadPrivateKey(id)
 }
 
-func (s *service) setCurrentKey(kid keys.ID) error {
-	if err := s.ensureAuthKey(kid); err != nil {
-		return err
-	}
-	return s.ks.Set(keyring.NewItem(".current", keyring.NewStringSecret(kid.String()), ""))
-}
-
-func (s *service) clearCurrentKey() error {
-	_, err := s.ks.Delete(".current")
-	return err
-}
-
 func recipientIDs(pks []keys.PublicKey) []keys.ID {
 	ids := make([]keys.ID, 0, len(pks))
 	for _, pk := range pks {
@@ -469,7 +459,7 @@ func recipientIDs(pks []keys.PublicKey) []keys.ID {
 
 func (s *service) parseKIDOrCurrent(id string) (keys.ID, error) {
 	if id == "" {
-		key, err := s.loadCurrentKey()
+		key, err := s.loadMasterKey()
 		if err != nil {
 			return "", err
 		}
@@ -487,7 +477,7 @@ func (s *service) parseKIDOrCurrent(id string) (keys.ID, error) {
 
 func (s *service) parseKeyOrCurrent(id string) (keys.Key, error) {
 	if id == "" {
-		key, err := s.loadCurrentKey()
+		key, err := s.loadMasterKey()
 		if err != nil {
 			return nil, err
 		}

@@ -147,6 +147,7 @@ func DefaultHomeDir() string {
 }
 
 type values struct {
+	Server               string      `json:"server"`
 	KeyringType          KeyringType `json:"keyringType"`
 	LogLevel             string      `json:"logLevel"`
 	Port                 int         `json:"port"`
@@ -227,6 +228,19 @@ func (c *Config) Reset() error {
 		return nil
 	}
 	return os.Remove(path)
+}
+
+// Server ...
+func (c *Config) Server() string {
+	if c.values.Server == "" {
+		return "https://keys.pub"
+	}
+	return c.values.Server
+}
+
+// SetServer ...
+func (c *Config) SetServer(s string) {
+	c.values.Server = s
 }
 
 // Port returns port to use to connect to service.

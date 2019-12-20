@@ -7,7 +7,6 @@ import (
 	"os"
 	"sync"
 	"syscall"
-	"time"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/keyring"
@@ -36,11 +35,11 @@ type auth struct {
 func newAuth(cfg *Config) (*auth, error) {
 	// We don't need auth for the following methods.
 	whitelist := keys.NewStringSet(
+		"/service.Keys/AuthGenerate",
 		"/service.Keys/AuthSetup",
 		"/service.Keys/AuthUnlock",
 		"/service.Keys/AuthLock",
-		"/service.Keys/RuntimeStatus",
-		"/service.Keys/Rand")
+		"/service.Keys/RuntimeStatus")
 
 	kr, err := newKeyring(cfg)
 	if err != nil {
@@ -104,10 +103,6 @@ func (a *auth) unlock(password string, client string) (string, error) {
 	logger.Infof("Unlocked")
 
 	return token, nil
-}
-
-func (a *auth) key(password string, salt []byte) (keys.Key, error) {
-	return keys.NewKeyFromPassword(password, salt)
 }
 
 func generateToken() string {
@@ -175,38 +170,47 @@ func (a clientAuth) RequireTransportSecurity() bool {
 	return true
 }
 
-// Now ...
-func (s *service) Now() time.Time {
-	return s.db.Now()
+func seedToBackup(password string, seed []byte) string {
+	out := keys.SealWithPassword(seed[:], password)
+	return keys.EncodeSaltpackMessage(out, "")
+}
+
+func backupToSeed(password string, msg string) ([]byte, error) {
+	b, err := keys.DecodeSaltpackMessage(msg, "")
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to parse key backup")
+	}
+	seed, err := keys.OpenWithPassword(b, password)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to decrypt key backup")
+	}
+	return seed, nil
+}
+
+func (s *service) AuthGenerate(ctx context.Context, req *AuthGenerateRequest) (*AuthGenerateResponse, error) {
+	seed := keys.Rand32()
+	recovery := seedToBackup(req.Password, seed[:])
+	return &AuthGenerateResponse{
+		KeyBackup: recovery,
+	}, nil
 }
 
 func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSetupResponse, error) {
-	if req.Pepper == "" {
-		return nil, errors.Errorf("no pepper specified")
-	}
-	pepper, err := keys.PhraseToBytes(req.Pepper, true)
-	if err != nil {
-		return nil, errors.Wrapf(err, "invalid pepper")
+	if req.KeyBackup == "" {
+		return nil, status.Error(codes.PermissionDenied, "no key backup specified")
 	}
 
-	key, err := s.auth.key(req.Password, pepper[:])
+	seed, err := backupToSeed(req.Password, req.KeyBackup)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.PermissionDenied, "invalid key backup: %s", err)
 	}
 
-	keyExists, err := s.pull(ctx, key.ID())
+	key, err := keys.NewKey(keys.Bytes32(seed))
 	if err != nil {
 		return nil, err
 	}
-	if !req.Recover && keyExists {
-		return nil, status.Error(codes.AlreadyExists, "key already exists (use recover instead)")
-	} else if req.Recover && !keyExists && !req.Force {
-		// This could happen if the key was never published, and we don't know
-		// if the password, recovery is correct. Specify force=true to bypass.
-		return nil, status.Error(codes.NotFound, "key not found or wasn't published (use -force to bypass)")
-	}
 
-	token, err := s.auth.unlock(req.Password, req.Client)
+	token, err := s.auth.unlock(req.Password, req.ClientName)
 	if err != nil {
 		return nil, err
 	}
@@ -215,27 +219,8 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 		return nil, err
 	}
 
-	// Generate sigchain if one doesn't exist.
-	if s.scs == nil {
-		return nil, errors.Errorf("no sigchain store set")
-	}
-	sc, err := s.scs.Sigchain(key.ID())
-	if err != nil {
+	if err := s.Open(key); err != nil {
 		return nil, err
-	}
-	if sc == nil {
-		if err := s.scs.SaveSigchain(keys.GenerateSigchain(key, s.Now())); err != nil {
-			return nil, err
-		}
-	}
-
-	if req.PublishPublicKey {
-		if err := s.publish(key.ID()); err != nil {
-			return nil, err
-		}
-		if _, err := s.pull(ctx, key.ID()); err != nil {
-			return nil, err
-		}
 	}
 
 	return &AuthSetupResponse{
@@ -249,10 +234,24 @@ func (s *service) AuthUnlock(ctx context.Context, req *AuthUnlockRequest) (*Auth
 	if req.Password == "" {
 		return nil, errors.Errorf("no password specified")
 	}
+
 	token, err := s.auth.unlock(req.Password, req.Client)
 	if err != nil {
 		return nil, err
 	}
+
+	key, err := s.loadMasterKey()
+	if err != nil {
+		return nil, err
+	}
+	if key == nil {
+		return nil, errors.Errorf("no auth key setup")
+	}
+
+	if err := s.Open(key); err != nil {
+		return nil, err
+	}
+
 	return &AuthUnlockResponse{
 		AuthToken: token,
 	}, nil
@@ -261,6 +260,9 @@ func (s *service) AuthUnlock(ctx context.Context, req *AuthUnlockRequest) (*Auth
 // AuthLock (RPC) ...
 func (s *service) AuthLock(ctx context.Context, req *AuthLockRequest) (*AuthLockResponse, error) {
 	s.auth.lock()
+
+	s.Close()
+
 	return &AuthLockResponse{}, nil
 }
 

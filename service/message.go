@@ -141,11 +141,11 @@ func (s *service) messageCreate(ctx context.Context, sender string, kid string, 
 }
 
 func (s *service) fillMessage(ctx context.Context, message *Message, t time.Time, sender keys.ID, path string) {
-	usr, resolveErr := s.findUser(ctx, sender)
+	user, resolveErr := s.findUser(ctx, sender)
 	if resolveErr != nil {
 		logger.Errorf("Failed to resolve user: %s", resolveErr)
 	}
-	message.User = userToRPC(usr)
+	message.User = userToRPC(user)
 	message.Sender = sender.String()
 	message.CreatedAt = int64(keys.TimeToMillis(t))
 	message.TimeDisplay = timeDisplay(t)

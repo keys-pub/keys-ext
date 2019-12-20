@@ -9,10 +9,11 @@ import (
 )
 
 func TestMessageCreateErrors(t *testing.T) {
-	service, closeFn := testService(t)
+	env := newTestEnv(t)
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	ctx := context.TODO()
-	testAuthSetup(t, service, alice, true, "")
+	testAuthSetup(t, service, alice, true)
 
 	randID := keys.RandID()
 	_, messageErr := service.MessageCreate(ctx, &MessageCreateRequest{
@@ -28,23 +29,24 @@ func TestMessages(t *testing.T) {
 	// saltpack.SetLogger(NewLogger(DebugLevel))
 	// client.SetLogger(NewLogger(DebugLevel))
 
-	clock := newClock()
-	fi := testFire(t, clock)
+	env := newTestEnv(t)
 
-	aliceService, aliceCloseFn := testServiceFire(t, fi, clock)
+	aliceService, aliceCloseFn := newTestService(t, env)
 	defer aliceCloseFn()
 	ctx := context.TODO()
-	testAuthSetup(t, aliceService, alice, true, "alice")
+	testAuthSetup(t, aliceService, alice, true)
+	testUserSetup(t, env, aliceService, alice.ID(), "alice", true)
 
 	// Bob service
-	bobService, bobCloseFn := testServiceFire(t, fi, clock)
+	bobService, bobCloseFn := newTestService(t, env)
 	defer bobCloseFn()
-	testAuthSetup(t, bobService, bob, true, "bob")
+	testAuthSetup(t, bobService, bob, true)
+	testUserSetup(t, env, bobService, bob.ID(), "bob", true)
 
 	group := keys.GenerateKey()
-	errG1 := aliceService.ks.SaveKey(group, true, clock.Now())
+	errG1 := aliceService.ks.SaveKey(group, true, env.clock.Now())
 	require.NoError(t, errG1)
-	errG2 := bobService.ks.SaveKey(group, true, clock.Now())
+	errG2 := bobService.ks.SaveKey(group, true, env.clock.Now())
 	require.NoError(t, errG2)
 
 	// Alice lists messages

@@ -12,9 +12,10 @@ import (
 )
 
 func TestSignVerify(t *testing.T) {
-	service, closeFn := testService(t)
+	env := newTestEnv(t)
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
-	testAuthSetup(t, service, alice, false, "")
+	testAuthSetup(t, service, alice, false)
 
 	message := "I'm alice"
 	signResp, err := service.Sign(context.TODO(), &SignRequest{Data: []byte(message), KID: alice.ID().String()})
@@ -34,9 +35,10 @@ func TestSignVerify(t *testing.T) {
 }
 
 func TestSignStream(t *testing.T) {
-	service, closeFn := testService(t)
+	env := newTestEnv(t)
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
-	testAuthSetup(t, service, alice, false, "")
+	testAuthSetup(t, service, alice, false)
 
 	testSignStream(t, service, bytes.Repeat([]byte{0x31}, 5), alice.ID().String())
 	testSignStream(t, service, bytes.Repeat([]byte{0x31}, 5), "")
@@ -47,7 +49,7 @@ func TestSignStream(t *testing.T) {
 func testSignStream(t *testing.T, service *service, plaintext []byte, sender string) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
-	cl, clientCloseFn := newTestClient(t, service)
+	cl, clientCloseFn := newTestRPCClient(t, service)
 	defer clientCloseFn()
 
 	streamClient, streamErr := cl.ProtoClient().SignStream(ctx)

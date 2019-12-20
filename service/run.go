@@ -12,6 +12,7 @@ import (
 	"runtime/debug"
 	"strconv"
 	"strings"
+	"time"
 
 	middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
@@ -32,8 +33,9 @@ type protoService struct {
 }
 
 func newProtoService(cfg *Config, build Build, auth *auth) (*protoService, error) {
-	srv := newService(cfg, build, auth)
-	if err := srv.Open(); err != nil {
+	uc := keys.NewDefaultUserContext()
+	srv, err := newService(cfg, build, auth, uc, time.Now)
+	if err != nil {
 		return nil, err
 	}
 	p := &protoService{srv}

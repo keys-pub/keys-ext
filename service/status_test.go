@@ -4,23 +4,25 @@ import (
 	"context"
 	"testing"
 
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 )
 
-func TestStatus(t *testing.T) {
-	service, closeFn := testService(t)
+func TestStatusPrompts(t *testing.T) {
+	env := newTestEnv(t)
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	ctx := context.TODO()
 
 	resp, err := service.Status(ctx, &StatusRequest{})
 	require.EqualError(t, err, "keyring is locked")
 
-	testAuthSetup(t, service, alice, false, "")
+	testAuthSetup(t, service, alice, false)
 
 	resp, err = service.Status(ctx, &StatusRequest{})
 	require.NoError(t, err)
 	require.NotNil(t, resp.Key)
-	require.Equal(t, "ZoxBoAcN3zUr5A11Uyq1J6pscwKFo2oZSFbwfT7DztXg", resp.Key.KID)
+	require.Equal(t, "a6MtPHR36F9wG5orC8bhm8iPCE2xrXK41iZLwPZcLzqo", resp.Key.KID)
 	require.Equal(t, 0, len(resp.Key.Users))
 	require.True(t, resp.PromptPublish)
 	require.True(t, resp.PromptUser)
@@ -34,7 +36,37 @@ func TestStatus(t *testing.T) {
 	resp, err = service.Status(ctx, &StatusRequest{})
 	require.NoError(t, err)
 	require.NotNil(t, resp.Key)
-	require.Equal(t, "ZoxBoAcN3zUr5A11Uyq1J6pscwKFo2oZSFbwfT7DztXg", resp.Key.KID)
+	require.Equal(t, "a6MtPHR36F9wG5orC8bhm8iPCE2xrXK41iZLwPZcLzqo", resp.Key.KID)
 	require.Equal(t, 0, len(resp.Key.Users))
 	require.False(t, resp.PromptUser)
+}
+
+func TestStatusUser(t *testing.T) {
+	// SetLogger(NewLogger(DebugLevel))
+	env := newTestEnv(t)
+	service, closeFn := newTestService(t, env)
+	defer closeFn()
+	ctx := context.TODO()
+	testAuthSetup(t, service, alice, true)
+	testUserSetup(t, env, service, alice.ID(), "alice", true)
+
+	resp, err := service.Status(ctx, &StatusRequest{})
+	require.NoError(t, err)
+	require.NotNil(t, resp.Key)
+	require.Equal(t, "a6MtPHR36F9wG5orC8bhm8iPCE2xrXK41iZLwPZcLzqo", resp.Key.KID)
+	require.Equal(t, 1, len(resp.Key.Users))
+	require.Equal(t, UserStatusOK, resp.Key.Users[0].Status)
+	require.Equal(t, int64(1234567890022), resp.Key.Users[0].VerifiedAt)
+	require.False(t, resp.PromptUser)
+
+	env.req.SetError("https://gist.github.com/alice/1", errors.Errorf("test error"))
+
+	resp, err = service.Status(ctx, &StatusRequest{})
+	require.NoError(t, err)
+	require.NotNil(t, resp.Key)
+	require.Equal(t, "a6MtPHR36F9wG5orC8bhm8iPCE2xrXK41iZLwPZcLzqo", resp.Key.KID)
+	require.Equal(t, 1, len(resp.Key.Users))
+	require.Equal(t, UserStatusConnFailure, resp.Key.Users[0].Status)
+	require.Equal(t, int64(0), resp.Key.Users[0].VerifiedAt)
+	require.Equal(t, "test error", resp.Key.Users[0].Err)
 }

@@ -43,19 +43,19 @@ func itemCommands(client *Client) []cli.Command {
 			Flags: []cli.Flag{
 				cli.StringFlag{Name: "kid, k"},
 				cli.StringFlag{Name: "user, u"},
-				cli.BoolFlag{Name: "check"},
+				cli.BoolFlag{Name: "skip-check"},
 				cli.BoolFlag{Name: "update"},
 			},
 			Action: func(c *cli.Context) error {
-				kid, err := argString(c, "kid", false)
+				kid, err := argString(c, "kid", true)
 				if err != nil {
 					return err
 				}
 				resp, err := client.ProtoClient().Key(context.TODO(), &KeyRequest{
-					KID:    kid,
-					User:   c.String("user"),
-					Check:  c.Bool("check"),
-					Update: c.Bool("update"),
+					KID:       kid,
+					User:      c.String("user"),
+					SkipCheck: c.Bool("skip-check"),
+					Update:    c.Bool("update"),
 				})
 				if err != nil {
 					return err

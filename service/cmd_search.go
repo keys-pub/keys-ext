@@ -35,8 +35,8 @@ func searchCommands(client *Client) []cli.Command {
 				out := &bytes.Buffer{}
 				w := new(tabwriter.Writer)
 				w.Init(out, 0, 8, 1, ' ', 0)
-				for _, key := range searchResp.Keys {
-					fmtKey(w, key)
+				for _, res := range searchResp.Results {
+					fmtResult(w, res)
 				}
 				w.Flush()
 				fmt.Printf(out.String())

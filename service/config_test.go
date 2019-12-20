@@ -28,11 +28,12 @@ func TestConfig(t *testing.T) {
 }
 
 func TestConfigSet(t *testing.T) {
-	service, closeFn := testService(t)
+	env := newTestEnv(t)
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	ctx := context.TODO()
 
-	testAuthSetup(t, service, alice, false, "")
+	testAuthSetup(t, service, alice, false)
 
 	_, err := service.ConfigSet(ctx, &ConfigSetRequest{
 		Key:   "disablePromptUser",

@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"io"
 	"os"
-	strings "strings"
+	"strings"
 	"text/tabwriter"
+
+	colors "github.com/logrusorgru/aurora"
 
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
@@ -57,10 +59,24 @@ func fmtKeys(keys []*Key) {
 	fmt.Print(out.String())
 }
 
-func fmtUsers(usrs []*User) string {
+func fmtUser(user *User) string {
+	s := fmt.Sprintf("%s@%s", user.Name, user.Service)
+	switch user.Status {
+	case UserStatusOK:
+		return colors.Green(s).String()
+	case UserStatusUnknown:
+		return s
+	case UserStatusConnFailure:
+		return colors.Yellow(s).String()
+	default:
+		return colors.Red(s).String()
+	}
+}
+
+func fmtUsers(users []*User) string {
 	out := []string{}
-	for _, usr := range usrs {
-		out = append(out, fmt.Sprintf("%s@%s", usr.Name, usr.Service))
+	for _, user := range users {
+		out = append(out, fmtUser(user))
 	}
 	return strings.Join(out, ",")
 }
@@ -71,6 +87,10 @@ func fmtKey(w io.Writer, key *Key) {
 		return
 	}
 	fmt.Fprintf(w, "%s\t%s\t%s\n", key.KID, fmtUsers(key.Users), key.Type.Emoji())
+}
+
+func fmtResult(w io.Writer, res *SearchResult) {
+	fmt.Fprintf(w, "%s\t%s\n", res.KID, fmtUsers(res.Users))
 }
 
 func fmtItems(items []*Item) {

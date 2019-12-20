@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	strings "strings"
 	"unicode/utf8"
 
 	"github.com/davecgh/go-spew/spew"
@@ -12,6 +11,9 @@ import (
 
 // Collections (RPC) ...
 func (s *service) Collections(ctx context.Context, req *CollectionsRequest) (*CollectionsResponse, error) {
+	if s.db == nil {
+		return nil, errors.Errorf("db is locked")
+	}
 	iter, err := s.db.Collections(ctx, req.Path)
 	if err != nil {
 		return nil, err
@@ -25,9 +27,9 @@ func (s *service) Collections(ctx context.Context, req *CollectionsRequest) (*Co
 		if col == nil {
 			break
 		}
-		if strings.HasPrefix(col.Path, "/.") {
-			continue
-		}
+		// if strings.HasPrefix(col.Path, "/.") {
+		// 	continue
+		// }
 		cols = append(cols, &Collection{
 			Path: col.Path,
 		})
@@ -40,6 +42,9 @@ func (s *service) Collections(ctx context.Context, req *CollectionsRequest) (*Co
 
 // Documents (RPC) lists local document store.
 func (s *service) Documents(ctx context.Context, req *DocumentsRequest) (*DocumentsResponse, error) {
+	if s.db == nil {
+		return nil, errors.Errorf("db is locked")
+	}
 	iter, err := s.db.Documents(ctx, req.Path,
 		&keys.DocumentsOpts{
 			Prefix: req.Prefix,

@@ -8,14 +8,12 @@ import (
 )
 
 func TestPush(t *testing.T) {
-	clock := newClock()
-	fi := testFire(t, clock)
-	ctx := context.TODO()
-
-	service, closeFn := testServiceFire(t, fi, clock)
+	env := newTestEnv(t)
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
-	testAuthSetup(t, service, alice, false, "")
+	testAuthSetup(t, service, alice, false)
 
+	ctx := context.TODO()
 	resp, err := service.Push(ctx, &PushRequest{})
 	require.NoError(t, err)
 	require.Equal(t, alice.ID().String(), resp.KID)

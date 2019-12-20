@@ -10,7 +10,7 @@ import (
 // Status (RPC) returns status.
 func (s *service) Status(ctx context.Context, req *StatusRequest) (*StatusResponse, error) {
 	logger.Infof("Status")
-	key, err := s.loadCurrentKey()
+	key, err := s.loadMasterKey()
 	if err != nil {
 		return nil, err
 	}

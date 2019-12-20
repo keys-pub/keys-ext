@@ -2,12 +2,12 @@ package service
 
 import (
 	"sync"
+	"time"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/saltpack"
 	"github.com/keys-pub/keysd/db"
 	"github.com/keys-pub/keysd/http/client"
-	"github.com/pkg/errors"
 )
 
 type service struct {
@@ -19,6 +19,8 @@ type service struct {
 	local  *keys.CryptoStore
 	remote *client.Client
 	scs    keys.SigchainStore
+	uc     *keys.UserContext
+	nowFn  func() time.Time
 
 	watchLast *keys.WatchEvent
 	watchLn   keys.WatchLn
@@ -26,22 +28,38 @@ type service struct {
 	watchMtx  sync.Mutex
 }
 
-func newService(cfg *Config, build Build, auth *auth) *service {
+func newService(cfg *Config, build Build, auth *auth, uc *keys.UserContext, nowFn func() time.Time) (*service, error) {
 	ks := keys.NewKeystore()
 	ks.SetKeyring(auth.keyring)
-	return &service{
-		cfg:     cfg,
-		build:   build,
-		auth:    auth,
-		ks:      ks,
-		watchLn: func(e *keys.WatchEvent) {},
+
+	remote, err := client.NewClient(cfg.Server(), saltpack.NewSaltpack(ks))
+	if err != nil {
+		return nil, err
 	}
+	remote.SetTimeNow(nowFn)
+
+	return &service{
+		auth:    auth,
+		build:   build,
+		cfg:     cfg,
+		ks:      ks,
+		uc:      uc,
+		remote:  remote,
+		nowFn:   nowFn,
+		watchLn: func(e *keys.WatchEvent) {},
+	}, nil
+}
+
+// Now ...
+func (s *service) Now() time.Time {
+	return s.nowFn()
 }
 
 // Open the service.
-func (s *service) Open() error {
+func (s *service) Open(key keys.Key) error {
 	if s.db != nil && s.db.IsOpen() {
-		return errors.Errorf("db already open")
+		logger.Errorf("DB already open, closing first...")
+		s.Close()
 	}
 
 	logger.Infof("Opening db...")
@@ -50,32 +68,32 @@ func (s *service) Open() error {
 	if err != nil {
 		return err
 	}
-	if err := s.db.OpenAtPath(path); err != nil {
+	if err := s.db.OpenAtPath(path, key.SecretKey(), nil); err != nil {
 		return err
 	}
+	s.db.SetTimeNow(s.nowFn)
 
-	cp := saltpack.NewSaltpack(s.ks)
-	s.local = keys.NewCryptoStore(s.db, cp)
+	s.local = keys.NewCryptoStore(s.db, saltpack.NewSaltpack(s.ks))
 	s.scs = keys.NewSigchainStore(s.local)
 	s.ks.SetSigchainStore(s.scs)
 
-	remote, err := client.NewClient("https://keys.pub", cp)
+	// Generate a sigchain if we don't have one.
+	sc, err := s.scs.Sigchain(key.ID())
 	if err != nil {
-		_ = s.Close()
 		return err
 	}
-	s.SetRemote(remote)
+	if sc == nil {
+		if err := s.scs.SaveSigchain(keys.GenerateSigchain(key, s.Now())); err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
 
-// SetRemote sets the remote.
-func (s *service) SetRemote(remote *client.Client) {
-	s.remote = remote
-}
-
 // Close ...
-func (s *service) Close() error {
+func (s *service) Close() {
+	s.watchReqClose()
 	s.ks.SetSigchainStore(nil)
 	if s.db != nil {
 		s.db.Close()
@@ -84,7 +102,4 @@ func (s *service) Close() error {
 	s.db = nil
 	s.local = nil
 	s.scs = nil
-	s.watchReqClose()
-	s.remote = nil
-	return nil
 }

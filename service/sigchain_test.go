@@ -8,10 +8,13 @@ import (
 )
 
 func TestSigchain(t *testing.T) {
-	SetLogger(NewLogger(DebugLevel))
-	service, closeFn := testService(t)
+	// SetLogger(NewLogger(DebugLevel))
+	env := newTestEnv(t)
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
-	testAuthSetup(t, service, alice, true, "alice")
+	testAuthSetup(t, service, alice, true)
+	testUserSetup(t, env, service, alice.ID(), "alice", true)
+
 	ctx := context.TODO()
 
 	resp, err := service.Sigchain(ctx, &SigchainRequest{})

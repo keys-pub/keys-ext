@@ -45,7 +45,7 @@ func pullCommands(client *Client) []cli.Command {
 				cli.StringFlag{Name: "kid, k", Usage: "kid"},
 			},
 			Action: func(c *cli.Context) error {
-				kid, err := argString(c, "kid", false)
+				kid, err := argString(c, "kid", true)
 				if err != nil {
 					return err
 				}

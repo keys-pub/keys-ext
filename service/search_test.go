@@ -8,27 +8,27 @@ import (
 )
 
 func TestSearch(t *testing.T) {
-	service, closeFn := testService(t)
+	env := newTestEnv(t)
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	ctx := context.TODO()
 
-	testAuthSetup(t, service, alice, true, "alice")
+	testAuthSetup(t, service, alice, true)
+	testUserSetup(t, env, service, alice.ID(), "alice", true)
 
-	testRecoverKey(t, service, bob, false, "bob")
-	testRecoverKey(t, service, charlie, true, "")
+	testRecoverKey(t, service, bob, false)
+	testUserSetup(t, env, service, bob.ID(), "bob", false)
+
+	testRecoverKey(t, service, charlie, true)
 	testRemoveKey(t, service, charlie)
 
 	resp, err := service.Search(ctx, &SearchRequest{})
 	require.NoError(t, err)
-	require.Equal(t, 2, len(resp.Keys))
+	require.Equal(t, 2, len(resp.Results))
 	// Alice
-	require.Equal(t, "ZoxBoAcN3zUr5A11Uyq1J6pscwKFo2oZSFbwfT7DztXg", resp.Keys[0].KID)
-	require.Equal(t, 1, len(resp.Keys[0].Users))
-	require.Equal(t, "alice", resp.Keys[0].Users[0].Name)
-	require.Equal(t, PrivateKeyType, resp.Keys[0].Type)
-	require.True(t, resp.Keys[0].Saved)
+	require.Equal(t, alice.ID().String(), resp.Results[0].KID)
+	require.Equal(t, 1, len(resp.Results[0].Users))
+	require.Equal(t, "alice", resp.Results[0].Users[0].Name)
 	// Charlie
-	require.Equal(t, "HBtyNnL4mJYQj2QtAb982yokS1Fgy5VYj7Bh5NFBkycS", resp.Keys[1].KID)
-	require.Equal(t, PublicKeyType, resp.Keys[1].Type)
-	require.False(t, resp.Keys[1].Saved)
+	require.Equal(t, charlie.ID().String(), resp.Results[1].KID)
 }

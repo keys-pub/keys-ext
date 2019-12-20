@@ -36,7 +36,7 @@ func (s *service) Keys(ctx context.Context, req *KeysRequest) (*KeysResponse, er
 func (s *service) keys(ctx context.Context, kids []keys.ID, sortField string, sortDirection SortDirection) ([]*Key, error) {
 	keys := make([]*Key, 0, len(kids))
 	for _, kid := range kids {
-		key, err := s.key(ctx, kid, false, false)
+		key, err := s.key(ctx, kid, true, false)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to load keystore key")
 		}

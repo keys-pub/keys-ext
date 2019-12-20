@@ -19,7 +19,7 @@ func (l listener) dial(context.Context, string) (net.Conn, error) {
 	return l.lis.Dial()
 }
 
-func newTestClient(t *testing.T, srvc *service) (*Client, func()) {
+func newTestRPCClient(t *testing.T, srvc *service) (*Client, func()) {
 	listener := listener{lis: bufconn.Listen(1024 * 1024)}
 
 	connect := func(cfg *Config, authToken string) (*grpc.ClientConn, error) {
@@ -39,7 +39,7 @@ func newTestClient(t *testing.T, srvc *service) (*Client, func()) {
 
 	client := NewClient()
 	client.connectFn = connect
-	cfg, cfgClose := testConfig(t)
+	cfg, cfgClose := testConfig(t, "")
 	err := client.Connect(cfg, "")
 	require.NoError(t, err)
 

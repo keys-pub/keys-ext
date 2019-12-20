@@ -106,7 +106,7 @@ func (s *service) push(kid keys.ID) ([]string, error) {
 				return nil, err
 			}
 		}
-		url := s.remote.URL().String() + st.URLPath()
+		url := s.remote.URL().String() + st.URL()
 		urls = append(urls, url)
 	}
 

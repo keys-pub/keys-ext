@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 
-	"github.com/keys-pub/keys"
 	"github.com/pkg/errors"
 )
 
@@ -18,17 +17,16 @@ func (s *service) Search(ctx context.Context, req *SearchRequest) (*SearchRespon
 	if err != nil {
 		return nil, err
 	}
-	kids := make([]keys.ID, 0, len(resp.Results))
-	for _, res := range resp.Results {
-		kids = append(kids, res.KID)
-	}
 
-	keys, err := s.keys(ctx, kids, "user", SortAsc)
-	if err != nil {
-		return nil, err
+	results := make([]*SearchResult, 0, len(resp.Results))
+	for _, res := range resp.Results {
+		results = append(results, &SearchResult{
+			KID:   res.KID.String(),
+			Users: userChecksToRPC(res.Users),
+		})
 	}
 
 	return &SearchResponse{
-		Keys: keys,
+		Results: results,
 	}, nil
 }
