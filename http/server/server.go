@@ -25,7 +25,7 @@ type Server struct {
 
 	accessFn AccessFn
 
-	search       *keys.Search
+	users        *keys.UserStore
 	tasks        Tasks
 	internalAuth string
 }
@@ -37,15 +37,13 @@ type Fire interface {
 }
 
 // NewServer creates a Server.
-func NewServer(fi Fire, mc MemCache, uc *keys.UserContext) *Server {
-	scs := keys.NewSigchainStore(fi)
-	search := keys.NewSearch(fi, scs, uc)
+func NewServer(fi Fire, mc MemCache, users *keys.UserStore) *Server {
 	return &Server{
-		fi:     fi,
-		mc:     mc,
-		nowFn:  time.Now,
-		tasks:  newUnsetTasks(),
-		search: search,
+		fi:    fi,
+		mc:    mc,
+		nowFn: time.Now,
+		tasks: newUnsetTasks(),
+		users: users,
 		accessFn: func(c AccessContext, resource AccessResource, action AccessAction) Access {
 			return AccessDeny("no access set")
 		},

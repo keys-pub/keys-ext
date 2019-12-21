@@ -69,9 +69,9 @@ func testFire(t *testing.T, clock *clock) Fire {
 	return fi
 }
 
-func newTestServer(t *testing.T, clock *clock, fs Fire, uc *keys.UserContext) *testServer {
+func newTestServer(t *testing.T, clock *clock, fs Fire, users *keys.UserStore) *testServer {
 	mc := NewMemTestCache(clock.Now)
-	server := NewServer(fs, mc, uc)
+	server := NewServer(fs, mc, users)
 	tasks := NewTestTasks(server)
 	server.SetTasks(tasks)
 	server.SetInternalAuth(keys.RandString(32))
@@ -116,7 +116,7 @@ func (s *testServer) Serve(req *http.Request) (int, http.Header, string) {
 // 	return resp.StatusCode, resp.Header, string(b)
 // }
 
-func userMock(t *testing.T, uc *keys.UserContext, key keys.Key, name string, service string, clock *clock, mock *keys.MockRequestor) *keys.Statement {
+func userMock(t *testing.T, users *keys.UserStore, key keys.Key, name string, service string, mock *keys.MockRequestor) *keys.Statement {
 	url := ""
 	switch service {
 	case "github":
@@ -128,9 +128,9 @@ func userMock(t *testing.T, uc *keys.UserContext, key keys.Key, name string, ser
 	}
 
 	sc := keys.NewSigchain(key.PublicKey().SignPublicKey())
-	usr, err := keys.NewUser(uc, key.ID(), service, name, url, sc.LastSeq()+1)
+	usr, err := keys.NewUser(users, key.ID(), service, name, url, sc.LastSeq()+1)
 	require.NoError(t, err)
-	st, err := keys.GenerateUserStatement(sc, usr, key.SignKey(), clock.Now())
+	st, err := keys.GenerateUserStatement(sc, usr, key.SignKey(), users.Now())
 	require.NoError(t, err)
 
 	msg, err := usr.Sign(key.SignKey())
@@ -144,8 +144,8 @@ func TestAccess(t *testing.T) {
 	clock := newClock()
 	fi := testFire(t, clock)
 	rq := keys.NewMockRequestor()
-	uc := keys.NewTestUserContext(rq, clock.Now)
-	srv := newTestServer(t, clock, fi, uc)
+	users := keys.NewTestUserStore(fi, keys.NewSigchainStore(fi), rq, clock.Now)
+	srv := newTestServer(t, clock, fi, users)
 
 	alice, err := keys.NewKeyFromSeedPhrase(aliceSeed, false)
 	require.NoError(t, err)

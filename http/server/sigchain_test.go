@@ -17,8 +17,8 @@ func TestSigchains(t *testing.T) {
 	fi := testFire(t, clock)
 	// fs := testFirestore(t)
 	rq := keys.NewMockRequestor()
-	uc := keys.NewTestUserContext(rq, clock.Now)
-	srv := newTestServer(t, clock, fi, uc)
+	users := keys.NewTestUserStore(fi, keys.NewSigchainStore(fi), rq, clock.Now)
+	srv := newTestServer(t, clock, fi, users)
 	// clock := newClockAtNow()
 	// srv := newDevServer(t)
 

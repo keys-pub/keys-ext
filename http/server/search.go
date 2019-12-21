@@ -26,7 +26,7 @@ func (s *Server) getSearch(c echo.Context) error {
 		return ErrBadRequest(c, errors.Wrapf(err, "invalid limit"))
 	}
 
-	results, err := s.search.Search(ctx, &keys.SearchRequest{Query: q, Limit: limit})
+	results, err := s.users.Search(ctx, &keys.SearchRequest{Query: q, Limit: limit})
 	if err != nil {
 		return internalError(c, err)
 	}

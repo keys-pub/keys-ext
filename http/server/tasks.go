@@ -79,7 +79,7 @@ func (s *Server) taskCheck(c echo.Context) error {
 		return ErrBadRequest(c, err)
 	}
 
-	if err := s.search.Update(ctx, kid); err != nil {
+	if err := s.users.Update(ctx, kid); err != nil {
 		return internalError(c, err)
 	}
 	return c.String(http.StatusOK, "")
@@ -89,7 +89,7 @@ func (s *Server) cronCheck(c echo.Context) error {
 	ctx := c.Request().Context()
 	logger.Infof(ctx, "Server POST cron check %s", s.urlString(c))
 
-	kids, err := s.search.Expired(ctx, time.Hour*23)
+	kids, err := s.users.Expired(ctx, time.Hour*23)
 	if err != nil {
 		return internalError(c, err)
 	}

@@ -16,8 +16,8 @@ func TestShare(t *testing.T) {
 	clock := newClock()
 	fi := testFire(t, clock)
 	rq := keys.NewMockRequestor()
-	uc := keys.NewTestUserContext(rq, clock.Now)
-	srv := newTestServer(t, clock, fi, uc)
+	users := keys.NewTestUserStore(fi, keys.NewSigchainStore(fi), rq, clock.Now)
+	srv := newTestServer(t, clock, fi, users)
 
 	alice, err := keys.NewKeyFromSeedPhrase(aliceSeed, false)
 	require.NoError(t, err)

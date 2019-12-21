@@ -15,8 +15,8 @@ func TestSearch(t *testing.T) {
 	clock := newClock()
 	fi := testFire(t, clock)
 	rq := keys.NewMockRequestor()
-	uc := keys.NewTestUserContext(rq, clock.Now)
-	srv := newTestServer(t, clock, fi, uc)
+	users := keys.NewTestUserStore(fi, keys.NewSigchainStore(fi), rq, clock.Now)
+	srv := newTestServer(t, clock, fi, users)
 
 	// GET /search
 	req, err := http.NewRequest("GET", "/search", nil)
@@ -30,7 +30,7 @@ func TestSearch(t *testing.T) {
 	require.NoError(t, err)
 
 	// Alice sign user statement
-	st := userMock(t, uc, alice, "alice", "github", clock, rq)
+	st := userMock(t, users, alice, "alice", "github", rq)
 	// PUT alice
 	req, err = http.NewRequest("PUT", "/sigchain/HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec/1", bytes.NewReader(st.Bytes()))
 	require.NoError(t, err)
@@ -55,21 +55,21 @@ func TestSearch(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, `{"results":[{"kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","users":[{"status":"ok","ts":"2009-02-13T15:31:30.005-08:00","user":{"kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","name":"alice","seq":1,"service":"github","url":"https://gist.github.com/alice/1"},"vts":"2009-02-13T15:31:30.006-08:00"}]},{"kid":"KNLPD1zD35FpXxP8q2B7JEWVqeJTxYH5RQKtGgrgNAtU"}]}`, body)
+	require.Equal(t, `{"results":[{"kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","users":[{"status":"ok","ts":1234567890005,"user":{"kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","name":"alice","seq":1,"service":"github","url":"https://gist.github.com/alice/1"},"lvts":1234567890006}]},{"kid":"KNLPD1zD35FpXxP8q2B7JEWVqeJTxYH5RQKtGgrgNAtU"}]}`, body)
 
 	// GET /search?q=alice
 	req, err = http.NewRequest("GET", "/search?q=alice", nil)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, `{"results":[{"kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","users":[{"status":"ok","ts":"2009-02-13T15:31:30.005-08:00","user":{"kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","name":"alice","seq":1,"service":"github","url":"https://gist.github.com/alice/1"},"vts":"2009-02-13T15:31:30.006-08:00"}]}]}`, body)
+	require.Equal(t, `{"results":[{"kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","users":[{"status":"ok","ts":1234567890005,"user":{"kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","name":"alice","seq":1,"service":"github","url":"https://gist.github.com/alice/1"},"lvts":1234567890006}]}]}`, body)
 
 	// GET /search?q=alice@github
 	req, err = http.NewRequest("GET", "/search?q=alice@github", nil)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, `{"results":[{"kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","users":[{"status":"ok","ts":"2009-02-13T15:31:30.005-08:00","user":{"kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","name":"alice","seq":1,"service":"github","url":"https://gist.github.com/alice/1"},"vts":"2009-02-13T15:31:30.006-08:00"}]}]}`, body)
+	require.Equal(t, `{"results":[{"kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","users":[{"status":"ok","ts":1234567890005,"user":{"kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","name":"alice","seq":1,"service":"github","url":"https://gist.github.com/alice/1"},"lvts":1234567890006}]}]}`, body)
 
 	// GET /search?q=unknown
 	req, err = http.NewRequest("GET", "/search?q=unknown", nil)
@@ -90,5 +90,5 @@ func TestSearch(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, `{"results":[{"kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","users":[{"status":"ok","ts":"2009-02-13T15:31:30.005-08:00","user":{"kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","name":"alice","seq":1,"service":"github","url":"https://gist.github.com/alice/1"},"vts":"2009-02-13T15:31:30.006-08:00"}]}]}`, body)
+	require.Equal(t, `{"results":[{"kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","users":[{"status":"ok","ts":1234567890005,"user":{"kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","name":"alice","seq":1,"service":"github","url":"https://gist.github.com/alice/1"},"lvts":1234567890006}]}]}`, body)
 }
