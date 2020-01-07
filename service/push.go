@@ -8,23 +8,20 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Push (RPC) publishes user public key and sigchain.
+// Push (RPC) publishes sigchain statements.
 func (s *service) Push(ctx context.Context, req *PushRequest) (*PushResponse, error) {
 	key, err := s.parseKeyOrCurrent(req.KID)
 	if err != nil {
 		return nil, err
 	}
 
-	urls, err := s.push(key.ID())
+	urls, err := s.push(ctx, key.ID())
 	if err != nil {
 		return nil, err
 	}
-	ok, err := s.pull(ctx, key.ID())
-	if err != nil {
-		return nil, err
-	}
-	if !ok {
-		return nil, errors.Errorf("sigchain not found on remote after push")
+
+	if len(urls) == 0 {
+		return nil, errors.Errorf("nothing to push")
 	}
 
 	return &PushResponse{
@@ -33,42 +30,7 @@ func (s *service) Push(ctx context.Context, req *PushRequest) (*PushResponse, er
 	}, nil
 }
 
-func (s *service) publish(kid keys.ID) error {
-	logger.Infof("Publishing %s", kid)
-
-	// Local sigchain
-	sc, err := s.scs.Sigchain(kid)
-	if err != nil {
-		return err
-	}
-	if sc == nil {
-		return keys.NewErrNotFound(kid, keys.SigchainType)
-	}
-	sts := sc.Statements()
-	if len(sts) == 0 {
-		return errors.Errorf("no sigchain statements")
-	}
-
-	// Remote sigchain
-	if s.remote == nil {
-		return errors.Errorf("no remote set")
-	}
-	rsc, rerr := s.remote.Sigchain(kid)
-	if rerr != nil {
-		return rerr
-	}
-	if rsc != nil && len(rsc.Statements) > 0 {
-		return errors.Errorf("sigchain already published")
-	}
-	for _, st := range sts {
-		if err := s.remote.PutSigchainStatement(st); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (s *service) push(kid keys.ID) ([]string, error) {
+func (s *service) push(ctx context.Context, kid keys.ID) ([]string, error) {
 	logger.Infof("Pushing %s", kid)
 
 	// Local sigchain
@@ -76,10 +38,10 @@ func (s *service) push(kid keys.ID) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	if sc == nil {
-		return nil, keys.NewErrNotFound(kid, keys.SigchainType)
-	}
 	sts := sc.Statements()
+	if len(sts) == 0 {
+		return []string{}, nil
+	}
 
 	// Remote sigchain
 	if s.remote == nil {
@@ -108,6 +70,11 @@ func (s *service) push(kid keys.ID) ([]string, error) {
 		}
 		url := s.remote.URL().String() + st.URL()
 		urls = append(urls, url)
+	}
+
+	// TODO: instead of pulling, save resource from push
+	if _, err := s.pull(ctx, kid); err != nil {
+		return nil, err
 	}
 
 	return urls, nil

@@ -22,7 +22,7 @@ func (s *service) Search(ctx context.Context, req *SearchRequest) (*SearchRespon
 	for _, res := range resp.Results {
 		results = append(results, &SearchResult{
 			KID:   res.KID.String(),
-			Users: userChecksToRPC(res.Users),
+			Users: userResultsToRPC(res.Users),
 		})
 	}
 

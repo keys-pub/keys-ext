@@ -30,12 +30,13 @@ func (s *service) Key(ctx context.Context, req *KeyRequest) (*KeyResponse, error
 		kid = k
 	}
 
-	keyOut, err := s.key(ctx, kid, !req.SkipCheck, req.Update)
+	key, err := s.key(ctx, kid)
 	if err != nil {
 		return nil, err
 	}
+
 	return &KeyResponse{
-		Key: keyOut,
+		Key: key,
 	}, nil
 }
 
@@ -51,7 +52,7 @@ func (t KeyType) Emoji() string {
 	}
 }
 
-func (s *service) key(ctx context.Context, kid keys.ID, check bool, update bool) (*Key, error) {
+func (s *service) key(ctx context.Context, kid keys.ID) (*Key, error) {
 	logger.Debugf("Loading key %s", kid)
 	if s.db == nil {
 		return nil, errors.Errorf("db is locked")
@@ -60,14 +61,12 @@ func (s *service) key(ctx context.Context, kid keys.ID, check bool, update bool)
 	typ := PublicKeyType
 	var users []*User
 	saved := false
-	var spk []byte
-	var bpk []byte
 	var createdAt time.Time
 	var publishedAt time.Time
 	var savedAt time.Time
 	var updatedAt time.Time
 
-	key, err := s.loadPrivateKey(kid)
+	key, err := s.loadKey(kid)
 	if err != nil {
 		return nil, err
 	}
@@ -82,99 +81,53 @@ func (s *service) key(ctx context.Context, kid keys.ID, check bool, update bool)
 	if err != nil {
 		return nil, err
 	}
-	if sc != nil {
-		logger.Debugf("Found local sigchain")
+
+	sts := sc.Statements()
+	if key == nil && len(sts) == 0 {
+		return nil, keys.NewErrNotFound(kid.String())
+	}
+
+	if len(sts) > 0 {
+		logger.Debugf("Found sigchain statements %s", kid)
+		st := sts[0]
+		createdAt = st.Timestamp
 		saved = true
 
-		if update {
-			// TODO: We update even if not published, should we?
-			_, err := s.pull(ctx, kid)
-			if err != nil {
-				return nil, err
-			}
+		res, err := s.loadResource(ctx, keys.Path("sigchain", st.Key()))
+		if err != nil {
+			return nil, err
+		}
+		if res != nil {
+			logger.Debugf("Found local resource %+v", res)
+			publishedAt = res.Metadata.CreatedAt
 		}
 
-		spk = sc.SignPublicKey()[:]
-		bpk = sc.BoxPublicKey()[:]
-
-		sts := sc.Statements()
-		if len(sts) > 0 {
-			st := sts[0]
-			res, err := s.loadResource(ctx, keys.Path("sigchain", st.Key()))
-			if err != nil {
-				return nil, err
-			}
-			if res != nil {
-				logger.Debugf("Found local resource %+v", res)
-				publishedAt = res.Metadata.CreatedAt
-			}
-
-			// Lookup when it was saved
-			doc, err := s.db.Get(ctx, keys.Path("sigchain", st.Key()))
-			if err != nil {
-				return nil, err
-			}
-			if doc != nil {
-				savedAt = doc.CreatedAt
-				updatedAt = doc.UpdatedAt
-			}
+		// Lookup when it was saved
+		doc, err := s.db.Get(ctx, keys.Path("sigchain", st.Key()))
+		if err != nil {
+			return nil, err
 		}
-	} else {
-		// TODO: Published at if we have no local sigchain
-		// logger.Debugf("Loading remote sigchain %s", kid)
-		// resp, err := s.remote.Sigchain(kid)
-		// if err != nil {
-		// 	return nil, errors.Wrapf(err, "failed to load remote sigchain")
-		// }
-		// if resp != nil {
-		// 	sc, err = resp.Sigchain()
-		// 	if err != nil {
-		// 		return nil, err
-		// 	}
-		// 	sts := sc.Statements()
-		// 	if len(sts) > 0 {
-		// 		st := sts[0]
-		// 		publishedAt = resp.MetadataFor(st).CreatedAt
-		// 	}
-		// }
-	}
-
-	if sc != nil {
-		sts := sc.Statements()
-		if len(sts) > 0 {
-			st := sts[0]
-			createdAt = st.Timestamp
+		if doc != nil {
+			savedAt = doc.CreatedAt
+			updatedAt = doc.UpdatedAt
 		}
-	}
 
-	if sc != nil {
-		if check {
-			logger.Debugf("Checking users %s", sc.KID())
-			u, err := s.uc.CheckSigchain(ctx, sc)
-			if err != nil {
-				return nil, err
-			}
-			users = userChecksToRPC(u)
-		} else {
-			users = usersToRPC(sc.Users())
+		upd, err := s.users.Update(ctx, kid)
+		if err != nil {
+			return nil, err
 		}
-	}
-
-	if key == nil && sc == nil {
-		return nil, keys.NewErrNotFound(kid, keys.KeyType)
+		users = userResultsToRPC(upd)
 	}
 
 	return &Key{
-		KID:           kid.String(),
-		Users:         users,
-		Type:          typ,
-		SignPublicKey: spk,
-		BoxPublicKey:  bpk,
-		Saved:         saved,
-		CreatedAt:     int64(keys.TimeToMillis(createdAt)),
-		PublishedAt:   int64(keys.TimeToMillis(publishedAt)),
-		SavedAt:       int64(keys.TimeToMillis(savedAt)),
-		UpdatedAt:     int64(keys.TimeToMillis(updatedAt)),
+		ID:          kid.String(),
+		Users:       users,
+		Type:        typ,
+		Saved:       saved,
+		CreatedAt:   int64(keys.TimeToMillis(createdAt)),
+		PublishedAt: int64(keys.TimeToMillis(publishedAt)),
+		SavedAt:     int64(keys.TimeToMillis(savedAt)),
+		UpdatedAt:   int64(keys.TimeToMillis(updatedAt)),
 	}, nil
 }
 
@@ -187,7 +140,10 @@ func (s *service) KeyBackup(ctx context.Context, req *KeyBackupRequest) (*KeyBac
 	if err != nil {
 		return nil, err
 	}
-	seedPhrase := keys.SeedPhrase(key)
+	seedPhrase, err := keys.BytesToPhrase(key.Seed())
+	if err != nil {
+		return nil, err
+	}
 	return &KeyBackupResponse{
 		SeedPhrase: seedPhrase,
 	}, nil
@@ -202,12 +158,17 @@ func (s *service) KeyRecover(ctx context.Context, req *KeyRecoverRequest) (*KeyR
 		return nil, errors.Errorf("invalid recovery phrase")
 	}
 
-	key, err := keys.NewKeyFromSeedPhrase(req.SeedPhrase, true)
+	b, err := keys.PhraseToBytes(req.SeedPhrase, true)
 	if err != nil {
 		return nil, err
 	}
 
-	existing, err := s.ks.Key(key.ID())
+	key, err := keys.NewSignKeyFromSeed(b)
+	if err != nil {
+		return nil, err
+	}
+
+	existing, err := s.ks.SignKey(key.ID())
 	if err != nil {
 		return nil, err
 	}
@@ -215,23 +176,8 @@ func (s *service) KeyRecover(ctx context.Context, req *KeyRecoverRequest) (*KeyR
 		return nil, errors.Errorf("key already exists")
 	}
 
-	sc, err := s.scs.Sigchain(key.ID())
-	if err != nil {
+	if err := s.saveKey(key); err != nil {
 		return nil, err
-	}
-	generateSigchain := true
-	if sc != nil {
-		generateSigchain = false
-	}
-
-	if err := s.saveKey(key, false, generateSigchain); err != nil {
-		return nil, err
-	}
-
-	if req.PublishPublicKey {
-		if _, err := s.push(key.ID()); err != nil {
-			return nil, err
-		}
 	}
 
 	return &KeyRecoverResponse{
@@ -248,7 +194,7 @@ func (s *service) KeyRemove(ctx context.Context, req *KeyRemoveRequest) (*KeyRem
 	if err != nil {
 		return nil, err
 	}
-	key, err := s.loadPrivateKey(kid)
+	key, err := s.loadKey(kid)
 	if err != nil {
 		return nil, err
 	}
@@ -257,33 +203,26 @@ func (s *service) KeyRemove(ctx context.Context, req *KeyRemoveRequest) (*KeyRem
 			return nil, err
 		}
 		kid := key.ID()
-
-		// Don't remove master key
-		ck, err := s.loadMasterKey()
-		if err != nil {
-			return nil, err
-		}
-		if ck != nil && ck.ID() == kid {
-			return nil, errors.Errorf("failed to remove master key")
-		}
-
 		seedPhrase := strings.TrimSpace(req.SeedPhrase)
 
 		if seedPhrase == "" {
 			return nil, errors.Errorf("seed-phrase is required to remove a key, use `keys backup` to get the seed phrase")
 		}
 
-		keySeedPhrase := keys.SeedPhrase(key)
+		keySeedPhrase, err := keys.BytesToPhrase(key.Seed())
+		if err != nil {
+			return nil, err
+		}
 		if seedPhrase != keySeedPhrase {
 			return nil, errors.Errorf("seed phrase doesn't match")
 		}
 
-		ok, deleteErr := s.ks.Delete(kid.String())
-		if deleteErr != nil {
-			return nil, deleteErr
+		ok, err := s.ks.Delete(kid.String())
+		if err != nil {
+			return nil, err
 		}
 		if !ok {
-			return nil, keys.NewErrNotFound(kid, keys.KeyType)
+			return nil, keys.NewErrNotFound(kid.String())
 		}
 	}
 
@@ -293,7 +232,7 @@ func (s *service) KeyRemove(ctx context.Context, req *KeyRemoveRequest) (*KeyRem
 	}
 
 	if key == nil && !ok {
-		return nil, keys.NewErrNotFound(kid, keys.KeyType)
+		return nil, keys.NewErrNotFound(kid.String())
 	}
 
 	return &KeyRemoveResponse{}, nil
@@ -301,17 +240,10 @@ func (s *service) KeyRemove(ctx context.Context, req *KeyRemoveRequest) (*KeyRem
 
 // KeyGenerate (RPC) creates a key.
 func (s *service) KeyGenerate(ctx context.Context, req *KeyGenerateRequest) (*KeyGenerateResponse, error) {
-	key := keys.GenerateKey()
+	key := keys.GenerateSignKey()
 
-	if err := s.saveKey(key, false, true); err != nil {
+	if err := s.saveKey(key); err != nil {
 		return nil, err
-	}
-
-	if req.PublishPublicKey {
-		_, pushErr := s.push(key.ID())
-		if pushErr != nil {
-			return nil, pushErr
-		}
 	}
 
 	return &KeyGenerateResponse{
@@ -319,8 +251,8 @@ func (s *service) KeyGenerate(ctx context.Context, req *KeyGenerateRequest) (*Ke
 	}, nil
 }
 
-func (s *service) kidsSet(all bool) (*keys.IDSet, error) {
-	ks, err := s.loadPrivateKeys()
+func (s *service) loadKIDs(all bool) ([]keys.ID, error) {
+	ks, err := s.loadKeys()
 	if err != nil {
 		return nil, err
 	}
@@ -335,34 +267,20 @@ func (s *service) kidsSet(all bool) (*keys.IDSet, error) {
 		}
 		kids.AddAll(pkids)
 	}
-	return kids, nil
+	return kids.IDs(), nil
 }
 
-func (s *service) loadPrivateKeys() ([]keys.Key, error) {
-	items, lierr := s.ks.Keyring().List(&keyring.ListOpts{
-		Type: keys.KeyType,
-	})
-	if lierr != nil {
-		return nil, lierr
-	}
-	out := make([]keys.Key, 0, len(items))
-	for _, item := range items {
-		key, err := keys.AsKey(item)
-		if err != nil {
-			return nil, err
-		}
-		out = append(out, key)
-	}
-	return out, nil
+func (s *service) loadKeys() ([]*keys.SignKey, error) {
+	return s.ks.SignKeys()
 }
 
 func (s *service) isAuthKey(id keys.ID) (bool, error) {
-	item, err := s.ks.Get(id)
+	item, err := s.ks.Get(id.String())
 	if err != nil {
 		return false, err
 	}
 	if item == nil {
-		return false, keys.NewErrNotFound(id, keys.KeyType)
+		return false, keys.NewErrNotFound(id.String())
 	}
 	auth := item.SecretFor("auth").String() == "1"
 	return auth, nil
@@ -390,52 +308,25 @@ func (s *service) ensureNotAuthKey(id keys.ID) error {
 	return nil
 }
 
-func (s *service) loadPrivateKey(id keys.ID) (keys.Key, error) {
-	item, err := s.ks.Get(id)
-	if err != nil {
-		return nil, err
-	}
-	if item == nil {
-		return nil, nil
-	}
-	key, err := keys.AsKey(item)
-	if err != nil {
-		return nil, err
-	}
-	// auth := item.SecretFor("auth").String() == "1"
-	return key, nil
+func (s *service) loadKey(id keys.ID) (*keys.SignKey, error) {
+	return s.ks.SignKey(id)
 }
 
-func (s *service) saveKey(key keys.Key, auth bool, generateSigchain bool) error {
-	if generateSigchain {
-		if s.scs == nil {
-			return errors.Errorf("no sigchain store set")
-		}
-		if err := s.scs.SaveSigchain(keys.GenerateSigchain(key, s.Now())); err != nil {
-			return err
-		}
-	}
-	// Save to keyring
-	item := keys.NewKeyItem(key)
-	if auth {
-		item.SetSecretFor("auth", keyring.NewStringSecret("1"))
-	}
-	if err := s.ks.Set(item); err != nil {
-		return err
-	}
+func (s *service) saveKey(key *keys.SignKey) error {
+	item := keys.NewSignKeyItem(key)
+	return s.ks.Set(item)
+}
 
-	// Set master key if auth setup.
-	if auth {
-		item := keyring.NewItem(".master", keyring.NewStringSecret(key.ID().String()), "")
-		if err := s.ks.Set(item); err != nil {
-			return err
-		}
+func (s *service) setCurrentKey(key *keys.SignKey) error {
+	link := keyring.NewItem(".current", keyring.NewStringSecret(key.ID().String()), "")
+	if err := s.ks.Set(link); err != nil {
+		return err
 	}
 	return nil
 }
 
-func (s *service) loadMasterKey() (keys.Key, error) {
-	item, err := s.ks.Get(".master")
+func (s *service) loadCurrentKey() (*keys.SignKey, error) {
+	item, err := s.ks.Get(".current")
 	if err != nil {
 		return nil, err
 	}
@@ -446,20 +337,12 @@ func (s *service) loadMasterKey() (keys.Key, error) {
 	if err != nil {
 		return nil, err
 	}
-	return s.loadPrivateKey(id)
-}
-
-func recipientIDs(pks []keys.PublicKey) []keys.ID {
-	ids := make([]keys.ID, 0, len(pks))
-	for _, pk := range pks {
-		ids = append(ids, pk.ID())
-	}
-	return ids
+	return s.loadKey(id)
 }
 
 func (s *service) parseKIDOrCurrent(id string) (keys.ID, error) {
 	if id == "" {
-		key, err := s.loadMasterKey()
+		key, err := s.loadCurrentKey()
 		if err != nil {
 			return "", err
 		}
@@ -475,9 +358,9 @@ func (s *service) parseKIDOrCurrent(id string) (keys.ID, error) {
 	return kid, nil
 }
 
-func (s *service) parseKeyOrCurrent(id string) (keys.Key, error) {
+func (s *service) parseKeyOrCurrent(id string) (*keys.SignKey, error) {
 	if id == "" {
-		key, err := s.loadMasterKey()
+		key, err := s.loadCurrentKey()
 		if err != nil {
 			return nil, err
 		}
@@ -489,7 +372,7 @@ func (s *service) parseKeyOrCurrent(id string) (keys.Key, error) {
 	return s.parseKey(id)
 }
 
-func (s *service) parseKey(id string) (keys.Key, error) {
+func (s *service) parseKey(id string) (*keys.SignKey, error) {
 	if id == "" {
 		return nil, errors.Errorf("no kid specified")
 	}
@@ -497,162 +380,12 @@ func (s *service) parseKey(id string) (keys.Key, error) {
 	if err != nil {
 		return nil, err
 	}
-	key, err := s.loadPrivateKey(kid)
+	key, err := s.loadKey(kid)
 	if err != nil {
 		return nil, err
 	}
 	if key == nil {
-		return nil, keys.NewErrNotFound(kid, keys.KeyType)
+		return nil, keys.NewErrNotFound(kid.String())
 	}
 	return key, nil
-}
-
-func (s *service) keyRetrieve(recipient keys.Key, id keys.ID) (keys.Key, error) {
-	key, err := s.ks.Key(id)
-	if err != nil {
-		return nil, err
-	}
-	if key != nil {
-		return nil, errors.Errorf("already have key")
-	}
-	if s.remote == nil {
-		return nil, errors.Errorf("no remote set")
-	}
-	b, sharedErr := s.remote.Shared(recipient, id)
-	if sharedErr != nil {
-		return nil, sharedErr
-	}
-	if b == nil {
-		return nil, keys.NewErrNotFound(id, keys.KeyType)
-	}
-	if len(b) != 32 {
-		return nil, errors.Errorf("invalid shared key bytes")
-	}
-	key, err = keys.NewKey(keys.Bytes32(b))
-	if err != nil {
-		return nil, err
-	}
-	if key.ID() != id {
-		return nil, errors.Errorf("invalid shared key id")
-	}
-	if err := s.ks.SaveKey(key, false, s.Now()); err != nil {
-		return nil, err
-	}
-	return key, nil
-}
-
-func (s *service) keyShare(recipient keys.ID, key keys.Key) error {
-	if s.remote == nil {
-		return errors.Errorf("no remote set")
-	}
-	pk, err := s.ks.PublicKey(recipient)
-	if err != nil {
-		return err
-	}
-	if pk == nil {
-		return keys.NewErrNotFound(recipient, keys.PublicKeyType)
-	}
-	_, shareErr := s.remote.Share(pk, key, key.Seed()[:])
-	if shareErr != nil {
-		return shareErr
-	}
-	return nil
-}
-
-// func (s *service) parseShareKey(id string, recipient keys.Key) (keys.Key, error) {
-// 	kid, err := keys.ParseID(id)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	key, err := s.ks.Key(kid)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	if key != nil {
-// 		return key, nil
-// 	}
-// 	return s.keyRetrieve(recipient, kid)
-// }
-
-func (s *service) parsePublicKeys(strs string) ([]keys.PublicKey, error) {
-	ids, err := keys.ParseIDs(strings.Split(strs, ","))
-	if err != nil {
-		return nil, err
-	}
-	pks := make([]keys.PublicKey, 0, len(ids))
-	for _, id := range ids {
-		pk, err := s.ks.PublicKey(id)
-		if err != nil {
-			return nil, err
-		}
-		if pk == nil {
-			return nil, keys.NewErrNotFound(id, keys.PublicKeyType)
-		}
-		pks = append(pks, pk)
-	}
-	return pks, nil
-}
-
-// KeyShare (RPC) ...
-func (s *service) KeyShare(ctx context.Context, req *KeyShareRequest) (*KeyShareResponse, error) {
-	if req.KID == "" {
-		return nil, errors.Errorf("no kid specified")
-	}
-	key, err := s.parseKey(req.KID)
-	if err != nil {
-		return nil, err
-	}
-	if err := s.ensureNotAuthKey(key.ID()); err != nil {
-		return nil, err
-	}
-	if req.Recipient == "" {
-		return nil, errors.Errorf("no recipient specified")
-	}
-	recipient, err := keys.ParseID(req.Recipient)
-	if err != nil {
-		return nil, err
-	}
-
-	if _, err := s.pull(ctx, recipient); err != nil {
-		return nil, err
-	}
-	if _, err := s.push(key.ID()); err != nil {
-		return nil, err
-	}
-
-	if err := s.keyShare(recipient, key); err != nil {
-		return nil, err
-	}
-	return &KeyShareResponse{}, nil
-}
-
-// KeyRetrieve (RPC) ...
-func (s *service) KeyRetrieve(ctx context.Context, req *KeyRetrieveRequest) (*KeyRetrieveResponse, error) {
-	if req.KID == "" {
-		return nil, errors.Errorf("no kid specified")
-	}
-	kid, err := keys.ParseID(req.KID)
-	if err != nil {
-		return nil, err
-	}
-	if req.Recipient == "" {
-		return nil, errors.Errorf("no recipient specified")
-	}
-	recipient, err := s.parseKey(req.Recipient)
-	if err != nil {
-		return nil, err
-	}
-
-	if _, err := s.pull(ctx, kid); err != nil {
-		return nil, err
-	}
-	if _, err := s.pull(ctx, recipient.ID()); err != nil {
-		return nil, err
-	}
-
-	if _, err := s.keyRetrieve(recipient, kid); err != nil {
-		return nil, err
-	}
-
-	return &KeyRetrieveResponse{}, nil
 }

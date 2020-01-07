@@ -148,7 +148,6 @@ func userCommands(client *Client) []cli.Command {
 						cli.StringFlag{Name: "service"},
 						cli.StringFlag{Name: "name"},
 						cli.StringFlag{Name: "url", Usage: "URL to signed statement created by `keys user sign`"},
-						cli.BoolFlag{Name: "local", Usage: "only save locally"},
 					},
 					Action: func(c *cli.Context) error {
 						resp, err := client.ProtoClient().UserAdd(context.TODO(), &UserAddRequest{
@@ -156,15 +155,11 @@ func userCommands(client *Client) []cli.Command {
 							Service: c.String("service"),
 							Name:    c.String("name"),
 							URL:     c.String("url"),
-							Local:   c.Bool("local"),
 						})
 						if err != nil {
 							return err
 						}
-						st, err := statementFromRPC(resp.Statement)
-						if err != nil {
-							return err
-						}
+						st := statementFromRPC(resp.Statement)
 						fmt.Printf("%s\n", string(st.Bytes()))
 						return nil
 					},

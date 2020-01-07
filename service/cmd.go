@@ -86,7 +86,7 @@ func fmtKey(w io.Writer, key *Key) {
 		fmt.Fprintf(w, "∅\n")
 		return
 	}
-	fmt.Fprintf(w, "%s\t%s\t%s\n", key.KID, fmtUsers(key.Users), key.Type.Emoji())
+	fmt.Fprintf(w, "%s\t%s\t%s\n", key.ID, fmtUsers(key.Users), key.Type.Emoji())
 }
 
 func fmtResult(w io.Writer, res *SearchResult) {

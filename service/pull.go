@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/keys-pub/keys"
@@ -35,7 +34,7 @@ func (s *service) Pull(ctx context.Context, req *PullRequest) (*PullResponse, er
 			return nil, err
 		}
 		if !ok {
-			return nil, errors.Errorf("%s not found", req.KID)
+			return nil, keys.NewErrNotFound(req.KID)
 		}
 		return &PullResponse{KIDs: []string{kid.String()}}, nil
 	} else if req.User != "" {
@@ -58,11 +57,11 @@ func (s *service) Pull(ctx context.Context, req *PullRequest) (*PullResponse, er
 
 	// Update existing if no kid or user specified
 	pulled := []string{}
-	kids, err := s.kidsSet(true)
+	kids, err := s.loadKIDs(true)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load kids")
 	}
-	for _, kid := range kids.IDs() {
+	for _, kid := range kids {
 		ok, err := s.pull(ctx, kid)
 		if err != nil {
 			return nil, err
@@ -139,103 +138,6 @@ func (s *service) pullStatements(ctx context.Context) ([]string, error) {
 	}
 	return kids.Strings(), nil
 }
-
-func (s *service) pullMessages(ctx context.Context, kid keys.ID) error {
-	key, err := s.ks.Key(kid)
-	if err != nil {
-		return err
-	}
-	if key == nil {
-		return keys.NewErrNotFound(kid, keys.KeyType)
-	}
-	logger.Infof("Pull messages...")
-	versionPath := keys.Path("versions", fmt.Sprintf("messages-%s", kid))
-	e, err := s.db.Get(ctx, versionPath)
-	if err != nil {
-		return err
-	}
-	version := ""
-	if e != nil {
-		version = string(e.Data)
-	}
-	if s.remote == nil {
-		return errors.Errorf("no remote set")
-	}
-	resp, err := s.remote.Messages(key, version)
-	if err != nil {
-		return err
-	}
-	if resp == nil {
-		return nil
-	}
-	logger.Infof("Received %d messages", len(resp.Messages))
-	for _, msg := range resp.Messages {
-		md := resp.MetadataFor(msg)
-		ts := 9223372036854775807 - keys.TimeToMillis(md.CreatedAt)
-		pathKey := fmt.Sprintf("messages-%s", key.ID())
-		pathVal := fmt.Sprintf("%d-%s", ts, msg.ID)
-		path := keys.Path(pathKey, pathVal)
-		if err := s.db.Set(ctx, path, msg.Data); err != nil {
-			return err
-		}
-		if err := s.saveResource(ctx, path, resp.MetadataFor(msg)); err != nil {
-			return err
-		}
-	}
-	if err := s.db.Set(ctx, versionPath, []byte(resp.Version)); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *service) vaultExists(key keys.Key) (bool, error) {
-	resp, err := s.remote.Vault(key, "")
-	if err != nil {
-		return false, err
-	}
-	if resp == nil {
-		return false, nil
-	}
-	return true, nil
-}
-
-// func (s *service) pullVault(key keys.Key, full bool) (bool, error) {
-// 	logger.Infof("Pull vault...")
-// 	version := ""
-// 	versionPath := keys.Path("versions", fmt.Sprintf("vault-%s", key.ID()))
-// 	if !full {
-// 		e, err := s.db.Get(context.TODO(), versionPath)
-// 		if err != nil {
-// 			return false, err
-// 		}
-// 		if e != nil {
-// 			version = string(e.Data)
-// 		}
-// 	}
-// 	if s.remote == nil {
-// 		return false, errors.Errorf("no remote set")
-// 	}
-// 	resp, err := s.remote.Vault(key, version)
-// 	if err != nil {
-// 		return false, err
-// 	}
-// 	if resp == nil {
-// 		return false, nil
-// 	}
-// 	logger.Infof("Received %d", len(resp.Items))
-// 	for _, item := range resp.Items {
-// 		// if err := s.db.Put(ctx, item.Path, item.Data, &db.Metadata{CreatedAt: item.CreatedAt}); err != nil {
-// 		// 	return err
-// 		// }
-// 		if _, err := s.pullSigchain(item.ID); err != nil {
-// 			return false, err
-// 		}
-// 	}
-// 	if err := s.db.Put(context.TODO(), versionPath, []byte(resp.Version), &db.Metadata{CreatedAt: time.Now()}); err != nil {
-// 		return false, err
-// 	}
-// 	return true, nil
-// }
 
 type resource struct {
 	Path     string       `json:"path"`

@@ -12,16 +12,12 @@ import (
 
 // Item (RPC) returns an item for an ID.
 func (s *service) Item(ctx context.Context, req *ItemRequest) (*ItemResponse, error) {
-	id, err := keys.ParseID(req.ID)
-	if err != nil {
-		return nil, err
-	}
-	item, err := s.ks.Get(id)
+	item, err := s.ks.Get(req.ID)
 	if err != nil {
 		return nil, err
 	}
 	if item == nil {
-		return nil, keys.NewErrNotFound(id, "")
+		return nil, keys.NewErrNotFound(req.ID)
 	}
 	return &ItemResponse{
 		Item: itemToRPC(item),
@@ -34,9 +30,9 @@ func (s *service) Items(ctx context.Context, req *ItemsRequest) (*ItemsResponse,
 		return nil, errors.Errorf("query not implemented")
 	}
 
-	items, lierr := s.ks.List(&keyring.ListOpts{Type: req.Type})
-	if lierr != nil {
-		return nil, lierr
+	items, err := s.ks.List()
+	if err != nil {
+		return nil, err
 	}
 
 	itemsOut := make([]*Item, 0, len(items))
@@ -58,9 +54,8 @@ func (s *service) Items(ctx context.Context, req *ItemsRequest) (*ItemsResponse,
 
 func itemToRPC(i *keyring.Item) *Item {
 	item := &Item{
-		ID:          i.ID,
-		Type:        i.Type,
-		Description: keys.TypeDescription(i.Type),
+		ID:   i.ID,
+		Type: i.Type,
 	}
 	return item
 }

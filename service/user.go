@@ -18,7 +18,7 @@ func (s *service) UserService(ctx context.Context, req *UserServiceRequest) (*Us
 	if err != nil {
 		return nil, err
 	}
-	_, err = keys.NewUserForSigning(s.uc, key.ID(), req.Service, "test")
+	_, err = keys.NewUserForSigning(s.users, key.ID(), req.Service, "test")
 	if err != nil {
 		return nil, err
 	}
@@ -38,11 +38,11 @@ func (s *service) UserSign(ctx context.Context, req *UserSignRequest) (*UserSign
 		return nil, err
 	}
 
-	user, err := keys.NewUserForSigning(s.uc, key.ID(), req.Service, req.Name)
+	user, err := keys.NewUserForSigning(s.users, key.ID(), req.Service, req.Name)
 	if err != nil {
 		return nil, err
 	}
-	msg, err := user.Sign(key.SignKey())
+	msg, err := user.Sign(key)
 	if err != nil {
 		return nil, err
 	}
@@ -69,65 +69,49 @@ func (s *service) UserAdd(ctx context.Context, req *UserAddRequest) (*UserAddRes
 		return nil, err
 	}
 
-	// Check if key is published (if not local user add)
-	if !req.Local {
-		resp, err := s.remote.Sigchain(key.ID())
-		if err != nil {
-			return nil, err
-		}
-		if resp == nil {
-			return nil, errors.Errorf("key is not published")
-		}
-	}
-
-	user, st, err := s.sigchainUserAdd(ctx, key, req.Service, req.Name, req.URL, req.Local)
+	user, st, err := s.sigchainUserAdd(ctx, key, req.Service, req.Name, req.URL)
 	if err != nil {
 		return nil, err
 	}
 
 	return &UserAddResponse{
-		User:      userCheckToRPC(user),
+		User:      userResultToRPC(user),
 		Statement: statementToRPC(st),
 	}, nil
 }
 
-func (s *service) sigchainUserAdd(ctx context.Context, key keys.Key, service, name, url string, local bool) (*keys.UserCheck, *keys.Statement, error) {
+func (s *service) sigchainUserAdd(ctx context.Context, key *keys.SignKey, service, name, url string) (*keys.UserResult, *keys.Statement, error) {
 	sc, err := s.scs.Sigchain(key.ID())
 	if err != nil {
 		return nil, nil, err
 	}
 
-	user, err := keys.NewUser(s.uc, key.ID(), service, name, url, sc.LastSeq()+1)
+	user, err := keys.NewUser(s.users, key.ID(), service, name, url, sc.LastSeq()+1)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to create user")
 	}
 
-	userCheck, err := s.uc.Check(ctx, user, key.PublicKey().SignPublicKey())
+	userResult, err := s.users.Check(ctx, user, key.PublicKey())
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "failed to check user")
 	}
+	if userResult.Status != keys.UserStatusOK {
+		return nil, nil, errors.Errorf("failed to check user: %s", userResult.Err)
+	}
 
-	st, err := keys.GenerateUserStatement(sc, user, key.SignKey(), s.Now())
+	st, err := keys.GenerateUserStatement(sc, user, key, s.Now())
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "failed to generate user statement")
 	}
 
-	if !local {
-		// TODO: Check sigchain status (local changes not pushed)
-
-		// Save to remote
-		if s.remote == nil {
-			return nil, nil, errors.Errorf("no remote set")
-		}
-		err := s.remote.PutSigchainStatement(st)
-		if err != nil {
-			return nil, nil, err
-		}
-	}
-	if err := s.scs.AddStatement(st, key.SignKey()); err != nil {
+	if err := sc.Add(st); err != nil {
 		return nil, nil, err
 	}
-	return userCheck, st, nil
+
+	if err := s.scs.SaveSigchain(sc); err != nil {
+		return nil, nil, err
+	}
+	return userResult, st, nil
 }
 
 // SigchainURL is the sigchain URL for the user, or empty string if not set.
@@ -157,7 +141,7 @@ func userStatus(s keys.UserStatus) UserStatus {
 	}
 }
 
-func userCheckToRPC(user *keys.UserCheck) *User {
+func userResultToRPC(user *keys.UserResult) *User {
 	if user == nil {
 		return nil
 	}
@@ -168,18 +152,18 @@ func userCheckToRPC(user *keys.UserCheck) *User {
 		Name:       user.User.Name,
 		URL:        user.User.URL,
 		Status:     userStatus(user.Status),
-		VerifiedAt: int64(keys.TimeToMillis(user.VerifiedAt)),
+		VerifiedAt: int64(user.VerifiedAt),
 		Err:        user.Err,
 	}
 }
 
-func userChecksToRPC(in []*keys.UserCheck) []*User {
+func userResultsToRPC(in []*keys.UserResult) []*User {
 	if in == nil {
 		return nil
 	}
 	users := make([]*User, 0, len(in))
 	for _, u := range in {
-		users = append(users, userCheckToRPC(u))
+		users = append(users, userResultToRPC(u))
 	}
 	return users
 }
@@ -224,7 +208,7 @@ func (s *service) findUser(ctx context.Context, kid keys.ID) (*keys.User, error)
 	return users[len(users)-1], nil
 }
 
-func (s *service) searchUserByName(ctx context.Context, name string) (*keys.UserCheck, error) {
+func (s *service) searchUserByName(ctx context.Context, name string) (*keys.UserResult, error) {
 	if s.remote == nil {
 		return nil, errors.Errorf("no remote set")
 	}

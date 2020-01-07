@@ -43,8 +43,6 @@ func itemCommands(client *Client) []cli.Command {
 			Flags: []cli.Flag{
 				cli.StringFlag{Name: "kid, k"},
 				cli.StringFlag{Name: "user, u"},
-				cli.BoolFlag{Name: "skip-check"},
-				cli.BoolFlag{Name: "update"},
 			},
 			Action: func(c *cli.Context) error {
 				kid, err := argString(c, "kid", true)
@@ -52,10 +50,8 @@ func itemCommands(client *Client) []cli.Command {
 					return err
 				}
 				resp, err := client.ProtoClient().Key(context.TODO(), &KeyRequest{
-					KID:       kid,
-					User:      c.String("user"),
-					SkipCheck: c.Bool("skip-check"),
-					Update:    c.Bool("update"),
+					KID:  kid,
+					User: c.String("user"),
 				})
 				if err != nil {
 					return err
@@ -75,13 +71,9 @@ func itemCommands(client *Client) []cli.Command {
 		cli.Command{
 			Name:  "generate",
 			Usage: "Generate a key",
-			Flags: []cli.Flag{
-				cli.BoolFlag{Name: "publish", Usage: "publish public key to key server"},
-			},
+			Flags: []cli.Flag{},
 			Action: func(c *cli.Context) error {
-				req := &KeyGenerateRequest{
-					PublishPublicKey: c.Bool("publish"),
-				}
+				req := &KeyGenerateRequest{}
 				resp, err := client.ProtoClient().KeyGenerate(context.TODO(), req)
 				if err != nil {
 					return err
@@ -118,13 +110,11 @@ func itemCommands(client *Client) []cli.Command {
 			Aliases: []string{"import"},
 			Flags: []cli.Flag{
 				cli.StringFlag{Name: "seed-phrase", Usage: "seed phrase"},
-				cli.BoolFlag{Name: "publish", Usage: "publish public key to key server"},
 			},
 			Action: func(c *cli.Context) error {
 				seedPhrase := c.String("seed-phrase")
 				req := &KeyRecoverRequest{
-					SeedPhrase:       seedPhrase,
-					PublishPublicKey: c.Bool("publish"),
+					SeedPhrase: seedPhrase,
 				}
 				resp, err := client.ProtoClient().KeyRecover(context.TODO(), req)
 				if err != nil {
@@ -150,54 +140,6 @@ func itemCommands(client *Client) []cli.Command {
 					KID:        kid,
 					SeedPhrase: c.String("seed-phrase"),
 				}); err != nil {
-					return err
-				}
-				return nil
-			},
-		},
-		cli.Command{
-			Name:  "share",
-			Usage: "Share a key with a recipient",
-			Flags: []cli.Flag{
-				cli.StringFlag{Name: "kid, k", Usage: "kid"},
-				cli.StringFlag{Name: "recipient, r", Usage: "recipient"},
-			},
-			Action: func(c *cli.Context) error {
-				if c.String("kid") == "" {
-					return errors.Errorf("no kid specified")
-				}
-				if c.String("recipient") == "" {
-					return errors.Errorf("no recipient specified")
-				}
-				_, err := client.ProtoClient().KeyShare(context.TODO(), &KeyShareRequest{
-					KID:       c.String("kid"),
-					Recipient: c.String("recipient"),
-				})
-				if err != nil {
-					return err
-				}
-				return nil
-			},
-		},
-		cli.Command{
-			Name:  "retrieve",
-			Usage: "Retrieve a (shared) key",
-			Flags: []cli.Flag{
-				cli.StringFlag{Name: "kid, k", Usage: "kid"},
-				cli.StringFlag{Name: "recipient, r", Usage: "recipient"},
-			},
-			Action: func(c *cli.Context) error {
-				if c.String("kid") == "" {
-					return errors.Errorf("no kid specified")
-				}
-				if c.String("recipient") == "" {
-					return errors.Errorf("no recipient specified")
-				}
-				_, err := client.ProtoClient().KeyRetrieve(context.TODO(), &KeyRetrieveRequest{
-					KID:       c.String("kid"),
-					Recipient: c.String("recipient"),
-				})
-				if err != nil {
 					return err
 				}
 				return nil

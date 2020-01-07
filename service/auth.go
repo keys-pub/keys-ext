@@ -8,6 +8,8 @@ import (
 	"sync"
 	"syscall"
 
+	"golang.org/x/crypto/argon2"
+
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/keyring"
 	"github.com/pkg/errors"
@@ -105,6 +107,15 @@ func (a *auth) unlock(password string, client string) (string, error) {
 	return token, nil
 }
 
+func (a *auth) secretKeyForPassword(password string) (keys.SecretKey, error) {
+	salt, err := a.keyring.Salt()
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to load salt")
+	}
+	key := argon2.IDKey([]byte(password), salt[:], 1, 64*1024, 4, 32)
+	return keys.SecretKey(keys.Bytes32(key)), nil
+}
+
 func generateToken() string {
 	return keys.MustEncode(keys.Rand32()[:], keys.Base62)
 }
@@ -171,7 +182,7 @@ func (a clientAuth) RequireTransportSecurity() bool {
 }
 
 func seedToBackup(password string, seed []byte) string {
-	out := keys.SealWithPassword(seed[:], password)
+	out := keys.EncryptWithPassword(seed[:], password)
 	return keys.EncodeSaltpackMessage(out, "")
 }
 
@@ -180,7 +191,7 @@ func backupToSeed(password string, msg string) ([]byte, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to parse key backup")
 	}
-	seed, err := keys.OpenWithPassword(b, password)
+	seed, err := keys.DecryptWithPassword(b, password)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to decrypt key backup")
 	}
@@ -205,7 +216,7 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 		return nil, status.Errorf(codes.PermissionDenied, "invalid key backup: %s", err)
 	}
 
-	key, err := keys.NewKey(keys.Bytes32(seed))
+	key, err := keys.NewSignKeyFromSeed(keys.Bytes32(seed))
 	if err != nil {
 		return nil, err
 	}
@@ -215,11 +226,19 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 		return nil, err
 	}
 
-	if err := s.saveKey(key, true, false); err != nil {
+	if err := s.saveKey(key); err != nil {
+		return nil, err
+	}
+	if err := s.setCurrentKey(key); err != nil {
 		return nil, err
 	}
 
-	if err := s.Open(key); err != nil {
+	sk, err := s.auth.secretKeyForPassword(req.Password)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.Open(sk); err != nil {
 		return nil, err
 	}
 
@@ -240,15 +259,12 @@ func (s *service) AuthUnlock(ctx context.Context, req *AuthUnlockRequest) (*Auth
 		return nil, err
 	}
 
-	key, err := s.loadMasterKey()
+	sk, err := s.auth.secretKeyForPassword(req.Password)
 	if err != nil {
 		return nil, err
 	}
-	if key == nil {
-		return nil, errors.Errorf("no auth key setup")
-	}
 
-	if err := s.Open(key); err != nil {
+	if err := s.Open(sk); err != nil {
 		return nil, err
 	}
 

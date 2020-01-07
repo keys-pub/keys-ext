@@ -14,7 +14,13 @@ func (s *service) Sigchain(ctx context.Context, req *SigchainRequest) (*Sigchain
 		return nil, err
 	}
 
-	key, err := s.key(ctx, kid, req.Check, req.Update)
+	if req.Update {
+		if _, err := s.pull(ctx, kid); err != nil {
+			return nil, err
+		}
+	}
+
+	key, err := s.key(ctx, kid)
 	if err != nil {
 		return nil, err
 	}
@@ -24,7 +30,7 @@ func (s *service) Sigchain(ctx context.Context, req *SigchainRequest) (*Sigchain
 		return nil, err
 	}
 	if sc == nil {
-		return nil, keys.NewErrNotFound(kid, keys.SigchainType)
+		return nil, keys.NewErrNotFound(kid.String())
 	}
 	stsOut := statementsToRPC(sc.Statements())
 
@@ -34,27 +40,23 @@ func (s *service) Sigchain(ctx context.Context, req *SigchainRequest) (*Sigchain
 	}, nil
 }
 
-func statementFromRPC(st *Statement) (*keys.Statement, error) {
+func statementFromRPC(st *Statement) *keys.Statement {
+	ts := keys.TimeFromMillis(keys.TimeMs(st.Timestamp))
 	kid, err := keys.ParseID(st.KID)
 	if err != nil {
-		return nil, err
+		return nil
 	}
-	ts := keys.TimeFromMillis(keys.TimeMs(st.Timestamp))
-	logger.Debugf("Parsing statement %s %d %s", st.KID, st.Seq, ts)
-	return keys.NewStatement(st.Sig, st.Data, kid, int(st.Seq), st.Prev, int(st.Revoke), st.Type, ts)
+	return keys.NewUnverifiedStatement(st.Sig, st.Data, kid, int(st.Seq), st.Prev, int(st.Revoke), st.Type, ts)
 }
 
 // statementsFromRPC converts Statement's to keys.Statement's.
-func statementsFromRPC(sts []*Statement) ([]*keys.Statement, error) {
+func statementsFromRPC(sts []*Statement) []*keys.Statement {
 	stsOut := make([]*keys.Statement, 0, len(sts))
 	for _, st := range sts {
-		stOut, err := statementFromRPC(st)
-		if err != nil {
-			return nil, err
-		}
+		stOut := statementFromRPC(st)
 		stsOut = append(stsOut, stOut)
 	}
-	return stsOut, nil
+	return stsOut
 }
 
 func statementToRPC(st *keys.Statement) *Statement {
@@ -78,20 +80,10 @@ func statementsToRPC(sts []*keys.Statement) []*Statement {
 	return stsOut
 }
 
-func sigchainFromRPC(kidStr string, ssts []*Statement) (*keys.Sigchain, error) {
-	sts, err := statementsFromRPC(ssts)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to resolve statements")
-	}
-	kid, err := keys.ParseID(kidStr)
-	if err != nil {
-		return nil, err
-	}
+func sigchainFromRPC(kidStr string, ssts []*Statement, spk keys.SigchainPublicKey) (*keys.Sigchain, error) {
 	logger.Infof("Resolving sigchain from statements")
-	sc, err := keys.NewSigchainForKID(kid)
-	if err != nil {
-		return nil, err
-	}
+	sc := keys.NewSigchain(spk)
+	sts := statementsFromRPC(ssts)
 	if err := sc.AddAll(sts); err != nil {
 		return nil, errors.Wrapf(err, "failed to resolve sigchain from statements")
 	}
@@ -110,7 +102,7 @@ func (s *service) Statement(ctx context.Context, req *StatementRequest) (*Statem
 		return nil, err
 	}
 	if sc == nil {
-		return nil, keys.NewErrNotFound(kid, keys.SigchainType)
+		return nil, keys.NewErrNotFound(kid.String())
 	}
 	stsOut := statementsToRPC(sc.Statements())
 
@@ -139,7 +131,7 @@ func (s *service) StatementCreate(ctx context.Context, req *StatementCreateReque
 	if err != nil {
 		return nil, err
 	}
-	st, err := keys.GenerateStatement(sc, req.Data, key.SignKey(), "", s.Now())
+	st, err := keys.GenerateStatement(sc, req.Data, key, "", s.Now())
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +149,10 @@ func (s *service) StatementCreate(ctx context.Context, req *StatementCreateReque
 				return nil, err
 			}
 		}
-		if err := s.scs.AddStatement(st, key.SignKey()); err != nil {
+		if err := sc.Add(st); err != nil {
+			return nil, err
+		}
+		if err := s.scs.SaveSigchain(sc); err != nil {
 			return nil, err
 		}
 	}

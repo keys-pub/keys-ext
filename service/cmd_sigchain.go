@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/keys-pub/keys"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
@@ -29,6 +30,15 @@ func sigchainCommands(client *Client) []cli.Command {
 						if err != nil {
 							return err
 						}
+						id, err := keys.ParseID(kid)
+						if err != nil {
+							return err
+						}
+						spk, err := keys.SigchainPublicKeyFromID(id)
+						if err != nil {
+							return err
+						}
+
 						seq := c.Int("seq")
 						if seq != 0 {
 							resp, err := client.ProtoClient().Statement(context.TODO(), &StatementRequest{
@@ -38,10 +48,7 @@ func sigchainCommands(client *Client) []cli.Command {
 							if err != nil {
 								return err
 							}
-							st, err := statementFromRPC(resp.Statement)
-							if err != nil {
-								return err
-							}
+							st := statementFromRPC(resp.Statement)
 							fmt.Println(string(st.Bytes()))
 							return nil
 						}
@@ -53,7 +60,7 @@ func sigchainCommands(client *Client) []cli.Command {
 							return err
 						}
 						logger.Infof("Resolving statements")
-						sc, err := sigchainFromRPC(resp.Key.KID, resp.Statements)
+						sc, err := sigchainFromRPC(resp.Key.ID, resp.Statements, spk)
 						if err != nil {
 							return err
 						}
@@ -99,10 +106,7 @@ func sigchainCommands(client *Client) []cli.Command {
 								if err != nil {
 									return err
 								}
-								st, err := statementFromRPC(resp.Statement)
-								if err != nil {
-									return err
-								}
+								st := statementFromRPC(resp.Statement)
 								fmt.Printf("%s\n", string(st.Bytes()))
 								return nil
 							},
@@ -125,10 +129,7 @@ func sigchainCommands(client *Client) []cli.Command {
 								if err != nil {
 									return err
 								}
-								st, err := statementFromRPC(resp.Statement)
-								if err != nil {
-									return err
-								}
+								st := statementFromRPC(resp.Statement)
 								fmt.Printf("%s\n", string(st.Bytes()))
 								return nil
 							},

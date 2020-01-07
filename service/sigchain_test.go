@@ -12,17 +12,24 @@ func TestSigchain(t *testing.T) {
 	env := newTestEnv(t)
 	service, closeFn := newTestService(t, env)
 	defer closeFn()
-	testAuthSetup(t, service, alice, true)
-	testUserSetup(t, env, service, alice.ID(), "alice", true)
+	testAuthSetup(t, service, alice)
+	testUserSetup(t, env, service, alice, "alice")
+
+	sc, err := service.scs.Sigchain(alice.ID())
+	require.NoError(t, err)
+	require.Equal(t, 1, len(sc.Statements()))
+	st := sc.Statements()[0]
+	rst := statementToRPC(st)
+	out := statementFromRPC(rst)
+	require.Equal(t, st.Bytes(), out.Bytes())
 
 	ctx := context.TODO()
-
 	resp, err := service.Sigchain(ctx, &SigchainRequest{})
 	require.NoError(t, err)
-	require.Equal(t, alice.ID().String(), resp.Key.KID)
-	require.Equal(t, 2, len(resp.Statements))
+	require.Equal(t, alice.ID().String(), resp.Key.ID)
+	require.Equal(t, 1, len(resp.Statements))
 
-	sc, err := sigchainFromRPC(resp.Key.KID, resp.Statements)
+	rsc, err := sigchainFromRPC(resp.Key.ID, resp.Statements, alice.PublicKey())
 	require.NoError(t, err)
-	require.Equal(t, 2, len(sc.Statements()))
+	require.Equal(t, 1, len(rsc.Statements()))
 }

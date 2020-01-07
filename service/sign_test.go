@@ -6,7 +6,6 @@ import (
 	"io"
 	"testing"
 
-	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/saltpack"
 	"github.com/stretchr/testify/require"
 )
@@ -15,7 +14,7 @@ func TestSignVerify(t *testing.T) {
 	env := newTestEnv(t)
 	service, closeFn := newTestService(t, env)
 	defer closeFn()
-	testAuthSetup(t, service, alice, false)
+	testAuthSetup(t, service, alice)
 
 	message := "I'm alice"
 	signResp, err := service.Sign(context.TODO(), &SignRequest{Data: []byte(message), KID: alice.ID().String()})
@@ -38,7 +37,7 @@ func TestSignStream(t *testing.T) {
 	env := newTestEnv(t)
 	service, closeFn := newTestService(t, env)
 	defer closeFn()
-	testAuthSetup(t, service, alice, false)
+	testAuthSetup(t, service, alice)
 
 	testSignStream(t, service, bytes.Repeat([]byte{0x31}, 5), alice.ID().String())
 	testSignStream(t, service, bytes.Repeat([]byte{0x31}, 5), "")
@@ -106,7 +105,7 @@ func testSignStream(t *testing.T, service *service, plaintext []byte, sender str
 	out, signer, err := sp.Verify(data)
 	require.NoError(t, err)
 	if sender != "" {
-		require.Equal(t, sender, keys.SignPublicKeyID(signer).String())
+		require.Equal(t, sender, signer.ID().String())
 	}
 	require.Equal(t, plaintext, out)
 

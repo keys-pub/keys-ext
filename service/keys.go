@@ -16,12 +16,12 @@ func (s *service) Keys(ctx context.Context, req *KeysRequest) (*KeysResponse, er
 	}
 	sortDirection := req.SortDirection
 
-	kids, err := s.kidsSet(true)
+	kids, err := s.loadKIDs(true)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load keystore kids")
 	}
 
-	keys, err := s.keys(ctx, kids.IDs(), sortField, sortDirection)
+	keys, err := s.keys(ctx, kids, sortField, sortDirection)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +36,7 @@ func (s *service) Keys(ctx context.Context, req *KeysRequest) (*KeysResponse, er
 func (s *service) keys(ctx context.Context, kids []keys.ID, sortField string, sortDirection SortDirection) ([]*Key, error) {
 	keys := make([]*Key, 0, len(kids))
 	for _, kid := range kids {
-		key, err := s.key(ctx, kid, true, false)
+		key, err := s.key(ctx, kid)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to load keystore key")
 		}
@@ -80,8 +80,8 @@ func keysSort(pks []*Key, sortField string, sortDirection SortDirection, i, j in
 		return pks[i].Users[0].Name <= pks[j].Users[0].Name
 	default:
 		if sortDirection == SortDesc {
-			return pks[i].KID > pks[j].KID
+			return pks[i].ID > pks[j].ID
 		}
-		return pks[i].KID <= pks[j].KID
+		return pks[i].ID <= pks[j].ID
 	}
 }

@@ -37,20 +37,26 @@ type testEnv struct {
 	clock *clock
 	fi    server.Fire
 	req   *keys.MockRequestor
-	uc    *keys.UserContext
+	users *keys.UserStore
 }
 
 func newTestEnv(t *testing.T) *testEnv {
 	clock := newClock()
 	fi := testFire(t, clock)
 	req := keys.NewMockRequestor()
-	uc := keys.NewTestUserContext(req, clock.Now)
+	users := testUserStore(t, fi, keys.NewSigchainStore(fi), req, clock)
 	return &testEnv{
 		clock: clock,
 		fi:    fi,
 		req:   req,
-		uc:    uc,
+		users: users,
 	}
+}
+
+func testUserStore(t *testing.T, dst keys.DocumentStore, scs keys.SigchainStore, req *keys.MockRequestor, clock *clock) *keys.UserStore {
+	ust, err := keys.NewUserStore(dst, scs, []string{keys.Twitter, keys.Github}, req, clock.Now)
+	require.NoError(t, err)
+	return ust
 }
 
 func newTestService(t *testing.T, env *testEnv) (*service, CloseFn) {
@@ -59,23 +65,23 @@ func newTestService(t *testing.T, env *testEnv) (*service, CloseFn) {
 	cfg, closeCfg := testConfig(t, serverEnv.url)
 	auth, err := newAuth(cfg)
 	require.NoError(t, err)
-	svc, err := newService(cfg, Build{Version: "1.2.3", Commit: "deadbeef"}, auth, env.uc, env.clock.Now)
+	svc, err := newService(cfg, Build{Version: "1.2.3", Commit: "deadbeef"}, auth, env.req, env.clock.Now)
 	require.NoError(t, err)
 
 	closeFn := func() {
 		serverEnv.closeFn()
 		svc.Close()
-		kr, krErr := keyring.NewKeyring(cfg.AppName())
-		require.NoError(t, krErr)
-		reerr := kr.Reset()
-		require.NoError(t, reerr)
+		kr, err := keyring.NewKeyring(cfg.AppName())
+		require.NoError(t, err)
+		err = kr.Reset()
+		require.NoError(t, err)
 		closeCfg()
 	}
 
 	return svc, closeFn
 }
 
-func testAuthSetup(t *testing.T, service *service, key keys.Key, publish bool) {
+func testAuthSetup(t *testing.T, service *service, key *keys.SignKey) {
 	password := testPasswordForKey(key)
 	recovery := testBackupForKey(key)
 
@@ -84,25 +90,20 @@ func testAuthSetup(t *testing.T, service *service, key keys.Key, publish bool) {
 		KeyBackup: recovery,
 	})
 	require.NoError(t, err)
-	if publish {
-		_, err := service.Push(context.TODO(), &PushRequest{
-			KID: key.ID().String(),
-		})
-		require.NoError(t, err)
-	}
 }
 
-func testRecoverKey(t *testing.T, service *service, key keys.Key, publish bool) {
-	_, err := service.KeyRecover(context.TODO(), &KeyRecoverRequest{
-		SeedPhrase:       keys.SeedPhrase(key),
-		PublishPublicKey: publish,
+func testRecoverKey(t *testing.T, service *service, key *keys.SignKey) {
+	seedPhrase, err := keys.BytesToPhrase(key.Seed())
+	require.NoError(t, err)
+	_, err = service.KeyRecover(context.TODO(), &KeyRecoverRequest{
+		SeedPhrase: seedPhrase,
 	})
 	require.NoError(t, err)
 }
 
-func testUserSetup(t *testing.T, env *testEnv, service *service, kid keys.ID, username string, publish bool) {
+func testUserSetup(t *testing.T, env *testEnv, service *service, key *keys.SignKey, username string) {
 	resp, err := service.UserSign(context.TODO(), &UserSignRequest{
-		KID:     kid.String(),
+		KID:     key.ID().String(),
 		Service: "github",
 		Name:    username,
 	})
@@ -112,16 +113,15 @@ func testUserSetup(t *testing.T, env *testEnv, service *service, kid keys.ID, us
 	env.req.SetResponse(url, []byte(resp.Message))
 
 	_, err = service.UserAdd(context.TODO(), &UserAddRequest{
-		KID:     kid.String(),
+		KID:     key.ID().String(),
 		Service: "github",
 		Name:    username,
 		URL:     url,
-		Local:   !publish,
 	})
 	require.NoError(t, err)
 }
 
-func testRemoveKey(t *testing.T, service *service, key keys.Key) {
+func testRemoveKey(t *testing.T, service *service, key *keys.SignKey) {
 	backupResp, err := service.KeyBackup(context.TODO(), &KeyBackupRequest{
 		KID: key.ID().String(),
 	})
@@ -133,14 +133,14 @@ func testRemoveKey(t *testing.T, service *service, key keys.Key) {
 	require.NoError(t, err)
 }
 
-func testPushKey(t *testing.T, service *service, key keys.Key) {
+func testPush(t *testing.T, service *service, key *keys.SignKey) {
 	_, err := service.Push(context.TODO(), &PushRequest{
 		KID: key.ID().String(),
 	})
 	require.NoError(t, err)
 }
 
-func testPullKey(t *testing.T, service *service, key keys.Key) {
+func testPull(t *testing.T, service *service, key *keys.SignKey) {
 	_, err := service.Pull(context.TODO(), &PullRequest{
 		KID: key.ID().String(),
 	})
@@ -177,7 +177,7 @@ type serverEnv struct {
 
 func newTestServerEnv(t *testing.T, env *testEnv) *serverEnv {
 	mc := server.NewMemTestCache(env.clock.Now)
-	srv := server.NewServer(env.fi, mc, env.uc)
+	srv := server.NewServer(env.fi, mc, env.users)
 	srv.SetNowFn(env.clock.Now)
 	tasks := server.NewTestTasks(srv)
 	srv.SetTasks(tasks)

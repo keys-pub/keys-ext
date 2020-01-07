@@ -5,28 +5,47 @@ import (
 	"context"
 	"io"
 
+	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/saltpack"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 )
+
+func boxPublicKeys(recipients string) ([]keys.BoxPublicKey, error) {
+	if recipients == "" {
+		return nil, errors.Errorf("no recipients specified")
+	}
+	recs, err := keys.ParseID(recipients)
+	if err != nil {
+		return nil, err
+	}
+	bks := []keys.BoxPublicKey{}
+	// TODO: Box public keys for recipients
+	for _, r := range recs {
+		logger.Debugf("Recipient: %s", r)
+	}
+
+	return bks, nil
+}
 
 // Encrypt (RPC) data.
 func (s *service) Encrypt(ctx context.Context, req *EncryptRequest) (*EncryptResponse, error) {
 	if req.Recipients == "" {
 		return nil, errors.Errorf("no recipients specified")
 	}
-	recipients, err := s.parsePublicKeys(req.Recipients)
-	if err != nil {
-		return nil, err
-	}
 	sender, senderErr := s.parseKeyOrCurrent(req.Sender)
 	if senderErr != nil {
 		return nil, senderErr
 	}
 
+	bks, err := boxPublicKeys(req.Recipients)
+	if err != nil {
+		return nil, err
+	}
+
 	sp := saltpack.NewSaltpack(s.ks)
 	sp.SetArmored(req.Armored)
-	data, err := sp.Seal(req.Data, sender, recipients...)
+	data, err := sp.Signcrypt(req.Data, sender, bks...)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +60,7 @@ func (s *service) Decrypt(ctx context.Context, req *DecryptRequest) (*DecryptRes
 	sp := saltpack.NewSaltpack(s.ks)
 	sp.SetArmored(req.Armored)
 	logger.Debugf("Saltpack open (len=%d)", len(req.Data))
-	decrypted, signer, err := sp.Open(req.Data)
+	decrypted, signer, err := sp.SigncryptOpen(req.Data)
 	if err != nil {
 		return nil, err
 	}
@@ -79,21 +98,18 @@ func (s *service) EncryptStream(srv Keys_EncryptStreamServer) error {
 			if stream != nil {
 				return errors.Errorf("stream already initialized")
 			}
-			if req.Recipients == "" {
-				return errors.Errorf("no recipients specified")
-			}
-			recipients, err := s.parsePublicKeys(req.Recipients)
-			if err != nil {
-				return err
-			}
 			sender, senderErr := s.parseKeyOrCurrent(req.Sender)
 			if senderErr != nil {
 				return senderErr
 			}
+			bks, err := boxPublicKeys(req.Recipients)
+			if err != nil {
+				return err
+			}
 			sp := saltpack.NewSaltpack(s.ks)
 			sp.SetArmored(req.Armored)
 			logger.Infof("Seal stream for %s from %s", req.Recipients, req.Sender)
-			s, streamErr := sp.NewSealStream(&buf, sender, recipients...)
+			s, streamErr := sp.NewSigncryptStream(&buf, sender, bks...)
 			if streamErr != nil {
 				return streamErr
 			}
@@ -163,7 +179,7 @@ func (s *service) DecryptStream(srv Keys_DecryptStreamServer) error {
 
 	reader := newStreamReader(srv.Context(), recvFn)
 	sp := saltpack.NewSaltpack(s.ks)
-	streamReader, signer, streamErr := sp.NewOpenStream(reader)
+	streamReader, signer, streamErr := sp.NewSigncryptOpenStream(reader)
 	if streamErr != nil {
 		return streamErr
 	}
@@ -190,7 +206,7 @@ func (s *service) DecryptArmoredStream(srv Keys_DecryptArmoredStreamServer) erro
 	reader := newStreamReader(srv.Context(), recvFn)
 	sp := saltpack.NewSaltpack(s.ks)
 	sp.SetArmored(true)
-	streamReader, signer, streamErr := sp.NewOpenStream(reader)
+	streamReader, signer, streamErr := sp.NewSigncryptOpenStream(reader)
 	if streamErr != nil {
 		return streamErr
 	}

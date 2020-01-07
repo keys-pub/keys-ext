@@ -20,11 +20,11 @@ func TestEncryptDecrypt(t *testing.T) {
 
 	aliceService, aliceCloseFn := newTestService(t, env)
 	defer aliceCloseFn()
-	testAuthSetup(t, aliceService, alice, false)
+	testAuthSetup(t, aliceService, alice)
 
 	bobService, bobCloseFn := newTestService(t, env)
 	defer bobCloseFn()
-	testAuthSetup(t, bobService, bob, false)
+	testAuthSetup(t, bobService, bob)
 
 	message := "Hey bob"
 
@@ -66,13 +66,13 @@ func TestEncryptUnknownRecipient(t *testing.T) {
 	env := newTestEnv(t)
 	service, closeFn := newTestService(t, env)
 	defer closeFn()
-	testAuthSetup(t, service, alice, false)
+	testAuthSetup(t, service, alice)
 
 	message := "Hey bob"
-	unknown := keys.RandID()
+	unknown := keys.GenerateSignKey()
 	_, err := service.Encrypt(context.TODO(), &EncryptRequest{
 		Data:       []byte(message),
-		Recipients: unknown.String(),
+		Recipients: unknown.ID().String(),
 	})
 	require.EqualError(t, err, fmt.Sprintf("public key not found %s", unknown))
 }
@@ -81,8 +81,8 @@ func TestEncryptStream(t *testing.T) {
 	env := newTestEnv(t)
 	service, closeFn := newTestService(t, env)
 	defer closeFn()
-	testAuthSetup(t, service, alice, false)
-	testRecoverKey(t, service, bob, false)
+	testAuthSetup(t, service, alice)
+	testRecoverKey(t, service, bob)
 
 	testEncryptStream(t, service, bytes.Repeat([]byte{0x31}, 5), alice.ID().String(), bob.ID().String())
 	testEncryptStream(t, service, bytes.Repeat([]byte{0x31}, 5), "", bob.ID().String())
@@ -150,7 +150,7 @@ func testEncryptStream(t *testing.T, service *service, plaintext []byte, sender 
 	encrypted := buf.Bytes()
 	sp := saltpack.NewSaltpack(service.ks)
 	sp.SetArmored(true)
-	out, signer, err := sp.Open(encrypted)
+	out, signer, err := sp.SigncryptOpen(encrypted)
 	require.NoError(t, err)
 	if sender != "" {
 		require.Equal(t, sender, signer.String())

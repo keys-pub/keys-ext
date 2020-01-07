@@ -5,7 +5,6 @@ import (
 	"context"
 	"io"
 
-	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/saltpack"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
@@ -20,7 +19,7 @@ func (s *service) Sign(ctx context.Context, req *SignRequest) (*SignResponse, er
 
 	sp := saltpack.NewSaltpack(s.ks)
 	sp.SetArmored(req.Armored)
-	signed, err := sp.Sign(req.Data, key.SignKey())
+	signed, err := sp.Sign(req.Data, key)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +38,7 @@ func (s *service) Verify(ctx context.Context, req *VerifyRequest) (*VerifyRespon
 	if err != nil {
 		return nil, err
 	}
-	return &VerifyResponse{Data: verified, KID: keys.SignPublicKeyID(signer).String()}, nil
+	return &VerifyResponse{Data: verified, KID: signer.ID().String()}, nil
 }
 
 // SignStream (RPC) ...
@@ -79,7 +78,7 @@ func (s *service) SignStream(srv Keys_SignStreamServer) error {
 
 			sp := saltpack.NewSaltpack(s.ks)
 			sp.SetArmored(req.Armored)
-			s, streamErr := sp.NewSignStream(&buf, key.SignKey(), req.Detached)
+			s, streamErr := sp.NewSignStream(&buf, key, req.Detached)
 			if streamErr != nil {
 				return streamErr
 			}
@@ -145,7 +144,7 @@ func (s *service) VerifyStream(srv Keys_VerifyStreamServer) error {
 	}
 	sendFn := func(b []byte) error {
 		resp := VerifyStreamOutput{
-			KID:  keys.SignPublicKeyID(signer).String(),
+			KID:  signer.ID().String(),
 			Data: b,
 		}
 		return srv.Send(&resp)
@@ -172,7 +171,7 @@ func (s *service) VerifyArmoredStream(srv Keys_VerifyArmoredStreamServer) error 
 	}
 	sendFn := func(b []byte) error {
 		resp := VerifyStreamOutput{
-			KID:  keys.SignPublicKeyID(signer).String(),
+			KID:  signer.ID().String(),
 			Data: b,
 		}
 		return srv.Send(&resp)

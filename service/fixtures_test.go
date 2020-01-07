@@ -1,35 +1,32 @@
 package service
 
 import (
-	"encoding/hex"
+	"bytes"
+	"fmt"
 
 	"github.com/keys-pub/keys"
 )
 
-var aliceSeed, _ = hex.DecodeString("d7967d7fc1ed2e09ec4723d7a5eda3f604b4914292cee80f2412005918e2626d")
-var alice, _ = keys.NewKey(keys.Bytes32(aliceSeed))
-var bobSeed, _ = hex.DecodeString("290cdb738a7def8b3f9368a7ee112297027eb03e7ab77c07d1087ab15c81cd5e")
-var bob, _ = keys.NewKey(keys.Bytes32(bobSeed))
-var charlieSeed, _ = hex.DecodeString("ba50880c0f969818b216ded861cbe8b78ce4050e4b89a7774cd7a3b106e8c1fb")
-var charlie, _ = keys.NewKey(keys.Bytes32(charlieSeed))
-var groupSeed, _ = hex.DecodeString("3059dbcfbc1efb47f71fef786d8efa102dc61f96c6f6243987a0969aa5d6d78f")
-var group, _ = keys.NewKey(keys.Bytes32(groupSeed))
+var alice, _ = keys.NewSignKeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
+var bob, _ = keys.NewSignKeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
+var charlie, _ = keys.NewSignKeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x03}, 32)))
+var group, _ = keys.NewSignKeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x04}, 32)))
 
-func testPasswordForKey(key keys.Key) string {
+func testPasswordForKey(key *keys.SignKey) string {
 	switch key.ID() {
-	case "a6MtPHR36F9wG5orC8bhm8iPCE2xrXK41iZLwPZcLzqo":
+	case "ed132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqrkl9gw":
 		return "aaaaaaaaaa"
-	case "bDM13g2wsoBE8WN2jrPdLRHg2LFgNt2ZrLcP2bG4iuNi":
+	case "ed1syuhwr4g05t4744r23nvxnr7en9cmz53knhr0gja7c84hr7fkw2ql7jgwc":
 		return "bbbbbbbbbb"
-	case "cBYSYNgt45ZULLrVAseoFnmCt87mycnqDF5psywZ53VB":
+	case "ed1a4yj333g68pvd6hfqvufqkv4vy54jfe6t33ljd3kc9rpfty8xlgsfte2sn":
 		return "cccccccccc"
-	case "gqPhYydcdbTzHUdqVrrqBnnAJK9tv3gYbrPKPBynjciM":
+	case "ed1e2f6c9c9rpc8r4nms0rl7rh7syyw3mz9xpt46aexs7fn8k76he7qn2ul34":
 		return "gggggggggg"
 	default:
-		panic("unknown test key")
+		panic(fmt.Sprintf("unknown test key: %s", key.ID()))
 	}
 }
 
-func testBackupForKey(key keys.Key) string {
+func testBackupForKey(key *keys.SignKey) string {
 	return seedToBackup(testPasswordForKey(key), key.Seed()[:])
 }

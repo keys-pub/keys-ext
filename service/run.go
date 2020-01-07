@@ -33,8 +33,8 @@ type protoService struct {
 }
 
 func newProtoService(cfg *Config, build Build, auth *auth) (*protoService, error) {
-	uc := keys.NewDefaultUserContext()
-	srv, err := newService(cfg, build, auth, uc, time.Now)
+	req := keys.NewHTTPRequestor()
+	srv, err := newService(cfg, build, auth, req, time.Now)
 	if err != nil {
 		return nil, err
 	}
