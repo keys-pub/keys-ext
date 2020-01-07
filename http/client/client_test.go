@@ -6,14 +6,9 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/saltpack"
 	"github.com/keys-pub/keysd/http/server"
 	"github.com/stretchr/testify/require"
 )
-
-const aliceSeed = "win rebuild update term layer transfer gain field prepare unique spider cool present argue grab trend eagle casino peace hockey loop seed desert swear"
-const bobSeed = "crane chimney shell unique drink dynamic math pilot letter inflict tattoo curtain primary crystal live return affair husband general cargo chat vintage demand deer"
-const groupSeed = "absurd amount doctor acoustic avoid letter advice cage absurd amount doctor acoustic avoid letter advice cage absurd amount doctor acoustic avoid letter advice comic"
 
 type clock struct {
 	t time.Time
@@ -40,9 +35,7 @@ type env struct {
 	client  *Client
 	srv     *server.Server
 	dst     keys.DocumentStore
-	ks      *keys.Keystore
-	crypto  keys.CryptoProvider
-	uc      *keys.UserContext
+	users   *keys.UserStore
 	req     *keys.MockRequestor
 	closeFn func()
 }
@@ -53,9 +46,9 @@ func testEnv(t *testing.T) *env {
 	fi.SetTimeNow(clock.Now)
 	ns := server.NewMemTestCache(clock.Now)
 	req := keys.NewMockRequestor()
-	uc := keys.NewTestUserContext(req, clock.Now)
+	users := testUserStore(t, fi, req, clock)
 
-	svr := server.NewServer(fi, ns, uc)
+	svr := server.NewServer(fi, ns, users)
 	svr.SetNowFn(clock.Now)
 	tasks := server.NewTestTasks(svr)
 	svr.SetTasks(tasks)
@@ -66,17 +59,18 @@ func testEnv(t *testing.T) *env {
 	handler := server.NewHandler(svr)
 	httpServer := httptest.NewServer(handler)
 
-	// CryptoProvider
-	ks := keys.NewMemKeystore()
-	ks.SetSigchainStore(keys.NewSigchainStore(keys.NewMem()))
-	crypto := saltpack.NewSaltpack(ks)
-
-	client, err := NewClient(httpServer.URL, crypto)
+	client, err := NewClient(httpServer.URL)
 	require.NoError(t, err)
 	require.NotNil(t, client.nowFn)
 	require.NotNil(t, client.httpClient)
 	client.SetHTTPClient(httpServer.Client())
 	client.SetTimeNow(clock.Now)
 	svr.URL = httpServer.URL
-	return &env{clock, client, svr, fi, ks, crypto, uc, req, func() { httpServer.Close() }}
+	return &env{clock, client, svr, fi, users, req, func() { httpServer.Close() }}
+}
+
+func testUserStore(t *testing.T, ds keys.DocumentStore, req keys.Requestor, clock *clock) *keys.UserStore {
+	us, err := keys.NewUserStore(ds, keys.NewSigchainStore(ds), []string{keys.Twitter, keys.Github}, req, clock.Now)
+	require.NoError(t, err)
+	return us
 }

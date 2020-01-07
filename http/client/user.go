@@ -7,11 +7,11 @@ import (
 )
 
 // Check ...
-func (c *Client) Check(key keys.Key) error {
+func (c *Client) Check(key *keys.SignKey) error {
 	params := url.Values{}
-	_, poerr := c.post("/check", params, key, nil)
-	if poerr != nil {
-		return poerr
+	_, err := c.post("/check", params, key, nil)
+	if err != nil {
+		return err
 	}
 	return nil
 }

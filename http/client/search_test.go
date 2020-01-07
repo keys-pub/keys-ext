@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func saveUser(t *testing.T, env *env, key keys.Key, name string, service string) *keys.Statement {
+func saveUser(t *testing.T, env *env, key *keys.SignKey, name string, service string) *keys.Statement {
 	url := ""
 	switch service {
 	case "github":
@@ -20,13 +20,13 @@ func saveUser(t *testing.T, env *env, key keys.Key, name string, service string)
 		t.Fatal("unsupported service in test")
 	}
 
-	sc := keys.NewSigchain(key.SignKey().PublicKey)
-	user, err := keys.NewUser(env.uc, key.ID(), service, name, url, sc.LastSeq()+1)
+	sc := keys.NewSigchain(key.PublicKey())
+	user, err := keys.NewUser(env.users, key.ID(), service, name, url, sc.LastSeq()+1)
 	require.NoError(t, err)
-	st, err := keys.GenerateUserStatement(sc, user, key.SignKey(), env.clock.Now())
+	st, err := keys.GenerateUserStatement(sc, user, key, env.clock.Now())
 	require.NoError(t, err)
 
-	msg, err := user.Sign(key.SignKey())
+	msg, err := user.Sign(key)
 	require.NoError(t, err)
 	env.req.SetResponse(url, []byte(msg))
 
@@ -46,7 +46,7 @@ func TestSearch(t *testing.T) {
 	defer env.closeFn()
 
 	for i := 0; i < 10; i++ {
-		key, err := keys.NewKey(keys.Bytes32(bytes.Repeat([]byte{byte(i)}, 32)))
+		key, err := keys.NewSignKeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{byte(i)}, 32)))
 		require.NoError(t, err)
 		username := fmt.Sprintf("a%d", i)
 		saveUser(t, env, key, username, "github")
@@ -74,8 +74,8 @@ func TestSearch(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 0, len(resp.Results))
 
-	resp, err = env.client.Search("ddRZXkYg1VcHRh", 0, 0)
+	resp, err = env.client.Search("ed132yw8ht5p8ce", 0, 0)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(resp.Results))
-	require.Equal(t, "ddRZXkYg1VcHRhpR6zu5kPBzsSLV9sJTWkTdduCJu2yu", resp.Results[0].KID.String())
+	require.Equal(t, "ed132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqrkl9gw", resp.Results[0].KID.String())
 }

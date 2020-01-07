@@ -1,6 +1,7 @@
 package client
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/keys-pub/keys"
@@ -11,20 +12,20 @@ func TestSigchain(t *testing.T) {
 	env := testEnv(t)
 	defer env.closeFn()
 
-	alice, err := keys.NewKeyFromSeedPhrase(aliceSeed, false)
+	alice, err := keys.NewSignKeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	require.NoError(t, err)
-	aliceSpk := alice.PublicKey().SignPublicKey()
+	aliceSpk := alice.PublicKey()
 	aliceID := alice.ID()
 
 	sc := keys.NewSigchain(aliceSpk)
-	st, err := keys.GenerateStatement(sc, []byte("testing1"), alice.SignKey(), "", env.clock.Now())
+	st, err := keys.GenerateStatement(sc, []byte("testing1"), alice, "", env.clock.Now())
 	require.NoError(t, err)
 	err = sc.Add(st)
 	require.NoError(t, err)
 	err = env.client.PutSigchainStatement(st)
 	require.NoError(t, err)
 
-	st2, err := keys.GenerateStatement(sc, []byte("testing2"), alice.SignKey(), "", env.clock.Now())
+	st2, err := keys.GenerateStatement(sc, []byte("testing2"), alice, "", env.clock.Now())
 	require.NoError(t, err)
 	err = sc.Add(st2)
 	require.NoError(t, err)
@@ -38,7 +39,7 @@ func TestSigchain(t *testing.T) {
 	require.Equal(t, 2, len(sc.Statements()))
 	// require.Equal(t, keys.TimeFromMillis(1234567890011), sc.Statements()[0].CreatedAt)
 
-	randID := keys.RandID()
+	randID := keys.RandID(keys.SignKeyType)
 	scResp2, err := env.client.Sigchain(randID)
 	require.NoError(t, err)
 	require.Nil(t, scResp2)
@@ -50,7 +51,7 @@ func TestSigchain(t *testing.T) {
 	require.Equal(t, st2.KID, resp3.Statements[1].KID)
 	// require.Equal(t, keys.TimeFromMillis(1234567890011), resp3.MetadataFor(resp3.Statements[0]).CreatedAt)
 
-	st3, err := keys.GenerateStatement(sc, []byte("testing3"), alice.SignKey(), "", env.clock.Now())
+	st3, err := keys.GenerateStatement(sc, []byte("testing3"), alice, "", env.clock.Now())
 	require.NoError(t, err)
 	err = sc.Add(st3)
 	require.NoError(t, err)
