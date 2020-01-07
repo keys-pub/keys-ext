@@ -93,6 +93,10 @@ func AddRoutes(s *Server, e *echo.Echo) {
 	e.GET("/:kid", s.getSigchain)
 	e.GET("/:kid/:seq", s.getSigchainStatement)
 	e.PUT("/:kid/:seq", s.putSigchainStatement)
+
+	// Messages
+	e.PUT("/messages/:kid/:id", s.putMessage)
+	e.GET("/messages/:kid", s.listMessages)
 }
 
 // SetNowFn sets clock Now function.
