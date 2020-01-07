@@ -41,7 +41,7 @@ func (r SigchainResponse) MetadataFor(st *keys.Statement) Metadata {
 
 // Sigchain from response.
 func (r SigchainResponse) Sigchain() (*keys.Sigchain, error) {
-	spk, err := keys.DecodeSignPublicKey(r.KID.String())
+	spk, err := keys.SigchainPublicKeyFromID(r.KID)
 	if err != nil {
 		return nil, err
 	}
@@ -77,9 +77,9 @@ func (r SigchainsResponse) MetadataFor(st *keys.Statement) Metadata {
 
 // Message ...
 type Message struct {
-	Data []byte  `json:"data"`
-	ID   keys.ID `json:"id"`
-	Path string  `json:"path"`
+	Data []byte `json:"data"`
+	ID   string `json:"id"`
+	Path string `json:"path"`
 }
 
 // MessagesResponse is the response from messages.
@@ -106,9 +106,9 @@ type SearchResponse struct {
 
 // Item ...
 type Item struct {
-	Data []byte  `json:"data"`
-	ID   keys.ID `json:"id"`
-	Path string  `json:"path"`
+	Data []byte `json:"data"`
+	ID   string `json:"id"`
+	Path string `json:"path"`
 }
 
 // VaultResponse ...

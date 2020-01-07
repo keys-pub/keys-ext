@@ -26,11 +26,11 @@ func (a Auth) Header() string {
 
 // NewAuth returns auth for an HTTP request.
 // The url shouldn't have ? or &.
-func NewAuth(method string, urs string, tm time.Time, key keys.Key) (*Auth, error) {
+func NewAuth(method string, urs string, tm time.Time, key *keys.SignKey) (*Auth, error) {
 	return newAuth(method, urs, tm, keys.Rand32(), key)
 }
 
-func newAuth(method string, urs string, tm time.Time, nonce *[32]byte, key keys.Key) (*Auth, error) {
+func newAuth(method string, urs string, tm time.Time, nonce *[32]byte, key *keys.SignKey) (*Auth, error) {
 	ur, err := url.Parse(urs)
 	if err != nil {
 		return nil, err
@@ -43,17 +43,17 @@ func newAuth(method string, urs string, tm time.Time, nonce *[32]byte, key keys.
 	ur.RawQuery = q.Encode()
 
 	msg := method + "," + ur.String()
-	sb := key.SignKey().SignDetached([]byte(msg))
+	sb := key.SignDetached([]byte(msg))
 	sig := keys.MustEncode(sb, keys.Base62)
 	return &Auth{KID: key.ID(), Method: method, URL: ur, Sig: sig, Message: msg}, nil
 }
 
 // NewRequest returns new authorized/signed HTTP request.
-func NewRequest(method string, urs string, body io.Reader, tm time.Time, key keys.Key) (*http.Request, error) {
+func NewRequest(method string, urs string, body io.Reader, tm time.Time, key *keys.SignKey) (*http.Request, error) {
 	return newRequest(method, urs, body, tm, keys.Rand32(), key)
 }
 
-func newRequest(method string, urs string, body io.Reader, tm time.Time, nonce *[32]byte, key keys.Key) (*http.Request, error) {
+func newRequest(method string, urs string, body io.Reader, tm time.Time, nonce *[32]byte, key *keys.SignKey) (*http.Request, error) {
 	auth, err := newAuth(method, urs, tm, nonce, key)
 	if err != nil {
 		return nil, err
