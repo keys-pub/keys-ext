@@ -27,7 +27,7 @@ func testDB(t *testing.T) *DB {
 }
 
 func testPath() string {
-	return filepath.Join(os.TempDir(), fmt.Sprintf("db-test-%s.leveldb", keys.RandID()))
+	return filepath.Join(os.TempDir(), fmt.Sprintf("db-test-%s.leveldb", keys.RandString(12)))
 }
 
 type clock struct {
@@ -295,7 +295,7 @@ func ExampleDB_OpenAtPath() {
 	defer db.Close()
 	key := keys.GenerateSecretKey()
 
-	path := filepath.Join(os.TempDir(), fmt.Sprintf("example-%s.leveldb", keys.RandID()))
+	path := filepath.Join(os.TempDir(), fmt.Sprintf("example-%s.leveldb", keys.RandString(12)))
 	if err := db.OpenAtPath(path, key, nil); err != nil {
 		log.Fatal(err)
 	}
@@ -306,7 +306,7 @@ func ExampleDB_Create() {
 	defer db.Close()
 	key := keys.GenerateSecretKey()
 
-	path := filepath.Join(os.TempDir(), fmt.Sprintf("example-%s.leveldb", keys.RandID()))
+	path := filepath.Join(os.TempDir(), fmt.Sprintf("example-%s.leveldb", keys.RandString(12)))
 	if err := db.OpenAtPath(path, key, nil); err != nil {
 		log.Fatal(err)
 	}
@@ -321,7 +321,7 @@ func ExampleDB_Get() {
 	defer db.Close()
 	key := keys.GenerateSecretKey()
 
-	path := filepath.Join(os.TempDir(), fmt.Sprintf("example-%s.leveldb", keys.RandID()))
+	path := filepath.Join(os.TempDir(), fmt.Sprintf("example-%s.leveldb", keys.RandString(12)))
 	if err := db.OpenAtPath(path, key, nil); err != nil {
 		log.Fatal(err)
 	}

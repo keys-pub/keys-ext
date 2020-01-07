@@ -210,6 +210,9 @@ func (d *DB) setCollection(path string, md *metadata) error {
 // Get entry at path.
 func (d *DB) Get(ctx context.Context, path string) (*keys.Document, error) {
 	path = keys.Path(path)
+	if d.ldb == nil {
+		return nil, errors.Errorf("db not open")
+	}
 	doc, err := d.get(ctx, path)
 	if err != nil {
 		return nil, err
@@ -239,6 +242,9 @@ func (d *DB) GetAll(ctx context.Context, paths []string) ([]*keys.Document, erro
 
 // Collections ...
 func (d *DB) Collections(ctx context.Context, parent string) (keys.CollectionIterator, error) {
+	if d.ldb == nil {
+		return nil, errors.Errorf("db not open")
+	}
 	if keys.Path(parent) != "/" {
 		return nil, errors.Errorf("only root collections supported")
 	}
@@ -250,6 +256,9 @@ func (d *DB) Collections(ctx context.Context, parent string) (keys.CollectionIte
 // Delete value at path.
 func (d *DB) Delete(ctx context.Context, path string) (bool, error) {
 	path = keys.Path(path)
+	if d.ldb == nil {
+		return false, errors.Errorf("db not open")
+	}
 	ok, err := d.ldb.Has([]byte(path), nil)
 	if err != nil {
 		return false, err
@@ -355,6 +364,9 @@ func (d *DB) get(ctx context.Context, path string) (*keys.Document, error) {
 func (d *DB) Last(ctx context.Context, prefix string) (*keys.Document, error) {
 	d.rwmtx.RLock()
 	defer d.rwmtx.RUnlock()
+	if d.ldb == nil {
+		return nil, errors.Errorf("db not open")
+	}
 	var doc *keys.Document
 	iter := d.ldb.NewIterator(ldbutil.BytesPrefix([]byte(prefix)), nil)
 	if ok := iter.Last(); ok {
