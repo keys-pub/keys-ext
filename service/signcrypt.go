@@ -4,29 +4,13 @@ import (
 	"bytes"
 	"context"
 	"io"
+	strings "strings"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/saltpack"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 )
-
-func boxPublicKeys(recipients string) ([]keys.BoxPublicKey, error) {
-	if recipients == "" {
-		return nil, errors.Errorf("no recipients specified")
-	}
-	recs, err := keys.ParseID(recipients)
-	if err != nil {
-		return nil, err
-	}
-	bks := []keys.BoxPublicKey{}
-	// TODO: Box public keys for recipients
-	for _, r := range recs {
-		logger.Debugf("Recipient: %s", r)
-	}
-
-	return bks, nil
-}
 
 // Encrypt (RPC) data.
 func (s *service) Encrypt(ctx context.Context, req *EncryptRequest) (*EncryptResponse, error) {
@@ -38,14 +22,14 @@ func (s *service) Encrypt(ctx context.Context, req *EncryptRequest) (*EncryptRes
 		return nil, senderErr
 	}
 
-	bks, err := boxPublicKeys(req.Recipients)
+	recipients, err := keys.ParseIDs(strings.Split(req.Recipients, ","))
 	if err != nil {
 		return nil, err
 	}
 
 	sp := saltpack.NewSaltpack(s.ks)
 	sp.SetArmored(req.Armored)
-	data, err := sp.Signcrypt(req.Data, sender, bks...)
+	data, err := sp.Signcrypt(req.Data, sender, recipients...)
 	if err != nil {
 		return nil, err
 	}
@@ -102,14 +86,17 @@ func (s *service) EncryptStream(srv Keys_EncryptStreamServer) error {
 			if senderErr != nil {
 				return senderErr
 			}
-			bks, err := boxPublicKeys(req.Recipients)
+			if req.Recipients == "" {
+				return errors.Errorf("no recipients specified")
+			}
+			recipients, err := keys.ParseIDs(strings.Split(req.Recipients, ","))
 			if err != nil {
 				return err
 			}
 			sp := saltpack.NewSaltpack(s.ks)
 			sp.SetArmored(req.Armored)
 			logger.Infof("Seal stream for %s from %s", req.Recipients, req.Sender)
-			s, streamErr := sp.NewSigncryptStream(&buf, sender, bks...)
+			s, streamErr := sp.NewSigncryptStream(&buf, sender, recipients...)
 			if streamErr != nil {
 				return streamErr
 			}

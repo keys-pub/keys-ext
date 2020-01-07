@@ -3,11 +3,9 @@ package service
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"io"
 	"testing"
 
-	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/saltpack"
 	"github.com/stretchr/testify/require"
 )
@@ -27,16 +25,6 @@ func TestEncryptDecrypt(t *testing.T) {
 	testAuthSetup(t, bobService, bob)
 
 	message := "Hey bob"
-
-	// Try to encrypt to unknown recipient
-	_, err := aliceService.Encrypt(context.TODO(), &EncryptRequest{Data: []byte(message), Sender: alice.ID().String(), Recipients: bob.ID().String()})
-	require.EqualError(t, err, "public key not found bDM13g2wsoBE8WN2jrPdLRHg2LFgNt2ZrLcP2bG4iuNi")
-
-	// Push, pull bob public key
-	_, pushErr := bobService.Push(context.TODO(), &PushRequest{KID: bob.ID().String()})
-	require.NoError(t, pushErr)
-	_, err = aliceService.Pull(context.TODO(), &PullRequest{KID: bob.ID().String()})
-	require.NoError(t, err)
 
 	// Encrypt
 	sealResp, err := aliceService.Encrypt(context.TODO(), &EncryptRequest{Data: []byte(message), Sender: alice.ID().String(), Recipients: bob.ID().String()})
@@ -60,21 +48,6 @@ func TestEncryptDecrypt(t *testing.T) {
 
 	_, err = aliceService.Encrypt(context.TODO(), &EncryptRequest{Data: []byte(message), Sender: alice.ID().String()})
 	require.EqualError(t, err, "no recipients specified")
-}
-
-func TestEncryptUnknownRecipient(t *testing.T) {
-	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env)
-	defer closeFn()
-	testAuthSetup(t, service, alice)
-
-	message := "Hey bob"
-	unknown := keys.GenerateSignKey()
-	_, err := service.Encrypt(context.TODO(), &EncryptRequest{
-		Data:       []byte(message),
-		Recipients: unknown.ID().String(),
-	})
-	require.EqualError(t, err, fmt.Sprintf("public key not found %s", unknown))
 }
 
 func TestEncryptStream(t *testing.T) {

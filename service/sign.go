@@ -34,11 +34,11 @@ func (s *service) Sign(ctx context.Context, req *SignRequest) (*SignResponse, er
 func (s *service) Verify(ctx context.Context, req *VerifyRequest) (*VerifyResponse, error) {
 	sp := saltpack.NewSaltpack(s.ks)
 	sp.SetArmored(req.Armored)
-	verified, signer, err := sp.Verify(req.Data)
+	verified, sender, err := sp.Verify(req.Data)
 	if err != nil {
 		return nil, err
 	}
-	return &VerifyResponse{Data: verified, KID: signer.ID().String()}, nil
+	return &VerifyResponse{Data: verified, KID: sender.String()}, nil
 }
 
 // SignStream (RPC) ...
@@ -138,13 +138,13 @@ func (s *service) VerifyStream(srv Keys_VerifyStreamServer) error {
 
 	reader := newStreamReader(srv.Context(), recvFn)
 	sp := saltpack.NewSaltpack(s.ks)
-	streamReader, signer, streamErr := sp.NewVerifyStream(reader)
+	streamReader, sender, streamErr := sp.NewVerifyStream(reader)
 	if streamErr != nil {
 		return streamErr
 	}
 	sendFn := func(b []byte) error {
 		resp := VerifyStreamOutput{
-			KID:  signer.ID().String(),
+			KID:  sender.String(),
 			Data: b,
 		}
 		return srv.Send(&resp)
@@ -165,13 +165,13 @@ func (s *service) VerifyArmoredStream(srv Keys_VerifyArmoredStreamServer) error 
 	reader := newStreamReader(srv.Context(), recvFn)
 	sp := saltpack.NewSaltpack(s.ks)
 	sp.SetArmored(true)
-	streamReader, signer, streamErr := sp.NewVerifyStream(reader)
+	streamReader, sender, streamErr := sp.NewVerifyStream(reader)
 	if streamErr != nil {
 		return streamErr
 	}
 	sendFn := func(b []byte) error {
 		resp := VerifyStreamOutput{
-			KID:  signer.ID().String(),
+			KID:  sender.String(),
 			Data: b,
 		}
 		return srv.Send(&resp)

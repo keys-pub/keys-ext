@@ -102,10 +102,10 @@ func testSignStream(t *testing.T, service *service, plaintext []byte, sender str
 	data := buf.Bytes()
 	sp := saltpack.NewSaltpack(service.ks)
 	sp.SetArmored(true)
-	out, signer, err := sp.Verify(data)
+	out, sout, err := sp.Verify(data)
 	require.NoError(t, err)
 	if sender != "" {
-		require.Equal(t, sender, signer.ID().String())
+		require.Equal(t, sout.String(), sender)
 	}
 	require.Equal(t, plaintext, out)
 
