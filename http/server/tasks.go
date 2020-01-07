@@ -79,7 +79,7 @@ func (s *Server) taskCheck(c echo.Context) error {
 		return ErrBadRequest(c, err)
 	}
 
-	if err := s.users.Update(ctx, kid); err != nil {
+	if _, err := s.users.Update(ctx, kid); err != nil {
 		return internalError(c, err)
 	}
 	return c.String(http.StatusOK, "")

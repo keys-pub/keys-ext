@@ -83,16 +83,6 @@ func AddRoutes(s *Server, e *echo.Echo) {
 
 	e.GET("/search", s.getSearch)
 
-	e.PUT("/share/:recipient/:kid", s.putShare)
-	e.GET("/share/:recipient/:kid", s.getShare)
-	e.DELETE("/share/:recipient/:kid", s.deleteShare)
-
-	e.PUT("/messages/:kid/:id", s.putMessage)
-	e.GET("/messages/:kid", s.listMessages)
-
-	e.PUT("/vault/:kid/:id", s.putVault)
-	e.GET("/vault/:kid", s.listVault)
-
 	// Tasks
 	e.POST("/task/check/:kid", s.taskCheck)
 	// Tasks (create)

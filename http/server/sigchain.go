@@ -92,7 +92,7 @@ func (s *Server) sigchain(c echo.Context, kid keys.ID) (*keys.Sigchain, map[stri
 	if err != nil {
 		return nil, nil, err
 	}
-	spk, err := keys.DecodeSignPublicKey(kid.String())
+	spk, err := keys.SigchainPublicKeyFromID(kid)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -233,7 +233,7 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 	}
 
 	prev := sc.Last()
-	if err := sc.Verify(st, prev); err != nil {
+	if err := sc.VerifyStatement(st, prev); err != nil {
 		return ErrBadRequest(c, err)
 	}
 
@@ -277,7 +277,11 @@ func (s *Server) statementFromBytes(ctx context.Context, b []byte) (*keys.Statem
 		logger.Debugf(context.TODO(), "%s != %s", string(b), string(bout))
 		return nil, errors.Errorf("invalid statement bytes")
 	}
-	if err := st.Verify(); err != nil {
+	spk, err := keys.SigchainPublicKeyFromID(st.KID)
+	if err != nil {
+		return nil, err
+	}
+	if err := st.Verify(spk); err != nil {
 		return st, err
 	}
 	return st, nil

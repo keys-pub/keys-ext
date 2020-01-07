@@ -12,10 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const aliceSeed = "win rebuild update term layer transfer gain field prepare unique spider cool present argue grab trend eagle casino peace hockey loop seed desert swear"
-const bobSeed = "crane chimney shell unique drink dynamic math pilot letter inflict tattoo curtain primary crystal live return affair husband general cargo chat vintage demand deer"
-const groupSeed = "absurd amount doctor acoustic avoid letter advice cage absurd amount doctor acoustic avoid letter advice cage absurd amount doctor acoustic avoid letter advice comic"
-
 type clock struct {
 	t    time.Time
 	tick time.Duration
@@ -69,6 +65,12 @@ func testFire(t *testing.T, clock *clock) Fire {
 	return fi
 }
 
+func testUserStore(t *testing.T, ds keys.DocumentStore, req keys.Requestor, clock *clock) *keys.UserStore {
+	us, err := keys.NewUserStore(ds, keys.NewSigchainStore(ds), []string{keys.Twitter, keys.Github}, req, clock.Now)
+	require.NoError(t, err)
+	return us
+}
+
 func newTestServer(t *testing.T, clock *clock, fs Fire, users *keys.UserStore) *testServer {
 	mc := NewMemTestCache(clock.Now)
 	server := NewServer(fs, mc, users)
@@ -116,7 +118,7 @@ func (s *testServer) Serve(req *http.Request) (int, http.Header, string) {
 // 	return resp.StatusCode, resp.Header, string(b)
 // }
 
-func userMock(t *testing.T, users *keys.UserStore, key keys.Key, name string, service string, mock *keys.MockRequestor) *keys.Statement {
+func userMock(t *testing.T, users *keys.UserStore, key *keys.SignKey, name string, service string, mock *keys.MockRequestor) *keys.Statement {
 	url := ""
 	switch service {
 	case "github":
@@ -127,13 +129,13 @@ func userMock(t *testing.T, users *keys.UserStore, key keys.Key, name string, se
 		t.Fatal("unsupported service in test")
 	}
 
-	sc := keys.NewSigchain(key.PublicKey().SignPublicKey())
+	sc := keys.NewSigchain(key.PublicKey())
 	usr, err := keys.NewUser(users, key.ID(), service, name, url, sc.LastSeq()+1)
 	require.NoError(t, err)
-	st, err := keys.GenerateUserStatement(sc, usr, key.SignKey(), users.Now())
+	st, err := keys.GenerateUserStatement(sc, usr, key, users.Now())
 	require.NoError(t, err)
 
-	msg, err := usr.Sign(key.SignKey())
+	msg, err := usr.Sign(key)
 	require.NoError(t, err)
 	mock.SetResponse(url, []byte(msg))
 
@@ -144,12 +146,12 @@ func TestAccess(t *testing.T) {
 	clock := newClock()
 	fi := testFire(t, clock)
 	rq := keys.NewMockRequestor()
-	users := keys.NewTestUserStore(fi, keys.NewSigchainStore(fi), rq, clock.Now)
+	users := testUserStore(t, fi, rq, clock)
 	srv := newTestServer(t, clock, fi, users)
 
-	alice, err := keys.NewKeyFromSeedPhrase(aliceSeed, false)
+	alice, err := keys.NewSignKeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	require.NoError(t, err)
-	aliceSpk := alice.PublicKey().SignPublicKey()
+	aliceSpk := alice.PublicKey()
 	aliceID := alice.ID()
 
 	upkCount := 0
@@ -176,40 +178,40 @@ func TestAccess(t *testing.T) {
 
 	// PUT /sigchain/:kid/:seq (alice, allow)
 	aliceSc := keys.NewSigchain(aliceSpk)
-	aliceSt, err := keys.GenerateStatement(aliceSc, []byte("testing"), alice.SignKey(), "", clock.Now())
+	aliceSt, err := keys.GenerateStatement(aliceSc, []byte("testing"), alice, "", clock.Now())
 	require.NoError(t, err)
 	err = aliceSc.Add(aliceSt)
 	require.NoError(t, err)
 	aliceStBytes := aliceSt.Bytes()
-	req, err := http.NewRequest("PUT", "/sigchain/HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec/1", bytes.NewReader(aliceStBytes))
+	req, err := http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/1", alice.ID()), bytes.NewReader(aliceStBytes))
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 
 	// PUT /sigchain/:kid/:seq (alice, deny)
-	aliceSt2, err := keys.GenerateStatement(aliceSc, []byte("testing"), alice.SignKey(), "", clock.Now())
+	aliceSt2, err := keys.GenerateStatement(aliceSc, []byte("testing"), alice, "", clock.Now())
 	require.NoError(t, err)
 	err = aliceSc.Add(aliceSt2)
 	require.NoError(t, err)
 	aliceStBytes2 := aliceSt2.Bytes()
-	req, err = http.NewRequest("PUT", "/sigchain/HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec/2", bytes.NewReader(aliceStBytes2))
+	req, err = http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/2", alice.ID()), bytes.NewReader(aliceStBytes2))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusTooManyRequests, code)
 	require.Equal(t, `{"error":{"code":429,"message":"sigchain deny test"}}`, body)
 
-	bob, err := keys.NewKeyFromSeedPhrase(bobSeed, false)
+	bob, err := keys.NewSignKeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
 	require.NoError(t, err)
-	bobSpk := bob.PublicKey().SignPublicKey()
+	bobSpk := bob.PublicKey()
 
 	// PUT /:kid/:seq (bob, allow)
 	bobSc := keys.NewSigchain(bobSpk)
-	bobSt, err := keys.GenerateStatement(bobSc, []byte("testing"), bob.SignKey(), "", clock.Now())
+	bobSt, err := keys.GenerateStatement(bobSc, []byte("testing"), bob, "", clock.Now())
 	require.NoError(t, err)
 	bobAddErr := bobSc.Add(bobSt)
 	require.NoError(t, bobAddErr)
 	bobStBytes := bobSt.Bytes()
-	req, err = http.NewRequest("PUT", "/KNLPD1zD35FpXxP8q2B7JEWVqeJTxYH5RQKtGgrgNAtU/1", bytes.NewReader(bobStBytes))
+	req, err = http.NewRequest("PUT", fmt.Sprintf("/%s/1", bob.ID()), bytes.NewReader(bobStBytes))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)

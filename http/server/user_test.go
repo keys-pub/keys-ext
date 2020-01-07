@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -10,23 +11,23 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestUserCheck(t *testing.T) {
+func TestUserResult(t *testing.T) {
 	// SetContextLogger(NewContextLogger(DebugLevel))
 
 	clock := newClock()
 	fi := testFire(t, clock)
 	rq := keys.NewMockRequestor()
-	users := keys.NewTestUserStore(fi, keys.NewSigchainStore(fi), rq, clock.Now)
+	users := testUserStore(t, fi, rq, clock)
 	srv := newTestServer(t, clock, fi, users)
 
-	alice, err := keys.NewKeyFromSeedPhrase(aliceSeed, false)
+	alice, err := keys.NewSignKeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	require.NoError(t, err)
 
 	// Alice sign user statement
 	st := userMock(t, users, alice, "alice", "github", rq)
 
 	// PUT /sigchain/:id/:seq
-	req, err := http.NewRequest("PUT", "/sigchain/HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec/1", bytes.NewReader(st.Bytes()))
+	req, err := http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/1", alice.ID()), bytes.NewReader(st.Bytes()))
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)

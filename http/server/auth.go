@@ -15,7 +15,7 @@ import (
 // AuthResult is the authorized result.
 type AuthResult struct {
 	kid    keys.ID
-	spk    keys.SignPublicKey
+	spk    keys.SigchainPublicKey
 	method string
 	url    *url.URL
 	nonce  string
@@ -39,8 +39,8 @@ func CheckAuthorization(ctx context.Context, method string, urs string, auth str
 		return nil, err
 	}
 
-	spk, spkerr := keys.DecodeSignPublicKey(kid.String())
-	if spkerr != nil {
+	spk, err := keys.SigchainPublicKeyFromID(kid)
+	if err != nil {
 		return nil, errors.Errorf("not a valid sign public key")
 	}
 
@@ -56,7 +56,7 @@ func CheckAuthorization(ctx context.Context, method string, urs string, auth str
 
 	msg := method + "," + url.String()
 	logger.Infof(ctx, "Checking auth for %s %s", msg, auth)
-	if err := keys.VerifyDetached(sigBytes, []byte(msg), spk); err != nil {
+	if err := spk.VerifyDetached(sigBytes, []byte(msg)); err != nil {
 		return nil, err
 	}
 
@@ -106,6 +106,7 @@ func CheckAuthorization(ctx context.Context, method string, urs string, auth str
 		return nil, errors.Errorf("timestamp is invalid, diff %s", td)
 	}
 
+	logger.Infof(ctx, "Auth OK %s", kid)
 	return &AuthResult{
 		kid:    kid,
 		spk:    spk,

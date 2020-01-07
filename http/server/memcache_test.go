@@ -13,7 +13,7 @@ func TestMemTestCache(t *testing.T) {
 	clock := newClock()
 	mc := newMemTestCache(clock.Now)
 
-	n1 := keys.RandID().String()
+	n1 := keys.RandString(12)
 	val, err := mc.Get(context.TODO(), n1)
 	require.NoError(t, err)
 	require.Empty(t, val)
@@ -36,7 +36,7 @@ func TestMemTestCacheExpiration(t *testing.T) {
 	clock.setTick(time.Second)
 	mc := NewMemTestCache(clock.Now)
 
-	n1 := keys.RandID().String()
+	n1 := keys.RandString(12)
 	val, err := mc.Get(context.TODO(), n1)
 	require.NoError(t, err)
 	require.Empty(t, val)
@@ -50,7 +50,7 @@ func TestMemTestCacheExpiration(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, val2)
 
-	n2 := keys.RandID().String()
+	n2 := keys.RandString(12)
 	err = mc.Set(context.TODO(), n2, "2")
 	require.NoError(t, err)
 	err = mc.Expire(context.TODO(), n2, time.Minute)
