@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/saltpack"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/api/option"
 )
@@ -376,8 +375,13 @@ func TestSigchains(t *testing.T) {
 
 	kids := []keys.ID{}
 	for i := 0; i < 6; i++ {
-		key := keys.GenerateKey()
-		err := scs.SaveSigchain(keys.GenerateSigchain(key, clock.Now()))
+		key := keys.GenerateSignKey()
+		sc := keys.NewSigchain(key.PublicKey())
+		st, err := keys.GenerateStatement(sc, []byte("test"), key, "", clock.Now())
+		require.NoError(t, err)
+		err = sc.Add(st)
+		require.NoError(t, err)
+		err = scs.SaveSigchain(sc)
 		require.NoError(t, err)
 		kids = append(kids, key.ID())
 	}
@@ -385,68 +389,6 @@ func TestSigchains(t *testing.T) {
 	pk, err := scs.Sigchain(kids[0])
 	require.NoError(t, err)
 	require.Equal(t, kids[0], pk.ID())
-}
-
-func TestSign(t *testing.T) {
-	clock := newClock()
-	fs := testFirestore(t, true)
-	ctx := context.TODO()
-	scs := keys.NewSigchainStore(fs)
-	ks := keys.NewMemKeystore()
-	ks.SetSigchainStore(scs)
-	sp := saltpack.NewSaltpack(ks)
-	dst := keys.NewCryptoStore(fs, sp)
-
-	alice, err := ks.GenerateKey(true, clock.Now())
-	require.NoError(t, err)
-
-	// Sign
-	msgID := keys.RandID()
-	msg := []byte("hello")
-	path := keys.Path("message", msgID)
-	out, err := dst.Sign(ctx, path, msg, alice.SignKey())
-	require.NoError(t, err)
-	require.True(t, len(out) > 0)
-
-	// Verify
-	verified, err := dst.Verify(ctx, path)
-	require.NoError(t, err)
-	require.Equal(t, alice.ID(), verified.Signer)
-	require.Equal(t, "hello", string(verified.Data))
-
-	// Verify empty
-	si2, siErr2 := dst.Sign(ctx, "test/1", []byte{}, alice.SignKey())
-	require.NoError(t, siErr2)
-	require.NotNil(t, si2)
-	_, err = dst.Verify(ctx, "test/1")
-	require.NoError(t, err)
-}
-
-func TestSeal(t *testing.T) {
-	clock := newClock()
-	fs := testFirestore(t, true)
-	ctx := context.TODO()
-	scs := keys.NewSigchainStore(fs)
-	ks := keys.NewMemKeystore()
-	ks.SetSigchainStore(scs)
-	sp := saltpack.NewSaltpack(ks)
-	dst := keys.NewCryptoStore(fs, sp)
-
-	alice, err := ks.GenerateKey(true, clock.Now())
-	require.NoError(t, err)
-
-	bob, err := ks.GenerateKey(true, clock.Now())
-	require.NoError(t, err)
-
-	id := keys.RandID()
-	path := keys.Path("message", id)
-	_, err = dst.Seal(ctx, path, []byte("hello"), alice, bob.PublicKey())
-	require.NoError(t, err)
-
-	opened, err := dst.Open(ctx, path)
-	require.NoError(t, err)
-	require.Equal(t, alice.ID(), opened.Signer)
-	require.Equal(t, "hello", string(opened.Data))
 }
 
 func ExampleNewFirestore() {
