@@ -43,6 +43,8 @@ func (c *Client) Messages(key *keys.SignKey, version string) (*api.MessagesRespo
 	params.Add("include", "md")
 	params.Add("version", version)
 
+	// TODO: What if we hit limit, we won't have all the messages
+
 	e, err := c.get(path, params, key)
 	if err != nil {
 		return nil, err
