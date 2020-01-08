@@ -20,8 +20,7 @@ func testDB(t *testing.T) *DB {
 	db := NewDB()
 	db.SetTimeNow(newClock().Now)
 	path := testPath()
-	key := keys.GenerateSecretKey()
-	err := db.OpenAtPath(path, key, nil)
+	err := db.OpenAtPath(path, nil)
 	require.NoError(t, err)
 	return db
 }
@@ -293,10 +292,9 @@ func testMetadata(t *testing.T, ds keys.DocumentStore) {
 func ExampleDB_OpenAtPath() {
 	db := NewDB()
 	defer db.Close()
-	key := keys.GenerateSecretKey()
 
 	path := filepath.Join(os.TempDir(), fmt.Sprintf("example-%s.leveldb", keys.RandString(12)))
-	if err := db.OpenAtPath(path, key, nil); err != nil {
+	if err := db.OpenAtPath(path, nil); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -304,10 +302,9 @@ func ExampleDB_OpenAtPath() {
 func ExampleDB_Create() {
 	db := NewDB()
 	defer db.Close()
-	key := keys.GenerateSecretKey()
 
 	path := filepath.Join(os.TempDir(), fmt.Sprintf("example-%s.leveldb", keys.RandString(12)))
-	if err := db.OpenAtPath(path, key, nil); err != nil {
+	if err := db.OpenAtPath(path, nil); err != nil {
 		log.Fatal(err)
 	}
 
@@ -319,10 +316,9 @@ func ExampleDB_Create() {
 func ExampleDB_Get() {
 	db := NewDB()
 	defer db.Close()
-	key := keys.GenerateSecretKey()
 
 	path := filepath.Join(os.TempDir(), fmt.Sprintf("example-%s.leveldb", keys.RandString(12)))
-	if err := db.OpenAtPath(path, key, nil); err != nil {
+	if err := db.OpenAtPath(path, nil); err != nil {
 		log.Fatal(err)
 	}
 

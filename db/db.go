@@ -6,12 +6,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gabriel/goleveldb-encrypted/aesgcm"
 	"github.com/keys-pub/keys"
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
-	"github.com/syndtr/goleveldb/leveldb/storage"
 	ldbutil "github.com/syndtr/goleveldb/leveldb/util"
 )
 
@@ -23,7 +21,6 @@ type DB struct {
 	rwmtx *sync.RWMutex
 	fpath string
 	nowFn func() time.Time
-	stor  storage.Storage
 }
 
 // NewDB creates a DB.
@@ -50,25 +47,17 @@ func (d *DB) IsOpen() bool {
 }
 
 // OpenAtPath opens db located at path
-func (d *DB) OpenAtPath(path string, key keys.SecretKey, opt *opt.Options) error {
+func (d *DB) OpenAtPath(path string, opt *opt.Options) error {
 	if d.ldb != nil {
 		return errors.Errorf("db already open")
 	}
-
-	stor, err := aesgcm.OpenEncryptedFile(path, key[:], opt.GetReadOnly())
-	if err != nil {
-		return err
-	}
-
 	logger.Infof("LevelDB at %s", path)
-	db, err := leveldb.Open(stor, nil)
+	db, err := leveldb.OpenFile(path, nil)
 	if err != nil {
-		stor.Close()
 		return err
 	}
 	d.ldb = db
 	d.fpath = path
-	d.stor = stor
 	return nil
 }
 
@@ -80,12 +69,6 @@ func (d *DB) Close() {
 			logger.Errorf("Error closing DB: %s", err)
 		}
 		d.ldb = nil
-	}
-	if d.stor != nil {
-		if err := d.stor.Close(); err != nil {
-			logger.Errorf("Error closing DB (store): %s", err)
-		}
-		d.stor = nil
 	}
 	d.fpath = ""
 }
