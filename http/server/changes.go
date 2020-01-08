@@ -45,7 +45,7 @@ func (s *Server) changes(c echo.Context, path string) (*changes, error) {
 		return nil, err
 	}
 
-	logger.Infof(ctx, "Changes %s, found ", path, len(chngs))
+	logger.Infof(ctx, "Changes %s, found %d", path, len(chngs))
 	paths := make([]string, 0, len(chngs))
 	for _, a := range chngs {
 		paths = append(paths, a.Path)

@@ -58,12 +58,14 @@ func (s *Server) putMessage(c echo.Context) error {
 		return internalError(c, err)
 	}
 
+	path := keys.Path("messages", fmt.Sprintf("%s-%s", kid, id))
+
 	msg := api.Message{
 		ID:   id,
 		Data: bin,
-		Path: keys.Path("messages", id),
+		Path: path,
 	}
-	logger.Infof(ctx, "Set %s", msg.Path)
+	logger.Infof(ctx, "Save message %s", msg.Path)
 	mb, err := json.Marshal(msg)
 	if err != nil {
 		return internalError(c, err)
