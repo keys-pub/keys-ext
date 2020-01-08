@@ -56,7 +56,7 @@ func TestMessages(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	expectedMessages := `{"kid":"ed1e2f6c9c9rpc8r4nms0rl7rh7syyw3mz9xpt46aexs7fn8k76he7qn2ul34","messages":[{"data":"aGk=","id":"H1zXH53Xt3JJGx51ruhqk1p83q3VFGmUQCunR51fAsSu","path":"/messages/H1zXH53Xt3JJGx51ruhqk1p83q3VFGmUQCunR51fAsSu"}],"version":"1234567890011"}`
+	expectedMessages := `{"kid":"kpe1e2f6c9c9rpc8r4nms0rl7rh7syyw3mz9xpt46aexs7fn8k76he7q0lsxqg","messages":[{"data":"aGk=","id":"H1zXH53Xt3JJGx51ruhqk1p83q3VFGmUQCunR51fAsSu","path":"/messages/kpe1e2f6c9c9rpc8r4nms0rl7rh7syyw3mz9xpt46aexs7fn8k76he7q0lsxqg-H1zXH53Xt3JJGx51ruhqk1p83q3VFGmUQCunR51fAsSu"}],"version":"1234567890011"}`
 	require.Equal(t, expectedMessages, body)
 
 	// GET /messages/:kid?version=1234567890012
@@ -64,7 +64,7 @@ func TestMessages(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	expectedMessages = `{"kid":"ed1e2f6c9c9rpc8r4nms0rl7rh7syyw3mz9xpt46aexs7fn8k76he7qn2ul34","messages":[],"version":"1234567890012"}`
+	expectedMessages = `{"kid":"kpe1e2f6c9c9rpc8r4nms0rl7rh7syyw3mz9xpt46aexs7fn8k76he7q0lsxqg","messages":[],"version":"1234567890012"}`
 	require.Equal(t, expectedMessages, body)
 }
 
