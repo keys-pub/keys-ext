@@ -10,7 +10,7 @@ require (
 	github.com/keys-pub/keys v0.0.0-20200107221419-0ed0e891d305
 	github.com/keys-pub/keysd/db v0.0.0-20200107201839-fad84006d436
 	github.com/keys-pub/keysd/http/api v0.0.0-20200107201206-c0f295622c20
-	github.com/keys-pub/keysd/http/client v0.0.0-20200107234508-383368f91d9b
+	github.com/keys-pub/keysd/http/client v0.0.0-20200108042356-9726394277b2
 	github.com/keys-pub/keysd/http/server v0.0.0-20200108010225-7d2897b009f2
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/logrusorgru/aurora v0.0.0-20191116043053-66b7ad493a23

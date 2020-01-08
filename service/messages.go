@@ -138,11 +138,12 @@ func (s *service) messageCreate(ctx context.Context, sender string, kid string, 
 }
 
 func (s *service) fillMessage(ctx context.Context, message *Message, t time.Time, sender keys.ID, path string) {
-	user, resolveErr := s.findUser(ctx, sender)
-	if resolveErr != nil {
-		logger.Errorf("Failed to resolve user: %s", resolveErr)
+	sc, err := s.scs.Sigchain(sender)
+	if err != nil {
+		logger.Errorf("Failed to load sigchain: %s", err)
 	}
-	message.User = userToRPC(user)
+
+	message.Users = usersToRPC(sc.Users())
 	message.Sender = sender.String()
 	message.CreatedAt = int64(keys.TimeToMillis(t))
 	message.TimeDisplay = timeDisplay(t)
@@ -242,9 +243,6 @@ func (s *service) pullMessages(ctx context.Context, kid keys.ID) error {
 		pathVal := fmt.Sprintf("%d-%s", ts, msg.ID)
 		path := keys.Path(pathKey, pathVal)
 		if err := s.db.Set(ctx, path, msg.Data); err != nil {
-			return err
-		}
-		if err := s.saveResource(ctx, path, resp.MetadataFor(msg)); err != nil {
 			return err
 		}
 	}

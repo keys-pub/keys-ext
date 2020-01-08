@@ -24,7 +24,6 @@ func TestStatusPrompts(t *testing.T) {
 	require.NotNil(t, resp.Key)
 	require.Equal(t, alice.ID().String(), resp.Key.ID)
 	require.Equal(t, 0, len(resp.Key.Users))
-	require.True(t, resp.PromptPublish)
 	require.True(t, resp.PromptUser)
 
 	_, err = service.ConfigSet(ctx, &ConfigSetRequest{
@@ -57,7 +56,7 @@ func TestStatusUser(t *testing.T) {
 	require.Equal(t, alice.ID().String(), resp.Key.ID)
 	require.Equal(t, 1, len(resp.Key.Users))
 	require.Equal(t, UserStatusOK, resp.Key.Users[0].Status)
-	require.Equal(t, int64(1234567890016), resp.Key.Users[0].VerifiedAt)
+	require.Equal(t, int64(1234567890018), resp.Key.Users[0].VerifiedAt)
 	require.False(t, resp.PromptUser)
 
 	env.req.SetError("https://gist.github.com/alice/1", errors.Errorf("test error"))
@@ -68,6 +67,6 @@ func TestStatusUser(t *testing.T) {
 	require.Equal(t, alice.ID().String(), resp.Key.ID)
 	require.Equal(t, 1, len(resp.Key.Users))
 	require.Equal(t, UserStatusConnFailure, resp.Key.Users[0].Status)
-	require.Equal(t, int64(1234567890016), resp.Key.Users[0].VerifiedAt)
+	require.Equal(t, int64(1234567890018), resp.Key.Users[0].VerifiedAt)
 	require.Equal(t, "test error", resp.Key.Users[0].Err)
 }

@@ -28,21 +28,6 @@ func TestKey(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Equal(t, alice.ID().String(), resp.Key.ID)
-	require.Equal(t, int64(1234567890003), resp.Key.CreatedAt)
-	require.Equal(t, int64(0), resp.Key.PublishedAt)
-	require.Equal(t, int64(1234567890004), resp.Key.SavedAt)
-
-	testPush(t, service, alice)
-
-	// Alice (published).
-	resp, err = service.Key(ctx, &KeyRequest{
-		KID: alice.ID().String(),
-	})
-	require.NoError(t, err)
-	require.Equal(t, alice.ID().String(), resp.Key.ID)
-	require.Equal(t, int64(1234567890003), resp.Key.CreatedAt)
-	require.Equal(t, int64(1234567890009), resp.Key.PublishedAt)
-	require.Equal(t, int64(1234567890004), resp.Key.SavedAt)
 
 	// Alice (user)
 	resp, err = service.Key(ctx, &KeyRequest{
@@ -51,9 +36,6 @@ func TestKey(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, resp.Key)
 	require.Equal(t, alice.ID().String(), resp.Key.ID)
-	require.Equal(t, int64(1234567890003), resp.Key.CreatedAt)
-	require.Equal(t, int64(1234567890009), resp.Key.PublishedAt)
-	require.Equal(t, int64(1234567890004), resp.Key.SavedAt)
 }
 
 func TestKeyGenerate(t *testing.T) {
@@ -105,10 +87,6 @@ func TestKeyBackupRemoveRecover(t *testing.T) {
 	_, err = service.KeyRemove(ctx, &KeyRemoveRequest{KID: key.ID().String(), SeedPhrase: seedPhrase})
 	require.NoError(t, err)
 
-	keyResp, err := service.Key(ctx, &KeyRequest{KID: key.ID().String()})
-	require.Nil(t, keyResp)
-	require.EqualError(t, err, fmt.Sprintf("not found %s", key.ID()))
-
 	// Remove (not found)
 	randKey := keys.GenerateSignKey()
 	randPhrase, err := keys.BytesToPhrase(randKey.Seed())
@@ -127,7 +105,7 @@ func TestKeyBackupRemoveRecover(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, key.ID().String(), recResp.KID)
 
-	keyResp, err = service.Key(ctx, &KeyRequest{KID: key.ID().String()})
+	keyResp, err := service.Key(ctx, &KeyRequest{KID: key.ID().String()})
 	require.NoError(t, err)
 	require.Equal(t, key.ID().String(), keyResp.Key.ID)
 }

@@ -100,7 +100,8 @@ func TestMessages(t *testing.T) {
 	// t.Logf("cols: %+v", paths)
 
 	require.Equal(t, "am1", messagesResp2.Messages[0].Content.Text)
-	require.Equal(t, "alice", messagesResp2.Messages[0].User.Name)
+	require.Equal(t, 1, len(messagesResp2.Messages[0].Users))
+	require.Equal(t, "alice", messagesResp2.Messages[0].Users[0].Name)
 	require.Equal(t, "am2", messagesResp2.Messages[1].Content.Text)
 	require.Equal(t, "bm1", messagesResp2.Messages[2].Content.Text)
 
@@ -115,8 +116,8 @@ func TestMessages(t *testing.T) {
 	require.Equal(t, 3, len(messagesResp3.Messages))
 
 	require.Equal(t, "am1", messagesResp3.Messages[0].Content.Text)
-	require.NotNil(t, messagesResp3.Messages[0].User)
-	require.Equal(t, "alice", messagesResp3.Messages[0].User.Name)
+	require.Equal(t, 1, len(messagesResp3.Messages[0].Users))
+	require.Equal(t, "alice", messagesResp3.Messages[0].Users[0].Name)
 	require.Equal(t, "am2", messagesResp3.Messages[1].Content.Text)
 	require.Equal(t, "bm1", messagesResp3.Messages[2].Content.Text)
 }

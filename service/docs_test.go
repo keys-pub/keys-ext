@@ -28,8 +28,9 @@ func TestDocuments(t *testing.T) {
 	require.NoError(t, err)
 
 	expectedCols := []*Collection{
-		&Collection{Path: "/.resource"},
+		&Collection{Path: "/kid"},
 		&Collection{Path: "/sigchain"},
+		&Collection{Path: "/user"},
 	}
 	require.Equal(t, expectedCols, respCols.Collections)
 
@@ -39,10 +40,4 @@ func TestDocuments(t *testing.T) {
 	require.Equal(t, 2, len(respDocs.Documents))
 	require.Equal(t, fmt.Sprintf("/sigchain/%s-000000000000001", alice.ID()), respDocs.Documents[0].Path)
 	require.Equal(t, fmt.Sprintf("/sigchain/%s-000000000000001", bob.ID()), respDocs.Documents[1].Path)
-
-	respPull, err := service.Documents(ctx, &DocumentsRequest{Path: "/.resource"})
-	require.NoError(t, err)
-	require.Equal(t, 2, len(respPull.Documents))
-	require.Equal(t, fmt.Sprintf("/.resource/sigchain/%s-000000000000001", alice.ID()), respPull.Documents[0].Path)
-	require.Equal(t, fmt.Sprintf("/.resource/sigchain/%s-000000000000001", bob.ID()), respPull.Documents[1].Path)
 }

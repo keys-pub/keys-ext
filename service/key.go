@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	strings "strings"
-	"time"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/keyring"
@@ -14,7 +13,7 @@ import (
 func (s *service) Key(ctx context.Context, req *KeyRequest) (*KeyResponse, error) {
 	var kid keys.ID
 	if req.User != "" {
-		usr, err := s.searchUserByName(ctx, req.User)
+		usr, err := s.searchUserLocalExact(ctx, req.User)
 		if err != nil {
 			return nil, err
 		}
@@ -61,10 +60,6 @@ func (s *service) key(ctx context.Context, kid keys.ID) (*Key, error) {
 	typ := PublicKeyType
 	var users []*User
 	saved := false
-	var createdAt time.Time
-	var publishedAt time.Time
-	var savedAt time.Time
-	var updatedAt time.Time
 
 	key, err := s.loadKey(kid)
 	if err != nil {
@@ -77,57 +72,17 @@ func (s *service) key(ctx context.Context, kid keys.ID) (*Key, error) {
 		typ = PublicKeyType
 	}
 
-	sc, err := s.scs.Sigchain(kid)
+	upd, err := s.users.Update(ctx, kid)
 	if err != nil {
 		return nil, err
 	}
-
-	sts := sc.Statements()
-	if key == nil && len(sts) == 0 {
-		return nil, keys.NewErrNotFound(kid.String())
-	}
-
-	if len(sts) > 0 {
-		logger.Debugf("Found sigchain statements %s", kid)
-		st := sts[0]
-		createdAt = st.Timestamp
-		saved = true
-
-		res, err := s.loadResource(ctx, keys.Path("sigchain", st.Key()))
-		if err != nil {
-			return nil, err
-		}
-		if res != nil {
-			logger.Debugf("Found local resource %+v", res)
-			publishedAt = res.Metadata.CreatedAt
-		}
-
-		// Lookup when it was saved
-		doc, err := s.db.Get(ctx, keys.Path("sigchain", st.Key()))
-		if err != nil {
-			return nil, err
-		}
-		if doc != nil {
-			savedAt = doc.CreatedAt
-			updatedAt = doc.UpdatedAt
-		}
-
-		upd, err := s.users.Update(ctx, kid)
-		if err != nil {
-			return nil, err
-		}
-		users = userResultsToRPC(upd)
-	}
+	users = userResultsToRPC(upd)
 
 	return &Key{
-		ID:          kid.String(),
-		Users:       users,
-		Type:        typ,
-		Saved:       saved,
-		CreatedAt:   int64(keys.TimeToMillis(createdAt)),
-		PublishedAt: int64(keys.TimeToMillis(publishedAt)),
-		SavedAt:     int64(keys.TimeToMillis(savedAt)),
-		UpdatedAt:   int64(keys.TimeToMillis(updatedAt)),
+		ID:    kid.String(),
+		Users: users,
+		Type:  typ,
+		Saved: saved,
 	}, nil
 }
 

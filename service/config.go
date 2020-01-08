@@ -277,16 +277,6 @@ func (c *Config) SetKeyringType(t KeyringType) {
 	c.values.KeyringType = t
 }
 
-// DisablePromptPublish ...
-func (c *Config) DisablePromptPublish() bool {
-	return c.values.DisablePromptPublish
-}
-
-// SetDisablePromptPublish ...
-func (c *Config) SetDisablePromptPublish(b bool) {
-	c.values.DisablePromptPublish = b
-}
-
 // DisablePromptUser ...
 func (c *Config) DisablePromptUser() bool {
 	return c.values.DisablePromptUser
@@ -305,11 +295,10 @@ func (c Config) Export() ([]byte, error) {
 // Map returns config as map values.
 func (c Config) Map() map[string]string {
 	return map[string]string{
-		"keyringType":          string(c.values.KeyringType),
-		"logLevel":             string(c.values.LogLevel),
-		"port":                 strconv.Itoa(c.values.Port),
-		"disablePromptPublish": truthyString(c.values.DisablePromptPublish),
-		"disablePromptUser":    truthyString(c.values.DisablePromptUser),
+		"keyringType":       string(c.values.KeyringType),
+		"logLevel":          string(c.values.LogLevel),
+		"port":              strconv.Itoa(c.values.Port),
+		"disablePromptUser": truthyString(c.values.DisablePromptUser),
 	}
 }
 
@@ -341,16 +330,6 @@ func (c *Config) Set(key string, value string) error {
 			return errors.Errorf("invalid value for logLevel")
 		}
 		c.SetLogLevel(l)
-		return nil
-	case "disablePromptPublish":
-		if value == "" {
-			return errors.Errorf("empty value")
-		}
-		b, err := truthy(value)
-		if err != nil {
-			return err
-		}
-		c.SetDisablePromptPublish(b)
 		return nil
 	case "disablePromptUser":
 		if value == "" {

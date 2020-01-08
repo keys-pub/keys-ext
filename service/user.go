@@ -111,6 +111,11 @@ func (s *service) sigchainUserAdd(ctx context.Context, key *keys.SignKey, servic
 	if err := s.scs.SaveSigchain(sc); err != nil {
 		return nil, nil, err
 	}
+
+	if _, err = s.users.Update(ctx, key.ID()); err != nil {
+		return nil, nil, err
+	}
+
 	return userResult, st, nil
 }
 
@@ -193,45 +198,67 @@ func usersToRPC(in []*keys.User) []*User {
 	return users
 }
 
-func (s *service) findUser(ctx context.Context, kid keys.ID) (*keys.User, error) {
-	sc, err := s.scs.Sigchain(kid)
+func (s *service) searchUserLocalExact(ctx context.Context, query string) (*keys.UserResult, error) {
+	res, err := s.searchUserLocal(ctx, query)
 	if err != nil {
 		return nil, err
 	}
-	if sc == nil {
+	if len(res) == 0 {
 		return nil, nil
 	}
-	users := sc.Users()
-	if len(users) == 0 {
-		return nil, nil
-	}
-	return users[len(users)-1], nil
-}
 
-func (s *service) searchUserByName(ctx context.Context, name string) (*keys.UserResult, error) {
-	if s.remote == nil {
-		return nil, errors.Errorf("no remote set")
-	}
-	if strings.TrimSpace(name) != name {
-		return nil, errors.Errorf("name has untrimmed whitespace")
-	}
-	if !strings.Contains(name, "@") {
-		return nil, errors.Errorf("missing service")
-	}
-	resp, err := s.remote.Search(name, 0, 0)
-	if err != nil {
-		return nil, err
-	}
-	if len(resp.Results) == 0 {
-		return nil, nil
-	}
-	if len(resp.Results) > 1 {
-		return nil, errors.Errorf("too many user results")
-	}
-	for _, user := range resp.Results[0].Users {
-		if name == fmt.Sprintf("%s@%s", user.User.Name, user.User.Service) {
+	for _, user := range res[0].Users {
+		if query == fmt.Sprintf("%s@%s", user.User.Name, user.User.Service) {
 			return user, nil
 		}
 	}
-	return nil, errors.Errorf("missing user in key")
+
+	return nil, nil
+}
+
+func (s *service) searchUserExact(ctx context.Context, query string) (*keys.UserResult, error) {
+	res, err := s.searchUser(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	if len(res) == 0 {
+		return nil, nil
+	}
+
+	for _, user := range res[0].Users {
+		if query == fmt.Sprintf("%s@%s", user.User.Name, user.User.Service) {
+			return user, nil
+		}
+	}
+
+	return nil, nil
+}
+
+func (s *service) searchUser(ctx context.Context, query string) ([]*keys.SearchResult, error) {
+	res, err := s.searchUserLocal(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	if len(res) > 0 {
+		return res, nil
+	}
+	return s.searchUserRemote(ctx, query)
+}
+
+func (s *service) searchUserLocal(ctx context.Context, query string) ([]*keys.SearchResult, error) {
+	// TODO: We need to periodically update local user index
+	query = strings.TrimSpace(query)
+	return s.users.Search(ctx, &keys.SearchRequest{Query: query})
+}
+
+func (s *service) searchUserRemote(ctx context.Context, query string) ([]*keys.SearchResult, error) {
+	if s.remote == nil {
+		return nil, errors.Errorf("no remote set")
+	}
+	query = strings.TrimSpace(query)
+	resp, err := s.remote.Search(query, 0)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Results, nil
 }

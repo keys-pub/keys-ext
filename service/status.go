@@ -11,7 +11,6 @@ func (s *service) Status(ctx context.Context, req *StatusRequest) (*StatusRespon
 	logger.Infof("Status")
 
 	var key *Key
-	promptPublish := false
 	promptUser := false
 
 	sk, err := s.loadCurrentKey()
@@ -24,7 +23,6 @@ func (s *service) Status(ctx context.Context, req *StatusRequest) (*StatusRespon
 			return nil, err
 		}
 		key = k
-		promptPublish = key.PublishedAt == 0 && !s.cfg.DisablePromptPublish()
 		promptUser = len(key.Users) == 0 && !s.cfg.DisablePromptUser()
 	}
 
@@ -34,10 +32,9 @@ func (s *service) Status(ctx context.Context, req *StatusRequest) (*StatusRespon
 	}
 
 	return &StatusResponse{
-		URI:           url,
-		Key:           key,
-		PromptPublish: promptPublish,
-		PromptUser:    promptUser,
+		URI:        url,
+		Key:        key,
+		PromptUser: promptUser,
 	}, nil
 }
 

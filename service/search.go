@@ -2,24 +2,17 @@ package service
 
 import (
 	"context"
-
-	"github.com/pkg/errors"
 )
 
 // Search (RPC) ...
 func (s *service) Search(ctx context.Context, req *SearchRequest) (*SearchResponse, error) {
-	if s.remote == nil {
-		return nil, errors.Errorf("no remote set")
-	}
-
-	// TODO: Sort
-	resp, err := s.remote.Search(req.Query, int(req.Index), int(req.Limit))
+	res, err := s.searchUser(ctx, req.Query)
 	if err != nil {
 		return nil, err
 	}
 
-	results := make([]*SearchResult, 0, len(resp.Results))
-	for _, res := range resp.Results {
+	results := make([]*SearchResult, 0, len(res))
+	for _, res := range res {
 		results = append(results, &SearchResult{
 			KID:   res.KID.String(),
 			Users: userResultsToRPC(res.Users),
