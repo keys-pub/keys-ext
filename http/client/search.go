@@ -11,12 +11,9 @@ import (
 )
 
 // Search ...
-func (c *Client) Search(query string, index int, limit int) (*api.SearchResponse, error) {
+func (c *Client) Search(query string, limit int) (*api.SearchResponse, error) {
 	params := url.Values{}
 	params.Add("q", query)
-	if index > 0 {
-		params.Add("index", strconv.Itoa(index))
-	}
 	if limit > 0 {
 		params.Add("limit", strconv.Itoa(limit))
 	}
