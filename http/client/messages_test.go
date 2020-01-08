@@ -52,6 +52,7 @@ func TestMessages(t *testing.T) {
 	ts0 := keys.TimeToMillis(respA1.MetadataFor(respA1.Messages[0]).CreatedAt)
 	require.Equal(t, keys.TimeMs(1234567890004), ts0)
 	require.Equal(t, data1, respA1.Messages[0].Data)
+	require.Equal(t, data2, respA1.Messages[1].Data)
 
 	// PutMessage #3
 	mid3 := keys.RandString(32)
