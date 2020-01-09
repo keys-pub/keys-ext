@@ -6,38 +6,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Status (RPC) returns status.
-func (s *service) Status(ctx context.Context, req *StatusRequest) (*StatusResponse, error) {
-	logger.Infof("Status")
-
-	var key *Key
-	promptUser := false
-
-	sk, err := s.loadCurrentKey()
-	if err != nil {
-		return nil, err
-	}
-	if sk != nil {
-		k, err := s.key(ctx, sk.ID())
-		if err != nil {
-			return nil, err
-		}
-		key = k
-		promptUser = len(key.Users) == 0 && !s.cfg.DisablePromptUser()
-	}
-
-	url := ""
-	if s.remote != nil {
-		url = s.remote.URL().String()
-	}
-
-	return &StatusResponse{
-		URI:        url,
-		Key:        key,
-		PromptUser: promptUser,
-	}, nil
-}
-
 // RuntimeStatus (RPC) gets the current runtime status.
 // This call is NOT AUTHENTICATED.
 func (s *service) RuntimeStatus(ctx context.Context, req *RuntimeStatusRequest) (*RuntimeStatusResponse, error) {
