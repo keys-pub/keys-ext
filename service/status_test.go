@@ -59,7 +59,10 @@ func TestStatusUser(t *testing.T) {
 	require.Equal(t, int64(1234567890018), resp.Key.Users[0].VerifiedAt)
 	require.False(t, resp.PromptUser)
 
+	// Set error and update
 	env.req.SetError("https://gist.github.com/alice/1", errors.Errorf("test error"))
+	_, err = service.users.Update(context.TODO(), alice.ID())
+	require.NoError(t, err)
 
 	resp, err = service.Status(ctx, &StatusRequest{})
 	require.NoError(t, err)

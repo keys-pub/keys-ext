@@ -93,10 +93,10 @@ func testAuthSetup(t *testing.T, service *service, key *keys.SignKey) {
 }
 
 func testRecoverKey(t *testing.T, service *service, key *keys.SignKey) {
-	seedPhrase, err := keys.BytesToPhrase(key.Seed())
-	require.NoError(t, err)
-	_, err = service.KeyRecover(context.TODO(), &KeyRecoverRequest{
-		SeedPhrase: seedPhrase,
+	keyBackup := seedToBackup("test", key.Seed())
+	_, err := service.KeyRecover(context.TODO(), &KeyRecoverRequest{
+		KeyBackup: keyBackup,
+		Password:  "test",
 	})
 	require.NoError(t, err)
 }
@@ -122,13 +122,8 @@ func testUserSetup(t *testing.T, env *testEnv, service *service, key *keys.SignK
 }
 
 func testRemoveKey(t *testing.T, service *service, key *keys.SignKey) {
-	backupResp, err := service.KeyBackup(context.TODO(), &KeyBackupRequest{
+	_, err := service.KeyRemove(context.TODO(), &KeyRemoveRequest{
 		KID: key.ID().String(),
-	})
-	require.NoError(t, err)
-	_, err = service.KeyRemove(context.TODO(), &KeyRemoveRequest{
-		KID:        key.ID().String(),
-		SeedPhrase: backupResp.SeedPhrase,
 	})
 	require.NoError(t, err)
 }

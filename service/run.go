@@ -153,6 +153,10 @@ func runService(cfg *Config, build Build, lgi LogInterceptor) error {
 func NewServiceFn(cfg *Config, build Build, lgi LogInterceptor) (ServeFn, CloseFn, error) {
 	var opts []grpc.ServerOption
 
+	if IsPortInUse(cfg.Port()) {
+		return nil, nil, errors.Errorf("port %d in use", cfg.Port())
+	}
+
 	cert, err := generateCA(cfg)
 	if err != nil {
 		return nil, nil, err
@@ -196,9 +200,9 @@ func NewServiceFn(cfg *Config, build Build, lgi LogInterceptor) (ServeFn, CloseF
 	service.Register(grpcServer)
 
 	logger.Infof("Listening for connections on port %d", cfg.Port())
-	lis, lisErr := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", cfg.Port()))
-	if lisErr != nil {
-		return nil, nil, errors.Wrapf(lisErr, "failed to tcp listen")
+	lis, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", cfg.Port()))
+	if err != nil {
+		return nil, nil, errors.Wrapf(err, "failed to tcp listen")
 	}
 
 	serveFn := func() error {

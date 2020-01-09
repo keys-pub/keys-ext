@@ -8,8 +8,6 @@ import (
 	"sync"
 	"syscall"
 
-	"golang.org/x/crypto/argon2"
-
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/keyring"
 	"github.com/pkg/errors"
@@ -107,15 +105,6 @@ func (a *auth) unlock(password string, client string) (string, error) {
 	return token, nil
 }
 
-func (a *auth) secretKeyForPassword(password string) (keys.SecretKey, error) {
-	salt, err := a.keyring.Salt()
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to load salt")
-	}
-	key := argon2.IDKey([]byte(password), salt[:], 1, 64*1024, 4, 32)
-	return keys.SecretKey(keys.Bytes32(key)), nil
-}
-
 func generateToken() string {
 	return keys.MustEncode(keys.Rand32()[:], keys.Base62)
 }
@@ -186,8 +175,8 @@ func seedToBackup(password string, seed []byte) string {
 	return keys.EncodeSaltpackMessage(out, "")
 }
 
-func backupToSeed(password string, msg string) ([]byte, error) {
-	b, err := keys.DecodeSaltpackMessage(msg, "")
+func backupToSeed(password string, backup string) ([]byte, error) {
+	b, err := keys.DecodeSaltpackMessage(backup, "")
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to parse key backup")
 	}
@@ -200,9 +189,9 @@ func backupToSeed(password string, msg string) ([]byte, error) {
 
 func (s *service) AuthGenerate(ctx context.Context, req *AuthGenerateRequest) (*AuthGenerateResponse, error) {
 	seed := keys.Rand32()
-	recovery := seedToBackup(req.Password, seed[:])
+	keyBackup := seedToBackup(req.Password, seed[:])
 	return &AuthGenerateResponse{
-		KeyBackup: recovery,
+		KeyBackup: keyBackup,
 	}, nil
 }
 
@@ -233,12 +222,7 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 		return nil, err
 	}
 
-	sk, err := s.auth.secretKeyForPassword(req.Password)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := s.Open(sk); err != nil {
+	if err := s.Open(); err != nil {
 		return nil, err
 	}
 
@@ -259,12 +243,7 @@ func (s *service) AuthUnlock(ctx context.Context, req *AuthUnlockRequest) (*Auth
 		return nil, err
 	}
 
-	sk, err := s.auth.secretKeyForPassword(req.Password)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := s.Open(sk); err != nil {
+	if err := s.Open(); err != nil {
 		return nil, err
 	}
 

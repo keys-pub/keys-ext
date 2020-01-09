@@ -61,12 +61,6 @@ func (s *service) Pull(ctx context.Context, req *PullRequest) (*PullResponse, er
 }
 
 func (s *service) pull(ctx context.Context, kid keys.ID) (bool, error) {
-	if s.remote == nil {
-		return false, errors.Errorf("no remote set")
-	}
-	if s.db == nil {
-		return false, errors.Errorf("db is locked")
-	}
 	logger.Infof("Pull sigchain %s", kid)
 	resp, err := s.remote.Sigchain(kid)
 	if err != nil {

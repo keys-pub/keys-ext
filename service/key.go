@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	strings "strings"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/keyring"
@@ -53,9 +52,6 @@ func (t KeyType) Emoji() string {
 
 func (s *service) key(ctx context.Context, kid keys.ID) (*Key, error) {
 	logger.Debugf("Loading key %s", kid)
-	if s.db == nil {
-		return nil, errors.Errorf("db is locked")
-	}
 
 	typ := PublicKeyType
 	var users []*User
@@ -86,39 +82,29 @@ func (s *service) key(ctx context.Context, kid keys.ID) (*Key, error) {
 	}, nil
 }
 
-// KeyBackup (RPC) returns a seed phrase which can be used to recover a key.
+// KeyBackup (RPC) returns password protected key backup.
 func (s *service) KeyBackup(ctx context.Context, req *KeyBackupRequest) (*KeyBackupResponse, error) {
-	if req.KID == "" {
-		return nil, errors.Errorf("no KID specified")
-	}
-	key, err := s.parseKey(req.KID)
+	key, err := s.parseKeyOrCurrent(req.KID)
 	if err != nil {
 		return nil, err
 	}
-	seedPhrase, err := keys.BytesToPhrase(key.Seed())
-	if err != nil {
-		return nil, err
-	}
+	keyBackup := seedToBackup(req.Password, key.Seed())
 	return &KeyBackupResponse{
-		SeedPhrase: seedPhrase,
+		KeyBackup: keyBackup,
 	}, nil
 }
 
-// KeyRecover (RPC) recovers a key from a recovery (seed) phrase.
+// KeyRecover (RPC) recovers a key from a backup.
 func (s *service) KeyRecover(ctx context.Context, req *KeyRecoverRequest) (*KeyRecoverResponse, error) {
-	if req.SeedPhrase == "" {
-		return nil, errors.Errorf("no seed phrase specified")
-	}
-	if !keys.IsValidPhrase(req.SeedPhrase, true) {
-		return nil, errors.Errorf("invalid recovery phrase")
-	}
-
-	b, err := keys.PhraseToBytes(req.SeedPhrase, true)
+	seed, err := backupToSeed(req.Password, req.KeyBackup)
 	if err != nil {
 		return nil, err
 	}
+	if len(seed) != 32 {
+		return nil, errors.Errorf("invalid bytes")
+	}
 
-	key, err := keys.NewSignKeyFromSeed(b)
+	key, err := keys.NewSignKeyFromSeed(keys.Bytes32(seed))
 	if err != nil {
 		return nil, err
 	}
@@ -154,24 +140,6 @@ func (s *service) KeyRemove(ctx context.Context, req *KeyRemoveRequest) (*KeyRem
 		return nil, err
 	}
 	if key != nil {
-		if err := s.ensureNotAuthKey(key.ID()); err != nil {
-			return nil, err
-		}
-		kid := key.ID()
-		seedPhrase := strings.TrimSpace(req.SeedPhrase)
-
-		if seedPhrase == "" {
-			return nil, errors.Errorf("seed-phrase is required to remove a key, use `keys backup` to get the seed phrase")
-		}
-
-		keySeedPhrase, err := keys.BytesToPhrase(key.Seed())
-		if err != nil {
-			return nil, err
-		}
-		if seedPhrase != keySeedPhrase {
-			return nil, errors.Errorf("seed phrase doesn't match")
-		}
-
 		ok, err := s.ks.Delete(kid.String())
 		if err != nil {
 			return nil, err
@@ -188,6 +156,10 @@ func (s *service) KeyRemove(ctx context.Context, req *KeyRemoveRequest) (*KeyRem
 
 	if key == nil && !ok {
 		return nil, keys.NewErrNotFound(kid.String())
+	}
+
+	if _, err := s.users.Update(ctx, kid); err != nil {
+		return nil, err
 	}
 
 	return &KeyRemoveResponse{}, nil
@@ -227,40 +199,6 @@ func (s *service) loadKIDs(all bool) ([]keys.ID, error) {
 
 func (s *service) loadKeys() ([]*keys.SignKey, error) {
 	return s.ks.SignKeys()
-}
-
-func (s *service) isAuthKey(id keys.ID) (bool, error) {
-	item, err := s.ks.Get(id.String())
-	if err != nil {
-		return false, err
-	}
-	if item == nil {
-		return false, keys.NewErrNotFound(id.String())
-	}
-	auth := item.SecretFor("auth").String() == "1"
-	return auth, nil
-}
-
-func (s *service) ensureAuthKey(id keys.ID) error {
-	auth, err := s.isAuthKey(id)
-	if err != nil {
-		return err
-	}
-	if !auth {
-		return errors.Errorf("expected an auth key")
-	}
-	return nil
-}
-
-func (s *service) ensureNotAuthKey(id keys.ID) error {
-	auth, err := s.isAuthKey(id)
-	if err != nil {
-		return err
-	}
-	if auth {
-		return errors.Errorf("expected a private key (not an auth key)")
-	}
-	return nil
 }
 
 func (s *service) loadKey(id keys.ID) (*keys.SignKey, error) {

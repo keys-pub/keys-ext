@@ -1,9 +1,12 @@
 package service
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
 
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
@@ -87,6 +90,7 @@ func itemCommands(client *Client) []cli.Command {
 			Usage: "Backup a key",
 			Flags: []cli.Flag{
 				cli.StringFlag{Name: "kid, k", Usage: "kid"},
+				cli.StringFlag{Name: "password, p", Usage: "password"},
 			},
 			Action: func(c *cli.Context) error {
 				kid, err := argString(c, "kid", false)
@@ -94,13 +98,14 @@ func itemCommands(client *Client) []cli.Command {
 					return err
 				}
 				req := &KeyBackupRequest{
-					KID: kid,
+					KID:      kid,
+					Password: c.String("password"),
 				}
 				resp, err := client.ProtoClient().KeyBackup(context.TODO(), req)
 				if err != nil {
 					return err
 				}
-				fmt.Println(resp.SeedPhrase)
+				fmt.Println(resp.KeyBackup)
 				return nil
 			},
 		},
@@ -108,13 +113,15 @@ func itemCommands(client *Client) []cli.Command {
 			Name:    "recover",
 			Usage:   "Recover a key",
 			Aliases: []string{"import"},
-			Flags: []cli.Flag{
-				cli.StringFlag{Name: "seed-phrase", Usage: "seed phrase"},
-			},
+			Flags:   []cli.Flag{},
 			Action: func(c *cli.Context) error {
-				seedPhrase := c.String("seed-phrase")
+				backup, err := ioutil.ReadAll(bufio.NewReader(os.Stdin))
+				if err != nil {
+					return err
+				}
+
 				req := &KeyRecoverRequest{
-					SeedPhrase: seedPhrase,
+					KeyBackup: string(backup),
 				}
 				resp, err := client.ProtoClient().KeyRecover(context.TODO(), req)
 				if err != nil {
@@ -129,7 +136,6 @@ func itemCommands(client *Client) []cli.Command {
 			Usage: "Remove a key",
 			Flags: []cli.Flag{
 				cli.StringFlag{Name: "kid, k", Usage: "kid"},
-				cli.StringFlag{Name: "seed-phrase", Usage: "seed phrase for confirming removal of a key"},
 			},
 			Action: func(c *cli.Context) error {
 				kid, err := argString(c, "kid", false)
@@ -137,8 +143,7 @@ func itemCommands(client *Client) []cli.Command {
 					return err
 				}
 				if _, err := client.ProtoClient().KeyRemove(context.TODO(), &KeyRemoveRequest{
-					KID:        kid,
-					SeedPhrase: c.String("seed-phrase"),
+					KID: kid,
 				}); err != nil {
 					return err
 				}

@@ -148,13 +148,15 @@ func userCommands(client *Client) []cli.Command {
 						cli.StringFlag{Name: "service"},
 						cli.StringFlag{Name: "name"},
 						cli.StringFlag{Name: "url", Usage: "URL to signed statement created by `keys user sign`"},
+						cli.BoolFlag{Name: "local", Usage: "Don't save to the key server"},
 					},
 					Action: func(c *cli.Context) error {
 						resp, err := client.ProtoClient().UserAdd(context.TODO(), &UserAddRequest{
-							KID:     c.String("kid"),
-							Service: c.String("service"),
-							Name:    c.String("name"),
-							URL:     c.String("url"),
+							KID:       c.String("kid"),
+							Service:   c.String("service"),
+							Name:      c.String("name"),
+							URL:       c.String("url"),
+							LocalOnly: c.Bool("local"),
 						})
 						if err != nil {
 							return err

@@ -69,7 +69,7 @@ func (s *service) UserAdd(ctx context.Context, req *UserAddRequest) (*UserAddRes
 		return nil, err
 	}
 
-	user, st, err := s.sigchainUserAdd(ctx, key, req.Service, req.Name, req.URL)
+	user, st, err := s.sigchainUserAdd(ctx, key, req.Service, req.Name, req.URL, req.LocalOnly)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func (s *service) UserAdd(ctx context.Context, req *UserAddRequest) (*UserAddRes
 	}, nil
 }
 
-func (s *service) sigchainUserAdd(ctx context.Context, key *keys.SignKey, service, name, url string) (*keys.UserResult, *keys.Statement, error) {
+func (s *service) sigchainUserAdd(ctx context.Context, key *keys.SignKey, service, name, url string, localOnly bool) (*keys.UserResult, *keys.Statement, error) {
 	sc, err := s.scs.Sigchain(key.ID())
 	if err != nil {
 		return nil, nil, err
@@ -106,6 +106,12 @@ func (s *service) sigchainUserAdd(ctx context.Context, key *keys.SignKey, servic
 
 	if err := sc.Add(st); err != nil {
 		return nil, nil, err
+	}
+
+	if !localOnly {
+		if err := s.remote.PutSigchainStatement(st); err != nil {
+			return nil, nil, err
+		}
 	}
 
 	if err := s.scs.SaveSigchain(sc); err != nil {
@@ -251,9 +257,6 @@ func (s *service) searchUserLocal(ctx context.Context, query string) ([]*keys.Se
 }
 
 func (s *service) searchUserRemote(ctx context.Context, query string) ([]*keys.SearchResult, error) {
-	if s.remote == nil {
-		return nil, errors.Errorf("no remote set")
-	}
 	query = strings.TrimSpace(query)
 	resp, err := s.remote.Search(query, 0)
 	if err != nil {

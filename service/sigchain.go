@@ -23,9 +23,7 @@ func (s *service) Sigchain(ctx context.Context, req *SigchainRequest) (*Sigchain
 	if err != nil {
 		return nil, err
 	}
-	if sc == nil {
-		return nil, keys.NewErrNotFound(kid.String())
-	}
+
 	stsOut := statementsToRPC(sc.Statements())
 
 	return &SigchainResponse{
@@ -116,7 +114,7 @@ func (s *service) Statement(ctx context.Context, req *StatementRequest) (*Statem
 
 // StatementCreate (RPC) ...
 func (s *service) StatementCreate(ctx context.Context, req *StatementCreateRequest) (*StatementCreateResponse, error) {
-	key, err := s.parseKey(req.KID)
+	key, err := s.parseKeyOrCurrent(req.KID)
 	if err != nil {
 		return nil, err
 	}
@@ -129,10 +127,16 @@ func (s *service) StatementCreate(ctx context.Context, req *StatementCreateReque
 	if err != nil {
 		return nil, err
 	}
-
 	if err := sc.Add(st); err != nil {
 		return nil, err
 	}
+
+	if !req.LocalOnly {
+		if err := s.remote.PutSigchainStatement(st); err != nil {
+			return nil, err
+		}
+	}
+
 	if err := s.scs.SaveSigchain(sc); err != nil {
 		return nil, err
 	}
@@ -146,6 +150,34 @@ func (s *service) StatementCreate(ctx context.Context, req *StatementCreateReque
 
 // StatementRevoke (RPC) ...
 func (s *service) StatementRevoke(ctx context.Context, req *StatementRevokeRequest) (*StatementRevokeResponse, error) {
-	// TODO: Implement
-	return nil, errors.Errorf("not implemented")
+	key, err := s.parseKeyOrCurrent(req.KID)
+	if err != nil {
+		return nil, err
+	}
+
+	sc, err := s.scs.Sigchain(key.ID())
+	if err != nil {
+		return nil, err
+	}
+
+	st, err := sc.Revoke(int(req.Seq), key)
+	if err != nil {
+		return nil, err
+	}
+
+	if !req.LocalOnly {
+		if err := s.remote.PutSigchainStatement(st); err != nil {
+			return nil, err
+		}
+	}
+
+	if err := s.scs.SaveSigchain(sc); err != nil {
+		return nil, err
+	}
+
+	stOut := statementToRPC(st)
+
+	return &StatementRevokeResponse{
+		Statement: stOut,
+	}, nil
 }

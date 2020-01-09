@@ -145,12 +145,12 @@ func TestAuthSetup(t *testing.T) {
 	setupResp, err = service.AuthSetup(ctx, &AuthSetupRequest{Password: "password123", KeyBackup: keyBackup})
 	require.NoError(t, err)
 	kid := setupResp.KID
-	require.Equal(t, "ed132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqrkl9gw", kid)
+	require.Equal(t, "kpe132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqlrnuen", kid)
 
 	itemsResp, err := service.Items(ctx, &ItemsRequest{})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(itemsResp.Items))
-	require.Equal(t, "ed132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqrkl9gw", itemsResp.Items[0].ID)
+	require.Equal(t, "kpe132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqlrnuen", itemsResp.Items[0].ID)
 }
 
 func TestAuthRecover(t *testing.T) {
@@ -180,5 +180,5 @@ func TestAuthRecover(t *testing.T) {
 		KeyBackup: keyBackup,
 	})
 	require.NoError(t, err)
-	require.Equal(t, "ed132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqrkl9gw", recoverResp.KID)
+	require.Equal(t, "kpe132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqlrnuen", recoverResp.KID)
 }

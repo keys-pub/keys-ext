@@ -68,7 +68,7 @@ func (s *service) Now() time.Time {
 }
 
 // Open the service.
-func (s *service) Open(sk keys.SecretKey) error {
+func (s *service) Open() error {
 	if s.db.IsOpen() {
 		logger.Errorf("DB already open, closing first...")
 		s.Close()

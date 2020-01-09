@@ -125,9 +125,6 @@ func (s *service) messageCreate(ctx context.Context, sender string, kid string, 
 		return nil, err
 	}
 
-	if s.remote == nil {
-		return nil, errors.Errorf("no remote set")
-	}
 	if err := s.remote.PutMessage(key, id, encrypted); err != nil {
 		return nil, err
 	}
@@ -223,9 +220,6 @@ func (s *service) pullMessages(ctx context.Context, kid keys.ID) error {
 	version := ""
 	if e != nil {
 		version = string(e.Data)
-	}
-	if s.remote == nil {
-		return errors.Errorf("no remote set")
 	}
 	resp, err := s.remote.Messages(key, version)
 	if err != nil {

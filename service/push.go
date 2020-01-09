@@ -43,10 +43,6 @@ func (s *service) push(ctx context.Context, kid keys.ID) ([]string, error) {
 		return []string{}, nil
 	}
 
-	// Remote sigchain
-	if s.remote == nil {
-		return nil, errors.Errorf("no remote set")
-	}
 	rsc, rerr := s.remote.Sigchain(kid)
 	if rerr != nil {
 		return nil, rerr

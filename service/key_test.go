@@ -70,38 +70,32 @@ func TestKeyBackupRemoveRecover(t *testing.T) {
 	key, err := service.ks.SignKey(kid)
 	require.NoError(t, err)
 	require.NotNil(t, key)
-	seedPhrase, err := keys.BytesToPhrase(key.Seed())
-	require.NoError(t, err)
 
 	// Backup
 	backupResp, err := service.KeyBackup(ctx, &KeyBackupRequest{
-		KID: key.ID().String(),
+		KID:      key.ID().String(),
+		Password: "test",
 	})
 	require.NoError(t, err)
-	require.Equal(t, seedPhrase, backupResp.SeedPhrase)
+	require.NotEmpty(t, backupResp.KeyBackup)
 
 	// Remove
 	_, err = service.KeyRemove(ctx, &KeyRemoveRequest{KID: key.ID().String()})
-	require.EqualError(t, err, "seed-phrase is required to remove a key, use `keys backup` to get the seed phrase")
-
-	_, err = service.KeyRemove(ctx, &KeyRemoveRequest{KID: key.ID().String(), SeedPhrase: seedPhrase})
 	require.NoError(t, err)
 
 	// Remove (not found)
 	randKey := keys.GenerateSignKey()
-	randPhrase, err := keys.BytesToPhrase(randKey.Seed())
-	require.NoError(t, err)
-	_, err = service.KeyRemove(ctx, &KeyRemoveRequest{KID: randKey.ID().String(), SeedPhrase: randPhrase})
+	_, err = service.KeyRemove(ctx, &KeyRemoveRequest{KID: randKey.ID().String()})
 	require.EqualError(t, err, fmt.Sprintf("not found %s", randKey.ID()))
 
 	// Recover
-	_, err = service.KeyRecover(ctx, &KeyRecoverRequest{SeedPhrase: ""})
-	require.EqualError(t, err, "no seed phrase specified")
+	_, err = service.KeyRecover(ctx, &KeyRecoverRequest{KeyBackup: ""})
+	require.EqualError(t, err, "failed to parse key backup: missing saltpack start")
 
-	_, err = service.KeyRecover(ctx, &KeyRecoverRequest{SeedPhrase: "foo"})
-	require.EqualError(t, err, "invalid recovery phrase")
-
-	recResp, err := service.KeyRecover(ctx, &KeyRecoverRequest{SeedPhrase: seedPhrase})
+	recResp, err := service.KeyRecover(ctx, &KeyRecoverRequest{
+		KeyBackup: backupResp.KeyBackup,
+		Password:  "test",
+	})
 	require.NoError(t, err)
 	require.Equal(t, key.ID().String(), recResp.KID)
 
