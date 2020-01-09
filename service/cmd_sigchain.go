@@ -26,7 +26,7 @@ func sigchainCommands(client *Client) []cli.Command {
 						cli.IntFlag{Name: "seq, s", Usage: "seq"},
 					},
 					Action: func(c *cli.Context) error {
-						kida, err := argString(c, "kid", true)
+						kida, err := argString(c, "kid", false)
 						if err != nil {
 							return err
 						}
@@ -120,7 +120,7 @@ func sigchainCommands(client *Client) []cli.Command {
 								cli.BoolFlag{Name: "local", Usage: "Don't save to the key server"},
 							},
 							Action: func(c *cli.Context) error {
-								kid, err := argString(c, "kid", true)
+								kid, err := argString(c, "kid", false)
 								if err != nil {
 									return err
 								}

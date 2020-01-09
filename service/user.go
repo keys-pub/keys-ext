@@ -14,7 +14,7 @@ func (s *service) UserService(ctx context.Context, req *UserServiceRequest) (*Us
 	if req.Service == "" {
 		return nil, errors.Errorf("no service specified")
 	}
-	key, err := s.parseKeyOrCurrent(req.KID)
+	key, err := s.parseKey(req.KID)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func (s *service) UserSign(ctx context.Context, req *UserSignRequest) (*UserSign
 	if req.Service == "" {
 		return nil, errors.Errorf("no service specified")
 	}
-	key, err := s.parseKeyOrCurrent(req.KID)
+	key, err := s.parseKey(req.KID)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func (s *service) UserAdd(ctx context.Context, req *UserAddRequest) (*UserAddRes
 	if req.URL == "" {
 		return nil, errors.Errorf("no URL specified")
 	}
-	key, err := s.parseKeyOrCurrent(req.KID)
+	key, err := s.parseKey(req.KID)
 	if err != nil {
 		return nil, err
 	}

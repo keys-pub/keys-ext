@@ -9,7 +9,7 @@ import (
 
 // Sigchain (RPC) ...
 func (s *service) Sigchain(ctx context.Context, req *SigchainRequest) (*SigchainResponse, error) {
-	kid, err := s.parseKIDOrCurrent(req.KID)
+	kid, err := s.parseKID(req.KID)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +84,7 @@ func sigchainFromRPC(kidStr string, ssts []*Statement, spk keys.SigchainPublicKe
 
 // Sigchain (RPC) ...
 func (s *service) Statement(ctx context.Context, req *StatementRequest) (*StatementResponse, error) {
-	kid, err := s.parseKIDOrCurrent(req.KID)
+	kid, err := s.parseKID(req.KID)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +114,7 @@ func (s *service) Statement(ctx context.Context, req *StatementRequest) (*Statem
 
 // StatementCreate (RPC) ...
 func (s *service) StatementCreate(ctx context.Context, req *StatementCreateRequest) (*StatementCreateResponse, error) {
-	key, err := s.parseKeyOrCurrent(req.KID)
+	key, err := s.parseKey(req.KID)
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +150,7 @@ func (s *service) StatementCreate(ctx context.Context, req *StatementCreateReque
 
 // StatementRevoke (RPC) ...
 func (s *service) StatementRevoke(ctx context.Context, req *StatementRevokeRequest) (*StatementRevokeResponse, error) {
-	key, err := s.parseKeyOrCurrent(req.KID)
+	key, err := s.parseKey(req.KID)
 	if err != nil {
 		return nil, err
 	}
@@ -172,6 +172,10 @@ func (s *service) StatementRevoke(ctx context.Context, req *StatementRevokeReque
 	}
 
 	if err := s.scs.SaveSigchain(sc); err != nil {
+		return nil, err
+	}
+
+	if _, err = s.users.Update(ctx, key.ID()); err != nil {
 		return nil, err
 	}
 

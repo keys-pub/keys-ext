@@ -70,7 +70,7 @@ func (s *service) messagePrepare(ctx context.Context, sender string, kid string,
 	if kid == "" {
 		return nil, errors.Errorf("no kid specified")
 	}
-	key, err := s.parseKeyOrCurrent(sender)
+	key, err := s.parseKey(sender)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func (s *service) messageCreate(ctx context.Context, sender string, kid string, 
 		id = keys.RandString(32)
 	}
 
-	senderKey, err := s.parseKeyOrCurrent(sender)
+	senderKey, err := s.parseKey(sender)
 	if err != nil {
 		return nil, err
 	}

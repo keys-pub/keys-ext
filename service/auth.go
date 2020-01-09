@@ -218,9 +218,6 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 	if err := s.saveKey(key); err != nil {
 		return nil, err
 	}
-	if err := s.setCurrentKey(key); err != nil {
-		return nil, err
-	}
 
 	if err := s.Open(); err != nil {
 		return nil, err

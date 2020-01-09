@@ -17,7 +17,7 @@ func (s *service) Encrypt(ctx context.Context, req *EncryptRequest) (*EncryptRes
 	if req.Recipients == "" {
 		return nil, errors.Errorf("no recipients specified")
 	}
-	sender, senderErr := s.parseKeyOrCurrent(req.Sender)
+	sender, senderErr := s.parseKey(req.Sender)
 	if senderErr != nil {
 		return nil, senderErr
 	}
@@ -82,7 +82,7 @@ func (s *service) EncryptStream(srv Keys_EncryptStreamServer) error {
 			if stream != nil {
 				return errors.Errorf("stream already initialized")
 			}
-			sender, senderErr := s.parseKeyOrCurrent(req.Sender)
+			sender, senderErr := s.parseKey(req.Sender)
 			if senderErr != nil {
 				return senderErr
 			}

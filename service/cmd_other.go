@@ -32,18 +32,5 @@ func otherCommands(client *Client) []cli.Command {
 				return nil
 			},
 		},
-		cli.Command{
-			Name:  "status",
-			Usage: "Status",
-			Flags: []cli.Flag{},
-			Action: func(c *cli.Context) error {
-				status, err := client.ProtoClient().Status(context.TODO(), &StatusRequest{})
-				if err != nil {
-					return err
-				}
-				fmt.Println(status)
-				return nil
-			},
-		},
 	}
 }
