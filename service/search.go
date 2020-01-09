@@ -6,7 +6,7 @@ import (
 
 // Search (RPC) ...
 func (s *service) Search(ctx context.Context, req *SearchRequest) (*SearchResponse, error) {
-	res, err := s.searchUser(ctx, req.Query)
+	res, err := s.searchUserRemote(ctx, req.Query)
 	if err != nil {
 		return nil, err
 	}

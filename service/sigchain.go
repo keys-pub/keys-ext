@@ -14,12 +14,6 @@ func (s *service) Sigchain(ctx context.Context, req *SigchainRequest) (*Sigchain
 		return nil, err
 	}
 
-	if req.Update {
-		if _, err := s.pull(ctx, kid); err != nil {
-			return nil, err
-		}
-	}
-
 	key, err := s.key(ctx, kid)
 	if err != nil {
 		return nil, err
@@ -136,25 +130,11 @@ func (s *service) StatementCreate(ctx context.Context, req *StatementCreateReque
 		return nil, err
 	}
 
-	if !req.DryRun {
-		if !req.Local {
-			// TODO: Check sigchain status (local changes not pushed)
-
-			// Save to remote
-			if s.remote == nil {
-				return nil, errors.Errorf("no remote set")
-			}
-			err := s.remote.PutSigchainStatement(st)
-			if err != nil {
-				return nil, err
-			}
-		}
-		if err := sc.Add(st); err != nil {
-			return nil, err
-		}
-		if err := s.scs.SaveSigchain(sc); err != nil {
-			return nil, err
-		}
+	if err := sc.Add(st); err != nil {
+		return nil, err
+	}
+	if err := s.scs.SaveSigchain(sc); err != nil {
+		return nil, err
 	}
 
 	stOut := statementToRPC(st)
@@ -166,5 +146,6 @@ func (s *service) StatementCreate(ctx context.Context, req *StatementCreateReque
 
 // StatementRevoke (RPC) ...
 func (s *service) StatementRevoke(ctx context.Context, req *StatementRevokeRequest) (*StatementRevokeResponse, error) {
+	// TODO: Implement
 	return nil, errors.Errorf("not implemented")
 }

@@ -246,7 +246,6 @@ func (s *service) searchUser(ctx context.Context, query string) ([]*keys.SearchR
 }
 
 func (s *service) searchUserLocal(ctx context.Context, query string) ([]*keys.SearchResult, error) {
-	// TODO: We need to periodically update local user index
 	query = strings.TrimSpace(query)
 	return s.users.Search(ctx, &keys.SearchRequest{Query: query})
 }

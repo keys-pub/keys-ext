@@ -9,18 +9,6 @@ import (
 
 // Pull (RPC)
 func (s *service) Pull(ctx context.Context, req *PullRequest) (*PullResponse, error) {
-	if req.All {
-		if req.KID != "" || req.User != "" {
-			return nil, errors.Errorf("all specified with other arguments")
-		}
-
-		kids, err := s.pullStatements(ctx)
-		if err != nil {
-			return nil, err
-		}
-		return &PullResponse{KIDs: kids}, nil
-	}
-
 	if req.KID != "" {
 		kid, err := keys.ParseID(req.KID)
 		if err != nil {
@@ -94,37 +82,11 @@ func (s *service) pull(ctx context.Context, kid keys.ID) (bool, error) {
 			return false, err
 		}
 	}
+
+	// Update users
+	if _, err = s.users.Update(ctx, kid); err != nil {
+		return false, err
+	}
+
 	return true, nil
-}
-
-func (s *service) pullStatements(ctx context.Context) ([]string, error) {
-	logger.Infof("Pull statements...")
-	versionPath := keys.Path("versions", "sigchains")
-	e, err := s.db.Get(ctx, versionPath)
-	if err != nil {
-		return nil, err
-	}
-
-	version := ""
-	if e != nil {
-		version = string(e.Data)
-	}
-	if s.remote == nil {
-		return nil, errors.Errorf("no remote set")
-	}
-	resp, err := s.remote.Sigchains(version)
-	if err != nil {
-		return nil, err
-	}
-	kids := keys.NewStringSet()
-	for _, st := range resp.Statements {
-		if err := s.db.Set(ctx, keys.Path("sigchain", st.Key()), st.Bytes()); err != nil {
-			return nil, err
-		}
-		kids.Add(st.KID.String())
-	}
-	if err := s.db.Set(ctx, versionPath, []byte(resp.Version)); err != nil {
-		return nil, err
-	}
-	return kids.Strings(), nil
 }

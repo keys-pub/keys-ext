@@ -9,8 +9,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// TODO: We generate cert on every start, we should pin a cert instead
-
 // generateCA generates a CA certificate.
 func generateCA(cfg *Config) (*keys.CertificateKey, error) {
 	logger.Infof("Generating certificate...")

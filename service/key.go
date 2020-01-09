@@ -72,11 +72,11 @@ func (s *service) key(ctx context.Context, kid keys.ID) (*Key, error) {
 		typ = PublicKeyType
 	}
 
-	upd, err := s.users.Update(ctx, kid)
+	res, err := s.users.Get(ctx, kid)
 	if err != nil {
 		return nil, err
 	}
-	users = userResultsToRPC(upd)
+	users = userResultsToRPC(res)
 
 	return &Key{
 		ID:    kid.String(),

@@ -80,8 +80,6 @@ func sigchainCommands(client *Client) []cli.Command {
 							ArgsUsage: "<stdin>",
 							Flags: []cli.Flag{
 								cli.StringFlag{Name: "kid, k"},
-								cli.BoolFlag{Name: "dry-run"},
-								cli.BoolFlag{Name: "local"},
 							},
 							Action: func(c *cli.Context) error {
 								if c.NArg() > 0 {
@@ -98,10 +96,8 @@ func sigchainCommands(client *Client) []cli.Command {
 								}
 
 								resp, err := client.ProtoClient().StatementCreate(context.TODO(), &StatementCreateRequest{
-									KID:    c.String("kid"),
-									DryRun: c.Bool("dry-run"),
-									Local:  c.Bool("local"),
-									Data:   b,
+									KID:  c.String("kid"),
+									Data: b,
 								})
 								if err != nil {
 									return err
@@ -121,10 +117,8 @@ func sigchainCommands(client *Client) []cli.Command {
 							},
 							Action: func(c *cli.Context) error {
 								resp, err := client.ProtoClient().StatementRevoke(context.TODO(), &StatementRevokeRequest{
-									KID:    c.String("kid"),
-									Seq:    int32(c.Int("seq")),
-									DryRun: c.Bool("dry-run"),
-									Local:  c.Bool("local"),
+									KID: c.String("kid"),
+									Seq: int32(c.Int("seq")),
 								})
 								if err != nil {
 									return err

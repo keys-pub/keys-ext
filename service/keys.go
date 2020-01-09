@@ -12,7 +12,7 @@ import (
 func (s *service) Keys(ctx context.Context, req *KeysRequest) (*KeysResponse, error) {
 	sortField := req.SortField
 	if sortField == "" {
-		sortField = "type"
+		sortField = "user"
 	}
 	sortDirection := req.SortDirection
 

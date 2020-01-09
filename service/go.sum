@@ -51,8 +51,14 @@ github.com/keys-pub/keys v0.0.0-20200107200405-d846fd9e9499 h1:xUkqUTD6tvLQBEj9i
 github.com/keys-pub/keys v0.0.0-20200107200405-d846fd9e9499/go.mod h1:aHuCWPRJIO/FTUGpfFYE4BIqsWWTJ37Cp83aCMyu2fE=
 github.com/keys-pub/keys v0.0.0-20200107221419-0ed0e891d305 h1:hxOMAUkzcTvrj68oem3ZTfGA8dVb7oa3h4D4jtv2i2E=
 github.com/keys-pub/keys v0.0.0-20200107221419-0ed0e891d305/go.mod h1:aHuCWPRJIO/FTUGpfFYE4BIqsWWTJ37Cp83aCMyu2fE=
+github.com/keys-pub/keys v0.0.0-20200108230433-b245e0f9ef3a h1:/iReK22jfFsR10tmHU6M5Qlkjy5lCM17yC8G/+x2rT4=
+github.com/keys-pub/keys v0.0.0-20200108230433-b245e0f9ef3a/go.mod h1:aHuCWPRJIO/FTUGpfFYE4BIqsWWTJ37Cp83aCMyu2fE=
+github.com/keys-pub/keys v0.0.0-20200108235338-4fb7e99d0fbc h1:1NqA11IBmfhejJVjoajQG1buHfU18idhtpDQ2cjNJls=
+github.com/keys-pub/keys v0.0.0-20200108235338-4fb7e99d0fbc/go.mod h1:aHuCWPRJIO/FTUGpfFYE4BIqsWWTJ37Cp83aCMyu2fE=
 github.com/keys-pub/keysd/db v0.0.0-20200107201839-fad84006d436 h1:jEiz/NExo18gFmYrM0fiZIXaOTRFAsqtdZAD8lcn6dE=
 github.com/keys-pub/keysd/db v0.0.0-20200107201839-fad84006d436/go.mod h1:AB5JqGVXFwlbVGybCDbjni0rsFKNOuvykMvHqmIAEL8=
+github.com/keys-pub/keysd/db v0.0.0-20200108230855-718e5875c933 h1:lgAlsSAOcQDyFke0OgCjXrdshR5EuKdlz5p9/x/6TQs=
+github.com/keys-pub/keysd/db v0.0.0-20200108230855-718e5875c933/go.mod h1:AB5JqGVXFwlbVGybCDbjni0rsFKNOuvykMvHqmIAEL8=
 github.com/keys-pub/keysd/http/api v0.0.0-20200107201206-c0f295622c20 h1:d1vFlbu2IrOEDtBwefOFI7nmb+w5/3uz7qnBzyGT7yg=
 github.com/keys-pub/keysd/http/api v0.0.0-20200107201206-c0f295622c20/go.mod h1:Wb7CizkwyJDE1NvYbL6ZmANI4Cq2953MoV8fXzrZASY=
 github.com/keys-pub/keysd/http/client v0.0.0-20200107201839-fad84006d436 h1:WlPN1FxtDTamScqrJzjyPwrxd7jZJiVbhBEH2fUEObs=

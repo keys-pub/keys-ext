@@ -11,9 +11,8 @@ func pullCommands(client *Client) []cli.Command {
 	return []cli.Command{
 		cli.Command{
 			Name:  "pull",
-			Usage: "Get public keys and sigchains from the key server",
+			Usage: "Pull sigchain to the key server",
 			Flags: []cli.Flag{
-				cli.BoolFlag{Name: "all", Usage: "pull everything"},
 				cli.StringFlag{Name: "kid, k", Usage: "kid"},
 				cli.StringFlag{Name: "user, u", Usage: "user, eg. gabriel@github"},
 			},
@@ -25,7 +24,6 @@ func pullCommands(client *Client) []cli.Command {
 				req := &PullRequest{
 					KID:  kid,
 					User: c.String("user"),
-					All:  c.Bool("all"),
 				}
 				resp, err := client.ProtoClient().Pull(context.TODO(), req)
 				if err != nil {
@@ -39,7 +37,7 @@ func pullCommands(client *Client) []cli.Command {
 		},
 		cli.Command{
 			Name:    "push",
-			Usage:   "Publish public key and sigchain to a key server",
+			Usage:   "Publish sigchain to the key server",
 			Aliases: []string{"publish"},
 			Flags: []cli.Flag{
 				cli.StringFlag{Name: "kid, k", Usage: "kid"},
