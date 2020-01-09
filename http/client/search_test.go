@@ -48,34 +48,35 @@ func TestSearch(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		key, err := keys.NewSignKeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{byte(i)}, 32)))
 		require.NoError(t, err)
+		t.Logf("%s", key.ID())
 		username := fmt.Sprintf("a%d", i)
 		saveUser(t, env, key, username, "github")
 	}
 
-	resp, err := env.client.Search("", 0, 0)
+	resp, err := env.client.Search("", 0)
 	require.NoError(t, err)
 	require.Equal(t, 10, len(resp.Results))
 	require.Equal(t, 1, len(resp.Results[0].Users))
 	require.Equal(t, "a0", resp.Results[0].Users[0].User.Name)
 
-	resp, err = env.client.Search("", 0, 1)
+	resp, err = env.client.Search("", 1)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(resp.Results))
 	require.Equal(t, 1, len(resp.Results[0].Users))
 	require.Equal(t, "a0", resp.Results[0].Users[0].User.Name)
 
-	resp, err = env.client.Search("a1", 0, 0)
+	resp, err = env.client.Search("a1", 0)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(resp.Results))
 	require.Equal(t, 1, len(resp.Results[0].Users))
 	require.Equal(t, "a1", resp.Results[0].Users[0].User.Name)
 
-	resp, err = env.client.Search("z", 0, 1)
+	resp, err = env.client.Search("z", 1)
 	require.NoError(t, err)
 	require.Equal(t, 0, len(resp.Results))
 
-	resp, err = env.client.Search("ed132yw8ht5p8ce", 0, 0)
+	resp, err = env.client.Search("kpe1deapehf", 0)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(resp.Results))
-	require.Equal(t, "ed132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqrkl9gw", resp.Results[0].KID.String())
+	require.Equal(t, "kpe1deapehffkzmcl5f67nz4nrl07nhj49ckdc72duhyl07vmqzst0csdq0d7e", resp.Results[0].KID.String())
 }
