@@ -41,36 +41,24 @@ func (d *DB) Now() time.Time {
 	return d.nowFn()
 }
 
-// IsOpen returns true if db is open
-func (d *DB) IsOpen() bool {
-	return d.ldb != nil
-}
-
 // OpenAtPath opens db located at path
 func (d *DB) OpenAtPath(path string, opt *opt.Options) error {
-	if d.ldb != nil {
-		return errors.Errorf("db already open")
-	}
 	logger.Infof("LevelDB at %s", path)
+	d.fpath = path
 	db, err := leveldb.OpenFile(path, nil)
 	if err != nil {
 		return err
 	}
 	d.ldb = db
-	d.fpath = path
 	return nil
 }
 
 // Close the db.
 func (d *DB) Close() {
-	if d.ldb != nil {
-		logger.Infof("Closing leveldb %s", d.fpath)
-		if err := d.ldb.Close(); err != nil {
-			logger.Errorf("Error closing DB: %s", err)
-		}
-		d.ldb = nil
+	logger.Infof("Closing leveldb %s", d.fpath)
+	if err := d.ldb.Close(); err != nil {
+		logger.Errorf("Error closing DB: %s", err)
 	}
-	d.fpath = ""
 }
 
 // Exists returns true if the db row exists at path
@@ -193,9 +181,6 @@ func (d *DB) setCollection(path string, md *metadata) error {
 // Get entry at path.
 func (d *DB) Get(ctx context.Context, path string) (*keys.Document, error) {
 	path = keys.Path(path)
-	if d.ldb == nil {
-		return nil, errors.Errorf("db not open")
-	}
 	doc, err := d.get(ctx, path)
 	if err != nil {
 		return nil, err
@@ -238,10 +223,12 @@ func (d *DB) Collections(ctx context.Context, parent string) (keys.CollectionIte
 
 // Delete value at path.
 func (d *DB) Delete(ctx context.Context, path string) (bool, error) {
-	path = keys.Path(path)
+	d.rwmtx.Lock()
+	defer d.rwmtx.Unlock()
 	if d.ldb == nil {
 		return false, errors.Errorf("db not open")
 	}
+	path = keys.Path(path)
 	ok, err := d.ldb.Has([]byte(path), nil)
 	if err != nil {
 		return false, err
@@ -333,6 +320,9 @@ func (d *DB) Documents(ctx context.Context, parent string, opts *keys.DocumentsO
 }
 
 func (d *DB) get(ctx context.Context, path string) (*keys.Document, error) {
+	if d.ldb == nil {
+		return nil, errors.Errorf("db not open")
+	}
 	b, err := d.ldb.Get([]byte(path), nil)
 	if err != nil {
 		if err == leveldb.ErrNotFound {
