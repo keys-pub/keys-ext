@@ -38,14 +38,14 @@ func TestMessages(t *testing.T) {
 	testAuthSetup(t, aliceService, alice)
 	testUserSetup(t, env, aliceService, alice, "alice")
 	testPush(t, aliceService, alice)
-	testRecoverKey(t, aliceService, group)
+	testImportKey(t, aliceService, group)
 
 	// Bob service
 	bobService, bobCloseFn := newTestService(t, env)
 	defer bobCloseFn()
 	testAuthSetup(t, bobService, bob)
 	testUserSetup(t, env, bobService, bob, "bob")
-	testRecoverKey(t, bobService, group)
+	testImportKey(t, bobService, group)
 
 	// Alice lists messages
 	messagesResp, err := aliceService.Messages(ctx, &MessagesRequest{

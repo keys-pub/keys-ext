@@ -17,10 +17,12 @@ func TestUserService(t *testing.T) {
 	testAuthSetup(t, service, alice)
 
 	_, err := service.UserService(ctx, &UserServiceRequest{
+		KID:     alice.ID().String(),
 		Service: "github",
 	})
 	require.NoError(t, err)
 	_, err = service.UserService(ctx, &UserServiceRequest{
+		KID:     alice.ID().String(),
 		Service: "twitter",
 	})
 	require.NoError(t, err)

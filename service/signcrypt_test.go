@@ -41,11 +41,6 @@ func TestEncryptDecrypt(t *testing.T) {
 	_, err = aliceService.Decrypt(context.TODO(), &DecryptRequest{Data: sealResp.Data})
 	require.EqualError(t, err, "no decryption key found for message")
 
-	// Default sender
-	sealResp2, err := aliceService.Encrypt(context.TODO(), &EncryptRequest{Data: []byte(message), Recipients: bob.ID().String()})
-	require.NoError(t, err)
-	require.NotEmpty(t, sealResp2.Data)
-
 	_, err = aliceService.Encrypt(context.TODO(), &EncryptRequest{Data: []byte(message), Sender: alice.ID().String()})
 	require.EqualError(t, err, "no recipients specified")
 }
@@ -55,10 +50,9 @@ func TestEncryptStream(t *testing.T) {
 	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	testAuthSetup(t, service, alice)
-	testRecoverKey(t, service, bob)
+	testImportKey(t, service, bob)
 
 	testEncryptStream(t, service, bytes.Repeat([]byte{0x31}, 5), alice.ID().String(), bob.ID().String())
-	testEncryptStream(t, service, bytes.Repeat([]byte{0x31}, 5), "", bob.ID().String())
 	testEncryptStream(t, service, bytes.Repeat([]byte{0x31}, (1024*1024)+5), alice.ID().String(), bob.ID().String())
 	// TODO: Test timeout if data stops streaming
 }

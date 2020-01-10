@@ -82,21 +82,21 @@ func newTestService(t *testing.T, env *testEnv) (*service, CloseFn) {
 }
 
 func testAuthSetup(t *testing.T, service *service, key *keys.SignKey) {
-	password := testPasswordForKey(key)
-	recovery := testBackupForKey(key)
+	password := "testpassword"
+	keyBackup := seedToSaltpack(password, key.Seed()[:])
 
 	_, err := service.AuthSetup(context.TODO(), &AuthSetupRequest{
 		Password:  password,
-		KeyBackup: recovery,
+		KeyImport: keyBackup,
 	})
 	require.NoError(t, err)
 }
 
-func testRecoverKey(t *testing.T, service *service, key *keys.SignKey) {
-	keyBackup := seedToBackup("test", key.Seed())
-	_, err := service.KeyRecover(context.TODO(), &KeyRecoverRequest{
-		KeyBackup: keyBackup,
-		Password:  "test",
+func testImportKey(t *testing.T, service *service, key *keys.SignKey) {
+	saltpack := seedToSaltpack("test", key.Seed()[:])
+	_, err := service.KeyImport(context.TODO(), &KeyImportRequest{
+		In:       []byte(saltpack),
+		Password: "test",
 	})
 	require.NoError(t, err)
 }

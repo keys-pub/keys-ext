@@ -170,37 +170,20 @@ func (a clientAuth) RequireTransportSecurity() bool {
 	return true
 }
 
-func seedToBackup(password string, seed []byte) string {
-	out := keys.EncryptWithPassword(seed[:], password)
-	return keys.EncodeSaltpackMessage(out, "")
-}
-
-func backupToSeed(password string, backup string) ([]byte, error) {
-	b, err := keys.DecodeSaltpackMessage(backup, "")
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to parse key backup")
-	}
-	seed, err := keys.DecryptWithPassword(b, password)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to decrypt key backup")
-	}
-	return seed, nil
-}
-
 func (s *service) AuthGenerate(ctx context.Context, req *AuthGenerateRequest) (*AuthGenerateResponse, error) {
 	seed := keys.Rand32()
-	keyBackup := seedToBackup(req.Password, seed[:])
+	keyBackup := seedToSaltpack(req.Password, seed[:])
 	return &AuthGenerateResponse{
-		KeyBackup: keyBackup,
+		KeyImport: keyBackup,
 	}, nil
 }
 
 func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSetupResponse, error) {
-	if req.KeyBackup == "" {
+	if req.KeyImport == "" {
 		return nil, status.Error(codes.PermissionDenied, "no key backup specified")
 	}
 
-	seed, err := backupToSeed(req.Password, req.KeyBackup)
+	seed, err := saltpackToSeed(req.Password, req.KeyImport)
 	if err != nil {
 		return nil, status.Errorf(codes.PermissionDenied, "invalid key backup: %s", err)
 	}
@@ -215,7 +198,7 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 		return nil, err
 	}
 
-	if err := s.saveKey(key); err != nil {
+	if err := s.ks.SaveSignKey(key); err != nil {
 		return nil, err
 	}
 

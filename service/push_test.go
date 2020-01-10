@@ -14,16 +14,12 @@ func TestPush(t *testing.T) {
 	testAuthSetup(t, service, alice)
 	ctx := context.TODO()
 
-	resp, err := service.Push(ctx, &PushRequest{KID: alice.ID().String()})
+	_, err := service.Push(ctx, &PushRequest{KID: alice.ID().String()})
 	require.EqualError(t, err, "nothing to push")
 
 	testUserSetup(t, env, service, alice, "alice")
 
-	resp, err = service.Push(ctx, &PushRequest{})
+	resp, err := service.Push(ctx, &PushRequest{KID: alice.ID().String()})
 	require.NoError(t, err)
 	require.Equal(t, alice.ID().String(), resp.KID)
-	// require.Equal(t, []string{}, resp.URLs)
-
-	resp, err = service.Push(ctx, &PushRequest{KID: alice.ID().String()})
-	require.NoError(t, err)
 }

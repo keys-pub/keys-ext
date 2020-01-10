@@ -26,11 +26,6 @@ func TestSignVerify(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, message, string(verifyResp.Data))
 	require.Equal(t, alice.ID().String(), verifyResp.KID)
-
-	signResp, err = service.Sign(context.TODO(), &SignRequest{Data: []byte(message)})
-	require.NoError(t, err)
-	require.NotEmpty(t, signResp.Data)
-	require.Equal(t, alice.ID().String(), signResp.KID)
 }
 
 func TestSignStream(t *testing.T) {
@@ -40,7 +35,6 @@ func TestSignStream(t *testing.T) {
 	testAuthSetup(t, service, alice)
 
 	testSignStream(t, service, bytes.Repeat([]byte{0x31}, 5), alice.ID().String())
-	testSignStream(t, service, bytes.Repeat([]byte{0x31}, 5), "")
 	testSignStream(t, service, bytes.Repeat([]byte{0x31}, (1024*1024)+5), alice.ID().String())
 	// TODO: Test timeout if data stops streaming
 }

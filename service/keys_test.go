@@ -20,11 +20,11 @@ func TestKeys(t *testing.T) {
 	testUserSetup(t, env, service, alice, "alice")
 	testPush(t, service, alice)
 
-	testRecoverKey(t, service, bob)
+	testImportKey(t, service, bob)
 	testUserSetup(t, env, service, bob, "bob")
 	testPush(t, service, bob)
 
-	testRecoverKey(t, service, charlie)
+	testImportKey(t, service, charlie)
 	testUserSetup(t, env, service, charlie, "charlie")
 	testPush(t, service, charlie)
 

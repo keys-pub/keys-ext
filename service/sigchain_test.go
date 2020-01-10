@@ -24,7 +24,9 @@ func TestSigchain(t *testing.T) {
 	require.Equal(t, st.Bytes(), out.Bytes())
 
 	ctx := context.TODO()
-	resp, err := service.Sigchain(ctx, &SigchainRequest{})
+	resp, err := service.Sigchain(ctx, &SigchainRequest{
+		KID: alice.ID().String(),
+	})
 	require.NoError(t, err)
 	require.Equal(t, alice.ID().String(), resp.Key.ID)
 	require.Equal(t, 1, len(resp.Statements))

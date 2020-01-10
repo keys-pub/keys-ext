@@ -54,7 +54,7 @@ func TestKeyGenerate(t *testing.T) {
 	require.Equal(t, key.ID().String(), genResp.KID)
 }
 
-func TestKeyBackupRemoveRecover(t *testing.T) {
+func TestKeyImportExportRemove(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
 	env := newTestEnv(t)
 	service, closeFn := newTestService(t, env)
@@ -71,13 +71,13 @@ func TestKeyBackupRemoveRecover(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, key)
 
-	// Backup
-	backupResp, err := service.KeyBackup(ctx, &KeyBackupRequest{
+	// Export
+	exportResp, err := service.KeyExport(ctx, &KeyExportRequest{
 		KID:      key.ID().String(),
 		Password: "test",
 	})
 	require.NoError(t, err)
-	require.NotEmpty(t, backupResp.KeyBackup)
+	require.NotEmpty(t, exportResp.Export)
 
 	// Remove
 	_, err = service.KeyRemove(ctx, &KeyRemoveRequest{KID: key.ID().String()})
@@ -88,16 +88,16 @@ func TestKeyBackupRemoveRecover(t *testing.T) {
 	_, err = service.KeyRemove(ctx, &KeyRemoveRequest{KID: randKey.ID().String()})
 	require.EqualError(t, err, fmt.Sprintf("not found %s", randKey.ID()))
 
-	// Recover
-	_, err = service.KeyRecover(ctx, &KeyRecoverRequest{KeyBackup: ""})
-	require.EqualError(t, err, "failed to parse key backup: missing saltpack start")
+	// Import
+	_, err = service.KeyImport(ctx, &KeyImportRequest{In: []byte{}})
+	require.EqualError(t, err, "failed to import key: failed to parse saltpack: missing saltpack start")
 
-	recResp, err := service.KeyRecover(ctx, &KeyRecoverRequest{
-		KeyBackup: backupResp.KeyBackup,
-		Password:  "test",
+	importResp, err := service.KeyImport(ctx, &KeyImportRequest{
+		In:       exportResp.Export,
+		Password: "test",
 	})
 	require.NoError(t, err)
-	require.Equal(t, key.ID().String(), recResp.KID)
+	require.Equal(t, key.ID().String(), importResp.KID)
 
 	keyResp, err := service.Key(ctx, &KeyRequest{KID: key.ID().String()})
 	require.NoError(t, err)

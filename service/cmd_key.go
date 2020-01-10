@@ -86,8 +86,8 @@ func itemCommands(client *Client) []cli.Command {
 			},
 		},
 		cli.Command{
-			Name:  "backup",
-			Usage: "Backup a key",
+			Name:  "export",
+			Usage: "Export a key",
 			Flags: []cli.Flag{
 				cli.StringFlag{Name: "kid, k", Usage: "kid"},
 				cli.StringFlag{Name: "password, p", Usage: "password"},
@@ -97,33 +97,32 @@ func itemCommands(client *Client) []cli.Command {
 				if err != nil {
 					return err
 				}
-				req := &KeyBackupRequest{
+				req := &KeyExportRequest{
 					KID:      kid,
 					Password: c.String("password"),
+					Type:     SaltpackPwExportType,
 				}
-				resp, err := client.ProtoClient().KeyBackup(context.TODO(), req)
+				resp, err := client.ProtoClient().KeyExport(context.TODO(), req)
 				if err != nil {
 					return err
 				}
-				fmt.Println(resp.KeyBackup)
+				fmt.Println(resp.Export)
 				return nil
 			},
 		},
 		cli.Command{
-			Name:    "recover",
-			Usage:   "Recover a key",
-			Aliases: []string{"import"},
-			Flags:   []cli.Flag{},
+			Name:  "import",
+			Usage: "Import a key",
+			Flags: []cli.Flag{},
 			Action: func(c *cli.Context) error {
-				backup, err := ioutil.ReadAll(bufio.NewReader(os.Stdin))
+				in, err := ioutil.ReadAll(bufio.NewReader(os.Stdin))
 				if err != nil {
 					return err
 				}
-
-				req := &KeyRecoverRequest{
-					KeyBackup: string(backup),
+				req := &KeyImportRequest{
+					In: in,
 				}
-				resp, err := client.ProtoClient().KeyRecover(context.TODO(), req)
+				resp, err := client.ProtoClient().KeyImport(context.TODO(), req)
 				if err != nil {
 					return err
 				}

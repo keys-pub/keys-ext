@@ -42,12 +42,12 @@ func (s *service) Pull(ctx context.Context, req *PullRequest) (*PullResponse, er
 
 	// Update existing if no kid or user specified
 	pulled := []string{}
-	kids, err := s.loadKIDs(true)
+	spks, err := s.ks.SignPublicKeys()
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to load kids")
+		return nil, errors.Wrapf(err, "failed to load keys")
 	}
-	for _, kid := range kids {
-		ok, err := s.pull(ctx, kid)
+	for _, spk := range spks {
+		ok, err := s.pull(ctx, spk.ID())
 		if err != nil {
 			return nil, err
 		}
@@ -55,13 +55,18 @@ func (s *service) Pull(ctx context.Context, req *PullRequest) (*PullResponse, er
 			// TODO: Report missing
 			continue
 		}
-		pulled = append(pulled, kid.String())
+		pulled = append(pulled, spk.ID().String())
 	}
 	return &PullResponse{KIDs: pulled}, nil
 }
 
 func (s *service) pull(ctx context.Context, kid keys.ID) (bool, error) {
-	logger.Infof("Pull sigchain %s", kid)
+	logger.Infof("Pull %s", kid)
+
+	if err := s.importID(kid); err != nil {
+		return false, err
+	}
+
 	resp, err := s.remote.Sigchain(kid)
 	if err != nil {
 		return false, err

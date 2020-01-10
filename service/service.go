@@ -23,6 +23,8 @@ type service struct {
 	nowFn  func() time.Time
 
 	closeCh chan bool
+	open    bool
+	openMtx sync.Mutex
 
 	watchLast *keys.WatchEvent
 	watchLn   keys.WatchLn
@@ -68,47 +70,55 @@ func (s *service) Now() time.Time {
 }
 
 // Open the service.
+// If already open, will close and re-open.
 func (s *service) Open() error {
-	if s.db.IsOpen() {
-		logger.Errorf("DB already open, closing first...")
-		s.Close()
+	s.openMtx.Lock()
+	defer s.openMtx.Unlock()
+	if s.open {
+		logger.Errorf("Service already open, closing and re-opening...")
+		s.close()
 	}
-
 	logger.Infof("Opening db...")
 	path, err := s.cfg.AppPath(fmt.Sprintf("keys.leveldb"), true)
 	if err != nil {
 		return err
 	}
 
-	// TODO: leveldb encryption
+	// TODO: leveldb encryption?
 
 	if err := s.db.OpenAtPath(path, nil); err != nil {
 		return err
 	}
-
 	s.startCheck()
+	s.open = true
 
 	return nil
 }
 
 // Close ...
 func (s *service) Close() {
+	s.openMtx.Lock()
+	defer s.openMtx.Unlock()
+	if !s.open {
+		logger.Warningf("Service already closed")
+		return
+	}
+	s.close()
+}
+
+func (s *service) close() {
+	s.stopCheck()
 	s.watchReqClose()
-	if s.db.IsOpen() {
-		logger.Infof("Closing db...")
-		s.db.Close()
-	}
-	if s.closeCh != nil {
-		close(s.closeCh)
-		s.closeCh = nil
-	}
+	logger.Infof("Closing db...")
+	s.db.Close()
+	s.open = false
 }
 
 func (s *service) check(ctx context.Context) {
 	logger.Infof("Checking for expired users...")
 	ids, err := s.users.Expired(ctx, time.Hour*24)
 	if err != nil {
-		logger.Errorf("Failed to get expired users: %v", err)
+		logger.Warningf("Failed to get expired users: %v", err)
 		return
 	}
 	for _, id := range ids {
@@ -134,4 +144,11 @@ func (s *service) startCheck() {
 			}
 		}
 	}()
+}
+
+func (s *service) stopCheck() {
+	if s.closeCh != nil {
+		close(s.closeCh)
+		s.closeCh = nil
+	}
 }

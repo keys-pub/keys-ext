@@ -16,12 +16,12 @@ func (s *service) Keys(ctx context.Context, req *KeysRequest) (*KeysResponse, er
 	}
 	sortDirection := req.SortDirection
 
-	kids, err := s.loadKIDs(true)
+	ks, err := s.ks.Keys(nil)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to load keystore kids")
+		return nil, err
 	}
 
-	keys, err := s.keys(ctx, kids, sortField, sortDirection)
+	keys, err := s.keys(ctx, ks, sortField, sortDirection)
 	if err != nil {
 		return nil, err
 	}
@@ -33,12 +33,19 @@ func (s *service) Keys(ctx context.Context, req *KeysRequest) (*KeysResponse, er
 	}, nil
 }
 
-func (s *service) keys(ctx context.Context, kids []keys.ID, sortField string, sortDirection SortDirection) ([]*Key, error) {
-	keys := make([]*Key, 0, len(kids))
-	for _, kid := range kids {
-		key, err := s.key(ctx, kid)
+func (s *service) keys(ctx context.Context, ks *keys.Keys, sortField string, sortDirection SortDirection) ([]*Key, error) {
+	keys := make([]*Key, 0, ks.Capacity())
+	for _, sk := range ks.SignKeys {
+		key, err := s.signKeyToRPC(ctx, sk)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to load keystore key")
+			return nil, err
+		}
+		keys = append(keys, key)
+	}
+	for _, spk := range ks.SignPublicKeys {
+		key, err := s.signPublicKeyToRPC(ctx, spk)
+		if err != nil {
+			return nil, err
 		}
 		keys = append(keys, key)
 	}
@@ -67,6 +74,7 @@ func keysSort(pks []*Key, sortField string, sortDirection SortDirection, i, j in
 		return pks[i].Type > pks[j].Type
 
 	case "user":
+		// TODO: Sorts on the first user, what do we do if more than 1 user?
 		if len(pks[i].Users) == 0 && len(pks[j].Users) == 0 {
 			return keysSort(pks, "kid", sortDirection, i, j)
 		} else if len(pks[i].Users) == 0 {

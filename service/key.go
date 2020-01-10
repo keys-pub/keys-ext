@@ -27,7 +27,7 @@ func (s *service) Key(ctx context.Context, req *KeyRequest) (*KeyResponse, error
 		kid = k
 	}
 
-	key, err := s.key(ctx, kid)
+	key, err := s.loadKey(ctx, kid)
 	if err != nil {
 		return nil, err
 	}
@@ -49,79 +49,72 @@ func (t KeyType) Emoji() string {
 	}
 }
 
-func (s *service) key(ctx context.Context, kid keys.ID) (*Key, error) {
-	logger.Debugf("Loading key %s", kid)
-
-	typ := PublicKeyType
-	var users []*User
-	saved := false
-
-	key, err := s.loadKey(kid)
+func (s *service) loadKey(ctx context.Context, id keys.ID) (*Key, error) {
+	hrp, _, err := id.Decode()
 	if err != nil {
 		return nil, err
 	}
-	if key != nil {
-		saved = true
-		typ = PrivateKeyType
-	} else {
-		typ = PublicKeyType
+	switch hrp {
+	case keys.SignKeyType:
+		sk, err := s.ks.SignKey(id)
+		if err != nil {
+			return nil, err
+		}
+		if sk != nil {
+			return s.signKeyToRPC(ctx, sk)
+		}
+		spk, err := s.ks.SignPublicKey(id)
+		if err != nil {
+			return nil, err
+		}
+		if spk != nil {
+			return s.signPublicKeyToRPC(ctx, spk)
+		}
+		return s.signKeyIDToRPC(ctx, id)
+	default:
+		return nil, errors.Errorf("unrecognized key type %s", hrp)
 	}
 
-	res, err := s.users.Get(ctx, kid)
+}
+
+func (s *service) signKeyToRPC(ctx context.Context, sk *keys.SignKey) (*Key, error) {
+	users, err := s.users.Get(ctx, sk.ID())
 	if err != nil {
 		return nil, err
 	}
-	users = userResultsToRPC(res)
 
 	return &Key{
-		ID:    kid.String(),
-		Users: users,
-		Type:  typ,
-		Saved: saved,
+		ID:    sk.ID().String(),
+		Users: userResultsToRPC(users),
+		Type:  PrivateKeyType,
+		Saved: true,
 	}, nil
 }
 
-// KeyBackup (RPC) returns password protected key backup.
-func (s *service) KeyBackup(ctx context.Context, req *KeyBackupRequest) (*KeyBackupResponse, error) {
-	key, err := s.parseKey(req.KID)
+func (s *service) signPublicKeyToRPC(ctx context.Context, spk *keys.SignPublicKey) (*Key, error) {
+	users, err := s.users.Get(ctx, spk.ID())
 	if err != nil {
 		return nil, err
 	}
-	keyBackup := seedToBackup(req.Password, key.Seed())
-	return &KeyBackupResponse{
-		KeyBackup: keyBackup,
+
+	return &Key{
+		ID:    spk.ID().String(),
+		Users: userResultsToRPC(users),
+		Type:  PublicKeyType,
+		Saved: true,
 	}, nil
 }
 
-// KeyRecover (RPC) recovers a key from a backup.
-func (s *service) KeyRecover(ctx context.Context, req *KeyRecoverRequest) (*KeyRecoverResponse, error) {
-	seed, err := backupToSeed(req.Password, req.KeyBackup)
+func (s *service) signKeyIDToRPC(ctx context.Context, id keys.ID) (*Key, error) {
+	users, err := s.users.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	if len(seed) != 32 {
-		return nil, errors.Errorf("invalid bytes")
-	}
-
-	key, err := keys.NewSignKeyFromSeed(keys.Bytes32(seed))
-	if err != nil {
-		return nil, err
-	}
-
-	existing, err := s.ks.SignKey(key.ID())
-	if err != nil {
-		return nil, err
-	}
-	if existing != nil {
-		return nil, errors.Errorf("key already exists")
-	}
-
-	if err := s.saveKey(key); err != nil {
-		return nil, err
-	}
-
-	return &KeyRecoverResponse{
-		KID: key.ID().String(),
+	return &Key{
+		ID:    id.String(),
+		Users: userResultsToRPC(users),
+		Type:  PublicKeyType,
+		Saved: false,
 	}, nil
 }
 
@@ -134,27 +127,17 @@ func (s *service) KeyRemove(ctx context.Context, req *KeyRemoveRequest) (*KeyRem
 	if err != nil {
 		return nil, err
 	}
-	key, err := s.loadKey(kid)
+	ok, err := s.ks.Delete(kid)
 	if err != nil {
 		return nil, err
 	}
-	if key != nil {
-		ok, err := s.ks.Delete(kid.String())
-		if err != nil {
-			return nil, err
-		}
-		if !ok {
-			return nil, keys.NewErrNotFound(kid.String())
-		}
-	}
-
-	ok, err := s.scs.DeleteSigchain(kid)
-	if err != nil {
-		return nil, err
-	}
-
-	if key == nil && !ok {
+	if !ok {
 		return nil, keys.NewErrNotFound(kid.String())
+	}
+
+	_, err = s.scs.DeleteSigchain(kid)
+	if err != nil {
+		return nil, err
 	}
 
 	if _, err := s.users.Update(ctx, kid); err != nil {
@@ -168,45 +151,13 @@ func (s *service) KeyRemove(ctx context.Context, req *KeyRemoveRequest) (*KeyRem
 func (s *service) KeyGenerate(ctx context.Context, req *KeyGenerateRequest) (*KeyGenerateResponse, error) {
 	key := keys.GenerateSignKey()
 
-	if err := s.saveKey(key); err != nil {
+	if err := s.ks.SaveSignKey(key); err != nil {
 		return nil, err
 	}
 
 	return &KeyGenerateResponse{
 		KID: key.ID().String(),
 	}, nil
-}
-
-func (s *service) loadKIDs(all bool) ([]keys.ID, error) {
-	ks, err := s.loadKeys()
-	if err != nil {
-		return nil, err
-	}
-	kids := keys.NewIDSet()
-	for _, k := range ks {
-		kids.Add(k.ID())
-	}
-	if all {
-		pkids, err := s.scs.KIDs()
-		if err != nil {
-			return nil, err
-		}
-		kids.AddAll(pkids)
-	}
-	return kids.IDs(), nil
-}
-
-func (s *service) loadKeys() ([]*keys.SignKey, error) {
-	return s.ks.SignKeys()
-}
-
-func (s *service) loadKey(id keys.ID) (*keys.SignKey, error) {
-	return s.ks.SignKey(id)
-}
-
-func (s *service) saveKey(key *keys.SignKey) error {
-	item := keys.NewSignKeyItem(key)
-	return s.ks.Set(item)
 }
 
 func (s *service) parseKID(kid string) (keys.ID, error) {
@@ -228,7 +179,7 @@ func (s *service) parseKey(kid string) (*keys.SignKey, error) {
 	if err != nil {
 		return nil, err
 	}
-	key, err := s.loadKey(id)
+	key, err := s.ks.SignKey(id)
 	if err != nil {
 		return nil, err
 	}

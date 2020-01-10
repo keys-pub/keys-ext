@@ -14,7 +14,7 @@ func (s *service) Sigchain(ctx context.Context, req *SigchainRequest) (*Sigchain
 		return nil, err
 	}
 
-	key, err := s.key(ctx, kid)
+	key, err := s.loadKey(ctx, kid)
 	if err != nil {
 		return nil, err
 	}
