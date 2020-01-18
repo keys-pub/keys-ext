@@ -81,7 +81,8 @@ func AddRoutes(s *Server, e *echo.Echo) {
 
 	e.POST("/check", s.check)
 
-	e.GET("/search", s.getSearch)
+	e.GET("/users/search", s.getUserSearch)
+	e.GET("/users/:kid", s.getUsers)
 
 	// Tasks
 	e.POST("/task/check/:kid", s.taskCheck)
