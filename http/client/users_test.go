@@ -39,7 +39,7 @@ func saveUser(t *testing.T, env *env, key *keys.SignKey, name string, service st
 	return st
 }
 
-func TestSearch(t *testing.T) {
+func TestUserSearch(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
 	// keys.SetLogger(keys.NewLogger(keys.DebugLevel))
 	env := testEnv(t)
@@ -53,30 +53,25 @@ func TestSearch(t *testing.T) {
 		saveUser(t, env, key, username, "github")
 	}
 
-	resp, err := env.client.Search("", 0)
+	resp, err := env.client.UserSearch("", 0)
 	require.NoError(t, err)
 	require.Equal(t, 10, len(resp.Results))
 	require.Equal(t, 1, len(resp.Results[0].UserResults))
 	require.Equal(t, "a0", resp.Results[0].UserResults[0].User.Name)
 
-	resp, err = env.client.Search("", 1)
+	resp, err = env.client.UserSearch("", 1)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(resp.Results))
 	require.Equal(t, 1, len(resp.Results[0].UserResults))
 	require.Equal(t, "a0", resp.Results[0].UserResults[0].User.Name)
 
-	resp, err = env.client.Search("a1", 0)
+	resp, err = env.client.UserSearch("a1", 0)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(resp.Results))
 	require.Equal(t, 1, len(resp.Results[0].UserResults))
 	require.Equal(t, "a1", resp.Results[0].UserResults[0].User.Name)
 
-	resp, err = env.client.Search("z", 1)
+	resp, err = env.client.UserSearch("z", 1)
 	require.NoError(t, err)
 	require.Equal(t, 0, len(resp.Results))
-
-	resp, err = env.client.Search("kpe1deapehf", 0)
-	require.NoError(t, err)
-	require.Equal(t, 1, len(resp.Results))
-	require.Equal(t, "kpe1deapehffkzmcl5f67nz4nrl07nhj49ckdc72duhyl07vmqzst0csdq0d7e", resp.Results[0].KID.String())
 }

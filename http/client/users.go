@@ -5,20 +5,19 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keysd/http/api"
 	"github.com/pkg/errors"
 )
 
-// Search ...
-func (c *Client) Search(query string, limit int) (*api.SearchResponse, error) {
+// UserSearch ...
+func (c *Client) UserSearch(query string, limit int) (*api.UserSearchResponse, error) {
 	params := url.Values{}
 	params.Add("q", query)
 	if limit > 0 {
 		params.Add("limit", strconv.Itoa(limit))
 	}
 
-	e, err := c.get(keys.Path("search"), params, nil)
+	e, err := c.get("/users/search", params, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +25,7 @@ func (c *Client) Search(query string, limit int) (*api.SearchResponse, error) {
 		return nil, errors.Errorf("/search not found")
 	}
 
-	var val api.SearchResponse
+	var val api.UserSearchResponse
 	if err := json.Unmarshal(e.Data, &val); err != nil {
 		return nil, err
 	}
