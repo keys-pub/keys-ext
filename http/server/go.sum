@@ -18,6 +18,8 @@ github.com/keys-pub/keys v0.0.0-20200107221419-0ed0e891d305 h1:hxOMAUkzcTvrj68oe
 github.com/keys-pub/keys v0.0.0-20200107221419-0ed0e891d305/go.mod h1:aHuCWPRJIO/FTUGpfFYE4BIqsWWTJ37Cp83aCMyu2fE=
 github.com/keys-pub/keys v0.0.0-20200108235338-4fb7e99d0fbc h1:1NqA11IBmfhejJVjoajQG1buHfU18idhtpDQ2cjNJls=
 github.com/keys-pub/keys v0.0.0-20200108235338-4fb7e99d0fbc/go.mod h1:aHuCWPRJIO/FTUGpfFYE4BIqsWWTJ37Cp83aCMyu2fE=
+github.com/keys-pub/keys v0.0.0-20200118211353-b5b965520f79 h1:zc2nCGWXFLnP1sU9jF8GTALOwJxr9vxuzJQRG/LT2pY=
+github.com/keys-pub/keys v0.0.0-20200118211353-b5b965520f79/go.mod h1:aHuCWPRJIO/FTUGpfFYE4BIqsWWTJ37Cp83aCMyu2fE=
 github.com/keys-pub/keysd/http/api v0.0.0-20200107201206-c0f295622c20 h1:d1vFlbu2IrOEDtBwefOFI7nmb+w5/3uz7qnBzyGT7yg=
 github.com/keys-pub/keysd/http/api v0.0.0-20200107201206-c0f295622c20/go.mod h1:Wb7CizkwyJDE1NvYbL6ZmANI4Cq2953MoV8fXzrZASY=
 github.com/labstack/echo/v4 v4.1.11 h1:z0BZoArY4FqdpUEl+wlHp4hnr/oSR6MTmQmv8OHSoww=
