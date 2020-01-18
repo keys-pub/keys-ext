@@ -99,9 +99,14 @@ func (r MessagesResponse) MetadataFor(msg *Message) Metadata {
 	return md
 }
 
-// SearchResponse ...
-type SearchResponse struct {
-	Results []*keys.SearchResult `json:"results"`
+// UsersResponse ...
+type UsersResponse struct {
+	UserResults []*keys.UserResult `json:"users"`
+}
+
+// UserSearchResponse ...
+type UserSearchResponse struct {
+	Results []*keys.UserSearchResult `json:"results"`
 }
 
 // Item ...

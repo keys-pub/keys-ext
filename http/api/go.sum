@@ -15,6 +15,12 @@ github.com/keys-pub/keys v0.0.0-20200107200405-d846fd9e9499 h1:xUkqUTD6tvLQBEj9i
 github.com/keys-pub/keys v0.0.0-20200107200405-d846fd9e9499/go.mod h1:aHuCWPRJIO/FTUGpfFYE4BIqsWWTJ37Cp83aCMyu2fE=
 github.com/keys-pub/keys v0.0.0-20200118211353-b5b965520f79 h1:zc2nCGWXFLnP1sU9jF8GTALOwJxr9vxuzJQRG/LT2pY=
 github.com/keys-pub/keys v0.0.0-20200118211353-b5b965520f79/go.mod h1:aHuCWPRJIO/FTUGpfFYE4BIqsWWTJ37Cp83aCMyu2fE=
+github.com/keys-pub/keys v0.0.0-20200118222002-4eccf1e88dc7 h1:M77Zq4QHk+hSi/mmKUxkAuZxMDn5vwTVKe4qnTY07WQ=
+github.com/keys-pub/keys v0.0.0-20200118222002-4eccf1e88dc7/go.mod h1:aHuCWPRJIO/FTUGpfFYE4BIqsWWTJ37Cp83aCMyu2fE=
+github.com/keys-pub/keys v0.0.0-20200118230655-faf35ae93c2a h1:ZCOa1zGX4tXGacN3JOv+C2Av4dqhfRa4uszOxlnOYP8=
+github.com/keys-pub/keys v0.0.0-20200118230655-faf35ae93c2a/go.mod h1:aHuCWPRJIO/FTUGpfFYE4BIqsWWTJ37Cp83aCMyu2fE=
+github.com/keys-pub/keys v0.0.0-20200118233406-d5b891997915 h1:Yns5kBGRCeJpg1te6vINKtDuv7f9e7ie8LkEHusQuK4=
+github.com/keys-pub/keys v0.0.0-20200118233406-d5b891997915/go.mod h1:aHuCWPRJIO/FTUGpfFYE4BIqsWWTJ37Cp83aCMyu2fE=
 github.com/pkg/errors v0.8.1 h1:iURUrRGxPUNPdy5/HRSm+Yj6okJ6UtLINN0Q9M4+h3I=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
