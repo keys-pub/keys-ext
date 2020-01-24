@@ -27,8 +27,7 @@ func TestUserSearch(t *testing.T) {
 	require.Equal(t, `{"results":[]}`, body)
 
 	// Alice
-	alice, err := keys.NewSignKeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
-	require.NoError(t, err)
+	alice := keys.NewEd25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 
 	// Alice sign user statement
 	st := userMock(t, users, alice, "alice", "github", rq)

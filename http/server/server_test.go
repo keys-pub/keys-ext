@@ -149,10 +149,7 @@ func TestAccess(t *testing.T) {
 	users := testUserStore(t, fi, rq, clock)
 	srv := newTestServer(t, clock, fi, users)
 
-	alice, err := keys.NewSignKeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
-	require.NoError(t, err)
-	aliceSpk := alice.PublicKey()
-	aliceID := alice.ID()
+	alice := keys.NewEd25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 
 	upkCount := 0
 	scCount := 0
@@ -177,7 +174,7 @@ func TestAccess(t *testing.T) {
 	})
 
 	// PUT /sigchain/:kid/:seq (alice, allow)
-	aliceSc := keys.NewSigchain(aliceSpk)
+	aliceSc := keys.NewSigchain(alice.PublicKey())
 	aliceSt, err := keys.GenerateStatement(aliceSc, []byte("testing"), alice, "", clock.Now())
 	require.NoError(t, err)
 	err = aliceSc.Add(aliceSt)
@@ -200,12 +197,10 @@ func TestAccess(t *testing.T) {
 	require.Equal(t, http.StatusTooManyRequests, code)
 	require.Equal(t, `{"error":{"code":429,"message":"sigchain deny test"}}`, body)
 
-	bob, err := keys.NewSignKeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
-	require.NoError(t, err)
-	bobSpk := bob.PublicKey()
+	bob := keys.NewEd25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
 
 	// PUT /:kid/:seq (bob, allow)
-	bobSc := keys.NewSigchain(bobSpk)
+	bobSc := keys.NewSigchain(bob.PublicKey())
 	bobSt, err := keys.GenerateStatement(bobSc, []byte("testing"), bob, "", clock.Now())
 	require.NoError(t, err)
 	bobAddErr := bobSc.Add(bobSt)
@@ -217,14 +212,14 @@ func TestAccess(t *testing.T) {
 	require.Equal(t, http.StatusOK, code)
 
 	// POST /task/check/:kid
-	req, err = http.NewRequest("POST", "/task/check/"+aliceID.String(), nil)
+	req, err = http.NewRequest("POST", "/task/check/"+alice.ID().String(), nil)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
 	require.Equal(t, `{"error":{"code":403,"message":"no auth token specified"}}`, body)
 
 	// POST /task/check/:kid (with auth)
-	req, err = http.NewRequest("POST", "/task/check/"+aliceID.String(), nil)
+	req, err = http.NewRequest("POST", "/task/check/"+alice.ID().String(), nil)
 	require.NoError(t, err)
 	req.Header.Set("Authorization", srv.Server.internalAuth)
 	code, _, body = srv.Serve(req)

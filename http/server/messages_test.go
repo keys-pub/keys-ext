@@ -21,8 +21,7 @@ func TestMessages(t *testing.T) {
 	users := testUserStore(t, fi, rq, clock)
 	srv := newTestServer(t, clock, fi, users)
 
-	group, err := keys.NewSignKeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x04}, 32)))
-	require.NoError(t, err)
+	group := keys.NewEd25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x04}, 32)))
 
 	// GET /messages/:kid
 	req, err := api.NewRequest("GET", keys.Path("messages", group.ID()), nil, clock.Now(), group)
@@ -76,8 +75,7 @@ func TestMessagesAuth(t *testing.T) {
 	users := testUserStore(t, fi, rq, clock)
 	srv := newTestServer(t, clock, fi, users)
 
-	alice, err := keys.NewSignKeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
-	require.NoError(t, err)
+	alice := keys.NewEd25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 
 	// GET /messages/:id (no auth)
 	req, err := http.NewRequest("GET", keys.Path("messages", keys.RandString(32)), nil)
@@ -102,7 +100,7 @@ func TestMessagesAuth(t *testing.T) {
 
 	// GET /messages/:kid (invalid authorization)
 	authHeader := req.Header.Get("Authorization")
-	randKey := keys.GenerateSignKey()
+	randKey := keys.GenerateEd25519Key()
 	sig := strings.Split(authHeader, ":")[1]
 	req, err = api.NewRequest("GET", keys.Path("messages", randKey.ID()), nil, clock.Now(), randKey)
 	require.NoError(t, err)

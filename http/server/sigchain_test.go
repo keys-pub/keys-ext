@@ -23,12 +23,8 @@ func TestSigchains(t *testing.T) {
 	// clock := newClockAtNow()
 	// srv := newDevServer(t)
 
-	alice, err := keys.NewSignKeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
-	require.NoError(t, err)
-	aliceID := alice.ID()
-
-	bob, err := keys.NewSignKeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
-	require.NoError(t, err)
+	alice := keys.NewEd25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
+	bob := keys.NewEd25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
 
 	// GET /invalidloc (not found)
 	req, err := http.NewRequest("GET", "/invalidloc", nil)
@@ -120,8 +116,15 @@ func TestSigchains(t *testing.T) {
 	expectedSigchain := `{"kid":"kpe132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqlrnuen","statements":[{".sig":"k9D+ZCNlDgLDACa/Pi4cTiMqnTUTnp7eyLmmQbnqVUxy+nXXTRYUGqDWz6L/qPX1g0sZzFGDFvqr/nIQIASACg==","data":"dGVzdGluZw==","kid":"kpe132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqlrnuen","seq":1,"ts":1234567890001}]}`
 	require.Equal(t, expectedSigchain, body)
 
+	// GET /sigchain/:kid (bad ID)
+	req, err = http.NewRequest("GET", keys.Path("sigchain", keys.RandID("test")), nil)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusBadRequest, code)
+	require.Equal(t, `{"error":{"code":400,"message":"invalid key type"}}`, body)
+
 	// GET /sigchain/:kid (not found)
-	req, err = http.NewRequest("GET", keys.Path("sigchain", keys.RandID(keys.SignKeyType)), nil)
+	req, err = http.NewRequest("GET", keys.Path("sigchain", keys.RandID("kpe")), nil)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)
@@ -152,7 +155,7 @@ func TestSigchains(t *testing.T) {
 	require.Equal(t, expectedSigsWithMetadata, body)
 
 	// GET /:kid
-	req, err = http.NewRequest("GET", keys.Path(aliceID), nil)
+	req, err = http.NewRequest("GET", keys.Path(alice.ID()), nil)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
