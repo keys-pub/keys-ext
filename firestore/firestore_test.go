@@ -46,7 +46,7 @@ func (c *clock) Now() time.Time {
 }
 
 func TestFirestore(t *testing.T) {
-	SetContextLogger(NewContextLogger(DebugLevel))
+	// SetContextLogger(NewContextLogger(DebugLevel))
 	fs := testFirestore(t, true)
 	testDocumentStore(t, fs)
 }
@@ -375,7 +375,7 @@ func TestSigchains(t *testing.T) {
 
 	kids := []keys.ID{}
 	for i := 0; i < 6; i++ {
-		key := keys.GenerateSignKey()
+		key := keys.GenerateEd25519Key()
 		sc := keys.NewSigchain(key.PublicKey())
 		st, err := keys.GenerateStatement(sc, []byte("test"), key, "", clock.Now())
 		require.NoError(t, err)
