@@ -9,8 +9,7 @@ import (
 )
 
 func TestAuth(t *testing.T) {
-	alice, err := keys.NewSignKeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
-	require.NoError(t, err)
+	alice := keys.NewEd25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 
 	tm := keys.TimeFromMillis(123456789000)
 	nonce := keys.Bytes32(bytes.Repeat([]byte{0x01}, 32))
