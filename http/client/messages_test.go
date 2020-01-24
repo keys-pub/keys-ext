@@ -17,12 +17,9 @@ func TestMessages(t *testing.T) {
 	env := testEnv(t)
 	defer env.closeFn()
 
-	alice, err := keys.NewSignKeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
-	require.NoError(t, err)
-	bob, err := keys.NewSignKeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
-	require.NoError(t, err)
-	group, err := keys.NewSignKeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x04}, 32)))
-	require.NoError(t, err)
+	alice := keys.NewEd25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
+	bob := keys.NewEd25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
+	group := keys.NewEd25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x04}, 32)))
 
 	ks := keys.NewKeystore()
 	sp := saltpack.NewSaltpack(ks)
@@ -71,7 +68,7 @@ func TestMessages(t *testing.T) {
 	require.Equal(t, data3, respA2.Messages[1].Data)
 
 	// Messages not found
-	unknown := keys.GenerateSignKey()
+	unknown := keys.GenerateEd25519Key()
 	resp, err := env.client.Messages(unknown, "")
 	require.NoError(t, err)
 	require.Nil(t, resp)

@@ -12,12 +12,9 @@ func TestSigchain(t *testing.T) {
 	env := testEnv(t)
 	defer env.closeFn()
 
-	alice, err := keys.NewSignKeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
-	require.NoError(t, err)
-	aliceSpk := alice.PublicKey()
-	aliceID := alice.ID()
+	alice := keys.NewEd25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 
-	sc := keys.NewSigchain(aliceSpk)
+	sc := keys.NewSigchain(alice.PublicKey())
 	st, err := keys.GenerateStatement(sc, []byte("testing1"), alice, "", env.clock.Now())
 	require.NoError(t, err)
 	err = sc.Add(st)
@@ -32,14 +29,14 @@ func TestSigchain(t *testing.T) {
 	psiErr2 := env.client.PutSigchainStatement(st2)
 	require.NoError(t, psiErr2)
 
-	scResp, err := env.client.Sigchain(aliceID)
+	scResp, err := env.client.Sigchain(alice.ID())
 	require.NoError(t, err)
 	sc, err = scResp.Sigchain()
 	require.NoError(t, err)
 	require.Equal(t, 2, len(sc.Statements()))
 	// require.Equal(t, keys.TimeFromMillis(1234567890011), sc.Statements()[0].CreatedAt)
 
-	randID := keys.RandID(keys.SignKeyType)
+	randID := keys.RandID("kpe")
 	scResp2, err := env.client.Sigchain(randID)
 	require.NoError(t, err)
 	require.Nil(t, scResp2)

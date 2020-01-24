@@ -46,8 +46,7 @@ func TestUserSearch(t *testing.T) {
 	defer env.closeFn()
 
 	for i := 0; i < 10; i++ {
-		key, err := keys.NewSignKeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{byte(i)}, 32)))
-		require.NoError(t, err)
+		key := keys.NewEd25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{byte(i)}, 32)))
 		t.Logf("%s", key.ID())
 		username := fmt.Sprintf("a%d", i)
 		saveUser(t, env, key, username, "github")
