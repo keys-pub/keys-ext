@@ -12,7 +12,7 @@ import (
 
 // Sign (RPC) ...
 func (s *service) Sign(ctx context.Context, req *SignRequest) (*SignResponse, error) {
-	key, err := s.parseKey(req.KID)
+	key, err := s.parseSignKey(req.KID, true)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func (s *service) SignStream(srv Keys_SignStreamServer) error {
 			if stream != nil {
 				return errors.Errorf("stream already initialized")
 			}
-			key, err := s.parseKey(req.KID)
+			key, err := s.parseSignKey(req.KID, true)
 			if err != nil {
 				return err
 			}

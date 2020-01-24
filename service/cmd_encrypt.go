@@ -5,42 +5,59 @@ import (
 	"io"
 	"sync"
 
+	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
 
-// sealCommands ...
+func modeFromString(s string) (EncryptMode, error) {
+	switch s {
+	case "", "encrypt":
+		return EncryptV2, nil
+	case "signcrypt":
+		return SigncryptV1, nil
+	default:
+		return DefaultEncryptMode, errors.Errorf("invalid mode %s", s)
+	}
+}
+
 func sealCommands(client *Client) []cli.Command {
 	return []cli.Command{
 		cli.Command{
 			Name:      "encrypt",
 			Usage:     "Encrypt",
-			Aliases:   []string{"seal"},
 			ArgsUsage: "<stdin or -in>",
 			Flags: []cli.Flag{
-				cli.StringFlag{Name: "recipients, r", Usage: "recipients kids, comma-seperated"},
-				cli.StringFlag{Name: "sender, s", Usage: "sender kid (defaults to current key)"},
+				cli.StringFlag{Name: "recipients, r", Usage: "recipients"},
+				cli.StringFlag{Name: "sender, s", Usage: "sender (or anonymous if not specified)"},
 				cli.BoolFlag{Name: "armor, a", Usage: "armored"},
 				cli.StringFlag{Name: "in, i", Usage: "file to read or stdin if not specified"},
 				cli.StringFlag{Name: "out, o", Usage: "file to write or stdout if not specified"},
+				cli.StringFlag{Name: "mode, m", Usage: "encryption mode: encrypt (default) or signcrypt"},
 			},
 			Action: func(c *cli.Context) error {
-				reader, readerErr := readerFromArgs(c.String("in"))
-				if readerErr != nil {
-					return readerErr
+				reader, err := readerFromArgs(c.String("in"))
+				if err != nil {
+					return err
 				}
-				writer, writerErr := writerFromArgs(c.String("out"))
-				if writerErr != nil {
-					return writerErr
+				writer, err := writerFromArgs(c.String("out"))
+				if err != nil {
+					return err
 				}
 
-				client, streamErr := client.ProtoClient().EncryptStream(context.TODO())
-				if streamErr != nil {
-					return streamErr
+				client, err := client.ProtoClient().EncryptStream(context.TODO())
+				if err != nil {
+					return err
 				}
+				mode, err := modeFromString(c.String("mode"))
+				if err != nil {
+					return err
+				}
+
 				if err := client.Send(&EncryptStreamInput{
-					Recipients: c.String("recipients"),
+					Recipients: c.StringSlice("recipients"),
 					Sender:     c.String("sender"),
 					Armored:    c.Bool("armor"),
+					Mode:       mode,
 				}); err != nil {
 					return err
 				}
@@ -82,28 +99,32 @@ func sealCommands(client *Client) []cli.Command {
 			},
 		},
 		cli.Command{
-			Name:    "decrypt",
-			Usage:   "Decrypt",
-			Aliases: []string{"open"},
+			Name:  "decrypt",
+			Usage: "Decrypt",
 			Flags: []cli.Flag{
 				cli.BoolFlag{Name: "armor, a", Usage: "armored"},
 				cli.StringFlag{Name: "in, i", Usage: "file to read or stdin if not specified"},
 				cli.StringFlag{Name: "out, o", Usage: "file to write or stdout if not specified"},
+				cli.StringFlag{Name: "mode, m", Usage: "encryption mode: encrypt (default) or signcrypt"},
 			},
 			ArgsUsage: "<stdin or -in>",
 			Action: func(c *cli.Context) error {
-				reader, readerErr := readerFromArgs(c.String("in"))
-				if readerErr != nil {
-					return readerErr
+				reader, err := readerFromArgs(c.String("in"))
+				if err != nil {
+					return err
 				}
-				writer, writerErr := writerFromArgs(c.String("out"))
-				if writerErr != nil {
-					return writerErr
+				writer, err := writerFromArgs(c.String("out"))
+				if err != nil {
+					return err
+				}
+				mode, err := modeFromString(c.String("mode"))
+				if err != nil {
+					return err
 				}
 
-				client, clientErr := NewDecryptStreamClient(context.TODO(), client.ProtoClient(), c.Bool("armor"))
-				if clientErr != nil {
-					return clientErr
+				client, err := NewDecryptStreamClient(context.TODO(), client.ProtoClient(), c.Bool("armor"), mode)
+				if err != nil {
+					return err
 				}
 				var openErr error
 				go func() {

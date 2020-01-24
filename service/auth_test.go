@@ -105,7 +105,7 @@ func TestAuthLock(t *testing.T) {
 	keyBackup := seedToSaltpack(password, seed)
 	setupResp, err := service.AuthSetup(ctx, &AuthSetupRequest{
 		Password:  password,
-		KeyImport: keyBackup,
+		KeyBackup: keyBackup,
 	})
 	require.NoError(t, err)
 	kid := setupResp.KID
@@ -129,20 +129,20 @@ func TestAuthSetup(t *testing.T) {
 
 	genResp, err := service.AuthGenerate(ctx, &AuthGenerateRequest{Password: "password123"})
 	require.NoError(t, err)
-	require.NotEmpty(t, genResp.KeyImport)
+	require.NotEmpty(t, genResp.KeyBackup)
 
 	seed := bytes.Repeat([]byte{0x01}, 32)
-	setupResp, err := service.AuthSetup(ctx, &AuthSetupRequest{Password: "short", KeyImport: seedToSaltpack("short", seed)})
+	setupResp, err := service.AuthSetup(ctx, &AuthSetupRequest{Password: "short", KeyBackup: seedToSaltpack("short", seed)})
 	require.EqualError(t, err, "password too short")
 
 	keyBackup := seedToSaltpack("password123", seed)
-	setupResp, err = service.AuthSetup(ctx, &AuthSetupRequest{Password: "password123", KeyImport: "invalid recovery"})
+	setupResp, err = service.AuthSetup(ctx, &AuthSetupRequest{Password: "password123", KeyBackup: "invalid recovery"})
 	st, _ := status.FromError(err)
 	require.NotNil(t, st)
 	require.Equal(t, codes.PermissionDenied, st.Code())
 	require.Equal(t, "invalid key backup: failed to parse saltpack: missing saltpack start", st.Message())
 
-	setupResp, err = service.AuthSetup(ctx, &AuthSetupRequest{Password: "password123", KeyImport: keyBackup})
+	setupResp, err = service.AuthSetup(ctx, &AuthSetupRequest{Password: "password123", KeyBackup: keyBackup})
 	require.NoError(t, err)
 	kid := setupResp.KID
 	require.Equal(t, "kpe132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqlrnuen", kid)
@@ -167,7 +167,7 @@ func TestAuthRecover(t *testing.T) {
 	// Invalid password
 	_, err := service.AuthSetup(ctx, &AuthSetupRequest{
 		Password:  "password1234",
-		KeyImport: keyBackup,
+		KeyBackup: keyBackup,
 	})
 	st, _ := status.FromError(err)
 	require.NotNil(t, st)
@@ -177,7 +177,7 @@ func TestAuthRecover(t *testing.T) {
 	// Valid recovery
 	recoverResp, err := service.AuthSetup(ctx, &AuthSetupRequest{
 		Password:  "password123",
-		KeyImport: keyBackup,
+		KeyBackup: keyBackup,
 	})
 	require.NoError(t, err)
 	require.Equal(t, "kpe132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqlrnuen", recoverResp.KID)

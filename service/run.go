@@ -79,11 +79,6 @@ func Run(build Build) {
 	}
 
 	if *resetKeyring {
-		if IsPortInUse(cfg.Port()) {
-			fmt.Printf("Service is running. You should uninstall before resetting.\n")
-			os.Exit(1)
-		}
-
 		reader := bufio.NewReader(os.Stdin)
 		words := keys.RandWords(6)
 		fmt.Printf("Are you sure you want to reset the app and remove keys?\n")

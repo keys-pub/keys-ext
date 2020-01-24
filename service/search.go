@@ -4,22 +4,22 @@ import (
 	"context"
 )
 
-// Search (RPC) ...
-func (s *service) Search(ctx context.Context, req *SearchRequest) (*SearchResponse, error) {
-	res, err := s.searchUserRemote(ctx, req.Query)
+// UserSearch (RPC) ...
+func (s *service) UserSearch(ctx context.Context, req *UserSearchRequest) (*UserSearchResponse, error) {
+	res, err := s.searchUser(ctx, req.Query, int(req.Limit), req.Local)
 	if err != nil {
 		return nil, err
 	}
 
-	results := make([]*SearchResult, 0, len(res))
-	for _, res := range res {
-		results = append(results, &SearchResult{
-			KID:   res.KID.String(),
-			Users: userResultsToRPC(res.Users),
+	results := make([]*UserSearchResult, 0, len(res))
+	for _, r := range res {
+		results = append(results, &UserSearchResult{
+			KID:   r.KID.String(),
+			Users: userResultsToRPC(r.UserResults),
 		})
 	}
 
-	return &SearchResponse{
+	return &UserSearchResponse{
 		Results: results,
 	}, nil
 }

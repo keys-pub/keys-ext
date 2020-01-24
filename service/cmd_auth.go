@@ -81,7 +81,7 @@ func authCommands(client *Client) []cli.Command {
 					if err != nil {
 						return err
 					}
-					keyBackup := genResp.KeyImport
+					keyBackup := genResp.KeyBackup
 
 					fmt.Fprintf(os.Stderr, "\n")
 					fmt.Fprintf(os.Stderr, wordWrap("Now you'll need to backup your key. This backup is encrypted with your password. You can email this to yourself or save it in the cloud in a place only you can access. This allows you to recover your key if your devices go missing.", 80))
@@ -105,9 +105,9 @@ func authCommands(client *Client) []cli.Command {
 					fmt.Fprintf(os.Stderr, "\nSaving...")
 
 					auth, err := client.ProtoClient().AuthSetup(context.TODO(), &AuthSetupRequest{
-						Password:   string(password),
-						KeyImport:  keyBackup,
-						ClientName: "cli",
+						Password:  string(password),
+						KeyBackup: keyBackup,
+						Client:    "cli",
 					})
 					if err != nil {
 						return err
@@ -134,9 +134,9 @@ func authCommands(client *Client) []cli.Command {
 					logger.Infof("Auth recover...")
 					fmt.Fprintf(os.Stderr, "\nRecovering...")
 					auth, err := client.ProtoClient().AuthSetup(context.TODO(), &AuthSetupRequest{
-						Password:   string(password),
-						KeyImport:  keyBackup,
-						ClientName: "cli",
+						Password:  string(password),
+						KeyBackup: keyBackup,
+						Client:    "cli",
 					})
 					if err != nil {
 						return err

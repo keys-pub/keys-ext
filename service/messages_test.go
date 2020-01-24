@@ -15,7 +15,7 @@ func TestMessageCreateErrors(t *testing.T) {
 	ctx := context.TODO()
 	testAuthSetup(t, service, alice)
 
-	randKey := keys.GenerateSignKey()
+	randKey := keys.GenerateEd25519Key()
 	_, err := service.MessageCreate(ctx, &MessageCreateRequest{
 		KID:    randKey.ID().String(),
 		Sender: alice.ID().String(),

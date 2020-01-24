@@ -23,7 +23,7 @@ func (s *service) Pull(ctx context.Context, req *PullRequest) (*PullResponse, er
 		}
 		return &PullResponse{KIDs: []string{kid.String()}}, nil
 	} else if req.User != "" {
-		usr, err := s.searchUserExact(ctx, req.User)
+		usr, err := s.searchUserExact(ctx, req.User, false)
 		if err != nil {
 			return nil, err
 		}

@@ -21,7 +21,7 @@ func TestSearch(t *testing.T) {
 	testUserSetup(t, env, service, bob, "bob")
 	testPush(t, service, bob)
 
-	resp, err := service.Search(ctx, &SearchRequest{})
+	resp, err := service.UserSearch(ctx, &UserSearchRequest{})
 	require.NoError(t, err)
 	require.Equal(t, 2, len(resp.Results))
 

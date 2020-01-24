@@ -143,18 +143,17 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 		},
 	}
 
-	// Default action, show keys
-	app.Action = func(c *cli.Context) error {
-		if c.NArg() > 0 {
-			cli.ShowAppHelpAndExit(c, 1)
-		}
-		resp, err := client.ProtoClient().Keys(context.TODO(), &KeysRequest{})
-		if err != nil {
-			return err
-		}
-		fmtKeys(resp.Keys)
-		return nil
-	}
+	// app.Action = func(c *cli.Context) error {
+	// 	if c.NArg() > 0 {
+	// 		cli.ShowAppHelpAndExit(c, 1)
+	// 	}
+	// 	resp, err := client.ProtoClient().Keys(context.TODO(), &KeysRequest{})
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	fmtKeys(resp.Keys)
+	// 	return nil
+	// }
 
 	logger := logrus.StandardLogger()
 	formatter := &logrus.TextFormatter{
@@ -175,10 +174,9 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 	cmds = append(cmds, dbCommands(client)...)
 	cmds = append(cmds, otherCommands(client)...)
 	cmds = append(cmds, userCommands(client)...)
-	cmds = append(cmds, itemCommands(client)...)
+	cmds = append(cmds, keyCommands(client)...)
 	cmds = append(cmds, configCommands(client)...)
 	cmds = append(cmds, logCommands(client)...)
-	cmds = append(cmds, searchCommands(client)...)
 	sort.Slice(cmds, func(i, j int) bool {
 		return cmds[i].Name < cmds[j].Name
 	})

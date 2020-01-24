@@ -11,7 +11,7 @@ import (
 
 // KeyExport (RPC) returns exports a key.
 func (s *service) KeyExport(ctx context.Context, req *KeyExportRequest) (*KeyExportResponse, error) {
-	key, err := s.parseKey(req.KID)
+	key, err := s.parseSignKey(req.KID, true)
 	if err != nil {
 		return nil, err
 	}
@@ -40,9 +40,10 @@ func (s *service) importID(id keys.ID) error {
 	if err != nil {
 		return err
 	}
+	// TODO: hrp is hardcoded here
 	switch hrp {
-	case keys.SignKeyType:
-		spk, err := keys.SignPublicKeyFromID(id)
+	case "kpe":
+		spk, err := keys.Ed25519PublicKeyFromID(id)
 		if err != nil {
 			return err
 		}
@@ -78,10 +79,7 @@ func (s *service) importSaltpack(in string, password string) (keys.ID, error) {
 		return "", errors.Errorf("invalid sign key seed bytes in saltpack message")
 	}
 
-	key, err := keys.NewSignKeyFromSeed(keys.Bytes32(seed))
-	if err != nil {
-		return "", err
-	}
+	key := keys.NewEd25519KeyFromSeed(keys.Bytes32(seed))
 
 	existing, err := s.ks.SignKey(key.ID())
 	if err != nil {

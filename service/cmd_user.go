@@ -2,10 +2,12 @@ package service
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"fmt"
 	"os"
 	strings "strings"
+	"text/tabwriter"
 
 	"github.com/urfave/cli"
 )
@@ -16,6 +18,39 @@ func userCommands(client *Client) []cli.Command {
 			Name:  "user",
 			Usage: "Manage users",
 			Subcommands: []cli.Command{
+				cli.Command{
+					Name:  "search",
+					Usage: "Search",
+					Flags: []cli.Flag{
+						cli.StringFlag{Name: "query, q", Usage: "query"},
+						cli.IntFlag{Name: "limit, l", Usage: "limit number of results"},
+						cli.BoolFlag{Name: "local", Usage: "search local index"},
+					},
+					Action: func(c *cli.Context) error {
+						query, err := argString(c, "query", true)
+						if err != nil {
+							return err
+						}
+						searchResp, err := client.ProtoClient().UserSearch(context.TODO(), &UserSearchRequest{
+							Query: query,
+							Limit: int32(c.Int("limit")),
+							Local: c.Bool("local"),
+						})
+						if err != nil {
+							return err
+						}
+
+						out := &bytes.Buffer{}
+						w := new(tabwriter.Writer)
+						w.Init(out, 0, 8, 1, ' ', 0)
+						for _, res := range searchResp.Results {
+							fmtUserSearchResult(w, res)
+						}
+						w.Flush()
+						fmt.Printf(out.String())
+						return nil
+					},
+				},
 				cli.Command{
 					Name:  "setup",
 					Usage: "Link a key to an account on Twitter or Github",

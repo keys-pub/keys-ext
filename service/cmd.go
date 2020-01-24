@@ -89,7 +89,7 @@ func fmtKey(w io.Writer, key *Key) {
 	fmt.Fprintf(w, "%s\t%s\n", key.ID, fmtUsers(key.Users))
 }
 
-func fmtResult(w io.Writer, res *SearchResult) {
+func fmtUserSearchResult(w io.Writer, res *UserSearchResult) {
 	fmt.Fprintf(w, "%s\t%s\n", res.KID, fmtUsers(res.Users))
 }
 

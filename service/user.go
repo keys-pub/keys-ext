@@ -14,7 +14,7 @@ func (s *service) UserService(ctx context.Context, req *UserServiceRequest) (*Us
 	if req.Service == "" {
 		return nil, errors.Errorf("no service specified")
 	}
-	key, err := s.parseKey(req.KID)
+	key, err := s.parseSignKey(req.KID, true)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func (s *service) UserSign(ctx context.Context, req *UserSignRequest) (*UserSign
 	if req.Service == "" {
 		return nil, errors.Errorf("no service specified")
 	}
-	key, err := s.parseKey(req.KID)
+	key, err := s.parseSignKey(req.KID, true)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func (s *service) UserAdd(ctx context.Context, req *UserAddRequest) (*UserAddRes
 	if req.URL == "" {
 		return nil, errors.Errorf("no URL specified")
 	}
-	key, err := s.parseKey(req.KID)
+	key, err := s.parseSignKey(req.KID, true)
 	if err != nil {
 		return nil, err
 	}
@@ -165,6 +165,7 @@ func userResultToRPC(user *keys.UserResult) *User {
 		Status:     userStatus(user.Status),
 		VerifiedAt: int64(user.VerifiedAt),
 		Err:        user.Err,
+		Label:      user.User.Name + "@" + user.User.Service,
 	}
 }
 
@@ -204,8 +205,8 @@ func usersToRPC(in []*keys.User) []*User {
 	return users
 }
 
-func (s *service) searchUserLocalExact(ctx context.Context, query string) (*keys.UserResult, error) {
-	res, err := s.searchUserLocal(ctx, query)
+func (s *service) searchUserExact(ctx context.Context, query string, local bool) (*keys.UserResult, error) {
+	res, err := s.searchUser(ctx, query, 0, local)
 	if err != nil {
 		return nil, err
 	}
@@ -213,7 +214,7 @@ func (s *service) searchUserLocalExact(ctx context.Context, query string) (*keys
 		return nil, nil
 	}
 
-	for _, user := range res[0].Users {
+	for _, user := range res[0].UserResults {
 		if query == fmt.Sprintf("%s@%s", user.User.Name, user.User.Service) {
 			return user, nil
 		}
@@ -222,43 +223,21 @@ func (s *service) searchUserLocalExact(ctx context.Context, query string) (*keys
 	return nil, nil
 }
 
-func (s *service) searchUserExact(ctx context.Context, query string) (*keys.UserResult, error) {
-	res, err := s.searchUser(ctx, query)
-	if err != nil {
-		return nil, err
+func (s *service) searchUser(ctx context.Context, query string, limit int, local bool) ([]*keys.UserSearchResult, error) {
+	if local {
+		return s.searchUserLocal(ctx, query, limit)
 	}
-	if len(res) == 0 {
-		return nil, nil
-	}
-
-	for _, user := range res[0].Users {
-		if query == fmt.Sprintf("%s@%s", user.User.Name, user.User.Service) {
-			return user, nil
-		}
-	}
-
-	return nil, nil
+	return s.searchUserRemote(ctx, query, limit)
 }
 
-func (s *service) searchUser(ctx context.Context, query string) ([]*keys.SearchResult, error) {
-	res, err := s.searchUserLocal(ctx, query)
-	if err != nil {
-		return nil, err
-	}
-	if len(res) > 0 {
-		return res, nil
-	}
-	return s.searchUserRemote(ctx, query)
-}
-
-func (s *service) searchUserLocal(ctx context.Context, query string) ([]*keys.SearchResult, error) {
+func (s *service) searchUserLocal(ctx context.Context, query string, limit int) ([]*keys.UserSearchResult, error) {
 	query = strings.TrimSpace(query)
-	return s.users.Search(ctx, &keys.SearchRequest{Query: query})
+	return s.users.Search(ctx, &keys.UserSearchRequest{Query: query, Limit: limit})
 }
 
-func (s *service) searchUserRemote(ctx context.Context, query string) ([]*keys.SearchResult, error) {
+func (s *service) searchUserRemote(ctx context.Context, query string, limit int) ([]*keys.UserSearchResult, error) {
 	query = strings.TrimSpace(query)
-	resp, err := s.remote.Search(query, 0)
+	resp, err := s.remote.UserSearch(query, limit)
 	if err != nil {
 		return nil, err
 	}

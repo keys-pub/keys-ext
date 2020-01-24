@@ -174,26 +174,23 @@ func (s *service) AuthGenerate(ctx context.Context, req *AuthGenerateRequest) (*
 	seed := keys.Rand32()
 	keyBackup := seedToSaltpack(req.Password, seed[:])
 	return &AuthGenerateResponse{
-		KeyImport: keyBackup,
+		KeyBackup: keyBackup,
 	}, nil
 }
 
 func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSetupResponse, error) {
-	if req.KeyImport == "" {
+	if req.KeyBackup == "" {
 		return nil, status.Error(codes.PermissionDenied, "no key backup specified")
 	}
 
-	seed, err := saltpackToSeed(req.Password, req.KeyImport)
+	seed, err := saltpackToSeed(req.Password, req.KeyBackup)
 	if err != nil {
 		return nil, status.Errorf(codes.PermissionDenied, "invalid key backup: %s", err)
 	}
 
-	key, err := keys.NewSignKeyFromSeed(keys.Bytes32(seed))
-	if err != nil {
-		return nil, err
-	}
+	key := keys.NewEd25519KeyFromSeed(keys.Bytes32(seed))
 
-	token, err := s.auth.unlock(req.Password, req.ClientName)
+	token, err := s.auth.unlock(req.Password, req.Client)
 	if err != nil {
 		return nil, err
 	}

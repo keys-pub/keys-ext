@@ -11,7 +11,7 @@ import (
 func (s *service) Key(ctx context.Context, req *KeyRequest) (*KeyResponse, error) {
 	var kid keys.ID
 	if req.User != "" {
-		usr, err := s.searchUserLocalExact(ctx, req.User)
+		usr, err := s.searchUserExact(ctx, req.User, true)
 		if err != nil {
 			return nil, err
 		}
@@ -38,83 +38,97 @@ func (s *service) Key(ctx context.Context, req *KeyRequest) (*KeyResponse, error
 }
 
 // Emoji for KeyType.
-func (t KeyType) Emoji() string {
-	switch t {
-	case PrivateKeyType:
-		return "🔑" // 🔐
-	case PublicKeyType:
-		return "🖋️" // 🔏
+func Emoji(key keys.Key) string {
+	switch key.Type() {
+	case keys.Ed25519:
+		return "🖋️"
+	case keys.Ed25519Public:
+		return "🖋️"
+	case keys.Curve25519:
+		return "🔑"
+	case keys.Curve25519Public:
+		return "🔑"
 	default:
 		return "❓"
 	}
 }
 
 func (s *service) loadKey(ctx context.Context, id keys.ID) (*Key, error) {
-	hrp, _, err := id.Decode()
+	key, err := s.ks.Key(id)
 	if err != nil {
 		return nil, err
 	}
-	switch hrp {
-	case keys.SignKeyType:
-		sk, err := s.ks.SignKey(id)
-		if err != nil {
-			return nil, err
-		}
-		if sk != nil {
-			return s.signKeyToRPC(ctx, sk)
-		}
-		spk, err := s.ks.SignPublicKey(id)
-		if err != nil {
-			return nil, err
-		}
-		if spk != nil {
-			return s.signPublicKeyToRPC(ctx, spk)
-		}
-		return s.signKeyIDToRPC(ctx, id)
+	if key == nil {
+		return nil, nil
+	}
+	return s.keyToRPC(ctx, key, true)
+}
+
+var keyTypeStrings = []string{
+	string(keys.Ed25519),
+	string(keys.Ed25519Public),
+	string(keys.Curve25519),
+	string(keys.Curve25519Public),
+}
+
+func parseKeyType(s string) (KeyType, error) {
+	switch s {
+	case string(keys.Ed25519):
+		return Ed25519, nil
+	case string(keys.Ed25519Public):
+		return Ed25519Public, nil
+	case string(keys.Curve25519):
+		return Curve25519, nil
+	case string(keys.Curve25519Public):
+		return Curve25519Public, nil
 	default:
-		return nil, errors.Errorf("unrecognized key type %s", hrp)
+		return UnknownKeyType, errors.Errorf("unsupported key type %s", s)
 	}
-
 }
 
-func (s *service) signKeyToRPC(ctx context.Context, sk *keys.SignKey) (*Key, error) {
-	users, err := s.users.Get(ctx, sk.ID())
+func keyTypeFromRPC(t KeyType) (keys.KeyType, error) {
+	switch t {
+	case Ed25519:
+		return keys.Ed25519, nil
+	case Ed25519Public:
+		return keys.Ed25519Public, nil
+	case Curve25519:
+		return keys.Curve25519, nil
+	case Curve25519Public:
+		return keys.Curve25519Public, nil
+	default:
+		return "", errors.Errorf("unsupported key type")
+	}
+}
+
+func keyTypeToRPC(t keys.KeyType) KeyType {
+	switch t {
+	case keys.Ed25519:
+		return Ed25519
+	case keys.Ed25519Public:
+		return Ed25519Public
+	case keys.Curve25519:
+		return Curve25519
+	case keys.Curve25519Public:
+		return Curve25519Public
+	default:
+		return UnknownKeyType
+	}
+}
+
+func (s *service) keyToRPC(ctx context.Context, key keys.Key, saved bool) (*Key, error) {
+	users, err := s.users.Get(ctx, key.ID())
 	if err != nil {
 		return nil, err
 	}
 
-	return &Key{
-		ID:    sk.ID().String(),
-		Users: userResultsToRPC(users),
-		Type:  PrivateKeyType,
-		Saved: true,
-	}, nil
-}
-
-func (s *service) signPublicKeyToRPC(ctx context.Context, spk *keys.SignPublicKey) (*Key, error) {
-	users, err := s.users.Get(ctx, spk.ID())
-	if err != nil {
-		return nil, err
-	}
+	typ := keyTypeToRPC(key.Type())
 
 	return &Key{
-		ID:    spk.ID().String(),
+		ID:    key.ID().String(),
 		Users: userResultsToRPC(users),
-		Type:  PublicKeyType,
-		Saved: true,
-	}, nil
-}
-
-func (s *service) signKeyIDToRPC(ctx context.Context, id keys.ID) (*Key, error) {
-	users, err := s.users.Get(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	return &Key{
-		ID:    id.String(),
-		Users: userResultsToRPC(users),
-		Type:  PublicKeyType,
-		Saved: false,
+		Type:  typ,
+		Saved: saved,
 	}, nil
 }
 
@@ -149,7 +163,7 @@ func (s *service) KeyRemove(ctx context.Context, req *KeyRemoveRequest) (*KeyRem
 
 // KeyGenerate (RPC) creates a key.
 func (s *service) KeyGenerate(ctx context.Context, req *KeyGenerateRequest) (*KeyGenerateResponse, error) {
-	key := keys.GenerateSignKey()
+	key := keys.GenerateEd25519Key()
 
 	if err := s.ks.SaveSignKey(key); err != nil {
 		return nil, err
@@ -171,20 +185,94 @@ func (s *service) parseKID(kid string) (keys.ID, error) {
 	return id, nil
 }
 
-func (s *service) parseKey(kid string) (*keys.SignKey, error) {
+func (s *service) parseKey(kid string, required bool) (keys.Key, error) {
 	if kid == "" {
-		return nil, errors.Errorf("no kid specified")
+		if required {
+			return nil, errors.Errorf("no kid specified")
+		}
+		return nil, nil
 	}
 	id, err := keys.ParseID(kid)
 	if err != nil {
 		return nil, err
 	}
-	key, err := s.ks.SignKey(id)
+	key, err := s.ks.Key(id)
 	if err != nil {
 		return nil, err
 	}
-	if key == nil {
+	if key == nil && required {
 		return nil, keys.NewErrNotFound(kid)
 	}
 	return key, nil
+}
+
+func (s *service) parseSignKey(kid string, required bool) (*keys.SignKey, error) {
+	if kid == "" {
+		if required {
+			return nil, errors.Errorf("no kid specified")
+		}
+		return nil, nil
+	}
+	id, err := keys.ParseID(kid)
+	if err != nil {
+		return nil, err
+	}
+	hrp, _, err := id.Decode()
+	if err != nil {
+		return nil, err
+	}
+	// TODO: hrp is hardcoded here
+	switch hrp {
+	case "kpe":
+		key, err := s.ks.SignKey(id)
+		if err != nil {
+			return nil, err
+		}
+		if key == nil && required {
+			return nil, keys.NewErrNotFound(kid)
+		}
+		return key, nil
+	default:
+		return nil, errors.Errorf("unsupported key type %s", hrp)
+	}
+}
+
+func (s *service) parseBoxKey(kid string, required bool) (*keys.BoxKey, error) {
+	if kid == "" {
+		if required {
+			return nil, errors.Errorf("no kid specified")
+		}
+		return nil, nil
+	}
+	id, err := keys.ParseID(kid)
+	if err != nil {
+		return nil, err
+	}
+	hrp, _, err := id.Decode()
+	if err != nil {
+		return nil, err
+	}
+	// TODO: hrp is hardcoded here
+	switch hrp {
+	case "kpe":
+		key, err := s.ks.SignKey(id)
+		if err != nil {
+			return nil, err
+		}
+		if key == nil && required {
+			return nil, keys.NewErrNotFound(kid)
+		}
+		return key.Curve25519Key(), nil
+	case "kpc":
+		key, err := s.ks.BoxKey(id)
+		if err != nil {
+			return nil, err
+		}
+		if key == nil && required {
+			return nil, keys.NewErrNotFound(kid)
+		}
+		return key, nil
+	default:
+		return nil, errors.Errorf("unsupported key type %s", hrp)
+	}
 }

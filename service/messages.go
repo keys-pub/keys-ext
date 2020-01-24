@@ -39,7 +39,7 @@ func (s *service) Messages(ctx context.Context, req *MessagesRequest) (*Messages
 	if req.KID == "" {
 		return nil, errors.Errorf("no kid specified")
 	}
-	key, err := s.parseKey(req.KID)
+	key, err := s.parseSignKey(req.KID, true)
 	if err != nil {
 		return nil, err
 	}
@@ -48,9 +48,9 @@ func (s *service) Messages(ctx context.Context, req *MessagesRequest) (*Messages
 		return nil, err
 	}
 
-	messages, messagesErr := s.messages(ctx, key)
-	if messagesErr != nil {
-		return nil, messagesErr
+	messages, err := s.messages(ctx, key)
+	if err != nil {
+		return nil, err
 	}
 	return &MessagesResponse{
 		Messages: messages,
@@ -70,11 +70,11 @@ func (s *service) messagePrepare(ctx context.Context, sender string, kid string,
 	if kid == "" {
 		return nil, errors.Errorf("no kid specified")
 	}
-	key, err := s.parseKey(sender)
+	_, err := s.parseSignKey(kid, true)
 	if err != nil {
 		return nil, err
 	}
-	_, err = s.parseKey(kid)
+	key, err := s.parseSignKey(sender, true)
 	if err != nil {
 		return nil, err
 	}
@@ -98,12 +98,12 @@ func (s *service) messageCreate(ctx context.Context, sender string, kid string, 
 		id = keys.RandString(32)
 	}
 
-	senderKey, err := s.parseKey(sender)
+	senderKey, err := s.parseSignKey(sender, true)
 	if err != nil {
 		return nil, err
 	}
 
-	key, err := s.parseKey(kid)
+	key, err := s.parseSignKey(kid, true)
 	if err != nil {
 		return nil, err
 	}

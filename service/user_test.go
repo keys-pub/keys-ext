@@ -67,7 +67,7 @@ func TestUserAdd(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(sc.Statements()))
 
-	resp, err := service.Search(context.TODO(), &SearchRequest{})
+	resp, err := service.UserSearch(context.TODO(), &UserSearchRequest{})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(resp.Results))
 	require.Equal(t, 1, len(resp.Results[0].Users))
@@ -80,7 +80,7 @@ func TestUserAdd(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 2, len(sc2.Statements()))
 
-	resp, err = service.Search(context.TODO(), &SearchRequest{})
+	resp, err = service.UserSearch(context.TODO(), &UserSearchRequest{})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(resp.Results))
 	require.Equal(t, 2, len(resp.Results[0].Users))
@@ -88,7 +88,7 @@ func TestUserAdd(t *testing.T) {
 	require.Equal(t, "alice2", resp.Results[0].Users[1].Name)
 
 	// Try to add user for a public key (not owned)
-	randSPK := keys.GenerateSignKey()
+	randSPK := keys.GenerateEd25519Key()
 	randID := randSPK.ID()
 
 	_, err = service.UserAdd(ctx, &UserAddRequest{
@@ -137,7 +137,7 @@ func TestSearchUsers(t *testing.T) {
 		})
 	}
 
-	resp, err := service.Search(ctx, &SearchRequest{})
+	resp, err := service.UserSearch(ctx, &UserSearchRequest{})
 	require.NoError(t, err)
 	require.Equal(t, 3, len(resp.Results))
 	require.Equal(t, "username0", resp.Results[0].Users[0].Name)

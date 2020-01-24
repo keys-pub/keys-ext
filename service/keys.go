@@ -16,7 +16,16 @@ func (s *service) Keys(ctx context.Context, req *KeysRequest) (*KeysResponse, er
 	}
 	sortDirection := req.SortDirection
 
-	ks, err := s.ks.Keys(nil)
+	types := make([]keys.KeyType, 0, len(req.Types))
+	for _, t := range req.Types {
+		typ, err := keyTypeFromRPC(t)
+		if err != nil {
+			return nil, err
+		}
+		types = append(types, typ)
+	}
+
+	ks, err := s.ks.Keys(&keys.Opts{Types: types})
 	if err != nil {
 		return nil, err
 	}
@@ -33,17 +42,10 @@ func (s *service) Keys(ctx context.Context, req *KeysRequest) (*KeysResponse, er
 	}, nil
 }
 
-func (s *service) keys(ctx context.Context, ks *keys.Keys, sortField string, sortDirection SortDirection) ([]*Key, error) {
-	keys := make([]*Key, 0, ks.Capacity())
-	for _, sk := range ks.SignKeys {
-		key, err := s.signKeyToRPC(ctx, sk)
-		if err != nil {
-			return nil, err
-		}
-		keys = append(keys, key)
-	}
-	for _, spk := range ks.SignPublicKeys {
-		key, err := s.signPublicKeyToRPC(ctx, spk)
+func (s *service) keys(ctx context.Context, ks []keys.Key, sortField string, sortDirection SortDirection) ([]*Key, error) {
+	keys := make([]*Key, 0, len(ks))
+	for _, sk := range ks {
+		key, err := s.keyToRPC(ctx, sk, true)
 		if err != nil {
 			return nil, err
 		}

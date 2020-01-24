@@ -11,6 +11,11 @@ import (
 )
 
 func TestEncryptDecrypt(t *testing.T) {
+	testEncryptDecrypt(t, EncryptV2)
+	testEncryptDecrypt(t, SigncryptV1)
+}
+
+func testEncryptDecrypt(t *testing.T, mode EncryptMode) {
 	// SetLogger(newLog(DebugLevel))
 	// saltpack.SetLogger(newLog(DebugLevel))
 	// client.SetLogger(newLog(DebugLevel))
@@ -27,22 +32,76 @@ func TestEncryptDecrypt(t *testing.T) {
 	message := "Hey bob"
 
 	// Encrypt
-	sealResp, err := aliceService.Encrypt(context.TODO(), &EncryptRequest{Data: []byte(message), Sender: alice.ID().String(), Recipients: bob.ID().String()})
+	encryptResp, err := aliceService.Encrypt(context.TODO(), &EncryptRequest{
+		Data:       []byte(message),
+		Sender:     alice.ID().String(),
+		Recipients: []string{bob.ID().String()},
+		Mode:       mode,
+	})
 	require.NoError(t, err)
-	require.NotEmpty(t, sealResp.Data)
+	require.NotEmpty(t, encryptResp.Data)
 
 	// Decrypt
-	openResp, err := bobService.Decrypt(context.TODO(), &DecryptRequest{Data: sealResp.Data})
+	decryptResp, err := bobService.Decrypt(context.TODO(), &DecryptRequest{
+		Data: encryptResp.Data,
+		Mode: mode,
+	})
 	require.NoError(t, err)
-	require.Equal(t, message, string(openResp.Data))
+	require.Equal(t, message, string(decryptResp.Data))
 
 	// Alice try to decrypt her own message
 	// TODO: Include alice by default?
-	_, err = aliceService.Decrypt(context.TODO(), &DecryptRequest{Data: sealResp.Data})
+	_, err = aliceService.Decrypt(context.TODO(), &DecryptRequest{
+		Data: encryptResp.Data,
+		Mode: mode,
+	})
 	require.EqualError(t, err, "no decryption key found for message")
 
-	_, err = aliceService.Encrypt(context.TODO(), &EncryptRequest{Data: []byte(message), Sender: alice.ID().String()})
+	_, err = aliceService.Encrypt(context.TODO(), &EncryptRequest{
+		Data:   []byte(message),
+		Sender: alice.ID().String(),
+		Mode:   mode,
+	})
 	require.EqualError(t, err, "no recipients specified")
+}
+
+func TestEncryptAnonymous(t *testing.T) {
+	env := newTestEnv(t)
+
+	aliceService, aliceCloseFn := newTestService(t, env)
+	defer aliceCloseFn()
+	testAuthSetup(t, aliceService, alice)
+
+	bobService, bobCloseFn := newTestService(t, env)
+	defer bobCloseFn()
+	testAuthSetup(t, bobService, bob)
+
+	message := "Hey bob"
+
+	// Encrypt
+	encryptResp, err := aliceService.Encrypt(context.TODO(), &EncryptRequest{
+		Data:       []byte(message),
+		Sender:     "",
+		Recipients: []string{bob.ID().String()},
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, encryptResp.Data)
+
+	// Decrypt
+	decryptResp, err := bobService.Decrypt(context.TODO(), &DecryptRequest{
+		Data: encryptResp.Data,
+	})
+	require.NoError(t, err)
+	require.Equal(t, message, string(decryptResp.Data))
+
+	// Encrypt
+	_, err = aliceService.Encrypt(context.TODO(), &EncryptRequest{
+		Data:       []byte(message),
+		Sender:     "",
+		Recipients: []string{bob.ID().String()},
+		Mode:       SigncryptV1,
+	})
+	require.EqualError(t, err, "no sender specified: sender is required for signcrypt mode")
 }
 
 func TestEncryptStream(t *testing.T) {
@@ -52,12 +111,12 @@ func TestEncryptStream(t *testing.T) {
 	testAuthSetup(t, service, alice)
 	testImportKey(t, service, bob)
 
-	testEncryptStream(t, service, bytes.Repeat([]byte{0x31}, 5), alice.ID().String(), bob.ID().String())
-	testEncryptStream(t, service, bytes.Repeat([]byte{0x31}, (1024*1024)+5), alice.ID().String(), bob.ID().String())
+	testEncryptStream(t, service, bytes.Repeat([]byte{0x31}, 5), alice.ID().String(), []string{bob.ID().String()})
+	testEncryptStream(t, service, bytes.Repeat([]byte{0x31}, (1024*1024)+5), alice.ID().String(), []string{bob.ID().String()})
 	// TODO: Test timeout if data stops streaming
 }
 
-func testEncryptStream(t *testing.T, service *service, plaintext []byte, sender string, recipients string) {
+func testEncryptStream(t *testing.T, service *service, plaintext []byte, sender string, recipients []string) {
 	client, clientCloseFn := newTestRPCClient(t, service)
 	defer clientCloseFn()
 
@@ -75,6 +134,7 @@ func testEncryptStream(t *testing.T, service *service, plaintext []byte, sender 
 			Recipients: recipients,
 			Sender:     sender,
 			Armored:    true,
+			Mode:       SigncryptV1,
 		})
 		require.NoError(t, err)
 		for chunk := 0; true; chunk++ {
@@ -94,8 +154,8 @@ func testEncryptStream(t *testing.T, service *service, plaintext []byte, sender 
 			}
 		}
 		logger.Debugf("(Test) Close send")
-		closeErr2 := streamClient.CloseSend()
-		require.NoError(t, closeErr2)
+		closeErr := streamClient.CloseSend()
+		require.NoError(t, closeErr)
 	}()
 
 	var buf bytes.Buffer
@@ -125,7 +185,7 @@ func testEncryptStream(t *testing.T, service *service, plaintext []byte, sender 
 	require.Equal(t, plaintext, out)
 
 	// Decrypt stream
-	outClient, streamErr2 := client.ProtoClient().DecryptArmoredStream(ctx)
+	outClient, streamErr2 := client.ProtoClient().SigncryptOpenArmoredStream(ctx)
 	require.NoError(t, streamErr2)
 
 	go func() {
@@ -144,8 +204,8 @@ func testEncryptStream(t *testing.T, service *service, plaintext []byte, sender 
 				break
 			}
 		}
-		closeErr2 := outClient.CloseSend()
-		require.NoError(t, closeErr2)
+		closeErr := outClient.CloseSend()
+		require.NoError(t, closeErr)
 	}()
 
 	var bufOut bytes.Buffer

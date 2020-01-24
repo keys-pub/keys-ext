@@ -10,7 +10,7 @@ import (
 
 // Push (RPC) publishes sigchain statements.
 func (s *service) Push(ctx context.Context, req *PushRequest) (*PushResponse, error) {
-	key, err := s.parseKey(req.KID)
+	key, err := s.parseSignKey(req.KID, true)
 	if err != nil {
 		return nil, err
 	}

@@ -87,7 +87,7 @@ func testAuthSetup(t *testing.T, service *service, key *keys.SignKey) {
 
 	_, err := service.AuthSetup(context.TODO(), &AuthSetupRequest{
 		Password:  password,
-		KeyImport: keyBackup,
+		KeyBackup: keyBackup,
 	})
 	require.NoError(t, err)
 }

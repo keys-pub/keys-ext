@@ -7,26 +7,38 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	strings "strings"
 
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
 
-func itemCommands(client *Client) []cli.Command {
+func keyCommands(client *Client) []cli.Command {
+
 	return []cli.Command{
-		// cli.Command{
-		// 	Name:  "list",
-		// 	Usage: "List keys",
-		// 	Flags: []cli.Flag{},
-		// 	Action: func(c *cli.Context) error {
-		// 		resp, err := client.ProtoClient().Keys(context.TODO(), &KeysRequest{})
-		// 		if err != nil {
-		// 			return err
-		// 		}
-		// 		fmtKeys(resp.Keys)
-		// 		return nil
-		// 	},
-		// },
+		cli.Command{
+			Name:  "list",
+			Usage: "List keys",
+			Flags: []cli.Flag{
+				cli.StringSliceFlag{Name: "type, t", Usage: "only these types (" + strings.Join(keyTypeStrings, ", ") + ")"},
+			},
+			Action: func(c *cli.Context) error {
+				types := []KeyType{}
+				for _, t := range c.StringSlice("type") {
+					typ, err := parseKeyType(t)
+					if err != nil {
+						return err
+					}
+					types = append(types, typ)
+				}
+				resp, err := client.ProtoClient().Keys(context.TODO(), &KeysRequest{Types: types})
+				if err != nil {
+					return err
+				}
+				fmtKeys(resp.Keys)
+				return nil
+			},
+		},
 		cli.Command{
 			Name:  "keyring",
 			Usage: "Keyring",

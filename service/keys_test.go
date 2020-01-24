@@ -37,7 +37,7 @@ func TestKeys(t *testing.T) {
 	require.Equal(t, "kpe132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqlrnuen", resp.Keys[0].ID)
 	require.Equal(t, 1, len(resp.Keys[0].Users))
 	require.Equal(t, "alice", resp.Keys[0].Users[0].Name)
-	require.Equal(t, PrivateKeyType, resp.Keys[0].Type)
+	require.Equal(t, Ed25519, resp.Keys[0].Type)
 	require.Equal(t, "kpe1syuhwr4g05t4744r23nvxnr7en9cmz53knhr0gja7c84hr7fkw2qrt73l9", resp.Keys[1].ID)
 	require.Equal(t, 1, len(resp.Keys[1].Users))
 	require.Equal(t, "bob", resp.Keys[1].Users[0].Name)

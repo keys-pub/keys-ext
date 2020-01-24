@@ -29,26 +29,24 @@ echo "protoc $protoc_include --gogo_out=plugins=grpc:. *.proto"
 protoc $protoc_include --gogo_out=plugins=grpc:. *.proto
 
 if [ -d "$keysapp" ]; then
-    cp keys.proto "$keysapp/app/rpc"
+    cp keys.proto "$keysapp/src/renderer/rpc/keys.proto"
 
-    # Flow
-    # For more debugging output, change verbose level, for example, v=0 to v=1
-    
-    if [ ! -x "$(command -v protoc-gen-flowtypes)" ]; then
-        echo "Installing github.com/gabriel/grpcutil/protoc-gen-flowtypes"
-        go install github.com/gabriel/grpcutil/protoc-gen-flowtypes
+    # tstypes
+    if [ ! -x "$(command -v protoc-gen-tstypes)" ]; then
+        echo "Installing github.com/tmc/grpcutil/protoc-gen-tstypes"
+        go install github.com/tmc/grpcutil/protoc-gen-tstypes
     fi
-    protoc $protoc_include --flowtypes_out=. --flowtypes_opt=logtostderr=true,v=0,enum_zeros=true keys.proto
-    mv keys.js "$keysapp/app/rpc/types.js"
+    protoc $protoc_include --tstypes_out=. --tstypes_opt=declare_namespace=false keys.proto
+    mv service.keys.d.ts "$keysapp/src/renderer/rpc/types.ts"
 
-    # JSRPC (redux)
-    if [ ! -x "$(command -v protoc-gen-jsrpc)" ]; then
-        echo "Installing github.com/gabriel/grpcutil/protoc-gen-jsrpc"
-        go install github.com/gabriel/grpcutil/protoc-gen-jsrpc
+    # tsrpc (redux)
+    if [ ! -x "$(command -v protoc-gen-tsrpc)" ]; then
+        echo "Installing github.com/gabriel/grpcutil/protoc-gen-tsrpc"
+        go install github.com/gabriel/grpcutil/protoc-gen-tsrpc
     fi
-    echo "protoc $protoc_include --jsrpc_out=. --jsrpc_opt=logtostderr=true,v=0 keys.proto"    
-    protoc $protoc_include --jsrpc_out=. --jsrpc_opt=logtostderr=true,v=0 keys.proto
-    mv keys.js "$keysapp/app/rpc/rpc.js"
+    echo "protoc $protoc_include --tsrpc_out=. keys.proto"    
+    protoc $protoc_include --tsrpc_out=. keys.proto
+    mv keys.ts "$keysapp/src/renderer/rpc/rpc.ts"
 fi
 
 # CLI
