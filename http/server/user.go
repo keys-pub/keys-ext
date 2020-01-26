@@ -37,7 +37,7 @@ func (s *Server) getUserSearch(c echo.Context) error {
 	return JSON(c, http.StatusOK, resp)
 }
 
-func (s *Server) getUsers(c echo.Context) error {
+func (s *Server) getUser(c echo.Context) error {
 	ctx := c.Request().Context()
 	request := c.Request()
 	logger.Infof(ctx, "Server GET users %s", request.URL)
@@ -47,13 +47,13 @@ func (s *Server) getUsers(c echo.Context) error {
 		return ErrNotFound(c, nil)
 	}
 
-	userResults, err := s.users.Get(ctx, kid)
+	userResult, err := s.users.Get(ctx, kid)
 	if err != nil {
 		return internalError(c, err)
 	}
 
-	resp := api.UsersResponse{
-		UserResults: userResults,
+	resp := api.UserResponse{
+		UserResult: userResult,
 	}
 	return JSON(c, http.StatusOK, resp)
 }

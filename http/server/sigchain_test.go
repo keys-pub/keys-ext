@@ -105,7 +105,7 @@ func TestSigchains(t *testing.T) {
 	require.Equal(t, "2009-02-13T15:31:30.002-08:00", header.Get("CreatedAt-RFC3339M"))
 	require.Equal(t, "Fri, 13 Feb 2009 15:31:30 GMT", header.Get("Last-Modified"))
 	require.Equal(t, "2009-02-13T15:31:30.002-08:00", header.Get("Last-Modified-RFC3339M"))
-	expectedSigned := `{".sig":"k9D+ZCNlDgLDACa/Pi4cTiMqnTUTnp7eyLmmQbnqVUxy+nXXTRYUGqDWz6L/qPX1g0sZzFGDFvqr/nIQIASACg==","data":"dGVzdGluZw==","kid":"kpe132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqlrnuen","seq":1,"ts":1234567890001}`
+	expectedSigned := `{".sig":"zCAOI7tLrVq11FvlsThZ+PlrNd85jcnyQolk8CDPo9Zxn+Vv+qEIfZxfQQSTZqAsRCXZwIIvS1gSTIG9tRJwDw==","data":"dGVzdGluZw==","kid":"kse132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawquwc7vw","seq":1,"ts":1234567890001}`
 	require.Equal(t, expectedSigned, body)
 
 	// GET /sigchain/:kid
@@ -113,7 +113,7 @@ func TestSigchains(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	expectedSigchain := `{"kid":"kpe132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqlrnuen","statements":[{".sig":"k9D+ZCNlDgLDACa/Pi4cTiMqnTUTnp7eyLmmQbnqVUxy+nXXTRYUGqDWz6L/qPX1g0sZzFGDFvqr/nIQIASACg==","data":"dGVzdGluZw==","kid":"kpe132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqlrnuen","seq":1,"ts":1234567890001}]}`
+	expectedSigchain := `{"kid":"kse132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawquwc7vw","statements":[{".sig":"zCAOI7tLrVq11FvlsThZ+PlrNd85jcnyQolk8CDPo9Zxn+Vv+qEIfZxfQQSTZqAsRCXZwIIvS1gSTIG9tRJwDw==","data":"dGVzdGluZw==","kid":"kse132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawquwc7vw","seq":1,"ts":1234567890001}]}`
 	require.Equal(t, expectedSigchain, body)
 
 	// GET /sigchain/:kid (bad ID)
@@ -124,7 +124,7 @@ func TestSigchains(t *testing.T) {
 	require.Equal(t, `{"error":{"code":400,"message":"invalid key type"}}`, body)
 
 	// GET /sigchain/:kid (not found)
-	req, err = http.NewRequest("GET", keys.Path("sigchain", keys.RandID("kpe")), nil)
+	req, err = http.NewRequest("GET", keys.Path("sigchain", keys.RandID("kse")), nil)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)
@@ -135,7 +135,7 @@ func TestSigchains(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	expectedSigchain2 := `{"kid":"kpe132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqlrnuen","md":{"/kpe132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqlrnuen/1":{"createdAt":"2009-02-13T15:31:30.002-08:00","updatedAt":"2009-02-13T15:31:30.002-08:00"}},"statements":[{".sig":"k9D+ZCNlDgLDACa/Pi4cTiMqnTUTnp7eyLmmQbnqVUxy+nXXTRYUGqDWz6L/qPX1g0sZzFGDFvqr/nIQIASACg==","data":"dGVzdGluZw==","kid":"kpe132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqlrnuen","seq":1,"ts":1234567890001}]}`
+	expectedSigchain2 := `{"kid":"kse132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawquwc7vw","md":{"/kse132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawquwc7vw/1":{"createdAt":"2009-02-13T15:31:30.002-08:00","updatedAt":"2009-02-13T15:31:30.002-08:00"}},"statements":[{".sig":"zCAOI7tLrVq11FvlsThZ+PlrNd85jcnyQolk8CDPo9Zxn+Vv+qEIfZxfQQSTZqAsRCXZwIIvS1gSTIG9tRJwDw==","data":"dGVzdGluZw==","kid":"kse132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawquwc7vw","seq":1,"ts":1234567890001}]}`
 	require.Equal(t, expectedSigchain2, body)
 
 	// GET /sigchains
@@ -143,7 +143,7 @@ func TestSigchains(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	expectedSigs := `{"statements":[{".sig":"k9D+ZCNlDgLDACa/Pi4cTiMqnTUTnp7eyLmmQbnqVUxy+nXXTRYUGqDWz6L/qPX1g0sZzFGDFvqr/nIQIASACg==","data":"dGVzdGluZw==","kid":"kpe132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqlrnuen","seq":1,"ts":1234567890001}],"version":"1234567890003"}`
+	expectedSigs := `{"statements":[{".sig":"zCAOI7tLrVq11FvlsThZ+PlrNd85jcnyQolk8CDPo9Zxn+Vv+qEIfZxfQQSTZqAsRCXZwIIvS1gSTIG9tRJwDw==","data":"dGVzdGluZw==","kid":"kse132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawquwc7vw","seq":1,"ts":1234567890001}],"version":"1234567890003"}`
 	require.Equal(t, expectedSigs, body)
 
 	// GET /sigchains?include=md&limit=1
@@ -151,7 +151,7 @@ func TestSigchains(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	expectedSigsWithMetadata := `{"md":{"/kpe132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqlrnuen/1":{"createdAt":"2009-02-13T15:31:30.002-08:00","updatedAt":"2009-02-13T15:31:30.002-08:00"}},"statements":[{".sig":"k9D+ZCNlDgLDACa/Pi4cTiMqnTUTnp7eyLmmQbnqVUxy+nXXTRYUGqDWz6L/qPX1g0sZzFGDFvqr/nIQIASACg==","data":"dGVzdGluZw==","kid":"kpe132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqlrnuen","seq":1,"ts":1234567890001}],"version":"1234567890003"}`
+	expectedSigsWithMetadata := `{"md":{"/kse132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawquwc7vw/1":{"createdAt":"2009-02-13T15:31:30.002-08:00","updatedAt":"2009-02-13T15:31:30.002-08:00"}},"statements":[{".sig":"zCAOI7tLrVq11FvlsThZ+PlrNd85jcnyQolk8CDPo9Zxn+Vv+qEIfZxfQQSTZqAsRCXZwIIvS1gSTIG9tRJwDw==","data":"dGVzdGluZw==","kid":"kse132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawquwc7vw","seq":1,"ts":1234567890001}],"version":"1234567890003"}`
 	require.Equal(t, expectedSigsWithMetadata, body)
 
 	// GET /:kid
@@ -159,7 +159,7 @@ func TestSigchains(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	expectedSigchain = `{"kid":"kpe132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqlrnuen","statements":[{".sig":"k9D+ZCNlDgLDACa/Pi4cTiMqnTUTnp7eyLmmQbnqVUxy+nXXTRYUGqDWz6L/qPX1g0sZzFGDFvqr/nIQIASACg==","data":"dGVzdGluZw==","kid":"kpe132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqlrnuen","seq":1,"ts":1234567890001}]}`
+	expectedSigchain = `{"kid":"kse132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawquwc7vw","statements":[{".sig":"zCAOI7tLrVq11FvlsThZ+PlrNd85jcnyQolk8CDPo9Zxn+Vv+qEIfZxfQQSTZqAsRCXZwIIvS1gSTIG9tRJwDw==","data":"dGVzdGluZw==","kid":"kse132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawquwc7vw","seq":1,"ts":1234567890001}]}`
 	require.Equal(t, expectedSigchain, body)
 
 	// Alice sign "testing2"
