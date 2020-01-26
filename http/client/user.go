@@ -17,7 +17,7 @@ func (c *Client) UserSearch(query string, limit int) (*api.UserSearchResponse, e
 		params.Add("limit", strconv.Itoa(limit))
 	}
 
-	e, err := c.get("/users/search", params, nil)
+	e, err := c.get("/user/search", params, nil)
 	if err != nil {
 		return nil, err
 	}
