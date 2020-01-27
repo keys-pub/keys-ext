@@ -19,7 +19,8 @@ func TestKey(t *testing.T) {
 	defer closeFn()
 	ctx := context.TODO()
 
-	testAuthSetup(t, service, alice)
+	testAuthSetup(t, service)
+	testImportKey(t, service, alice)
 	testUserSetup(t, env, service, alice, "alice")
 
 	// Alice
@@ -43,9 +44,10 @@ func TestKeyGenerate(t *testing.T) {
 	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	ctx := context.TODO()
-	testAuthSetup(t, service, alice)
+	testAuthSetup(t, service)
+	testImportKey(t, service, alice)
 
-	genResp, err := service.KeyGenerate(ctx, &KeyGenerateRequest{})
+	genResp, err := service.KeyGenerate(ctx, &KeyGenerateRequest{Type: Ed25519})
 	require.NoError(t, err)
 
 	key, err := service.parseSignKey(genResp.KID, true)
@@ -54,30 +56,22 @@ func TestKeyGenerate(t *testing.T) {
 	require.Equal(t, key.ID().String(), genResp.KID)
 }
 
-func TestKeyImportExportRemove(t *testing.T) {
+func TestKeyRemove(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
 	env := newTestEnv(t)
 	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	ctx := context.TODO()
-	testAuthSetup(t, service, alice)
+	testAuthSetup(t, service)
+	testImportKey(t, service, alice)
 
-	// Register
-	genResp, err := service.KeyGenerate(ctx, &KeyGenerateRequest{})
+	genResp, err := service.KeyGenerate(ctx, &KeyGenerateRequest{Type: Ed25519})
 	require.NoError(t, err)
 	kid, err := keys.ParseID(genResp.KID)
 	require.NoError(t, err)
 	key, err := service.ks.SignKey(kid)
 	require.NoError(t, err)
 	require.NotNil(t, key)
-
-	// Export
-	exportResp, err := service.KeyExport(ctx, &KeyExportRequest{
-		KID:      key.ID().String(),
-		Password: "test",
-	})
-	require.NoError(t, err)
-	require.NotEmpty(t, exportResp.Export)
 
 	// Remove
 	_, err = service.KeyRemove(ctx, &KeyRemoveRequest{KID: key.ID().String()})
@@ -87,19 +81,4 @@ func TestKeyImportExportRemove(t *testing.T) {
 	randKey := keys.GenerateEd25519Key()
 	_, err = service.KeyRemove(ctx, &KeyRemoveRequest{KID: randKey.ID().String()})
 	require.EqualError(t, err, fmt.Sprintf("not found %s", randKey.ID()))
-
-	// Import
-	_, err = service.KeyImport(ctx, &KeyImportRequest{In: []byte{}})
-	require.EqualError(t, err, "failed to import key: failed to parse saltpack: missing saltpack start")
-
-	importResp, err := service.KeyImport(ctx, &KeyImportRequest{
-		In:       exportResp.Export,
-		Password: "test",
-	})
-	require.NoError(t, err)
-	require.Equal(t, key.ID().String(), importResp.KID)
-
-	keyResp, err := service.Key(ctx, &KeyRequest{KID: key.ID().String()})
-	require.NoError(t, err)
-	require.Equal(t, key.ID().String(), keyResp.Key.ID)
 }

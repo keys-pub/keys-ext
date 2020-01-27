@@ -14,7 +14,8 @@ func TestPull(t *testing.T) {
 	// Alice
 	aliceService, aliceCloseFn := newTestService(t, env)
 	defer aliceCloseFn()
-	testAuthSetup(t, aliceService, alice)
+	testAuthSetup(t, aliceService)
+	testImportKey(t, aliceService, alice)
 	testUserSetup(t, env, aliceService, alice, "alice")
 	testPush(t, aliceService, alice)
 
@@ -26,7 +27,8 @@ func TestPull(t *testing.T) {
 	// Bob
 	bobService, bobCloseFn := newTestService(t, env)
 	defer bobCloseFn()
-	testAuthSetup(t, bobService, bob)
+	testAuthSetup(t, bobService)
+	testImportKey(t, bobService, bob)
 	testUserSetup(t, env, bobService, bob, "bob")
 	testPush(t, bobService, bob)
 
@@ -44,7 +46,8 @@ func TestPull(t *testing.T) {
 	// Charlie
 	charlieService, charlieCloseFn := newTestService(t, env)
 	defer charlieCloseFn()
-	testAuthSetup(t, charlieService, charlie)
+	testAuthSetup(t, charlieService)
+	testImportKey(t, charlieService, charlie)
 	testUserSetup(t, env, charlieService, charlie, "charlie")
 	testPush(t, charlieService, charlie)
 

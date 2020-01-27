@@ -18,9 +18,9 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// TODO: Some clients log grpc requests which for AuthUnlock include a password.
+// TODO: Some clients log grpc requests which for AuthSetup and AuthUnlock include a password.
 //       We need to ensure client logging doesn't do this, or use an alternate
-//       channel for auth? (Also redux state could keep password around.)
+//       channel for auth? (Also redux state in frontend could keep password around.)
 //       Maybe a special password proto type that can't be logged and clears
 //       itself?
 
@@ -170,32 +170,30 @@ func (a clientAuth) RequireTransportSecurity() bool {
 	return true
 }
 
-func (s *service) AuthGenerate(ctx context.Context, req *AuthGenerateRequest) (*AuthGenerateResponse, error) {
-	seed := keys.Rand32()
-	keyBackup := seedToSaltpack(req.Password, seed[:])
-	return &AuthGenerateResponse{
-		KeyBackup: keyBackup,
-	}, nil
+func (s *service) isAuthSetupNeeded() (bool, error) {
+	kr := s.ks.Keyring()
+	if kr == nil {
+		return false, errors.Errorf("no keyring set")
+	}
+	authed, err := kr.Authed()
+	if err != nil {
+		return false, err
+	}
+	return !authed, nil
 }
 
+// AuthSetup (RPC) ...
 func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSetupResponse, error) {
-	if req.KeyBackup == "" {
-		return nil, status.Error(codes.PermissionDenied, "no key backup specified")
-	}
-
-	seed, err := saltpackToSeed(req.Password, req.KeyBackup)
-	if err != nil {
-		return nil, status.Errorf(codes.PermissionDenied, "invalid key backup: %s", err)
-	}
-
-	key := keys.NewEd25519KeyFromSeed(keys.Bytes32(seed))
-
-	token, err := s.auth.unlock(req.Password, req.Client)
+	setupNeeded, err := s.isAuthSetupNeeded()
 	if err != nil {
 		return nil, err
 	}
+	if !setupNeeded {
+		return nil, errors.Errorf("auth already setup")
+	}
 
-	if err := s.ks.SaveSignKey(key); err != nil {
+	token, err := s.auth.unlock(req.Password, req.Client)
+	if err != nil {
 		return nil, err
 	}
 
@@ -204,7 +202,6 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 	}
 
 	return &AuthSetupResponse{
-		KID:       key.ID().String(),
 		AuthToken: token,
 	}, nil
 }
@@ -213,6 +210,14 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 func (s *service) AuthUnlock(ctx context.Context, req *AuthUnlockRequest) (*AuthUnlockResponse, error) {
 	if req.Password == "" {
 		return nil, errors.Errorf("no password specified")
+	}
+
+	setupNeeded, err := s.isAuthSetupNeeded()
+	if err != nil {
+		return nil, err
+	}
+	if setupNeeded {
+		return nil, errors.Errorf("auth setup needed")
 	}
 
 	token, err := s.auth.unlock(req.Password, req.Client)

@@ -1,14 +1,11 @@
 package service
 
 import (
-	"bytes"
 	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/status"
 )
 
 func TestAuth(t *testing.T) {
@@ -101,23 +98,21 @@ func TestAuthLock(t *testing.T) {
 	ctx := context.TODO()
 
 	password := "password123"
-	seed := bytes.Repeat([]byte{0x01}, 32)
-	keyBackup := seedToSaltpack(password, seed)
-	setupResp, err := service.AuthSetup(ctx, &AuthSetupRequest{
-		Password:  password,
-		KeyBackup: keyBackup,
+	_, err := service.AuthSetup(ctx, &AuthSetupRequest{
+		Password: password,
 	})
 	require.NoError(t, err)
-	kid := setupResp.KID
 
-	_, err = service.Sign(context.TODO(), &SignRequest{Data: []byte("test"), KID: kid})
+	testImportKey(t, service, alice)
+
+	_, err = service.Sign(context.TODO(), &SignRequest{Data: []byte("test"), KID: alice.ID().String()})
 	require.NoError(t, err)
 
 	_, err = service.AuthLock(ctx, &AuthLockRequest{})
 	require.NoError(t, err)
 	require.Empty(t, service.auth.tokens)
 
-	_, err = service.Sign(context.TODO(), &SignRequest{Data: []byte("test"), KID: kid})
+	_, err = service.Sign(context.TODO(), &SignRequest{Data: []byte("test"), KID: alice.ID().String()})
 	require.EqualError(t, err, "keyring is locked")
 }
 
@@ -127,58 +122,10 @@ func TestAuthSetup(t *testing.T) {
 	defer closeFn()
 	ctx := context.TODO()
 
-	genResp, err := service.AuthGenerate(ctx, &AuthGenerateRequest{Password: "password123"})
-	require.NoError(t, err)
-	require.NotEmpty(t, genResp.KeyBackup)
-
-	seed := bytes.Repeat([]byte{0x01}, 32)
-	setupResp, err := service.AuthSetup(ctx, &AuthSetupRequest{Password: "short", KeyBackup: seedToSaltpack("short", seed)})
+	_, err := service.AuthSetup(ctx, &AuthSetupRequest{Password: "short"})
 	require.EqualError(t, err, "password too short")
 
-	keyBackup := seedToSaltpack("password123", seed)
-	setupResp, err = service.AuthSetup(ctx, &AuthSetupRequest{Password: "password123", KeyBackup: "invalid recovery"})
-	st, _ := status.FromError(err)
-	require.NotNil(t, st)
-	require.Equal(t, codes.PermissionDenied, st.Code())
-	require.Equal(t, "invalid key backup: failed to parse saltpack: missing saltpack start", st.Message())
-
-	setupResp, err = service.AuthSetup(ctx, &AuthSetupRequest{Password: "password123", KeyBackup: keyBackup})
+	setupResp, err := service.AuthSetup(ctx, &AuthSetupRequest{Password: "password123"})
 	require.NoError(t, err)
-	kid := setupResp.KID
-	require.Equal(t, "kpe132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqlrnuen", kid)
-
-	itemsResp, err := service.Items(ctx, &ItemsRequest{})
-	require.NoError(t, err)
-	require.Equal(t, 1, len(itemsResp.Items))
-	require.Equal(t, "kpe132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqlrnuen", itemsResp.Items[0].ID)
-}
-
-func TestAuthRecover(t *testing.T) {
-	// SetLogger(NewLogger(DebugLevel))
-	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env)
-	defer closeFn()
-	ctx := context.TODO()
-
-	password := "password123"
-	seed := bytes.Repeat([]byte{0x01}, 32)
-	keyBackup := seedToSaltpack(password, seed)
-
-	// Invalid password
-	_, err := service.AuthSetup(ctx, &AuthSetupRequest{
-		Password:  "password1234",
-		KeyBackup: keyBackup,
-	})
-	st, _ := status.FromError(err)
-	require.NotNil(t, st)
-	require.Equal(t, codes.PermissionDenied, st.Code())
-	require.Equal(t, "invalid key backup: failed to decrypt with a password: secretbox open failed", st.Message())
-
-	// Valid recovery
-	recoverResp, err := service.AuthSetup(ctx, &AuthSetupRequest{
-		Password:  "password123",
-		KeyBackup: keyBackup,
-	})
-	require.NoError(t, err)
-	require.Equal(t, "kpe132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqlrnuen", recoverResp.KID)
+	require.NotEmpty(t, setupResp.AuthToken)
 }

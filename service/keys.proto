@@ -65,7 +65,6 @@ service Keys {
   
   // These requests do not need auth, since they are used to set or check auth.
   // BEGIN NO AUTH
-  rpc AuthGenerate(AuthGenerateRequest) returns (AuthGenerateResponse) {}
   rpc AuthSetup(AuthSetupRequest) returns (AuthSetupResponse) {}
   rpc AuthUnlock(AuthUnlockRequest) returns (AuthUnlockResponse) {}
   rpc AuthLock(AuthLockRequest) returns (AuthLockResponse) {}
@@ -110,8 +109,7 @@ message VerifyRequest {
 }
 message VerifyResponse {
   bytes data = 1;
-  // KID of who signed.
-  string kid = 2 [(gogoproto.customname) = "KID"];  
+  Key signer = 2;
 }
 
 message Statement {
@@ -197,8 +195,7 @@ message VerifyStreamInput {
 message VerifyStreamOutput {
   // Data, verified. If empty, is EOF.
   bytes data = 1;
-  // KID, that signed the data.
-  string kid = 2 [(gogoproto.customname) = "KID"];
+  Key signer = 2;
 }
 
 
@@ -237,7 +234,7 @@ message DecryptRequest {
 }
 message DecryptResponse {
   bytes data = 1;
-  string sender = 2;
+  Key sender = 2;
 }
 
 message EncryptStreamInput {
@@ -265,7 +262,7 @@ message DecryptStreamInput {
 message DecryptStreamOutput {
   // Data, decrypted. If empty, is EOF.
   bytes data = 1;
-  string sender = 2;  
+  Key sender = 2;
 }
 
 message RuntimeStatusRequest {}
@@ -278,33 +275,20 @@ message RuntimeStatusResponse {
   bool authSetupNeeded = 5;
 }
 
-message AuthGenerateRequest {
-  // Password used to encrypt key backup.
-  string password = 1;
-}
-message AuthGenerateResponse {
-  // KeyBackup is an encrypted key backup.
-  string keyBackup = 2;  
-}
-
 message AuthSetupRequest {
   // Password used to encrypt key backup.
   string password = 1;
-  // KeyBackup is an encrypted key backup.
-  string keyBackup = 2;  
-  
-  // Client (optional) name.
+  // Client name.
   string client = 6;
 }
 message AuthSetupResponse {
-  string kid = 1 [(gogoproto.customname) = "KID"];
-  string authToken = 2;
+  string authToken = 1;
 }
 
 message AuthUnlockRequest {
   // Password.
   string password = 1;
-  // Client (optional) name.
+  // Client name.
   string client = 2;
 }
 message AuthUnlockResponse {
@@ -315,9 +299,11 @@ message AuthUnlockResponse {
 message AuthLockRequest {}
 message AuthLockResponse {}
 
-message KeyGenerateRequest {}
+message KeyGenerateRequest {
+  KeyType type = 1;
+}
 message KeyGenerateResponse {
-  string kid = 1 [(gogoproto.customname) = "KID"];
+  string kid = 1 [(gogoproto.customname) = "KID"];  
 }
 
 message UserServiceRequest {
@@ -369,7 +355,7 @@ enum ExportType {
   option (gogoproto.enum_customname) = "ExportType";
   
   DEFAULT_EXPORT_TYPE = 0 [(gogoproto.enumvalue_customname) = "DefaultExportType"];
-  SALTPACK_PW_EXPORT_TYPE = 1 [(gogoproto.enumvalue_customname) = "SaltpackPwExportType"];
+  SALTPACK_EXPORT_TYPE = 1 [(gogoproto.enumvalue_customname) = "SaltpackExportType"];
 }
 
 message KeyExportRequest {
@@ -413,8 +399,8 @@ message Key {
   string id = 1 [(gogoproto.customname) = "ID"];
   // Type of key.
   KeyType type = 3;
-  // Users associated with this key.
-  repeated User users = 6;  
+  // User associated with this key.
+  User user = 6;  
   // Saved if saved locally.
   bool saved = 10;
 }
@@ -576,8 +562,7 @@ message User {
 
 message UserSearchResult {
   string kid = 1 [(gogoproto.customname) = "KID"];
-  repeated User users = 2;
-  int32 matchCount = 3;
+  User user = 2;
 }
 
 message UserSearchRequest {
@@ -636,7 +621,7 @@ message Message {
   string sender = 2;
   MessageContent content = 10;
     
-  repeated User users = 20;
+  User user = 20;
   int64 createdAt = 21;
 
   string timeDisplay = 31;

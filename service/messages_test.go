@@ -13,7 +13,8 @@ func TestMessageCreateErrors(t *testing.T) {
 	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	ctx := context.TODO()
-	testAuthSetup(t, service, alice)
+	testAuthSetup(t, service)
+	testImportKey(t, service, alice)
 
 	randKey := keys.GenerateEd25519Key()
 	_, err := service.MessageCreate(ctx, &MessageCreateRequest{
@@ -35,7 +36,8 @@ func TestMessages(t *testing.T) {
 	aliceService, aliceCloseFn := newTestService(t, env)
 	defer aliceCloseFn()
 	ctx := context.TODO()
-	testAuthSetup(t, aliceService, alice)
+	testAuthSetup(t, aliceService)
+	testImportKey(t, aliceService, alice)
 	testUserSetup(t, env, aliceService, alice, "alice")
 	testPush(t, aliceService, alice)
 	testImportKey(t, aliceService, group)
@@ -43,7 +45,8 @@ func TestMessages(t *testing.T) {
 	// Bob service
 	bobService, bobCloseFn := newTestService(t, env)
 	defer bobCloseFn()
-	testAuthSetup(t, bobService, bob)
+	testAuthSetup(t, bobService)
+	testImportKey(t, bobService, bob)
 	testUserSetup(t, env, bobService, bob, "bob")
 	testImportKey(t, bobService, group)
 
@@ -100,8 +103,8 @@ func TestMessages(t *testing.T) {
 	// t.Logf("cols: %+v", paths)
 
 	require.Equal(t, "am1", messagesResp2.Messages[0].Content.Text)
-	require.Equal(t, 1, len(messagesResp2.Messages[0].Users))
-	require.Equal(t, "alice", messagesResp2.Messages[0].Users[0].Name)
+	require.NotNil(t, messagesResp2.Messages[0].User)
+	require.Equal(t, "alice", messagesResp2.Messages[0].User.Name)
 	require.Equal(t, "am2", messagesResp2.Messages[1].Content.Text)
 	require.Equal(t, "bm1", messagesResp2.Messages[2].Content.Text)
 
@@ -116,8 +119,8 @@ func TestMessages(t *testing.T) {
 	require.Equal(t, 3, len(messagesResp3.Messages))
 
 	require.Equal(t, "am1", messagesResp3.Messages[0].Content.Text)
-	require.Equal(t, 1, len(messagesResp3.Messages[0].Users))
-	require.Equal(t, "alice", messagesResp3.Messages[0].Users[0].Name)
+	require.NotNil(t, messagesResp3.Messages[0].User)
+	require.Equal(t, "alice", messagesResp3.Messages[0].User.Name)
 	require.Equal(t, "am2", messagesResp3.Messages[1].Content.Text)
 	require.Equal(t, "bm1", messagesResp3.Messages[2].Content.Text)
 }

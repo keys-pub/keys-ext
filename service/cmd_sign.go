@@ -140,10 +140,13 @@ func signCommands(client *Client) []cli.Command {
 							err = recvErr
 							break
 						}
-						if kid != "" && resp.KID != kid {
-							err = errors.Errorf("not signed by the specified kid, expected %s, was %s", kid, resp.KID)
+						if (kid == "" && resp.Signer == nil) || (resp.Signer != nil && resp.Signer.ID == kid) {
+							// OK
+						} else {
+							err = errors.Errorf("not signed by the specified kid, expected %s, was %s", kid, resp.Signer.ID)
 							break
 						}
+
 						if len(resp.Data) == 0 {
 							break
 						}

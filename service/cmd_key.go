@@ -88,7 +88,10 @@ func keyCommands(client *Client) []cli.Command {
 			Usage: "Generate a key",
 			Flags: []cli.Flag{},
 			Action: func(c *cli.Context) error {
-				req := &KeyGenerateRequest{}
+				// TODO: Key type
+				req := &KeyGenerateRequest{
+					Type: Ed25519,
+				}
 				resp, err := client.ProtoClient().KeyGenerate(context.TODO(), req)
 				if err != nil {
 					return err
@@ -112,7 +115,7 @@ func keyCommands(client *Client) []cli.Command {
 				req := &KeyExportRequest{
 					KID:      kid,
 					Password: c.String("password"),
-					Type:     SaltpackPwExportType,
+					Type:     SaltpackExportType,
 				}
 				resp, err := client.ProtoClient().KeyExport(context.TODO(), req)
 				if err != nil {

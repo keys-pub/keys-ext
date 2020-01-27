@@ -76,18 +76,17 @@ func keysSort(pks []*Key, sortField string, sortDirection SortDirection, i, j in
 		return pks[i].Type > pks[j].Type
 
 	case "user":
-		// TODO: Sorts on the first user, what do we do if more than 1 user?
-		if len(pks[i].Users) == 0 && len(pks[j].Users) == 0 {
+		if pks[i].User == nil && pks[j].User == nil {
 			return keysSort(pks, "kid", sortDirection, i, j)
-		} else if len(pks[i].Users) == 0 {
+		} else if pks[i].User == nil {
 			return false
-		} else if len(pks[j].Users) == 0 {
+		} else if pks[j].User == nil {
 			return true
 		}
 		if sortDirection == SortDesc {
-			return pks[i].Users[0].Name > pks[j].Users[0].Name
+			return pks[i].User.Name > pks[j].User.Name
 		}
-		return pks[i].Users[0].Name <= pks[j].Users[0].Name
+		return pks[i].User.Name <= pks[j].User.Name
 	default:
 		if sortDirection == SortDesc {
 			return pks[i].ID > pks[j].ID

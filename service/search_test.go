@@ -13,7 +13,8 @@ func TestSearch(t *testing.T) {
 	defer closeFn()
 	ctx := context.TODO()
 
-	testAuthSetup(t, service, alice)
+	testAuthSetup(t, service)
+	testImportKey(t, service, alice)
 	testUserSetup(t, env, service, alice, "alice")
 	testPush(t, service, alice)
 
@@ -27,8 +28,7 @@ func TestSearch(t *testing.T) {
 
 	// Alice
 	require.Equal(t, alice.ID().String(), resp.Results[0].KID)
-	require.Equal(t, 1, len(resp.Results[0].Users))
-	require.Equal(t, "alice", resp.Results[0].Users[0].Name)
+	require.Equal(t, "alice", resp.Results[0].User.Name)
 	// Charlie
 	require.Equal(t, bob.ID().String(), resp.Results[1].KID)
 

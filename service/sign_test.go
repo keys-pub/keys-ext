@@ -14,7 +14,8 @@ func TestSignVerify(t *testing.T) {
 	env := newTestEnv(t)
 	service, closeFn := newTestService(t, env)
 	defer closeFn()
-	testAuthSetup(t, service, alice)
+	testAuthSetup(t, service)
+	testImportKey(t, service, alice)
 
 	message := "I'm alice"
 	signResp, err := service.Sign(context.TODO(), &SignRequest{Data: []byte(message), KID: alice.ID().String()})
@@ -25,14 +26,15 @@ func TestSignVerify(t *testing.T) {
 	verifyResp, err := service.Verify(context.TODO(), &VerifyRequest{Data: signResp.Data})
 	require.NoError(t, err)
 	require.Equal(t, message, string(verifyResp.Data))
-	require.Equal(t, alice.ID().String(), verifyResp.KID)
+	require.Equal(t, alice.ID().String(), verifyResp.Signer.ID)
 }
 
 func TestSignStream(t *testing.T) {
 	env := newTestEnv(t)
 	service, closeFn := newTestService(t, env)
 	defer closeFn()
-	testAuthSetup(t, service, alice)
+	testAuthSetup(t, service)
+	testImportKey(t, service, alice)
 
 	testSignStream(t, service, bytes.Repeat([]byte{0x31}, 5), alice.ID().String())
 	testSignStream(t, service, bytes.Repeat([]byte{0x31}, (1024*1024)+5), alice.ID().String())

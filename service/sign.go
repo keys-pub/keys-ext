@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 
+	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/saltpack"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
@@ -38,7 +39,21 @@ func (s *service) Verify(ctx context.Context, req *VerifyRequest) (*VerifyRespon
 	if err != nil {
 		return nil, err
 	}
-	return &VerifyResponse{Data: verified, KID: sender.String()}, nil
+
+	var key keys.Key
+	if sender != "" {
+		k, err := s.ks.Key(sender)
+		if err != nil {
+			return nil, err
+		}
+		key = k
+	}
+	signer, err := s.keyToRPC(ctx, key, true)
+	if err != nil {
+		return nil, err
+	}
+
+	return &VerifyResponse{Data: verified, Signer: signer}, nil
 }
 
 // SignStream (RPC) ...
@@ -142,10 +157,22 @@ func (s *service) VerifyStream(srv Keys_VerifyStreamServer) error {
 	if streamErr != nil {
 		return streamErr
 	}
+	var key keys.Key
+	if sender != "" {
+		k, err := s.ks.Key(sender)
+		if err != nil {
+			return err
+		}
+		key = k
+	}
+	signer, err := s.keyToRPC(srv.Context(), key, true)
+	if err != nil {
+		return err
+	}
 	sendFn := func(b []byte) error {
 		resp := VerifyStreamOutput{
-			KID:  sender.String(),
-			Data: b,
+			Data:   b,
+			Signer: signer,
 		}
 		return srv.Send(&resp)
 	}
@@ -169,10 +196,23 @@ func (s *service) VerifyArmoredStream(srv Keys_VerifyArmoredStreamServer) error 
 	if streamErr != nil {
 		return streamErr
 	}
+
+	var key keys.Key
+	if sender != "" {
+		k, err := s.ks.Key(sender)
+		if err != nil {
+			return err
+		}
+		key = k
+	}
+	signer, err := s.keyToRPC(srv.Context(), key, true)
+	if err != nil {
+		return err
+	}
 	sendFn := func(b []byte) error {
 		resp := VerifyStreamOutput{
-			KID:  sender.String(),
-			Data: b,
+			Data:   b,
+			Signer: signer,
 		}
 		return srv.Send(&resp)
 	}

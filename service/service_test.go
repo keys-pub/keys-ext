@@ -81,33 +81,33 @@ func newTestService(t *testing.T, env *testEnv) (*service, CloseFn) {
 	return svc, closeFn
 }
 
-func testAuthSetup(t *testing.T, service *service, key *keys.SignKey) {
+func testAuthSetup(t *testing.T, service *service) {
 	password := "testpassword"
-	keyBackup := seedToSaltpack(password, key.Seed()[:])
-
 	_, err := service.AuthSetup(context.TODO(), &AuthSetupRequest{
-		Password:  password,
-		KeyBackup: keyBackup,
+		Password: password,
 	})
 	require.NoError(t, err)
 }
 
 func testImportKey(t *testing.T, service *service, key *keys.SignKey) {
-	saltpack := seedToSaltpack("test", key.Seed()[:])
-	_, err := service.KeyImport(context.TODO(), &KeyImportRequest{
+	saltpack, err := keys.EncodeKeyToSaltpack(key, "testpassword")
+	require.NoError(t, err)
+	_, err = service.KeyImport(context.TODO(), &KeyImportRequest{
 		In:       []byte(saltpack),
-		Password: "test",
+		Password: "testpassword",
 	})
 	require.NoError(t, err)
 }
 
-func testUserSetup(t *testing.T, env *testEnv, service *service, key *keys.SignKey, username string) {
+func userSetup(env *testEnv, service *service, key *keys.SignKey, username string) error {
 	resp, err := service.UserSign(context.TODO(), &UserSignRequest{
 		KID:     key.ID().String(),
 		Service: "github",
 		Name:    username,
 	})
-	require.NoError(t, err)
+	if err != nil {
+		return err
+	}
 
 	url := fmt.Sprintf("https://gist.github.com/%s/1", username)
 	env.req.SetResponse(url, []byte(resp.Message))
@@ -118,6 +118,11 @@ func testUserSetup(t *testing.T, env *testEnv, service *service, key *keys.SignK
 		Name:    username,
 		URL:     url,
 	})
+	return err
+}
+
+func testUserSetup(t *testing.T, env *testEnv, service *service, key *keys.SignKey, username string) {
+	err := userSetup(env, service, key, username)
 	require.NoError(t, err)
 }
 

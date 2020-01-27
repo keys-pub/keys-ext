@@ -11,7 +11,8 @@ func TestPush(t *testing.T) {
 	env := newTestEnv(t)
 	service, closeFn := newTestService(t, env)
 	defer closeFn()
-	testAuthSetup(t, service, alice)
+	testAuthSetup(t, service)
+	testImportKey(t, service, alice)
 	ctx := context.TODO()
 
 	_, err := service.Push(ctx, &PushRequest{KID: alice.ID().String()})

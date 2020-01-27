@@ -86,11 +86,11 @@ func fmtKey(w io.Writer, key *Key) {
 		fmt.Fprintf(w, "∅\n")
 		return
 	}
-	fmt.Fprintf(w, "%s\t%s\n", key.ID, fmtUsers(key.Users))
+	fmt.Fprintf(w, "%s\t%s\n", key.ID, fmtUser(key.User))
 }
 
 func fmtUserSearchResult(w io.Writer, res *UserSearchResult) {
-	fmt.Fprintf(w, "%s\t%s\n", res.KID, fmtUsers(res.Users))
+	fmt.Fprintf(w, "%s\t%s\n", fmtUser(res.User), res.KID)
 }
 
 func fmtItems(items []*Item) {

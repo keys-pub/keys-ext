@@ -14,8 +14,8 @@ func (s *service) UserSearch(ctx context.Context, req *UserSearchRequest) (*User
 	results := make([]*UserSearchResult, 0, len(res))
 	for _, r := range res {
 		results = append(results, &UserSearchResult{
-			KID:   r.KID.String(),
-			Users: userResultsToRPC(r.UserResults),
+			KID:  r.KID.String(),
+			User: userResultToRPC(r.UserResult),
 		})
 	}
 

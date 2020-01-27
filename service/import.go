@@ -9,92 +9,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// KeyExport (RPC) returns exports a key.
-func (s *service) KeyExport(ctx context.Context, req *KeyExportRequest) (*KeyExportResponse, error) {
-	key, err := s.parseSignKey(req.KID, true)
-	if err != nil {
-		return nil, err
-	}
-	switch req.Type {
-	case SaltpackPwExportType, DefaultExportType:
-		keyBackup := seedToSaltpack(req.Password, key.Seed()[:])
-		return &KeyExportResponse{
-			Export: []byte(keyBackup),
-		}, nil
-	default:
-		return nil, errors.Errorf("unrecognized export type %q", req.Type)
-	}
-}
-
-func (s *service) importID(id keys.ID) error {
-	// Check if item already exists and skip if so.
-	item, err := s.ks.Keyring().Get(id.String())
-	if err != nil {
-		return err
-	}
-	if item != nil {
-		return nil
-	}
-
-	hrp, _, err := id.Decode()
-	if err != nil {
-		return err
-	}
-	// TODO: hrp is hardcoded here
-	switch hrp {
-	case "kpe":
-		spk, err := keys.Ed25519PublicKeyFromID(id)
-		if err != nil {
-			return err
-		}
-		return s.ks.SaveSignPublicKey(spk)
-	default:
-		return errors.Errorf("unrecognized key id type %s", hrp)
-	}
-}
-
-func seedToSaltpack(password string, seed []byte) string {
-	out := keys.EncryptWithPassword(seed[:], password)
-	return keys.EncodeSaltpackMessage(out, "")
-}
-
-func saltpackToSeed(password string, msg string) ([]byte, error) {
-	b, err := keys.DecodeSaltpackMessage(msg, "")
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to parse saltpack")
-	}
-	seed, err := keys.DecryptWithPassword(b, password)
-	if err != nil {
-		return nil, err
-	}
-	return seed, nil
-}
-
-func (s *service) importSaltpack(in string, password string) (keys.ID, error) {
-	seed, err := saltpackToSeed(password, in)
-	if err != nil {
-		return "", err
-	}
-	if len(seed) != 32 {
-		return "", errors.Errorf("invalid sign key seed bytes in saltpack message")
-	}
-
-	key := keys.NewEd25519KeyFromSeed(keys.Bytes32(seed))
-
-	existing, err := s.ks.SignKey(key.ID())
-	if err != nil {
-		return "", err
-	}
-	if existing != nil {
-		return "", errors.Errorf("key already exists")
-	}
-
-	if err := s.ks.SaveSignKey(key); err != nil {
-		return "", err
-	}
-	return key.ID(), nil
-}
-
 // KeyImport (RPC) imports a key.
 func (s *service) KeyImport(ctx context.Context, req *KeyImportRequest) (*KeyImportResponse, error) {
 	in := req.In
@@ -121,4 +35,67 @@ func (s *service) KeyImport(ctx context.Context, req *KeyImportRequest) (*KeyImp
 	}
 
 	return nil, errors.Errorf("unrecognized key format")
+}
+
+// KeyExport (RPC) returns exports a key.
+func (s *service) KeyExport(ctx context.Context, req *KeyExportRequest) (*KeyExportResponse, error) {
+	id, err := keys.ParseID(req.KID)
+	if err != nil {
+		return nil, err
+	}
+
+	typ := req.Type
+	if typ == DefaultExportType {
+		typ = SaltpackExportType
+	}
+
+	switch typ {
+	case SaltpackExportType:
+		msg, err := s.ks.ExportSaltpack(id, req.Password)
+		if err != nil {
+			return nil, err
+		}
+		return &KeyExportResponse{Export: []byte(msg)}, nil
+	default:
+		return nil, errors.Errorf("unrecognized export type")
+	}
+}
+
+func (s *service) importID(id keys.ID) error {
+	// Check if item already exists and skip if so.
+	item, err := s.ks.Keyring().Get(id.String())
+	if err != nil {
+		return err
+	}
+	if item != nil {
+		return nil
+	}
+
+	switch id.KeyType() {
+	case keys.Ed25519Public:
+		spk, err := keys.Ed25519PublicKeyFromID(id)
+		if err != nil {
+			return err
+		}
+		return s.ks.SaveSignPublicKey(spk)
+	case keys.Curve25519Public:
+		bpk, err := keys.Curve25519PublicKeyFromID(id)
+		if err != nil {
+			return err
+		}
+		return s.ks.SaveBoxPublicKey(bpk)
+	default:
+		return errors.Errorf("unrecognized key type for %s", id)
+	}
+}
+
+func (s *service) importSaltpack(in string, password string) (keys.ID, error) {
+	key, err := keys.DecodeKeyFromSaltpack(in, password, false)
+	if err != nil {
+		return "", err
+	}
+	if err := s.ks.SaveKey(key); err != nil {
+		return "", err
+	}
+	return key.ID(), nil
 }

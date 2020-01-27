@@ -22,12 +22,17 @@ func (s *service) Encrypt(ctx context.Context, req *EncryptRequest) (*EncryptRes
 		return nil, err
 	}
 
+	mode := req.Mode
+	if mode == DefaultEncryptMode {
+		mode = EncryptV2
+	}
+
 	sp := saltpack.NewSaltpack(s.ks)
 	sp.SetArmored(req.Armored)
 
 	var out []byte
-	switch req.Mode {
-	case EncryptV2, DefaultEncryptMode:
+	switch mode {
+	case EncryptV2:
 		sender, err := s.parseBoxKey(req.Sender, false)
 		if err != nil {
 			return nil, err
@@ -61,32 +66,57 @@ func (s *service) Encrypt(ctx context.Context, req *EncryptRequest) (*EncryptRes
 
 // Decrypt (RPC) data.
 func (s *service) Decrypt(ctx context.Context, req *DecryptRequest) (*DecryptResponse, error) {
+	logger.Debugf("Decrypt")
+	mode := req.Mode
+	if mode == DefaultEncryptMode {
+		mode = EncryptV2
+	}
+
 	sp := saltpack.NewSaltpack(s.ks)
 	sp.SetArmored(req.Armored)
-	logger.Debugf("Saltpack open (len=%d)", len(req.Data))
 
 	var decrypted []byte
 	var sender keys.ID
-	switch req.Mode {
-	case EncryptV2, DefaultEncryptMode:
-		d, s, err := sp.Decrypt(req.Data)
-		if err != nil {
-			return nil, err
-		}
-		decrypted, sender = d, s
+	var err error
+	switch mode {
+	case EncryptV2:
+		decrypted, sender, err = sp.Decrypt(req.Data)
 	case SigncryptV1:
-		d, s, err := sp.SigncryptOpen(req.Data)
-		if err != nil {
-			return nil, err
-		}
-		decrypted, sender = d, s
+		decrypted, sender, err = sp.SigncryptOpen(req.Data)
 	default:
 		return nil, errors.Errorf("unsupported mode %s", req.Mode)
 	}
 
+	if err != nil {
+		if err.Error() == "failed to read header bytes" {
+			return nil, errors.Errorf("invalid data")
+		}
+		return nil, err
+	}
+
+	// If EncryptV2 check the sender.
+	if mode == EncryptV2 {
+		sender, err = s.checkSenderID(sender)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	var key keys.Key
+	if sender != "" {
+		key, err = s.ks.Key(sender)
+		if err != nil {
+			return nil, err
+		}
+	}
+	signer, err := s.keyToRPC(ctx, key, true)
+	if err != nil {
+		return nil, err
+	}
+
 	return &DecryptResponse{
 		Data:   decrypted,
-		Sender: sender.String(),
+		Sender: signer,
 	}, nil
 }
 
@@ -128,8 +158,13 @@ func (s *service) EncryptStream(srv Keys_EncryptStreamServer) error {
 			sp := saltpack.NewSaltpack(s.ks)
 			sp.SetArmored(req.Armored)
 
-			switch req.Mode {
-			case EncryptV2, DefaultEncryptMode:
+			mode := req.Mode
+			if mode == DefaultEncryptMode {
+				mode = EncryptV2
+			}
+
+			switch mode {
+			case EncryptV2:
 				sender, err := s.parseBoxKey(req.Sender, false)
 				if err != nil {
 					return err
@@ -259,7 +294,7 @@ func (s *service) decryptStream(srv decryptStreamServer, armored bool, mode Encr
 	var streamReader io.Reader
 	var sender keys.ID
 	switch mode {
-	case EncryptV2, DefaultEncryptMode:
+	case EncryptV2:
 		r, s, err := sp.NewDecryptStream(reader)
 		if err != nil {
 			return err
@@ -272,10 +307,33 @@ func (s *service) decryptStream(srv decryptStreamServer, armored bool, mode Encr
 		}
 		streamReader, sender = r, s
 	}
+
+	// If EncryptV2 check the sender.
+	if mode == EncryptV2 {
+		s, err := s.checkSenderID(sender)
+		if err != nil {
+			return err
+		}
+		sender = s
+	}
+
+	var key keys.Key
+	if sender != "" {
+		k, err := s.ks.Key(sender)
+		if err != nil {
+			return err
+		}
+		key = k
+	}
+	signer, err := s.keyToRPC(srv.Context(), key, true)
+	if err != nil {
+		return err
+	}
+
 	sendFn := func(b []byte) error {
 		resp := DecryptStreamOutput{
 			Data:   b,
-			Sender: sender.String(),
+			Sender: signer,
 		}
 		return srv.Send(&resp)
 	}

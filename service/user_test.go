@@ -14,7 +14,8 @@ func TestUserService(t *testing.T) {
 	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	ctx := context.TODO()
-	testAuthSetup(t, service, alice)
+	testAuthSetup(t, service)
+	testImportKey(t, service, alice)
 
 	_, err := service.UserService(ctx, &UserServiceRequest{
 		KID:     alice.ID().String(),
@@ -33,7 +34,8 @@ func TestUserSign(t *testing.T) {
 	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	ctx := context.TODO()
-	testAuthSetup(t, service, alice)
+	testAuthSetup(t, service)
+	testImportKey(t, service, alice)
 
 	resp, err := service.UserSign(ctx, &UserSignRequest{
 		KID:     alice.ID().String(),
@@ -58,7 +60,8 @@ func TestUserAdd(t *testing.T) {
 	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	ctx := context.TODO()
-	testAuthSetup(t, service, alice)
+	testAuthSetup(t, service)
+	testImportKey(t, service, alice)
 
 	testUserSetup(t, env, service, alice, "alice")
 	testPush(t, service, alice)
@@ -70,22 +73,19 @@ func TestUserAdd(t *testing.T) {
 	resp, err := service.UserSearch(context.TODO(), &UserSearchRequest{})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(resp.Results))
-	require.Equal(t, 1, len(resp.Results[0].Users))
-	require.Equal(t, "alice", resp.Results[0].Users[0].Name)
+	require.Equal(t, "alice", resp.Results[0].User.Name)
 
-	testUserSetup(t, env, service, alice, "alice2")
-	testPush(t, service, alice)
+	err = userSetup(env, service, alice, "alice2")
+	require.EqualError(t, err, "failed to generate user statement: user set in sigchain already")
 
 	sc2, err := service.scs.Sigchain(alice.ID())
 	require.NoError(t, err)
-	require.Equal(t, 2, len(sc2.Statements()))
+	require.Equal(t, 1, len(sc2.Statements()))
 
 	resp, err = service.UserSearch(context.TODO(), &UserSearchRequest{})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(resp.Results))
-	require.Equal(t, 2, len(resp.Results[0].Users))
-	require.Equal(t, "alice", resp.Results[0].Users[0].Name)
-	require.Equal(t, "alice2", resp.Results[0].Users[1].Name)
+	require.Equal(t, "alice", resp.Results[0].User.Name)
 
 	// Try to add user for a public key (not owned)
 	randSPK := keys.GenerateEd25519Key()
@@ -105,10 +105,11 @@ func TestSearchUsers(t *testing.T) {
 	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	ctx := context.TODO()
-	testAuthSetup(t, service, alice)
+	testAuthSetup(t, service)
+	testImportKey(t, service, alice)
 
 	for i := 0; i < 3; i++ {
-		keyResp, err := service.KeyGenerate(ctx, &KeyGenerateRequest{})
+		keyResp, err := service.KeyGenerate(ctx, &KeyGenerateRequest{Type: Ed25519})
 		require.NoError(t, err)
 		username := fmt.Sprintf("username%d", i)
 		kid, err := keys.ParseID(keyResp.KID)
@@ -140,7 +141,7 @@ func TestSearchUsers(t *testing.T) {
 	resp, err := service.UserSearch(ctx, &UserSearchRequest{})
 	require.NoError(t, err)
 	require.Equal(t, 3, len(resp.Results))
-	require.Equal(t, "username0", resp.Results[0].Users[0].Name)
-	require.Equal(t, "username1", resp.Results[1].Users[0].Name)
-	require.Equal(t, "username2", resp.Results[2].Users[0].Name)
+	require.Equal(t, "username0", resp.Results[0].User.Name)
+	require.Equal(t, "username1", resp.Results[1].User.Name)
+	require.Equal(t, "username2", resp.Results[2].User.Name)
 }

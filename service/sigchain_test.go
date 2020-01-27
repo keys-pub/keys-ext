@@ -12,7 +12,8 @@ func TestSigchain(t *testing.T) {
 	env := newTestEnv(t)
 	service, closeFn := newTestService(t, env)
 	defer closeFn()
-	testAuthSetup(t, service, alice)
+	testAuthSetup(t, service)
+	testImportKey(t, service, alice)
 	testUserSetup(t, env, service, alice, "alice")
 
 	sc, err := service.scs.Sigchain(alice.ID())

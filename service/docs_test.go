@@ -16,7 +16,8 @@ func TestDocuments(t *testing.T) {
 	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	ctx := context.TODO()
-	testAuthSetup(t, service, alice)
+	testAuthSetup(t, service)
+	testImportKey(t, service, alice)
 	testUserSetup(t, env, service, alice, "alice")
 	testPush(t, service, alice)
 

@@ -135,12 +135,12 @@ func (s *service) messageCreate(ctx context.Context, sender string, kid string, 
 }
 
 func (s *service) fillMessage(ctx context.Context, message *Message, t time.Time, sender keys.ID, path string) {
-	res, err := s.users.Get(ctx, sender)
+	result, err := s.users.Get(ctx, sender)
 	if err != nil {
 		logger.Errorf("Failed to load sigchain: %s", err)
 	}
 
-	message.Users = userResultsToRPC(res)
+	message.User = userResultToRPC(result)
 	message.Sender = sender.String()
 	message.CreatedAt = int64(keys.TimeToMillis(t))
 	message.TimeDisplay = timeDisplay(t)

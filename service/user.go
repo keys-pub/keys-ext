@@ -152,32 +152,21 @@ func userStatus(s keys.UserStatus) UserStatus {
 	}
 }
 
-func userResultToRPC(user *keys.UserResult) *User {
-	if user == nil {
+func userResultToRPC(result *keys.UserResult) *User {
+	if result == nil {
 		return nil
 	}
 	return &User{
-		KID:        user.User.KID.String(),
-		Seq:        int32(user.User.Seq),
-		Service:    user.User.Service,
-		Name:       user.User.Name,
-		URL:        user.User.URL,
-		Status:     userStatus(user.Status),
-		VerifiedAt: int64(user.VerifiedAt),
-		Err:        user.Err,
-		Label:      user.User.Name + "@" + user.User.Service,
+		KID:        result.User.KID.String(),
+		Seq:        int32(result.User.Seq),
+		Service:    result.User.Service,
+		Name:       result.User.Name,
+		URL:        result.User.URL,
+		Status:     userStatus(result.Status),
+		VerifiedAt: int64(result.VerifiedAt),
+		Err:        result.Err,
+		Label:      result.User.Name + "@" + result.User.Service,
 	}
-}
-
-func userResultsToRPC(in []*keys.UserResult) []*User {
-	if in == nil {
-		return nil
-	}
-	users := make([]*User, 0, len(in))
-	for _, u := range in {
-		users = append(users, userResultToRPC(u))
-	}
-	return users
 }
 
 func userToRPC(user *keys.User) *User {
@@ -213,14 +202,7 @@ func (s *service) searchUserExact(ctx context.Context, query string, local bool)
 	if len(res) == 0 {
 		return nil, nil
 	}
-
-	for _, user := range res[0].UserResults {
-		if query == fmt.Sprintf("%s@%s", user.User.Name, user.User.Service) {
-			return user, nil
-		}
-	}
-
-	return nil, nil
+	return res[0].UserResult, nil
 }
 
 func (s *service) searchUser(ctx context.Context, query string, limit int, local bool) ([]*keys.UserSearchResult, error) {
