@@ -12,7 +12,7 @@ func TestSigchain(t *testing.T) {
 	env := testEnv(t)
 	defer env.closeFn()
 
-	alice := keys.NewEd25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
+	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 
 	sc := keys.NewSigchain(alice.PublicKey())
 	st, err := keys.GenerateStatement(sc, []byte("testing1"), alice, "", env.clock.Now())
@@ -36,7 +36,7 @@ func TestSigchain(t *testing.T) {
 	require.Equal(t, 2, len(sc.Statements()))
 	// require.Equal(t, keys.TimeFromMillis(1234567890011), sc.Statements()[0].CreatedAt)
 
-	randID := keys.RandID("kse")
+	randID := keys.RandID("kex")
 	scResp2, err := env.client.Sigchain(randID)
 	require.NoError(t, err)
 	require.Nil(t, scResp2)
