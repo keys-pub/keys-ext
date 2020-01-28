@@ -390,8 +390,8 @@ enum KeyType {
   ED25519 = 10 [(gogoproto.enumvalue_customname) = "Ed25519"];
   ED25519_PUBLIC = 11 [(gogoproto.enumvalue_customname) = "Ed25519Public"];
 
-  CURVE25519 = 20 [(gogoproto.enumvalue_customname) = "X25519"];  
-  CURVE25519_PUBLIC = 21 [(gogoproto.enumvalue_customname) = "X25519Public"];  
+  X25519 = 20 [(gogoproto.enumvalue_customname) = "X25519"];  
+  X25519_PUBLIC = 21 [(gogoproto.enumvalue_customname) = "X25519Public"];  
 }
 
 message Key {
