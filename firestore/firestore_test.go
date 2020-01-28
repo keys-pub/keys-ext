@@ -375,7 +375,7 @@ func TestSigchains(t *testing.T) {
 
 	kids := []keys.ID{}
 	for i := 0; i < 6; i++ {
-		key := keys.GenerateEd25519Key()
+		key := keys.GenerateEdX25519Key()
 		sc := keys.NewSigchain(key.PublicKey())
 		st, err := keys.GenerateStatement(sc, []byte("test"), key, "", clock.Now())
 		require.NoError(t, err)
