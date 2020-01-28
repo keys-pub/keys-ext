@@ -44,9 +44,9 @@ func Emoji(key keys.Key) string {
 		return "🖋️"
 	case keys.Ed25519Public:
 		return "🖋️"
-	case keys.Curve25519:
+	case keys.X25519:
 		return "🔑"
-	case keys.Curve25519Public:
+	case keys.X25519Public:
 		return "🔑"
 	default:
 		return "❓"
@@ -67,8 +67,8 @@ func (s *service) loadKey(ctx context.Context, id keys.ID) (*Key, error) {
 var keyTypeStrings = []string{
 	string(keys.Ed25519),
 	string(keys.Ed25519Public),
-	string(keys.Curve25519),
-	string(keys.Curve25519Public),
+	string(keys.X25519),
+	string(keys.X25519Public),
 }
 
 func parseKeyType(s string) (KeyType, error) {
@@ -77,10 +77,10 @@ func parseKeyType(s string) (KeyType, error) {
 		return Ed25519, nil
 	case string(keys.Ed25519Public):
 		return Ed25519Public, nil
-	case string(keys.Curve25519):
-		return Curve25519, nil
-	case string(keys.Curve25519Public):
-		return Curve25519Public, nil
+	case string(keys.X25519):
+		return X25519, nil
+	case string(keys.X25519Public):
+		return X25519Public, nil
 	default:
 		return UnknownKeyType, errors.Errorf("unsupported key type %s", s)
 	}
@@ -92,10 +92,10 @@ func keyTypeFromRPC(t KeyType) (keys.KeyType, error) {
 		return keys.Ed25519, nil
 	case Ed25519Public:
 		return keys.Ed25519Public, nil
-	case Curve25519:
-		return keys.Curve25519, nil
-	case Curve25519Public:
-		return keys.Curve25519Public, nil
+	case X25519:
+		return keys.X25519, nil
+	case X25519Public:
+		return keys.X25519Public, nil
 	default:
 		return "", errors.Errorf("unsupported key type")
 	}
@@ -107,10 +107,10 @@ func keyTypeToRPC(t keys.KeyType) KeyType {
 		return Ed25519
 	case keys.Ed25519Public:
 		return Ed25519Public
-	case keys.Curve25519:
-		return Curve25519
-	case keys.Curve25519Public:
-		return Curve25519Public
+	case keys.X25519:
+		return X25519
+	case keys.X25519Public:
+		return X25519Public
 	default:
 		return UnknownKeyType
 	}
@@ -177,8 +177,8 @@ func (s *service) KeyGenerate(ctx context.Context, req *KeyGenerateRequest) (*Ke
 			return nil, err
 		}
 		kid = key.ID()
-	case Curve25519:
-		key := keys.GenerateCurve25519Key()
+	case X25519:
+		key := keys.GenerateX25519Key()
 		if err := s.ks.SaveBoxKey(key); err != nil {
 			return nil, err
 		}
@@ -271,8 +271,8 @@ func (s *service) parseBoxKey(kid string, required bool) (*keys.BoxKey, error) {
 		if key == nil && required {
 			return nil, keys.NewErrNotFound(kid)
 		}
-		return key.Curve25519Key(), nil
-	case keys.Curve25519Public:
+		return key.X25519Key(), nil
+	case keys.X25519Public:
 		key, err := s.ks.BoxKey(id)
 		if err != nil {
 			return nil, err
@@ -289,7 +289,7 @@ func (s *service) parseBoxKey(kid string, required bool) (*keys.BoxKey, error) {
 // checkSenderID checks if the ID is a box public key, finds the sign public key
 // equivalent if found and returns that ID, otherwise returns itself.
 func (s *service) checkSenderID(id keys.ID) (keys.ID, error) {
-	if id.IsCurve25519() {
+	if id.IsX25519() {
 		bpk, err := keys.BoxPublicKeyForID(id)
 		if err != nil {
 			return "", err

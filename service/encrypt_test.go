@@ -31,7 +31,7 @@ func TestEncryptDecrypt(t *testing.T) {
 	// Save alice's sign public key to bob's keystore, check for box key conversion.
 	err := bobService.ks.SaveSignPublicKey(alice.PublicKey())
 	require.NoError(t, err)
-	sk, err := bobService.ks.FindEd25519PublicKey(alice.Curve25519Key().PublicKey())
+	sk, err := bobService.ks.FindEd25519PublicKey(alice.X25519Key().PublicKey())
 	require.NoError(t, err)
 	require.NotNil(t, sk)
 	require.Equal(t, alice.ID(), sk.ID())
@@ -170,7 +170,7 @@ func TestEncryptDecryptStream(t *testing.T) {
 	// Save alice's sign public key to bob's keystore, check for box key conversion.
 	err := bobService.ks.SaveSignPublicKey(alice.PublicKey())
 	require.NoError(t, err)
-	sk, err := bobService.ks.FindEd25519PublicKey(alice.Curve25519Key().PublicKey())
+	sk, err := bobService.ks.FindEd25519PublicKey(alice.X25519Key().PublicKey())
 	require.NoError(t, err)
 	require.NotNil(t, sk)
 	require.Equal(t, alice.ID(), sk.ID())

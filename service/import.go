@@ -78,8 +78,8 @@ func (s *service) importID(id keys.ID) error {
 			return err
 		}
 		return s.ks.SaveSignPublicKey(spk)
-	case keys.Curve25519Public:
-		bpk, err := keys.Curve25519PublicKeyFromID(id)
+	case keys.X25519Public:
+		bpk, err := keys.X25519PublicKeyFromID(id)
 		if err != nil {
 			return err
 		}
