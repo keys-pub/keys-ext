@@ -149,7 +149,7 @@ func TestAccess(t *testing.T) {
 	users := testUserStore(t, fi, rq, clock)
 	srv := newTestServer(t, clock, fi, users)
 
-	alice := keys.NewEd25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
+	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 
 	upkCount := 0
 	scCount := 0
@@ -197,7 +197,7 @@ func TestAccess(t *testing.T) {
 	require.Equal(t, http.StatusTooManyRequests, code)
 	require.Equal(t, `{"error":{"code":429,"message":"sigchain deny test"}}`, body)
 
-	bob := keys.NewEd25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
+	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
 
 	// PUT /:kid/:seq (bob, allow)
 	bobSc := keys.NewSigchain(bob.PublicKey())

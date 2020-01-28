@@ -27,7 +27,7 @@ func TestUserSearch(t *testing.T) {
 	require.Equal(t, `{"results":[]}`, body)
 
 	// Alice
-	alice := keys.NewEd25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
+	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 
 	// Alice sign user statement
 	st := userMock(t, users, alice, "alice", "github", rq)
@@ -43,21 +43,21 @@ func TestUserSearch(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, `{"results":[{"kid":"kse132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawquwc7vw","users":{"status":"ok","ts":1234567890005,"user":{"k":"kse132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawquwc7vw","n":"alice","sq":1,"sr":"github","u":"https://gist.github.com/alice/1"},"vts":1234567890006}}]}`, body)
+	require.Equal(t, `{"results":[{"kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","users":{"status":"ok","ts":1234567890005,"user":{"k":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","n":"alice","sq":1,"sr":"github","u":"https://gist.github.com/alice/1"},"vts":1234567890006}}]}`, body)
 
 	// GET /user/search?q=alice
 	req, err = http.NewRequest("GET", "/user/search?q=alice", nil)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, `{"results":[{"kid":"kse132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawquwc7vw","users":{"status":"ok","ts":1234567890005,"user":{"k":"kse132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawquwc7vw","n":"alice","sq":1,"sr":"github","u":"https://gist.github.com/alice/1"},"vts":1234567890006}}]}`, body)
+	require.Equal(t, `{"results":[{"kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","users":{"status":"ok","ts":1234567890005,"user":{"k":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","n":"alice","sq":1,"sr":"github","u":"https://gist.github.com/alice/1"},"vts":1234567890006}}]}`, body)
 
 	// GET /user/search?q=alice@github
 	req, err = http.NewRequest("GET", "/user/search?q=alice@github", nil)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, `{"results":[{"kid":"kse132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawquwc7vw","users":{"status":"ok","ts":1234567890005,"user":{"k":"kse132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawquwc7vw","n":"alice","sq":1,"sr":"github","u":"https://gist.github.com/alice/1"},"vts":1234567890006}}]}`, body)
+	require.Equal(t, `{"results":[{"kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","users":{"status":"ok","ts":1234567890005,"user":{"k":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","n":"alice","sq":1,"sr":"github","u":"https://gist.github.com/alice/1"},"vts":1234567890006}}]}`, body)
 
 	// GET /user/search?q=unknown
 	req, err = http.NewRequest("GET", "/user/search?q=unknown", nil)
@@ -66,10 +66,10 @@ func TestUserSearch(t *testing.T) {
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, `{"results":[]}`, body)
 
-	// GET /user/kse132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawquwc7vw (alice)
-	req, err = http.NewRequest("GET", "/user/kse132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawquwc7vw", nil)
+	// GET /user/kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077 (alice)
+	req, err = http.NewRequest("GET", "/user/kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077", nil)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, `{"result":{"status":"ok","ts":1234567890005,"user":{"k":"kse132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawquwc7vw","n":"alice","sq":1,"sr":"github","u":"https://gist.github.com/alice/1"},"vts":1234567890006}}`, body)
+	require.Equal(t, `{"result":{"status":"ok","ts":1234567890005,"user":{"k":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","n":"alice","sq":1,"sr":"github","u":"https://gist.github.com/alice/1"},"vts":1234567890006}}`, body)
 }

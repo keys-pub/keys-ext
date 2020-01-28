@@ -21,7 +21,7 @@ func TestMessages(t *testing.T) {
 	users := testUserStore(t, fi, rq, clock)
 	srv := newTestServer(t, clock, fi, users)
 
-	group := keys.NewEd25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x04}, 32)))
+	group := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x04}, 32)))
 
 	// GET /messages/:kid
 	req, err := api.NewRequest("GET", keys.Path("messages", group.ID()), nil, clock.Now(), group)
@@ -55,7 +55,7 @@ func TestMessages(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	expectedMessages := `{"kid":"kse1e2f6c9c9rpc8r4nms0rl7rh7syyw3mz9xpt46aexs7fn8k76he7qvjmy44","messages":[{"data":"aGk=","id":"H1zXH53Xt3JJGx51ruhqk1p83q3VFGmUQCunR51fAsSu","path":"/messages/kse1e2f6c9c9rpc8r4nms0rl7rh7syyw3mz9xpt46aexs7fn8k76he7qvjmy44-H1zXH53Xt3JJGx51ruhqk1p83q3VFGmUQCunR51fAsSu"}],"version":"1234567890011"}`
+	expectedMessages := `{"kid":"kex1e2f6c9c9rpc8r4nms0rl7rh7syyw3mz9xpt46aexs7fn8k76he7qsa5489","messages":[{"data":"aGk=","id":"H1zXH53Xt3JJGx51ruhqk1p83q3VFGmUQCunR51fAsSu","path":"/messages/kex1e2f6c9c9rpc8r4nms0rl7rh7syyw3mz9xpt46aexs7fn8k76he7qsa5489-H1zXH53Xt3JJGx51ruhqk1p83q3VFGmUQCunR51fAsSu"}],"version":"1234567890011"}`
 	require.Equal(t, expectedMessages, body)
 
 	// GET /messages/:kid?version=1234567890012
@@ -63,7 +63,7 @@ func TestMessages(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	expectedMessages = `{"kid":"kse1e2f6c9c9rpc8r4nms0rl7rh7syyw3mz9xpt46aexs7fn8k76he7qvjmy44","messages":[],"version":"1234567890012"}`
+	expectedMessages = `{"kid":"kex1e2f6c9c9rpc8r4nms0rl7rh7syyw3mz9xpt46aexs7fn8k76he7qsa5489","messages":[],"version":"1234567890012"}`
 	require.Equal(t, expectedMessages, body)
 }
 
@@ -75,7 +75,7 @@ func TestMessagesAuth(t *testing.T) {
 	users := testUserStore(t, fi, rq, clock)
 	srv := newTestServer(t, clock, fi, users)
 
-	alice := keys.NewEd25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
+	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 
 	// GET /messages/:id (no auth)
 	req, err := http.NewRequest("GET", keys.Path("messages", keys.RandString(32)), nil)
@@ -100,7 +100,7 @@ func TestMessagesAuth(t *testing.T) {
 
 	// GET /messages/:kid (invalid authorization)
 	authHeader := req.Header.Get("Authorization")
-	randKey := keys.GenerateEd25519Key()
+	randKey := keys.GenerateEdX25519Key()
 	sig := strings.Split(authHeader, ":")[1]
 	req, err = api.NewRequest("GET", keys.Path("messages", randKey.ID()), nil, clock.Now(), randKey)
 	require.NoError(t, err)
