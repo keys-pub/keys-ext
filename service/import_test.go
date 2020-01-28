@@ -17,7 +17,7 @@ func TestKeyImportExport(t *testing.T) {
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
 
-	genResp, err := service.KeyGenerate(ctx, &KeyGenerateRequest{Type: Ed25519})
+	genResp, err := service.KeyGenerate(ctx, &KeyGenerateRequest{Type: EdX25519})
 	require.NoError(t, err)
 	kid, err := keys.ParseID(genResp.KID)
 	require.NoError(t, err)

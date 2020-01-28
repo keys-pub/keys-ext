@@ -16,7 +16,7 @@ func TestMessageCreateErrors(t *testing.T) {
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
 
-	randKey := keys.GenerateEd25519Key()
+	randKey := keys.GenerateEdX25519Key()
 	_, err := service.MessageCreate(ctx, &MessageCreateRequest{
 		KID:    randKey.ID().String(),
 		Sender: alice.ID().String(),

@@ -40,9 +40,9 @@ func (s *service) Key(ctx context.Context, req *KeyRequest) (*KeyResponse, error
 // Emoji for KeyType.
 func Emoji(key keys.Key) string {
 	switch key.Type() {
-	case keys.Ed25519:
+	case keys.EdX25519:
 		return "🖋️"
-	case keys.Ed25519Public:
+	case keys.EdX25519Public:
 		return "🖋️"
 	case keys.X25519:
 		return "🔑"
@@ -65,18 +65,18 @@ func (s *service) loadKey(ctx context.Context, id keys.ID) (*Key, error) {
 }
 
 var keyTypeStrings = []string{
-	string(keys.Ed25519),
-	string(keys.Ed25519Public),
+	string(keys.EdX25519),
+	string(keys.EdX25519Public),
 	string(keys.X25519),
 	string(keys.X25519Public),
 }
 
 func parseKeyType(s string) (KeyType, error) {
 	switch s {
-	case string(keys.Ed25519):
-		return Ed25519, nil
-	case string(keys.Ed25519Public):
-		return Ed25519Public, nil
+	case string(keys.EdX25519):
+		return EdX25519, nil
+	case string(keys.EdX25519Public):
+		return EdX25519Public, nil
 	case string(keys.X25519):
 		return X25519, nil
 	case string(keys.X25519Public):
@@ -88,10 +88,10 @@ func parseKeyType(s string) (KeyType, error) {
 
 func keyTypeFromRPC(t KeyType) (keys.KeyType, error) {
 	switch t {
-	case Ed25519:
-		return keys.Ed25519, nil
-	case Ed25519Public:
-		return keys.Ed25519Public, nil
+	case EdX25519:
+		return keys.EdX25519, nil
+	case EdX25519Public:
+		return keys.EdX25519Public, nil
 	case X25519:
 		return keys.X25519, nil
 	case X25519Public:
@@ -103,10 +103,10 @@ func keyTypeFromRPC(t KeyType) (keys.KeyType, error) {
 
 func keyTypeToRPC(t keys.KeyType) KeyType {
 	switch t {
-	case keys.Ed25519:
-		return Ed25519
-	case keys.Ed25519Public:
-		return Ed25519Public
+	case keys.EdX25519:
+		return EdX25519
+	case keys.EdX25519Public:
+		return EdX25519Public
 	case keys.X25519:
 		return X25519
 	case keys.X25519Public:
@@ -171,8 +171,8 @@ func (s *service) KeyGenerate(ctx context.Context, req *KeyGenerateRequest) (*Ke
 	}
 	var kid keys.ID
 	switch req.Type {
-	case Ed25519:
-		key := keys.GenerateEd25519Key()
+	case EdX25519:
+		key := keys.GenerateEdX25519Key()
 		if err := s.ks.SaveSignKey(key); err != nil {
 			return nil, err
 		}
@@ -236,7 +236,7 @@ func (s *service) parseSignKey(kid string, required bool) (*keys.SignKey, error)
 		return nil, err
 	}
 	switch id.KeyType() {
-	case keys.Ed25519Public:
+	case keys.EdX25519Public:
 		key, err := s.ks.SignKey(id)
 		if err != nil {
 			return nil, err
@@ -263,7 +263,7 @@ func (s *service) parseBoxKey(kid string, required bool) (*keys.BoxKey, error) {
 	}
 
 	switch id.KeyType() {
-	case keys.Ed25519Public:
+	case keys.EdX25519Public:
 		key, err := s.ks.SignKey(id)
 		if err != nil {
 			return nil, err
@@ -294,7 +294,7 @@ func (s *service) checkSenderID(id keys.ID) (keys.ID, error) {
 		if err != nil {
 			return "", err
 		}
-		spk, err := s.ks.FindEd25519PublicKey(bpk)
+		spk, err := s.ks.FindEdX25519PublicKey(bpk)
 		if err != nil {
 			return "", err
 		}

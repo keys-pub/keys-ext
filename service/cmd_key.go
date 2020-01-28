@@ -90,7 +90,7 @@ func keyCommands(client *Client) []cli.Command {
 			Action: func(c *cli.Context) error {
 				// TODO: Key type
 				req := &KeyGenerateRequest{
-					Type: Ed25519,
+					Type: EdX25519,
 				}
 				resp, err := client.ProtoClient().KeyGenerate(context.TODO(), req)
 				if err != nil {

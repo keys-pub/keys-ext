@@ -72,8 +72,8 @@ func (s *service) importID(id keys.ID) error {
 	}
 
 	switch id.KeyType() {
-	case keys.Ed25519Public:
-		spk, err := keys.Ed25519PublicKeyFromID(id)
+	case keys.EdX25519Public:
+		spk, err := keys.EdX25519PublicKeyFromID(id)
 		if err != nil {
 			return err
 		}

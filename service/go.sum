@@ -91,6 +91,8 @@ github.com/keys-pub/keys v0.0.0-20200127180501-ef6976d77dcf h1:Kk3zu0rJgAoL97Zx8
 github.com/keys-pub/keys v0.0.0-20200127180501-ef6976d77dcf/go.mod h1:/uNDuQDL1kCcJVsKMG2xLwUMS7zvoUrWL9k1OMZ7GZw=
 github.com/keys-pub/keys v0.0.0-20200128195449-5c447cc918ea h1:25qs6eRlDk6frr2sPlSFNpej6Mp5J4fI18ZOiuN/53o=
 github.com/keys-pub/keys v0.0.0-20200128195449-5c447cc918ea/go.mod h1:/uNDuQDL1kCcJVsKMG2xLwUMS7zvoUrWL9k1OMZ7GZw=
+github.com/keys-pub/keys v0.0.0-20200128210451-9ae521aecfd0 h1:m4SSOoHu3EFSBIMp2Kgz3uiY6eeX3MAD4InCYmTvGWk=
+github.com/keys-pub/keys v0.0.0-20200128210451-9ae521aecfd0/go.mod h1:/uNDuQDL1kCcJVsKMG2xLwUMS7zvoUrWL9k1OMZ7GZw=
 github.com/keys-pub/keysd/db v0.0.0-20200107201839-fad84006d436 h1:jEiz/NExo18gFmYrM0fiZIXaOTRFAsqtdZAD8lcn6dE=
 github.com/keys-pub/keysd/db v0.0.0-20200107201839-fad84006d436/go.mod h1:AB5JqGVXFwlbVGybCDbjni0rsFKNOuvykMvHqmIAEL8=
 github.com/keys-pub/keysd/db v0.0.0-20200108230855-718e5875c933 h1:lgAlsSAOcQDyFke0OgCjXrdshR5EuKdlz5p9/x/6TQs=
@@ -107,6 +109,8 @@ github.com/keys-pub/keysd/http/api v0.0.0-20200124061657-dc71bea457bb h1:OXpfYu3
 github.com/keys-pub/keysd/http/api v0.0.0-20200124061657-dc71bea457bb/go.mod h1:No9jnOhs2PxuPKqW4szrZ454YDTW/+ERX2yJR3N5XIE=
 github.com/keys-pub/keysd/http/api v0.0.0-20200126194816-9555aa1b9e60 h1:WKo9oNI1P4HPYYbfKk4FBnpSp33MtXIM/A4JZX5ck/g=
 github.com/keys-pub/keysd/http/api v0.0.0-20200126194816-9555aa1b9e60/go.mod h1:g8YVahsoK4vJnlKPzb5gVAF+jkwNz1Qhepk+h0x/NeM=
+github.com/keys-pub/keysd/http/api v0.0.0-20200128211114-8182e2f364bf h1:CYF1bUQJTkPKrmlXYuyHlgN5Q7BYKnOuJA9ZDlH1Zks=
+github.com/keys-pub/keysd/http/api v0.0.0-20200128211114-8182e2f364bf/go.mod h1:QBxSCAzu0FJyB+EM5XqyL/z1YAMRzjkiF/AB7+Xt+V4=
 github.com/keys-pub/keysd/http/client v0.0.0-20200107201839-fad84006d436 h1:WlPN1FxtDTamScqrJzjyPwrxd7jZJiVbhBEH2fUEObs=
 github.com/keys-pub/keysd/http/client v0.0.0-20200107201839-fad84006d436/go.mod h1:KiGbZMNyiN2gNYK6oFEz3ox0G5RFe08+sN3Rvw/XIkk=
 github.com/keys-pub/keysd/http/client v0.0.0-20200107234508-383368f91d9b h1:h7AYkoo4jJr0h+iuL7phOtSzq6EJ1VF2JiOmDwJC5Ew=
@@ -119,6 +123,8 @@ github.com/keys-pub/keysd/http/client v0.0.0-20200124061834-3fbebc18b9d4 h1:3UgX
 github.com/keys-pub/keysd/http/client v0.0.0-20200124061834-3fbebc18b9d4/go.mod h1:sN3NyZJ6pefdqTV6+c+uE21mp+CjfUY30/30GxDiG/s=
 github.com/keys-pub/keysd/http/client v0.0.0-20200126195039-aaa3fb7ce5d4 h1:EQMfKASa8Xs7CHu14BEO5lvIeVyPw6g03OI/4VpUFFU=
 github.com/keys-pub/keysd/http/client v0.0.0-20200126195039-aaa3fb7ce5d4/go.mod h1:Eg5+uwImGEFuTHUKx75R9ojnjW4lSfMD1fnqMFRI5f0=
+github.com/keys-pub/keysd/http/client v0.0.0-20200128211114-8182e2f364bf h1:WlYJYIn7ekK8Y/nFvXjnUJ3AYkKRn1NHvWLycCMpQO4=
+github.com/keys-pub/keysd/http/client v0.0.0-20200128211114-8182e2f364bf/go.mod h1:XpuTrBfXqIiF+GeKsznoOf7gSxg6GZ9NoiAL2uKJ0Rc=
 github.com/keys-pub/keysd/http/server v0.0.0-20200107201651-c29d2dc0ae77 h1:zcT9/Lg1cMknj8Ho2/B55UqBdXF4gXFI0KSYBn24+q0=
 github.com/keys-pub/keysd/http/server v0.0.0-20200107201651-c29d2dc0ae77/go.mod h1:2atcfg/fNSGhueeAMc56afG2jPE+YZ1L4pdaWIINr9w=
 github.com/keys-pub/keysd/http/server v0.0.0-20200107234415-8888386190c0 h1:TI2wVpUzY3isI9akwN4iM+tdA38hDpWXLqb0iUHgoSs=
@@ -133,6 +139,8 @@ github.com/keys-pub/keysd/http/server v0.0.0-20200124061611-28a3a3362e7a h1:ZQ29
 github.com/keys-pub/keysd/http/server v0.0.0-20200124061611-28a3a3362e7a/go.mod h1:v9aLqfM4GIupsxYNboEoLP3czrDK7EO+AYUxSTbGw38=
 github.com/keys-pub/keysd/http/server v0.0.0-20200126194914-e15709360fbd h1:bvhddwNHVB/sorDSiDMNj1lCBs94SL5If74D4z9/c0Y=
 github.com/keys-pub/keysd/http/server v0.0.0-20200126194914-e15709360fbd/go.mod h1:cT7ro6zHcyvsr40oEqbGB5hAO+d+vJhAHLF+sIVEqlI=
+github.com/keys-pub/keysd/http/server v0.0.0-20200128211114-8182e2f364bf h1:PhdDb7wNqU0SoeRb6GzyLGh+YRsFnumVhEYR75hRccU=
+github.com/keys-pub/keysd/http/server v0.0.0-20200128211114-8182e2f364bf/go.mod h1:w26KC4o132n7E90v+8XaMhLPSdMYriaH0RK3eq8Kd/U=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=
 github.com/kisielk/errcheck v1.2.0/go.mod h1:/BMXB+zMLi60iA8Vv6Ksmxu/1UDYcXs4uQLJ+jE2L00=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=

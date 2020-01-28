@@ -7,11 +7,11 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/gogo/protobuf v1.3.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.1.0
-	github.com/keys-pub/keys v0.0.0-20200128195449-5c447cc918ea
+	github.com/keys-pub/keys v0.0.0-20200128210451-9ae521aecfd0
 	github.com/keys-pub/keysd/db v0.0.0-20200110200550-f472e79d2ba3
-	github.com/keys-pub/keysd/http/api v0.0.0-20200126194816-9555aa1b9e60
-	github.com/keys-pub/keysd/http/client v0.0.0-20200126195039-aaa3fb7ce5d4
-	github.com/keys-pub/keysd/http/server v0.0.0-20200126194914-e15709360fbd
+	github.com/keys-pub/keysd/http/api v0.0.0-20200128211114-8182e2f364bf
+	github.com/keys-pub/keysd/http/client v0.0.0-20200128211114-8182e2f364bf
+	github.com/keys-pub/keysd/http/server v0.0.0-20200128211114-8182e2f364bf
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/logrusorgru/aurora v0.0.0-20191116043053-66b7ad493a23
 	github.com/mercari/go-grpc-interceptor v0.0.0-20180110035004-b8ad3827e82a

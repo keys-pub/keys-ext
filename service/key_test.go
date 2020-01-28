@@ -47,7 +47,7 @@ func TestKeyGenerate(t *testing.T) {
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
 
-	genResp, err := service.KeyGenerate(ctx, &KeyGenerateRequest{Type: Ed25519})
+	genResp, err := service.KeyGenerate(ctx, &KeyGenerateRequest{Type: EdX25519})
 	require.NoError(t, err)
 
 	key, err := service.parseSignKey(genResp.KID, true)
@@ -65,7 +65,7 @@ func TestKeyRemove(t *testing.T) {
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
 
-	genResp, err := service.KeyGenerate(ctx, &KeyGenerateRequest{Type: Ed25519})
+	genResp, err := service.KeyGenerate(ctx, &KeyGenerateRequest{Type: EdX25519})
 	require.NoError(t, err)
 	kid, err := keys.ParseID(genResp.KID)
 	require.NoError(t, err)
@@ -78,7 +78,7 @@ func TestKeyRemove(t *testing.T) {
 	require.NoError(t, err)
 
 	// Remove (not found)
-	randKey := keys.GenerateEd25519Key()
+	randKey := keys.GenerateEdX25519Key()
 	_, err = service.KeyRemove(ctx, &KeyRemoveRequest{KID: randKey.ID().String()})
 	require.EqualError(t, err, fmt.Sprintf("not found %s", randKey.ID()))
 }

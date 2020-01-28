@@ -88,7 +88,7 @@ func TestUserAdd(t *testing.T) {
 	require.Equal(t, "alice", resp.Results[0].User.Name)
 
 	// Try to add user for a public key (not owned)
-	randSPK := keys.GenerateEd25519Key()
+	randSPK := keys.GenerateEdX25519Key()
 	randID := randSPK.ID()
 
 	_, err = service.UserAdd(ctx, &UserAddRequest{
@@ -109,7 +109,7 @@ func TestSearchUsers(t *testing.T) {
 	testImportKey(t, service, alice)
 
 	for i := 0; i < 3; i++ {
-		keyResp, err := service.KeyGenerate(ctx, &KeyGenerateRequest{Type: Ed25519})
+		keyResp, err := service.KeyGenerate(ctx, &KeyGenerateRequest{Type: EdX25519})
 		require.NoError(t, err)
 		username := fmt.Sprintf("username%d", i)
 		kid, err := keys.ParseID(keyResp.KID)
