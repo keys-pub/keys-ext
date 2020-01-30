@@ -7,7 +7,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/gogo/protobuf v1.3.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.1.0
-	github.com/keys-pub/keys v0.0.0-20200128210451-9ae521aecfd0
+	github.com/keys-pub/keys v0.0.0-20200129230330-acf4f37f9007
 	github.com/keys-pub/keysd/db v0.0.0-20200110200550-f472e79d2ba3
 	github.com/keys-pub/keysd/http/api v0.0.0-20200128211114-8182e2f364bf
 	github.com/keys-pub/keysd/http/client v0.0.0-20200128211114-8182e2f364bf

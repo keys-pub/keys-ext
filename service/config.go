@@ -147,11 +147,12 @@ func DefaultHomeDir() string {
 }
 
 type values struct {
-	Server            string      `json:"server"`
-	KeyringType       KeyringType `json:"keyringType"`
-	LogLevel          string      `json:"logLevel"`
-	Port              int         `json:"port"`
-	DisablePromptUser bool        `json:"disablePromptUser"`
+	Server              string      `json:"server"`
+	KeyringType         KeyringType `json:"keyringType"`
+	LogLevel            string      `json:"logLevel"`
+	Port                int         `json:"port"`
+	DisablePromptKeygen bool        `json:"disablePromptKeygen"`
+	DisablePromptUser   bool        `json:"disablePromptUser"`
 }
 
 // KeyringType is the keyring to use.
@@ -274,6 +275,16 @@ func (c Config) KeyringType() KeyringType {
 // SetKeyringType ...
 func (c *Config) SetKeyringType(t KeyringType) {
 	c.values.KeyringType = t
+}
+
+// DisablePromptKeygen ...
+func (c *Config) DisablePromptKeygen() bool {
+	return c.values.DisablePromptKeygen
+}
+
+// SetDisablePromptKeygen ...
+func (c *Config) SetDisablePromptKeygen(b bool) {
+	c.values.DisablePromptKeygen = b
 }
 
 // DisablePromptUser ...
