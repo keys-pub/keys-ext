@@ -60,6 +60,9 @@ func fmtKeys(keys []*Key) {
 }
 
 func fmtUser(user *User) string {
+	if user == nil {
+		return ""
+	}
 	s := fmt.Sprintf("%s@%s", user.Name, user.Service)
 	switch user.Status {
 	case UserStatusOK:

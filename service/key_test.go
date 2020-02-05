@@ -1,6 +1,7 @@
 package service
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"testing"
@@ -39,6 +40,30 @@ func TestKey(t *testing.T) {
 	require.Equal(t, alice.ID().String(), resp.Key.ID)
 
 	// TODO: Test update
+}
+
+func TestFmtKey(t *testing.T) {
+	env := newTestEnv(t)
+	service, closeFn := newTestService(t, env)
+	defer closeFn()
+	ctx := context.TODO()
+
+	testAuthSetup(t, service)
+	testImportKey(t, service, alice)
+
+	ak, err := service.keyToRPC(ctx, alice)
+	require.NoError(t, err)
+	var buf bytes.Buffer
+	fmtKey(&buf, ak)
+	require.Equal(t, "kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077\t\n", buf.String())
+
+	testUserSetup(t, env, service, alice, "alice")
+
+	ak2, err := service.keyToRPC(ctx, alice)
+	require.NoError(t, err)
+	var buf2 bytes.Buffer
+	fmtKey(&buf2, ak2)
+	require.Equal(t, "kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077\t\x1b[32malice@github\x1b[0m\n", buf2.String())
 }
 
 func TestKeyGenerate(t *testing.T) {
