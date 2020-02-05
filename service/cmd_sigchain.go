@@ -99,9 +99,9 @@ func sigchainCommands(client *Client) []cli.Command {
 								}
 
 								resp, err := client.ProtoClient().StatementCreate(context.TODO(), &StatementCreateRequest{
-									KID:       c.String("kid"),
-									Data:      b,
-									LocalOnly: c.Bool("local"),
+									KID:   c.String("kid"),
+									Data:  b,
+									Local: c.Bool("local"),
 								})
 								if err != nil {
 									return err
@@ -125,9 +125,9 @@ func sigchainCommands(client *Client) []cli.Command {
 									return err
 								}
 								resp, err := client.ProtoClient().StatementRevoke(context.TODO(), &StatementRevokeRequest{
-									KID:       kid,
-									Seq:       int32(c.Int("seq")),
-									LocalOnly: c.Bool("local"),
+									KID:   kid,
+									Seq:   int32(c.Int("seq")),
+									Local: c.Bool("local"),
 								})
 								if err != nil {
 									return err

@@ -37,6 +37,8 @@ func TestKey(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, resp.Key)
 	require.Equal(t, alice.ID().String(), resp.Key.ID)
+
+	// TODO: Test update
 }
 
 func TestKeyGenerate(t *testing.T) {

@@ -67,6 +67,12 @@ func (s *service) pull(ctx context.Context, kid keys.ID) (bool, error) {
 		return false, err
 	}
 
+	return s.update(ctx, kid)
+}
+
+func (s *service) update(ctx context.Context, kid keys.ID) (bool, error) {
+	logger.Infof("Update %s", kid)
+
 	resp, err := s.remote.Sigchain(kid)
 	if err != nil {
 		return false, err

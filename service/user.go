@@ -69,7 +69,7 @@ func (s *service) UserAdd(ctx context.Context, req *UserAddRequest) (*UserAddRes
 		return nil, err
 	}
 
-	user, st, err := s.sigchainUserAdd(ctx, key, req.Service, req.Name, req.URL, req.LocalOnly)
+	user, st, err := s.sigchainUserAdd(ctx, key, req.Service, req.Name, req.URL, req.Local)
 	if err != nil {
 		return nil, err
 	}

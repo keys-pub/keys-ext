@@ -187,11 +187,11 @@ func userCommands(client *Client) []cli.Command {
 					},
 					Action: func(c *cli.Context) error {
 						resp, err := client.ProtoClient().UserAdd(context.TODO(), &UserAddRequest{
-							KID:       c.String("kid"),
-							Service:   c.String("service"),
-							Name:      c.String("name"),
-							URL:       c.String("url"),
-							LocalOnly: c.Bool("local"),
+							KID:     c.String("kid"),
+							Service: c.String("service"),
+							Name:    c.String("name"),
+							URL:     c.String("url"),
+							Local:   c.Bool("local"),
 						})
 						if err != nil {
 							return err

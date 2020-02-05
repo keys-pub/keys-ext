@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"sort"
+	strings "strings"
 
 	"github.com/keys-pub/keys"
 	"github.com/pkg/errors"
@@ -30,7 +31,7 @@ func (s *service) Keys(ctx context.Context, req *KeysRequest) (*KeysResponse, er
 		return nil, err
 	}
 
-	keys, err := s.keys(ctx, ks, sortField, sortDirection)
+	keys, err := s.keys(ctx, ks, req.Query, sortField, sortDirection)
 	if err != nil {
 		return nil, err
 	}
@@ -42,14 +43,16 @@ func (s *service) Keys(ctx context.Context, req *KeysRequest) (*KeysResponse, er
 	}, nil
 }
 
-func (s *service) keys(ctx context.Context, ks []keys.Key, sortField string, sortDirection SortDirection) ([]*Key, error) {
+func (s *service) keys(ctx context.Context, ks []keys.Key, query string, sortField string, sortDirection SortDirection) ([]*Key, error) {
 	keys := make([]*Key, 0, len(ks))
-	for _, sk := range ks {
-		key, err := s.keyToRPC(ctx, sk, true)
+	for _, k := range ks {
+		key, err := s.keyToRPC(ctx, k)
 		if err != nil {
 			return nil, err
 		}
-		keys = append(keys, key)
+		if query == "" || (key.User != nil && strings.HasPrefix(key.User.Label, query)) || strings.HasPrefix(key.ID, query) {
+			keys = append(keys, key)
+		}
 	}
 
 	switch sortField {

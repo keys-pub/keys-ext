@@ -27,6 +27,12 @@ func (s *service) Key(ctx context.Context, req *KeyRequest) (*KeyResponse, error
 		kid = k
 	}
 
+	if req.Update {
+		if _, err := s.update(ctx, kid); err != nil {
+			return nil, err
+		}
+	}
+
 	key, err := s.loadKey(ctx, kid)
 	if err != nil {
 		return nil, err
@@ -59,9 +65,9 @@ func (s *service) loadKey(ctx context.Context, id keys.ID) (*Key, error) {
 		return nil, err
 	}
 	if key == nil {
-		return nil, nil
+		return s.keyIDToRPC(ctx, id)
 	}
-	return s.keyToRPC(ctx, key, true)
+	return s.keyToRPC(ctx, key)
 }
 
 var keyTypeStrings = []string{
@@ -116,7 +122,7 @@ func keyTypeToRPC(t keys.KeyType) KeyType {
 	}
 }
 
-func (s *service) keyToRPC(ctx context.Context, key keys.Key, saved bool) (*Key, error) {
+func (s *service) keyToRPC(ctx context.Context, key keys.Key) (*Key, error) {
 	if key == nil {
 		return nil, nil
 	}
@@ -131,7 +137,23 @@ func (s *service) keyToRPC(ctx context.Context, key keys.Key, saved bool) (*Key,
 		ID:    key.ID().String(),
 		User:  userResultToRPC(result),
 		Type:  typ,
-		Saved: saved,
+		Saved: true,
+	}, nil
+}
+
+func (s *service) keyIDToRPC(ctx context.Context, kid keys.ID) (*Key, error) {
+	result, err := s.users.Get(ctx, kid)
+	if err != nil {
+		return nil, err
+	}
+
+	typ := keyTypeToRPC(kid.KeyType())
+
+	return &Key{
+		ID:    kid.String(),
+		User:  userResultToRPC(result),
+		Type:  typ,
+		Saved: false,
 	}, nil
 }
 

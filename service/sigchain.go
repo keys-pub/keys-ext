@@ -131,7 +131,7 @@ func (s *service) StatementCreate(ctx context.Context, req *StatementCreateReque
 		return nil, err
 	}
 
-	if !req.LocalOnly {
+	if !req.Local {
 		if err := s.remote.PutSigchainStatement(st); err != nil {
 			return nil, err
 		}
@@ -165,7 +165,7 @@ func (s *service) StatementRevoke(ctx context.Context, req *StatementRevokeReque
 		return nil, err
 	}
 
-	if !req.LocalOnly {
+	if !req.Local {
 		if err := s.remote.PutSigchainStatement(st); err != nil {
 			return nil, err
 		}
