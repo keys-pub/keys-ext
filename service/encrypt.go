@@ -237,14 +237,14 @@ func NewDecryptStreamClient(ctx context.Context, cl KeysClient, armored bool, mo
 	switch mode {
 	case DefaultEncryptMode, EncryptV2:
 		if armored {
-			return cl.SigncryptOpenArmoredStream(ctx)
-		}
-		return cl.SigncryptOpenStream(ctx)
-	case SigncryptV1:
-		if armored {
 			return cl.DecryptArmoredStream(ctx)
 		}
 		return cl.DecryptStream(ctx)
+	case SigncryptV1:
+		if armored {
+			return cl.SigncryptOpenArmoredStream(ctx)
+		}
+		return cl.SigncryptOpenStream(ctx)
 	default:
 		return nil, errors.Errorf("unsupported mode %s", mode)
 	}

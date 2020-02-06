@@ -14,7 +14,6 @@ import (
 )
 
 func keyCommands(client *Client) []cli.Command {
-
 	return []cli.Command{
 		cli.Command{
 			Name:  "list",
@@ -121,7 +120,7 @@ func keyCommands(client *Client) []cli.Command {
 				if err != nil {
 					return err
 				}
-				fmt.Println(resp.Export)
+				fmt.Println(string(resp.Export))
 				return nil
 			},
 		},

@@ -35,9 +35,6 @@ func TestKeyImportExport(t *testing.T) {
 	require.NoError(t, err)
 
 	// Import
-	_, err = service.KeyImport(ctx, &KeyImportRequest{In: []byte{}})
-	require.EqualError(t, err, "failed to import key: failed to decrypt saltpack encoded key: failed to decrypt with a password: not enough bytes")
-
 	importResp, err := service.KeyImport(ctx, &KeyImportRequest{
 		In:       exportResp.Export,
 		Password: "test",
@@ -48,4 +45,15 @@ func TestKeyImportExport(t *testing.T) {
 	keyResp, err := service.Key(ctx, &KeyRequest{KID: kid.String()})
 	require.NoError(t, err)
 	require.Equal(t, kid.String(), keyResp.Key.ID)
+
+	// Import (bob, ID)
+	importResp, err = service.KeyImport(ctx, &KeyImportRequest{
+		In: []byte(bob.ID().String()),
+	})
+	require.NoError(t, err)
+	require.Equal(t, bob.ID().String(), importResp.KID)
+
+	// Import (error)
+	_, err = service.KeyImport(ctx, &KeyImportRequest{In: []byte{}})
+	require.EqualError(t, err, "failed to import key: failed to decrypt saltpack encoded key: failed to decrypt with a password: not enough bytes")
 }

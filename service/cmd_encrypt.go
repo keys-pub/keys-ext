@@ -27,7 +27,7 @@ func sealCommands(client *Client) []cli.Command {
 			Usage:     "Encrypt",
 			ArgsUsage: "<stdin or -in>",
 			Flags: []cli.Flag{
-				cli.StringFlag{Name: "recipients, r", Usage: "recipients"},
+				cli.StringSliceFlag{Name: "recipients, r", Usage: "recipients"},
 				cli.StringFlag{Name: "sender, s", Usage: "sender (or anonymous if not specified)"},
 				cli.BoolFlag{Name: "armor, a", Usage: "armored"},
 				cli.StringFlag{Name: "in, i", Usage: "file to read or stdin if not specified"},

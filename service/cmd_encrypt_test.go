@@ -1,37 +1,72 @@
 package service
 
-// func TestEncryptCommand(t *testing.T) {
-// 	SetLog(newLog(DebugLevel))
-// 	service := testService(t)
-// 	defer service.Close()
-// 	client, closeFn := newTestClient(t, service)
-// 	defer closeFn()
+import (
+	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"testing"
 
-// 	err := service.auth.Setup("testtoken123")
-// 	require.NoError(t, err)
-// 	err := os.Setenv("KEYS_AUTH", "testtoken123")
-// 	require.NoError(t, err)
+	"github.com/stretchr/testify/require"
+)
 
-// 	genResp, err := service.KeyGenerate(context.TODO(), &KeyGenerateRequest{})
-// 	require.NoError(t, err)
-// 	kid := genResp.UserPublicKey.ID
+func TestEncryptDecryptCommand(t *testing.T) {
+	SetLogger(NewLogger(DebugLevel))
 
-// 	inPath := newTempPath(t, "txt")
-// 	outPath := inPath + ".enc"
+	env := newTestEnv(t)
+	service, closeFn := newTestService(t, env)
+	defer closeFn()
 
-// 	var clientErr error
-// 	errorFn := func(err error) {
-// 		clientErr = err
-// 	}
+	client, closeClFn := newTestRPCClient(t, service)
+	defer closeClFn()
 
-// 	args := os.Args[0:1]
-// 	args = append(args, "encrypt", "-recipients", kid, "-in", inPath, "-out", outPath)
-// 	runClient(Build{}, args, client, errorFn)
-// 	require.EqualError(t, clientErr, fmt.Sprintf("open %s: no such file or directory", inPath))
-// 	clientErr = nil
-// 	writeErr := ioutil.WriteFile(inPath, []byte("test message"), 0644)
-// 	require.NoError(t, writeErr)
+	testAuthSetup(t, service)
+	testImportKey(t, service, alice)
+	testImportID(t, service, bob.ID())
 
-// 	runClient(Build{}, args, client, errorFn)
-// 	require.NoError(t, clientErr)
-// }
+	inPath := filepath.Join(os.TempDir(), "test.txt")
+	outPath := inPath + ".enc"
+
+	var clientErr error
+	errorFn := func(err error) {
+		clientErr = err
+	}
+
+	argsEncrypt := append(os.Args[0:1], "encrypt", "-r", alice.ID().String(), "-r", bob.ID().String(), "-in", inPath, "-out", outPath)
+	runClient(Build{Version: "1.2.3"}, argsEncrypt, client, errorFn)
+	require.EqualError(t, clientErr, fmt.Sprintf("open %s: no such file or directory", inPath))
+	clientErr = nil
+
+	writeErr := ioutil.WriteFile(inPath, []byte("test message"), 0644)
+	require.NoError(t, writeErr)
+	defer os.Remove(inPath)
+
+	// Default
+	runClient(Build{Version: "1.2.3"}, argsEncrypt, client, errorFn)
+	require.NoError(t, clientErr)
+
+	outPath2 := inPath + ".out"
+	argsDecrypt := append(os.Args[0:1], "decrypt", "-in", outPath, "-out", outPath2)
+	runClient(Build{Version: "1.2.3"}, argsDecrypt, client, errorFn)
+	require.NoError(t, clientErr)
+
+	out, err := ioutil.ReadFile(outPath2)
+	require.NoError(t, err)
+
+	require.Equal(t, string(out), "test message")
+
+	// Armored
+	argsEncrypt = append(os.Args[0:1], "encrypt", "-r", alice.ID().String(), "-r", bob.ID().String(), "-a", "-in", inPath, "-out", outPath)
+	runClient(Build{Version: "1.2.3"}, argsEncrypt, client, errorFn)
+	require.NoError(t, clientErr)
+
+	outPath2 = inPath + ".out"
+	argsDecrypt = append(os.Args[0:1], "decrypt", "-a", "-in", outPath, "-out", outPath2)
+	runClient(Build{Version: "1.2.3"}, argsDecrypt, client, errorFn)
+	require.NoError(t, clientErr)
+
+	out, err = ioutil.ReadFile(outPath2)
+	require.NoError(t, err)
+
+	require.Equal(t, string(out), "test message")
+}

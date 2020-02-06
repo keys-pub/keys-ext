@@ -11,18 +11,23 @@ head -c 500000 </dev/urandom > "$tmpfile"
 sigfile=`mktemp /tmp/XXXXXXXXXXX`
 sigfile2=`mktemp /tmp/XXXXXXXXXXX`
 
-kid=`keys | head -1 | cut -d ' ' -f 1`
+# echo "list"
+# kid=`keys list | head -1 | cut -d ' ' -f 1`
+echo "gen"
+kid=`keys generate`
+echo "gen $kid"
 
-echo "sign"
-keys sign -in "$tmpfile" -out "$sigfile"
+echo "sign $kid"
+keys sign -kid "$kid" -in "$tmpfile" -out "$sigfile"
 echo "verify"
 keys verify -kid $kid -in "$sigfile" -out "$tmpfile2"
 diff "$tmpfile" "$tmpfile2"
 
-echo "sign"
-cat "$tmpfile2" | keys sign > "$sigfile2"
+echo "sign $kid"
+cat "$tmpfile2" | keys sign -kid "$kid" > "$sigfile2"
 echo "verify"
 cat "$sigfile2" | keys verify -kid $kid > "$tmpfile3"
 diff "$tmpfile" "$tmpfile3"
 
-
+echo "remove $kid"
+keys remove "$kid"

@@ -99,6 +99,13 @@ func testImportKey(t *testing.T, service *service, key *keys.SignKey) {
 	require.NoError(t, err)
 }
 
+func testImportID(t *testing.T, service *service, kid keys.ID) {
+	_, err := service.KeyImport(context.TODO(), &KeyImportRequest{
+		In: []byte(kid.String()),
+	})
+	require.NoError(t, err)
+}
+
 func userSetup(env *testEnv, service *service, key *keys.SignKey, username string) error {
 	resp, err := service.UserSign(context.TODO(), &UserSignRequest{
 		KID:     key.ID().String(),
