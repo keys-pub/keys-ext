@@ -11,30 +11,35 @@ import (
 
 // KeyImport (RPC) imports a key.
 func (s *service) KeyImport(ctx context.Context, req *KeyImportRequest) (*KeyImportResponse, error) {
-	in := req.In
-	if utf8.Valid(in) {
-		in := strings.TrimSpace(string(in))
-
-		// Try to import key ID
-		id, err := keys.ParseID(in)
-		if err == nil {
-			if err := s.importID(id); err != nil {
-				return nil, errors.Wrapf(err, "failed to import key (ID)")
-			}
-			return &KeyImportResponse{KID: id.String()}, nil
-		}
-
-		kid, err := s.importSaltpack(in, req.Password)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to import key")
-		}
-
-		return &KeyImportResponse{
-			KID: kid.String(),
-		}, nil
+	if !utf8.Valid(req.In) {
+		return nil, errors.Errorf("unrecognized key format")
 	}
 
-	return nil, errors.Errorf("unrecognized key format")
+	in := strings.TrimSpace(string(req.In))
+
+	// Try to import key ID
+	id, err := keys.ParseID(in)
+	if err == nil {
+		if err := s.importID(id); err != nil {
+			return nil, errors.Wrapf(err, "failed to import key (ID)")
+		}
+		return &KeyImportResponse{KID: id.String()}, nil
+	}
+
+	kid, err := s.importSaltpack(in, req.Password)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to import key")
+	}
+
+	// TODO: Should this be optional?
+	if _, err := s.update(ctx, kid); err != nil {
+		return nil, err
+	}
+
+	return &KeyImportResponse{
+		KID: kid.String(),
+	}, nil
+
 }
 
 // KeyExport (RPC) returns exports a key.
