@@ -138,7 +138,7 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 		},
 		cli.StringFlag{
 			Name:  "app",
-			Value: "Keys.pub",
+			Value: "Keys",
 			Usage: "app name",
 		},
 	}

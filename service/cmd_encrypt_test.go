@@ -11,7 +11,7 @@ import (
 )
 
 func TestEncryptDecryptCommand(t *testing.T) {
-	SetLogger(NewLogger(DebugLevel))
+	// SetLogger(NewLogger(DebugLevel))
 
 	env := newTestEnv(t)
 	service, closeFn := newTestService(t, env)

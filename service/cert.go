@@ -6,23 +6,62 @@ import (
 	"unicode/utf8"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/keyring"
 	"github.com/pkg/errors"
 )
 
-// generateCA generates a CA certificate.
-func generateCA(cfg *Config) (*keys.CertificateKey, error) {
+func certificateKey(cfg *Config, generate bool) (*keys.CertificateKey, error) {
+	st := keyring.NewStore()
+	private, err := st.Get(cfg.AppName(), ".cert-private")
+	if err != nil {
+		return nil, err
+	}
+	public, err := st.Get(cfg.AppName(), ".cert-public")
+	if err != nil {
+		return nil, err
+	}
+	if private != nil && public != nil {
+		logger.Infof("Found certificate in keyring")
+
+		// Save public cert to filesystem too, if it doesn't exist.
+		certPath, err := cfg.certPath(false)
+		if err != nil {
+			return nil, err
+		}
+		if _, err := os.Stat(certPath); os.IsNotExist(err) {
+			if err := saveCertificate(cfg, string(public)); err != nil {
+				return nil, errors.Wrapf(err, "failed to save cert public key")
+			}
+		}
+		return keys.NewCertificateKey(string(private), string(public))
+	}
+	return generateCertificate(cfg)
+}
+
+// generateCertificate generates a certificate key.
+func generateCertificate(cfg *Config) (*keys.CertificateKey, error) {
 	logger.Infof("Generating certificate...")
 	certKey, err := keys.GenerateCertificateKey("localhost", true, nil)
 	if err != nil {
 		return nil, err
 	}
+
+	logger.Infof("Saving certificate to keyring...")
+	st := keyring.NewStore()
+	if err := st.Set(cfg.AppName(), ".cert-private", []byte(certKey.Private()), ""); err != nil {
+		return nil, err
+	}
+	if err := st.Set(cfg.AppName(), ".cert-public", []byte(certKey.Public()), ""); err != nil {
+		return nil, err
+	}
+
 	if err := saveCertificate(cfg, certKey.Public()); err != nil {
 		return nil, errors.Wrapf(err, "failed to save cert public key")
 	}
 	return certKey, nil
 }
 
-// saveCertificate saves certificate PEM data to the filesystem, retrievable via LoadCertificate.
+// saveCertificate saves public certificate PEM data to the filesystem.
 func saveCertificate(cfg *Config, cert string) error {
 	certPath, err := cfg.certPath(true)
 	if err != nil {
@@ -32,7 +71,7 @@ func saveCertificate(cfg *Config, cert string) error {
 	return ioutil.WriteFile(certPath, []byte(cert), 0600)
 }
 
-// loadCertificate returns certificate PEM to use when connecting to the service.
+// loadCertificate returns public certificate PEM from the filesystem.
 func loadCertificate(cfg *Config) (string, error) {
 	certPath, err := cfg.certPath(false)
 	if err != nil {

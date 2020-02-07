@@ -57,7 +57,7 @@ func logFatal(err error) {
 
 // Run the service.
 func Run(build Build) {
-	appName := flag.String("app", "Keys.pub", "app name")
+	appName := flag.String("app", "Keys", "app name")
 	logPath := flag.String("log-path", "", "log path")
 	version := flag.Bool("version", false, "print version")
 	resetKeyring := flag.Bool("reset-keyring", false, "reset keyring")
@@ -152,10 +152,11 @@ func NewServiceFn(cfg *Config, build Build, lgi LogInterceptor) (ServeFn, CloseF
 		return nil, nil, errors.Errorf("port %d in use", cfg.Port())
 	}
 
-	cert, err := generateCA(cfg)
+	cert, err := certificateKey(cfg, true)
 	if err != nil {
 		return nil, nil, err
 	}
+
 	if cert == nil {
 		return nil, nil, errNoCertFound{}
 	}
