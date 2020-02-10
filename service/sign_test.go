@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/keys-pub/keys/saltpack"
@@ -65,7 +68,7 @@ func testSignStream(t *testing.T, service *service, plaintext []byte, signer str
 	chunkSize := 1024 * 1024
 	go func() {
 		done := false
-		err := streamClient.Send(&SignStreamInput{
+		err := streamClient.Send(&SignInput{
 			Signer:  signer,
 			Armored: true,
 		})
@@ -77,7 +80,7 @@ func testSignStream(t *testing.T, service *service, plaintext []byte, signer str
 				done = true
 			}
 			logger.Debugf("(Test) Send chunk %d", len(plaintext[s:e]))
-			err := streamClient.Send(&SignStreamInput{
+			err := streamClient.Send(&SignInput{
 				Data: plaintext[s:e],
 			})
 			require.NoError(t, err)
@@ -129,7 +132,7 @@ func testSignStream(t *testing.T, service *service, plaintext []byte, signer str
 				e = len(data)
 				done = true
 			}
-			err := outClient.Send(&VerifyStreamInput{
+			err := outClient.Send(&VerifyInput{
 				Data: data[s:e],
 			})
 			require.NoError(t, err)
@@ -153,4 +156,48 @@ func testSignStream(t *testing.T, service *service, plaintext []byte, signer str
 	}
 
 	require.Equal(t, plaintext, bufOut.Bytes())
+}
+
+func TestSignVerifyFile(t *testing.T) {
+	env := newTestEnv(t)
+
+	aliceService, aliceCloseFn := newTestService(t, env)
+	defer aliceCloseFn()
+	testAuthSetup(t, aliceService)
+	testImportKey(t, aliceService, alice)
+
+	bobService, bobCloseFn := newTestService(t, env)
+	defer bobCloseFn()
+	testAuthSetup(t, bobService)
+	testImportKey(t, bobService, bob)
+
+	b := []byte("test message")
+	inPath := filepath.Join(os.TempDir(), "test.txt")
+	outPath := inPath + ".sig"
+	verifiedPath := inPath + ".ver"
+
+	defer os.Remove(inPath)
+	defer os.Remove(outPath)
+	defer os.Remove(verifiedPath)
+
+	writeErr := ioutil.WriteFile(inPath, b, 0644)
+	require.NoError(t, writeErr)
+
+	aliceClient, aliceClientCloseFn := newTestRPCClient(t, aliceService)
+	defer aliceClientCloseFn()
+
+	err := signFile(aliceClient, alice.ID().String(), true, false, inPath, outPath)
+	require.NoError(t, err)
+
+	bobClient, bobClientCloseFn := newTestRPCClient(t, bobService)
+	defer bobClientCloseFn()
+
+	signer, err := verifyFile(bobClient, true, outPath, verifiedPath)
+	require.NoError(t, err)
+	require.NotNil(t, signer)
+	require.Equal(t, alice.ID().String(), signer.ID)
+
+	bout, err := ioutil.ReadFile(verifiedPath)
+	require.NoError(t, err)
+	require.Equal(t, b, bout)
 }

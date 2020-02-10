@@ -300,11 +300,11 @@ var xxx_messageInfo_RPCError proto.InternalMessageInfo
 
 type SignRequest struct {
 	Data   []byte `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
-	Signer string `protobuf:"bytes,2,opt,name=signer,proto3" json:"signer,omitempty"`
+	Signer string `protobuf:"bytes,5,opt,name=signer,proto3" json:"signer,omitempty"`
 	// Armored, if true, output will be armored.
-	Armored bool `protobuf:"varint,3,opt,name=armored,proto3" json:"armored,omitempty"`
+	Armored bool `protobuf:"varint,10,opt,name=armored,proto3" json:"armored,omitempty"`
 	// Detached, if true, output will be just the signature.
-	Detached             bool     `protobuf:"varint,4,opt,name=detached,proto3" json:"detached,omitempty"`
+	Detached             bool     `protobuf:"varint,11,opt,name=detached,proto3" json:"detached,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -345,8 +345,7 @@ var xxx_messageInfo_SignRequest proto.InternalMessageInfo
 
 type SignResponse struct {
 	// Data is signed output.
-	Data []byte `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
-	// KID we signed with.
+	Data                 []byte   `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 	KID                  string   `protobuf:"bytes,2,opt,name=kid,proto3" json:"kid,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -386,11 +385,101 @@ func (m *SignResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_SignResponse proto.InternalMessageInfo
 
+type SignFileInput struct {
+	// In is input file path.
+	In string `protobuf:"bytes,1,opt,name=in,proto3" json:"in,omitempty"`
+	// Out is output file path.
+	Out    string `protobuf:"bytes,2,opt,name=out,proto3" json:"out,omitempty"`
+	Signer string `protobuf:"bytes,5,opt,name=signer,proto3" json:"signer,omitempty"`
+	// Armored, if true, output will be armored.
+	Armored bool `protobuf:"varint,10,opt,name=armored,proto3" json:"armored,omitempty"`
+	// Detached, if true, output will be just the signature.
+	Detached             bool     `protobuf:"varint,11,opt,name=detached,proto3" json:"detached,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SignFileInput) Reset()         { *m = SignFileInput{} }
+func (m *SignFileInput) String() string { return proto.CompactTextString(m) }
+func (*SignFileInput) ProtoMessage()    {}
+func (*SignFileInput) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9084e97af2346a26, []int{3}
+}
+func (m *SignFileInput) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *SignFileInput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_SignFileInput.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *SignFileInput) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SignFileInput.Merge(m, src)
+}
+func (m *SignFileInput) XXX_Size() int {
+	return m.Size()
+}
+func (m *SignFileInput) XXX_DiscardUnknown() {
+	xxx_messageInfo_SignFileInput.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SignFileInput proto.InternalMessageInfo
+
+type SignFileOutput struct {
+	KID                  string   `protobuf:"bytes,1,opt,name=kid,proto3" json:"kid,omitempty"`
+	Bytes                int32    `protobuf:"varint,2,opt,name=bytes,proto3" json:"bytes,omitempty"`
+	Total                int32    `protobuf:"varint,3,opt,name=total,proto3" json:"total,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SignFileOutput) Reset()         { *m = SignFileOutput{} }
+func (m *SignFileOutput) String() string { return proto.CompactTextString(m) }
+func (*SignFileOutput) ProtoMessage()    {}
+func (*SignFileOutput) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9084e97af2346a26, []int{4}
+}
+func (m *SignFileOutput) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *SignFileOutput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_SignFileOutput.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *SignFileOutput) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SignFileOutput.Merge(m, src)
+}
+func (m *SignFileOutput) XXX_Size() int {
+	return m.Size()
+}
+func (m *SignFileOutput) XXX_DiscardUnknown() {
+	xxx_messageInfo_SignFileOutput.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SignFileOutput proto.InternalMessageInfo
+
 type VerifyRequest struct {
 	// Data is verified output.
 	Data []byte `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 	// Armored, if true, output will be armored.
-	Armored              bool     `protobuf:"varint,3,opt,name=armored,proto3" json:"armored,omitempty"`
+	Armored              bool     `protobuf:"varint,10,opt,name=armored,proto3" json:"armored,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -400,7 +489,7 @@ func (m *VerifyRequest) Reset()         { *m = VerifyRequest{} }
 func (m *VerifyRequest) String() string { return proto.CompactTextString(m) }
 func (*VerifyRequest) ProtoMessage()    {}
 func (*VerifyRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{3}
+	return fileDescriptor_9084e97af2346a26, []int{5}
 }
 func (m *VerifyRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -430,6 +519,7 @@ func (m *VerifyRequest) XXX_DiscardUnknown() {
 var xxx_messageInfo_VerifyRequest proto.InternalMessageInfo
 
 type VerifyResponse struct {
+	// Data (if out is not specified in request).
 	Data                 []byte   `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 	Signer               *Key     `protobuf:"bytes,2,opt,name=signer,proto3" json:"signer,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -441,7 +531,7 @@ func (m *VerifyResponse) Reset()         { *m = VerifyResponse{} }
 func (m *VerifyResponse) String() string { return proto.CompactTextString(m) }
 func (*VerifyResponse) ProtoMessage()    {}
 func (*VerifyResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{4}
+	return fileDescriptor_9084e97af2346a26, []int{6}
 }
 func (m *VerifyResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -470,6 +560,93 @@ func (m *VerifyResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_VerifyResponse proto.InternalMessageInfo
 
+type VerifyFileInput struct {
+	// In is input file path.
+	In string `protobuf:"bytes,1,opt,name=in,proto3" json:"in,omitempty"`
+	// Out is output file path.
+	Out string `protobuf:"bytes,2,opt,name=out,proto3" json:"out,omitempty"`
+	// Armored, if true, output will be armored.
+	Armored              bool     `protobuf:"varint,10,opt,name=armored,proto3" json:"armored,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *VerifyFileInput) Reset()         { *m = VerifyFileInput{} }
+func (m *VerifyFileInput) String() string { return proto.CompactTextString(m) }
+func (*VerifyFileInput) ProtoMessage()    {}
+func (*VerifyFileInput) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9084e97af2346a26, []int{7}
+}
+func (m *VerifyFileInput) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *VerifyFileInput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_VerifyFileInput.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *VerifyFileInput) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_VerifyFileInput.Merge(m, src)
+}
+func (m *VerifyFileInput) XXX_Size() int {
+	return m.Size()
+}
+func (m *VerifyFileInput) XXX_DiscardUnknown() {
+	xxx_messageInfo_VerifyFileInput.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_VerifyFileInput proto.InternalMessageInfo
+
+type VerifyFileOutput struct {
+	Signer               *Key     `protobuf:"bytes,1,opt,name=signer,proto3" json:"signer,omitempty"`
+	Bytes                int32    `protobuf:"varint,2,opt,name=bytes,proto3" json:"bytes,omitempty"`
+	Total                int32    `protobuf:"varint,3,opt,name=total,proto3" json:"total,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *VerifyFileOutput) Reset()         { *m = VerifyFileOutput{} }
+func (m *VerifyFileOutput) String() string { return proto.CompactTextString(m) }
+func (*VerifyFileOutput) ProtoMessage()    {}
+func (*VerifyFileOutput) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9084e97af2346a26, []int{8}
+}
+func (m *VerifyFileOutput) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *VerifyFileOutput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_VerifyFileOutput.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *VerifyFileOutput) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_VerifyFileOutput.Merge(m, src)
+}
+func (m *VerifyFileOutput) XXX_Size() int {
+	return m.Size()
+}
+func (m *VerifyFileOutput) XXX_DiscardUnknown() {
+	xxx_messageInfo_VerifyFileOutput.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_VerifyFileOutput proto.InternalMessageInfo
+
 type Statement struct {
 	// Sig is the signature bytes.
 	Sig []byte `protobuf:"bytes,1,opt,name=sig,proto3" json:"sig,omitempty"`
@@ -496,7 +673,7 @@ func (m *Statement) Reset()         { *m = Statement{} }
 func (m *Statement) String() string { return proto.CompactTextString(m) }
 func (*Statement) ProtoMessage()    {}
 func (*Statement) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{5}
+	return fileDescriptor_9084e97af2346a26, []int{9}
 }
 func (m *Statement) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -536,7 +713,7 @@ func (m *SigchainRequest) Reset()         { *m = SigchainRequest{} }
 func (m *SigchainRequest) String() string { return proto.CompactTextString(m) }
 func (*SigchainRequest) ProtoMessage()    {}
 func (*SigchainRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{6}
+	return fileDescriptor_9084e97af2346a26, []int{10}
 }
 func (m *SigchainRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -577,7 +754,7 @@ func (m *SigchainResponse) Reset()         { *m = SigchainResponse{} }
 func (m *SigchainResponse) String() string { return proto.CompactTextString(m) }
 func (*SigchainResponse) ProtoMessage()    {}
 func (*SigchainResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{7}
+	return fileDescriptor_9084e97af2346a26, []int{11}
 }
 func (m *SigchainResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -618,7 +795,7 @@ func (m *StatementRequest) Reset()         { *m = StatementRequest{} }
 func (m *StatementRequest) String() string { return proto.CompactTextString(m) }
 func (*StatementRequest) ProtoMessage()    {}
 func (*StatementRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{8}
+	return fileDescriptor_9084e97af2346a26, []int{12}
 }
 func (m *StatementRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -658,7 +835,7 @@ func (m *StatementResponse) Reset()         { *m = StatementResponse{} }
 func (m *StatementResponse) String() string { return proto.CompactTextString(m) }
 func (*StatementResponse) ProtoMessage()    {}
 func (*StatementResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{9}
+	return fileDescriptor_9084e97af2346a26, []int{13}
 }
 func (m *StatementResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -701,7 +878,7 @@ func (m *StatementCreateRequest) Reset()         { *m = StatementCreateRequest{}
 func (m *StatementCreateRequest) String() string { return proto.CompactTextString(m) }
 func (*StatementCreateRequest) ProtoMessage()    {}
 func (*StatementCreateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{10}
+	return fileDescriptor_9084e97af2346a26, []int{14}
 }
 func (m *StatementCreateRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -741,7 +918,7 @@ func (m *StatementCreateResponse) Reset()         { *m = StatementCreateResponse
 func (m *StatementCreateResponse) String() string { return proto.CompactTextString(m) }
 func (*StatementCreateResponse) ProtoMessage()    {}
 func (*StatementCreateResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{11}
+	return fileDescriptor_9084e97af2346a26, []int{15}
 }
 func (m *StatementCreateResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -785,7 +962,7 @@ func (m *StatementRevokeRequest) Reset()         { *m = StatementRevokeRequest{}
 func (m *StatementRevokeRequest) String() string { return proto.CompactTextString(m) }
 func (*StatementRevokeRequest) ProtoMessage()    {}
 func (*StatementRevokeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{12}
+	return fileDescriptor_9084e97af2346a26, []int{16}
 }
 func (m *StatementRevokeRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -825,7 +1002,7 @@ func (m *StatementRevokeResponse) Reset()         { *m = StatementRevokeResponse
 func (m *StatementRevokeResponse) String() string { return proto.CompactTextString(m) }
 func (*StatementRevokeResponse) ProtoMessage()    {}
 func (*StatementRevokeResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{13}
+	return fileDescriptor_9084e97af2346a26, []int{17}
 }
 func (m *StatementRevokeResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -854,30 +1031,34 @@ func (m *StatementRevokeResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_StatementRevokeResponse proto.InternalMessageInfo
 
-type SignStreamInput struct {
-	Data   []byte `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
-	Signer string `protobuf:"bytes,2,opt,name=signer,proto3" json:"signer,omitempty"`
+type SignInput struct {
+	Data []byte `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
+	// In is input file path (if data is not specified).
+	In string `protobuf:"bytes,2,opt,name=in,proto3" json:"in,omitempty"`
+	// Out is output file path (required if in specified).
+	Out    string `protobuf:"bytes,3,opt,name=out,proto3" json:"out,omitempty"`
+	Signer string `protobuf:"bytes,5,opt,name=signer,proto3" json:"signer,omitempty"`
 	// Armored, if true, output will be armored.
-	Armored bool `protobuf:"varint,3,opt,name=armored,proto3" json:"armored,omitempty"`
+	Armored bool `protobuf:"varint,10,opt,name=armored,proto3" json:"armored,omitempty"`
 	// Detached, if true, output will be just the signature.
-	Detached             bool     `protobuf:"varint,4,opt,name=detached,proto3" json:"detached,omitempty"`
+	Detached             bool     `protobuf:"varint,11,opt,name=detached,proto3" json:"detached,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *SignStreamInput) Reset()         { *m = SignStreamInput{} }
-func (m *SignStreamInput) String() string { return proto.CompactTextString(m) }
-func (*SignStreamInput) ProtoMessage()    {}
-func (*SignStreamInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{14}
+func (m *SignInput) Reset()         { *m = SignInput{} }
+func (m *SignInput) String() string { return proto.CompactTextString(m) }
+func (*SignInput) ProtoMessage()    {}
+func (*SignInput) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9084e97af2346a26, []int{18}
 }
-func (m *SignStreamInput) XXX_Unmarshal(b []byte) error {
+func (m *SignInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *SignStreamInput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *SignInput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_SignStreamInput.Marshal(b, m, deterministic)
+		return xxx_messageInfo_SignInput.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -887,40 +1068,39 @@ func (m *SignStreamInput) XXX_Marshal(b []byte, deterministic bool) ([]byte, err
 		return b[:n], nil
 	}
 }
-func (m *SignStreamInput) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_SignStreamInput.Merge(m, src)
+func (m *SignInput) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SignInput.Merge(m, src)
 }
-func (m *SignStreamInput) XXX_Size() int {
+func (m *SignInput) XXX_Size() int {
 	return m.Size()
 }
-func (m *SignStreamInput) XXX_DiscardUnknown() {
-	xxx_messageInfo_SignStreamInput.DiscardUnknown(m)
+func (m *SignInput) XXX_DiscardUnknown() {
+	xxx_messageInfo_SignInput.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_SignStreamInput proto.InternalMessageInfo
+var xxx_messageInfo_SignInput proto.InternalMessageInfo
 
-type SignStreamOutput struct {
+type SignOutput struct {
 	// Data, signed.
-	Data []byte `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
-	// KID we signed with.
+	Data                 []byte   `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 	KID                  string   `protobuf:"bytes,2,opt,name=kid,proto3" json:"kid,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *SignStreamOutput) Reset()         { *m = SignStreamOutput{} }
-func (m *SignStreamOutput) String() string { return proto.CompactTextString(m) }
-func (*SignStreamOutput) ProtoMessage()    {}
-func (*SignStreamOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{15}
+func (m *SignOutput) Reset()         { *m = SignOutput{} }
+func (m *SignOutput) String() string { return proto.CompactTextString(m) }
+func (*SignOutput) ProtoMessage()    {}
+func (*SignOutput) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9084e97af2346a26, []int{19}
 }
-func (m *SignStreamOutput) XXX_Unmarshal(b []byte) error {
+func (m *SignOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *SignStreamOutput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *SignOutput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_SignStreamOutput.Marshal(b, m, deterministic)
+		return xxx_messageInfo_SignOutput.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -930,19 +1110,19 @@ func (m *SignStreamOutput) XXX_Marshal(b []byte, deterministic bool) ([]byte, er
 		return b[:n], nil
 	}
 }
-func (m *SignStreamOutput) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_SignStreamOutput.Merge(m, src)
+func (m *SignOutput) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SignOutput.Merge(m, src)
 }
-func (m *SignStreamOutput) XXX_Size() int {
+func (m *SignOutput) XXX_Size() int {
 	return m.Size()
 }
-func (m *SignStreamOutput) XXX_DiscardUnknown() {
-	xxx_messageInfo_SignStreamOutput.DiscardUnknown(m)
+func (m *SignOutput) XXX_DiscardUnknown() {
+	xxx_messageInfo_SignOutput.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_SignStreamOutput proto.InternalMessageInfo
+var xxx_messageInfo_SignOutput proto.InternalMessageInfo
 
-type VerifyStreamInput struct {
+type VerifyInput struct {
 	// Data to verify.
 	Data                 []byte   `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -950,18 +1130,18 @@ type VerifyStreamInput struct {
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *VerifyStreamInput) Reset()         { *m = VerifyStreamInput{} }
-func (m *VerifyStreamInput) String() string { return proto.CompactTextString(m) }
-func (*VerifyStreamInput) ProtoMessage()    {}
-func (*VerifyStreamInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{16}
+func (m *VerifyInput) Reset()         { *m = VerifyInput{} }
+func (m *VerifyInput) String() string { return proto.CompactTextString(m) }
+func (*VerifyInput) ProtoMessage()    {}
+func (*VerifyInput) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9084e97af2346a26, []int{20}
 }
-func (m *VerifyStreamInput) XXX_Unmarshal(b []byte) error {
+func (m *VerifyInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *VerifyStreamInput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *VerifyInput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_VerifyStreamInput.Marshal(b, m, deterministic)
+		return xxx_messageInfo_VerifyInput.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -971,19 +1151,19 @@ func (m *VerifyStreamInput) XXX_Marshal(b []byte, deterministic bool) ([]byte, e
 		return b[:n], nil
 	}
 }
-func (m *VerifyStreamInput) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_VerifyStreamInput.Merge(m, src)
+func (m *VerifyInput) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_VerifyInput.Merge(m, src)
 }
-func (m *VerifyStreamInput) XXX_Size() int {
+func (m *VerifyInput) XXX_Size() int {
 	return m.Size()
 }
-func (m *VerifyStreamInput) XXX_DiscardUnknown() {
-	xxx_messageInfo_VerifyStreamInput.DiscardUnknown(m)
+func (m *VerifyInput) XXX_DiscardUnknown() {
+	xxx_messageInfo_VerifyInput.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_VerifyStreamInput proto.InternalMessageInfo
+var xxx_messageInfo_VerifyInput proto.InternalMessageInfo
 
-type VerifyStreamOutput struct {
+type VerifyOutput struct {
 	// Data, verified. If empty, is EOF.
 	Data                 []byte   `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 	Signer               *Key     `protobuf:"bytes,2,opt,name=signer,proto3" json:"signer,omitempty"`
@@ -992,18 +1172,18 @@ type VerifyStreamOutput struct {
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *VerifyStreamOutput) Reset()         { *m = VerifyStreamOutput{} }
-func (m *VerifyStreamOutput) String() string { return proto.CompactTextString(m) }
-func (*VerifyStreamOutput) ProtoMessage()    {}
-func (*VerifyStreamOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{17}
+func (m *VerifyOutput) Reset()         { *m = VerifyOutput{} }
+func (m *VerifyOutput) String() string { return proto.CompactTextString(m) }
+func (*VerifyOutput) ProtoMessage()    {}
+func (*VerifyOutput) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9084e97af2346a26, []int{21}
 }
-func (m *VerifyStreamOutput) XXX_Unmarshal(b []byte) error {
+func (m *VerifyOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *VerifyStreamOutput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *VerifyOutput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_VerifyStreamOutput.Marshal(b, m, deterministic)
+		return xxx_messageInfo_VerifyOutput.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -1013,29 +1193,29 @@ func (m *VerifyStreamOutput) XXX_Marshal(b []byte, deterministic bool) ([]byte, 
 		return b[:n], nil
 	}
 }
-func (m *VerifyStreamOutput) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_VerifyStreamOutput.Merge(m, src)
+func (m *VerifyOutput) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_VerifyOutput.Merge(m, src)
 }
-func (m *VerifyStreamOutput) XXX_Size() int {
+func (m *VerifyOutput) XXX_Size() int {
 	return m.Size()
 }
-func (m *VerifyStreamOutput) XXX_DiscardUnknown() {
-	xxx_messageInfo_VerifyStreamOutput.DiscardUnknown(m)
+func (m *VerifyOutput) XXX_DiscardUnknown() {
+	xxx_messageInfo_VerifyOutput.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_VerifyStreamOutput proto.InternalMessageInfo
+var xxx_messageInfo_VerifyOutput proto.InternalMessageInfo
 
 type EncryptRequest struct {
 	// Data to encrypt.
 	Data []byte `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 	// Armored, if true will return armored string output.
-	Armored bool `protobuf:"varint,2,opt,name=armored,proto3" json:"armored,omitempty"`
+	Armored bool `protobuf:"varint,10,opt,name=armored,proto3" json:"armored,omitempty"`
 	// Recipients to encrypt to.
-	Recipients []string `protobuf:"bytes,3,rep,name=recipients,proto3" json:"recipients,omitempty"`
+	Recipients []string `protobuf:"bytes,11,rep,name=recipients,proto3" json:"recipients,omitempty"`
 	// Signer to sign as. Or empty, if anonymous.
-	Signer string `protobuf:"bytes,4,opt,name=signer,proto3" json:"signer,omitempty"`
+	Signer string `protobuf:"bytes,12,opt,name=signer,proto3" json:"signer,omitempty"`
 	// Mode is the encryption mode.
-	Mode                 EncryptMode `protobuf:"varint,5,opt,name=mode,proto3,enum=service.EncryptMode" json:"mode,omitempty"`
+	Mode                 EncryptMode `protobuf:"varint,13,opt,name=mode,proto3,enum=service.EncryptMode" json:"mode,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
 	XXX_unrecognized     []byte      `json:"-"`
 	XXX_sizecache        int32       `json:"-"`
@@ -1045,7 +1225,7 @@ func (m *EncryptRequest) Reset()         { *m = EncryptRequest{} }
 func (m *EncryptRequest) String() string { return proto.CompactTextString(m) }
 func (*EncryptRequest) ProtoMessage()    {}
 func (*EncryptRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{18}
+	return fileDescriptor_9084e97af2346a26, []int{22}
 }
 func (m *EncryptRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1085,7 +1265,7 @@ func (m *EncryptResponse) Reset()         { *m = EncryptResponse{} }
 func (m *EncryptResponse) String() string { return proto.CompactTextString(m) }
 func (*EncryptResponse) ProtoMessage()    {}
 func (*EncryptResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{19}
+	return fileDescriptor_9084e97af2346a26, []int{23}
 }
 func (m *EncryptResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1114,13 +1294,195 @@ func (m *EncryptResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EncryptResponse proto.InternalMessageInfo
 
+type EncryptFileInput struct {
+	// In is input file path.
+	In string `protobuf:"bytes,1,opt,name=in,proto3" json:"in,omitempty"`
+	// Out is output file path.
+	Out string `protobuf:"bytes,2,opt,name=out,proto3" json:"out,omitempty"`
+	// Armored, if true will return armored string output.
+	Armored bool `protobuf:"varint,10,opt,name=armored,proto3" json:"armored,omitempty"`
+	// Recipients to encrypt to.
+	Recipients []string `protobuf:"bytes,11,rep,name=recipients,proto3" json:"recipients,omitempty"`
+	// Signer to sign as. Or empty, if anonymous.
+	Signer string `protobuf:"bytes,12,opt,name=signer,proto3" json:"signer,omitempty"`
+	// Mode is the encryption mode.
+	Mode                 EncryptMode `protobuf:"varint,13,opt,name=mode,proto3,enum=service.EncryptMode" json:"mode,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
+	XXX_unrecognized     []byte      `json:"-"`
+	XXX_sizecache        int32       `json:"-"`
+}
+
+func (m *EncryptFileInput) Reset()         { *m = EncryptFileInput{} }
+func (m *EncryptFileInput) String() string { return proto.CompactTextString(m) }
+func (*EncryptFileInput) ProtoMessage()    {}
+func (*EncryptFileInput) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9084e97af2346a26, []int{24}
+}
+func (m *EncryptFileInput) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EncryptFileInput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EncryptFileInput.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EncryptFileInput) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EncryptFileInput.Merge(m, src)
+}
+func (m *EncryptFileInput) XXX_Size() int {
+	return m.Size()
+}
+func (m *EncryptFileInput) XXX_DiscardUnknown() {
+	xxx_messageInfo_EncryptFileInput.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EncryptFileInput proto.InternalMessageInfo
+
+type EncryptFileOutput struct {
+	Bytes                int32    `protobuf:"varint,1,opt,name=bytes,proto3" json:"bytes,omitempty"`
+	Total                int32    `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *EncryptFileOutput) Reset()         { *m = EncryptFileOutput{} }
+func (m *EncryptFileOutput) String() string { return proto.CompactTextString(m) }
+func (*EncryptFileOutput) ProtoMessage()    {}
+func (*EncryptFileOutput) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9084e97af2346a26, []int{25}
+}
+func (m *EncryptFileOutput) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EncryptFileOutput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EncryptFileOutput.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EncryptFileOutput) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EncryptFileOutput.Merge(m, src)
+}
+func (m *EncryptFileOutput) XXX_Size() int {
+	return m.Size()
+}
+func (m *EncryptFileOutput) XXX_DiscardUnknown() {
+	xxx_messageInfo_EncryptFileOutput.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EncryptFileOutput proto.InternalMessageInfo
+
+type EncryptInput struct {
+	// Data to encrypt. Send empty byte slice as last message.
+	Data []byte `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
+	// Armored, if true will return armored string output.
+	Armored bool `protobuf:"varint,2,opt,name=armored,proto3" json:"armored,omitempty"`
+	// Recipients to encrypt to.
+	Recipients []string `protobuf:"bytes,3,rep,name=recipients,proto3" json:"recipients,omitempty"`
+	// Signer to sign as. Or empty, if anonymous.
+	Signer string `protobuf:"bytes,4,opt,name=signer,proto3" json:"signer,omitempty"`
+	// Mode is the encryption mode.
+	Mode                 EncryptMode `protobuf:"varint,5,opt,name=mode,proto3,enum=service.EncryptMode" json:"mode,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
+	XXX_unrecognized     []byte      `json:"-"`
+	XXX_sizecache        int32       `json:"-"`
+}
+
+func (m *EncryptInput) Reset()         { *m = EncryptInput{} }
+func (m *EncryptInput) String() string { return proto.CompactTextString(m) }
+func (*EncryptInput) ProtoMessage()    {}
+func (*EncryptInput) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9084e97af2346a26, []int{26}
+}
+func (m *EncryptInput) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EncryptInput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EncryptInput.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EncryptInput) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EncryptInput.Merge(m, src)
+}
+func (m *EncryptInput) XXX_Size() int {
+	return m.Size()
+}
+func (m *EncryptInput) XXX_DiscardUnknown() {
+	xxx_messageInfo_EncryptInput.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EncryptInput proto.InternalMessageInfo
+
+type EncryptOutput struct {
+	// Data, encrypted.
+	Data                 []byte   `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *EncryptOutput) Reset()         { *m = EncryptOutput{} }
+func (m *EncryptOutput) String() string { return proto.CompactTextString(m) }
+func (*EncryptOutput) ProtoMessage()    {}
+func (*EncryptOutput) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9084e97af2346a26, []int{27}
+}
+func (m *EncryptOutput) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EncryptOutput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EncryptOutput.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EncryptOutput) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EncryptOutput.Merge(m, src)
+}
+func (m *EncryptOutput) XXX_Size() int {
+	return m.Size()
+}
+func (m *EncryptOutput) XXX_DiscardUnknown() {
+	xxx_messageInfo_EncryptOutput.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EncryptOutput proto.InternalMessageInfo
+
 type DecryptRequest struct {
 	// Data to decrypt.
 	Data []byte `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 	// Armored, if true will return armored string output.
-	Armored bool `protobuf:"varint,2,opt,name=armored,proto3" json:"armored,omitempty"`
+	Armored bool `protobuf:"varint,10,opt,name=armored,proto3" json:"armored,omitempty"`
 	// Mode is the encryption mode.
-	Mode                 EncryptMode `protobuf:"varint,5,opt,name=mode,proto3,enum=service.EncryptMode" json:"mode,omitempty"`
+	Mode                 EncryptMode `protobuf:"varint,13,opt,name=mode,proto3,enum=service.EncryptMode" json:"mode,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
 	XXX_unrecognized     []byte      `json:"-"`
 	XXX_sizecache        int32       `json:"-"`
@@ -1130,7 +1492,7 @@ func (m *DecryptRequest) Reset()         { *m = DecryptRequest{} }
 func (m *DecryptRequest) String() string { return proto.CompactTextString(m) }
 func (*DecryptRequest) ProtoMessage()    {}
 func (*DecryptRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{20}
+	return fileDescriptor_9084e97af2346a26, []int{28}
 }
 func (m *DecryptRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1160,6 +1522,7 @@ func (m *DecryptRequest) XXX_DiscardUnknown() {
 var xxx_messageInfo_DecryptRequest proto.InternalMessageInfo
 
 type DecryptResponse struct {
+	// Data (if out is not specified in request).
 	Data                 []byte   `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 	Signer               *Key     `protobuf:"bytes,2,opt,name=signer,proto3" json:"signer,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -1171,7 +1534,7 @@ func (m *DecryptResponse) Reset()         { *m = DecryptResponse{} }
 func (m *DecryptResponse) String() string { return proto.CompactTextString(m) }
 func (*DecryptResponse) ProtoMessage()    {}
 func (*DecryptResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{21}
+	return fileDescriptor_9084e97af2346a26, []int{29}
 }
 func (m *DecryptResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1200,34 +1563,32 @@ func (m *DecryptResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_DecryptResponse proto.InternalMessageInfo
 
-type EncryptStreamInput struct {
-	// Data to encrypt. Send empty byte slice as last message.
-	Data []byte `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
+type DecryptFileInput struct {
+	// In is input file path.
+	In string `protobuf:"bytes,1,opt,name=in,proto3" json:"in,omitempty"`
+	// Out is output file path.
+	Out string `protobuf:"bytes,2,opt,name=out,proto3" json:"out,omitempty"`
 	// Armored, if true will return armored string output.
-	Armored bool `protobuf:"varint,2,opt,name=armored,proto3" json:"armored,omitempty"`
-	// Recipients to encrypt to.
-	Recipients []string `protobuf:"bytes,3,rep,name=recipients,proto3" json:"recipients,omitempty"`
-	// Signer to sign as. Or empty, if anonymous.
-	Signer string `protobuf:"bytes,4,opt,name=signer,proto3" json:"signer,omitempty"`
+	Armored bool `protobuf:"varint,10,opt,name=armored,proto3" json:"armored,omitempty"`
 	// Mode is the encryption mode.
-	Mode                 EncryptMode `protobuf:"varint,5,opt,name=mode,proto3,enum=service.EncryptMode" json:"mode,omitempty"`
+	Mode                 EncryptMode `protobuf:"varint,13,opt,name=mode,proto3,enum=service.EncryptMode" json:"mode,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
 	XXX_unrecognized     []byte      `json:"-"`
 	XXX_sizecache        int32       `json:"-"`
 }
 
-func (m *EncryptStreamInput) Reset()         { *m = EncryptStreamInput{} }
-func (m *EncryptStreamInput) String() string { return proto.CompactTextString(m) }
-func (*EncryptStreamInput) ProtoMessage()    {}
-func (*EncryptStreamInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{22}
+func (m *DecryptFileInput) Reset()         { *m = DecryptFileInput{} }
+func (m *DecryptFileInput) String() string { return proto.CompactTextString(m) }
+func (*DecryptFileInput) ProtoMessage()    {}
+func (*DecryptFileInput) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9084e97af2346a26, []int{30}
 }
-func (m *EncryptStreamInput) XXX_Unmarshal(b []byte) error {
+func (m *DecryptFileInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *EncryptStreamInput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *DecryptFileInput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_EncryptStreamInput.Marshal(b, m, deterministic)
+		return xxx_messageInfo_DecryptFileInput.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -1237,19 +1598,61 @@ func (m *EncryptStreamInput) XXX_Marshal(b []byte, deterministic bool) ([]byte, 
 		return b[:n], nil
 	}
 }
-func (m *EncryptStreamInput) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EncryptStreamInput.Merge(m, src)
+func (m *DecryptFileInput) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DecryptFileInput.Merge(m, src)
 }
-func (m *EncryptStreamInput) XXX_Size() int {
+func (m *DecryptFileInput) XXX_Size() int {
 	return m.Size()
 }
-func (m *EncryptStreamInput) XXX_DiscardUnknown() {
-	xxx_messageInfo_EncryptStreamInput.DiscardUnknown(m)
+func (m *DecryptFileInput) XXX_DiscardUnknown() {
+	xxx_messageInfo_DecryptFileInput.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_EncryptStreamInput proto.InternalMessageInfo
+var xxx_messageInfo_DecryptFileInput proto.InternalMessageInfo
 
-type EncryptStreamOutput struct {
+type DecryptFileOutput struct {
+	Signer               *Key     `protobuf:"bytes,1,opt,name=signer,proto3" json:"signer,omitempty"`
+	Bytes                int32    `protobuf:"varint,2,opt,name=bytes,proto3" json:"bytes,omitempty"`
+	Total                int32    `protobuf:"varint,3,opt,name=total,proto3" json:"total,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DecryptFileOutput) Reset()         { *m = DecryptFileOutput{} }
+func (m *DecryptFileOutput) String() string { return proto.CompactTextString(m) }
+func (*DecryptFileOutput) ProtoMessage()    {}
+func (*DecryptFileOutput) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9084e97af2346a26, []int{31}
+}
+func (m *DecryptFileOutput) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *DecryptFileOutput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_DecryptFileOutput.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *DecryptFileOutput) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DecryptFileOutput.Merge(m, src)
+}
+func (m *DecryptFileOutput) XXX_Size() int {
+	return m.Size()
+}
+func (m *DecryptFileOutput) XXX_DiscardUnknown() {
+	xxx_messageInfo_DecryptFileOutput.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DecryptFileOutput proto.InternalMessageInfo
+
+type DecryptInput struct {
 	// Data, encrypted.
 	Data                 []byte   `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -1257,18 +1660,18 @@ type EncryptStreamOutput struct {
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *EncryptStreamOutput) Reset()         { *m = EncryptStreamOutput{} }
-func (m *EncryptStreamOutput) String() string { return proto.CompactTextString(m) }
-func (*EncryptStreamOutput) ProtoMessage()    {}
-func (*EncryptStreamOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{23}
+func (m *DecryptInput) Reset()         { *m = DecryptInput{} }
+func (m *DecryptInput) String() string { return proto.CompactTextString(m) }
+func (*DecryptInput) ProtoMessage()    {}
+func (*DecryptInput) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9084e97af2346a26, []int{32}
 }
-func (m *EncryptStreamOutput) XXX_Unmarshal(b []byte) error {
+func (m *DecryptInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *EncryptStreamOutput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *DecryptInput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_EncryptStreamOutput.Marshal(b, m, deterministic)
+		return xxx_messageInfo_DecryptInput.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -1278,60 +1681,19 @@ func (m *EncryptStreamOutput) XXX_Marshal(b []byte, deterministic bool) ([]byte,
 		return b[:n], nil
 	}
 }
-func (m *EncryptStreamOutput) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EncryptStreamOutput.Merge(m, src)
+func (m *DecryptInput) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DecryptInput.Merge(m, src)
 }
-func (m *EncryptStreamOutput) XXX_Size() int {
+func (m *DecryptInput) XXX_Size() int {
 	return m.Size()
 }
-func (m *EncryptStreamOutput) XXX_DiscardUnknown() {
-	xxx_messageInfo_EncryptStreamOutput.DiscardUnknown(m)
+func (m *DecryptInput) XXX_DiscardUnknown() {
+	xxx_messageInfo_DecryptInput.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_EncryptStreamOutput proto.InternalMessageInfo
+var xxx_messageInfo_DecryptInput proto.InternalMessageInfo
 
-type DecryptStreamInput struct {
-	// Data, encrypted.
-	Data                 []byte   `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *DecryptStreamInput) Reset()         { *m = DecryptStreamInput{} }
-func (m *DecryptStreamInput) String() string { return proto.CompactTextString(m) }
-func (*DecryptStreamInput) ProtoMessage()    {}
-func (*DecryptStreamInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{24}
-}
-func (m *DecryptStreamInput) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *DecryptStreamInput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_DecryptStreamInput.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *DecryptStreamInput) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DecryptStreamInput.Merge(m, src)
-}
-func (m *DecryptStreamInput) XXX_Size() int {
-	return m.Size()
-}
-func (m *DecryptStreamInput) XXX_DiscardUnknown() {
-	xxx_messageInfo_DecryptStreamInput.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_DecryptStreamInput proto.InternalMessageInfo
-
-type DecryptStreamOutput struct {
+type DecryptOutput struct {
 	// Data, decrypted. If empty, is EOF.
 	Data                 []byte   `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 	Signer               *Key     `protobuf:"bytes,2,opt,name=signer,proto3" json:"signer,omitempty"`
@@ -1340,18 +1702,18 @@ type DecryptStreamOutput struct {
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *DecryptStreamOutput) Reset()         { *m = DecryptStreamOutput{} }
-func (m *DecryptStreamOutput) String() string { return proto.CompactTextString(m) }
-func (*DecryptStreamOutput) ProtoMessage()    {}
-func (*DecryptStreamOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{25}
+func (m *DecryptOutput) Reset()         { *m = DecryptOutput{} }
+func (m *DecryptOutput) String() string { return proto.CompactTextString(m) }
+func (*DecryptOutput) ProtoMessage()    {}
+func (*DecryptOutput) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9084e97af2346a26, []int{33}
 }
-func (m *DecryptStreamOutput) XXX_Unmarshal(b []byte) error {
+func (m *DecryptOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *DecryptStreamOutput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *DecryptOutput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_DecryptStreamOutput.Marshal(b, m, deterministic)
+		return xxx_messageInfo_DecryptOutput.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -1361,17 +1723,17 @@ func (m *DecryptStreamOutput) XXX_Marshal(b []byte, deterministic bool) ([]byte,
 		return b[:n], nil
 	}
 }
-func (m *DecryptStreamOutput) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DecryptStreamOutput.Merge(m, src)
+func (m *DecryptOutput) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DecryptOutput.Merge(m, src)
 }
-func (m *DecryptStreamOutput) XXX_Size() int {
+func (m *DecryptOutput) XXX_Size() int {
 	return m.Size()
 }
-func (m *DecryptStreamOutput) XXX_DiscardUnknown() {
-	xxx_messageInfo_DecryptStreamOutput.DiscardUnknown(m)
+func (m *DecryptOutput) XXX_DiscardUnknown() {
+	xxx_messageInfo_DecryptOutput.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_DecryptStreamOutput proto.InternalMessageInfo
+var xxx_messageInfo_DecryptOutput proto.InternalMessageInfo
 
 type RuntimeStatusRequest struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -1383,7 +1745,7 @@ func (m *RuntimeStatusRequest) Reset()         { *m = RuntimeStatusRequest{} }
 func (m *RuntimeStatusRequest) String() string { return proto.CompactTextString(m) }
 func (*RuntimeStatusRequest) ProtoMessage()    {}
 func (*RuntimeStatusRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{26}
+	return fileDescriptor_9084e97af2346a26, []int{34}
 }
 func (m *RuntimeStatusRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1428,7 +1790,7 @@ func (m *RuntimeStatusResponse) Reset()         { *m = RuntimeStatusResponse{} }
 func (m *RuntimeStatusResponse) String() string { return proto.CompactTextString(m) }
 func (*RuntimeStatusResponse) ProtoMessage()    {}
 func (*RuntimeStatusResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{27}
+	return fileDescriptor_9084e97af2346a26, []int{35}
 }
 func (m *RuntimeStatusResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1471,7 +1833,7 @@ func (m *AuthSetupRequest) Reset()         { *m = AuthSetupRequest{} }
 func (m *AuthSetupRequest) String() string { return proto.CompactTextString(m) }
 func (*AuthSetupRequest) ProtoMessage()    {}
 func (*AuthSetupRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{28}
+	return fileDescriptor_9084e97af2346a26, []int{36}
 }
 func (m *AuthSetupRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1511,7 +1873,7 @@ func (m *AuthSetupResponse) Reset()         { *m = AuthSetupResponse{} }
 func (m *AuthSetupResponse) String() string { return proto.CompactTextString(m) }
 func (*AuthSetupResponse) ProtoMessage()    {}
 func (*AuthSetupResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{29}
+	return fileDescriptor_9084e97af2346a26, []int{37}
 }
 func (m *AuthSetupResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1554,7 +1916,7 @@ func (m *AuthUnlockRequest) Reset()         { *m = AuthUnlockRequest{} }
 func (m *AuthUnlockRequest) String() string { return proto.CompactTextString(m) }
 func (*AuthUnlockRequest) ProtoMessage()    {}
 func (*AuthUnlockRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{30}
+	return fileDescriptor_9084e97af2346a26, []int{38}
 }
 func (m *AuthUnlockRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1595,7 +1957,7 @@ func (m *AuthUnlockResponse) Reset()         { *m = AuthUnlockResponse{} }
 func (m *AuthUnlockResponse) String() string { return proto.CompactTextString(m) }
 func (*AuthUnlockResponse) ProtoMessage()    {}
 func (*AuthUnlockResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{31}
+	return fileDescriptor_9084e97af2346a26, []int{39}
 }
 func (m *AuthUnlockResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1634,7 +1996,7 @@ func (m *AuthLockRequest) Reset()         { *m = AuthLockRequest{} }
 func (m *AuthLockRequest) String() string { return proto.CompactTextString(m) }
 func (*AuthLockRequest) ProtoMessage()    {}
 func (*AuthLockRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{32}
+	return fileDescriptor_9084e97af2346a26, []int{40}
 }
 func (m *AuthLockRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1673,7 +2035,7 @@ func (m *AuthLockResponse) Reset()         { *m = AuthLockResponse{} }
 func (m *AuthLockResponse) String() string { return proto.CompactTextString(m) }
 func (*AuthLockResponse) ProtoMessage()    {}
 func (*AuthLockResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{33}
+	return fileDescriptor_9084e97af2346a26, []int{41}
 }
 func (m *AuthLockResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1713,7 +2075,7 @@ func (m *KeyGenerateRequest) Reset()         { *m = KeyGenerateRequest{} }
 func (m *KeyGenerateRequest) String() string { return proto.CompactTextString(m) }
 func (*KeyGenerateRequest) ProtoMessage()    {}
 func (*KeyGenerateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{34}
+	return fileDescriptor_9084e97af2346a26, []int{42}
 }
 func (m *KeyGenerateRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1753,7 +2115,7 @@ func (m *KeyGenerateResponse) Reset()         { *m = KeyGenerateResponse{} }
 func (m *KeyGenerateResponse) String() string { return proto.CompactTextString(m) }
 func (*KeyGenerateResponse) ProtoMessage()    {}
 func (*KeyGenerateResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{35}
+	return fileDescriptor_9084e97af2346a26, []int{43}
 }
 func (m *KeyGenerateResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1796,7 +2158,7 @@ func (m *UserServiceRequest) Reset()         { *m = UserServiceRequest{} }
 func (m *UserServiceRequest) String() string { return proto.CompactTextString(m) }
 func (*UserServiceRequest) ProtoMessage()    {}
 func (*UserServiceRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{36}
+	return fileDescriptor_9084e97af2346a26, []int{44}
 }
 func (m *UserServiceRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1837,7 +2199,7 @@ func (m *UserServiceResponse) Reset()         { *m = UserServiceResponse{} }
 func (m *UserServiceResponse) String() string { return proto.CompactTextString(m) }
 func (*UserServiceResponse) ProtoMessage()    {}
 func (*UserServiceResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{37}
+	return fileDescriptor_9084e97af2346a26, []int{45}
 }
 func (m *UserServiceResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1882,7 +2244,7 @@ func (m *UserSignRequest) Reset()         { *m = UserSignRequest{} }
 func (m *UserSignRequest) String() string { return proto.CompactTextString(m) }
 func (*UserSignRequest) ProtoMessage()    {}
 func (*UserSignRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{38}
+	return fileDescriptor_9084e97af2346a26, []int{46}
 }
 func (m *UserSignRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1925,7 +2287,7 @@ func (m *UserSignResponse) Reset()         { *m = UserSignResponse{} }
 func (m *UserSignResponse) String() string { return proto.CompactTextString(m) }
 func (*UserSignResponse) ProtoMessage()    {}
 func (*UserSignResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{39}
+	return fileDescriptor_9084e97af2346a26, []int{47}
 }
 func (m *UserSignResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1974,7 +2336,7 @@ func (m *UserAddRequest) Reset()         { *m = UserAddRequest{} }
 func (m *UserAddRequest) String() string { return proto.CompactTextString(m) }
 func (*UserAddRequest) ProtoMessage()    {}
 func (*UserAddRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{40}
+	return fileDescriptor_9084e97af2346a26, []int{48}
 }
 func (m *UserAddRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2015,7 +2377,7 @@ func (m *UserAddResponse) Reset()         { *m = UserAddResponse{} }
 func (m *UserAddResponse) String() string { return proto.CompactTextString(m) }
 func (*UserAddResponse) ProtoMessage()    {}
 func (*UserAddResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{41}
+	return fileDescriptor_9084e97af2346a26, []int{49}
 }
 func (m *UserAddResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2057,7 +2419,7 @@ func (m *KeyExportRequest) Reset()         { *m = KeyExportRequest{} }
 func (m *KeyExportRequest) String() string { return proto.CompactTextString(m) }
 func (*KeyExportRequest) ProtoMessage()    {}
 func (*KeyExportRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{42}
+	return fileDescriptor_9084e97af2346a26, []int{50}
 }
 func (m *KeyExportRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2097,7 +2459,7 @@ func (m *KeyExportResponse) Reset()         { *m = KeyExportResponse{} }
 func (m *KeyExportResponse) String() string { return proto.CompactTextString(m) }
 func (*KeyExportResponse) ProtoMessage()    {}
 func (*KeyExportResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{43}
+	return fileDescriptor_9084e97af2346a26, []int{51}
 }
 func (m *KeyExportResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2138,7 +2500,7 @@ func (m *KeyImportRequest) Reset()         { *m = KeyImportRequest{} }
 func (m *KeyImportRequest) String() string { return proto.CompactTextString(m) }
 func (*KeyImportRequest) ProtoMessage()    {}
 func (*KeyImportRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{44}
+	return fileDescriptor_9084e97af2346a26, []int{52}
 }
 func (m *KeyImportRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2178,7 +2540,7 @@ func (m *KeyImportResponse) Reset()         { *m = KeyImportResponse{} }
 func (m *KeyImportResponse) String() string { return proto.CompactTextString(m) }
 func (*KeyImportResponse) ProtoMessage()    {}
 func (*KeyImportResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{45}
+	return fileDescriptor_9084e97af2346a26, []int{53}
 }
 func (m *KeyImportResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2219,7 +2581,7 @@ func (m *KeyRemoveRequest) Reset()         { *m = KeyRemoveRequest{} }
 func (m *KeyRemoveRequest) String() string { return proto.CompactTextString(m) }
 func (*KeyRemoveRequest) ProtoMessage()    {}
 func (*KeyRemoveRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{46}
+	return fileDescriptor_9084e97af2346a26, []int{54}
 }
 func (m *KeyRemoveRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2258,7 +2620,7 @@ func (m *KeyRemoveResponse) Reset()         { *m = KeyRemoveResponse{} }
 func (m *KeyRemoveResponse) String() string { return proto.CompactTextString(m) }
 func (*KeyRemoveResponse) ProtoMessage()    {}
 func (*KeyRemoveResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{47}
+	return fileDescriptor_9084e97af2346a26, []int{55}
 }
 func (m *KeyRemoveResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2305,7 +2667,7 @@ func (m *Key) Reset()         { *m = Key{} }
 func (m *Key) String() string { return proto.CompactTextString(m) }
 func (*Key) ProtoMessage()    {}
 func (*Key) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{48}
+	return fileDescriptor_9084e97af2346a26, []int{56}
 }
 func (m *Key) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2347,7 +2709,7 @@ func (m *KeyRequest) Reset()         { *m = KeyRequest{} }
 func (m *KeyRequest) String() string { return proto.CompactTextString(m) }
 func (*KeyRequest) ProtoMessage()    {}
 func (*KeyRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{49}
+	return fileDescriptor_9084e97af2346a26, []int{57}
 }
 func (m *KeyRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2387,7 +2749,7 @@ func (m *KeyResponse) Reset()         { *m = KeyResponse{} }
 func (m *KeyResponse) String() string { return proto.CompactTextString(m) }
 func (*KeyResponse) ProtoMessage()    {}
 func (*KeyResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{50}
+	return fileDescriptor_9084e97af2346a26, []int{58}
 }
 func (m *KeyResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2430,7 +2792,7 @@ func (m *KeysRequest) Reset()         { *m = KeysRequest{} }
 func (m *KeysRequest) String() string { return proto.CompactTextString(m) }
 func (*KeysRequest) ProtoMessage()    {}
 func (*KeysRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{51}
+	return fileDescriptor_9084e97af2346a26, []int{59}
 }
 func (m *KeysRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2472,7 +2834,7 @@ func (m *KeysResponse) Reset()         { *m = KeysResponse{} }
 func (m *KeysResponse) String() string { return proto.CompactTextString(m) }
 func (*KeysResponse) ProtoMessage()    {}
 func (*KeysResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{52}
+	return fileDescriptor_9084e97af2346a26, []int{60}
 }
 func (m *KeysResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2512,7 +2874,7 @@ func (m *ItemRequest) Reset()         { *m = ItemRequest{} }
 func (m *ItemRequest) String() string { return proto.CompactTextString(m) }
 func (*ItemRequest) ProtoMessage()    {}
 func (*ItemRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{53}
+	return fileDescriptor_9084e97af2346a26, []int{61}
 }
 func (m *ItemRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2552,7 +2914,7 @@ func (m *ItemResponse) Reset()         { *m = ItemResponse{} }
 func (m *ItemResponse) String() string { return proto.CompactTextString(m) }
 func (*ItemResponse) ProtoMessage()    {}
 func (*ItemResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{54}
+	return fileDescriptor_9084e97af2346a26, []int{62}
 }
 func (m *ItemResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2592,7 +2954,7 @@ func (m *ItemsRequest) Reset()         { *m = ItemsRequest{} }
 func (m *ItemsRequest) String() string { return proto.CompactTextString(m) }
 func (*ItemsRequest) ProtoMessage()    {}
 func (*ItemsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{55}
+	return fileDescriptor_9084e97af2346a26, []int{63}
 }
 func (m *ItemsRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2632,7 +2994,7 @@ func (m *ItemsResponse) Reset()         { *m = ItemsResponse{} }
 func (m *ItemsResponse) String() string { return proto.CompactTextString(m) }
 func (*ItemsResponse) ProtoMessage()    {}
 func (*ItemsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{56}
+	return fileDescriptor_9084e97af2346a26, []int{64}
 }
 func (m *ItemsResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2673,7 +3035,7 @@ func (m *Item) Reset()         { *m = Item{} }
 func (m *Item) String() string { return proto.CompactTextString(m) }
 func (*Item) ProtoMessage()    {}
 func (*Item) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{57}
+	return fileDescriptor_9084e97af2346a26, []int{65}
 }
 func (m *Item) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2714,7 +3076,7 @@ func (m *RandRequest) Reset()         { *m = RandRequest{} }
 func (m *RandRequest) String() string { return proto.CompactTextString(m) }
 func (*RandRequest) ProtoMessage()    {}
 func (*RandRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{58}
+	return fileDescriptor_9084e97af2346a26, []int{66}
 }
 func (m *RandRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2754,7 +3116,7 @@ func (m *RandResponse) Reset()         { *m = RandResponse{} }
 func (m *RandResponse) String() string { return proto.CompactTextString(m) }
 func (*RandResponse) ProtoMessage()    {}
 func (*RandResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{59}
+	return fileDescriptor_9084e97af2346a26, []int{67}
 }
 func (m *RandResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2795,7 +3157,7 @@ func (m *PullRequest) Reset()         { *m = PullRequest{} }
 func (m *PullRequest) String() string { return proto.CompactTextString(m) }
 func (*PullRequest) ProtoMessage()    {}
 func (*PullRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{60}
+	return fileDescriptor_9084e97af2346a26, []int{68}
 }
 func (m *PullRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2835,7 +3197,7 @@ func (m *PullResponse) Reset()         { *m = PullResponse{} }
 func (m *PullResponse) String() string { return proto.CompactTextString(m) }
 func (*PullResponse) ProtoMessage()    {}
 func (*PullResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{61}
+	return fileDescriptor_9084e97af2346a26, []int{69}
 }
 func (m *PullResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2875,7 +3237,7 @@ func (m *PushRequest) Reset()         { *m = PushRequest{} }
 func (m *PushRequest) String() string { return proto.CompactTextString(m) }
 func (*PushRequest) ProtoMessage()    {}
 func (*PushRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{62}
+	return fileDescriptor_9084e97af2346a26, []int{70}
 }
 func (m *PushRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2916,7 +3278,7 @@ func (m *PushResponse) Reset()         { *m = PushResponse{} }
 func (m *PushResponse) String() string { return proto.CompactTextString(m) }
 func (*PushResponse) ProtoMessage()    {}
 func (*PushResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{63}
+	return fileDescriptor_9084e97af2346a26, []int{71}
 }
 func (m *PushResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2957,7 +3319,7 @@ func (m *KeyShareRequest) Reset()         { *m = KeyShareRequest{} }
 func (m *KeyShareRequest) String() string { return proto.CompactTextString(m) }
 func (*KeyShareRequest) ProtoMessage()    {}
 func (*KeyShareRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{64}
+	return fileDescriptor_9084e97af2346a26, []int{72}
 }
 func (m *KeyShareRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2996,7 +3358,7 @@ func (m *KeyShareResponse) Reset()         { *m = KeyShareResponse{} }
 func (m *KeyShareResponse) String() string { return proto.CompactTextString(m) }
 func (*KeyShareResponse) ProtoMessage()    {}
 func (*KeyShareResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{65}
+	return fileDescriptor_9084e97af2346a26, []int{73}
 }
 func (m *KeyShareResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -3037,7 +3399,7 @@ func (m *KeyRetrieveRequest) Reset()         { *m = KeyRetrieveRequest{} }
 func (m *KeyRetrieveRequest) String() string { return proto.CompactTextString(m) }
 func (*KeyRetrieveRequest) ProtoMessage()    {}
 func (*KeyRetrieveRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{66}
+	return fileDescriptor_9084e97af2346a26, []int{74}
 }
 func (m *KeyRetrieveRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -3076,7 +3438,7 @@ func (m *KeyRetrieveResponse) Reset()         { *m = KeyRetrieveResponse{} }
 func (m *KeyRetrieveResponse) String() string { return proto.CompactTextString(m) }
 func (*KeyRetrieveResponse) ProtoMessage()    {}
 func (*KeyRetrieveResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{67}
+	return fileDescriptor_9084e97af2346a26, []int{75}
 }
 func (m *KeyRetrieveResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -3116,7 +3478,7 @@ func (m *Collection) Reset()         { *m = Collection{} }
 func (m *Collection) String() string { return proto.CompactTextString(m) }
 func (*Collection) ProtoMessage()    {}
 func (*Collection) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{68}
+	return fileDescriptor_9084e97af2346a26, []int{76}
 }
 func (m *Collection) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -3156,7 +3518,7 @@ func (m *CollectionsRequest) Reset()         { *m = CollectionsRequest{} }
 func (m *CollectionsRequest) String() string { return proto.CompactTextString(m) }
 func (*CollectionsRequest) ProtoMessage()    {}
 func (*CollectionsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{69}
+	return fileDescriptor_9084e97af2346a26, []int{77}
 }
 func (m *CollectionsRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -3196,7 +3558,7 @@ func (m *CollectionsResponse) Reset()         { *m = CollectionsResponse{} }
 func (m *CollectionsResponse) String() string { return proto.CompactTextString(m) }
 func (*CollectionsResponse) ProtoMessage()    {}
 func (*CollectionsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{70}
+	return fileDescriptor_9084e97af2346a26, []int{78}
 }
 func (m *CollectionsResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -3239,7 +3601,7 @@ func (m *Document) Reset()         { *m = Document{} }
 func (m *Document) String() string { return proto.CompactTextString(m) }
 func (*Document) ProtoMessage()    {}
 func (*Document) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{71}
+	return fileDescriptor_9084e97af2346a26, []int{79}
 }
 func (m *Document) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -3280,7 +3642,7 @@ func (m *DocumentsRequest) Reset()         { *m = DocumentsRequest{} }
 func (m *DocumentsRequest) String() string { return proto.CompactTextString(m) }
 func (*DocumentsRequest) ProtoMessage()    {}
 func (*DocumentsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{72}
+	return fileDescriptor_9084e97af2346a26, []int{80}
 }
 func (m *DocumentsRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -3320,7 +3682,7 @@ func (m *DocumentsResponse) Reset()         { *m = DocumentsResponse{} }
 func (m *DocumentsResponse) String() string { return proto.CompactTextString(m) }
 func (*DocumentsResponse) ProtoMessage()    {}
 func (*DocumentsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{73}
+	return fileDescriptor_9084e97af2346a26, []int{81}
 }
 func (m *DocumentsResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -3360,7 +3722,7 @@ func (m *DocumentDeleteRequest) Reset()         { *m = DocumentDeleteRequest{} }
 func (m *DocumentDeleteRequest) String() string { return proto.CompactTextString(m) }
 func (*DocumentDeleteRequest) ProtoMessage()    {}
 func (*DocumentDeleteRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{74}
+	return fileDescriptor_9084e97af2346a26, []int{82}
 }
 func (m *DocumentDeleteRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -3399,7 +3761,7 @@ func (m *DocumentDeleteResponse) Reset()         { *m = DocumentDeleteResponse{}
 func (m *DocumentDeleteResponse) String() string { return proto.CompactTextString(m) }
 func (*DocumentDeleteResponse) ProtoMessage()    {}
 func (*DocumentDeleteResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{75}
+	return fileDescriptor_9084e97af2346a26, []int{83}
 }
 func (m *DocumentDeleteResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -3447,7 +3809,7 @@ func (m *User) Reset()         { *m = User{} }
 func (m *User) String() string { return proto.CompactTextString(m) }
 func (*User) ProtoMessage()    {}
 func (*User) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{76}
+	return fileDescriptor_9084e97af2346a26, []int{84}
 }
 func (m *User) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -3488,7 +3850,7 @@ func (m *UserSearchResult) Reset()         { *m = UserSearchResult{} }
 func (m *UserSearchResult) String() string { return proto.CompactTextString(m) }
 func (*UserSearchResult) ProtoMessage()    {}
 func (*UserSearchResult) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{77}
+	return fileDescriptor_9084e97af2346a26, []int{85}
 }
 func (m *UserSearchResult) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -3530,7 +3892,7 @@ func (m *UserSearchRequest) Reset()         { *m = UserSearchRequest{} }
 func (m *UserSearchRequest) String() string { return proto.CompactTextString(m) }
 func (*UserSearchRequest) ProtoMessage()    {}
 func (*UserSearchRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{78}
+	return fileDescriptor_9084e97af2346a26, []int{86}
 }
 func (m *UserSearchRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -3570,7 +3932,7 @@ func (m *UserSearchResponse) Reset()         { *m = UserSearchResponse{} }
 func (m *UserSearchResponse) String() string { return proto.CompactTextString(m) }
 func (*UserSearchResponse) ProtoMessage()    {}
 func (*UserSearchResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{79}
+	return fileDescriptor_9084e97af2346a26, []int{87}
 }
 func (m *UserSearchResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -3609,7 +3971,7 @@ func (m *WatchRequest) Reset()         { *m = WatchRequest{} }
 func (m *WatchRequest) String() string { return proto.CompactTextString(m) }
 func (*WatchRequest) ProtoMessage()    {}
 func (*WatchRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{80}
+	return fileDescriptor_9084e97af2346a26, []int{88}
 }
 func (m *WatchRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -3650,7 +4012,7 @@ func (m *WatchEvent) Reset()         { *m = WatchEvent{} }
 func (m *WatchEvent) String() string { return proto.CompactTextString(m) }
 func (*WatchEvent) ProtoMessage()    {}
 func (*WatchEvent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{81}
+	return fileDescriptor_9084e97af2346a26, []int{89}
 }
 func (m *WatchEvent) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -3689,7 +4051,7 @@ func (m *ConfigRequest) Reset()         { *m = ConfigRequest{} }
 func (m *ConfigRequest) String() string { return proto.CompactTextString(m) }
 func (*ConfigRequest) ProtoMessage()    {}
 func (*ConfigRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{82}
+	return fileDescriptor_9084e97af2346a26, []int{90}
 }
 func (m *ConfigRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -3729,7 +4091,7 @@ func (m *ConfigResponse) Reset()         { *m = ConfigResponse{} }
 func (m *ConfigResponse) String() string { return proto.CompactTextString(m) }
 func (*ConfigResponse) ProtoMessage()    {}
 func (*ConfigResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{83}
+	return fileDescriptor_9084e97af2346a26, []int{91}
 }
 func (m *ConfigResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -3770,7 +4132,7 @@ func (m *ConfigSetRequest) Reset()         { *m = ConfigSetRequest{} }
 func (m *ConfigSetRequest) String() string { return proto.CompactTextString(m) }
 func (*ConfigSetRequest) ProtoMessage()    {}
 func (*ConfigSetRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{84}
+	return fileDescriptor_9084e97af2346a26, []int{92}
 }
 func (m *ConfigSetRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -3809,7 +4171,7 @@ func (m *ConfigSetResponse) Reset()         { *m = ConfigSetResponse{} }
 func (m *ConfigSetResponse) String() string { return proto.CompactTextString(m) }
 func (*ConfigSetResponse) ProtoMessage()    {}
 func (*ConfigSetResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{85}
+	return fileDescriptor_9084e97af2346a26, []int{93}
 }
 func (m *ConfigSetResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -3848,7 +4210,7 @@ func (m *AppStatusRequest) Reset()         { *m = AppStatusRequest{} }
 func (m *AppStatusRequest) String() string { return proto.CompactTextString(m) }
 func (*AppStatusRequest) ProtoMessage()    {}
 func (*AppStatusRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{86}
+	return fileDescriptor_9084e97af2346a26, []int{94}
 }
 func (m *AppStatusRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -3889,7 +4251,7 @@ func (m *AppStatusResponse) Reset()         { *m = AppStatusResponse{} }
 func (m *AppStatusResponse) String() string { return proto.CompactTextString(m) }
 func (*AppStatusResponse) ProtoMessage()    {}
 func (*AppStatusResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{87}
+	return fileDescriptor_9084e97af2346a26, []int{95}
 }
 func (m *AppStatusResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -3934,7 +4296,7 @@ func (m *Inbox) Reset()         { *m = Inbox{} }
 func (m *Inbox) String() string { return proto.CompactTextString(m) }
 func (*Inbox) ProtoMessage()    {}
 func (*Inbox) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{88}
+	return fileDescriptor_9084e97af2346a26, []int{96}
 }
 func (m *Inbox) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -3973,7 +4335,7 @@ func (m *InboxRequest) Reset()         { *m = InboxRequest{} }
 func (m *InboxRequest) String() string { return proto.CompactTextString(m) }
 func (*InboxRequest) ProtoMessage()    {}
 func (*InboxRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{89}
+	return fileDescriptor_9084e97af2346a26, []int{97}
 }
 func (m *InboxRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -4013,7 +4375,7 @@ func (m *InboxResponse) Reset()         { *m = InboxResponse{} }
 func (m *InboxResponse) String() string { return proto.CompactTextString(m) }
 func (*InboxResponse) ProtoMessage()    {}
 func (*InboxResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{90}
+	return fileDescriptor_9084e97af2346a26, []int{98}
 }
 func (m *InboxResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -4060,7 +4422,7 @@ func (m *Message) Reset()         { *m = Message{} }
 func (m *Message) String() string { return proto.CompactTextString(m) }
 func (*Message) ProtoMessage()    {}
 func (*Message) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{91}
+	return fileDescriptor_9084e97af2346a26, []int{99}
 }
 func (m *Message) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -4100,7 +4462,7 @@ func (m *MessageContent) Reset()         { *m = MessageContent{} }
 func (m *MessageContent) String() string { return proto.CompactTextString(m) }
 func (*MessageContent) ProtoMessage()    {}
 func (*MessageContent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{92}
+	return fileDescriptor_9084e97af2346a26, []int{100}
 }
 func (m *MessageContent) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -4142,7 +4504,7 @@ func (m *MessagePrepareRequest) Reset()         { *m = MessagePrepareRequest{} }
 func (m *MessagePrepareRequest) String() string { return proto.CompactTextString(m) }
 func (*MessagePrepareRequest) ProtoMessage()    {}
 func (*MessagePrepareRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{93}
+	return fileDescriptor_9084e97af2346a26, []int{101}
 }
 func (m *MessagePrepareRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -4182,7 +4544,7 @@ func (m *MessagePrepareResponse) Reset()         { *m = MessagePrepareResponse{}
 func (m *MessagePrepareResponse) String() string { return proto.CompactTextString(m) }
 func (*MessagePrepareResponse) ProtoMessage()    {}
 func (*MessagePrepareResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{94}
+	return fileDescriptor_9084e97af2346a26, []int{102}
 }
 func (m *MessagePrepareResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -4226,7 +4588,7 @@ func (m *MessageCreateRequest) Reset()         { *m = MessageCreateRequest{} }
 func (m *MessageCreateRequest) String() string { return proto.CompactTextString(m) }
 func (*MessageCreateRequest) ProtoMessage()    {}
 func (*MessageCreateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{95}
+	return fileDescriptor_9084e97af2346a26, []int{103}
 }
 func (m *MessageCreateRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -4266,7 +4628,7 @@ func (m *MessageCreateResponse) Reset()         { *m = MessageCreateResponse{} }
 func (m *MessageCreateResponse) String() string { return proto.CompactTextString(m) }
 func (*MessageCreateResponse) ProtoMessage()    {}
 func (*MessageCreateResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{96}
+	return fileDescriptor_9084e97af2346a26, []int{104}
 }
 func (m *MessageCreateResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -4306,7 +4668,7 @@ func (m *MessagesRequest) Reset()         { *m = MessagesRequest{} }
 func (m *MessagesRequest) String() string { return proto.CompactTextString(m) }
 func (*MessagesRequest) ProtoMessage()    {}
 func (*MessagesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{97}
+	return fileDescriptor_9084e97af2346a26, []int{105}
 }
 func (m *MessagesRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -4346,7 +4708,7 @@ func (m *MessagesResponse) Reset()         { *m = MessagesResponse{} }
 func (m *MessagesResponse) String() string { return proto.CompactTextString(m) }
 func (*MessagesResponse) ProtoMessage()    {}
 func (*MessagesResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9084e97af2346a26, []int{98}
+	return fileDescriptor_9084e97af2346a26, []int{106}
 }
 func (m *MessagesResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -4386,8 +4748,12 @@ func init() {
 	proto.RegisterType((*RPCError)(nil), "service.RPCError")
 	proto.RegisterType((*SignRequest)(nil), "service.SignRequest")
 	proto.RegisterType((*SignResponse)(nil), "service.SignResponse")
+	proto.RegisterType((*SignFileInput)(nil), "service.SignFileInput")
+	proto.RegisterType((*SignFileOutput)(nil), "service.SignFileOutput")
 	proto.RegisterType((*VerifyRequest)(nil), "service.VerifyRequest")
 	proto.RegisterType((*VerifyResponse)(nil), "service.VerifyResponse")
+	proto.RegisterType((*VerifyFileInput)(nil), "service.VerifyFileInput")
+	proto.RegisterType((*VerifyFileOutput)(nil), "service.VerifyFileOutput")
 	proto.RegisterType((*Statement)(nil), "service.Statement")
 	proto.RegisterType((*SigchainRequest)(nil), "service.SigchainRequest")
 	proto.RegisterType((*SigchainResponse)(nil), "service.SigchainResponse")
@@ -4397,18 +4763,22 @@ func init() {
 	proto.RegisterType((*StatementCreateResponse)(nil), "service.StatementCreateResponse")
 	proto.RegisterType((*StatementRevokeRequest)(nil), "service.StatementRevokeRequest")
 	proto.RegisterType((*StatementRevokeResponse)(nil), "service.StatementRevokeResponse")
-	proto.RegisterType((*SignStreamInput)(nil), "service.SignStreamInput")
-	proto.RegisterType((*SignStreamOutput)(nil), "service.SignStreamOutput")
-	proto.RegisterType((*VerifyStreamInput)(nil), "service.VerifyStreamInput")
-	proto.RegisterType((*VerifyStreamOutput)(nil), "service.VerifyStreamOutput")
+	proto.RegisterType((*SignInput)(nil), "service.SignInput")
+	proto.RegisterType((*SignOutput)(nil), "service.SignOutput")
+	proto.RegisterType((*VerifyInput)(nil), "service.VerifyInput")
+	proto.RegisterType((*VerifyOutput)(nil), "service.VerifyOutput")
 	proto.RegisterType((*EncryptRequest)(nil), "service.EncryptRequest")
 	proto.RegisterType((*EncryptResponse)(nil), "service.EncryptResponse")
+	proto.RegisterType((*EncryptFileInput)(nil), "service.EncryptFileInput")
+	proto.RegisterType((*EncryptFileOutput)(nil), "service.EncryptFileOutput")
+	proto.RegisterType((*EncryptInput)(nil), "service.EncryptInput")
+	proto.RegisterType((*EncryptOutput)(nil), "service.EncryptOutput")
 	proto.RegisterType((*DecryptRequest)(nil), "service.DecryptRequest")
 	proto.RegisterType((*DecryptResponse)(nil), "service.DecryptResponse")
-	proto.RegisterType((*EncryptStreamInput)(nil), "service.EncryptStreamInput")
-	proto.RegisterType((*EncryptStreamOutput)(nil), "service.EncryptStreamOutput")
-	proto.RegisterType((*DecryptStreamInput)(nil), "service.DecryptStreamInput")
-	proto.RegisterType((*DecryptStreamOutput)(nil), "service.DecryptStreamOutput")
+	proto.RegisterType((*DecryptFileInput)(nil), "service.DecryptFileInput")
+	proto.RegisterType((*DecryptFileOutput)(nil), "service.DecryptFileOutput")
+	proto.RegisterType((*DecryptInput)(nil), "service.DecryptInput")
+	proto.RegisterType((*DecryptOutput)(nil), "service.DecryptOutput")
 	proto.RegisterType((*RuntimeStatusRequest)(nil), "service.RuntimeStatusRequest")
 	proto.RegisterType((*RuntimeStatusResponse)(nil), "service.RuntimeStatusResponse")
 	proto.RegisterType((*AuthSetupRequest)(nil), "service.AuthSetupRequest")
@@ -4488,233 +4858,247 @@ func init() {
 func init() { proto.RegisterFile("keys.proto", fileDescriptor_9084e97af2346a26) }
 
 var fileDescriptor_9084e97af2346a26 = []byte{
-	// 3614 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xc4, 0x3a, 0x5d, 0x6f, 0x1b, 0xc7,
-	0x76, 0x5c, 0x92, 0x12, 0xc9, 0x43, 0x7d, 0xac, 0x56, 0x1f, 0xa6, 0xf6, 0x3a, 0x32, 0x3d, 0x49,
-	0x1a, 0xd5, 0x71, 0x1c, 0x5b, 0x8e, 0xdd, 0x24, 0xbd, 0x37, 0xbd, 0xb4, 0x48, 0xfb, 0x2a, 0x92,
-	0x49, 0x61, 0x49, 0x3a, 0x49, 0x8b, 0x5b, 0x61, 0x43, 0x8e, 0xa5, 0x85, 0xc8, 0x5d, 0x66, 0x77,
-	0xa9, 0x6b, 0x02, 0x7d, 0x2a, 0x50, 0xe0, 0x82, 0xe8, 0x73, 0xdf, 0x08, 0x14, 0xe8, 0x05, 0xda,
-	0xdf, 0x50, 0xb4, 0xaf, 0xc5, 0x7d, 0xec, 0xe3, 0x7d, 0x0a, 0x1a, 0x3f, 0xf5, 0xb1, 0xfd, 0x07,
-	0xc5, 0x7c, 0xed, 0xce, 0x2c, 0x49, 0x49, 0xb1, 0xd3, 0xf6, 0x6d, 0xe7, 0xcc, 0xf9, 0x9a, 0x33,
-	0xe7, 0xcc, 0x9c, 0x39, 0x67, 0x01, 0xce, 0xf1, 0x28, 0xb8, 0x37, 0xf0, 0xbd, 0xd0, 0x33, 0x72,
-	0x01, 0xf6, 0x2f, 0x9c, 0x0e, 0x36, 0x37, 0x4e, 0xbd, 0x53, 0x8f, 0xc2, 0x3e, 0x26, 0x5f, 0x6c,
-	0x1a, 0x59, 0x90, 0xb7, 0x8e, 0xf7, 0x6b, 0xbe, 0xef, 0xf9, 0x86, 0x01, 0xd9, 0x8e, 0xd7, 0xc5,
-	0x25, 0xad, 0xac, 0xed, 0x2e, 0x58, 0xf4, 0xdb, 0x28, 0x41, 0xae, 0x8f, 0x83, 0xc0, 0x3e, 0xc5,
-	0xa5, 0x74, 0x59, 0xdb, 0x2d, 0x58, 0x62, 0x48, 0x66, 0xba, 0x38, 0xb4, 0x9d, 0x5e, 0x50, 0xca,
-	0xb0, 0x19, 0x3e, 0x44, 0x1e, 0x14, 0x9b, 0xce, 0xa9, 0x6b, 0xe1, 0xef, 0x86, 0x38, 0x08, 0x09,
-	0xdb, 0xae, 0x1d, 0xda, 0x94, 0xed, 0x92, 0x45, 0xbf, 0x8d, 0x2d, 0x58, 0x0c, 0x9c, 0x53, 0x17,
-	0xfb, 0x9c, 0x2b, 0x1f, 0x11, 0xa6, 0xb6, 0xdf, 0xf7, 0x7c, 0xdc, 0xa5, 0x4c, 0xf3, 0x96, 0x18,
-	0x1a, 0x26, 0xe4, 0x09, 0xff, 0xce, 0x19, 0xee, 0x96, 0xb2, 0x74, 0x2a, 0x1a, 0xa3, 0x5f, 0xc0,
-	0x12, 0x13, 0x18, 0x0c, 0x3c, 0x37, 0xc0, 0x33, 0x25, 0x6e, 0x43, 0xe6, 0xdc, 0xe9, 0x32, 0x71,
-	0x4f, 0x72, 0xaf, 0xbf, 0xbf, 0x95, 0x39, 0x3c, 0xa8, 0x5a, 0x04, 0x86, 0x7e, 0x01, 0xcb, 0x2f,
-	0xb0, 0xef, 0xbc, 0x1c, 0x5d, 0xa6, 0xf1, 0x5c, 0xcd, 0xd0, 0x97, 0xb0, 0x22, 0xc8, 0x2f, 0x91,
-	0xff, 0x9e, 0xb2, 0xe2, 0xe2, 0xde, 0xd2, 0x3d, 0xbe, 0x31, 0xf7, 0x0e, 0xf1, 0x48, 0xac, 0x1f,
-	0xfd, 0x8b, 0x06, 0x85, 0x66, 0x68, 0x87, 0xb8, 0x8f, 0xdd, 0xd0, 0xd0, 0x21, 0x13, 0x38, 0xa7,
-	0x9c, 0x0d, 0xf9, 0x8c, 0x38, 0xa7, 0xa7, 0x57, 0x96, 0x99, 0x5e, 0x19, 0x65, 0x80, 0xbf, 0xa3,
-	0xf6, 0x5a, 0xb0, 0xc8, 0x27, 0x61, 0x30, 0xf0, 0xf1, 0x45, 0x69, 0x81, 0x31, 0x20, 0xdf, 0x64,
-	0x33, 0x7c, 0x7c, 0xe1, 0x9d, 0xe3, 0xd2, 0x22, 0x45, 0xe4, 0x23, 0xe3, 0x26, 0x14, 0x42, 0xa7,
-	0x8f, 0x83, 0xd0, 0xee, 0x0f, 0x4a, 0xb9, 0xb2, 0xb6, 0x9b, 0xb1, 0x62, 0x00, 0xe1, 0x14, 0x8e,
-	0x06, 0xb8, 0x94, 0xa7, 0x1b, 0x48, 0xbf, 0xd1, 0x5d, 0x58, 0x6d, 0x3a, 0xa7, 0x9d, 0x33, 0xdb,
-	0x89, 0x76, 0x9f, 0x6b, 0xa7, 0xcd, 0xb0, 0xfb, 0x4b, 0xd0, 0x63, 0x6c, 0x6e, 0xba, 0x1d, 0xc8,
-	0x9c, 0xe3, 0x11, 0x45, 0x4f, 0xda, 0x88, 0x4c, 0x18, 0x7b, 0x00, 0x81, 0xb0, 0x4f, 0x50, 0x4a,
-	0x97, 0x33, 0xbb, 0xc5, 0x3d, 0x23, 0x42, 0x8b, 0x4c, 0x67, 0x49, 0x58, 0xe8, 0xcf, 0x40, 0x8f,
-	0x27, 0xae, 0x54, 0x4b, 0x18, 0x2d, 0x1d, 0x19, 0x0d, 0xd5, 0x60, 0x4d, 0x62, 0xc0, 0x35, 0xbd,
-	0x0f, 0x85, 0x48, 0x06, 0xd7, 0x77, 0x96, 0x22, 0x31, 0x12, 0xfa, 0x35, 0x6c, 0x45, 0xf0, 0x7d,
-	0x1f, 0xdb, 0x21, 0xbe, 0xcc, 0xe1, 0xe6, 0x3b, 0xac, 0xb1, 0x01, 0x0b, 0x3d, 0xaf, 0x63, 0xf7,
-	0xe8, 0x2e, 0xe6, 0x2d, 0x36, 0x40, 0x87, 0x70, 0x63, 0x8a, 0xfd, 0x1b, 0xeb, 0xfa, 0x17, 0x92,
-	0xae, 0x16, 0x75, 0x07, 0xa1, 0x2b, 0x37, 0x8f, 0x16, 0xfb, 0xd4, 0x5b, 0x69, 0x2a, 0x98, 0xbf,
-	0xb1, 0xa6, 0x01, 0xf5, 0x39, 0xb7, 0x19, 0xfa, 0xd8, 0xee, 0x1f, 0xb8, 0x83, 0xe1, 0xff, 0xc5,
-	0x89, 0x53, 0xa1, 0xae, 0xcb, 0x85, 0x36, 0x86, 0xe1, 0x3c, 0xa9, 0x97, 0x9c, 0x3a, 0x1f, 0xc0,
-	0x1a, 0x3b, 0x36, 0xae, 0xd0, 0x1c, 0xd5, 0xc1, 0x90, 0x11, 0x2f, 0x91, 0x76, 0xbd, 0x33, 0xe6,
-	0xef, 0x35, 0x58, 0xa9, 0xb9, 0x1d, 0x7f, 0x34, 0x08, 0xaf, 0x79, 0xe0, 0xa5, 0x55, 0xc3, 0xec,
-	0x00, 0xf8, 0xb8, 0xe3, 0x0c, 0x1c, 0x1a, 0x83, 0x99, 0x72, 0x66, 0xb7, 0x60, 0x49, 0x10, 0xc9,
-	0xd4, 0x59, 0xc5, 0xd4, 0xbb, 0x90, 0xed, 0x93, 0xfb, 0x85, 0xf8, 0xc2, 0xca, 0xde, 0x46, 0xa4,
-	0x1c, 0x57, 0xe6, 0xb9, 0xd7, 0xc5, 0x16, 0xc5, 0x40, 0xef, 0xc3, 0x6a, 0xa4, 0xe1, 0xfc, 0x33,
-	0x15, 0x9d, 0xc1, 0x4a, 0x15, 0xbf, 0xc5, 0x42, 0xae, 0xaf, 0xd0, 0x21, 0xac, 0x46, 0x92, 0xde,
-	0xfa, 0x90, 0xff, 0x9d, 0x06, 0x06, 0x17, 0x71, 0x95, 0xd7, 0xfe, 0x7f, 0x6e, 0xc2, 0x1f, 0xc3,
-	0xba, 0xa2, 0xe5, 0x7c, 0xc7, 0x43, 0xbb, 0x60, 0x70, 0xf3, 0x5c, 0xe5, 0xcc, 0x0d, 0x58, 0x57,
-	0x30, 0xdf, 0xda, 0x9b, 0xb7, 0x60, 0xc3, 0x1a, 0xba, 0xe4, 0x5a, 0x22, 0xa7, 0xc3, 0x30, 0xe0,
-	0x9e, 0x80, 0xfa, 0xb0, 0x99, 0x80, 0xf3, 0x7d, 0x2b, 0x41, 0xee, 0x02, 0xfb, 0x81, 0xe3, 0xb9,
-	0xec, 0xf4, 0xb7, 0xc4, 0x90, 0x9c, 0x6c, 0xf8, 0x15, 0xe6, 0xf6, 0x22, 0x9f, 0xc6, 0x2e, 0xac,
-	0xda, 0xc3, 0xf0, 0xac, 0x89, 0xc3, 0xe1, 0xa0, 0x8e, 0x71, 0x17, 0x77, 0xf9, 0x41, 0x96, 0x04,
-	0xa3, 0xa7, 0xa0, 0x57, 0x04, 0x48, 0x38, 0xa3, 0x09, 0xf9, 0x81, 0x1d, 0x04, 0xbf, 0xf1, 0x7c,
-	0x7e, 0xd1, 0x58, 0xd1, 0x98, 0x6c, 0x4f, 0xa7, 0x47, 0x76, 0x8a, 0xde, 0xb9, 0x05, 0x8b, 0x8f,
-	0xd0, 0x03, 0x58, 0x93, 0xf8, 0x70, 0x95, 0x6f, 0x42, 0x81, 0xc8, 0x6b, 0x79, 0xe7, 0x58, 0x28,
-	0x1d, 0x03, 0xd0, 0x33, 0x46, 0xd2, 0x76, 0x7b, 0x5e, 0xe7, 0xfc, 0xc7, 0xc9, 0x4e, 0x2b, 0xb2,
-	0xf7, 0xc0, 0x90, 0x19, 0x5d, 0x4b, 0xf8, 0x1a, 0xac, 0x12, 0x9a, 0xa3, 0x58, 0x34, 0x32, 0x98,
-	0x29, 0x8e, 0x24, 0x26, 0xe8, 0x73, 0x30, 0x0e, 0xf1, 0xe8, 0x19, 0x76, 0xb1, 0x2f, 0x5d, 0x7b,
-	0xef, 0xf1, 0x14, 0x42, 0xa3, 0xbe, 0xa8, 0xcb, 0xfb, 0xdb, 0x1a, 0x0d, 0x30, 0x4f, 0x2a, 0xee,
-	0xc3, 0xba, 0x42, 0xcb, 0xf5, 0xba, 0x24, 0xb1, 0x38, 0x00, 0xa3, 0x1d, 0x60, 0xbf, 0xc9, 0xd8,
-	0x5d, 0xe3, 0xca, 0x2f, 0x81, 0x48, 0x93, 0x45, 0x96, 0xcb, 0x87, 0xe8, 0x63, 0x58, 0x57, 0x58,
-	0xc5, 0x4e, 0x24, 0x08, 0x34, 0x95, 0xe0, 0xcf, 0x61, 0x95, 0x12, 0x48, 0x09, 0xf0, 0x9b, 0x08,
-	0x26, 0x11, 0xe1, 0xda, 0x7d, 0xcc, 0x73, 0x6b, 0xfa, 0x8d, 0x7e, 0x09, 0x7a, 0xcc, 0x3b, 0xd6,
-	0x44, 0x24, 0xe8, 0x9a, 0x9a, 0xa0, 0x0b, 0x0e, 0x69, 0x89, 0xc3, 0x58, 0x83, 0x15, 0xc2, 0xa2,
-	0xd2, 0xed, 0xfe, 0xd4, 0xda, 0x11, 0x46, 0x43, 0xbf, 0xc7, 0xc2, 0x87, 0x31, 0x6a, 0x5b, 0x47,
-	0x16, 0x81, 0xcd, 0x49, 0x03, 0x5e, 0x32, 0x53, 0x51, 0x5d, 0xf8, 0x6a, 0x6e, 0x43, 0x76, 0x18,
-	0x60, 0x9f, 0xdf, 0xfc, 0xcb, 0x91, 0x47, 0x10, 0x3c, 0x8b, 0x4e, 0xa9, 0x19, 0x42, 0xfa, 0x3a,
-	0x19, 0x82, 0x0f, 0xfa, 0x21, 0x1e, 0xd5, 0x5e, 0x0d, 0x3c, 0xff, 0x3a, 0xf9, 0x9f, 0x1c, 0x3a,
-	0xe9, 0x44, 0xe8, 0x7c, 0xc0, 0x3d, 0x36, 0x43, 0x3d, 0x76, 0x3d, 0x3e, 0x3d, 0x29, 0x73, 0xc9,
-	0x69, 0x3f, 0x84, 0x35, 0x49, 0x26, 0x5f, 0xdd, 0x16, 0x2c, 0x62, 0x0a, 0xe1, 0xe7, 0x1c, 0x1f,
-	0xa1, 0x2f, 0xa8, 0x82, 0x07, 0x7d, 0x59, 0xc1, 0x15, 0x48, 0x3b, 0x2e, 0xc7, 0x4b, 0x3b, 0xee,
-	0x65, 0x5a, 0xa1, 0x7b, 0x54, 0x98, 0xa0, 0xbf, 0x3a, 0x3e, 0x3e, 0xa2, 0xf2, 0x2c, 0xdc, 0xf7,
-	0x2e, 0xae, 0x11, 0x1d, 0x68, 0x9d, 0xb2, 0x17, 0xe8, 0x3c, 0xa2, 0xff, 0x0a, 0x32, 0x87, 0x78,
-	0x64, 0x6c, 0x41, 0x3a, 0xa2, 0x5a, 0x7c, 0xfd, 0xfd, 0xad, 0xf4, 0x41, 0xd5, 0x4a, 0x3b, 0xdd,
-	0x28, 0xb4, 0x33, 0x97, 0x85, 0x76, 0xb4, 0xdd, 0x8b, 0xf3, 0xb7, 0x7b, 0x03, 0x16, 0x02, 0xfb,
-	0x02, 0x77, 0x4b, 0xc0, 0x5c, 0x87, 0x0e, 0x50, 0x13, 0x80, 0xaa, 0x74, 0xe5, 0x66, 0x1a, 0x5c,
-	0x02, 0x0f, 0x02, 0xca, 0x72, 0x0b, 0x16, 0x87, 0x83, 0xae, 0x1d, 0x62, 0xee, 0x8e, 0x7c, 0x84,
-	0x3e, 0x82, 0x22, 0x65, 0x7a, 0xbd, 0xa7, 0x08, 0xfa, 0x47, 0x8d, 0xe2, 0x8b, 0x1b, 0x87, 0x68,
-	0xfa, 0xdd, 0x10, 0xfb, 0x23, 0x1e, 0x87, 0x6c, 0x60, 0xfc, 0x11, 0x2c, 0x90, 0xa5, 0xb2, 0xb7,
-	0xca, 0x2c, 0x4b, 0xb0, 0x69, 0x72, 0xcc, 0x06, 0x9e, 0x1f, 0x3e, 0x75, 0x70, 0x8f, 0xad, 0xb5,
-	0x60, 0xc5, 0x00, 0xe3, 0xe7, 0xb0, 0x4c, 0x06, 0x55, 0xc7, 0xc7, 0x9d, 0x90, 0x5c, 0x5d, 0x45,
-	0x6a, 0xd7, 0xad, 0xd8, 0xf1, 0xe5, 0x59, 0x4b, 0x45, 0x46, 0x7f, 0xab, 0xc1, 0x12, 0xd3, 0x94,
-	0x2f, 0xad, 0x0c, 0xd9, 0x73, 0x3c, 0x0a, 0x4a, 0x1a, 0x7d, 0x3f, 0xa9, 0x6b, 0xa3, 0x33, 0xff,
-	0xab, 0xea, 0xbc, 0x0f, 0xc5, 0x83, 0x10, 0xf7, 0x85, 0xdd, 0xe6, 0xb8, 0x10, 0x7a, 0x00, 0x4b,
-	0x0c, 0x2d, 0x3e, 0x1b, 0x9c, 0x10, 0xf7, 0xa7, 0xce, 0x06, 0x8a, 0x44, 0xa7, 0xd0, 0x7b, 0x8c,
-	0xe4, 0xf2, 0x2d, 0x41, 0x9f, 0xc0, 0x32, 0xc7, 0xe2, 0x9c, 0xdf, 0x85, 0x05, 0x42, 0x2e, 0xec,
-	0x91, 0x60, 0xcd, 0xe6, 0xd0, 0x1e, 0x64, 0xc9, 0x70, 0xae, 0xc7, 0x8b, 0xf7, 0x70, 0x5a, 0x7a,
-	0x0f, 0xb7, 0xa0, 0x68, 0xd9, 0x6e, 0x37, 0x5e, 0xe9, 0x62, 0x0f, 0xbb, 0xa7, 0xe1, 0x19, 0x7f,
-	0x3d, 0xf1, 0x91, 0xf1, 0x11, 0xe4, 0xb1, 0xdb, 0xf1, 0xba, 0x8e, 0x7b, 0x4a, 0xc9, 0x57, 0xf6,
-	0xd6, 0xe4, 0xbc, 0x8c, 0x4e, 0x58, 0x11, 0x0a, 0x42, 0xb0, 0xc4, 0xb8, 0xce, 0xc8, 0x44, 0x0b,
-	0x3c, 0xcf, 0xfa, 0x39, 0x14, 0x8f, 0x87, 0xbd, 0xde, 0x9b, 0x45, 0x08, 0xba, 0x0b, 0x4b, 0x8c,
-	0x3a, 0xca, 0x01, 0xb2, 0xe7, 0x4e, 0x97, 0xd9, 0xa7, 0xf0, 0x24, 0xff, 0xfa, 0xfb, 0x5b, 0xd9,
-	0xc3, 0x83, 0x6a, 0x60, 0x51, 0x28, 0xda, 0x25, 0xb2, 0x82, 0xb3, 0x6b, 0x9c, 0x24, 0xcf, 0x08,
-	0x5f, 0x82, 0x79, 0xe5, 0x19, 0x45, 0x44, 0x0e, 0xfd, 0x1e, 0x0b, 0x1b, 0x2e, 0xb2, 0x6d, 0x1d,
-	0x05, 0x16, 0x85, 0xa2, 0x2f, 0x61, 0xf5, 0x10, 0x8f, 0x9a, 0x67, 0xb6, 0x7f, 0x9d, 0xeb, 0xfd,
-	0x26, 0x14, 0xa2, 0xcc, 0x98, 0xaf, 0x33, 0x06, 0x90, 0x7c, 0x25, 0xe6, 0xc5, 0x4f, 0xb7, 0xe7,
-	0x34, 0x5f, 0xb1, 0x70, 0xe8, 0x3b, 0xf8, 0xe2, 0xed, 0x45, 0x6c, 0xd2, 0x14, 0x26, 0x66, 0xc7,
-	0xa5, 0x94, 0x01, 0xf6, 0xbd, 0x5e, 0x8f, 0x85, 0x05, 0x2d, 0xcd, 0xd8, 0xdc, 0x37, 0x0a, 0x16,
-	0xfd, 0x26, 0x89, 0x75, 0x8c, 0x11, 0x48, 0xaf, 0x9c, 0x29, 0xcc, 0x23, 0x58, 0x57, 0x30, 0xb9,
-	0x85, 0x1f, 0x41, 0xb1, 0x13, 0x83, 0xb9, 0x83, 0xc7, 0xf7, 0x56, 0x4c, 0x62, 0xc9, 0x78, 0x68,
-	0x00, 0xf9, 0xaa, 0xd7, 0x19, 0xd2, 0x2a, 0xd4, 0x0c, 0x69, 0x24, 0xb0, 0x2e, 0xec, 0xde, 0x50,
-	0x78, 0x3b, 0x1b, 0x10, 0x23, 0x74, 0x68, 0xe1, 0xa1, 0x5b, 0x09, 0xe9, 0xa1, 0x91, 0xb1, 0x62,
-	0x00, 0x99, 0x65, 0x07, 0x2d, 0x99, 0x2d, 0xb2, 0xd9, 0x08, 0x40, 0xee, 0x40, 0x21, 0xf1, 0xb2,
-	0x75, 0x92, 0x18, 0x1a, 0xf8, 0xf8, 0xa5, 0xf3, 0x4a, 0x24, 0xaf, 0x6c, 0x84, 0xaa, 0xb0, 0x26,
-	0xd1, 0xf3, 0xd5, 0x7f, 0x0c, 0x85, 0xae, 0x00, 0xf2, 0xb5, 0xc7, 0x91, 0x25, 0xd0, 0xad, 0x18,
-	0x07, 0x7d, 0x08, 0x9b, 0x02, 0x5c, 0xc5, 0x3d, 0xac, 0x54, 0x68, 0xa6, 0x4c, 0x5e, 0x82, 0xad,
-	0x24, 0x32, 0xdf, 0xd8, 0xff, 0xd6, 0x20, 0x4b, 0xee, 0xb0, 0x28, 0x4f, 0xd2, 0xd4, 0x3c, 0x69,
-	0x5e, 0xb9, 0x84, 0xd7, 0x56, 0x32, 0x71, 0x6d, 0x45, 0x4a, 0xc1, 0xb2, 0x6a, 0x0a, 0xc6, 0xd3,
-	0xad, 0x85, 0x19, 0xe9, 0xd6, 0x87, 0xb0, 0x18, 0xd0, 0x47, 0x0f, 0xbd, 0x58, 0xe5, 0x3c, 0x85,
-	0xa6, 0x8f, 0xec, 0x3d, 0xc4, 0x51, 0xc8, 0x43, 0xf2, 0x02, 0xfb, 0xce, 0x4b, 0x87, 0xee, 0x0b,
-	0x2b, 0xf3, 0x49, 0x10, 0xfa, 0x2a, 0xf2, 0x7d, 0x5e, 0xe6, 0x23, 0x9f, 0x34, 0x9b, 0xb3, 0xbf,
-	0xc5, 0xbd, 0x52, 0x81, 0x6d, 0x3e, 0x1d, 0xa0, 0x63, 0x9e, 0x9c, 0x62, 0xdb, 0xef, 0x90, 0x08,
-	0x1f, 0xf6, 0x2e, 0x0d, 0x98, 0xdb, 0xd2, 0xb1, 0x33, 0xfb, 0xea, 0x47, 0x6d, 0x58, 0x93, 0x39,
-	0x5e, 0x76, 0xcb, 0x12, 0x95, 0x9c, 0xbe, 0x13, 0x72, 0xd3, 0xb1, 0x41, 0x9c, 0x76, 0x66, 0xe5,
-	0xb4, 0x33, 0x7a, 0x1d, 0x70, 0x45, 0x99, 0xab, 0x3c, 0x84, 0x9c, 0x4f, 0x95, 0x16, 0x8e, 0xb2,
-	0xad, 0x1a, 0x4d, 0x5a, 0x96, 0x25, 0x30, 0xd1, 0x0a, 0x2c, 0x7d, 0x65, 0x87, 0x91, 0x72, 0xa8,
-	0x0e, 0x40, 0xc7, 0xb5, 0x0b, 0x12, 0x38, 0x77, 0xa3, 0x6d, 0xd0, 0x12, 0x8f, 0x6d, 0x8a, 0x94,
-	0xd8, 0x07, 0xe1, 0x61, 0x69, 0xc9, 0xc3, 0x56, 0x61, 0x79, 0xdf, 0x73, 0x5f, 0x3a, 0xa7, 0x42,
-	0xc0, 0x6f, 0x35, 0x58, 0x11, 0x10, 0xae, 0xf8, 0x9f, 0xc2, 0x62, 0x87, 0x42, 0xb8, 0xde, 0xef,
-	0x4a, 0xc1, 0x2d, 0x23, 0xf2, 0x61, 0xcd, 0x0d, 0xfd, 0x91, 0xc5, 0x49, 0xcc, 0xcf, 0xa0, 0x28,
-	0x81, 0xc9, 0x5e, 0x8b, 0x94, 0xa7, 0xc0, 0xea, 0xad, 0x33, 0x03, 0xfd, 0xf3, 0xf4, 0xa7, 0x1a,
-	0xfa, 0x1c, 0x74, 0x46, 0xda, 0xc4, 0xa1, 0x54, 0x1b, 0xbc, 0x0e, 0x3d, 0xc9, 0x28, 0x25, 0x5a,
-	0x1e, 0x34, 0xe4, 0xdd, 0x38, 0x18, 0xa8, 0xaf, 0xf8, 0xaf, 0x60, 0x4d, 0x82, 0xf1, 0x15, 0x23,
-	0x58, 0x1a, 0xf8, 0x5e, 0x7f, 0x10, 0x1e, 0xe2, 0xd1, 0x29, 0x7f, 0x94, 0xe6, 0x2d, 0x05, 0x46,
-	0xbc, 0x9a, 0x8d, 0xdb, 0xc2, 0xc9, 0xf2, 0x96, 0x04, 0x41, 0xff, 0xa4, 0xc1, 0xc2, 0x81, 0xfb,
-	0xad, 0xf7, 0xea, 0x8a, 0xab, 0x31, 0xf9, 0x82, 0x52, 0xcf, 0xb8, 0x4c, 0xf2, 0x8c, 0x43, 0xb0,
-	0xc4, 0x9f, 0x5f, 0xfb, 0xde, 0xd0, 0x0d, 0x79, 0xe5, 0x5d, 0x81, 0xd1, 0x90, 0x76, 0x9d, 0xc1,
-	0x00, 0x87, 0x2c, 0x78, 0x2d, 0x31, 0x24, 0xc6, 0xc2, 0xbe, 0xef, 0xf9, 0x3c, 0xe1, 0x62, 0x03,
-	0xe2, 0x64, 0x54, 0x53, 0x61, 0x93, 0xcf, 0x60, 0x99, 0x8f, 0xb9, 0x3d, 0x76, 0x21, 0xe7, 0x10,
-	0x00, 0x16, 0xae, 0xbb, 0x12, 0x27, 0x30, 0x14, 0x51, 0x4c, 0xa3, 0xbf, 0x49, 0x43, 0xee, 0x39,
-	0x7f, 0x1e, 0xce, 0xcb, 0x63, 0xb6, 0x60, 0x31, 0xc0, 0x6e, 0x57, 0x2a, 0x94, 0xd2, 0x91, 0xf1,
-	0x00, 0x72, 0x1d, 0xcf, 0x0d, 0xc9, 0xfd, 0x06, 0x34, 0x66, 0x6f, 0x44, 0x52, 0x9e, 0x8b, 0xe5,
-	0xd1, 0x69, 0x4b, 0xe0, 0x45, 0x31, 0xbe, 0x31, 0x3f, 0xbd, 0x57, 0xcc, 0xb9, 0x99, 0x34, 0x67,
-	0x19, 0x8a, 0xa1, 0xd3, 0xc7, 0x55, 0x27, 0x18, 0xf4, 0xec, 0x51, 0xe9, 0x16, 0x55, 0x48, 0x06,
-	0x11, 0x0c, 0x72, 0x83, 0x08, 0x8c, 0x32, 0xc3, 0x90, 0x40, 0x51, 0x5c, 0xdd, 0x96, 0xe2, 0xea,
-	0x3d, 0x58, 0x51, 0x75, 0xa6, 0xd9, 0x1b, 0x7e, 0x15, 0x8a, 0x83, 0x9a, 0x7c, 0xa3, 0xbf, 0x84,
-	0x4d, 0x8e, 0x75, 0xec, 0xe3, 0xc1, 0xf5, 0x52, 0x8d, 0x79, 0xd6, 0x13, 0xfc, 0x41, 0xe2, 0x5f,
-	0x85, 0xad, 0x24, 0x7f, 0xbe, 0xa3, 0x77, 0xd4, 0x47, 0x7d, 0x51, 0x7a, 0x36, 0x70, 0x8a, 0xe8,
-	0x99, 0x8f, 0x86, 0xb0, 0x21, 0xd6, 0xa2, 0xf4, 0x14, 0xde, 0x40, 0x49, 0xe6, 0x12, 0x30, 0x33,
-	0xb5, 0x25, 0xca, 0x17, 0x25, 0xe5, 0xf7, 0x23, 0xe3, 0x24, 0x7a, 0x0d, 0x3f, 0x46, 0xf7, 0xbb,
-	0xb0, 0xca, 0x61, 0xc1, 0x35, 0xb2, 0xc7, 0x5f, 0x82, 0x1e, 0x63, 0x73, 0x69, 0x77, 0x21, 0xcf,
-	0x99, 0x09, 0xe7, 0x9f, 0x16, 0x17, 0x61, 0xdc, 0xf9, 0x3b, 0x0d, 0x8a, 0x52, 0xa1, 0xd3, 0xb8,
-	0x0f, 0x1b, 0xd5, 0xda, 0xd3, 0x4a, 0xfb, 0xa8, 0x75, 0x52, 0xab, 0xef, 0x5b, 0xdf, 0x1c, 0xb7,
-	0x4e, 0x9e, 0x37, 0xaa, 0x35, 0x3d, 0x65, 0x6e, 0x8d, 0x27, 0x65, 0xa3, 0x8a, 0x5f, 0xda, 0xc3,
-	0x5e, 0x28, 0x53, 0xbc, 0x03, 0x20, 0x30, 0x5f, 0xec, 0xe9, 0x9a, 0xb9, 0x3c, 0x9e, 0x94, 0x0b,
-	0x1c, 0xe1, 0xc5, 0x9e, 0x71, 0x1b, 0x96, 0x9a, 0x07, 0xcf, 0x04, 0xc2, 0x03, 0x3d, 0x6d, 0xae,
-	0x8e, 0x27, 0x65, 0xda, 0x0e, 0x65, 0x28, 0x0f, 0xcc, 0xf5, 0xdf, 0xfe, 0xc3, 0x4e, 0xea, 0x9f,
-	0x7f, 0xb7, 0x23, 0x2b, 0x72, 0xe7, 0xaf, 0x35, 0x80, 0xb8, 0x86, 0x60, 0xdc, 0x83, 0xf5, 0x48,
-	0xaf, 0xaf, 0x8f, 0x1b, 0x56, 0xeb, 0xa4, 0xf5, 0xcd, 0x31, 0x51, 0x6b, 0x73, 0x3c, 0x29, 0xaf,
-	0x09, 0xb5, 0x62, 0xfc, 0xfb, 0xb0, 0xd1, 0xac, 0x1c, 0xb5, 0x8e, 0x2b, 0xfb, 0x87, 0x0a, 0x81,
-	0xc6, 0xd6, 0xd1, 0xb4, 0x7b, 0xe1, 0xc0, 0xee, 0x9c, 0xc7, 0x14, 0xa6, 0xc1, 0xb5, 0x90, 0xa4,
-	0xde, 0xf9, 0x37, 0x0d, 0x72, 0xfc, 0x55, 0x6a, 0xec, 0x82, 0xde, 0xae, 0x1f, 0xd6, 0x1b, 0x5f,
-	0xd5, 0x4f, 0x0e, 0x6b, 0xdf, 0x08, 0xf1, 0xc6, 0x78, 0x52, 0x5e, 0x69, 0xbb, 0xe7, 0xae, 0xf7,
-	0x1b, 0x57, 0x60, 0x9a, 0x90, 0xaf, 0x55, 0xbf, 0xde, 0x7b, 0xf4, 0xe8, 0xc1, 0x67, 0x3a, 0x98,
-	0x4b, 0xe3, 0x49, 0x39, 0x5f, 0xeb, 0xb2, 0xb1, 0xf1, 0x01, 0xac, 0x8a, 0xb9, 0x93, 0xe3, 0xf6,
-	0x93, 0xa3, 0x83, 0x7d, 0xbd, 0xc8, 0x98, 0x08, 0x94, 0xe3, 0xe1, 0xb7, 0x3d, 0xa7, 0x43, 0x3c,
-	0x92, 0xb3, 0xd8, 0x30, 0x61, 0x3c, 0x29, 0xf3, 0x91, 0xf1, 0x2e, 0x2c, 0xab, 0xe4, 0x9b, 0xa6,
-	0x3e, 0x9e, 0x94, 0x97, 0x64, 0x62, 0x73, 0x95, 0xaf, 0x45, 0x28, 0x7f, 0xa7, 0x05, 0xcb, 0xca,
-	0x03, 0xd4, 0xd8, 0x80, 0x4c, 0xa5, 0xb9, 0xaf, 0xa7, 0xcc, 0xe2, 0x78, 0x52, 0xce, 0x91, 0xb9,
-	0x4a, 0x40, 0x84, 0x66, 0xab, 0xb5, 0xe6, 0xbe, 0xae, 0x31, 0xad, 0x29, 0x09, 0x0e, 0x3a, 0xe6,
-	0x26, 0xe7, 0xa7, 0x32, 0xb9, 0xf3, 0x07, 0x0d, 0xf2, 0xe2, 0x35, 0x46, 0x6e, 0xba, 0x5f, 0xd5,
-	0xbe, 0xd6, 0x53, 0x66, 0x6e, 0x3c, 0x29, 0x67, 0x7e, 0x85, 0x5f, 0x91, 0x25, 0x3c, 0xa9, 0x34,
-	0x6b, 0x8f, 0x89, 0x57, 0xd0, 0x25, 0x3c, 0xb1, 0x03, 0xfc, 0x78, 0x4f, 0xc0, 0x1f, 0x7d, 0xaa,
-	0xa7, 0x63, 0xf8, 0xa3, 0x4f, 0x05, 0xfc, 0xe1, 0x9e, 0x9e, 0x89, 0xe1, 0x0f, 0x23, 0xfc, 0x07,
-	0x8f, 0xf5, 0x6c, 0x0c, 0x7f, 0xf0, 0x38, 0xe2, 0xff, 0x89, 0xbe, 0x20, 0xf1, 0xff, 0x84, 0xd8,
-	0x5f, 0xec, 0xbd, 0xbe, 0xc8, 0x57, 0xc2, 0xf7, 0x9b, 0x5c, 0x28, 0x4f, 0x0e, 0x8e, 0x1f, 0x7e,
-	0xa6, 0xe7, 0xcc, 0xc2, 0x78, 0x52, 0x66, 0x03, 0x53, 0xe7, 0xeb, 0x8b, 0x56, 0x73, 0x67, 0x92,
-	0x06, 0x88, 0x53, 0x43, 0x03, 0x41, 0x8e, 0x6f, 0xbe, 0x70, 0xb9, 0x78, 0x92, 0xef, 0xbe, 0x51,
-	0x82, 0x74, 0xe3, 0x50, 0xd7, 0xd8, 0x76, 0xc4, 0xd3, 0x8d, 0x43, 0xe3, 0x31, 0x18, 0x56, 0xad,
-	0xd9, 0x68, 0x5b, 0xfb, 0xb5, 0x93, 0x7a, 0xa3, 0x75, 0xf2, 0xb4, 0xd1, 0xae, 0x57, 0xf5, 0xb4,
-	0xb9, 0x33, 0x9e, 0x94, 0x4d, 0x29, 0x01, 0xc5, 0x81, 0x37, 0xf4, 0x3b, 0xb8, 0xee, 0x85, 0x4f,
-	0xbd, 0xa1, 0xdb, 0x35, 0x3e, 0x81, 0xb5, 0xfd, 0x46, 0xbd, 0x55, 0xab, 0xb7, 0x24, 0xb2, 0x8c,
-	0xf9, 0xce, 0x78, 0x52, 0xde, 0x8e, 0xc9, 0xf8, 0x81, 0x1d, 0x51, 0x7d, 0x08, 0x4b, 0xfb, 0x8d,
-	0x7a, 0xfd, 0xe4, 0x69, 0xe5, 0xe0, 0xa8, 0x6d, 0xd5, 0xf4, 0xac, 0xb9, 0x3d, 0x9e, 0x94, 0x37,
-	0x15, 0x02, 0xf7, 0xa9, 0xed, 0xf4, 0x86, 0x3e, 0xc9, 0x1c, 0x72, 0x02, 0x6f, 0x21, 0xb9, 0x30,
-	0x8e, 0x13, 0x47, 0x46, 0x3c, 0x45, 0xb6, 0xbe, 0x28, 0xe5, 0x6c, 0x06, 0x82, 0x42, 0xbd, 0x71,
-	0xd2, 0x6c, 0x55, 0x5a, 0xed, 0xa6, 0x9e, 0x32, 0xd7, 0xc7, 0x93, 0xf2, 0xaa, 0x34, 0x5f, 0xf7,
-	0x5c, 0x6c, 0xdc, 0x86, 0xc5, 0x46, 0xbb, 0x55, 0x79, 0x56, 0xd3, 0x97, 0x98, 0x28, 0x09, 0xa1,
-	0x31, 0x0c, 0xc9, 0x15, 0xfc, 0x01, 0x14, 0xaa, 0x07, 0x4d, 0xab, 0x7d, 0xdc, 0xaa, 0x55, 0xf5,
-	0x65, 0xb3, 0x34, 0x9e, 0x94, 0x37, 0x24, 0xac, 0xaa, 0x13, 0xf8, 0xc3, 0x41, 0x88, 0xbb, 0xc6,
-	0xfb, 0x90, 0x6f, 0xb6, 0x2a, 0x56, 0xeb, 0xa0, 0xfe, 0x4c, 0x5f, 0x31, 0x6f, 0x8c, 0x27, 0xe5,
-	0x75, 0x09, 0xaf, 0x19, 0xda, 0x7e, 0x48, 0x9c, 0xf2, 0x1d, 0xc8, 0x56, 0x2b, 0xad, 0x8a, 0xae,
-	0x4f, 0x69, 0x54, 0xb5, 0x43, 0x3b, 0x3e, 0x79, 0xa4, 0x89, 0xbd, 0x7f, 0xdd, 0x86, 0xec, 0x21,
-	0x1e, 0x05, 0xc6, 0x97, 0xb4, 0x9a, 0x25, 0xca, 0xec, 0xc6, 0xcf, 0xe4, 0xa2, 0x50, 0xa2, 0x70,
-	0x6f, 0xde, 0x9c, 0x3d, 0xc9, 0x13, 0xb9, 0x94, 0xf1, 0x88, 0xf3, 0xdc, 0x90, 0xf1, 0xc4, 0x11,
-	0x6f, 0x6e, 0x26, 0xa0, 0x11, 0xd9, 0x1e, 0xab, 0x29, 0xae, 0x2b, 0xf5, 0x28, 0x4e, 0xb4, 0xa1,
-	0x02, 0x23, 0x9a, 0x2a, 0x14, 0xa2, 0xda, 0xa7, 0xb1, 0x2d, 0x23, 0x29, 0xf5, 0x54, 0xd3, 0x9c,
-	0x35, 0x95, 0xe0, 0xc2, 0xce, 0x42, 0x95, 0x8b, 0x52, 0x36, 0x56, 0xb9, 0xa8, 0xd5, 0xdd, 0x88,
-	0x0b, 0x2b, 0x94, 0xaa, 0x5c, 0x94, 0x5a, 0xab, 0xca, 0x25, 0x51, 0x57, 0xa5, 0xc6, 0x23, 0xf7,
-	0x85, 0x64, 0x3c, 0xa9, 0x99, 0x20, 0x19, 0x4f, 0x6e, 0x03, 0xa0, 0x14, 0x79, 0x07, 0xb0, 0x36,
-	0xb1, 0x11, 0x97, 0xe1, 0x94, 0xdf, 0x5a, 0xcc, 0x1b, 0x53, 0xf0, 0x88, 0xf8, 0x19, 0x40, 0xdc,
-	0xcf, 0x36, 0x4a, 0x8a, 0x0c, 0xa9, 0xa5, 0x67, 0x6e, 0xcf, 0x98, 0x61, 0x2d, 0x3c, 0x94, 0xda,
-	0xd5, 0xee, 0x6b, 0xc6, 0x73, 0x58, 0x92, 0x9b, 0xd5, 0x86, 0x99, 0x90, 0x29, 0x33, 0xfb, 0xd9,
-	0xcc, 0x39, 0x85, 0x5d, 0x0b, 0xd6, 0xd9, 0x5c, 0x85, 0xb5, 0x3d, 0x7f, 0x1a, 0xae, 0x5f, 0x40,
-	0x8e, 0x5f, 0xbe, 0xc6, 0x8d, 0x64, 0x03, 0x54, 0x18, 0xab, 0x34, 0x3d, 0x11, 0x59, 0xeb, 0x0b,
-	0xc8, 0xf1, 0x26, 0xa6, 0x44, 0xaf, 0x76, 0xa2, 0x25, 0xfa, 0x44, 0xe3, 0x18, 0xa5, 0x8c, 0x63,
-	0x58, 0x56, 0x3a, 0xab, 0x52, 0xb0, 0x4d, 0xf7, 0x85, 0xa5, 0x60, 0x9b, 0xd1, 0x8e, 0xe5, 0x2b,
-	0x3a, 0x86, 0x65, 0xa5, 0xad, 0x2a, 0x71, 0x9c, 0x6e, 0xcc, 0x4a, 0x1c, 0x67, 0xf4, 0x62, 0x39,
-	0xc7, 0xaf, 0x60, 0x83, 0x4f, 0xaa, 0xa6, 0x7f, 0x6b, 0xc6, 0x2f, 0x60, 0x3d, 0x4a, 0x87, 0x1a,
-	0x03, 0xec, 0xfe, 0x54, 0x7c, 0x7f, 0x0d, 0xa6, 0xc2, 0xf7, 0x27, 0x56, 0xbb, 0x02, 0x79, 0xf1,
-	0xb3, 0x92, 0x1a, 0x1f, 0xf2, 0xdf, 0x4e, 0x6a, 0x7c, 0x28, 0x7f, 0x36, 0xb1, 0xe3, 0x21, 0xfe,
-	0xb7, 0x6b, 0x7b, 0x46, 0xcf, 0x6a, 0xea, 0x78, 0x98, 0xfa, 0xeb, 0x08, 0xa5, 0x8c, 0x17, 0xb0,
-	0x9a, 0xf8, 0xcd, 0xc7, 0xb8, 0x35, 0x4d, 0xa0, 0xbc, 0x05, 0xcc, 0xf2, 0x7c, 0x84, 0x99, 0x7c,
-	0xd9, 0x4f, 0x39, 0xb3, 0xf8, 0x2a, 0xff, 0x02, 0xcd, 0xe2, 0xab, 0xfe, 0xcf, 0xc3, 0x8e, 0x96,
-	0xb8, 0x80, 0x22, 0x45, 0xee, 0x54, 0x69, 0x47, 0x8a, 0xdc, 0xe9, 0xfa, 0x0c, 0x4a, 0x91, 0x0b,
-	0x4a, 0x6a, 0xc5, 0x1a, 0x49, 0x6c, 0xb9, 0xd7, 0x2b, 0xed, 0xe8, 0x8c, 0xee, 0x2d, 0x4a, 0x91,
-	0xdd, 0x14, 0x9d, 0x54, 0x69, 0x37, 0x13, 0x8d, 0x5b, 0x73, 0x7b, 0xc6, 0x8c, 0x7c, 0x08, 0xf0,
-	0xee, 0xa5, 0x74, 0x08, 0xa8, 0xbd, 0x55, 0xb3, 0x34, 0x3d, 0x21, 0x1f, 0xf3, 0xb4, 0x9f, 0xb0,
-	0xa1, 0x76, 0x1b, 0xa6, 0x8e, 0x79, 0xb9, 0x07, 0x82, 0x52, 0xc6, 0xa7, 0xb0, 0x40, 0x9b, 0x17,
-	0x86, 0x8a, 0x11, 0x5d, 0xae, 0x5b, 0x49, 0xb0, 0x2c, 0xf0, 0x78, 0xd8, 0xeb, 0x49, 0x02, 0xa5,
-	0x0e, 0x81, 0x24, 0x50, 0xae, 0xfc, 0x0b, 0xb2, 0xe0, 0x4c, 0x21, 0x8b, 0x8a, 0xfd, 0x0a, 0x59,
-	0x70, 0xa6, 0x5e, 0x47, 0xac, 0xc4, 0x23, 0x5d, 0x47, 0x4a, 0x2d, 0x4b, 0xba, 0x8e, 0xd4, 0x42,
-	0x15, 0x8b, 0x94, 0xa8, 0x3e, 0x24, 0x45, 0x4a, 0xb2, 0xde, 0x24, 0x45, 0xca, 0x74, 0x39, 0x89,
-	0x72, 0x89, 0x8a, 0x47, 0x12, 0x97, 0x64, 0x91, 0x49, 0xe2, 0x32, 0x55, 0x6b, 0xe2, 0x5c, 0xc4,
-	0x1f, 0x19, 0x32, 0x97, 0xc4, 0xdf, 0x1e, 0x32, 0x97, 0xe4, 0x0f, 0x1c, 0x2c, 0x0a, 0xe2, 0x7f,
-	0x2b, 0x0c, 0x15, 0x57, 0xf9, 0x73, 0x43, 0x8a, 0x82, 0xe9, 0x9f, 0x31, 0x98, 0xe7, 0x8a, 0xbf,
-	0x2b, 0x24, 0xcf, 0x4d, 0xfc, 0x83, 0x61, 0x6e, 0xcf, 0x98, 0x91, 0xaf, 0x1f, 0xe5, 0xd7, 0x18,
-	0xe3, 0x9d, 0x08, 0x7b, 0xd6, 0xaf, 0x34, 0xe6, 0xce, 0xbc, 0x69, 0xd9, 0x47, 0x2c, 0xdb, 0xed,
-	0x4a, 0x3e, 0x22, 0xb5, 0xbd, 0x24, 0x1f, 0x91, 0xdb, 0x56, 0x2c, 0xa2, 0xa5, 0x9e, 0x85, 0x14,
-	0xd1, 0xd3, 0x3d, 0x0f, 0x29, 0xa2, 0x67, 0xb4, 0x39, 0xd8, 0x36, 0x45, 0xf5, 0x7f, 0x69, 0x9b,
-	0x92, 0x3d, 0x05, 0x69, 0x9b, 0xa6, 0xda, 0x05, 0x28, 0x65, 0x34, 0x61, 0x45, 0x2d, 0xe9, 0x1b,
-	0x3b, 0x53, 0xf8, 0x4a, 0x63, 0xc0, 0xbc, 0x35, 0x77, 0x5e, 0x09, 0x59, 0x5a, 0x6a, 0xdc, 0x4c,
-	0xd4, 0xe5, 0xa6, 0x43, 0x56, 0xae, 0xeb, 0x31, 0x75, 0xd4, 0x0a, 0x91, 0xa4, 0xce, 0xcc, 0xd2,
-	0x94, 0xa4, 0xce, 0xec, 0xd2, 0x12, 0xdb, 0x7e, 0xa5, 0x72, 0x23, 0x6d, 0xff, 0xac, 0x42, 0x92,
-	0xb9, 0x33, 0x6f, 0x5a, 0xf6, 0x49, 0x51, 0x98, 0x91, 0x7c, 0x32, 0x51, 0xd9, 0x91, 0x7c, 0x32,
-	0x59, 0xc5, 0x41, 0x29, 0xe3, 0x4f, 0x60, 0x81, 0xbe, 0x4a, 0x24, 0x1b, 0xc9, 0x95, 0x75, 0x73,
-	0x5d, 0x05, 0xd3, 0x02, 0x3b, 0x4a, 0xdd, 0xd7, 0x9e, 0xdc, 0xfc, 0xfd, 0x0f, 0x3b, 0xa9, 0x3f,
-	0xfc, 0xb0, 0xa3, 0xfd, 0xd7, 0x0f, 0x3b, 0xda, 0xef, 0x5f, 0xef, 0x68, 0xff, 0xfe, 0x7a, 0x47,
-	0xfb, 0x8f, 0xd7, 0x3b, 0xda, 0x7f, 0xbe, 0xde, 0xd1, 0xbe, 0x5d, 0xa4, 0x7f, 0xb9, 0x3f, 0xfc,
-	0x9f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x74, 0x9f, 0x17, 0xae, 0x12, 0x2f, 0x00, 0x00,
+	// 3825 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x3b, 0x4d, 0x6f, 0x1b, 0xc9,
+	0x72, 0x1a, 0x92, 0x12, 0xc9, 0x22, 0x25, 0x8d, 0x5a, 0x94, 0x4c, 0xcd, 0x7a, 0x65, 0xba, 0x77,
+	0x37, 0x2b, 0x78, 0xbd, 0x5e, 0x5b, 0x5e, 0x3b, 0xfb, 0xf1, 0xde, 0xbe, 0x47, 0x8b, 0xb4, 0x57,
+	0xa6, 0x2d, 0x29, 0x43, 0x6a, 0x3f, 0x12, 0x24, 0xc2, 0x98, 0x6c, 0xcb, 0x03, 0x51, 0x1c, 0xee,
+	0xcc, 0x50, 0xcf, 0x04, 0x02, 0x04, 0x09, 0x10, 0xe0, 0x81, 0x08, 0x90, 0x5b, 0x6e, 0x0c, 0x02,
+	0x24, 0x40, 0x72, 0xcc, 0x39, 0xc8, 0x39, 0x78, 0xc7, 0x1c, 0xdf, 0x69, 0x91, 0xf5, 0x29, 0xc7,
+	0xe4, 0x1f, 0x04, 0xfd, 0x35, 0xd3, 0x3d, 0x24, 0x65, 0xf9, 0x63, 0x73, 0x9b, 0xae, 0xae, 0xaa,
+	0xae, 0xae, 0xae, 0xea, 0xae, 0xae, 0xea, 0x01, 0x38, 0x21, 0xc3, 0xe0, 0x46, 0xdf, 0xf7, 0x42,
+	0x0f, 0x65, 0x03, 0xe2, 0x9f, 0xb9, 0x6d, 0x62, 0x95, 0x8e, 0xbd, 0x63, 0x8f, 0xc1, 0x3e, 0xa1,
+	0x5f, 0xbc, 0x1b, 0xdb, 0x90, 0xb3, 0x0f, 0x76, 0xea, 0xbe, 0xef, 0xf9, 0x08, 0x41, 0xa6, 0xed,
+	0x75, 0x48, 0xd9, 0xa8, 0x18, 0x5b, 0xf3, 0x36, 0xfb, 0x46, 0x65, 0xc8, 0x9e, 0x92, 0x20, 0x70,
+	0x8e, 0x49, 0x39, 0x55, 0x31, 0xb6, 0xf2, 0xb6, 0x6c, 0xd2, 0x9e, 0x0e, 0x09, 0x1d, 0xb7, 0x1b,
+	0x94, 0xd3, 0xbc, 0x47, 0x34, 0xb1, 0x07, 0x85, 0xa6, 0x7b, 0xdc, 0xb3, 0xc9, 0x0f, 0x03, 0x12,
+	0x84, 0x94, 0x6d, 0xc7, 0x09, 0x1d, 0xc6, 0xb6, 0x68, 0xb3, 0x6f, 0xb4, 0x0e, 0x0b, 0x81, 0x7b,
+	0xdc, 0x23, 0x7e, 0x79, 0x9e, 0xd1, 0x8a, 0x16, 0x65, 0xea, 0xf8, 0xa7, 0x9e, 0x4f, 0x3a, 0x65,
+	0xa8, 0x18, 0x5b, 0x39, 0x5b, 0x36, 0x91, 0x05, 0x39, 0xca, 0xbf, 0xfd, 0x8c, 0x74, 0xca, 0x05,
+	0xd6, 0x15, 0xb5, 0xf1, 0x2f, 0xa1, 0xc8, 0x07, 0x0c, 0xfa, 0x5e, 0x2f, 0x20, 0x53, 0x47, 0xdc,
+	0x80, 0xf4, 0x89, 0xdb, 0xe1, 0x93, 0xb8, 0x97, 0x7d, 0xf1, 0xe3, 0x95, 0x74, 0x63, 0xb7, 0x66,
+	0x53, 0x18, 0xfe, 0x0b, 0x58, 0xa4, 0xe4, 0xf7, 0xdd, 0x2e, 0xd9, 0xed, 0xf5, 0x07, 0x21, 0x5a,
+	0x82, 0x94, 0xdb, 0x63, 0xd4, 0x79, 0x3b, 0xe5, 0xf6, 0x90, 0x09, 0x69, 0x6f, 0x10, 0x0a, 0x05,
+	0xd0, 0xcf, 0xb7, 0x2c, 0xff, 0xb7, 0xb0, 0x24, 0x05, 0xd8, 0x1f, 0x84, 0x54, 0x02, 0x21, 0xad,
+	0x31, 0x29, 0x2d, 0x2a, 0xc1, 0xfc, 0x93, 0x61, 0x48, 0x02, 0x26, 0xce, 0xbc, 0xcd, 0x1b, 0x14,
+	0x1a, 0x7a, 0xa1, 0xd3, 0x65, 0x6b, 0x31, 0x6f, 0xf3, 0x06, 0xfe, 0x25, 0x2c, 0x7e, 0x43, 0x7c,
+	0xf7, 0xe9, 0xf0, 0xbc, 0xb5, 0x98, 0x29, 0x33, 0x7e, 0x08, 0x4b, 0x92, 0xfc, 0x1c, 0xcd, 0xbe,
+	0x1f, 0xe9, 0x82, 0x4a, 0x54, 0xd8, 0x2e, 0xde, 0x10, 0x26, 0x77, 0xa3, 0x41, 0x86, 0x52, 0x33,
+	0xf8, 0x31, 0x2c, 0x73, 0x5e, 0xaf, 0xa2, 0xe6, 0xd9, 0xa2, 0x75, 0xc0, 0x8c, 0xd9, 0x09, 0xa5,
+	0xc5, 0x82, 0x18, 0xb3, 0x05, 0x79, 0x25, 0xfd, 0xfd, 0xbb, 0x01, 0xf9, 0x66, 0xe8, 0x84, 0xe4,
+	0x94, 0xf4, 0x42, 0x2a, 0x5f, 0xe0, 0x1e, 0x8b, 0xb9, 0xd3, 0xcf, 0x48, 0x1d, 0xa9, 0x49, 0x43,
+	0x4b, 0x4f, 0x59, 0x3a, 0xca, 0x80, 0xfc, 0x50, 0xce, 0xb0, 0x21, 0xe8, 0x27, 0x65, 0xd0, 0xf7,
+	0xc9, 0x19, 0xb3, 0xa2, 0xa2, 0xcd, 0xbe, 0xa9, 0x6d, 0xf9, 0xe4, 0xcc, 0x3b, 0x21, 0xe5, 0x05,
+	0x86, 0x28, 0x5a, 0xe8, 0x32, 0xe4, 0x43, 0xf7, 0x94, 0x04, 0xa1, 0x73, 0xda, 0x2f, 0x67, 0x2b,
+	0xc6, 0x56, 0xda, 0x8e, 0x01, 0x94, 0x53, 0x38, 0xec, 0x93, 0x72, 0x8e, 0x69, 0x8f, 0x7d, 0xe3,
+	0xeb, 0xb0, 0xdc, 0x74, 0x8f, 0xdb, 0xcf, 0x1c, 0x37, 0x72, 0xc6, 0xd9, 0x86, 0x85, 0x9f, 0x82,
+	0x19, 0x63, 0x8b, 0xf5, 0xde, 0x84, 0xf4, 0x09, 0x19, 0x4e, 0xd5, 0x27, 0xed, 0x40, 0xdb, 0x00,
+	0x81, 0xd4, 0x0f, 0xd5, 0x68, 0x7a, 0xab, 0xb0, 0x8d, 0x22, 0xb4, 0x48, 0x75, 0xb6, 0x82, 0x85,
+	0x7f, 0x05, 0x66, 0xdc, 0xf1, 0x52, 0xb1, 0xa4, 0xd2, 0x52, 0x91, 0xd2, 0x70, 0x1d, 0x56, 0x14,
+	0x06, 0x42, 0xd2, 0x9b, 0x90, 0x8f, 0xc6, 0x10, 0xf2, 0x4e, 0x13, 0x24, 0x46, 0xc2, 0x7f, 0x0a,
+	0xeb, 0x11, 0x7c, 0xc7, 0x27, 0x4e, 0x48, 0xce, 0xf3, 0x92, 0xd9, 0xfb, 0x07, 0xb5, 0x9d, 0xae,
+	0xd7, 0x76, 0xba, 0x6c, 0x15, 0x73, 0x36, 0x6f, 0xe0, 0x06, 0x5c, 0x9a, 0x60, 0xff, 0xda, 0xb2,
+	0xfe, 0x89, 0x22, 0xab, 0xcd, 0xcc, 0x41, 0xca, 0x2a, 0xd4, 0x63, 0xc4, 0x36, 0xf5, 0x46, 0x92,
+	0x4a, 0xe6, 0xaf, 0x2d, 0xe9, 0xdf, 0x52, 0x97, 0x71, 0x8f, 0x7b, 0xdc, 0xc5, 0xa7, 0x69, 0x92,
+	0xbb, 0x7d, 0x2a, 0xe9, 0xf6, 0xe9, 0x9f, 0x6b, 0x77, 0xfd, 0x12, 0x80, 0x0a, 0x24, 0x36, 0x89,
+	0x57, 0x3c, 0x1b, 0xae, 0x42, 0x81, 0xef, 0x33, 0x33, 0xe7, 0x83, 0xbf, 0x86, 0x22, 0x47, 0x39,
+	0x67, 0x84, 0x8b, 0xed, 0x91, 0xff, 0x60, 0xc0, 0x52, 0xbd, 0xd7, 0xf6, 0x87, 0xfd, 0xf0, 0xb5,
+	0x36, 0x6c, 0xb4, 0x09, 0xe0, 0x93, 0xb6, 0xdb, 0x77, 0x99, 0x3b, 0x16, 0x2a, 0xe9, 0xad, 0xbc,
+	0xad, 0x40, 0x14, 0xc5, 0x16, 0x35, 0xc5, 0x6e, 0x41, 0xe6, 0x94, 0x9e, 0xfc, 0x8b, 0x15, 0x63,
+	0x6b, 0x69, 0xbb, 0x14, 0x09, 0x27, 0x84, 0x79, 0xec, 0x75, 0x88, 0xcd, 0x30, 0xf0, 0x07, 0xb0,
+	0x1c, 0x49, 0x38, 0xfb, 0x4c, 0xc0, 0xff, 0x6a, 0x80, 0x29, 0xf0, 0xde, 0xca, 0x7e, 0xff, 0xff,
+	0x30, 0xb3, 0x5f, 0xc1, 0x8a, 0x22, 0xb1, 0x58, 0xcb, 0xe8, 0xb0, 0x30, 0xa6, 0x1e, 0x16, 0x29,
+	0xf5, 0xb0, 0xf8, 0x7b, 0x03, 0x8a, 0x82, 0xc3, 0x6c, 0xe3, 0x57, 0x66, 0x98, 0x3a, 0x6f, 0x86,
+	0xe9, 0x73, 0x66, 0x98, 0x99, 0x3a, 0xc3, 0xf9, 0x97, 0xce, 0xf0, 0x3d, 0x58, 0x14, 0xc0, 0xd9,
+	0x96, 0x8a, 0x9f, 0xc1, 0x52, 0x8d, 0xbc, 0x81, 0x09, 0x5e, 0x5c, 0xe1, 0x0d, 0x58, 0x8e, 0x46,
+	0x7a, 0xe3, 0xf0, 0xe2, 0x39, 0x98, 0x82, 0xd9, 0xdb, 0xb1, 0xb7, 0x8b, 0x4f, 0x83, 0xc0, 0x8a,
+	0x32, 0xf2, 0xcf, 0x16, 0x8a, 0x60, 0x28, 0x8a, 0x61, 0x66, 0xef, 0x44, 0xbb, 0xb0, 0x28, 0x70,
+	0xde, 0x78, 0x2b, 0x5a, 0x87, 0x92, 0x3d, 0xe8, 0xd1, 0xf0, 0x82, 0xee, 0xf2, 0x83, 0x40, 0x18,
+	0x03, 0x3e, 0x85, 0xb5, 0x04, 0x5c, 0x2c, 0x5d, 0x19, 0xb2, 0x67, 0xc4, 0x0f, 0x5c, 0x4f, 0x6a,
+	0x5c, 0x36, 0xa9, 0xda, 0xc9, 0x73, 0x22, 0xac, 0x96, 0x7e, 0xa2, 0x2d, 0x58, 0x76, 0x06, 0xe1,
+	0xb3, 0x26, 0x09, 0x07, 0xfd, 0x3d, 0x42, 0x3a, 0xa4, 0x23, 0x0e, 0xa4, 0x24, 0x18, 0xdf, 0x07,
+	0xb3, 0x2a, 0x41, 0xd2, 0x1e, 0x2d, 0xc8, 0xf5, 0x9d, 0x20, 0xf8, 0x8d, 0xe7, 0x8b, 0x80, 0xc1,
+	0x8e, 0xda, 0xd4, 0x49, 0xda, 0x5d, 0xea, 0x2f, 0x2c, 0x76, 0xca, 0xdb, 0xa2, 0x85, 0x6f, 0xc1,
+	0x8a, 0xc2, 0x47, 0x88, 0x7c, 0x19, 0xf2, 0x74, 0xbc, 0x96, 0x77, 0x42, 0xa4, 0xd0, 0x31, 0x00,
+	0x3f, 0xe0, 0x24, 0x87, 0xbd, 0xae, 0xd7, 0x3e, 0x79, 0xb5, 0xb1, 0x53, 0xda, 0xd8, 0xdb, 0x80,
+	0x54, 0x46, 0x17, 0x1a, 0x7c, 0x05, 0x96, 0x29, 0xcd, 0xa3, 0x78, 0x68, 0x8c, 0xb8, 0x2a, 0x1e,
+	0x29, 0x4c, 0xf0, 0x17, 0x80, 0x1a, 0x64, 0xf8, 0x80, 0xf4, 0x88, 0xaf, 0x84, 0x2f, 0xef, 0x8b,
+	0x50, 0xd0, 0x60, 0xb6, 0x6b, 0xaa, 0xeb, 0xdb, 0x1a, 0xf6, 0x89, 0x08, 0x0e, 0x6f, 0xc2, 0xaa,
+	0x46, 0x2b, 0xe4, 0x3a, 0x27, 0x40, 0xdc, 0x05, 0x74, 0x18, 0x10, 0xbf, 0xc9, 0xd9, 0x5d, 0x20,
+	0x74, 0x2b, 0x83, 0xbc, 0x7d, 0xca, 0xcb, 0xa3, 0x68, 0xe2, 0x4f, 0x60, 0x55, 0x63, 0x15, 0x1b,
+	0x91, 0x24, 0x30, 0x74, 0x82, 0x3f, 0x86, 0x65, 0x46, 0xa0, 0xdc, 0x2b, 0x5f, 0x67, 0x60, 0xea,
+	0x11, 0x3d, 0xe7, 0x94, 0x88, 0x68, 0x83, 0x7d, 0xe3, 0x5f, 0x83, 0x19, 0xf3, 0x8e, 0x25, 0x91,
+	0xf7, 0x5e, 0x43, 0xbf, 0xf7, 0x4a, 0x0e, 0x29, 0x85, 0xc3, 0xc8, 0x80, 0x25, 0xca, 0xa2, 0xda,
+	0xe9, 0xbc, 0x6d, 0xe9, 0x28, 0xa3, 0x81, 0xdf, 0xe5, 0xee, 0xc3, 0x19, 0x1d, 0xda, 0x8f, 0x6c,
+	0x0a, 0x9b, 0x11, 0xce, 0x3d, 0xe5, 0xaa, 0x62, 0xb2, 0x88, 0xd9, 0x5c, 0x85, 0xcc, 0x20, 0x88,
+	0x36, 0xa3, 0xc5, 0xc8, 0x22, 0x28, 0x9e, 0xcd, 0xba, 0xf4, 0x48, 0x2f, 0x75, 0x91, 0x48, 0xcf,
+	0x07, 0xb3, 0x41, 0x86, 0xf5, 0xe7, 0x7d, 0xcf, 0xbf, 0x48, 0x1c, 0xaf, 0xba, 0x4e, 0x2a, 0xe1,
+	0x3a, 0x1f, 0x0a, 0x8b, 0x4d, 0x33, 0x8b, 0x5d, 0x8d, 0x77, 0x5b, 0xc6, 0x5c, 0x31, 0xda, 0x8f,
+	0x60, 0x45, 0x19, 0x53, 0xcc, 0x6e, 0x1d, 0x16, 0x08, 0x83, 0x88, 0x7d, 0x4e, 0xb4, 0xf0, 0x57,
+	0x4c, 0xc0, 0xdd, 0x53, 0x55, 0xc0, 0xf8, 0x4c, 0x28, 0xb2, 0x33, 0xe1, 0x1c, 0xa9, 0xf0, 0x0d,
+	0x36, 0x98, 0xa4, 0x7f, 0xb9, 0x7f, 0x7c, 0xcc, 0xc6, 0xb3, 0xc9, 0xa9, 0x77, 0x76, 0x01, 0xef,
+	0xc0, 0xab, 0x8c, 0xbd, 0x44, 0x17, 0x1e, 0xfd, 0xe7, 0x90, 0x6e, 0x90, 0x21, 0x5a, 0x87, 0x54,
+	0x44, 0xb5, 0xf0, 0xe2, 0xc7, 0x2b, 0xa9, 0xdd, 0x9a, 0x9d, 0x72, 0x3b, 0x91, 0x6b, 0xa7, 0xcf,
+	0x73, 0xed, 0x68, 0xb9, 0x17, 0x66, 0x2f, 0x77, 0x09, 0xe6, 0x03, 0xe7, 0x2c, 0x3a, 0xf7, 0x78,
+	0x03, 0x37, 0x01, 0x98, 0x48, 0x2f, 0x5d, 0x4c, 0x24, 0x46, 0x10, 0x4e, 0xc0, 0x58, 0xae, 0xc3,
+	0xc2, 0xa0, 0xdf, 0x71, 0x42, 0x22, 0xcc, 0x51, 0xb4, 0xf0, 0xc7, 0x50, 0x60, 0x4c, 0x2f, 0x76,
+	0xa5, 0xc4, 0xff, 0x6c, 0x30, 0x7c, 0x79, 0xe2, 0x50, 0x49, 0x7f, 0x18, 0x10, 0x7f, 0x28, 0xfc,
+	0x90, 0x37, 0xd0, 0x1f, 0xc0, 0x3c, 0x9d, 0x2a, 0xbf, 0x73, 0x4e, 0xd3, 0x04, 0xef, 0xa6, 0xdb,
+	0x6c, 0xe0, 0xf9, 0xe1, 0x7d, 0x97, 0x74, 0xf9, 0x5c, 0xf3, 0x76, 0x0c, 0x40, 0xbf, 0x80, 0x45,
+	0xda, 0xa8, 0xb9, 0x3e, 0x69, 0x87, 0xf4, 0xe8, 0x2a, 0x30, 0xbd, 0xae, 0xc7, 0x86, 0xaf, 0xf6,
+	0xda, 0x3a, 0x32, 0xfe, 0x1b, 0x03, 0x8a, 0x5c, 0x52, 0x31, 0xb5, 0x0a, 0x64, 0x4e, 0xc8, 0x90,
+	0x06, 0x8b, 0xe9, 0x89, 0xb9, 0xb1, 0x9e, 0x9f, 0x55, 0x9c, 0x0f, 0xa0, 0xb0, 0x1b, 0x92, 0x53,
+	0xa9, 0xb7, 0x19, 0x26, 0x84, 0x6f, 0x41, 0x91, 0xa3, 0xc5, 0x7b, 0x83, 0x1b, 0x92, 0xd3, 0x89,
+	0xbd, 0x81, 0x21, 0xb1, 0x2e, 0xfc, 0x3e, 0x27, 0x39, 0x7f, 0x49, 0xf0, 0xa7, 0xb0, 0x28, 0xb0,
+	0x04, 0xe7, 0xf7, 0x60, 0x9e, 0x92, 0x4b, 0x7d, 0x24, 0x58, 0xf3, 0x3e, 0xbc, 0x0d, 0x19, 0xda,
+	0x9c, 0x69, 0xf1, 0x32, 0xaf, 0x91, 0x52, 0xf2, 0x1a, 0x2d, 0x28, 0xd8, 0x4e, 0xaf, 0x13, 0xcf,
+	0x74, 0xa1, 0x4b, 0x7a, 0xc7, 0xe1, 0x33, 0x11, 0xa5, 0x8b, 0x16, 0xfa, 0x18, 0x72, 0xa4, 0xd7,
+	0xf6, 0x3a, 0x6e, 0xef, 0x98, 0x91, 0x2f, 0x6d, 0xaf, 0xa8, 0x71, 0x1c, 0xeb, 0xb0, 0x23, 0x14,
+	0x1a, 0x61, 0x71, 0xae, 0x53, 0x82, 0xd1, 0xbc, 0x88, 0xb0, 0x7e, 0x01, 0x85, 0x83, 0x41, 0xb7,
+	0xfb, 0x7a, 0x1e, 0x82, 0xaf, 0x43, 0x91, 0x53, 0x47, 0x31, 0x40, 0xe6, 0xc4, 0xed, 0x70, 0xfd,
+	0xe4, 0xef, 0xe5, 0x5e, 0xfc, 0x78, 0x25, 0xd3, 0xd8, 0xad, 0x05, 0x36, 0x83, 0xe2, 0x2d, 0x3a,
+	0x56, 0xf0, 0xec, 0x02, 0x3b, 0xc9, 0x03, 0xca, 0x97, 0x62, 0xbe, 0x74, 0x8f, 0xa2, 0x43, 0x0e,
+	0xfc, 0x2e, 0x77, 0x1b, 0x31, 0xe4, 0xa1, 0xfd, 0x28, 0xb0, 0x19, 0x14, 0x3f, 0x84, 0xe5, 0x06,
+	0x19, 0x36, 0x9f, 0x39, 0xfe, 0x45, 0x8e, 0xf7, 0xcb, 0x90, 0x8f, 0xee, 0x27, 0x62, 0x9e, 0x31,
+	0x80, 0xc6, 0x2b, 0x31, 0x2f, 0xb1, 0xbb, 0x3d, 0x66, 0xf1, 0x8a, 0x4d, 0x42, 0xdf, 0x25, 0x67,
+	0x6f, 0x3e, 0xc4, 0x1a, 0x0b, 0x61, 0x62, 0x76, 0x62, 0x94, 0x0a, 0xc0, 0x8e, 0xd7, 0xed, 0x72,
+	0xb7, 0x60, 0x29, 0x36, 0x47, 0xd8, 0x46, 0xde, 0x66, 0xdf, 0x78, 0x0b, 0x50, 0x8c, 0x11, 0x28,
+	0x17, 0x9d, 0x09, 0xcc, 0x47, 0xb0, 0xaa, 0x61, 0x0a, 0x0d, 0xdf, 0x81, 0x42, 0x3b, 0x06, 0x0b,
+	0x03, 0x8f, 0xcf, 0xad, 0x98, 0xc4, 0x56, 0xf1, 0x70, 0x1f, 0x72, 0x35, 0xaf, 0x3d, 0x60, 0xd9,
+	0xc4, 0x29, 0xa3, 0x51, 0xc7, 0x3a, 0x73, 0xba, 0x03, 0x69, 0xed, 0xbc, 0x41, 0x95, 0xd0, 0x66,
+	0x09, 0xa4, 0x4e, 0x35, 0x64, 0x9b, 0x46, 0xda, 0x8e, 0x01, 0xb4, 0x97, 0x6f, 0xb4, 0xb4, 0xb7,
+	0xc0, 0x7b, 0x23, 0x00, 0x3d, 0x03, 0xe5, 0x88, 0xe7, 0xcd, 0x93, 0xfa, 0x50, 0xdf, 0x27, 0x4f,
+	0xdd, 0xe7, 0x32, 0x78, 0xe5, 0x2d, 0x5c, 0x83, 0x15, 0x85, 0x5e, 0xcc, 0xfe, 0x13, 0xc8, 0x77,
+	0x24, 0x50, 0xcc, 0x3d, 0xf6, 0x2c, 0x89, 0x6e, 0xc7, 0x38, 0xf8, 0x23, 0x58, 0x93, 0xe0, 0x1a,
+	0xe9, 0x12, 0x2d, 0xd3, 0x36, 0xa1, 0xf2, 0x32, 0xac, 0x27, 0x91, 0xc5, 0xc2, 0xfe, 0xaf, 0x01,
+	0x19, 0x7a, 0x86, 0x45, 0x71, 0x92, 0xa1, 0xc7, 0x49, 0xb3, 0xd2, 0x5e, 0x22, 0x47, 0x96, 0x8e,
+	0x73, 0x64, 0x4a, 0x08, 0x96, 0xd1, 0x43, 0x30, 0x11, 0x6e, 0xcd, 0x4f, 0x09, 0xb7, 0x3e, 0x82,
+	0x85, 0x80, 0x5d, 0x7a, 0xd8, 0xc1, 0xaa, 0xc6, 0x29, 0x2c, 0x7c, 0xe4, 0xf7, 0x21, 0x81, 0x42,
+	0xaf, 0xf3, 0x67, 0xc4, 0x77, 0x9f, 0xba, 0x6c, 0x5d, 0x78, 0xba, 0x56, 0x81, 0xb0, 0x5b, 0x91,
+	0xef, 0x8b, 0x74, 0x2d, 0xfd, 0x64, 0xd1, 0x9c, 0xf3, 0x84, 0x74, 0xcb, 0x79, 0xbe, 0xf8, 0xac,
+	0x81, 0x0f, 0x44, 0x70, 0x4a, 0x1c, 0xbf, 0x4d, 0x3d, 0x7c, 0xd0, 0x3d, 0xd7, 0x61, 0xae, 0x2a,
+	0xdb, 0xce, 0xf4, 0xa3, 0x1f, 0x1f, 0xc2, 0x8a, 0xca, 0xf1, 0xbc, 0x53, 0x96, 0x8a, 0xe4, 0x9e,
+	0xba, 0xa1, 0xbc, 0x8a, 0xb2, 0x46, 0x1c, 0x76, 0x66, 0xd4, 0xb0, 0x33, 0xba, 0x1d, 0x08, 0x41,
+	0xb9, 0xa9, 0xdc, 0x86, 0xac, 0xcf, 0x84, 0x96, 0x86, 0xb2, 0xa1, 0x2b, 0x4d, 0x99, 0x96, 0x2d,
+	0x31, 0xf1, 0x12, 0x14, 0xbf, 0x75, 0xc2, 0x48, 0x38, 0xbc, 0x07, 0xc0, 0xda, 0xf5, 0x33, 0xea,
+	0x38, 0xd7, 0xa3, 0x65, 0x30, 0x12, 0x97, 0x73, 0x86, 0x94, 0x58, 0x07, 0x69, 0x61, 0x29, 0xc5,
+	0xc2, 0x96, 0x61, 0x71, 0xc7, 0xeb, 0x3d, 0x75, 0x8f, 0xe5, 0x00, 0xbf, 0x35, 0x60, 0x49, 0x42,
+	0x84, 0xe0, 0x5f, 0xc2, 0x42, 0x9b, 0x41, 0x84, 0xdc, 0xef, 0x29, 0xce, 0xad, 0x22, 0x8a, 0x66,
+	0xbd, 0x17, 0xfa, 0x43, 0x5b, 0x90, 0x58, 0x9f, 0x43, 0x41, 0x01, 0xd3, 0xb5, 0x96, 0x21, 0x4f,
+	0x9e, 0xe7, 0xcd, 0xa7, 0x3a, 0xfa, 0x17, 0xa9, 0xcf, 0x0c, 0xfc, 0x05, 0x98, 0x9c, 0xb4, 0x49,
+	0x42, 0x25, 0xc7, 0x7b, 0x11, 0x7a, 0x1a, 0x51, 0x2a, 0xb4, 0xc2, 0x69, 0xe8, 0xbd, 0xb1, 0xdf,
+	0xd7, 0x6f, 0xf1, 0xdf, 0xc2, 0x8a, 0x02, 0x13, 0x33, 0xc6, 0x50, 0xec, 0xfb, 0xde, 0x69, 0x3f,
+	0x6c, 0x90, 0xe1, 0xb1, 0xb8, 0x94, 0xe6, 0x6c, 0x0d, 0x46, 0xad, 0x9a, 0xb7, 0x0f, 0xa5, 0x91,
+	0xe5, 0x6c, 0x05, 0x82, 0xff, 0xc5, 0x80, 0xf9, 0xdd, 0xde, 0x13, 0xef, 0xf9, 0x4b, 0x8e, 0xc6,
+	0xe4, 0x0d, 0x4a, 0xdf, 0xe3, 0xd2, 0xc9, 0x3d, 0x0e, 0x43, 0x51, 0x5c, 0xbf, 0x76, 0xbc, 0x41,
+	0x2f, 0x14, 0x15, 0x14, 0x0d, 0xc6, 0x5c, 0xba, 0xe7, 0xf6, 0xfb, 0x24, 0x14, 0x59, 0x63, 0xd9,
+	0xa4, 0xca, 0x22, 0xbe, 0xef, 0xf9, 0x22, 0xe0, 0xe2, 0x0d, 0x6a, 0x64, 0x4c, 0x52, 0xa9, 0x93,
+	0xcf, 0x61, 0x51, 0xb4, 0x85, 0x3e, 0xb6, 0x20, 0xeb, 0x52, 0x00, 0x91, 0xa6, 0xbb, 0x14, 0x07,
+	0x30, 0x0c, 0x51, 0x76, 0xe3, 0xbf, 0x4e, 0x41, 0xf6, 0xb1, 0xb8, 0x1e, 0xce, 0x8a, 0x63, 0xd6,
+	0x61, 0x21, 0x20, 0xbd, 0x4e, 0x14, 0x11, 0x88, 0x16, 0xba, 0x05, 0xd9, 0xb6, 0xd7, 0x0b, 0xe9,
+	0xf9, 0x06, 0xcc, 0x67, 0x2f, 0x45, 0xa3, 0x3c, 0x96, 0xd3, 0x63, 0xdd, 0xb6, 0xc4, 0x8b, 0x7c,
+	0xbc, 0x34, 0x3b, 0xbc, 0xd7, 0xd4, 0xb9, 0x96, 0x54, 0x67, 0x05, 0x0a, 0xa1, 0x7b, 0x4a, 0x6a,
+	0x6e, 0xd0, 0xef, 0x3a, 0xc3, 0xf2, 0x15, 0x26, 0x90, 0x0a, 0xa2, 0x18, 0xf4, 0x04, 0x91, 0x18,
+	0x15, 0x8e, 0xa1, 0x80, 0x22, 0xbf, 0xba, 0xaa, 0xf8, 0xd5, 0xfb, 0xb0, 0xa4, 0xcb, 0xcc, 0xa2,
+	0x37, 0xf2, 0x3c, 0x94, 0x1b, 0x35, 0xfd, 0xc6, 0x7f, 0x06, 0x6b, 0x02, 0xeb, 0xc0, 0x27, 0xfd,
+	0x8b, 0x85, 0x1a, 0xb3, 0xb4, 0x27, 0xf9, 0x83, 0xc2, 0xbf, 0x06, 0xeb, 0x49, 0xfe, 0x62, 0x45,
+	0xaf, 0xe9, 0x97, 0xfa, 0x82, 0x72, 0x6d, 0x10, 0x14, 0xd1, 0x35, 0x1f, 0x0f, 0xa0, 0x24, 0xe7,
+	0xa2, 0xd5, 0x86, 0x5e, 0x43, 0x48, 0x6e, 0x12, 0x30, 0x35, 0xb4, 0xa5, 0xc2, 0x17, 0x14, 0xe1,
+	0x77, 0x22, 0xe5, 0x24, 0x6a, 0x46, 0xaf, 0x22, 0xfb, 0x75, 0x58, 0x16, 0xb0, 0xe0, 0x02, 0xd1,
+	0xe3, 0xaf, 0xc1, 0x8c, 0xb1, 0xc5, 0x68, 0xd7, 0x21, 0x27, 0x98, 0x49, 0xe3, 0x9f, 0x1c, 0x2e,
+	0xc2, 0xb8, 0xf6, 0x77, 0x06, 0x14, 0x94, 0xc4, 0x28, 0xba, 0x09, 0xa5, 0x5a, 0xfd, 0x7e, 0xf5,
+	0xf0, 0x51, 0xeb, 0xa8, 0xbe, 0xb7, 0x63, 0x7f, 0x7f, 0xd0, 0x3a, 0x7a, 0xbc, 0x5f, 0xab, 0x9b,
+	0x73, 0xd6, 0xfa, 0x68, 0x5c, 0x41, 0x35, 0xf2, 0xd4, 0x19, 0x74, 0x43, 0x95, 0xe2, 0x5d, 0x00,
+	0x89, 0xf9, 0xcd, 0xb6, 0x69, 0x58, 0x8b, 0xa3, 0x71, 0x25, 0x2f, 0x10, 0xbe, 0xd9, 0x46, 0x57,
+	0xa1, 0xd8, 0xdc, 0x7d, 0x20, 0x11, 0x6e, 0x99, 0x29, 0x6b, 0x79, 0x34, 0xae, 0xb0, 0x57, 0x06,
+	0x1c, 0xe5, 0x96, 0xb5, 0xfa, 0xdb, 0x7f, 0xdc, 0x9c, 0xfb, 0xb7, 0x7f, 0xda, 0x54, 0x05, 0xb9,
+	0xf6, 0x57, 0x06, 0x40, 0x9c, 0x43, 0x40, 0x37, 0x60, 0x35, 0x92, 0xeb, 0xbb, 0x83, 0x7d, 0xbb,
+	0x75, 0xd4, 0xfa, 0xfe, 0x80, 0x8a, 0xb5, 0x36, 0x1a, 0x57, 0x56, 0xa4, 0x58, 0x31, 0xfe, 0x4d,
+	0x28, 0x35, 0xab, 0x8f, 0x5a, 0x07, 0xd5, 0x9d, 0x86, 0x46, 0x60, 0xf0, 0x79, 0x34, 0x9d, 0x6e,
+	0xd8, 0x77, 0xda, 0x27, 0x31, 0x85, 0x85, 0x84, 0x14, 0xca, 0xa8, 0xd7, 0xfe, 0xc3, 0x80, 0xac,
+	0xb8, 0x95, 0xa2, 0x2d, 0x30, 0x0f, 0xf7, 0x1a, 0x7b, 0xfb, 0xdf, 0xee, 0x1d, 0x35, 0xea, 0xdf,
+	0xcb, 0xe1, 0xd1, 0x68, 0x5c, 0x59, 0x3a, 0xec, 0x9d, 0xf4, 0xbc, 0xdf, 0xf4, 0x24, 0xa6, 0x05,
+	0xb9, 0x7a, 0xed, 0xbb, 0xed, 0x3b, 0x77, 0x6e, 0x7d, 0x6e, 0x82, 0x55, 0x1c, 0x8d, 0x2b, 0xb9,
+	0x7a, 0x87, 0xb7, 0xd1, 0x87, 0xb0, 0x2c, 0xfb, 0x8e, 0x0e, 0x0e, 0xef, 0x3d, 0xda, 0xdd, 0x31,
+	0x0b, 0x9c, 0x89, 0x44, 0x39, 0x18, 0x3c, 0xe9, 0xba, 0x6d, 0x6a, 0x91, 0x82, 0x45, 0xc9, 0x82,
+	0xd1, 0xb8, 0x22, 0x5a, 0xe8, 0x3d, 0x58, 0xd4, 0xc9, 0xd7, 0x2c, 0x73, 0x34, 0xae, 0x14, 0x55,
+	0x62, 0x6b, 0x59, 0xcc, 0x45, 0x0a, 0x7f, 0xad, 0x05, 0x8b, 0xda, 0x05, 0x14, 0x95, 0x20, 0x5d,
+	0x6d, 0xee, 0x98, 0x73, 0x56, 0x61, 0x34, 0xae, 0x64, 0x69, 0x5f, 0x35, 0xa0, 0x83, 0x66, 0x6a,
+	0xf5, 0xe6, 0x8e, 0x69, 0x70, 0xa9, 0x19, 0x09, 0x09, 0xda, 0xd6, 0x9a, 0xe0, 0xa7, 0x33, 0xb9,
+	0xf6, 0x7b, 0x03, 0x72, 0xf2, 0x36, 0x46, 0x4f, 0xba, 0xaf, 0xeb, 0xdf, 0x99, 0x73, 0x56, 0x76,
+	0x34, 0xae, 0xa4, 0xbf, 0x26, 0xcf, 0xe9, 0x14, 0xee, 0x55, 0x9b, 0xf5, 0xbb, 0xd4, 0x2a, 0xd8,
+	0x14, 0xee, 0x39, 0x01, 0xb9, 0xbb, 0x2d, 0xe1, 0x77, 0x3e, 0x33, 0x53, 0x31, 0xfc, 0xce, 0x67,
+	0x12, 0x7e, 0x7b, 0xdb, 0x4c, 0xc7, 0xf0, 0xdb, 0x11, 0xfe, 0xad, 0xbb, 0x66, 0x26, 0x86, 0xdf,
+	0xba, 0x1b, 0xf1, 0xff, 0xd4, 0x9c, 0x57, 0xf8, 0x7f, 0x4a, 0xf5, 0x2f, 0xd7, 0xde, 0x5c, 0x10,
+	0x33, 0x11, 0xeb, 0x4d, 0x0f, 0x94, 0x7b, 0xbb, 0x07, 0xb7, 0x3f, 0x37, 0xb3, 0x56, 0x7e, 0x34,
+	0xae, 0xf0, 0x86, 0x65, 0x8a, 0xf9, 0x45, 0xb3, 0xb9, 0x36, 0x4e, 0x01, 0xc4, 0xa1, 0x21, 0xc2,
+	0x90, 0x15, 0x8b, 0x2f, 0x4d, 0x2e, 0xee, 0x14, 0xab, 0x8f, 0xca, 0x90, 0xda, 0x6f, 0x98, 0x06,
+	0x5f, 0x8e, 0xb8, 0x7b, 0xbf, 0x81, 0xee, 0x02, 0xb2, 0xeb, 0xcd, 0xfd, 0x43, 0x7b, 0xa7, 0x7e,
+	0xb4, 0xb7, 0xdf, 0x3a, 0xba, 0xbf, 0x7f, 0xb8, 0x57, 0x33, 0x53, 0xd6, 0xe6, 0x68, 0x5c, 0xb1,
+	0x94, 0x00, 0x94, 0x04, 0xde, 0xc0, 0x6f, 0x93, 0x3d, 0x2f, 0xbc, 0xef, 0x0d, 0x7a, 0x1d, 0xf4,
+	0x29, 0xac, 0xec, 0xec, 0xef, 0xb5, 0xea, 0x7b, 0x2d, 0x85, 0x2c, 0x6d, 0xbd, 0x3b, 0x1a, 0x57,
+	0x36, 0x62, 0x32, 0xb1, 0x61, 0x47, 0x54, 0x1f, 0x41, 0x71, 0x67, 0x7f, 0x6f, 0xef, 0xe8, 0x7e,
+	0x75, 0xf7, 0xd1, 0xa1, 0x5d, 0x37, 0x33, 0xd6, 0xc6, 0x68, 0x5c, 0x59, 0xd3, 0x08, 0x7a, 0xf7,
+	0x1d, 0xb7, 0x3b, 0xf0, 0x69, 0xe4, 0x90, 0x95, 0x78, 0xf3, 0xc9, 0x89, 0x09, 0x9c, 0xd8, 0x33,
+	0xe2, 0x2e, 0xba, 0xf4, 0x05, 0x25, 0x66, 0x43, 0x18, 0xf2, 0x7b, 0xfb, 0x47, 0xcd, 0x56, 0xb5,
+	0x75, 0xd8, 0x34, 0xe7, 0xac, 0xd5, 0xd1, 0xb8, 0xb2, 0xac, 0xf4, 0xef, 0x79, 0x3d, 0x82, 0xae,
+	0xc2, 0xc2, 0xfe, 0x61, 0xab, 0xfa, 0xa0, 0x6e, 0x16, 0xf9, 0x50, 0x0a, 0xc2, 0xfe, 0x20, 0xa4,
+	0x47, 0xf0, 0x87, 0x90, 0xaf, 0xed, 0x36, 0xed, 0xc3, 0x83, 0x56, 0xbd, 0x66, 0x2e, 0x5a, 0xe5,
+	0xd1, 0xb8, 0x52, 0x52, 0xb0, 0x6a, 0x6e, 0xe0, 0x0f, 0xfa, 0x21, 0xe9, 0xa0, 0x0f, 0x20, 0xd7,
+	0x6c, 0x55, 0xed, 0xd6, 0xee, 0xde, 0x03, 0x73, 0xc9, 0xba, 0x34, 0x1a, 0x57, 0x56, 0x15, 0xbc,
+	0x66, 0xe8, 0xf8, 0x21, 0x35, 0xca, 0x77, 0x21, 0x53, 0xab, 0xb6, 0xaa, 0xa6, 0x39, 0x21, 0x51,
+	0xcd, 0x09, 0x9d, 0x78, 0xe7, 0x51, 0x3a, 0xb6, 0xff, 0xf2, 0x1d, 0xc8, 0x34, 0xc8, 0x30, 0x40,
+	0x0f, 0x59, 0x36, 0x4b, 0xa6, 0xd9, 0xd1, 0x3b, 0x6a, 0x52, 0x28, 0x91, 0xb8, 0xb7, 0x2e, 0x4f,
+	0xef, 0x14, 0x81, 0xdc, 0x1c, 0xba, 0x23, 0x78, 0x96, 0x54, 0x3c, 0xb9, 0xc5, 0x5b, 0x6b, 0x09,
+	0x68, 0x44, 0xb6, 0xcd, 0x73, 0x8a, 0xab, 0x5a, 0x3e, 0x4a, 0x10, 0x95, 0x74, 0x60, 0x44, 0x53,
+	0x83, 0x7c, 0x94, 0xfb, 0x44, 0x1b, 0x2a, 0x92, 0x96, 0x4f, 0xb5, 0xac, 0x69, 0x5d, 0x09, 0x2e,
+	0x7c, 0x2f, 0xd4, 0xb9, 0x68, 0x69, 0x63, 0x9d, 0x8b, 0x9e, 0xdd, 0x8d, 0xb8, 0xf0, 0x44, 0xa9,
+	0xce, 0x45, 0xcb, 0xb5, 0xea, 0x5c, 0x12, 0x79, 0x55, 0xa6, 0x3c, 0x7a, 0x5e, 0x28, 0xca, 0x53,
+	0x8a, 0x09, 0x8a, 0xf2, 0xd4, 0x32, 0x00, 0x9e, 0x43, 0x55, 0xc8, 0xc9, 0xb7, 0x59, 0x68, 0x5d,
+	0x43, 0x8a, 0x0a, 0x8d, 0xd6, 0xa5, 0x09, 0x38, 0xaf, 0xbf, 0xe1, 0xb9, 0x2d, 0xe3, 0xa6, 0x81,
+	0xc4, 0x03, 0x84, 0x66, 0xe8, 0x13, 0xe7, 0x14, 0x21, 0x0d, 0x99, 0x33, 0x58, 0xd5, 0x60, 0x09,
+	0xe2, 0x05, 0xfe, 0xba, 0x40, 0x19, 0x5d, 0x7b, 0xd3, 0xa5, 0x8c, 0xae, 0x3f, 0xd6, 0xc2, 0x73,
+	0xe8, 0x01, 0x40, 0xfc, 0x4a, 0x0a, 0x95, 0x13, 0x88, 0xf1, 0x04, 0x36, 0xa6, 0xf4, 0x68, 0x52,
+	0x54, 0xe5, 0x1b, 0x07, 0x31, 0x89, 0x52, 0x82, 0x80, 0xb3, 0x59, 0x4b, 0x40, 0x35, 0x16, 0x5f,
+	0xc3, 0x2a, 0x87, 0x56, 0x79, 0x89, 0xf5, 0xf5, 0x39, 0x7d, 0x05, 0x59, 0x71, 0xc8, 0xa3, 0x4b,
+	0xc9, 0xc2, 0xac, 0x54, 0x4a, 0x79, 0xb2, 0x43, 0xb1, 0x27, 0x59, 0x07, 0x17, 0x32, 0xac, 0x25,
+	0x91, 0xb9, 0x10, 0xeb, 0x49, 0xb0, 0x26, 0xc5, 0xc3, 0x28, 0xe6, 0x61, 0xca, 0xdd, 0x48, 0x22,
+	0xc7, 0xda, 0xb5, 0xa6, 0x75, 0x25, 0x67, 0x24, 0x0a, 0xb7, 0xca, 0x8c, 0xf4, 0x32, 0xbc, 0x32,
+	0xa3, 0x44, 0xd5, 0x1c, 0xcf, 0x51, 0x59, 0x94, 0x1a, 0xb4, 0x22, 0x4b, 0xb2, 0x26, 0xae, 0xc8,
+	0x32, 0x51, 0xb4, 0x16, 0xb2, 0xd4, 0xa2, 0x22, 0xf2, 0x84, 0x76, 0xd4, 0x02, 0xb4, 0xa2, 0x1d,
+	0xad, 0xe6, 0x2c, 0xb8, 0x34, 0xa0, 0x24, 0xc0, 0xfa, 0x72, 0xbf, 0x16, 0xb3, 0x87, 0xb0, 0x1a,
+	0x85, 0x7a, 0xfb, 0x7d, 0xd2, 0x7b, 0x13, 0x5e, 0x7f, 0x04, 0x96, 0xc6, 0xeb, 0x2d, 0x88, 0xc7,
+	0xb7, 0x08, 0xf6, 0x70, 0x4e, 0xf1, 0xb1, 0xc4, 0xcb, 0x3b, 0xc5, 0xc7, 0x92, 0xaf, 0xec, 0xf8,
+	0x16, 0x17, 0xbf, 0x33, 0xdc, 0x98, 0x52, 0x77, 0x9b, 0xd8, 0xe2, 0x26, 0x5e, 0xc0, 0xe1, 0x39,
+	0xf4, 0x0d, 0x2c, 0x27, 0x9e, 0x9c, 0xa1, 0x2b, 0x93, 0x04, 0xda, 0x7d, 0xc6, 0xaa, 0xcc, 0x46,
+	0x98, 0xca, 0x97, 0x3f, 0x10, 0x9b, 0xc6, 0x57, 0x7b, 0x97, 0x36, 0x8d, 0xaf, 0xfe, 0xb6, 0x8c,
+	0x6f, 0x4f, 0x71, 0x12, 0x08, 0x59, 0x53, 0x33, 0x43, 0x9c, 0xdb, 0x3b, 0xd3, 0xb3, 0x46, 0x8a,
+	0xfd, 0x2b, 0xe5, 0x64, 0x94, 0xc4, 0x56, 0xeb, 0xd5, 0xca, 0x21, 0x3b, 0xa5, 0x02, 0xcd, 0x37,
+	0x7c, 0x59, 0x0d, 0x56, 0x56, 0x33, 0x51, 0x7c, 0xb6, 0x36, 0xa6, 0xf4, 0x44, 0x2c, 0xbe, 0x82,
+	0xac, 0xa8, 0xc0, 0x2a, 0xee, 0xac, 0xd7, 0x87, 0xad, 0xf2, 0x64, 0x87, 0x7a, 0x54, 0xb1, 0x9a,
+	0x48, 0x49, 0xaf, 0x98, 0x4c, 0x1c, 0x55, 0x6a, 0x1d, 0x07, 0xcf, 0xa1, 0xcf, 0x60, 0x9e, 0x15,
+	0x60, 0x90, 0x8e, 0x11, 0x05, 0x08, 0xeb, 0x49, 0xb0, 0x3a, 0xe0, 0xc1, 0xa0, 0xdb, 0x55, 0x06,
+	0x54, 0xaa, 0x1c, 0xca, 0x80, 0x6a, 0xf5, 0x42, 0x92, 0x05, 0xcf, 0x34, 0xb2, 0xa8, 0x60, 0xa1,
+	0x91, 0x05, 0xea, 0x6a, 0x7d, 0x09, 0x0b, 0x3c, 0x4d, 0xa5, 0x1c, 0x69, 0x5a, 0x3e, 0x4e, 0x39,
+	0xd2, 0xf4, 0x64, 0x1b, 0xf7, 0x94, 0x28, 0xc7, 0xa5, 0x78, 0x4a, 0x32, 0x67, 0xa6, 0x78, 0xca,
+	0x64, 0x4a, 0x8c, 0x71, 0x89, 0x12, 0x60, 0x0a, 0x97, 0x64, 0xa2, 0x4c, 0xe1, 0x32, 0x91, 0x2f,
+	0x13, 0x5c, 0xe4, 0xab, 0x12, 0x95, 0x4b, 0xe2, 0xc5, 0x8a, 0xca, 0x25, 0xf9, 0x08, 0x85, 0x7b,
+	0x41, 0xfc, 0x3e, 0x04, 0xe9, 0xb8, 0xda, 0xeb, 0x13, 0xc5, 0x0b, 0x26, 0x1f, 0x94, 0x70, 0xcb,
+	0x95, 0x2f, 0x44, 0x14, 0xcb, 0x4d, 0xbc, 0x23, 0xb1, 0x36, 0xa6, 0xf4, 0x44, 0x2c, 0x0e, 0x60,
+	0x51, 0x7b, 0xde, 0x83, 0xde, 0x8d, 0xb0, 0xa7, 0x3d, 0x07, 0xb2, 0x36, 0x67, 0x75, 0xab, 0x36,
+	0x62, 0x3b, 0xbd, 0x8e, 0x62, 0x23, 0x4a, 0xe9, 0x4e, 0xb1, 0x11, 0xb5, 0xf4, 0xc6, 0x3d, 0x5a,
+	0xa9, 0xbb, 0x28, 0x1e, 0x3d, 0x59, 0xb7, 0x51, 0x3c, 0x7a, 0x4a, 0xa9, 0x86, 0x2f, 0x53, 0x54,
+	0xc3, 0x50, 0xcf, 0xc6, 0x44, 0x5d, 0x44, 0x3d, 0x1b, 0x93, 0x25, 0x0f, 0x3c, 0x87, 0x9a, 0xb0,
+	0xa4, 0x97, 0x25, 0xd0, 0xe6, 0x04, 0xbe, 0x56, 0xdc, 0xb0, 0xae, 0xcc, 0xec, 0xd7, 0x5c, 0x96,
+	0xa5, 0x4b, 0xd7, 0x12, 0xb9, 0xc5, 0x49, 0x97, 0x55, 0x73, 0x93, 0x5c, 0x1c, 0x3d, 0xcb, 0xa5,
+	0x88, 0x33, 0x35, 0xbd, 0xa6, 0x88, 0x33, 0x3d, 0x3d, 0xc6, 0x97, 0x5f, 0xcb, 0x3e, 0x29, 0xcb,
+	0x3f, 0x2d, 0x19, 0x66, 0x6d, 0xce, 0xea, 0x56, 0x6d, 0x52, 0x26, 0x97, 0x14, 0x9b, 0x4c, 0x64,
+	0xa7, 0x14, 0x9b, 0x4c, 0x66, 0xa2, 0xf0, 0x1c, 0xfa, 0x43, 0x98, 0x67, 0x37, 0x2b, 0x45, 0x47,
+	0x6a, 0x75, 0x40, 0x09, 0x9e, 0xe3, 0x22, 0x01, 0x9e, 0xbb, 0x69, 0xdc, 0xbb, 0xfc, 0xbb, 0x9f,
+	0x36, 0xe7, 0x7e, 0xff, 0xd3, 0xa6, 0xf1, 0x3f, 0x3f, 0x6d, 0x1a, 0xbf, 0x7b, 0xb1, 0x69, 0xfc,
+	0xe7, 0x8b, 0x4d, 0xe3, 0xbf, 0x5e, 0x6c, 0x1a, 0xff, 0xfd, 0x62, 0xd3, 0x78, 0xb2, 0xc0, 0x7e,
+	0x80, 0xb9, 0xfd, 0x7f, 0x01, 0x00, 0x00, 0xff, 0xff, 0x47, 0xe7, 0x9b, 0xdf, 0x2d, 0x33, 0x00,
+	0x00,
 }
 
 func (this *RPCError) GoString() string {
@@ -4762,6 +5146,38 @@ func (this *SignResponse) GoString() string {
 	s = append(s, "}")
 	return strings.Join(s, "")
 }
+func (this *SignFileInput) GoString() string {
+	if this == nil {
+		return "nil"
+	}
+	s := make([]string, 0, 9)
+	s = append(s, "&service.SignFileInput{")
+	s = append(s, "In: "+fmt.Sprintf("%#v", this.In)+",\n")
+	s = append(s, "Out: "+fmt.Sprintf("%#v", this.Out)+",\n")
+	s = append(s, "Signer: "+fmt.Sprintf("%#v", this.Signer)+",\n")
+	s = append(s, "Armored: "+fmt.Sprintf("%#v", this.Armored)+",\n")
+	s = append(s, "Detached: "+fmt.Sprintf("%#v", this.Detached)+",\n")
+	if this.XXX_unrecognized != nil {
+		s = append(s, "XXX_unrecognized:"+fmt.Sprintf("%#v", this.XXX_unrecognized)+",\n")
+	}
+	s = append(s, "}")
+	return strings.Join(s, "")
+}
+func (this *SignFileOutput) GoString() string {
+	if this == nil {
+		return "nil"
+	}
+	s := make([]string, 0, 7)
+	s = append(s, "&service.SignFileOutput{")
+	s = append(s, "KID: "+fmt.Sprintf("%#v", this.KID)+",\n")
+	s = append(s, "Bytes: "+fmt.Sprintf("%#v", this.Bytes)+",\n")
+	s = append(s, "Total: "+fmt.Sprintf("%#v", this.Total)+",\n")
+	if this.XXX_unrecognized != nil {
+		s = append(s, "XXX_unrecognized:"+fmt.Sprintf("%#v", this.XXX_unrecognized)+",\n")
+	}
+	s = append(s, "}")
+	return strings.Join(s, "")
+}
 func (this *VerifyRequest) GoString() string {
 	if this == nil {
 		return "nil"
@@ -4786,6 +5202,38 @@ func (this *VerifyResponse) GoString() string {
 	if this.Signer != nil {
 		s = append(s, "Signer: "+fmt.Sprintf("%#v", this.Signer)+",\n")
 	}
+	if this.XXX_unrecognized != nil {
+		s = append(s, "XXX_unrecognized:"+fmt.Sprintf("%#v", this.XXX_unrecognized)+",\n")
+	}
+	s = append(s, "}")
+	return strings.Join(s, "")
+}
+func (this *VerifyFileInput) GoString() string {
+	if this == nil {
+		return "nil"
+	}
+	s := make([]string, 0, 7)
+	s = append(s, "&service.VerifyFileInput{")
+	s = append(s, "In: "+fmt.Sprintf("%#v", this.In)+",\n")
+	s = append(s, "Out: "+fmt.Sprintf("%#v", this.Out)+",\n")
+	s = append(s, "Armored: "+fmt.Sprintf("%#v", this.Armored)+",\n")
+	if this.XXX_unrecognized != nil {
+		s = append(s, "XXX_unrecognized:"+fmt.Sprintf("%#v", this.XXX_unrecognized)+",\n")
+	}
+	s = append(s, "}")
+	return strings.Join(s, "")
+}
+func (this *VerifyFileOutput) GoString() string {
+	if this == nil {
+		return "nil"
+	}
+	s := make([]string, 0, 7)
+	s = append(s, "&service.VerifyFileOutput{")
+	if this.Signer != nil {
+		s = append(s, "Signer: "+fmt.Sprintf("%#v", this.Signer)+",\n")
+	}
+	s = append(s, "Bytes: "+fmt.Sprintf("%#v", this.Bytes)+",\n")
+	s = append(s, "Total: "+fmt.Sprintf("%#v", this.Total)+",\n")
 	if this.XXX_unrecognized != nil {
 		s = append(s, "XXX_unrecognized:"+fmt.Sprintf("%#v", this.XXX_unrecognized)+",\n")
 	}
@@ -4932,13 +5380,15 @@ func (this *StatementRevokeResponse) GoString() string {
 	s = append(s, "}")
 	return strings.Join(s, "")
 }
-func (this *SignStreamInput) GoString() string {
+func (this *SignInput) GoString() string {
 	if this == nil {
 		return "nil"
 	}
-	s := make([]string, 0, 8)
-	s = append(s, "&service.SignStreamInput{")
+	s := make([]string, 0, 10)
+	s = append(s, "&service.SignInput{")
 	s = append(s, "Data: "+fmt.Sprintf("%#v", this.Data)+",\n")
+	s = append(s, "In: "+fmt.Sprintf("%#v", this.In)+",\n")
+	s = append(s, "Out: "+fmt.Sprintf("%#v", this.Out)+",\n")
 	s = append(s, "Signer: "+fmt.Sprintf("%#v", this.Signer)+",\n")
 	s = append(s, "Armored: "+fmt.Sprintf("%#v", this.Armored)+",\n")
 	s = append(s, "Detached: "+fmt.Sprintf("%#v", this.Detached)+",\n")
@@ -4948,12 +5398,12 @@ func (this *SignStreamInput) GoString() string {
 	s = append(s, "}")
 	return strings.Join(s, "")
 }
-func (this *SignStreamOutput) GoString() string {
+func (this *SignOutput) GoString() string {
 	if this == nil {
 		return "nil"
 	}
 	s := make([]string, 0, 6)
-	s = append(s, "&service.SignStreamOutput{")
+	s = append(s, "&service.SignOutput{")
 	s = append(s, "Data: "+fmt.Sprintf("%#v", this.Data)+",\n")
 	s = append(s, "KID: "+fmt.Sprintf("%#v", this.KID)+",\n")
 	if this.XXX_unrecognized != nil {
@@ -4962,12 +5412,12 @@ func (this *SignStreamOutput) GoString() string {
 	s = append(s, "}")
 	return strings.Join(s, "")
 }
-func (this *VerifyStreamInput) GoString() string {
+func (this *VerifyInput) GoString() string {
 	if this == nil {
 		return "nil"
 	}
 	s := make([]string, 0, 5)
-	s = append(s, "&service.VerifyStreamInput{")
+	s = append(s, "&service.VerifyInput{")
 	s = append(s, "Data: "+fmt.Sprintf("%#v", this.Data)+",\n")
 	if this.XXX_unrecognized != nil {
 		s = append(s, "XXX_unrecognized:"+fmt.Sprintf("%#v", this.XXX_unrecognized)+",\n")
@@ -4975,12 +5425,12 @@ func (this *VerifyStreamInput) GoString() string {
 	s = append(s, "}")
 	return strings.Join(s, "")
 }
-func (this *VerifyStreamOutput) GoString() string {
+func (this *VerifyOutput) GoString() string {
 	if this == nil {
 		return "nil"
 	}
 	s := make([]string, 0, 6)
-	s = append(s, "&service.VerifyStreamOutput{")
+	s = append(s, "&service.VerifyOutput{")
 	s = append(s, "Data: "+fmt.Sprintf("%#v", this.Data)+",\n")
 	if this.Signer != nil {
 		s = append(s, "Signer: "+fmt.Sprintf("%#v", this.Signer)+",\n")
@@ -5021,6 +5471,68 @@ func (this *EncryptResponse) GoString() string {
 	s = append(s, "}")
 	return strings.Join(s, "")
 }
+func (this *EncryptFileInput) GoString() string {
+	if this == nil {
+		return "nil"
+	}
+	s := make([]string, 0, 10)
+	s = append(s, "&service.EncryptFileInput{")
+	s = append(s, "In: "+fmt.Sprintf("%#v", this.In)+",\n")
+	s = append(s, "Out: "+fmt.Sprintf("%#v", this.Out)+",\n")
+	s = append(s, "Armored: "+fmt.Sprintf("%#v", this.Armored)+",\n")
+	s = append(s, "Recipients: "+fmt.Sprintf("%#v", this.Recipients)+",\n")
+	s = append(s, "Signer: "+fmt.Sprintf("%#v", this.Signer)+",\n")
+	s = append(s, "Mode: "+fmt.Sprintf("%#v", this.Mode)+",\n")
+	if this.XXX_unrecognized != nil {
+		s = append(s, "XXX_unrecognized:"+fmt.Sprintf("%#v", this.XXX_unrecognized)+",\n")
+	}
+	s = append(s, "}")
+	return strings.Join(s, "")
+}
+func (this *EncryptFileOutput) GoString() string {
+	if this == nil {
+		return "nil"
+	}
+	s := make([]string, 0, 6)
+	s = append(s, "&service.EncryptFileOutput{")
+	s = append(s, "Bytes: "+fmt.Sprintf("%#v", this.Bytes)+",\n")
+	s = append(s, "Total: "+fmt.Sprintf("%#v", this.Total)+",\n")
+	if this.XXX_unrecognized != nil {
+		s = append(s, "XXX_unrecognized:"+fmt.Sprintf("%#v", this.XXX_unrecognized)+",\n")
+	}
+	s = append(s, "}")
+	return strings.Join(s, "")
+}
+func (this *EncryptInput) GoString() string {
+	if this == nil {
+		return "nil"
+	}
+	s := make([]string, 0, 9)
+	s = append(s, "&service.EncryptInput{")
+	s = append(s, "Data: "+fmt.Sprintf("%#v", this.Data)+",\n")
+	s = append(s, "Armored: "+fmt.Sprintf("%#v", this.Armored)+",\n")
+	s = append(s, "Recipients: "+fmt.Sprintf("%#v", this.Recipients)+",\n")
+	s = append(s, "Signer: "+fmt.Sprintf("%#v", this.Signer)+",\n")
+	s = append(s, "Mode: "+fmt.Sprintf("%#v", this.Mode)+",\n")
+	if this.XXX_unrecognized != nil {
+		s = append(s, "XXX_unrecognized:"+fmt.Sprintf("%#v", this.XXX_unrecognized)+",\n")
+	}
+	s = append(s, "}")
+	return strings.Join(s, "")
+}
+func (this *EncryptOutput) GoString() string {
+	if this == nil {
+		return "nil"
+	}
+	s := make([]string, 0, 5)
+	s = append(s, "&service.EncryptOutput{")
+	s = append(s, "Data: "+fmt.Sprintf("%#v", this.Data)+",\n")
+	if this.XXX_unrecognized != nil {
+		s = append(s, "XXX_unrecognized:"+fmt.Sprintf("%#v", this.XXX_unrecognized)+",\n")
+	}
+	s = append(s, "}")
+	return strings.Join(s, "")
+}
 func (this *DecryptRequest) GoString() string {
 	if this == nil {
 		return "nil"
@@ -5052,16 +5564,15 @@ func (this *DecryptResponse) GoString() string {
 	s = append(s, "}")
 	return strings.Join(s, "")
 }
-func (this *EncryptStreamInput) GoString() string {
+func (this *DecryptFileInput) GoString() string {
 	if this == nil {
 		return "nil"
 	}
-	s := make([]string, 0, 9)
-	s = append(s, "&service.EncryptStreamInput{")
-	s = append(s, "Data: "+fmt.Sprintf("%#v", this.Data)+",\n")
+	s := make([]string, 0, 8)
+	s = append(s, "&service.DecryptFileInput{")
+	s = append(s, "In: "+fmt.Sprintf("%#v", this.In)+",\n")
+	s = append(s, "Out: "+fmt.Sprintf("%#v", this.Out)+",\n")
 	s = append(s, "Armored: "+fmt.Sprintf("%#v", this.Armored)+",\n")
-	s = append(s, "Recipients: "+fmt.Sprintf("%#v", this.Recipients)+",\n")
-	s = append(s, "Signer: "+fmt.Sprintf("%#v", this.Signer)+",\n")
 	s = append(s, "Mode: "+fmt.Sprintf("%#v", this.Mode)+",\n")
 	if this.XXX_unrecognized != nil {
 		s = append(s, "XXX_unrecognized:"+fmt.Sprintf("%#v", this.XXX_unrecognized)+",\n")
@@ -5069,12 +5580,29 @@ func (this *EncryptStreamInput) GoString() string {
 	s = append(s, "}")
 	return strings.Join(s, "")
 }
-func (this *EncryptStreamOutput) GoString() string {
+func (this *DecryptFileOutput) GoString() string {
+	if this == nil {
+		return "nil"
+	}
+	s := make([]string, 0, 7)
+	s = append(s, "&service.DecryptFileOutput{")
+	if this.Signer != nil {
+		s = append(s, "Signer: "+fmt.Sprintf("%#v", this.Signer)+",\n")
+	}
+	s = append(s, "Bytes: "+fmt.Sprintf("%#v", this.Bytes)+",\n")
+	s = append(s, "Total: "+fmt.Sprintf("%#v", this.Total)+",\n")
+	if this.XXX_unrecognized != nil {
+		s = append(s, "XXX_unrecognized:"+fmt.Sprintf("%#v", this.XXX_unrecognized)+",\n")
+	}
+	s = append(s, "}")
+	return strings.Join(s, "")
+}
+func (this *DecryptInput) GoString() string {
 	if this == nil {
 		return "nil"
 	}
 	s := make([]string, 0, 5)
-	s = append(s, "&service.EncryptStreamOutput{")
+	s = append(s, "&service.DecryptInput{")
 	s = append(s, "Data: "+fmt.Sprintf("%#v", this.Data)+",\n")
 	if this.XXX_unrecognized != nil {
 		s = append(s, "XXX_unrecognized:"+fmt.Sprintf("%#v", this.XXX_unrecognized)+",\n")
@@ -5082,25 +5610,12 @@ func (this *EncryptStreamOutput) GoString() string {
 	s = append(s, "}")
 	return strings.Join(s, "")
 }
-func (this *DecryptStreamInput) GoString() string {
-	if this == nil {
-		return "nil"
-	}
-	s := make([]string, 0, 5)
-	s = append(s, "&service.DecryptStreamInput{")
-	s = append(s, "Data: "+fmt.Sprintf("%#v", this.Data)+",\n")
-	if this.XXX_unrecognized != nil {
-		s = append(s, "XXX_unrecognized:"+fmt.Sprintf("%#v", this.XXX_unrecognized)+",\n")
-	}
-	s = append(s, "}")
-	return strings.Join(s, "")
-}
-func (this *DecryptStreamOutput) GoString() string {
+func (this *DecryptOutput) GoString() string {
 	if this == nil {
 		return "nil"
 	}
 	s := make([]string, 0, 6)
-	s = append(s, "&service.DecryptStreamOutput{")
+	s = append(s, "&service.DecryptOutput{")
 	s = append(s, "Data: "+fmt.Sprintf("%#v", this.Data)+",\n")
 	if this.Signer != nil {
 		s = append(s, "Signer: "+fmt.Sprintf("%#v", this.Signer)+",\n")
@@ -6189,14 +6704,17 @@ type KeysClient interface {
 	KeyExport(ctx context.Context, in *KeyExportRequest, opts ...grpc.CallOption) (*KeyExportResponse, error)
 	KeyRemove(ctx context.Context, in *KeyRemoveRequest, opts ...grpc.CallOption) (*KeyRemoveResponse, error)
 	Sign(ctx context.Context, in *SignRequest, opts ...grpc.CallOption) (*SignResponse, error)
-	Verify(ctx context.Context, in *VerifyRequest, opts ...grpc.CallOption) (*VerifyResponse, error)
+	SignFile(ctx context.Context, opts ...grpc.CallOption) (Keys_SignFileClient, error)
 	SignStream(ctx context.Context, opts ...grpc.CallOption) (Keys_SignStreamClient, error)
+	Verify(ctx context.Context, in *VerifyRequest, opts ...grpc.CallOption) (*VerifyResponse, error)
+	VerifyFile(ctx context.Context, opts ...grpc.CallOption) (Keys_VerifyFileClient, error)
 	VerifyStream(ctx context.Context, opts ...grpc.CallOption) (Keys_VerifyStreamClient, error)
 	VerifyArmoredStream(ctx context.Context, opts ...grpc.CallOption) (Keys_VerifyArmoredStreamClient, error)
 	Encrypt(ctx context.Context, in *EncryptRequest, opts ...grpc.CallOption) (*EncryptResponse, error)
-	Decrypt(ctx context.Context, in *DecryptRequest, opts ...grpc.CallOption) (*DecryptResponse, error)
 	EncryptStream(ctx context.Context, opts ...grpc.CallOption) (Keys_EncryptStreamClient, error)
-	// Decryption streams
+	EncryptFile(ctx context.Context, opts ...grpc.CallOption) (Keys_EncryptFileClient, error)
+	Decrypt(ctx context.Context, in *DecryptRequest, opts ...grpc.CallOption) (*DecryptResponse, error)
+	DecryptFile(ctx context.Context, opts ...grpc.CallOption) (Keys_DecryptFileClient, error)
 	DecryptStream(ctx context.Context, opts ...grpc.CallOption) (Keys_DecryptStreamClient, error)
 	DecryptArmoredStream(ctx context.Context, opts ...grpc.CallOption) (Keys_DecryptArmoredStreamClient, error)
 	SigncryptOpenStream(ctx context.Context, opts ...grpc.CallOption) (Keys_SigncryptOpenStreamClient, error)
@@ -6305,6 +6823,68 @@ func (c *keysClient) Sign(ctx context.Context, in *SignRequest, opts ...grpc.Cal
 	return out, nil
 }
 
+func (c *keysClient) SignFile(ctx context.Context, opts ...grpc.CallOption) (Keys_SignFileClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[0], "/service.Keys/SignFile", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &keysSignFileClient{stream}
+	return x, nil
+}
+
+type Keys_SignFileClient interface {
+	Send(*SignFileInput) error
+	Recv() (*SignFileOutput, error)
+	grpc.ClientStream
+}
+
+type keysSignFileClient struct {
+	grpc.ClientStream
+}
+
+func (x *keysSignFileClient) Send(m *SignFileInput) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *keysSignFileClient) Recv() (*SignFileOutput, error) {
+	m := new(SignFileOutput)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *keysClient) SignStream(ctx context.Context, opts ...grpc.CallOption) (Keys_SignStreamClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[1], "/service.Keys/SignStream", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &keysSignStreamClient{stream}
+	return x, nil
+}
+
+type Keys_SignStreamClient interface {
+	Send(*SignInput) error
+	Recv() (*SignOutput, error)
+	grpc.ClientStream
+}
+
+type keysSignStreamClient struct {
+	grpc.ClientStream
+}
+
+func (x *keysSignStreamClient) Send(m *SignInput) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *keysSignStreamClient) Recv() (*SignOutput, error) {
+	m := new(SignOutput)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *keysClient) Verify(ctx context.Context, in *VerifyRequest, opts ...grpc.CallOption) (*VerifyResponse, error) {
 	out := new(VerifyResponse)
 	err := c.cc.Invoke(ctx, "/service.Keys/Verify", in, out, opts...)
@@ -6314,31 +6894,31 @@ func (c *keysClient) Verify(ctx context.Context, in *VerifyRequest, opts ...grpc
 	return out, nil
 }
 
-func (c *keysClient) SignStream(ctx context.Context, opts ...grpc.CallOption) (Keys_SignStreamClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[0], "/service.Keys/SignStream", opts...)
+func (c *keysClient) VerifyFile(ctx context.Context, opts ...grpc.CallOption) (Keys_VerifyFileClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[2], "/service.Keys/VerifyFile", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &keysSignStreamClient{stream}
+	x := &keysVerifyFileClient{stream}
 	return x, nil
 }
 
-type Keys_SignStreamClient interface {
-	Send(*SignStreamInput) error
-	Recv() (*SignStreamOutput, error)
+type Keys_VerifyFileClient interface {
+	Send(*VerifyFileInput) error
+	Recv() (*VerifyFileOutput, error)
 	grpc.ClientStream
 }
 
-type keysSignStreamClient struct {
+type keysVerifyFileClient struct {
 	grpc.ClientStream
 }
 
-func (x *keysSignStreamClient) Send(m *SignStreamInput) error {
+func (x *keysVerifyFileClient) Send(m *VerifyFileInput) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *keysSignStreamClient) Recv() (*SignStreamOutput, error) {
-	m := new(SignStreamOutput)
+func (x *keysVerifyFileClient) Recv() (*VerifyFileOutput, error) {
+	m := new(VerifyFileOutput)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -6346,7 +6926,7 @@ func (x *keysSignStreamClient) Recv() (*SignStreamOutput, error) {
 }
 
 func (c *keysClient) VerifyStream(ctx context.Context, opts ...grpc.CallOption) (Keys_VerifyStreamClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[1], "/service.Keys/VerifyStream", opts...)
+	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[3], "/service.Keys/VerifyStream", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -6355,8 +6935,8 @@ func (c *keysClient) VerifyStream(ctx context.Context, opts ...grpc.CallOption) 
 }
 
 type Keys_VerifyStreamClient interface {
-	Send(*VerifyStreamInput) error
-	Recv() (*VerifyStreamOutput, error)
+	Send(*VerifyInput) error
+	Recv() (*VerifyOutput, error)
 	grpc.ClientStream
 }
 
@@ -6364,12 +6944,12 @@ type keysVerifyStreamClient struct {
 	grpc.ClientStream
 }
 
-func (x *keysVerifyStreamClient) Send(m *VerifyStreamInput) error {
+func (x *keysVerifyStreamClient) Send(m *VerifyInput) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *keysVerifyStreamClient) Recv() (*VerifyStreamOutput, error) {
-	m := new(VerifyStreamOutput)
+func (x *keysVerifyStreamClient) Recv() (*VerifyOutput, error) {
+	m := new(VerifyOutput)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -6377,7 +6957,7 @@ func (x *keysVerifyStreamClient) Recv() (*VerifyStreamOutput, error) {
 }
 
 func (c *keysClient) VerifyArmoredStream(ctx context.Context, opts ...grpc.CallOption) (Keys_VerifyArmoredStreamClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[2], "/service.Keys/VerifyArmoredStream", opts...)
+	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[4], "/service.Keys/VerifyArmoredStream", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -6386,8 +6966,8 @@ func (c *keysClient) VerifyArmoredStream(ctx context.Context, opts ...grpc.CallO
 }
 
 type Keys_VerifyArmoredStreamClient interface {
-	Send(*VerifyStreamInput) error
-	Recv() (*VerifyStreamOutput, error)
+	Send(*VerifyInput) error
+	Recv() (*VerifyOutput, error)
 	grpc.ClientStream
 }
 
@@ -6395,12 +6975,12 @@ type keysVerifyArmoredStreamClient struct {
 	grpc.ClientStream
 }
 
-func (x *keysVerifyArmoredStreamClient) Send(m *VerifyStreamInput) error {
+func (x *keysVerifyArmoredStreamClient) Send(m *VerifyInput) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *keysVerifyArmoredStreamClient) Recv() (*VerifyStreamOutput, error) {
-	m := new(VerifyStreamOutput)
+func (x *keysVerifyArmoredStreamClient) Recv() (*VerifyOutput, error) {
+	m := new(VerifyOutput)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -6416,6 +6996,68 @@ func (c *keysClient) Encrypt(ctx context.Context, in *EncryptRequest, opts ...gr
 	return out, nil
 }
 
+func (c *keysClient) EncryptStream(ctx context.Context, opts ...grpc.CallOption) (Keys_EncryptStreamClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[5], "/service.Keys/EncryptStream", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &keysEncryptStreamClient{stream}
+	return x, nil
+}
+
+type Keys_EncryptStreamClient interface {
+	Send(*EncryptInput) error
+	Recv() (*EncryptOutput, error)
+	grpc.ClientStream
+}
+
+type keysEncryptStreamClient struct {
+	grpc.ClientStream
+}
+
+func (x *keysEncryptStreamClient) Send(m *EncryptInput) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *keysEncryptStreamClient) Recv() (*EncryptOutput, error) {
+	m := new(EncryptOutput)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *keysClient) EncryptFile(ctx context.Context, opts ...grpc.CallOption) (Keys_EncryptFileClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[6], "/service.Keys/EncryptFile", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &keysEncryptFileClient{stream}
+	return x, nil
+}
+
+type Keys_EncryptFileClient interface {
+	Send(*EncryptFileInput) error
+	Recv() (*EncryptFileOutput, error)
+	grpc.ClientStream
+}
+
+type keysEncryptFileClient struct {
+	grpc.ClientStream
+}
+
+func (x *keysEncryptFileClient) Send(m *EncryptFileInput) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *keysEncryptFileClient) Recv() (*EncryptFileOutput, error) {
+	m := new(EncryptFileOutput)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *keysClient) Decrypt(ctx context.Context, in *DecryptRequest, opts ...grpc.CallOption) (*DecryptResponse, error) {
 	out := new(DecryptResponse)
 	err := c.cc.Invoke(ctx, "/service.Keys/Decrypt", in, out, opts...)
@@ -6425,31 +7067,31 @@ func (c *keysClient) Decrypt(ctx context.Context, in *DecryptRequest, opts ...gr
 	return out, nil
 }
 
-func (c *keysClient) EncryptStream(ctx context.Context, opts ...grpc.CallOption) (Keys_EncryptStreamClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[3], "/service.Keys/EncryptStream", opts...)
+func (c *keysClient) DecryptFile(ctx context.Context, opts ...grpc.CallOption) (Keys_DecryptFileClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[7], "/service.Keys/DecryptFile", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &keysEncryptStreamClient{stream}
+	x := &keysDecryptFileClient{stream}
 	return x, nil
 }
 
-type Keys_EncryptStreamClient interface {
-	Send(*EncryptStreamInput) error
-	Recv() (*EncryptStreamOutput, error)
+type Keys_DecryptFileClient interface {
+	Send(*DecryptFileInput) error
+	Recv() (*DecryptFileOutput, error)
 	grpc.ClientStream
 }
 
-type keysEncryptStreamClient struct {
+type keysDecryptFileClient struct {
 	grpc.ClientStream
 }
 
-func (x *keysEncryptStreamClient) Send(m *EncryptStreamInput) error {
+func (x *keysDecryptFileClient) Send(m *DecryptFileInput) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *keysEncryptStreamClient) Recv() (*EncryptStreamOutput, error) {
-	m := new(EncryptStreamOutput)
+func (x *keysDecryptFileClient) Recv() (*DecryptFileOutput, error) {
+	m := new(DecryptFileOutput)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -6457,7 +7099,7 @@ func (x *keysEncryptStreamClient) Recv() (*EncryptStreamOutput, error) {
 }
 
 func (c *keysClient) DecryptStream(ctx context.Context, opts ...grpc.CallOption) (Keys_DecryptStreamClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[4], "/service.Keys/DecryptStream", opts...)
+	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[8], "/service.Keys/DecryptStream", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -6466,8 +7108,8 @@ func (c *keysClient) DecryptStream(ctx context.Context, opts ...grpc.CallOption)
 }
 
 type Keys_DecryptStreamClient interface {
-	Send(*DecryptStreamInput) error
-	Recv() (*DecryptStreamOutput, error)
+	Send(*DecryptInput) error
+	Recv() (*DecryptOutput, error)
 	grpc.ClientStream
 }
 
@@ -6475,12 +7117,12 @@ type keysDecryptStreamClient struct {
 	grpc.ClientStream
 }
 
-func (x *keysDecryptStreamClient) Send(m *DecryptStreamInput) error {
+func (x *keysDecryptStreamClient) Send(m *DecryptInput) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *keysDecryptStreamClient) Recv() (*DecryptStreamOutput, error) {
-	m := new(DecryptStreamOutput)
+func (x *keysDecryptStreamClient) Recv() (*DecryptOutput, error) {
+	m := new(DecryptOutput)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -6488,7 +7130,7 @@ func (x *keysDecryptStreamClient) Recv() (*DecryptStreamOutput, error) {
 }
 
 func (c *keysClient) DecryptArmoredStream(ctx context.Context, opts ...grpc.CallOption) (Keys_DecryptArmoredStreamClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[5], "/service.Keys/DecryptArmoredStream", opts...)
+	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[9], "/service.Keys/DecryptArmoredStream", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -6497,8 +7139,8 @@ func (c *keysClient) DecryptArmoredStream(ctx context.Context, opts ...grpc.Call
 }
 
 type Keys_DecryptArmoredStreamClient interface {
-	Send(*DecryptStreamInput) error
-	Recv() (*DecryptStreamOutput, error)
+	Send(*DecryptInput) error
+	Recv() (*DecryptOutput, error)
 	grpc.ClientStream
 }
 
@@ -6506,12 +7148,12 @@ type keysDecryptArmoredStreamClient struct {
 	grpc.ClientStream
 }
 
-func (x *keysDecryptArmoredStreamClient) Send(m *DecryptStreamInput) error {
+func (x *keysDecryptArmoredStreamClient) Send(m *DecryptInput) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *keysDecryptArmoredStreamClient) Recv() (*DecryptStreamOutput, error) {
-	m := new(DecryptStreamOutput)
+func (x *keysDecryptArmoredStreamClient) Recv() (*DecryptOutput, error) {
+	m := new(DecryptOutput)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -6519,7 +7161,7 @@ func (x *keysDecryptArmoredStreamClient) Recv() (*DecryptStreamOutput, error) {
 }
 
 func (c *keysClient) SigncryptOpenStream(ctx context.Context, opts ...grpc.CallOption) (Keys_SigncryptOpenStreamClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[6], "/service.Keys/SigncryptOpenStream", opts...)
+	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[10], "/service.Keys/SigncryptOpenStream", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -6528,8 +7170,8 @@ func (c *keysClient) SigncryptOpenStream(ctx context.Context, opts ...grpc.CallO
 }
 
 type Keys_SigncryptOpenStreamClient interface {
-	Send(*DecryptStreamInput) error
-	Recv() (*DecryptStreamOutput, error)
+	Send(*DecryptInput) error
+	Recv() (*DecryptOutput, error)
 	grpc.ClientStream
 }
 
@@ -6537,12 +7179,12 @@ type keysSigncryptOpenStreamClient struct {
 	grpc.ClientStream
 }
 
-func (x *keysSigncryptOpenStreamClient) Send(m *DecryptStreamInput) error {
+func (x *keysSigncryptOpenStreamClient) Send(m *DecryptInput) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *keysSigncryptOpenStreamClient) Recv() (*DecryptStreamOutput, error) {
-	m := new(DecryptStreamOutput)
+func (x *keysSigncryptOpenStreamClient) Recv() (*DecryptOutput, error) {
+	m := new(DecryptOutput)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -6550,7 +7192,7 @@ func (x *keysSigncryptOpenStreamClient) Recv() (*DecryptStreamOutput, error) {
 }
 
 func (c *keysClient) SigncryptOpenArmoredStream(ctx context.Context, opts ...grpc.CallOption) (Keys_SigncryptOpenArmoredStreamClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[7], "/service.Keys/SigncryptOpenArmoredStream", opts...)
+	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[11], "/service.Keys/SigncryptOpenArmoredStream", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -6559,8 +7201,8 @@ func (c *keysClient) SigncryptOpenArmoredStream(ctx context.Context, opts ...grp
 }
 
 type Keys_SigncryptOpenArmoredStreamClient interface {
-	Send(*DecryptStreamInput) error
-	Recv() (*DecryptStreamOutput, error)
+	Send(*DecryptInput) error
+	Recv() (*DecryptOutput, error)
 	grpc.ClientStream
 }
 
@@ -6568,12 +7210,12 @@ type keysSigncryptOpenArmoredStreamClient struct {
 	grpc.ClientStream
 }
 
-func (x *keysSigncryptOpenArmoredStreamClient) Send(m *DecryptStreamInput) error {
+func (x *keysSigncryptOpenArmoredStreamClient) Send(m *DecryptInput) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *keysSigncryptOpenArmoredStreamClient) Recv() (*DecryptStreamOutput, error) {
-	m := new(DecryptStreamOutput)
+func (x *keysSigncryptOpenArmoredStreamClient) Recv() (*DecryptOutput, error) {
+	m := new(DecryptOutput)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -6824,7 +7466,7 @@ func (c *keysClient) Messages(ctx context.Context, in *MessagesRequest, opts ...
 }
 
 func (c *keysClient) Watch(ctx context.Context, in *WatchRequest, opts ...grpc.CallOption) (Keys_WatchClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[8], "/service.Keys/Watch", opts...)
+	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[12], "/service.Keys/Watch", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -6864,14 +7506,17 @@ type KeysServer interface {
 	KeyExport(context.Context, *KeyExportRequest) (*KeyExportResponse, error)
 	KeyRemove(context.Context, *KeyRemoveRequest) (*KeyRemoveResponse, error)
 	Sign(context.Context, *SignRequest) (*SignResponse, error)
-	Verify(context.Context, *VerifyRequest) (*VerifyResponse, error)
+	SignFile(Keys_SignFileServer) error
 	SignStream(Keys_SignStreamServer) error
+	Verify(context.Context, *VerifyRequest) (*VerifyResponse, error)
+	VerifyFile(Keys_VerifyFileServer) error
 	VerifyStream(Keys_VerifyStreamServer) error
 	VerifyArmoredStream(Keys_VerifyArmoredStreamServer) error
 	Encrypt(context.Context, *EncryptRequest) (*EncryptResponse, error)
-	Decrypt(context.Context, *DecryptRequest) (*DecryptResponse, error)
 	EncryptStream(Keys_EncryptStreamServer) error
-	// Decryption streams
+	EncryptFile(Keys_EncryptFileServer) error
+	Decrypt(context.Context, *DecryptRequest) (*DecryptResponse, error)
+	DecryptFile(Keys_DecryptFileServer) error
 	DecryptStream(Keys_DecryptStreamServer) error
 	DecryptArmoredStream(Keys_DecryptArmoredStreamServer) error
 	SigncryptOpenStream(Keys_SigncryptOpenStreamServer) error
@@ -6934,11 +7579,17 @@ func (*UnimplementedKeysServer) KeyRemove(ctx context.Context, req *KeyRemoveReq
 func (*UnimplementedKeysServer) Sign(ctx context.Context, req *SignRequest) (*SignResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Sign not implemented")
 }
-func (*UnimplementedKeysServer) Verify(ctx context.Context, req *VerifyRequest) (*VerifyResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Verify not implemented")
+func (*UnimplementedKeysServer) SignFile(srv Keys_SignFileServer) error {
+	return status.Errorf(codes.Unimplemented, "method SignFile not implemented")
 }
 func (*UnimplementedKeysServer) SignStream(srv Keys_SignStreamServer) error {
 	return status.Errorf(codes.Unimplemented, "method SignStream not implemented")
+}
+func (*UnimplementedKeysServer) Verify(ctx context.Context, req *VerifyRequest) (*VerifyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Verify not implemented")
+}
+func (*UnimplementedKeysServer) VerifyFile(srv Keys_VerifyFileServer) error {
+	return status.Errorf(codes.Unimplemented, "method VerifyFile not implemented")
 }
 func (*UnimplementedKeysServer) VerifyStream(srv Keys_VerifyStreamServer) error {
 	return status.Errorf(codes.Unimplemented, "method VerifyStream not implemented")
@@ -6949,11 +7600,17 @@ func (*UnimplementedKeysServer) VerifyArmoredStream(srv Keys_VerifyArmoredStream
 func (*UnimplementedKeysServer) Encrypt(ctx context.Context, req *EncryptRequest) (*EncryptResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Encrypt not implemented")
 }
+func (*UnimplementedKeysServer) EncryptStream(srv Keys_EncryptStreamServer) error {
+	return status.Errorf(codes.Unimplemented, "method EncryptStream not implemented")
+}
+func (*UnimplementedKeysServer) EncryptFile(srv Keys_EncryptFileServer) error {
+	return status.Errorf(codes.Unimplemented, "method EncryptFile not implemented")
+}
 func (*UnimplementedKeysServer) Decrypt(ctx context.Context, req *DecryptRequest) (*DecryptResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Decrypt not implemented")
 }
-func (*UnimplementedKeysServer) EncryptStream(srv Keys_EncryptStreamServer) error {
-	return status.Errorf(codes.Unimplemented, "method EncryptStream not implemented")
+func (*UnimplementedKeysServer) DecryptFile(srv Keys_DecryptFileServer) error {
+	return status.Errorf(codes.Unimplemented, "method DecryptFile not implemented")
 }
 func (*UnimplementedKeysServer) DecryptStream(srv Keys_DecryptStreamServer) error {
 	return status.Errorf(codes.Unimplemented, "method DecryptStream not implemented")
@@ -7182,6 +7839,58 @@ func _Keys_Sign_Handler(srv interface{}, ctx context.Context, dec func(interface
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Keys_SignFile_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(KeysServer).SignFile(&keysSignFileServer{stream})
+}
+
+type Keys_SignFileServer interface {
+	Send(*SignFileOutput) error
+	Recv() (*SignFileInput, error)
+	grpc.ServerStream
+}
+
+type keysSignFileServer struct {
+	grpc.ServerStream
+}
+
+func (x *keysSignFileServer) Send(m *SignFileOutput) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *keysSignFileServer) Recv() (*SignFileInput, error) {
+	m := new(SignFileInput)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func _Keys_SignStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(KeysServer).SignStream(&keysSignStreamServer{stream})
+}
+
+type Keys_SignStreamServer interface {
+	Send(*SignOutput) error
+	Recv() (*SignInput, error)
+	grpc.ServerStream
+}
+
+type keysSignStreamServer struct {
+	grpc.ServerStream
+}
+
+func (x *keysSignStreamServer) Send(m *SignOutput) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *keysSignStreamServer) Recv() (*SignInput, error) {
+	m := new(SignInput)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func _Keys_Verify_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(VerifyRequest)
 	if err := dec(in); err != nil {
@@ -7200,26 +7909,26 @@ func _Keys_Verify_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Keys_SignStream_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(KeysServer).SignStream(&keysSignStreamServer{stream})
+func _Keys_VerifyFile_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(KeysServer).VerifyFile(&keysVerifyFileServer{stream})
 }
 
-type Keys_SignStreamServer interface {
-	Send(*SignStreamOutput) error
-	Recv() (*SignStreamInput, error)
+type Keys_VerifyFileServer interface {
+	Send(*VerifyFileOutput) error
+	Recv() (*VerifyFileInput, error)
 	grpc.ServerStream
 }
 
-type keysSignStreamServer struct {
+type keysVerifyFileServer struct {
 	grpc.ServerStream
 }
 
-func (x *keysSignStreamServer) Send(m *SignStreamOutput) error {
+func (x *keysVerifyFileServer) Send(m *VerifyFileOutput) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *keysSignStreamServer) Recv() (*SignStreamInput, error) {
-	m := new(SignStreamInput)
+func (x *keysVerifyFileServer) Recv() (*VerifyFileInput, error) {
+	m := new(VerifyFileInput)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -7231,8 +7940,8 @@ func _Keys_VerifyStream_Handler(srv interface{}, stream grpc.ServerStream) error
 }
 
 type Keys_VerifyStreamServer interface {
-	Send(*VerifyStreamOutput) error
-	Recv() (*VerifyStreamInput, error)
+	Send(*VerifyOutput) error
+	Recv() (*VerifyInput, error)
 	grpc.ServerStream
 }
 
@@ -7240,12 +7949,12 @@ type keysVerifyStreamServer struct {
 	grpc.ServerStream
 }
 
-func (x *keysVerifyStreamServer) Send(m *VerifyStreamOutput) error {
+func (x *keysVerifyStreamServer) Send(m *VerifyOutput) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *keysVerifyStreamServer) Recv() (*VerifyStreamInput, error) {
-	m := new(VerifyStreamInput)
+func (x *keysVerifyStreamServer) Recv() (*VerifyInput, error) {
+	m := new(VerifyInput)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -7257,8 +7966,8 @@ func _Keys_VerifyArmoredStream_Handler(srv interface{}, stream grpc.ServerStream
 }
 
 type Keys_VerifyArmoredStreamServer interface {
-	Send(*VerifyStreamOutput) error
-	Recv() (*VerifyStreamInput, error)
+	Send(*VerifyOutput) error
+	Recv() (*VerifyInput, error)
 	grpc.ServerStream
 }
 
@@ -7266,12 +7975,12 @@ type keysVerifyArmoredStreamServer struct {
 	grpc.ServerStream
 }
 
-func (x *keysVerifyArmoredStreamServer) Send(m *VerifyStreamOutput) error {
+func (x *keysVerifyArmoredStreamServer) Send(m *VerifyOutput) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *keysVerifyArmoredStreamServer) Recv() (*VerifyStreamInput, error) {
-	m := new(VerifyStreamInput)
+func (x *keysVerifyArmoredStreamServer) Recv() (*VerifyInput, error) {
+	m := new(VerifyInput)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -7296,6 +8005,58 @@ func _Keys_Encrypt_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Keys_EncryptStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(KeysServer).EncryptStream(&keysEncryptStreamServer{stream})
+}
+
+type Keys_EncryptStreamServer interface {
+	Send(*EncryptOutput) error
+	Recv() (*EncryptInput, error)
+	grpc.ServerStream
+}
+
+type keysEncryptStreamServer struct {
+	grpc.ServerStream
+}
+
+func (x *keysEncryptStreamServer) Send(m *EncryptOutput) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *keysEncryptStreamServer) Recv() (*EncryptInput, error) {
+	m := new(EncryptInput)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func _Keys_EncryptFile_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(KeysServer).EncryptFile(&keysEncryptFileServer{stream})
+}
+
+type Keys_EncryptFileServer interface {
+	Send(*EncryptFileOutput) error
+	Recv() (*EncryptFileInput, error)
+	grpc.ServerStream
+}
+
+type keysEncryptFileServer struct {
+	grpc.ServerStream
+}
+
+func (x *keysEncryptFileServer) Send(m *EncryptFileOutput) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *keysEncryptFileServer) Recv() (*EncryptFileInput, error) {
+	m := new(EncryptFileInput)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func _Keys_Decrypt_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DecryptRequest)
 	if err := dec(in); err != nil {
@@ -7314,26 +8075,26 @@ func _Keys_Decrypt_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Keys_EncryptStream_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(KeysServer).EncryptStream(&keysEncryptStreamServer{stream})
+func _Keys_DecryptFile_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(KeysServer).DecryptFile(&keysDecryptFileServer{stream})
 }
 
-type Keys_EncryptStreamServer interface {
-	Send(*EncryptStreamOutput) error
-	Recv() (*EncryptStreamInput, error)
+type Keys_DecryptFileServer interface {
+	Send(*DecryptFileOutput) error
+	Recv() (*DecryptFileInput, error)
 	grpc.ServerStream
 }
 
-type keysEncryptStreamServer struct {
+type keysDecryptFileServer struct {
 	grpc.ServerStream
 }
 
-func (x *keysEncryptStreamServer) Send(m *EncryptStreamOutput) error {
+func (x *keysDecryptFileServer) Send(m *DecryptFileOutput) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *keysEncryptStreamServer) Recv() (*EncryptStreamInput, error) {
-	m := new(EncryptStreamInput)
+func (x *keysDecryptFileServer) Recv() (*DecryptFileInput, error) {
+	m := new(DecryptFileInput)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -7345,8 +8106,8 @@ func _Keys_DecryptStream_Handler(srv interface{}, stream grpc.ServerStream) erro
 }
 
 type Keys_DecryptStreamServer interface {
-	Send(*DecryptStreamOutput) error
-	Recv() (*DecryptStreamInput, error)
+	Send(*DecryptOutput) error
+	Recv() (*DecryptInput, error)
 	grpc.ServerStream
 }
 
@@ -7354,12 +8115,12 @@ type keysDecryptStreamServer struct {
 	grpc.ServerStream
 }
 
-func (x *keysDecryptStreamServer) Send(m *DecryptStreamOutput) error {
+func (x *keysDecryptStreamServer) Send(m *DecryptOutput) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *keysDecryptStreamServer) Recv() (*DecryptStreamInput, error) {
-	m := new(DecryptStreamInput)
+func (x *keysDecryptStreamServer) Recv() (*DecryptInput, error) {
+	m := new(DecryptInput)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -7371,8 +8132,8 @@ func _Keys_DecryptArmoredStream_Handler(srv interface{}, stream grpc.ServerStrea
 }
 
 type Keys_DecryptArmoredStreamServer interface {
-	Send(*DecryptStreamOutput) error
-	Recv() (*DecryptStreamInput, error)
+	Send(*DecryptOutput) error
+	Recv() (*DecryptInput, error)
 	grpc.ServerStream
 }
 
@@ -7380,12 +8141,12 @@ type keysDecryptArmoredStreamServer struct {
 	grpc.ServerStream
 }
 
-func (x *keysDecryptArmoredStreamServer) Send(m *DecryptStreamOutput) error {
+func (x *keysDecryptArmoredStreamServer) Send(m *DecryptOutput) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *keysDecryptArmoredStreamServer) Recv() (*DecryptStreamInput, error) {
-	m := new(DecryptStreamInput)
+func (x *keysDecryptArmoredStreamServer) Recv() (*DecryptInput, error) {
+	m := new(DecryptInput)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -7397,8 +8158,8 @@ func _Keys_SigncryptOpenStream_Handler(srv interface{}, stream grpc.ServerStream
 }
 
 type Keys_SigncryptOpenStreamServer interface {
-	Send(*DecryptStreamOutput) error
-	Recv() (*DecryptStreamInput, error)
+	Send(*DecryptOutput) error
+	Recv() (*DecryptInput, error)
 	grpc.ServerStream
 }
 
@@ -7406,12 +8167,12 @@ type keysSigncryptOpenStreamServer struct {
 	grpc.ServerStream
 }
 
-func (x *keysSigncryptOpenStreamServer) Send(m *DecryptStreamOutput) error {
+func (x *keysSigncryptOpenStreamServer) Send(m *DecryptOutput) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *keysSigncryptOpenStreamServer) Recv() (*DecryptStreamInput, error) {
-	m := new(DecryptStreamInput)
+func (x *keysSigncryptOpenStreamServer) Recv() (*DecryptInput, error) {
+	m := new(DecryptInput)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -7423,8 +8184,8 @@ func _Keys_SigncryptOpenArmoredStream_Handler(srv interface{}, stream grpc.Serve
 }
 
 type Keys_SigncryptOpenArmoredStreamServer interface {
-	Send(*DecryptStreamOutput) error
-	Recv() (*DecryptStreamInput, error)
+	Send(*DecryptOutput) error
+	Recv() (*DecryptInput, error)
 	grpc.ServerStream
 }
 
@@ -7432,12 +8193,12 @@ type keysSigncryptOpenArmoredStreamServer struct {
 	grpc.ServerStream
 }
 
-func (x *keysSigncryptOpenArmoredStreamServer) Send(m *DecryptStreamOutput) error {
+func (x *keysSigncryptOpenArmoredStreamServer) Send(m *DecryptOutput) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *keysSigncryptOpenArmoredStreamServer) Recv() (*DecryptStreamInput, error) {
-	m := new(DecryptStreamInput)
+func (x *keysSigncryptOpenArmoredStreamServer) Recv() (*DecryptInput, error) {
+	m := new(DecryptInput)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -8106,8 +8867,20 @@ var _Keys_serviceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
+			StreamName:    "SignFile",
+			Handler:       _Keys_SignFile_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+		{
 			StreamName:    "SignStream",
 			Handler:       _Keys_SignStream_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "VerifyFile",
+			Handler:       _Keys_VerifyFile_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
 		},
@@ -8126,6 +8899,18 @@ var _Keys_serviceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "EncryptStream",
 			Handler:       _Keys_EncryptStream_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "EncryptFile",
+			Handler:       _Keys_EncryptFile_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "DecryptFile",
+			Handler:       _Keys_DecryptFile_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
 		},
@@ -8240,7 +9025,7 @@ func (m *SignRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			dAtA[i] = 0
 		}
 		i--
-		dAtA[i] = 0x20
+		dAtA[i] = 0x58
 	}
 	if m.Armored {
 		i--
@@ -8250,14 +9035,14 @@ func (m *SignRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			dAtA[i] = 0
 		}
 		i--
-		dAtA[i] = 0x18
+		dAtA[i] = 0x50
 	}
 	if len(m.Signer) > 0 {
 		i -= len(m.Signer)
 		copy(dAtA[i:], m.Signer)
 		i = encodeVarintKeys(dAtA, i, uint64(len(m.Signer)))
 		i--
-		dAtA[i] = 0x12
+		dAtA[i] = 0x2a
 	}
 	if len(m.Data) > 0 {
 		i -= len(m.Data)
@@ -8310,6 +9095,118 @@ func (m *SignResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *SignFileInput) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SignFileInput) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *SignFileInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.Detached {
+		i--
+		if m.Detached {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x58
+	}
+	if m.Armored {
+		i--
+		if m.Armored {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x50
+	}
+	if len(m.Signer) > 0 {
+		i -= len(m.Signer)
+		copy(dAtA[i:], m.Signer)
+		i = encodeVarintKeys(dAtA, i, uint64(len(m.Signer)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	if len(m.Out) > 0 {
+		i -= len(m.Out)
+		copy(dAtA[i:], m.Out)
+		i = encodeVarintKeys(dAtA, i, uint64(len(m.Out)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.In) > 0 {
+		i -= len(m.In)
+		copy(dAtA[i:], m.In)
+		i = encodeVarintKeys(dAtA, i, uint64(len(m.In)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *SignFileOutput) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SignFileOutput) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *SignFileOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.Total != 0 {
+		i = encodeVarintKeys(dAtA, i, uint64(m.Total))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.Bytes != 0 {
+		i = encodeVarintKeys(dAtA, i, uint64(m.Bytes))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.KID) > 0 {
+		i -= len(m.KID)
+		copy(dAtA[i:], m.KID)
+		i = encodeVarintKeys(dAtA, i, uint64(len(m.KID)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *VerifyRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -8342,7 +9239,7 @@ func (m *VerifyRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			dAtA[i] = 0
 		}
 		i--
-		dAtA[i] = 0x18
+		dAtA[i] = 0x50
 	}
 	if len(m.Data) > 0 {
 		i -= len(m.Data)
@@ -8394,6 +9291,106 @@ func (m *VerifyResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.Data)
 		copy(dAtA[i:], m.Data)
 		i = encodeVarintKeys(dAtA, i, uint64(len(m.Data)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *VerifyFileInput) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *VerifyFileInput) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *VerifyFileInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.Armored {
+		i--
+		if m.Armored {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x50
+	}
+	if len(m.Out) > 0 {
+		i -= len(m.Out)
+		copy(dAtA[i:], m.Out)
+		i = encodeVarintKeys(dAtA, i, uint64(len(m.Out)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.In) > 0 {
+		i -= len(m.In)
+		copy(dAtA[i:], m.In)
+		i = encodeVarintKeys(dAtA, i, uint64(len(m.In)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *VerifyFileOutput) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *VerifyFileOutput) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *VerifyFileOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.Total != 0 {
+		i = encodeVarintKeys(dAtA, i, uint64(m.Total))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.Bytes != 0 {
+		i = encodeVarintKeys(dAtA, i, uint64(m.Bytes))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Signer != nil {
+		{
+			size, err := m.Signer.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintKeys(dAtA, i, uint64(size))
+		}
 		i--
 		dAtA[i] = 0xa
 	}
@@ -8820,7 +9817,7 @@ func (m *StatementRevokeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	return len(dAtA) - i, nil
 }
 
-func (m *SignStreamInput) Marshal() (dAtA []byte, err error) {
+func (m *SignInput) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -8830,12 +9827,12 @@ func (m *SignStreamInput) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *SignStreamInput) MarshalTo(dAtA []byte) (int, error) {
+func (m *SignInput) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *SignStreamInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *SignInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -8852,7 +9849,7 @@ func (m *SignStreamInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			dAtA[i] = 0
 		}
 		i--
-		dAtA[i] = 0x20
+		dAtA[i] = 0x58
 	}
 	if m.Armored {
 		i--
@@ -8862,12 +9859,26 @@ func (m *SignStreamInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			dAtA[i] = 0
 		}
 		i--
-		dAtA[i] = 0x18
+		dAtA[i] = 0x50
 	}
 	if len(m.Signer) > 0 {
 		i -= len(m.Signer)
 		copy(dAtA[i:], m.Signer)
 		i = encodeVarintKeys(dAtA, i, uint64(len(m.Signer)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	if len(m.Out) > 0 {
+		i -= len(m.Out)
+		copy(dAtA[i:], m.Out)
+		i = encodeVarintKeys(dAtA, i, uint64(len(m.Out)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.In) > 0 {
+		i -= len(m.In)
+		copy(dAtA[i:], m.In)
+		i = encodeVarintKeys(dAtA, i, uint64(len(m.In)))
 		i--
 		dAtA[i] = 0x12
 	}
@@ -8881,7 +9892,7 @@ func (m *SignStreamInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *SignStreamOutput) Marshal() (dAtA []byte, err error) {
+func (m *SignOutput) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -8891,12 +9902,12 @@ func (m *SignStreamOutput) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *SignStreamOutput) MarshalTo(dAtA []byte) (int, error) {
+func (m *SignOutput) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *SignStreamOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *SignOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -8922,7 +9933,7 @@ func (m *SignStreamOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *VerifyStreamInput) Marshal() (dAtA []byte, err error) {
+func (m *VerifyInput) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -8932,12 +9943,12 @@ func (m *VerifyStreamInput) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *VerifyStreamInput) MarshalTo(dAtA []byte) (int, error) {
+func (m *VerifyInput) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *VerifyStreamInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *VerifyInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -8956,7 +9967,7 @@ func (m *VerifyStreamInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *VerifyStreamOutput) Marshal() (dAtA []byte, err error) {
+func (m *VerifyOutput) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -8966,12 +9977,12 @@ func (m *VerifyStreamOutput) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *VerifyStreamOutput) MarshalTo(dAtA []byte) (int, error) {
+func (m *VerifyOutput) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *VerifyStreamOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *VerifyOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -9029,14 +10040,14 @@ func (m *EncryptRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	if m.Mode != 0 {
 		i = encodeVarintKeys(dAtA, i, uint64(m.Mode))
 		i--
-		dAtA[i] = 0x28
+		dAtA[i] = 0x68
 	}
 	if len(m.Signer) > 0 {
 		i -= len(m.Signer)
 		copy(dAtA[i:], m.Signer)
 		i = encodeVarintKeys(dAtA, i, uint64(len(m.Signer)))
 		i--
-		dAtA[i] = 0x22
+		dAtA[i] = 0x62
 	}
 	if len(m.Recipients) > 0 {
 		for iNdEx := len(m.Recipients) - 1; iNdEx >= 0; iNdEx-- {
@@ -9044,7 +10055,7 @@ func (m *EncryptRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			copy(dAtA[i:], m.Recipients[iNdEx])
 			i = encodeVarintKeys(dAtA, i, uint64(len(m.Recipients[iNdEx])))
 			i--
-			dAtA[i] = 0x1a
+			dAtA[i] = 0x5a
 		}
 	}
 	if m.Armored {
@@ -9055,7 +10066,7 @@ func (m *EncryptRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			dAtA[i] = 0
 		}
 		i--
-		dAtA[i] = 0x10
+		dAtA[i] = 0x50
 	}
 	if len(m.Data) > 0 {
 		i -= len(m.Data)
@@ -9101,6 +10112,214 @@ func (m *EncryptResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *EncryptFileInput) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EncryptFileInput) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EncryptFileInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.Mode != 0 {
+		i = encodeVarintKeys(dAtA, i, uint64(m.Mode))
+		i--
+		dAtA[i] = 0x68
+	}
+	if len(m.Signer) > 0 {
+		i -= len(m.Signer)
+		copy(dAtA[i:], m.Signer)
+		i = encodeVarintKeys(dAtA, i, uint64(len(m.Signer)))
+		i--
+		dAtA[i] = 0x62
+	}
+	if len(m.Recipients) > 0 {
+		for iNdEx := len(m.Recipients) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.Recipients[iNdEx])
+			copy(dAtA[i:], m.Recipients[iNdEx])
+			i = encodeVarintKeys(dAtA, i, uint64(len(m.Recipients[iNdEx])))
+			i--
+			dAtA[i] = 0x5a
+		}
+	}
+	if m.Armored {
+		i--
+		if m.Armored {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x50
+	}
+	if len(m.Out) > 0 {
+		i -= len(m.Out)
+		copy(dAtA[i:], m.Out)
+		i = encodeVarintKeys(dAtA, i, uint64(len(m.Out)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.In) > 0 {
+		i -= len(m.In)
+		copy(dAtA[i:], m.In)
+		i = encodeVarintKeys(dAtA, i, uint64(len(m.In)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EncryptFileOutput) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EncryptFileOutput) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EncryptFileOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.Total != 0 {
+		i = encodeVarintKeys(dAtA, i, uint64(m.Total))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Bytes != 0 {
+		i = encodeVarintKeys(dAtA, i, uint64(m.Bytes))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EncryptInput) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EncryptInput) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EncryptInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.Mode != 0 {
+		i = encodeVarintKeys(dAtA, i, uint64(m.Mode))
+		i--
+		dAtA[i] = 0x28
+	}
+	if len(m.Signer) > 0 {
+		i -= len(m.Signer)
+		copy(dAtA[i:], m.Signer)
+		i = encodeVarintKeys(dAtA, i, uint64(len(m.Signer)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.Recipients) > 0 {
+		for iNdEx := len(m.Recipients) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.Recipients[iNdEx])
+			copy(dAtA[i:], m.Recipients[iNdEx])
+			i = encodeVarintKeys(dAtA, i, uint64(len(m.Recipients[iNdEx])))
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
+	if m.Armored {
+		i--
+		if m.Armored {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.Data) > 0 {
+		i -= len(m.Data)
+		copy(dAtA[i:], m.Data)
+		i = encodeVarintKeys(dAtA, i, uint64(len(m.Data)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EncryptOutput) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EncryptOutput) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EncryptOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.Data) > 0 {
+		i -= len(m.Data)
+		copy(dAtA[i:], m.Data)
+		i = encodeVarintKeys(dAtA, i, uint64(len(m.Data)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *DecryptRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -9128,7 +10347,7 @@ func (m *DecryptRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	if m.Mode != 0 {
 		i = encodeVarintKeys(dAtA, i, uint64(m.Mode))
 		i--
-		dAtA[i] = 0x28
+		dAtA[i] = 0x68
 	}
 	if m.Armored {
 		i--
@@ -9138,7 +10357,7 @@ func (m *DecryptRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			dAtA[i] = 0
 		}
 		i--
-		dAtA[i] = 0x10
+		dAtA[i] = 0x50
 	}
 	if len(m.Data) > 0 {
 		i -= len(m.Data)
@@ -9196,7 +10415,7 @@ func (m *DecryptResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *EncryptStreamInput) Marshal() (dAtA []byte, err error) {
+func (m *DecryptFileInput) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -9206,12 +10425,12 @@ func (m *EncryptStreamInput) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *EncryptStreamInput) MarshalTo(dAtA []byte) (int, error) {
+func (m *DecryptFileInput) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *EncryptStreamInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *DecryptFileInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -9223,23 +10442,7 @@ func (m *EncryptStreamInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	if m.Mode != 0 {
 		i = encodeVarintKeys(dAtA, i, uint64(m.Mode))
 		i--
-		dAtA[i] = 0x28
-	}
-	if len(m.Signer) > 0 {
-		i -= len(m.Signer)
-		copy(dAtA[i:], m.Signer)
-		i = encodeVarintKeys(dAtA, i, uint64(len(m.Signer)))
-		i--
-		dAtA[i] = 0x22
-	}
-	if len(m.Recipients) > 0 {
-		for iNdEx := len(m.Recipients) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.Recipients[iNdEx])
-			copy(dAtA[i:], m.Recipients[iNdEx])
-			i = encodeVarintKeys(dAtA, i, uint64(len(m.Recipients[iNdEx])))
-			i--
-			dAtA[i] = 0x1a
-		}
+		dAtA[i] = 0x68
 	}
 	if m.Armored {
 		i--
@@ -9249,19 +10452,75 @@ func (m *EncryptStreamInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			dAtA[i] = 0
 		}
 		i--
+		dAtA[i] = 0x50
+	}
+	if len(m.Out) > 0 {
+		i -= len(m.Out)
+		copy(dAtA[i:], m.Out)
+		i = encodeVarintKeys(dAtA, i, uint64(len(m.Out)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.In) > 0 {
+		i -= len(m.In)
+		copy(dAtA[i:], m.In)
+		i = encodeVarintKeys(dAtA, i, uint64(len(m.In)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *DecryptFileOutput) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *DecryptFileOutput) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *DecryptFileOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.Total != 0 {
+		i = encodeVarintKeys(dAtA, i, uint64(m.Total))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.Bytes != 0 {
+		i = encodeVarintKeys(dAtA, i, uint64(m.Bytes))
+		i--
 		dAtA[i] = 0x10
 	}
-	if len(m.Data) > 0 {
-		i -= len(m.Data)
-		copy(dAtA[i:], m.Data)
-		i = encodeVarintKeys(dAtA, i, uint64(len(m.Data)))
+	if m.Signer != nil {
+		{
+			size, err := m.Signer.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintKeys(dAtA, i, uint64(size))
+		}
 		i--
 		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *EncryptStreamOutput) Marshal() (dAtA []byte, err error) {
+func (m *DecryptInput) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -9271,12 +10530,12 @@ func (m *EncryptStreamOutput) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *EncryptStreamOutput) MarshalTo(dAtA []byte) (int, error) {
+func (m *DecryptInput) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *EncryptStreamOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *DecryptInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -9295,7 +10554,7 @@ func (m *EncryptStreamOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *DecryptStreamInput) Marshal() (dAtA []byte, err error) {
+func (m *DecryptOutput) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -9305,46 +10564,12 @@ func (m *DecryptStreamInput) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *DecryptStreamInput) MarshalTo(dAtA []byte) (int, error) {
+func (m *DecryptOutput) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *DecryptStreamInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		i -= len(m.XXX_unrecognized)
-		copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	if len(m.Data) > 0 {
-		i -= len(m.Data)
-		copy(dAtA[i:], m.Data)
-		i = encodeVarintKeys(dAtA, i, uint64(len(m.Data)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *DecryptStreamOutput) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *DecryptStreamOutput) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *DecryptStreamOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *DecryptOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -10407,20 +11632,20 @@ func (m *KeysRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		dAtA[i] = 0x52
 	}
 	if len(m.Types) > 0 {
-		dAtA14 := make([]byte, len(m.Types)*10)
-		var j13 int
+		dAtA16 := make([]byte, len(m.Types)*10)
+		var j15 int
 		for _, num := range m.Types {
 			for num >= 1<<7 {
-				dAtA14[j13] = uint8(uint64(num)&0x7f | 0x80)
+				dAtA16[j15] = uint8(uint64(num)&0x7f | 0x80)
 				num >>= 7
-				j13++
+				j15++
 			}
-			dAtA14[j13] = uint8(num)
-			j13++
+			dAtA16[j15] = uint8(num)
+			j15++
 		}
-		i -= j13
-		copy(dAtA[i:], dAtA14[:j13])
-		i = encodeVarintKeys(dAtA, i, uint64(j13))
+		i -= j15
+		copy(dAtA[i:], dAtA16[:j15])
+		i = encodeVarintKeys(dAtA, i, uint64(j15))
 		i--
 		dAtA[i] = 0x12
 	}
@@ -12445,6 +13670,58 @@ func (m *SignResponse) Size() (n int) {
 	return n
 }
 
+func (m *SignFileInput) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.In)
+	if l > 0 {
+		n += 1 + l + sovKeys(uint64(l))
+	}
+	l = len(m.Out)
+	if l > 0 {
+		n += 1 + l + sovKeys(uint64(l))
+	}
+	l = len(m.Signer)
+	if l > 0 {
+		n += 1 + l + sovKeys(uint64(l))
+	}
+	if m.Armored {
+		n += 2
+	}
+	if m.Detached {
+		n += 2
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *SignFileOutput) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.KID)
+	if l > 0 {
+		n += 1 + l + sovKeys(uint64(l))
+	}
+	if m.Bytes != 0 {
+		n += 1 + sovKeys(uint64(m.Bytes))
+	}
+	if m.Total != 0 {
+		n += 1 + sovKeys(uint64(m.Total))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
 func (m *VerifyRequest) Size() (n int) {
 	if m == nil {
 		return 0
@@ -12477,6 +13754,51 @@ func (m *VerifyResponse) Size() (n int) {
 	if m.Signer != nil {
 		l = m.Signer.Size()
 		n += 1 + l + sovKeys(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *VerifyFileInput) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.In)
+	if l > 0 {
+		n += 1 + l + sovKeys(uint64(l))
+	}
+	l = len(m.Out)
+	if l > 0 {
+		n += 1 + l + sovKeys(uint64(l))
+	}
+	if m.Armored {
+		n += 2
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *VerifyFileOutput) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Signer != nil {
+		l = m.Signer.Size()
+		n += 1 + l + sovKeys(uint64(l))
+	}
+	if m.Bytes != 0 {
+		n += 1 + sovKeys(uint64(m.Bytes))
+	}
+	if m.Total != 0 {
+		n += 1 + sovKeys(uint64(m.Total))
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -12675,13 +13997,21 @@ func (m *StatementRevokeResponse) Size() (n int) {
 	return n
 }
 
-func (m *SignStreamInput) Size() (n int) {
+func (m *SignInput) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
 	l = len(m.Data)
+	if l > 0 {
+		n += 1 + l + sovKeys(uint64(l))
+	}
+	l = len(m.In)
+	if l > 0 {
+		n += 1 + l + sovKeys(uint64(l))
+	}
+	l = len(m.Out)
 	if l > 0 {
 		n += 1 + l + sovKeys(uint64(l))
 	}
@@ -12701,7 +14031,7 @@ func (m *SignStreamInput) Size() (n int) {
 	return n
 }
 
-func (m *SignStreamOutput) Size() (n int) {
+func (m *SignOutput) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -12721,7 +14051,7 @@ func (m *SignStreamOutput) Size() (n int) {
 	return n
 }
 
-func (m *VerifyStreamInput) Size() (n int) {
+func (m *VerifyInput) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -12737,7 +14067,7 @@ func (m *VerifyStreamInput) Size() (n int) {
 	return n
 }
 
-func (m *VerifyStreamOutput) Size() (n int) {
+func (m *VerifyOutput) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -12805,6 +14135,108 @@ func (m *EncryptResponse) Size() (n int) {
 	return n
 }
 
+func (m *EncryptFileInput) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.In)
+	if l > 0 {
+		n += 1 + l + sovKeys(uint64(l))
+	}
+	l = len(m.Out)
+	if l > 0 {
+		n += 1 + l + sovKeys(uint64(l))
+	}
+	if m.Armored {
+		n += 2
+	}
+	if len(m.Recipients) > 0 {
+		for _, s := range m.Recipients {
+			l = len(s)
+			n += 1 + l + sovKeys(uint64(l))
+		}
+	}
+	l = len(m.Signer)
+	if l > 0 {
+		n += 1 + l + sovKeys(uint64(l))
+	}
+	if m.Mode != 0 {
+		n += 1 + sovKeys(uint64(m.Mode))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *EncryptFileOutput) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Bytes != 0 {
+		n += 1 + sovKeys(uint64(m.Bytes))
+	}
+	if m.Total != 0 {
+		n += 1 + sovKeys(uint64(m.Total))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *EncryptInput) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Data)
+	if l > 0 {
+		n += 1 + l + sovKeys(uint64(l))
+	}
+	if m.Armored {
+		n += 2
+	}
+	if len(m.Recipients) > 0 {
+		for _, s := range m.Recipients {
+			l = len(s)
+			n += 1 + l + sovKeys(uint64(l))
+		}
+	}
+	l = len(m.Signer)
+	if l > 0 {
+		n += 1 + l + sovKeys(uint64(l))
+	}
+	if m.Mode != 0 {
+		n += 1 + sovKeys(uint64(m.Mode))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *EncryptOutput) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Data)
+	if l > 0 {
+		n += 1 + l + sovKeys(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
 func (m *DecryptRequest) Size() (n int) {
 	if m == nil {
 		return 0
@@ -12847,28 +14279,22 @@ func (m *DecryptResponse) Size() (n int) {
 	return n
 }
 
-func (m *EncryptStreamInput) Size() (n int) {
+func (m *DecryptFileInput) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.Data)
+	l = len(m.In)
+	if l > 0 {
+		n += 1 + l + sovKeys(uint64(l))
+	}
+	l = len(m.Out)
 	if l > 0 {
 		n += 1 + l + sovKeys(uint64(l))
 	}
 	if m.Armored {
 		n += 2
-	}
-	if len(m.Recipients) > 0 {
-		for _, s := range m.Recipients {
-			l = len(s)
-			n += 1 + l + sovKeys(uint64(l))
-		}
-	}
-	l = len(m.Signer)
-	if l > 0 {
-		n += 1 + l + sovKeys(uint64(l))
 	}
 	if m.Mode != 0 {
 		n += 1 + sovKeys(uint64(m.Mode))
@@ -12879,7 +14305,29 @@ func (m *EncryptStreamInput) Size() (n int) {
 	return n
 }
 
-func (m *EncryptStreamOutput) Size() (n int) {
+func (m *DecryptFileOutput) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Signer != nil {
+		l = m.Signer.Size()
+		n += 1 + l + sovKeys(uint64(l))
+	}
+	if m.Bytes != 0 {
+		n += 1 + sovKeys(uint64(m.Bytes))
+	}
+	if m.Total != 0 {
+		n += 1 + sovKeys(uint64(m.Total))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *DecryptInput) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -12895,23 +14343,7 @@ func (m *EncryptStreamOutput) Size() (n int) {
 	return n
 }
 
-func (m *DecryptStreamInput) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Data)
-	if l > 0 {
-		n += 1 + l + sovKeys(uint64(l))
-	}
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
-func (m *DecryptStreamOutput) Size() (n int) {
+func (m *DecryptOutput) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -14526,7 +15958,7 @@ func (m *SignRequest) Unmarshal(dAtA []byte) error {
 				m.Data = []byte{}
 			}
 			iNdEx = postIndex
-		case 2:
+		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Signer", wireType)
 			}
@@ -14558,7 +15990,7 @@ func (m *SignRequest) Unmarshal(dAtA []byte) error {
 			}
 			m.Signer = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 3:
+		case 10:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Armored", wireType)
 			}
@@ -14578,7 +16010,7 @@ func (m *SignRequest) Unmarshal(dAtA []byte) error {
 				}
 			}
 			m.Armored = bool(v != 0)
-		case 4:
+		case 11:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Detached", wireType)
 			}
@@ -14743,6 +16175,320 @@ func (m *SignResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *SignFileInput) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowKeys
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SignFileInput: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SignFileInput: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field In", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthKeys
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.In = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Out", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthKeys
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Out = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Signer", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthKeys
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Signer = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 10:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Armored", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Armored = bool(v != 0)
+		case 11:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Detached", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Detached = bool(v != 0)
+		default:
+			iNdEx = preIndex
+			skippy, err := skipKeys(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SignFileOutput) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowKeys
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SignFileOutput: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SignFileOutput: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field KID", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthKeys
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.KID = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Bytes", wireType)
+			}
+			m.Bytes = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Bytes |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Total", wireType)
+			}
+			m.Total = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Total |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipKeys(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func (m *VerifyRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -14806,7 +16552,7 @@ func (m *VerifyRequest) Unmarshal(dAtA []byte) error {
 				m.Data = []byte{}
 			}
 			iNdEx = postIndex
-		case 3:
+		case 10:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Armored", wireType)
 			}
@@ -14950,6 +16696,272 @@ func (m *VerifyResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipKeys(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *VerifyFileInput) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowKeys
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: VerifyFileInput: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: VerifyFileInput: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field In", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthKeys
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.In = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Out", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthKeys
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Out = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 10:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Armored", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Armored = bool(v != 0)
+		default:
+			iNdEx = preIndex
+			skippy, err := skipKeys(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *VerifyFileOutput) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowKeys
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: VerifyFileOutput: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: VerifyFileOutput: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Signer", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthKeys
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Signer == nil {
+				m.Signer = &Key{}
+			}
+			if err := m.Signer.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Bytes", wireType)
+			}
+			m.Bytes = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Bytes |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Total", wireType)
+			}
+			m.Total = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Total |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipKeys(dAtA[iNdEx:])
@@ -16102,7 +18114,7 @@ func (m *StatementRevokeResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *SignStreamInput) Unmarshal(dAtA []byte) error {
+func (m *SignInput) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -16125,10 +18137,10 @@ func (m *SignStreamInput) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: SignStreamInput: wiretype end group for non-group")
+			return fmt.Errorf("proto: SignInput: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: SignStreamInput: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: SignInput: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -16167,6 +18179,70 @@ func (m *SignStreamInput) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field In", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthKeys
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.In = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Out", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthKeys
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Out = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Signer", wireType)
 			}
 			var stringLen uint64
@@ -16197,7 +18273,7 @@ func (m *SignStreamInput) Unmarshal(dAtA []byte) error {
 			}
 			m.Signer = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 3:
+		case 10:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Armored", wireType)
 			}
@@ -16217,7 +18293,7 @@ func (m *SignStreamInput) Unmarshal(dAtA []byte) error {
 				}
 			}
 			m.Armored = bool(v != 0)
-		case 4:
+		case 11:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Detached", wireType)
 			}
@@ -16262,7 +18338,7 @@ func (m *SignStreamInput) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *SignStreamOutput) Unmarshal(dAtA []byte) error {
+func (m *SignOutput) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -16285,10 +18361,10 @@ func (m *SignStreamOutput) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: SignStreamOutput: wiretype end group for non-group")
+			return fmt.Errorf("proto: SignOutput: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: SignStreamOutput: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: SignOutput: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -16382,7 +18458,7 @@ func (m *SignStreamOutput) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *VerifyStreamInput) Unmarshal(dAtA []byte) error {
+func (m *VerifyInput) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -16405,10 +18481,10 @@ func (m *VerifyStreamInput) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: VerifyStreamInput: wiretype end group for non-group")
+			return fmt.Errorf("proto: VerifyInput: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: VerifyStreamInput: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: VerifyInput: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -16470,7 +18546,7 @@ func (m *VerifyStreamInput) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *VerifyStreamOutput) Unmarshal(dAtA []byte) error {
+func (m *VerifyOutput) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -16493,10 +18569,10 @@ func (m *VerifyStreamOutput) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: VerifyStreamOutput: wiretype end group for non-group")
+			return fmt.Errorf("proto: VerifyOutput: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: VerifyStreamOutput: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: VerifyOutput: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -16621,6 +18697,598 @@ func (m *EncryptRequest) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: EncryptRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Data", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthKeys
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Data = append(m.Data[:0], dAtA[iNdEx:postIndex]...)
+			if m.Data == nil {
+				m.Data = []byte{}
+			}
+			iNdEx = postIndex
+		case 10:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Armored", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Armored = bool(v != 0)
+		case 11:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Recipients", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthKeys
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Recipients = append(m.Recipients, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		case 12:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Signer", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthKeys
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Signer = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 13:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Mode", wireType)
+			}
+			m.Mode = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Mode |= EncryptMode(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipKeys(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EncryptResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowKeys
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EncryptResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EncryptResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Data", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthKeys
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Data = append(m.Data[:0], dAtA[iNdEx:postIndex]...)
+			if m.Data == nil {
+				m.Data = []byte{}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipKeys(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EncryptFileInput) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowKeys
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EncryptFileInput: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EncryptFileInput: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field In", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthKeys
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.In = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Out", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthKeys
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Out = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 10:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Armored", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Armored = bool(v != 0)
+		case 11:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Recipients", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthKeys
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Recipients = append(m.Recipients, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		case 12:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Signer", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthKeys
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Signer = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 13:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Mode", wireType)
+			}
+			m.Mode = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Mode |= EncryptMode(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipKeys(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EncryptFileOutput) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowKeys
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EncryptFileOutput: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EncryptFileOutput: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Bytes", wireType)
+			}
+			m.Bytes = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Bytes |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Total", wireType)
+			}
+			m.Total = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Total |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipKeys(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EncryptInput) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowKeys
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EncryptInput: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EncryptInput: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -16785,7 +19453,7 @@ func (m *EncryptRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *EncryptResponse) Unmarshal(dAtA []byte) error {
+func (m *EncryptOutput) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -16808,10 +19476,10 @@ func (m *EncryptResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: EncryptResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: EncryptOutput: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: EncryptResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: EncryptOutput: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -16936,7 +19604,7 @@ func (m *DecryptRequest) Unmarshal(dAtA []byte) error {
 				m.Data = []byte{}
 			}
 			iNdEx = postIndex
-		case 2:
+		case 10:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Armored", wireType)
 			}
@@ -16956,7 +19624,7 @@ func (m *DecryptRequest) Unmarshal(dAtA []byte) error {
 				}
 			}
 			m.Armored = bool(v != 0)
-		case 5:
+		case 13:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Mode", wireType)
 			}
@@ -17124,7 +19792,7 @@ func (m *DecryptResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *EncryptStreamInput) Unmarshal(dAtA []byte) error {
+func (m *DecryptFileInput) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -17147,17 +19815,17 @@ func (m *EncryptStreamInput) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: EncryptStreamInput: wiretype end group for non-group")
+			return fmt.Errorf("proto: DecryptFileInput: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: EncryptStreamInput: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: DecryptFileInput: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Data", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field In", wireType)
 			}
-			var byteLen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowKeys
@@ -17167,27 +19835,57 @@ func (m *EncryptStreamInput) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthKeys
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthKeys
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Data = append(m.Data[:0], dAtA[iNdEx:postIndex]...)
-			if m.Data == nil {
-				m.Data = []byte{}
-			}
+			m.In = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Out", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthKeys
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Out = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 10:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Armored", wireType)
 			}
@@ -17207,71 +19905,7 @@ func (m *EncryptStreamInput) Unmarshal(dAtA []byte) error {
 				}
 			}
 			m.Armored = bool(v != 0)
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Recipients", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowKeys
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthKeys
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthKeys
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Recipients = append(m.Recipients, string(dAtA[iNdEx:postIndex]))
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Signer", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowKeys
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthKeys
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthKeys
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Signer = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 5:
+		case 13:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Mode", wireType)
 			}
@@ -17315,7 +19949,7 @@ func (m *EncryptStreamInput) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *EncryptStreamOutput) Unmarshal(dAtA []byte) error {
+func (m *DecryptFileOutput) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -17338,10 +19972,138 @@ func (m *EncryptStreamOutput) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: EncryptStreamOutput: wiretype end group for non-group")
+			return fmt.Errorf("proto: DecryptFileOutput: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: EncryptStreamOutput: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: DecryptFileOutput: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Signer", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthKeys
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Signer == nil {
+				m.Signer = &Key{}
+			}
+			if err := m.Signer.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Bytes", wireType)
+			}
+			m.Bytes = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Bytes |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Total", wireType)
+			}
+			m.Total = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowKeys
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Total |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipKeys(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthKeys
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *DecryptInput) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowKeys
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: DecryptInput: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: DecryptInput: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -17403,7 +20165,7 @@ func (m *EncryptStreamOutput) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *DecryptStreamInput) Unmarshal(dAtA []byte) error {
+func (m *DecryptOutput) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -17426,98 +20188,10 @@ func (m *DecryptStreamInput) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: DecryptStreamInput: wiretype end group for non-group")
+			return fmt.Errorf("proto: DecryptOutput: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: DecryptStreamInput: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Data", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowKeys
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthKeys
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex < 0 {
-				return ErrInvalidLengthKeys
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Data = append(m.Data[:0], dAtA[iNdEx:postIndex]...)
-			if m.Data == nil {
-				m.Data = []byte{}
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipKeys(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthKeys
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthKeys
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *DecryptStreamOutput) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowKeys
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: DecryptStreamOutput: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: DecryptStreamOutput: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: DecryptOutput: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:

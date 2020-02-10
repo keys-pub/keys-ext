@@ -1,74 +1,95 @@
 package service
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"io"
+	"os"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/saltpack"
 	"github.com/pkg/errors"
-	"google.golang.org/grpc"
 )
 
-// Encrypt (RPC) data.
-func (s *service) Encrypt(ctx context.Context, req *EncryptRequest) (*EncryptResponse, error) {
-	if len(req.Recipients) == 0 {
+type encrypt struct {
+	recipients []keys.ID
+	signer     keys.ID
+	mode       EncryptMode
+	sp         *saltpack.Saltpack
+}
+
+func (s *service) newEncrypt(ctx context.Context, recipients []string, signer string, armored bool, mode EncryptMode) (*encrypt, error) {
+	if len(recipients) == 0 {
 		return nil, errors.Errorf("no recipients specified")
 	}
 
-	recipients, err := s.parseIdentities(ctx, req.Recipients)
+	identities, err := s.parseIdentities(ctx, recipients)
 	if err != nil {
 		return nil, err
 	}
 
-	mode := req.Mode
 	if mode == DefaultEncryptMode {
 		mode = EncryptV2
 	}
 
-	var signer keys.ID
-	if req.Signer != "" {
-		kid, err := s.parseIdentity(ctx, req.Signer)
+	var kid keys.ID
+	if signer != "" {
+		s, err := s.parseIdentity(ctx, signer)
 		if err != nil {
 			return nil, err
 		}
-		signer = kid
+		kid = s
 	}
 
 	sp := saltpack.NewSaltpack(s.ks)
-	sp.SetArmored(req.Armored)
+	sp.SetArmored(armored)
+
+	return &encrypt{
+		recipients: identities,
+		signer:     kid,
+		mode:       mode,
+		sp:         sp,
+	}, nil
+}
+
+// Encrypt (RPC) data.
+func (s *service) Encrypt(ctx context.Context, req *EncryptRequest) (*EncryptResponse, error) {
+	enc, err := s.newEncrypt(ctx, req.Recipients, req.Signer, req.Armored, req.Mode)
+	if err != nil {
+		return nil, err
+	}
 
 	var out []byte
-	switch mode {
+	switch enc.mode {
 	case EncryptV2:
-		sbk, err := s.parseBoxKey(signer)
+		sbk, err := s.parseBoxKey(enc.signer)
 		if err != nil {
 			return nil, err
 		}
-		data, err := sp.Encrypt(req.Data, sbk, recipients...)
+		data, err := enc.sp.Encrypt(req.Data, sbk, enc.recipients...)
 		if err != nil {
 			return nil, err
 		}
 		out = data
 	case SigncryptV1:
-		if req.Signer == "" {
+		if enc.signer == "" {
 			return nil, errors.Errorf("no signer specified: signer is required for signcrypt mode")
 		}
-		sk, err := s.ks.SignKey(signer)
+		sk, err := s.ks.SignKey(enc.signer)
 		if err != nil {
 			return nil, err
 		}
 		if sk == nil {
-			return nil, keys.NewErrNotFound(signer.String())
+			return nil, keys.NewErrNotFound(enc.signer.String())
 		}
-		data, err := sp.Signcrypt(req.Data, sk, recipients...)
+		data, err := enc.sp.Signcrypt(req.Data, sk, enc.recipients...)
 		if err != nil {
 			return nil, err
 		}
 		out = data
 	default:
-		return nil, errors.Errorf("unsupported mode %s", req.Mode)
+		return nil, errors.Errorf("unsupported mode %s", enc.mode)
 	}
 
 	return &EncryptResponse{
@@ -76,57 +97,104 @@ func (s *service) Encrypt(ctx context.Context, req *EncryptRequest) (*EncryptRes
 	}, nil
 }
 
-// Decrypt (RPC) data.
-func (s *service) Decrypt(ctx context.Context, req *DecryptRequest) (*DecryptResponse, error) {
-	logger.Debugf("Decrypt")
-	mode := req.Mode
-	if mode == DefaultEncryptMode {
-		mode = EncryptV2
-	}
-
-	sp := saltpack.NewSaltpack(s.ks)
-	sp.SetArmored(req.Armored)
-
-	var decrypted []byte
-	var kid keys.ID
-	var err error
-	switch mode {
-	case EncryptV2:
-		decrypted, kid, err = sp.Decrypt(req.Data)
-	case SigncryptV1:
-		decrypted, kid, err = sp.SigncryptOpen(req.Data)
-	default:
-		return nil, errors.Errorf("unsupported mode %s", req.Mode)
-	}
-
+func (s *service) encryptWriteInOut(ctx context.Context, in string, out string, enc *encrypt) error {
+	outTmp := out + ".tmp"
+	defer os.Remove(outTmp)
+	outFile, err := os.Create(outTmp)
 	if err != nil {
-		if err.Error() == "failed to read header bytes" {
-			return nil, errors.Errorf("invalid data")
-		}
-		return nil, err
+		return err
+	}
+	writer := bufio.NewWriter(outFile)
+
+	stream, err := s.encryptWriter(ctx, writer, enc)
+	if err != nil {
+		return err
 	}
 
-	// If EncryptV2 check the kid.
-	if mode == EncryptV2 {
-		kid, err = s.checkSignerID(kid)
+	inFile, err := os.Open(in)
+	if err != nil {
+		return err
+	}
+	reader := bufio.NewReader(inFile)
+	if _, err := reader.WriteTo(stream); err != nil {
+		return err
+	}
+
+	stream.Close()
+	writer.Flush()
+
+	if err := os.Rename(outTmp, out); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *service) encryptWriter(ctx context.Context, w io.Writer, enc *encrypt) (io.WriteCloser, error) {
+	var stream io.WriteCloser
+
+	switch enc.mode {
+	case EncryptV2:
+		sbk, err := s.parseBoxKey(enc.signer)
 		if err != nil {
 			return nil, err
 		}
-	}
-
-	var signer *Key
-	if kid != "" {
-		s, err := s.loadKey(ctx, kid)
+		logger.Infof("Encrypt stream for %s from %s", enc.recipients, enc.signer)
+		s, err := enc.sp.NewEncryptStream(w, sbk, enc.recipients...)
 		if err != nil {
 			return nil, err
 		}
-		signer = s
+		stream = s
+	case SigncryptV1:
+		if enc.signer == "" {
+			return nil, errors.Errorf("no signer specified")
+		}
+		sk, err := s.ks.SignKey(enc.signer)
+		if err != nil {
+			return nil, err
+		}
+		if sk == nil {
+			return nil, keys.NewErrNotFound(enc.signer.String())
+		}
+		logger.Infof("Signcrypt stream for %s from %s", enc.recipients, enc.signer)
+		s, err := enc.sp.NewSigncryptStream(w, sk, enc.recipients...)
+		if err != nil {
+			return nil, err
+		}
+		stream = s
+	default:
+		return nil, errors.Errorf("unsupported mode %s", enc.mode)
+	}
+	return stream, nil
+}
+
+// EncryptFile (RPC) ...
+func (s *service) EncryptFile(srv Keys_EncryptFileServer) error {
+	req, err := srv.Recv()
+	if err != nil {
+		return err
+	}
+	if req.In == "" {
+		return errors.Errorf("in not specified")
+	}
+	if req.Out == "" {
+		return errors.Errorf("out not specified")
 	}
 
-	return &DecryptResponse{
-		Data:   decrypted,
-		Signer: signer,
-	}, nil
+	enc, err := s.newEncrypt(srv.Context(), req.Recipients, req.Signer, req.Armored, req.Mode)
+	if err != nil {
+		return err
+	}
+
+	if err := s.encryptWriteInOut(srv.Context(), req.In, req.Out, enc); err != nil {
+		return err
+	}
+
+	if err := srv.Send(&EncryptFileOutput{}); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // EncryptStream (RPC) ...
@@ -157,60 +225,18 @@ func (s *service) EncryptStream(srv Keys_EncryptStreamServer) error {
 			if stream != nil {
 				return errors.Errorf("stream already initialized")
 			}
-			recipients, err := s.parseIdentities(ctx, req.Recipients)
+
+			enc, err := s.newEncrypt(ctx, req.Recipients, req.Signer, req.Armored, req.Mode)
 			if err != nil {
 				return err
 			}
-			if len(req.Recipients) == 0 {
-				return errors.Errorf("no recipients specified")
-			}
-			sp := saltpack.NewSaltpack(s.ks)
-			sp.SetArmored(req.Armored)
 
-			mode := req.Mode
-			if mode == DefaultEncryptMode {
-				mode = EncryptV2
+			s, err := s.encryptWriter(ctx, &buf, enc)
+			if err != nil {
+				return err
 			}
+			stream = s
 
-			var signer keys.ID
-			if req.Signer != "" {
-				kid, err := s.parseIdentity(ctx, req.Signer)
-				if err != nil {
-					return err
-				}
-				signer = kid
-			}
-
-			switch mode {
-			case EncryptV2:
-				sbk, err := s.parseBoxKey(signer)
-				if err != nil {
-					return err
-				}
-				logger.Infof("Encrypt stream for %s from %s", req.Recipients, signer)
-				s, err := sp.NewEncryptStream(&buf, sbk, recipients...)
-				if err != nil {
-					return err
-				}
-				stream = s
-			case SigncryptV1:
-				if signer == "" {
-					return errors.Errorf("no signer specified")
-				}
-				sk, err := s.ks.SignKey(signer)
-				if err != nil {
-					return err
-				}
-				if sk == nil {
-					return keys.NewErrNotFound(signer.String())
-				}
-				logger.Infof("Signcrypt stream for %s from %s", req.Recipients, signer)
-				s, err := sp.NewSigncryptStream(&buf, sk, recipients...)
-				if err != nil {
-					return err
-				}
-				stream = s
-			}
 		} else {
 			// Make sure request only sends data after init
 			if len(req.Recipients) != 0 || req.Signer != "" {
@@ -229,7 +255,7 @@ func (s *service) EncryptStream(srv Keys_EncryptStreamServer) error {
 
 			if buf.Len() > 0 {
 				out := buf.Bytes()
-				if err := srv.Send(&EncryptStreamOutput{Data: out}); err != nil {
+				if err := srv.Send(&EncryptOutput{Data: out}); err != nil {
 					return err
 				}
 				buf.Reset()
@@ -241,118 +267,10 @@ func (s *service) EncryptStream(srv Keys_EncryptStreamServer) error {
 	stream.Close()
 	if buf.Len() > 0 {
 		out := buf.Bytes()
-		if err := srv.Send(&EncryptStreamOutput{Data: out}); err != nil {
+		if err := srv.Send(&EncryptOutput{Data: out}); err != nil {
 			return err
 		}
 		buf.Reset()
 	}
 	return nil
-}
-
-// DecryptStreamClient can send and recieve input and output.
-type DecryptStreamClient interface {
-	Send(*DecryptStreamInput) error
-	Recv() (*DecryptStreamOutput, error)
-	grpc.ClientStream
-}
-
-// NewDecryptStreamClient returns DecryptStreamClient based on options.
-func NewDecryptStreamClient(ctx context.Context, cl KeysClient, armored bool, mode EncryptMode) (DecryptStreamClient, error) {
-	switch mode {
-	case DefaultEncryptMode, EncryptV2:
-		if armored {
-			return cl.DecryptArmoredStream(ctx)
-		}
-		return cl.DecryptStream(ctx)
-	case SigncryptV1:
-		if armored {
-			return cl.SigncryptOpenArmoredStream(ctx)
-		}
-		return cl.SigncryptOpenStream(ctx)
-	default:
-		return nil, errors.Errorf("unsupported mode %s", mode)
-	}
-}
-
-// DecryptStream (RPC) ...
-func (s *service) DecryptStream(srv Keys_DecryptStreamServer) error {
-	return s.decryptStream(srv, false, EncryptV2)
-}
-
-// DecryptArmoredStream (RPC) ...
-func (s *service) DecryptArmoredStream(srv Keys_DecryptArmoredStreamServer) error {
-	return s.decryptStream(srv, true, EncryptV2)
-}
-
-// SigncryptOpenStream (RPC) ...
-func (s *service) SigncryptOpenStream(srv Keys_SigncryptOpenStreamServer) error {
-	return s.decryptStream(srv, false, SigncryptV1)
-}
-
-// SigncryptOpenArmoredStream (RPC) ...
-func (s *service) SigncryptOpenArmoredStream(srv Keys_SigncryptOpenArmoredStreamServer) error {
-	return s.decryptStream(srv, true, SigncryptV1)
-}
-
-type decryptStreamServer interface {
-	Send(*DecryptStreamOutput) error
-	Recv() (*DecryptStreamInput, error)
-	grpc.ServerStream
-}
-
-func (s *service) decryptStream(srv decryptStreamServer, armored bool, mode EncryptMode) error {
-	recvFn := func() ([]byte, error) {
-		req, recvErr := srv.Recv()
-		if recvErr != nil {
-			return nil, recvErr
-		}
-		return req.Data, nil
-	}
-
-	reader := newStreamReader(srv.Context(), recvFn)
-	sp := saltpack.NewSaltpack(s.ks)
-	sp.SetArmored(armored)
-	var streamReader io.Reader
-	var kid keys.ID
-	switch mode {
-	case EncryptV2:
-		r, s, err := sp.NewDecryptStream(reader)
-		if err != nil {
-			return err
-		}
-		streamReader, kid = r, s
-	case SigncryptV1:
-		r, s, err := sp.NewSigncryptOpenStream(reader)
-		if err != nil {
-			return err
-		}
-		streamReader, kid = r, s
-	}
-
-	// If EncryptV2 check the kid.
-	if mode == EncryptV2 {
-		s, err := s.checkSignerID(kid)
-		if err != nil {
-			return err
-		}
-		kid = s
-	}
-
-	var signer *Key
-	if kid != "" {
-		s, err := s.loadKey(srv.Context(), kid)
-		if err != nil {
-			return err
-		}
-		signer = s
-	}
-
-	sendFn := func(b []byte, signer *Key) error {
-		resp := DecryptStreamOutput{
-			Data:   b,
-			Signer: signer,
-		}
-		return srv.Send(&resp)
-	}
-	return s.readFromStream(srv.Context(), streamReader, signer, sendFn)
 }

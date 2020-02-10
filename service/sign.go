@@ -1,54 +1,86 @@
 package service
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"io"
+	"os"
 
+	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/saltpack"
 	"github.com/pkg/errors"
-	"google.golang.org/grpc"
 )
+
+type sign struct {
+	key      *keys.SignKey
+	armored  bool
+	detached bool
+	sp       *saltpack.Saltpack
+}
+
+func (s *service) newSign(signer string, armored bool, detached bool) (*sign, error) {
+	key, err := s.parseSigner(signer, true)
+	if err != nil {
+		return nil, err
+	}
+	sp := saltpack.NewSaltpack(s.ks)
+	sp.SetArmored(armored)
+	return &sign{
+		key:      key,
+		armored:  armored,
+		detached: detached,
+		sp:       sp,
+	}, nil
+}
 
 // Sign (RPC) ...
 func (s *service) Sign(ctx context.Context, req *SignRequest) (*SignResponse, error) {
-	key, err := s.parseSigner(req.Signer, true)
+	sign, err := s.newSign(req.Signer, req.Armored, req.Detached)
 	if err != nil {
 		return nil, err
 	}
 
-	sp := saltpack.NewSaltpack(s.ks)
-	sp.SetArmored(req.Armored)
-	signed, err := sp.Sign(req.Data, key)
+	signed, err := sign.sp.Sign(req.Data, sign.key)
 	if err != nil {
 		return nil, err
 	}
 
 	return &SignResponse{
-		KID:  key.ID().String(),
 		Data: signed,
+		KID:  sign.key.ID().String(),
 	}, nil
 }
 
-// Verify (RPC) ...
-func (s *service) Verify(ctx context.Context, req *VerifyRequest) (*VerifyResponse, error) {
-	sp := saltpack.NewSaltpack(s.ks)
-	sp.SetArmored(req.Armored)
-	verified, kid, err := sp.Verify(req.Data)
+// SignFile (RPC) ...
+func (s *service) SignFile(srv Keys_SignFileServer) error {
+	req, err := srv.Recv()
 	if err != nil {
-		return nil, err
+		return err
+	}
+	if req.In == "" {
+		return errors.Errorf("in not specified")
+	}
+	if req.Out == "" {
+		return errors.Errorf("out not specified")
 	}
 
-	var signer *Key
-	if kid != "" {
-		s, err := s.loadKey(ctx, kid)
-		if err != nil {
-			return nil, err
-		}
-		signer = s
+	sign, err := s.newSign(req.Signer, req.Armored, req.Detached)
+	if err != nil {
+		return err
 	}
 
-	return &VerifyResponse{Data: verified, Signer: signer}, nil
+	if err := s.signWriteInOut(srv.Context(), req.In, req.Out, sign); err != nil {
+		return err
+	}
+
+	if err := srv.Send(&SignFileOutput{
+		KID: sign.key.ID().String(),
+	}); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // SignStream (RPC) ...
@@ -59,7 +91,7 @@ func (s *service) SignStream(srv Keys_SignStreamServer) error {
 	var buf bytes.Buffer
 
 	ctx := srv.Context()
-	var kid string
+	var kid keys.ID
 	for {
 		select {
 		case <-ctx.Done():
@@ -80,19 +112,17 @@ func (s *service) SignStream(srv Keys_SignStreamServer) error {
 			if stream != nil {
 				return errors.Errorf("stream already initialized")
 			}
-			key, err := s.parseSigner(req.Signer, true)
+			sign, err := s.newSign(req.Signer, req.Armored, req.Detached)
 			if err != nil {
 				return err
 			}
-			kid = key.ID().String()
-
-			sp := saltpack.NewSaltpack(s.ks)
-			sp.SetArmored(req.Armored)
-			s, streamErr := sp.NewSignStream(&buf, key, req.Detached)
-			if streamErr != nil {
-				return streamErr
+			s, err := s.signWriter(ctx, &buf, sign)
+			if err != nil {
+				return err
 			}
 			stream = s
+			kid = sign.key.ID()
+
 		} else {
 			// Make sure request only sends data after init
 			if req.Signer != "" || req.Armored || req.Detached {
@@ -111,9 +141,9 @@ func (s *service) SignStream(srv Keys_SignStreamServer) error {
 
 			if buf.Len() > 0 {
 				out := buf.Bytes()
-				if err := srv.Send(&SignStreamOutput{
+				if err := srv.Send(&SignOutput{
 					Data: out,
-					KID:  kid,
+					KID:  kid.String(),
 				}); err != nil {
 					return err
 				}
@@ -125,9 +155,9 @@ func (s *service) SignStream(srv Keys_SignStreamServer) error {
 	stream.Close()
 	if buf.Len() > 0 {
 		out := buf.Bytes()
-		if err := srv.Send(&SignStreamOutput{
+		if err := srv.Send(&SignOutput{
 			Data: out,
-			KID:  kid,
+			KID:  kid.String(),
 		}); err != nil {
 			return err
 		}
@@ -136,120 +166,38 @@ func (s *service) SignStream(srv Keys_SignStreamServer) error {
 	return nil
 }
 
-// VerifyStream (RPC) ...
-func (s *service) VerifyStream(srv Keys_VerifyStreamServer) error {
-	recvFn := func() ([]byte, error) {
-		req, recvErr := srv.Recv()
-		if recvErr != nil {
-			return nil, recvErr
-		}
-		return req.Data, nil
-	}
-
-	reader := newStreamReader(srv.Context(), recvFn)
-	sp := saltpack.NewSaltpack(s.ks)
-	streamReader, kid, streamErr := sp.NewVerifyStream(reader)
-	if streamErr != nil {
-		return streamErr
-	}
-	var signer *Key
-	if kid != "" {
-		s, err := s.loadKey(srv.Context(), kid)
-		if err != nil {
-			return err
-		}
-		signer = s
-	}
-	sendFn := func(b []byte, signer *Key) error {
-		resp := VerifyStreamOutput{
-			Data:   b,
-			Signer: signer,
-		}
-		return srv.Send(&resp)
-	}
-	return s.readFromStream(srv.Context(), streamReader, signer, sendFn)
+func (s *service) signWriter(ctx context.Context, w io.Writer, sign *sign) (io.WriteCloser, error) {
+	return sign.sp.NewSignStream(w, sign.key, sign.detached)
 }
 
-// VerifyArmoredStream (RPC) ...
-func (s *service) VerifyArmoredStream(srv Keys_VerifyArmoredStreamServer) error {
-	recvFn := func() ([]byte, error) {
-		req, recvErr := srv.Recv()
-		if recvErr != nil {
-			return nil, recvErr
-		}
-		return req.Data, nil
+func (s *service) signWriteInOut(ctx context.Context, in string, out string, sign *sign) error {
+	outTmp := out + ".tmp"
+	defer os.Remove(outTmp)
+	outFile, err := os.Create(outTmp)
+	if err != nil {
+		return err
+	}
+	writer := bufio.NewWriter(outFile)
+
+	stream, err := s.signWriter(ctx, writer, sign)
+	if err != nil {
+		return err
 	}
 
-	reader := newStreamReader(srv.Context(), recvFn)
-	sp := saltpack.NewSaltpack(s.ks)
-	sp.SetArmored(true)
-	streamReader, kid, streamErr := sp.NewVerifyStream(reader)
-	if streamErr != nil {
-		return streamErr
+	inFile, err := os.Open(in)
+	if err != nil {
+		return err
+	}
+	reader := bufio.NewReader(inFile)
+	if _, err := reader.WriteTo(stream); err != nil {
+		return err
 	}
 
-	var signer *Key
-	if kid != "" {
-		s, err := s.loadKey(srv.Context(), kid)
-		if err != nil {
-			return err
-		}
-		signer = s
-	}
-	sendFn := func(b []byte, signer *Key) error {
-		resp := VerifyStreamOutput{
-			Data:   b,
-			Signer: signer,
-		}
-		return srv.Send(&resp)
-	}
-	return s.readFromStream(srv.Context(), streamReader, signer, sendFn)
-}
+	stream.Close()
+	writer.Flush()
 
-// VerifyStreamClient ...
-type VerifyStreamClient interface {
-	Send(*VerifyStreamInput) error
-	Recv() (*VerifyStreamOutput, error)
-	grpc.ClientStream
-}
-
-// NewVerifyStreamClient ...
-func NewVerifyStreamClient(ctx context.Context, cl KeysClient, armored bool) (VerifyStreamClient, error) {
-	if armored {
-		return cl.VerifyArmoredStream(ctx)
-	}
-	return cl.VerifyStream(ctx)
-}
-
-func (s *service) readFromStream(ctx context.Context, streamReader io.Reader, signer *Key, sendFn func(b []byte, signer *Key) error) error {
-	buf := make([]byte, 1024*1024)
-	sendSigner := signer
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
-		}
-
-		n, err := streamReader.Read(buf)
-		if n != 0 {
-			if err := sendFn(buf[:n], sendSigner); err != nil {
-				return err
-			}
-			// Only send signer on first send
-			sendSigner = nil
-		}
-		if err != nil {
-			if err == io.EOF {
-				// Send empty bytes denotes EOF
-				if err := sendFn([]byte{}, nil); err != nil {
-					return err
-				}
-				break
-			}
-			return err
-		}
-
+	if err := os.Rename(outTmp, out); err != nil {
+		return err
 	}
 
 	return nil

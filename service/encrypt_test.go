@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/keys-pub/keys"
@@ -199,7 +202,7 @@ func testEncryptStream(t *testing.T, service *service, plaintext []byte, signer 
 	chunkSize := 1024 * 1024
 	go func() {
 		done := false
-		err := streamClient.Send(&EncryptStreamInput{
+		err := streamClient.Send(&EncryptInput{
 			Recipients: recipients,
 			Signer:     signer,
 			Armored:    armored,
@@ -213,7 +216,7 @@ func testEncryptStream(t *testing.T, service *service, plaintext []byte, signer 
 				done = true
 			}
 			logger.Debugf("(Test) Send chunk %d", len(plaintext[s:e]))
-			err := streamClient.Send(&EncryptStreamInput{
+			err := streamClient.Send(&EncryptInput{
 				Data: plaintext[s:e],
 			})
 			require.NoError(t, err)
@@ -287,7 +290,7 @@ func testDecryptStream(t *testing.T, service *service, b []byte, mode EncryptMod
 				e = len(b)
 				done = true
 			}
-			err := streamClient.Send(&DecryptStreamInput{
+			err := streamClient.Send(&DecryptInput{
 				Data: b[s:e],
 			})
 			require.NoError(t, err)
@@ -357,4 +360,54 @@ func TestEncryptDecryptByUser(t *testing.T) {
 
 	testEncryptDecryptStream(t, aliceService, bobService, bytes.Repeat([]byte{0x31}, (1024*1024)+5), "alice@github", []string{"bob@github"}, EncryptV2, true, alice.ID())
 	testEncryptDecryptStream(t, aliceService, bobService, bytes.Repeat([]byte{0x31}, (1024*1024)+5), "alice@github", []string{"bob@github"}, SigncryptV1, true, alice.ID())
+}
+
+func TestEncryptDecryptFile(t *testing.T) {
+	env := newTestEnv(t)
+
+	aliceService, aliceCloseFn := newTestService(t, env)
+	defer aliceCloseFn()
+	testAuthSetup(t, aliceService)
+	testImportKey(t, aliceService, alice)
+
+	bobService, bobCloseFn := newTestService(t, env)
+	defer bobCloseFn()
+	testAuthSetup(t, bobService)
+	testImportKey(t, bobService, bob)
+
+	testImportID(t, bobService, alice.ID())
+
+	b := []byte("test message")
+	inPath := filepath.Join(os.TempDir(), "test.txt")
+	outPath := inPath + ".enc"
+	decryptedPath := inPath + ".dec"
+
+	defer os.Remove(inPath)
+	defer os.Remove(outPath)
+	defer os.Remove(decryptedPath)
+
+	writeErr := ioutil.WriteFile(inPath, b, 0644)
+	require.NoError(t, writeErr)
+
+	aliceClient, aliceClientCloseFn := newTestRPCClient(t, aliceService)
+	defer aliceClientCloseFn()
+
+	err := encryptFile(aliceClient, []string{bob.ID().String()}, alice.ID().String(), true, EncryptV2, inPath, outPath)
+	require.NoError(t, err)
+
+	// encrypted, err := ioutil.ReadFile(outPath)
+	// require.NoError(t, err)
+	// t.Logf("encrypted: %s", string(encrypted))
+
+	bobClient, bobClientCloseFn := newTestRPCClient(t, bobService)
+	defer bobClientCloseFn()
+
+	signer, err := decryptFile(bobClient, true, EncryptV2, outPath, decryptedPath)
+	require.NoError(t, err)
+	require.NotNil(t, signer)
+	require.Equal(t, alice.ID().String(), signer.ID)
+
+	bout, err := ioutil.ReadFile(decryptedPath)
+	require.NoError(t, err)
+	require.Equal(t, b, bout)
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"os"
+	"path/filepath"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -21,7 +22,7 @@ func modeFromString(s string) (EncryptMode, error) {
 	}
 }
 
-func sealCommands(client *Client) []cli.Command {
+func encryptCommands(client *Client) []cli.Command {
 	return []cli.Command{
 		cli.Command{
 			Name:      "encrypt",
@@ -36,6 +37,14 @@ func sealCommands(client *Client) []cli.Command {
 				cli.StringFlag{Name: "mode, m", Usage: "encryption mode: encrypt (default) or signcrypt"},
 			},
 			Action: func(c *cli.Context) error {
+				if c.String("in") != "" && c.String("out") != "" {
+					return encryptFileForCLI(c, client)
+				}
+
+				mode, err := modeFromString(c.String("mode"))
+				if err != nil {
+					return err
+				}
 				reader, err := readerFromArgs(c.String("in"))
 				if err != nil {
 					return err
@@ -45,16 +54,12 @@ func sealCommands(client *Client) []cli.Command {
 					return err
 				}
 
-				client, err := client.ProtoClient().EncryptStream(context.TODO())
-				if err != nil {
-					return err
-				}
-				mode, err := modeFromString(c.String("mode"))
+				encryptClient, err := client.ProtoClient().EncryptStream(context.TODO())
 				if err != nil {
 					return err
 				}
 
-				if err := client.Send(&EncryptStreamInput{
+				if err := encryptClient.Send(&EncryptInput{
 					Recipients: c.StringSlice("recipients"),
 					Signer:     c.String("signer"),
 					Armored:    c.Bool("armor"),
@@ -67,11 +72,11 @@ func sealCommands(client *Client) []cli.Command {
 				go func() {
 					_, inErr := readFrom(reader, 1024*1024, func(b []byte) error {
 						if len(b) > 0 {
-							if err := client.Send(&EncryptStreamInput{Data: b}); err != nil {
+							if err := encryptClient.Send(&EncryptInput{Data: b}); err != nil {
 								return err
 							}
 						} else {
-							if err := client.CloseSend(); err != nil {
+							if err := encryptClient.CloseSend(); err != nil {
 								return err
 							}
 						}
@@ -83,7 +88,7 @@ func sealCommands(client *Client) []cli.Command {
 				}()
 
 				for {
-					resp, recvErr := client.Recv()
+					resp, recvErr := encryptClient.Recv()
 					if recvErr != nil {
 						if recvErr == io.EOF {
 							// Return readErr, if set from readStdin above
@@ -110,6 +115,20 @@ func sealCommands(client *Client) []cli.Command {
 			},
 			ArgsUsage: "<stdin or -in>",
 			Action: func(c *cli.Context) error {
+				if c.String("in") != "" && c.String("out") != "" {
+					signer, err := decryptFileForCLI(c, client)
+					if err != nil {
+						return err
+					}
+					if signer != nil {
+						fmtKey(os.Stdout, signer, "verified ")
+					}
+					return nil
+				}
+				mode, err := modeFromString(c.String("mode"))
+				if err != nil {
+					return err
+				}
 				reader, err := readerFromArgs(c.String("in"))
 				if err != nil {
 					return err
@@ -118,12 +137,8 @@ func sealCommands(client *Client) []cli.Command {
 				if err != nil {
 					return err
 				}
-				mode, err := modeFromString(c.String("mode"))
-				if err != nil {
-					return err
-				}
 
-				client, err := NewDecryptStreamClient(context.TODO(), client.ProtoClient(), c.Bool("armor"), mode)
+				decryptClient, err := NewDecryptStreamClient(context.TODO(), client.ProtoClient(), c.Bool("armor"), mode)
 				if err != nil {
 					return err
 				}
@@ -131,11 +146,11 @@ func sealCommands(client *Client) []cli.Command {
 				go func() {
 					_, inErr := readFrom(reader, 1024*1024, func(b []byte) error {
 						if len(b) > 0 {
-							if err := client.Send(&DecryptStreamInput{Data: b}); err != nil {
+							if err := decryptClient.Send(&DecryptInput{Data: b}); err != nil {
 								return err
 							}
 						} else {
-							if err := client.CloseSend(); err != nil {
+							if err := decryptClient.CloseSend(); err != nil {
 								return err
 							}
 						}
@@ -150,7 +165,7 @@ func sealCommands(client *Client) []cli.Command {
 				wgOpen.Add(1)
 				go func() {
 					for {
-						resp, recvErr := client.Recv()
+						resp, recvErr := decryptClient.Recv()
 						if recvErr != nil {
 							if recvErr == io.EOF {
 								break
@@ -178,4 +193,98 @@ func sealCommands(client *Client) []cli.Command {
 			},
 		},
 	}
+}
+
+func encryptFileForCLI(c *cli.Context, client *Client) error {
+	mode, err := modeFromString(c.String("mode"))
+	if err != nil {
+		return err
+	}
+	return encryptFile(client, c.StringSlice("recipients"), c.String("signer"), c.Bool("armored"), mode, c.String("in"), c.String("out"))
+}
+
+func encryptFile(client *Client, recipients []string, signer string, armored bool, mode EncryptMode, in string, out string) error {
+	in, err := filepath.Abs(in)
+	if err != nil {
+		return err
+	}
+	out, err = filepath.Abs(out)
+	if err != nil {
+		return err
+	}
+
+	encryptClient, err := client.ProtoClient().EncryptFile(context.TODO())
+	if err != nil {
+		return err
+	}
+
+	if err := encryptClient.Send(&EncryptFileInput{
+		Recipients: recipients,
+		Signer:     signer,
+		Armored:    armored,
+		Mode:       mode,
+		In:         in,
+		Out:        out,
+	}); err != nil {
+		return err
+	}
+
+	_, recvErr := encryptClient.Recv()
+	if recvErr != nil {
+		// if recvErr == io.EOF {
+		// 	break
+		// }
+		return recvErr
+	}
+	// if err := encryptClient.CloseSend(); err != nil {
+	// 	return err
+	// }
+
+	return nil
+}
+
+func decryptFileForCLI(c *cli.Context, client *Client) (*Key, error) {
+	mode, err := modeFromString(c.String("mode"))
+	if err != nil {
+		return nil, err
+	}
+	return decryptFile(client, c.Bool("armored"), mode, c.String("in"), c.String("out"))
+}
+
+func decryptFile(client *Client, armored bool, mode EncryptMode, in string, out string) (*Key, error) {
+	in, err := filepath.Abs(in)
+	if err != nil {
+		return nil, err
+	}
+	out, err = filepath.Abs(out)
+	if err != nil {
+		return nil, err
+	}
+
+	decryptClient, err := client.ProtoClient().DecryptFile(context.TODO())
+	if err != nil {
+		return nil, err
+	}
+
+	if err := decryptClient.Send(&DecryptFileInput{
+		Armored: armored,
+		Mode:    mode,
+		In:      in,
+		Out:     out,
+	}); err != nil {
+		return nil, err
+	}
+
+	resp, recvErr := decryptClient.Recv()
+	if recvErr != nil {
+		// if recvErr == io.EOF {
+		// 	break
+		// }
+		return nil, recvErr
+	}
+	// if err := decryptClient.CloseSend(); err != nil {
+	// 	return err
+	// }
+
+	return resp.Signer, nil
 }

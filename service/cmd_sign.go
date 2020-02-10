@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"os"
+	"path/filepath"
 	strings "strings"
 	"sync"
 
@@ -47,6 +48,10 @@ func signCommands(client *Client) []cli.Command {
 				cli.StringFlag{Name: "out, o", Usage: "file to write or stdout if not specified"},
 			},
 			Action: func(c *cli.Context) error {
+				if c.String("in") != "" && c.String("out") != "" {
+					return signFileForCLI(c, client)
+				}
+
 				reader, readerErr := readerFromArgs(c.String("in"))
 				if readerErr != nil {
 					return readerErr
@@ -60,7 +65,7 @@ func signCommands(client *Client) []cli.Command {
 				if streamErr != nil {
 					return streamErr
 				}
-				if err := client.Send(&SignStreamInput{
+				if err := client.Send(&SignInput{
 					Signer:   c.String("signer"),
 					Armored:  c.Bool("armor"),
 					Detached: c.Bool("detached"),
@@ -72,7 +77,7 @@ func signCommands(client *Client) []cli.Command {
 				go func() {
 					_, inErr := readFrom(reader, 1024*1024, func(b []byte) error {
 						if len(b) > 0 {
-							if err := client.Send(&SignStreamInput{
+							if err := client.Send(&SignInput{
 								Data: b,
 							}); err != nil {
 								return err
@@ -117,6 +122,22 @@ func signCommands(client *Client) []cli.Command {
 			},
 			Action: func(c *cli.Context) error {
 				signer := c.String("signer")
+
+				if c.String("in") != "" && c.String("out") != "" {
+					verified, err := verifyFileForCLI(c, client)
+					if err != nil {
+						return err
+					}
+					if signer != "" {
+						if err := checkSigner(verified, signer); err != nil {
+							return err
+						}
+					} else if verified != nil {
+						fmtKey(os.Stdout, verified, "verified ")
+					}
+					return nil
+				}
+
 				reader, readerErr := readerFromArgs(c.String("in"))
 				if readerErr != nil {
 					return readerErr
@@ -134,7 +155,7 @@ func signCommands(client *Client) []cli.Command {
 				go func() {
 					_, inErr := readFrom(reader, 1024*1024, func(b []byte) error {
 						if len(b) > 0 {
-							if err := client.Send(&VerifyStreamInput{Data: b}); err != nil {
+							if err := client.Send(&VerifyInput{Data: b}); err != nil {
 								return err
 							}
 						} else {
@@ -188,4 +209,88 @@ func signCommands(client *Client) []cli.Command {
 			},
 		},
 	}
+}
+
+func signFileForCLI(c *cli.Context, client *Client) error {
+	return signFile(client, c.String("signer"), c.Bool("armored"), c.Bool("detached"), c.String("in"), c.String("out"))
+}
+
+func signFile(client *Client, signer string, armored bool, detached bool, in string, out string) error {
+	in, err := filepath.Abs(in)
+	if err != nil {
+		return err
+	}
+	out, err = filepath.Abs(out)
+	if err != nil {
+		return err
+	}
+
+	signClient, err := client.ProtoClient().SignFile(context.TODO())
+	if err != nil {
+		return err
+	}
+
+	if err := signClient.Send(&SignFileInput{
+		Signer:   signer,
+		Armored:  armored,
+		Detached: detached,
+		In:       in,
+		Out:      out,
+	}); err != nil {
+		return err
+	}
+
+	_, recvErr := signClient.Recv()
+	if recvErr != nil {
+		// if recvErr == io.EOF {
+		// 	break
+		// }
+		return recvErr
+	}
+	// if err := encryptClient.CloseSend(); err != nil {
+	// 	return err
+	// }
+
+	return nil
+}
+
+func verifyFileForCLI(c *cli.Context, client *Client) (*Key, error) {
+	return verifyFile(client, c.Bool("armored"), c.String("in"), c.String("out"))
+}
+
+func verifyFile(client *Client, armored bool, in string, out string) (*Key, error) {
+	in, err := filepath.Abs(in)
+	if err != nil {
+		return nil, err
+	}
+	out, err = filepath.Abs(out)
+	if err != nil {
+		return nil, err
+	}
+
+	verifyClient, err := client.ProtoClient().VerifyFile(context.TODO())
+	if err != nil {
+		return nil, err
+	}
+
+	if err := verifyClient.Send(&VerifyFileInput{
+		Armored: armored,
+		In:      in,
+		Out:     out,
+	}); err != nil {
+		return nil, err
+	}
+
+	resp, recvErr := verifyClient.Recv()
+	if recvErr != nil {
+		// if recvErr == io.EOF {
+		// 	break
+		// }
+		return nil, recvErr
+	}
+	// if err := encryptClient.CloseSend(); err != nil {
+	// 	return err
+	// }
+
+	return resp.Signer, nil
 }

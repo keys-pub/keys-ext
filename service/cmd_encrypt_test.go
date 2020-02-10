@@ -26,6 +26,8 @@ func TestEncryptDecryptCommand(t *testing.T) {
 
 	inPath := filepath.Join(os.TempDir(), "test.txt")
 	outPath := inPath + ".enc"
+	defer os.Remove(inPath)
+	defer os.Remove(outPath)
 
 	var clientErr error
 	errorFn := func(err error) {
@@ -34,12 +36,11 @@ func TestEncryptDecryptCommand(t *testing.T) {
 
 	argsEncrypt := append(os.Args[0:1], "encrypt", "-r", alice.ID().String(), "-r", bob.ID().String(), "-in", inPath, "-out", outPath)
 	runClient(Build{Version: "1.2.3"}, argsEncrypt, client, errorFn)
-	require.EqualError(t, clientErr, fmt.Sprintf("open %s: no such file or directory", inPath))
+	require.EqualError(t, clientErr, fmt.Sprintf("rpc error: code = Unknown desc = open %s: no such file or directory", inPath))
 	clientErr = nil
 
 	writeErr := ioutil.WriteFile(inPath, []byte("test message"), 0644)
 	require.NoError(t, writeErr)
-	defer os.Remove(inPath)
 
 	// Default
 	runClient(Build{Version: "1.2.3"}, argsEncrypt, client, errorFn)
