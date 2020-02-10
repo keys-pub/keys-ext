@@ -156,7 +156,7 @@ message StatementResponse {
 
 message StatementCreateRequest {
   bytes data = 1;
-  string signer = 2; 
+  string kid = 2 [(gogoproto.customname) = "KID"];  
 
   // Local, if true, won't save to the current key server.
   bool local = 5;
@@ -168,7 +168,7 @@ message StatementCreateResponse {
 message StatementRevokeRequest {
   // Seq to revoke.
   int32 seq = 1;
-  string signer = 2; 
+  string kid = 2 [(gogoproto.customname) = "KID"];  
 
   // Local, if true, won't save to the current key server.
   bool local = 5;

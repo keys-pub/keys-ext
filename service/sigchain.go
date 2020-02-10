@@ -114,7 +114,7 @@ func (s *service) Statement(ctx context.Context, req *StatementRequest) (*Statem
 
 // StatementCreate (RPC) ...
 func (s *service) StatementCreate(ctx context.Context, req *StatementCreateRequest) (*StatementCreateResponse, error) {
-	key, err := s.parseSigner(req.Signer, true)
+	key, err := s.parseSignKey(req.KID, true)
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +150,7 @@ func (s *service) StatementCreate(ctx context.Context, req *StatementCreateReque
 
 // StatementRevoke (RPC) ...
 func (s *service) StatementRevoke(ctx context.Context, req *StatementRevokeRequest) (*StatementRevokeResponse, error) {
-	key, err := s.parseSigner(req.Signer, true)
+	key, err := s.parseSignKey(req.KID, true)
 	if err != nil {
 		return nil, err
 	}
