@@ -18,15 +18,15 @@ kid=`keys generate`
 echo "gen $kid"
 
 echo "sign $kid"
-keys sign -kid "$kid" -in "$tmpfile" -out "$sigfile"
+keys sign -s "$kid" -in "$tmpfile" -out "$sigfile"
 echo "verify"
-keys verify -kid $kid -in "$sigfile" -out "$tmpfile2"
+keys verify -s $kid -in "$sigfile" -out "$tmpfile2"
 diff "$tmpfile" "$tmpfile2"
 
 echo "sign $kid"
-cat "$tmpfile2" | keys sign -kid "$kid" > "$sigfile2"
+cat "$tmpfile2" | keys sign -s "$kid" > "$sigfile2"
 echo "verify"
-cat "$sigfile2" | keys verify -kid $kid > "$tmpfile3"
+cat "$sigfile2" | keys verify -s $kid > "$tmpfile3"
 diff "$tmpfile" "$tmpfile3"
 
 echo "remove $kid"
