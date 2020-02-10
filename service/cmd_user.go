@@ -44,7 +44,7 @@ func userCommands(client *Client) []cli.Command {
 						w := new(tabwriter.Writer)
 						w.Init(out, 0, 8, 1, ' ', 0)
 						for _, res := range searchResp.Results {
-							fmtUserSearchResult(w, res)
+							fmt.Fprintf(w, "%s\t%s\n", fmtUser(res.User), res.KID)
 						}
 						w.Flush()
 						fmt.Printf(out.String())

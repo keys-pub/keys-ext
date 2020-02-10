@@ -22,7 +22,7 @@ func TestKey(t *testing.T) {
 
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
-	testUserSetup(t, env, service, alice, "alice")
+	testUserSetupGithub(t, env, service, alice, "alice")
 
 	// Alice
 	resp, err := service.Key(ctx, &KeyRequest{
@@ -54,16 +54,16 @@ func TestFmtKey(t *testing.T) {
 	ak, err := service.keyToRPC(ctx, alice)
 	require.NoError(t, err)
 	var buf bytes.Buffer
-	fmtKey(&buf, ak)
-	require.Equal(t, "kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077\t\n", buf.String())
+	fmtKey(&buf, ak, "")
+	require.Equal(t, "kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077\n", buf.String())
 
-	testUserSetup(t, env, service, alice, "alice")
+	testUserSetupGithub(t, env, service, alice, "alice")
 
 	ak2, err := service.keyToRPC(ctx, alice)
 	require.NoError(t, err)
 	var buf2 bytes.Buffer
-	fmtKey(&buf2, ak2)
-	require.Equal(t, "kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077\t\x1b[32malice@github\x1b[0m\n", buf2.String())
+	fmtKey(&buf2, ak2, "verified ")
+	require.Equal(t, "verified kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077 \x1b[32malice@github\x1b[0m\n", buf2.String())
 }
 
 func TestKeyGenerate(t *testing.T) {

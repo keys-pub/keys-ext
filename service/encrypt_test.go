@@ -6,6 +6,7 @@ import (
 	"io"
 	"testing"
 
+	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/saltpack"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/status"
@@ -28,28 +29,22 @@ func TestEncryptDecrypt(t *testing.T) {
 	testAuthSetup(t, bobService)
 	testImportKey(t, bobService, bob)
 
-	// Save alice's sign public key to bob's keystore, check for box key conversion.
-	err := bobService.ks.SaveSignPublicKey(alice.PublicKey())
-	require.NoError(t, err)
-	sk, err := bobService.ks.FindEdX25519PublicKey(alice.X25519Key().PublicKey())
-	require.NoError(t, err)
-	require.NotNil(t, sk)
-	require.Equal(t, alice.ID(), sk.ID())
+	testImportID(t, bobService, alice.ID())
 
-	testEncryptDecrypt(t, aliceService, bobService, EncryptV2, true)
-	testEncryptDecrypt(t, aliceService, bobService, EncryptV2, false)
-	testEncryptDecrypt(t, aliceService, bobService, SigncryptV1, true)
-	testEncryptDecrypt(t, aliceService, bobService, SigncryptV1, false)
+	testEncryptDecrypt(t, aliceService, bobService, alice.ID().String(), bob.ID().String(), EncryptV2, true, alice.ID())
+	testEncryptDecrypt(t, aliceService, bobService, alice.ID().String(), bob.ID().String(), EncryptV2, false, alice.ID())
+	testEncryptDecrypt(t, aliceService, bobService, alice.ID().String(), bob.ID().String(), SigncryptV1, true, alice.ID())
+	testEncryptDecrypt(t, aliceService, bobService, alice.ID().String(), bob.ID().String(), SigncryptV1, false, alice.ID())
 }
 
-func testEncryptDecrypt(t *testing.T, aliceService *service, bobService *service, mode EncryptMode, armored bool) {
+func testEncryptDecrypt(t *testing.T, aliceService *service, bobService *service, signer string, recipient string, mode EncryptMode, armored bool, expectedSigner keys.ID) {
 	message := "Hey bob"
 
 	// Encrypt
 	encryptResp, err := aliceService.Encrypt(context.TODO(), &EncryptRequest{
 		Data:       []byte(message),
-		Sender:     alice.ID().String(),
-		Recipients: []string{bob.ID().String()},
+		Signer:     signer,
+		Recipients: []string{recipient},
 		Mode:       mode,
 		Armored:    armored,
 	})
@@ -64,7 +59,7 @@ func testEncryptDecrypt(t *testing.T, aliceService *service, bobService *service
 	})
 	require.NoError(t, err)
 	require.Equal(t, message, string(decryptResp.Data))
-	require.Equal(t, alice.ID().String(), decryptResp.Sender.ID)
+	require.Equal(t, expectedSigner.String(), decryptResp.Signer.ID)
 }
 
 func testEncryptDecryptErrors(t *testing.T, aliceService *service, bobService *service, mode EncryptMode, armored bool) {
@@ -72,7 +67,7 @@ func testEncryptDecryptErrors(t *testing.T, aliceService *service, bobService *s
 
 	encryptResp, err := aliceService.Encrypt(context.TODO(), &EncryptRequest{
 		Data:       []byte(message),
-		Sender:     alice.ID().String(),
+		Signer:     alice.ID().String(),
 		Recipients: []string{bob.ID().String()},
 		Mode:       mode,
 		Armored:    armored,
@@ -91,7 +86,7 @@ func testEncryptDecryptErrors(t *testing.T, aliceService *service, bobService *s
 
 	_, err = aliceService.Encrypt(context.TODO(), &EncryptRequest{
 		Data:    []byte(message),
-		Sender:  alice.ID().String(),
+		Signer:  alice.ID().String(),
 		Mode:    mode,
 		Armored: armored,
 	})
@@ -132,7 +127,7 @@ func TestEncryptAnonymous(t *testing.T) {
 	// Encrypt
 	encryptResp, err := aliceService.Encrypt(context.TODO(), &EncryptRequest{
 		Data:       []byte(message),
-		Sender:     "",
+		Signer:     "",
 		Recipients: []string{bob.ID().String()},
 	})
 	require.NoError(t, err)
@@ -148,11 +143,11 @@ func TestEncryptAnonymous(t *testing.T) {
 	// Encrypt
 	_, err = aliceService.Encrypt(context.TODO(), &EncryptRequest{
 		Data:       []byte(message),
-		Sender:     "",
+		Signer:     "",
 		Recipients: []string{bob.ID().String()},
 		Mode:       SigncryptV1,
 	})
-	require.EqualError(t, err, "no sender specified: sender is required for signcrypt mode")
+	require.EqualError(t, err, "no signer specified: signer is required for signcrypt mode")
 }
 
 func TestEncryptDecryptStream(t *testing.T) {
@@ -167,36 +162,31 @@ func TestEncryptDecryptStream(t *testing.T) {
 	testAuthSetup(t, bobService)
 	testImportKey(t, bobService, bob)
 
-	// Save alice's sign public key to bob's keystore, check for box key conversion.
-	err := bobService.ks.SaveSignPublicKey(alice.PublicKey())
-	require.NoError(t, err)
-	sk, err := bobService.ks.FindEdX25519PublicKey(alice.X25519Key().PublicKey())
-	require.NoError(t, err)
-	require.NotNil(t, sk)
-	require.Equal(t, alice.ID(), sk.ID())
+	testImportID(t, bobService, alice.ID())
 
-	testEncryptDecryptStream(t, aliceService, bobService, bytes.Repeat([]byte{0x31}, 5), alice.ID().String(), []string{bob.ID().String()}, SigncryptV1, true)
-	testEncryptDecryptStream(t, aliceService, bobService, bytes.Repeat([]byte{0x31}, 5), alice.ID().String(), []string{bob.ID().String()}, SigncryptV1, false)
-	testEncryptDecryptStream(t, aliceService, bobService, bytes.Repeat([]byte{0x31}, 5), alice.ID().String(), []string{bob.ID().String()}, EncryptV2, true)
-	testEncryptDecryptStream(t, aliceService, bobService, bytes.Repeat([]byte{0x31}, 5), alice.ID().String(), []string{bob.ID().String()}, EncryptV2, false)
-	testEncryptDecryptStream(t, aliceService, bobService, bytes.Repeat([]byte{0x31}, (1024*1024)+5), alice.ID().String(), []string{bob.ID().String()}, SigncryptV1, true)
-	testEncryptDecryptStream(t, aliceService, bobService, bytes.Repeat([]byte{0x31}, (1024*1024)+5), alice.ID().String(), []string{bob.ID().String()}, SigncryptV1, false)
-	testEncryptDecryptStream(t, aliceService, bobService, bytes.Repeat([]byte{0x31}, (1024*1024)+5), alice.ID().String(), []string{bob.ID().String()}, EncryptV2, true)
-	testEncryptDecryptStream(t, aliceService, bobService, bytes.Repeat([]byte{0x31}, (1024*1024)+5), alice.ID().String(), []string{bob.ID().String()}, EncryptV2, false)
+	testEncryptDecryptStream(t, aliceService, bobService, bytes.Repeat([]byte{0x31}, 5), alice.ID().String(), []string{bob.ID().String()}, SigncryptV1, true, alice.ID())
+	testEncryptDecryptStream(t, aliceService, bobService, bytes.Repeat([]byte{0x31}, 5), alice.ID().String(), []string{bob.ID().String()}, SigncryptV1, false, alice.ID())
+	testEncryptDecryptStream(t, aliceService, bobService, bytes.Repeat([]byte{0x31}, 5), alice.ID().String(), []string{bob.ID().String()}, EncryptV2, true, alice.ID())
+	testEncryptDecryptStream(t, aliceService, bobService, bytes.Repeat([]byte{0x31}, 5), alice.ID().String(), []string{bob.ID().String()}, EncryptV2, false, alice.ID())
+	testEncryptDecryptStream(t, aliceService, bobService, bytes.Repeat([]byte{0x31}, (1024*1024)+5), alice.ID().String(), []string{bob.ID().String()}, SigncryptV1, true, alice.ID())
+	testEncryptDecryptStream(t, aliceService, bobService, bytes.Repeat([]byte{0x31}, (1024*1024)+5), alice.ID().String(), []string{bob.ID().String()}, SigncryptV1, false, alice.ID())
+	testEncryptDecryptStream(t, aliceService, bobService, bytes.Repeat([]byte{0x31}, (1024*1024)+5), alice.ID().String(), []string{bob.ID().String()}, EncryptV2, true, alice.ID())
+	testEncryptDecryptStream(t, aliceService, bobService, bytes.Repeat([]byte{0x31}, (1024*1024)+5), alice.ID().String(), []string{bob.ID().String()}, EncryptV2, false, alice.ID())
 	// TODO: Test timeout if data stops streaming
 }
 
-func testEncryptDecryptStream(t *testing.T, aliceService *service, bobService *service, plaintext []byte, sender string, recipients []string, mode EncryptMode, armored bool) {
-	encrypted, err := testEncryptStream(t, aliceService, plaintext, sender, recipients, mode, armored)
+func testEncryptDecryptStream(t *testing.T, aliceService *service, bobService *service, plaintext []byte, signer string, recipients []string, mode EncryptMode, armored bool, expectedSender keys.ID) {
+	encrypted, err := testEncryptStream(t, aliceService, plaintext, signer, recipients, mode, armored)
 	require.NoError(t, err)
 
-	out, signer, err := testDecryptStream(t, bobService, encrypted, mode, armored)
+	out, outSigner, err := testDecryptStream(t, bobService, encrypted, mode, armored)
 	require.NoError(t, err)
 	require.Equal(t, plaintext, out)
-	require.Equal(t, sender, signer.ID)
+	require.NotNil(t, outSigner)
+	require.Equal(t, expectedSender.String(), outSigner.ID)
 }
 
-func testEncryptStream(t *testing.T, service *service, plaintext []byte, sender string, recipients []string, mode EncryptMode, armored bool) ([]byte, error) {
+func testEncryptStream(t *testing.T, service *service, plaintext []byte, signer string, recipients []string, mode EncryptMode, armored bool) ([]byte, error) {
 	client, clientCloseFn := newTestRPCClient(t, service)
 	defer clientCloseFn()
 
@@ -211,7 +201,7 @@ func testEncryptStream(t *testing.T, service *service, plaintext []byte, sender 
 		done := false
 		err := streamClient.Send(&EncryptStreamInput{
 			Recipients: recipients,
-			Sender:     sender,
+			Signer:     signer,
 			Armored:    armored,
 			Mode:       mode,
 		})
@@ -310,7 +300,7 @@ func testDecryptStream(t *testing.T, service *service, b []byte, mode EncryptMod
 	}()
 
 	var bufOut bytes.Buffer
-	var sender *Key
+	var signer *Key
 	for {
 		resp, recvErr := streamClient.Recv()
 		if recvErr != nil {
@@ -321,10 +311,12 @@ func testDecryptStream(t *testing.T, service *service, b []byte, mode EncryptMod
 		}
 		_, writeErr := bufOut.Write(resp.Data)
 		require.NoError(t, writeErr)
-		sender = resp.Sender
+		if resp.Signer != nil {
+			signer = resp.Signer
+		}
 	}
 
-	return bufOut.Bytes(), sender, nil
+	return bufOut.Bytes(), signer, nil
 }
 
 func TestDecryptStreamInvalid(t *testing.T) {
@@ -340,4 +332,29 @@ func TestDecryptStreamInvalid(t *testing.T) {
 	st, ok := status.FromError(err)
 	require.True(t, ok)
 	require.Equal(t, "unexpected EOF", st.Message())
+}
+
+func TestEncryptDecryptByUser(t *testing.T) {
+	env := newTestEnv(t)
+
+	aliceService, aliceCloseFn := newTestService(t, env)
+	defer aliceCloseFn()
+	testAuthSetup(t, aliceService)
+	testImportKey(t, aliceService, alice)
+	testUserSetupGithub(t, env, aliceService, alice, "alice")
+
+	bobService, bobCloseFn := newTestService(t, env)
+	defer bobCloseFn()
+	testAuthSetup(t, bobService)
+	testImportKey(t, bobService, bob)
+	testUserSetupGithub(t, env, bobService, bob, "bob")
+
+	testPull(t, aliceService, bob.ID())
+	testPull(t, bobService, alice.ID())
+
+	testEncryptDecrypt(t, aliceService, bobService, "alice@github", "bob@github", EncryptV2, true, alice.ID())
+	testEncryptDecrypt(t, aliceService, bobService, "alice@github", "bob@github", SigncryptV1, true, alice.ID())
+
+	testEncryptDecryptStream(t, aliceService, bobService, bytes.Repeat([]byte{0x31}, (1024*1024)+5), "alice@github", []string{"bob@github"}, EncryptV2, true, alice.ID())
+	testEncryptDecryptStream(t, aliceService, bobService, bytes.Repeat([]byte{0x31}, (1024*1024)+5), "alice@github", []string{"bob@github"}, SigncryptV1, true, alice.ID())
 }

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"io"
+	"os"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -28,7 +29,7 @@ func sealCommands(client *Client) []cli.Command {
 			ArgsUsage: "<stdin or -in>",
 			Flags: []cli.Flag{
 				cli.StringSliceFlag{Name: "recipients, r", Usage: "recipients"},
-				cli.StringFlag{Name: "sender, s", Usage: "sender (or anonymous if not specified)"},
+				cli.StringFlag{Name: "signer, s", Usage: "signer (or anonymous if not specified)"},
 				cli.BoolFlag{Name: "armor, a", Usage: "armored"},
 				cli.StringFlag{Name: "in, i", Usage: "file to read or stdin if not specified"},
 				cli.StringFlag{Name: "out, o", Usage: "file to write or stdout if not specified"},
@@ -55,7 +56,7 @@ func sealCommands(client *Client) []cli.Command {
 
 				if err := client.Send(&EncryptStreamInput{
 					Recipients: c.StringSlice("recipients"),
-					Sender:     c.String("sender"),
+					Signer:     c.String("signer"),
 					Armored:    c.Bool("armor"),
 					Mode:       mode,
 				}); err != nil {
@@ -156,6 +157,9 @@ func sealCommands(client *Client) []cli.Command {
 							}
 							openErr = recvErr
 							break
+						}
+						if resp.Signer != nil {
+							fmtKey(os.Stdout, resp.Signer, "verified ")
 						}
 						if len(resp.Data) == 0 {
 							break

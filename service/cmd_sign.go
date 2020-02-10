@@ -3,11 +3,35 @@ package service
 import (
 	"context"
 	"io"
+	"os"
+	strings "strings"
 	"sync"
 
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
+
+func checkSigner(signer *Key, expected string) error {
+	if signer == nil {
+		return nil
+	}
+
+	if strings.Contains(expected, "@") {
+		if signer.User == nil {
+			return errors.Errorf("invalid signer, expected %s, was %s", expected, signer.ID)
+		}
+		if signer.User.Label != expected {
+			return errors.Errorf("invalid signer, expected %s, was %s", expected, signer.User.Label)
+		}
+		return nil
+	}
+
+	if signer.ID != expected {
+		return errors.Errorf("invalid signer, expected %s, was %s", expected, signer.ID)
+	}
+
+	return nil
+}
 
 func signCommands(client *Client) []cli.Command {
 	return []cli.Command{
@@ -16,7 +40,7 @@ func signCommands(client *Client) []cli.Command {
 			Usage:     "Create a signed message",
 			ArgsUsage: "<stdin or -in>",
 			Flags: []cli.Flag{
-				cli.StringFlag{Name: "kid, k", Usage: "kid to sign (defaults to current key)"},
+				cli.StringFlag{Name: "signer, s", Usage: "signer"},
 				cli.BoolFlag{Name: "armor, a", Usage: "armored string output"},
 				cli.BoolFlag{Name: "detached, d", Usage: "only output signature bytes"},
 				cli.StringFlag{Name: "in, i", Usage: "file to read or stdin if not specified"},
@@ -37,7 +61,7 @@ func signCommands(client *Client) []cli.Command {
 					return streamErr
 				}
 				if err := client.Send(&SignStreamInput{
-					KID:      c.String("kid"),
+					Signer:   c.String("signer"),
 					Armored:  c.Bool("armor"),
 					Detached: c.Bool("detached"),
 				}); err != nil {
@@ -86,16 +110,13 @@ func signCommands(client *Client) []cli.Command {
 			Usage:     "Verify a signed message",
 			ArgsUsage: "<message>",
 			Flags: []cli.Flag{
-				cli.StringFlag{Name: "kid, k"},
+				cli.StringFlag{Name: "signer, s", Usage: "expected signer"},
 				cli.BoolFlag{Name: "armor, a"},
 				cli.StringFlag{Name: "in, i", Usage: "file to read or stdin if not specified"},
 				cli.StringFlag{Name: "out, o", Usage: "file to write or stdout if not specified"},
 			},
 			Action: func(c *cli.Context) error {
-				kid := c.String("kid")
-				if kid == "" {
-					return errors.Errorf("kid not specified")
-				}
+				signer := c.String("signer")
 				reader, readerErr := readerFromArgs(c.String("in"))
 				if readerErr != nil {
 					return readerErr
@@ -109,7 +130,7 @@ func signCommands(client *Client) []cli.Command {
 				if clientErr != nil {
 					return clientErr
 				}
-				var err error
+				var outErr error
 				go func() {
 					_, inErr := readFrom(reader, 1024*1024, func(b []byte) error {
 						if len(b) > 0 {
@@ -124,7 +145,7 @@ func signCommands(client *Client) []cli.Command {
 						return nil
 					})
 					if inErr != nil {
-						err = inErr
+						outErr = inErr
 					}
 				}()
 
@@ -137,14 +158,16 @@ func signCommands(client *Client) []cli.Command {
 							if recvErr == io.EOF {
 								break
 							}
-							err = recvErr
+							outErr = recvErr
 							break
 						}
-						if (kid == "" && resp.Signer == nil) || (resp.Signer != nil && resp.Signer.ID == kid) {
-							// OK
-						} else {
-							err = errors.Errorf("not signed by the specified kid, expected %s, was %s", kid, resp.Signer.ID)
-							break
+						if signer != "" {
+							if err := checkSigner(resp.Signer, signer); err != nil {
+								outErr = err
+								break
+							}
+						} else if resp.Signer != nil {
+							fmtKey(os.Stdout, resp.Signer, "verified ")
 						}
 
 						if len(resp.Data) == 0 {
@@ -153,7 +176,7 @@ func signCommands(client *Client) []cli.Command {
 
 						_, writeErr := writer.Write(resp.Data)
 						if writeErr != nil {
-							err = writeErr
+							outErr = writeErr
 							break
 						}
 					}
@@ -161,7 +184,7 @@ func signCommands(client *Client) []cli.Command {
 				}()
 				wg.Wait()
 
-				return err
+				return outErr
 			},
 		},
 	}

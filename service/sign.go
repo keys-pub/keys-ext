@@ -12,7 +12,7 @@ import (
 
 // Sign (RPC) ...
 func (s *service) Sign(ctx context.Context, req *SignRequest) (*SignResponse, error) {
-	key, err := s.parseSignKey(req.KID, true)
+	key, err := s.parseSigner(req.Signer, true)
 	if err != nil {
 		return nil, err
 	}
@@ -34,14 +34,14 @@ func (s *service) Sign(ctx context.Context, req *SignRequest) (*SignResponse, er
 func (s *service) Verify(ctx context.Context, req *VerifyRequest) (*VerifyResponse, error) {
 	sp := saltpack.NewSaltpack(s.ks)
 	sp.SetArmored(req.Armored)
-	verified, sender, err := sp.Verify(req.Data)
+	verified, kid, err := sp.Verify(req.Data)
 	if err != nil {
 		return nil, err
 	}
 
 	var signer *Key
-	if sender != "" {
-		s, err := s.loadKey(ctx, sender)
+	if kid != "" {
+		s, err := s.loadKey(ctx, kid)
 		if err != nil {
 			return nil, err
 		}
@@ -80,7 +80,7 @@ func (s *service) SignStream(srv Keys_SignStreamServer) error {
 			if stream != nil {
 				return errors.Errorf("stream already initialized")
 			}
-			key, err := s.parseSignKey(req.KID, true)
+			key, err := s.parseSigner(req.Signer, true)
 			if err != nil {
 				return err
 			}
@@ -95,7 +95,7 @@ func (s *service) SignStream(srv Keys_SignStreamServer) error {
 			stream = s
 		} else {
 			// Make sure request only sends data after init
-			if req.KID != "" || req.Armored || req.Detached {
+			if req.Signer != "" || req.Armored || req.Detached {
 				return errors.Errorf("after stream is initalized, only data should be sent")
 			}
 		}
@@ -148,26 +148,26 @@ func (s *service) VerifyStream(srv Keys_VerifyStreamServer) error {
 
 	reader := newStreamReader(srv.Context(), recvFn)
 	sp := saltpack.NewSaltpack(s.ks)
-	streamReader, sender, streamErr := sp.NewVerifyStream(reader)
+	streamReader, kid, streamErr := sp.NewVerifyStream(reader)
 	if streamErr != nil {
 		return streamErr
 	}
 	var signer *Key
-	if sender != "" {
-		s, err := s.loadKey(srv.Context(), sender)
+	if kid != "" {
+		s, err := s.loadKey(srv.Context(), kid)
 		if err != nil {
 			return err
 		}
 		signer = s
 	}
-	sendFn := func(b []byte) error {
+	sendFn := func(b []byte, signer *Key) error {
 		resp := VerifyStreamOutput{
 			Data:   b,
 			Signer: signer,
 		}
 		return srv.Send(&resp)
 	}
-	return s.readFromStream(srv.Context(), streamReader, sendFn)
+	return s.readFromStream(srv.Context(), streamReader, signer, sendFn)
 }
 
 // VerifyArmoredStream (RPC) ...
@@ -183,27 +183,27 @@ func (s *service) VerifyArmoredStream(srv Keys_VerifyArmoredStreamServer) error 
 	reader := newStreamReader(srv.Context(), recvFn)
 	sp := saltpack.NewSaltpack(s.ks)
 	sp.SetArmored(true)
-	streamReader, sender, streamErr := sp.NewVerifyStream(reader)
+	streamReader, kid, streamErr := sp.NewVerifyStream(reader)
 	if streamErr != nil {
 		return streamErr
 	}
 
 	var signer *Key
-	if sender != "" {
-		s, err := s.loadKey(srv.Context(), sender)
+	if kid != "" {
+		s, err := s.loadKey(srv.Context(), kid)
 		if err != nil {
 			return err
 		}
 		signer = s
 	}
-	sendFn := func(b []byte) error {
+	sendFn := func(b []byte, signer *Key) error {
 		resp := VerifyStreamOutput{
 			Data:   b,
 			Signer: signer,
 		}
 		return srv.Send(&resp)
 	}
-	return s.readFromStream(srv.Context(), streamReader, sendFn)
+	return s.readFromStream(srv.Context(), streamReader, signer, sendFn)
 }
 
 // VerifyStreamClient ...
@@ -221,8 +221,9 @@ func NewVerifyStreamClient(ctx context.Context, cl KeysClient, armored bool) (Ve
 	return cl.VerifyStream(ctx)
 }
 
-func (s *service) readFromStream(ctx context.Context, streamReader io.Reader, sendFn func(b []byte) error) error {
+func (s *service) readFromStream(ctx context.Context, streamReader io.Reader, signer *Key, sendFn func(b []byte, signer *Key) error) error {
 	buf := make([]byte, 1024*1024)
+	sendSigner := signer
 	for {
 		select {
 		case <-ctx.Done():
@@ -232,14 +233,16 @@ func (s *service) readFromStream(ctx context.Context, streamReader io.Reader, se
 
 		n, err := streamReader.Read(buf)
 		if n != 0 {
-			if err := sendFn(buf[:n]); err != nil {
+			if err := sendFn(buf[:n], sendSigner); err != nil {
 				return err
 			}
+			// Only send signer on first send
+			sendSigner = nil
 		}
 		if err != nil {
 			if err == io.EOF {
 				// Send empty bytes denotes EOF
-				if err := sendFn([]byte{}); err != nil {
+				if err := sendFn([]byte{}, nil); err != nil {
 					return err
 				}
 				break

@@ -225,3 +225,40 @@ func (s *service) searchUserRemote(ctx context.Context, query string, limit int)
 	}
 	return resp.Results, nil
 }
+
+func (s *service) parseIdentity(ctx context.Context, rec string) (keys.ID, error) {
+	if rec == "" {
+		return "", nil
+	}
+	if strings.Contains(rec, "@") {
+		res, err := s.users.User(ctx, rec)
+		if err != nil {
+			return "", err
+		}
+		if res == nil {
+			return "", keys.NewErrNotFound(rec)
+		}
+		if res.Status != keys.UserStatusOK {
+			return "", errors.Errorf("user %s has failed status %s", rec, res.Status)
+		}
+		return res.User.KID, nil
+	}
+
+	id, err := keys.ParseID(rec)
+	if err != nil {
+		return "", errors.Errorf("failed to parse id  %s", rec)
+	}
+	return id, nil
+}
+
+func (s *service) parseIdentities(ctx context.Context, recs []string) ([]keys.ID, error) {
+	ids := make([]keys.ID, 0, len(recs))
+	for _, r := range recs {
+		id, err := s.parseIdentity(ctx, r)
+		if err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, nil
+}

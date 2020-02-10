@@ -106,7 +106,7 @@ func testImportID(t *testing.T, service *service, kid keys.ID) {
 	require.NoError(t, err)
 }
 
-func userSetup(env *testEnv, service *service, key *keys.SignKey, username string) error {
+func userSetupGithub(env *testEnv, service *service, key *keys.SignKey, username string) error {
 	resp, err := service.UserSign(context.TODO(), &UserSignRequest{
 		KID:     key.ID().String(),
 		Service: "github",
@@ -128,8 +128,8 @@ func userSetup(env *testEnv, service *service, key *keys.SignKey, username strin
 	return err
 }
 
-func testUserSetup(t *testing.T, env *testEnv, service *service, key *keys.SignKey, username string) {
-	err := userSetup(env, service, key, username)
+func testUserSetupGithub(t *testing.T, env *testEnv, service *service, key *keys.SignKey, username string) {
+	err := userSetupGithub(env, service, key, username)
 	require.NoError(t, err)
 }
 
@@ -147,9 +147,9 @@ func testPush(t *testing.T, service *service, key *keys.SignKey) {
 	require.NoError(t, err)
 }
 
-func testPull(t *testing.T, service *service, key *keys.SignKey) {
+func testPull(t *testing.T, service *service, kid keys.ID) {
 	_, err := service.Pull(context.TODO(), &PullRequest{
-		KID: key.ID().String(),
+		KID: kid.String(),
 	})
 	require.NoError(t, err)
 }

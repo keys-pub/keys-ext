@@ -17,7 +17,7 @@ func (s *service) Encrypt(ctx context.Context, req *EncryptRequest) (*EncryptRes
 		return nil, errors.Errorf("no recipients specified")
 	}
 
-	recipients, err := keys.ParseIDs(req.Recipients)
+	recipients, err := s.parseIdentities(ctx, req.Recipients)
 	if err != nil {
 		return nil, err
 	}
@@ -27,30 +27,42 @@ func (s *service) Encrypt(ctx context.Context, req *EncryptRequest) (*EncryptRes
 		mode = EncryptV2
 	}
 
+	var signer keys.ID
+	if req.Signer != "" {
+		kid, err := s.parseIdentity(ctx, req.Signer)
+		if err != nil {
+			return nil, err
+		}
+		signer = kid
+	}
+
 	sp := saltpack.NewSaltpack(s.ks)
 	sp.SetArmored(req.Armored)
 
 	var out []byte
 	switch mode {
 	case EncryptV2:
-		sender, err := s.parseBoxKey(req.Sender, false)
+		sbk, err := s.parseBoxKey(signer)
 		if err != nil {
 			return nil, err
 		}
-		data, err := sp.Encrypt(req.Data, sender, recipients...)
+		data, err := sp.Encrypt(req.Data, sbk, recipients...)
 		if err != nil {
 			return nil, err
 		}
 		out = data
 	case SigncryptV1:
-		if req.Sender == "" {
-			return nil, errors.Errorf("no sender specified: sender is required for signcrypt mode")
+		if req.Signer == "" {
+			return nil, errors.Errorf("no signer specified: signer is required for signcrypt mode")
 		}
-		sender, err := s.parseSignKey(req.Sender, true)
+		sk, err := s.ks.SignKey(signer)
 		if err != nil {
 			return nil, err
 		}
-		data, err := sp.Signcrypt(req.Data, sender, recipients...)
+		if sk == nil {
+			return nil, keys.NewErrNotFound(signer.String())
+		}
+		data, err := sp.Signcrypt(req.Data, sk, recipients...)
 		if err != nil {
 			return nil, err
 		}
@@ -76,13 +88,13 @@ func (s *service) Decrypt(ctx context.Context, req *DecryptRequest) (*DecryptRes
 	sp.SetArmored(req.Armored)
 
 	var decrypted []byte
-	var sender keys.ID
+	var kid keys.ID
 	var err error
 	switch mode {
 	case EncryptV2:
-		decrypted, sender, err = sp.Decrypt(req.Data)
+		decrypted, kid, err = sp.Decrypt(req.Data)
 	case SigncryptV1:
-		decrypted, sender, err = sp.SigncryptOpen(req.Data)
+		decrypted, kid, err = sp.SigncryptOpen(req.Data)
 	default:
 		return nil, errors.Errorf("unsupported mode %s", req.Mode)
 	}
@@ -94,17 +106,17 @@ func (s *service) Decrypt(ctx context.Context, req *DecryptRequest) (*DecryptRes
 		return nil, err
 	}
 
-	// If EncryptV2 check the sender.
+	// If EncryptV2 check the kid.
 	if mode == EncryptV2 {
-		sender, err = s.checkSenderID(sender)
+		kid, err = s.checkSignerID(kid)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	var signer *Key
-	if sender != "" {
-		s, err := s.loadKey(ctx, sender)
+	if kid != "" {
+		s, err := s.loadKey(ctx, kid)
 		if err != nil {
 			return nil, err
 		}
@@ -113,7 +125,7 @@ func (s *service) Decrypt(ctx context.Context, req *DecryptRequest) (*DecryptRes
 
 	return &DecryptResponse{
 		Data:   decrypted,
-		Sender: signer,
+		Signer: signer,
 	}, nil
 }
 
@@ -145,7 +157,7 @@ func (s *service) EncryptStream(srv Keys_EncryptStreamServer) error {
 			if stream != nil {
 				return errors.Errorf("stream already initialized")
 			}
-			recipients, err := keys.ParseIDs(req.Recipients)
+			recipients, err := s.parseIdentities(ctx, req.Recipients)
 			if err != nil {
 				return err
 			}
@@ -160,28 +172,40 @@ func (s *service) EncryptStream(srv Keys_EncryptStreamServer) error {
 				mode = EncryptV2
 			}
 
-			switch mode {
-			case EncryptV2:
-				sender, err := s.parseBoxKey(req.Sender, false)
+			var signer keys.ID
+			if req.Signer != "" {
+				kid, err := s.parseIdentity(ctx, req.Signer)
 				if err != nil {
 					return err
 				}
-				logger.Infof("Encrypt stream for %s from %s", req.Recipients, req.Sender)
-				s, err := sp.NewEncryptStream(&buf, sender, recipients...)
+				signer = kid
+			}
+
+			switch mode {
+			case EncryptV2:
+				sbk, err := s.parseBoxKey(signer)
+				if err != nil {
+					return err
+				}
+				logger.Infof("Encrypt stream for %s from %s", req.Recipients, signer)
+				s, err := sp.NewEncryptStream(&buf, sbk, recipients...)
 				if err != nil {
 					return err
 				}
 				stream = s
 			case SigncryptV1:
-				if req.Sender == "" {
-					return errors.Errorf("no sender specified")
+				if signer == "" {
+					return errors.Errorf("no signer specified")
 				}
-				sender, err := s.parseSignKey(req.Sender, true)
+				sk, err := s.ks.SignKey(signer)
 				if err != nil {
 					return err
 				}
-				logger.Infof("Signcrypt stream for %s from %s", req.Recipients, req.Sender)
-				s, err := sp.NewSigncryptStream(&buf, sender, recipients...)
+				if sk == nil {
+					return keys.NewErrNotFound(signer.String())
+				}
+				logger.Infof("Signcrypt stream for %s from %s", req.Recipients, signer)
+				s, err := sp.NewSigncryptStream(&buf, sk, recipients...)
 				if err != nil {
 					return err
 				}
@@ -189,7 +213,7 @@ func (s *service) EncryptStream(srv Keys_EncryptStreamServer) error {
 			}
 		} else {
 			// Make sure request only sends data after init
-			if len(req.Recipients) != 0 || req.Sender != "" {
+			if len(req.Recipients) != 0 || req.Signer != "" {
 				return errors.Errorf("after stream is initalized, only data should be sent")
 			}
 		}
@@ -289,46 +313,46 @@ func (s *service) decryptStream(srv decryptStreamServer, armored bool, mode Encr
 	sp := saltpack.NewSaltpack(s.ks)
 	sp.SetArmored(armored)
 	var streamReader io.Reader
-	var sender keys.ID
+	var kid keys.ID
 	switch mode {
 	case EncryptV2:
 		r, s, err := sp.NewDecryptStream(reader)
 		if err != nil {
 			return err
 		}
-		streamReader, sender = r, s
+		streamReader, kid = r, s
 	case SigncryptV1:
 		r, s, err := sp.NewSigncryptOpenStream(reader)
 		if err != nil {
 			return err
 		}
-		streamReader, sender = r, s
+		streamReader, kid = r, s
 	}
 
-	// If EncryptV2 check the sender.
+	// If EncryptV2 check the kid.
 	if mode == EncryptV2 {
-		s, err := s.checkSenderID(sender)
+		s, err := s.checkSignerID(kid)
 		if err != nil {
 			return err
 		}
-		sender = s
+		kid = s
 	}
 
 	var signer *Key
-	if sender != "" {
-		s, err := s.loadKey(srv.Context(), sender)
+	if kid != "" {
+		s, err := s.loadKey(srv.Context(), kid)
 		if err != nil {
 			return err
 		}
 		signer = s
 	}
 
-	sendFn := func(b []byte) error {
+	sendFn := func(b []byte, signer *Key) error {
 		resp := DecryptStreamOutput{
 			Data:   b,
-			Sender: signer,
+			Signer: signer,
 		}
 		return srv.Send(&resp)
 	}
-	return s.readFromStream(srv.Context(), streamReader, sendFn)
+	return s.readFromStream(srv.Context(), streamReader, signer, sendFn)
 }

@@ -53,7 +53,7 @@ func fmtKeys(keys []*Key) {
 	w := new(tabwriter.Writer)
 	w.Init(out, 0, 8, 1, ' ', 0)
 	for _, key := range keys {
-		fmtKey(w, key)
+		fmtKey(w, key, "")
 	}
 	w.Flush()
 	fmt.Print(out.String())
@@ -84,16 +84,20 @@ func fmtUsers(users []*User) string {
 	return strings.Join(out, ",")
 }
 
-func fmtKey(w io.Writer, key *Key) {
+func fmtKey(w io.Writer, key *Key, prefix string) {
 	if key == nil {
 		fmt.Fprintf(w, "∅\n")
 		return
 	}
-	fmt.Fprintf(w, "%s\t%s\n", key.ID, fmtUser(key.User))
-}
-
-func fmtUserSearchResult(w io.Writer, res *UserSearchResult) {
-	fmt.Fprintf(w, "%s\t%s\n", fmtUser(res.User), res.KID)
+	if prefix != "" {
+		fmt.Fprintf(w, prefix)
+	}
+	fmt.Fprintf(w, key.ID)
+	if key.User != nil {
+		fmt.Fprintf(w, " ")
+		fmt.Fprintf(w, fmtUser(key.User))
+	}
+	fmt.Fprintf(w, "\n")
 }
 
 func fmtItems(items []*Item) {

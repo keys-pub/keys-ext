@@ -63,7 +63,7 @@ func TestUserAdd(t *testing.T) {
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
 
-	testUserSetup(t, env, service, alice, "alice")
+	testUserSetupGithub(t, env, service, alice, "alice")
 	testPush(t, service, alice)
 
 	sc, err := service.scs.Sigchain(alice.ID())
@@ -75,7 +75,7 @@ func TestUserAdd(t *testing.T) {
 	require.Equal(t, 1, len(resp.Results))
 	require.Equal(t, "alice", resp.Results[0].User.Name)
 
-	err = userSetup(env, service, alice, "alice2")
+	err = userSetupGithub(env, service, alice, "alice2")
 	require.EqualError(t, err, "failed to generate user statement: user set in sigchain already")
 
 	sc2, err := service.scs.Sigchain(alice.ID())

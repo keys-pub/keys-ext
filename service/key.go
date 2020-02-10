@@ -246,6 +246,69 @@ func (s *service) parseKey(kid string, required bool) (keys.Key, error) {
 	return key, nil
 }
 
+// checkSignerID checks if the ID is a box public key, finds the sign public key
+// equivalent if found and returns that ID, otherwise returns itself.
+func (s *service) checkSignerID(id keys.ID) (keys.ID, error) {
+	if id.IsX25519() {
+		bpk, err := keys.BoxPublicKeyForID(id)
+		if err != nil {
+			return "", err
+		}
+		spk, err := s.ks.FindEdX25519PublicKey(bpk)
+		if err != nil {
+			return "", err
+		}
+		if spk == nil {
+			// Not found, return original id.
+			return id, nil
+		}
+		return spk.ID(), nil
+	}
+	return id, nil
+}
+
+func (s *service) parseSigner(signer string, required bool) (*keys.SignKey, error) {
+	if signer == "" {
+		if required {
+			return nil, errors.Errorf("no signer specified")
+		}
+		return nil, nil
+	}
+	kid, err := s.parseIdentity(context.TODO(), signer)
+	if err != nil {
+		return nil, err
+	}
+	sk, err := s.ks.SignKey(kid)
+	if err != nil {
+		return nil, err
+	}
+	if sk == nil {
+		return nil, keys.NewErrNotFound(kid.String())
+	}
+	return sk, nil
+}
+
+func (s *service) parseBoxKey(kid keys.ID) (*keys.BoxKey, error) {
+	if kid == "" {
+		return nil, nil
+	}
+	switch kid.KeyType() {
+	case keys.EdX25519Public:
+		key, err := s.ks.SignKey(kid)
+		if err != nil {
+			return nil, err
+		}
+		if key == nil {
+			return nil, nil
+		}
+		return key.X25519Key(), nil
+	case keys.X25519Public:
+		return s.ks.BoxKey(kid)
+	default:
+		return nil, errors.Errorf("unsupported key type for %s", kid)
+	}
+}
+
 func (s *service) parseSignKey(kid string, required bool) (*keys.SignKey, error) {
 	if kid == "" {
 		if required {
@@ -270,61 +333,4 @@ func (s *service) parseSignKey(kid string, required bool) (*keys.SignKey, error)
 	default:
 		return nil, errors.Errorf("unsupported key type for signing %s", id)
 	}
-}
-
-func (s *service) parseBoxKey(kid string, required bool) (*keys.BoxKey, error) {
-	if kid == "" {
-		if required {
-			return nil, errors.Errorf("no kid specified")
-		}
-		return nil, nil
-	}
-	id, err := keys.ParseID(kid)
-	if err != nil {
-		return nil, err
-	}
-
-	switch id.KeyType() {
-	case keys.EdX25519Public:
-		key, err := s.ks.SignKey(id)
-		if err != nil {
-			return nil, err
-		}
-		if key == nil && required {
-			return nil, keys.NewErrNotFound(kid)
-		}
-		return key.X25519Key(), nil
-	case keys.X25519Public:
-		key, err := s.ks.BoxKey(id)
-		if err != nil {
-			return nil, err
-		}
-		if key == nil && required {
-			return nil, keys.NewErrNotFound(kid)
-		}
-		return key, nil
-	default:
-		return nil, errors.Errorf("unsupported key type for %s", id)
-	}
-}
-
-// checkSenderID checks if the ID is a box public key, finds the sign public key
-// equivalent if found and returns that ID, otherwise returns itself.
-func (s *service) checkSenderID(id keys.ID) (keys.ID, error) {
-	if id.IsX25519() {
-		bpk, err := keys.BoxPublicKeyForID(id)
-		if err != nil {
-			return "", err
-		}
-		spk, err := s.ks.FindEdX25519PublicKey(bpk)
-		if err != nil {
-			return "", err
-		}
-		if spk == nil {
-			// Not found, return original id.
-			return id, nil
-		}
-		return spk.ID(), nil
-	}
-	return id, nil
 }

@@ -18,12 +18,24 @@ func TestSignVerify(t *testing.T) {
 	testImportKey(t, service, alice)
 
 	message := "I'm alice"
-	signResp, err := service.Sign(context.TODO(), &SignRequest{Data: []byte(message), KID: alice.ID().String()})
+	signResp, err := service.Sign(context.TODO(), &SignRequest{Data: []byte(message), Signer: alice.ID().String()})
 	require.NoError(t, err)
 	require.NotEmpty(t, signResp.Data)
 	require.Equal(t, alice.ID().String(), signResp.KID)
 
 	verifyResp, err := service.Verify(context.TODO(), &VerifyRequest{Data: signResp.Data})
+	require.NoError(t, err)
+	require.Equal(t, message, string(verifyResp.Data))
+	require.Equal(t, alice.ID().String(), verifyResp.Signer.ID)
+
+	testUserSetupGithub(t, env, service, alice, "alice")
+
+	signResp, err = service.Sign(context.TODO(), &SignRequest{Data: []byte(message), Signer: "alice@github"})
+	require.NoError(t, err)
+	require.NotEmpty(t, signResp.Data)
+	require.Equal(t, alice.ID().String(), signResp.KID)
+
+	verifyResp, err = service.Verify(context.TODO(), &VerifyRequest{Data: signResp.Data})
 	require.NoError(t, err)
 	require.Equal(t, message, string(verifyResp.Data))
 	require.Equal(t, alice.ID().String(), verifyResp.Signer.ID)
@@ -41,7 +53,7 @@ func TestSignStream(t *testing.T) {
 	// TODO: Test timeout if data stops streaming
 }
 
-func testSignStream(t *testing.T, service *service, plaintext []byte, sender string) {
+func testSignStream(t *testing.T, service *service, plaintext []byte, signer string) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 	cl, clientCloseFn := newTestRPCClient(t, service)
@@ -54,7 +66,7 @@ func testSignStream(t *testing.T, service *service, plaintext []byte, sender str
 	go func() {
 		done := false
 		err := streamClient.Send(&SignStreamInput{
-			KID:     sender,
+			Signer:  signer,
 			Armored: true,
 		})
 		require.NoError(t, err)
@@ -100,8 +112,8 @@ func testSignStream(t *testing.T, service *service, plaintext []byte, sender str
 	sp.SetArmored(true)
 	out, sout, err := sp.Verify(data)
 	require.NoError(t, err)
-	if sender != "" {
-		require.Equal(t, sout.String(), sender)
+	if signer != "" {
+		require.Equal(t, sout.String(), signer)
 	}
 	require.Equal(t, plaintext, out)
 

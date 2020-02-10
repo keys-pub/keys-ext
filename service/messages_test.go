@@ -38,7 +38,7 @@ func TestMessages(t *testing.T) {
 	ctx := context.TODO()
 	testAuthSetup(t, aliceService)
 	testImportKey(t, aliceService, alice)
-	testUserSetup(t, env, aliceService, alice, "alice")
+	testUserSetupGithub(t, env, aliceService, alice, "alice")
 	testPush(t, aliceService, alice)
 	testImportKey(t, aliceService, group)
 
@@ -47,7 +47,7 @@ func TestMessages(t *testing.T) {
 	defer bobCloseFn()
 	testAuthSetup(t, bobService)
 	testImportKey(t, bobService, bob)
-	testUserSetup(t, env, bobService, bob, "bob")
+	testUserSetupGithub(t, env, bobService, bob, "bob")
 	testImportKey(t, bobService, group)
 
 	// Alice lists messages

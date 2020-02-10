@@ -81,7 +81,7 @@ func sigchainCommands(client *Client) []cli.Command {
 							Usage:     "Add a signed statement to a sigchain (from stdin)",
 							ArgsUsage: "<stdin>",
 							Flags: []cli.Flag{
-								cli.StringFlag{Name: "kid, k"},
+								cli.StringFlag{Name: "signer, s"},
 								cli.BoolFlag{Name: "local", Usage: "Don't save to the key server"},
 							},
 							Action: func(c *cli.Context) error {
@@ -99,9 +99,9 @@ func sigchainCommands(client *Client) []cli.Command {
 								}
 
 								resp, err := client.ProtoClient().StatementCreate(context.TODO(), &StatementCreateRequest{
-									KID:   c.String("kid"),
-									Data:  b,
-									Local: c.Bool("local"),
+									Signer: c.String("signer"),
+									Data:   b,
+									Local:  c.Bool("local"),
 								})
 								if err != nil {
 									return err
@@ -115,19 +115,19 @@ func sigchainCommands(client *Client) []cli.Command {
 							Name:  "revoke",
 							Usage: "Revoke a signed statement in a sigchain",
 							Flags: []cli.Flag{
-								cli.StringFlag{Name: "kid, k"},
-								cli.IntFlag{Name: "seq, s"},
+								cli.StringFlag{Name: "signer, s"},
+								cli.IntFlag{Name: "seq"},
 								cli.BoolFlag{Name: "local", Usage: "Don't save to the key server"},
 							},
 							Action: func(c *cli.Context) error {
-								kid, err := argString(c, "kid", false)
+								signer, err := argString(c, "signer", false)
 								if err != nil {
 									return err
 								}
 								resp, err := client.ProtoClient().StatementRevoke(context.TODO(), &StatementRevokeRequest{
-									KID:   kid,
-									Seq:   int32(c.Int("seq")),
-									Local: c.Bool("local"),
+									Signer: signer,
+									Seq:    int32(c.Int("seq")),
+									Local:  c.Bool("local"),
 								})
 								if err != nil {
 									return err

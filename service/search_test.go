@@ -15,11 +15,11 @@ func TestSearch(t *testing.T) {
 
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
-	testUserSetup(t, env, service, alice, "alice")
+	testUserSetupGithub(t, env, service, alice, "alice")
 	testPush(t, service, alice)
 
 	testImportKey(t, service, bob)
-	testUserSetup(t, env, service, bob, "bob")
+	testUserSetupGithub(t, env, service, bob, "bob")
 	testPush(t, service, bob)
 
 	resp, err := service.UserSearch(ctx, &UserSearchRequest{})

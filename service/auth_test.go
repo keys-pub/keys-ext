@@ -105,14 +105,14 @@ func TestAuthLock(t *testing.T) {
 
 	testImportKey(t, service, alice)
 
-	_, err = service.Sign(context.TODO(), &SignRequest{Data: []byte("test"), KID: alice.ID().String()})
+	_, err = service.Sign(context.TODO(), &SignRequest{Data: []byte("test"), Signer: alice.ID().String()})
 	require.NoError(t, err)
 
 	_, err = service.AuthLock(ctx, &AuthLockRequest{})
 	require.NoError(t, err)
 	require.Empty(t, service.auth.tokens)
 
-	_, err = service.Sign(context.TODO(), &SignRequest{Data: []byte("test"), KID: alice.ID().String()})
+	_, err = service.Sign(context.TODO(), &SignRequest{Data: []byte("test"), Signer: alice.ID().String()})
 	require.EqualError(t, err, "keyring is locked")
 }
 
