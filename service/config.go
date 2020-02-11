@@ -74,19 +74,19 @@ func SupportPath(appName string, fileName string, makeDir bool) (string, error) 
 	switch runtime.GOOS {
 	case "darwin":
 		dir := filepath.Join(DefaultHomeDir(), "Library", "Application Support")
-		return path(dir, appName, fileName, makeDir)
+		return configPath(dir, appName, fileName, makeDir)
 	case "windows":
 		dir := os.Getenv("LOCALAPPDATA")
 		if dir == "" {
 			panic("LOCALAPPDATA not set")
 		}
-		return path(dir, appName, fileName, makeDir)
+		return configPath(dir, appName, fileName, makeDir)
 	case "linux":
 		dir := os.Getenv("XDG_DATA_HOME")
 		if dir == "" {
 			dir = filepath.Join(DefaultHomeDir(), ".local", "share")
 		}
-		return path(dir, appName, fileName, makeDir)
+		return configPath(dir, appName, fileName, makeDir)
 	default:
 		panic(fmt.Sprintf("unsupported platform %s", runtime.GOOS))
 	}
@@ -98,25 +98,25 @@ func LogsPath(appName string, fileName string, makeDir bool) (string, error) {
 	switch runtime.GOOS {
 	case "darwin":
 		dir := filepath.Join(DefaultHomeDir(), "Library", "Logs")
-		return path(dir, appName, fileName, makeDir)
+		return configPath(dir, appName, fileName, makeDir)
 	case "windows":
 		dir := os.Getenv("LOCALAPPDATA")
 		if dir == "" {
 			panic("LOCALAPPDATA not set")
 		}
-		return path(dir, appName, fileName, makeDir)
+		return configPath(dir, appName, fileName, makeDir)
 	case "linux":
 		dir := os.Getenv("XDG_CACHE_HOME")
 		if dir == "" {
 			dir = filepath.Join(DefaultHomeDir(), ".cache")
 		}
-		return path(dir, appName, fileName, makeDir)
+		return configPath(dir, appName, fileName, makeDir)
 	default:
 		panic(fmt.Sprintf("unsupported platform %s", runtime.GOOS))
 	}
 }
 
-func path(dir string, appName string, fileName string, makeDir bool) (string, error) {
+func configPath(dir string, appName string, fileName string, makeDir bool) (string, error) {
 	if appName == "" {
 		return "", errors.Errorf("appName not specified")
 	}

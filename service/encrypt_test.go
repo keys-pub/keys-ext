@@ -402,12 +402,18 @@ func TestEncryptDecryptFile(t *testing.T) {
 	bobClient, bobClientCloseFn := newTestRPCClient(t, bobService)
 	defer bobClientCloseFn()
 
-	signer, err := decryptFile(bobClient, true, EncryptV2, outPath, decryptedPath)
+	dec, err := decryptFile(bobClient, true, EncryptV2, outPath, decryptedPath)
 	require.NoError(t, err)
-	require.NotNil(t, signer)
-	require.Equal(t, alice.ID().String(), signer.ID)
+	require.NotNil(t, dec.Signer)
+	require.Equal(t, alice.ID().String(), dec.Signer.ID)
 
 	bout, err := ioutil.ReadFile(decryptedPath)
 	require.NoError(t, err)
 	require.Equal(t, b, bout)
+	os.Remove(decryptedPath)
+
+	dec, err = decryptFile(bobClient, true, EncryptV2, outPath, "")
+	require.NoError(t, err)
+	require.Equal(t, filepath.Join(os.TempDir(), "test-1.txt"), dec.Out)
+	os.Remove(dec.Out)
 }

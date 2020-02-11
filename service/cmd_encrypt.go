@@ -116,12 +116,12 @@ func encryptCommands(client *Client) []cli.Command {
 			ArgsUsage: "<stdin or -in>",
 			Action: func(c *cli.Context) error {
 				if c.String("in") != "" && c.String("out") != "" {
-					signer, err := decryptFileForCLI(c, client)
+					dec, err := decryptFileForCLI(c, client)
 					if err != nil {
 						return err
 					}
-					if signer != nil {
-						fmtKey(os.Stdout, signer, "verified ")
+					if dec.Signer != nil {
+						fmtKey(os.Stdout, dec.Signer, "verified ")
 					}
 					return nil
 				}
@@ -243,7 +243,7 @@ func encryptFile(client *Client, recipients []string, signer string, armored boo
 	return nil
 }
 
-func decryptFileForCLI(c *cli.Context, client *Client) (*Key, error) {
+func decryptFileForCLI(c *cli.Context, client *Client) (*DecryptFileOutput, error) {
 	mode, err := modeFromString(c.String("mode"))
 	if err != nil {
 		return nil, err
@@ -251,14 +251,19 @@ func decryptFileForCLI(c *cli.Context, client *Client) (*Key, error) {
 	return decryptFile(client, c.Bool("armored"), mode, c.String("in"), c.String("out"))
 }
 
-func decryptFile(client *Client, armored bool, mode EncryptMode, in string, out string) (*Key, error) {
+func decryptFile(client *Client, armored bool, mode EncryptMode, in string, out string) (*DecryptFileOutput, error) {
+	if in == "" {
+		return nil, errors.Errorf("in not specified")
+	}
 	in, err := filepath.Abs(in)
 	if err != nil {
 		return nil, err
 	}
-	out, err = filepath.Abs(out)
-	if err != nil {
-		return nil, err
+	if out != "" {
+		out, err = filepath.Abs(out)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	decryptClient, err := client.ProtoClient().DecryptFile(context.TODO())
@@ -286,5 +291,5 @@ func decryptFile(client *Client, armored bool, mode EncryptMode, in string, out 
 	// 	return err
 	// }
 
-	return resp.Signer, nil
+	return resp, nil
 }

@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 	"os"
+	strings "strings"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/saltpack"
@@ -88,19 +89,27 @@ func (s *service) DecryptFile(srv Keys_DecryptFileServer) error {
 	if req.In == "" {
 		return errors.Errorf("in not specified")
 	}
-	if req.Out == "" {
-		return errors.Errorf("out not specified")
+	out := req.Out
+	if out == "" {
+		if strings.HasSuffix(req.In, ".enc") {
+			out = strings.TrimSuffix(req.In, ".enc")
+		}
+		out, err = nextPath(out)
+		if err != nil {
+			return err
+		}
 	}
 
 	dec := s.newDecrypt(srv.Context(), req.Armored, req.Mode)
 
-	signer, err := s.decryptWriteInOut(srv.Context(), req.In, req.Out, dec)
+	signer, err := s.decryptWriteInOut(srv.Context(), req.In, out, dec)
 	if err != nil {
 		return err
 	}
 
 	if err := srv.Send(&DecryptFileOutput{
 		Signer: signer,
+		Out:    out,
 	}); err != nil {
 		return err
 	}
