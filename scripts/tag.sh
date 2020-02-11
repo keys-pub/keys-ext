@@ -54,5 +54,10 @@ echo "Next: $next"
 # echo "git push --tags"
 # echo " "
 
+if [[ ! $next == v* ]]; then
+  echo "Tag should start with v"
+  exit 1
+fi
+
 echo "git tag -a $next -m $next"
 git tag -a $next -m $next
