@@ -129,11 +129,11 @@ func signCommands(client *Client) []cli.Command {
 						return err
 					}
 					if signer != "" {
-						if err := checkSigner(verified, signer); err != nil {
+						if err := checkSigner(verified.Signer, signer); err != nil {
 							return err
 						}
-					} else if verified != nil {
-						fmtKey(os.Stdout, verified, "verified ")
+					} else if verified.Signer != nil {
+						fmtKey(os.Stdout, verified.Signer, "verified ")
 					}
 					return nil
 				}
@@ -254,18 +254,23 @@ func signFile(client *Client, signer string, armored bool, detached bool, in str
 	return nil
 }
 
-func verifyFileForCLI(c *cli.Context, client *Client) (*Key, error) {
+func verifyFileForCLI(c *cli.Context, client *Client) (*VerifyFileOutput, error) {
 	return verifyFile(client, c.Bool("armored"), c.String("in"), c.String("out"))
 }
 
-func verifyFile(client *Client, armored bool, in string, out string) (*Key, error) {
+func verifyFile(client *Client, armored bool, in string, out string) (*VerifyFileOutput, error) {
+	if in == "" {
+		return nil, errors.Errorf("in not specified")
+	}
 	in, err := filepath.Abs(in)
 	if err != nil {
 		return nil, err
 	}
-	out, err = filepath.Abs(out)
-	if err != nil {
-		return nil, err
+	if out != "" {
+		out, err = filepath.Abs(out)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	verifyClient, err := client.ProtoClient().VerifyFile(context.TODO())
@@ -292,5 +297,5 @@ func verifyFile(client *Client, armored bool, in string, out string) (*Key, erro
 	// 	return err
 	// }
 
-	return resp.Signer, nil
+	return resp, nil
 }

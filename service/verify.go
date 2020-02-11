@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 	"os"
+	strings "strings"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/saltpack"
@@ -53,19 +54,27 @@ func (s *service) VerifyFile(srv Keys_VerifyFileServer) error {
 	if req.In == "" {
 		return errors.Errorf("in not specified")
 	}
-	if req.Out == "" {
-		return errors.Errorf("out not specified")
+	out := req.Out
+	if out == "" {
+		if strings.HasSuffix(req.In, ".sig") {
+			out = strings.TrimSuffix(req.In, ".sig")
+		}
+		out, err = nextPath(out)
+		if err != nil {
+			return err
+		}
 	}
 
 	ver := s.newVerify(req.Armored)
 
-	signer, err := s.verifyWriteInOut(srv.Context(), req.In, req.Out, ver)
+	signer, err := s.verifyWriteInOut(srv.Context(), req.In, out, ver)
 	if err != nil {
 		return err
 	}
 
 	if err := srv.Send(&VerifyFileOutput{
 		Signer: signer,
+		Out:    out,
 	}); err != nil {
 		return err
 	}

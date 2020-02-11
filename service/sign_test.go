@@ -192,12 +192,18 @@ func TestSignVerifyFile(t *testing.T) {
 	bobClient, bobClientCloseFn := newTestRPCClient(t, bobService)
 	defer bobClientCloseFn()
 
-	signer, err := verifyFile(bobClient, true, outPath, verifiedPath)
+	ver, err := verifyFile(bobClient, true, outPath, verifiedPath)
 	require.NoError(t, err)
-	require.NotNil(t, signer)
-	require.Equal(t, alice.ID().String(), signer.ID)
+	require.NotNil(t, ver.Signer)
+	require.Equal(t, alice.ID().String(), ver.Signer.ID)
 
 	bout, err := ioutil.ReadFile(verifiedPath)
 	require.NoError(t, err)
 	require.Equal(t, b, bout)
+	os.Remove(verifiedPath)
+
+	ver, err = verifyFile(bobClient, true, outPath, "")
+	require.NoError(t, err)
+	require.Equal(t, filepath.Join(os.TempDir(), "test-1.txt"), ver.Out)
+	os.Remove(ver.Out)
 }

@@ -155,8 +155,9 @@ message VerifyFileInput {
 
 message VerifyFileOutput {
   Key signer = 1;
-  int32 bytes = 2;
-  int32 total = 3;
+  string out = 2;
+  int32 bytes = 3;
+  int32 total = 4;
 }
 
 message Statement {
