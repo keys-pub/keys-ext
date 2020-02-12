@@ -3,7 +3,7 @@ module github.com/keys-pub/keysd
 go 1.12
 
 require (
-	github.com/keys-pub/keysd/service v0.0.0-20200211182257-76312f5fed53
+	github.com/keys-pub/keysd/service v0.0.0-20200212004923-c1f810ce92da
 	github.com/sirupsen/logrus v1.4.2
 	github.com/stretchr/testify v1.4.0
 	golang.org/x/sys v0.0.0-20200122134326-e047566fdf82 // indirect
