@@ -34,9 +34,13 @@ func startCommands() []cli.Command {
 				if err != nil {
 					return err
 				}
-				if err := start(cfg, true); err != nil {
+				// We autostart so we don't error if already started.
+				if err := autostart(cfg); err != nil {
 					return err
 				}
+				// if err := start(cfg, true); err != nil {
+				// 	return err
+				// }
 				fmt.Println("Started.")
 				return nil
 			},
