@@ -246,7 +246,7 @@ func (c *Config) SetServer(s string) {
 // Port returns port to use to connect to service.
 func (c Config) Port() int {
 	if c.values.Port == 0 {
-		return 10001
+		return 22405
 	}
 	return c.values.Port
 }

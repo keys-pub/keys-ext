@@ -16,7 +16,7 @@ func TestConfig(t *testing.T) {
 		require.NoError(t, removeErr)
 	}()
 	require.Equal(t, "KeysTest", cfg.AppName())
-	require.Equal(t, 10001, cfg.Port())
+	require.Equal(t, 22405, cfg.Port())
 
 	cfg.SetPort(3001)
 	err = cfg.Save()
