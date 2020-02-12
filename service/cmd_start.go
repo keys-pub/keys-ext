@@ -21,7 +21,7 @@ func startCommands() []cli.Command {
 				if restartErr != nil {
 					return restartErr
 				}
-				fmt.Printf("Restarted.\n")
+				fmt.Println("restarted")
 				return nil
 			},
 		},
@@ -34,14 +34,10 @@ func startCommands() []cli.Command {
 				if err != nil {
 					return err
 				}
-				// We autostart so we don't error if already started.
-				if err := autostart(cfg); err != nil {
+				if err := start(cfg, true); err != nil {
 					return err
 				}
-				// if err := start(cfg, true); err != nil {
-				// 	return err
-				// }
-				fmt.Println("Started.")
+				fmt.Println("started")
 				return nil
 			},
 		},
@@ -57,7 +53,7 @@ func startCommands() []cli.Command {
 				if err := stop(cfg); err != nil {
 					return err
 				}
-				fmt.Println("Stopped.")
+				fmt.Println("stopped")
 				return nil
 			},
 		},
