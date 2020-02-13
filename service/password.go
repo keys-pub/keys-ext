@@ -50,6 +50,10 @@ func readPassword(prompt string) (string, error) {
 		return "", err
 	}
 
+	if len(p) == 0 {
+		return "", errors.Errorf("empty password")
+	}
+
 	// Return the password as a string.
 	return string(p), nil
 }
