@@ -1,17 +1,12 @@
 package service
 
 import (
-	"bytes"
 	"context"
-	"fmt"
-	"os"
 	"sync"
-	"syscall"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/keyring"
 	"github.com/pkg/errors"
-	"golang.org/x/crypto/ssh/terminal"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -241,38 +236,6 @@ func (s *service) AuthLock(ctx context.Context, req *AuthLockRequest) (*AuthLock
 	s.Close()
 
 	return &AuthLockResponse{}, nil
-}
-
-func readPassword(label string, verify bool) ([]byte, error) {
-	if !terminal.IsTerminal(int(syscall.Stdin)) {
-		return nil, errors.Errorf("failed to read password from terminal: not a terminal or terminal not supported; use --password option when calling `keys auth`.")
-	}
-	fmt.Fprintf(os.Stderr, label)
-	password, err := terminal.ReadPassword(int(syscall.Stdin))
-	fmt.Fprintf(os.Stderr, "\n")
-	if err != nil {
-		return nil, err
-	}
-	if len(password) == 0 {
-		return nil, errors.Errorf("no password")
-	}
-	if len(password) < 10 {
-		return nil, errors.Errorf("password is too short")
-	}
-
-	if verify {
-		fmt.Fprintf(os.Stderr, "Re-enter the password:")
-		password2, err := terminal.ReadPassword(int(syscall.Stdin))
-		fmt.Fprintf(os.Stderr, "\n")
-		if err != nil {
-			return nil, err
-		}
-		if !bytes.Equal(password, password2) {
-			return nil, errors.Errorf("passwords don't match")
-		}
-	}
-
-	return password, nil
 }
 
 type testClientAuth struct {

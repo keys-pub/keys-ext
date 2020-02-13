@@ -11,7 +11,7 @@ func pullCommands(client *Client) []cli.Command {
 	return []cli.Command{
 		cli.Command{
 			Name:  "pull",
-			Usage: "Pull sigchain to the key server",
+			Usage: "Pull from the key server",
 			Flags: []cli.Flag{
 				cli.StringFlag{Name: "kid, k", Usage: "kid"},
 				cli.StringFlag{Name: "user, u", Usage: "user, eg. gabriel@github"},
@@ -37,7 +37,7 @@ func pullCommands(client *Client) []cli.Command {
 		},
 		cli.Command{
 			Name:    "push",
-			Usage:   "Publish sigchain to the key server",
+			Usage:   "Publish to the key server",
 			Aliases: []string{"publish"},
 			Flags: []cli.Flag{
 				cli.StringFlag{Name: "kid, k", Usage: "kid"},

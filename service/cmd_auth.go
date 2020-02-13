@@ -28,7 +28,7 @@ func authCommands(client *Client) []cli.Command {
 				setupNeeded := status.AuthSetupNeeded
 				logger.Infof("Auth setup needed? %t", setupNeeded)
 
-				password := []byte(c.String("password"))
+				password := c.String("password")
 
 				var authToken string
 				if setupNeeded {
@@ -36,15 +36,15 @@ func authCommands(client *Client) []cli.Command {
 
 					if len(password) == 0 {
 						fmt.Fprintf(os.Stderr, "OK, let's create a password.\n")
-						var err error
-						password, err = readPassword("Create a password:", true)
+						p, err := readVerifyPassword("Create a password:")
 						if err != nil {
 							return err
 						}
+						password = p
 					}
 
 					setupResp, err := client.ProtoClient().AuthSetup(context.TODO(), &AuthSetupRequest{
-						Password: string(password),
+						Password: password,
 					})
 					if err != nil {
 						return err
@@ -53,16 +53,16 @@ func authCommands(client *Client) []cli.Command {
 
 				} else {
 					if len(password) == 0 {
-						var err error
-						password, err = readPassword("Enter your password:", false)
+						p, err := readPassword("Enter your password:")
 						if err != nil {
 							return err
 						}
+						password = p
 					}
 
 					logger.Infof("Auth unlock...")
 					unlock, unlockErr := client.ProtoClient().AuthUnlock(context.TODO(), &AuthUnlockRequest{
-						Password: string(password),
+						Password: password,
 						Client:   "cli",
 					})
 					if unlockErr != nil {

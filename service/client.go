@@ -171,6 +171,8 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 	cmds = append(cmds, sigchainCommands(client)...)
 	cmds = append(cmds, encryptCommands(client)...)
 	cmds = append(cmds, pullCommands(client)...)
+	cmds = append(cmds, importCommands(client)...)
+	cmds = append(cmds, exportCommands(client)...)
 	cmds = append(cmds, dbCommands(client)...)
 	cmds = append(cmds, otherCommands(client)...)
 	cmds = append(cmds, userCommands(client)...)

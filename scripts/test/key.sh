@@ -7,13 +7,13 @@ kid=`keys generate`
 echo "gen $kid"
 
 echo "export"
-keys export -kid $kid > key.txt
+keys export -kid $kid -password "testpassword123" > key.txt
 
 echo "remove $kid"
 keys remove -kid "$kid"
 
 echo "import"
-cat key.txt | keys import 
+cat key.txt | keys import -password "testpassword123"
 
 echo "remove $kid"
 keys remove "$kid"

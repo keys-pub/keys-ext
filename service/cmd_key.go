@@ -1,12 +1,9 @@
 package service
 
 import (
-	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"os"
 	strings "strings"
 
 	"github.com/pkg/errors"
@@ -92,51 +89,6 @@ func keyCommands(client *Client) []cli.Command {
 					Type: EdX25519,
 				}
 				resp, err := client.ProtoClient().KeyGenerate(context.TODO(), req)
-				if err != nil {
-					return err
-				}
-				fmt.Println(resp.KID)
-				return nil
-			},
-		},
-		cli.Command{
-			Name:  "export",
-			Usage: "Export a key",
-			Flags: []cli.Flag{
-				cli.StringFlag{Name: "kid, k", Usage: "kid"},
-				cli.StringFlag{Name: "password, p", Usage: "password"},
-			},
-			Action: func(c *cli.Context) error {
-				kid, err := argString(c, "kid", false)
-				if err != nil {
-					return err
-				}
-				req := &KeyExportRequest{
-					KID:      kid,
-					Password: c.String("password"),
-					Type:     SaltpackExportType,
-				}
-				resp, err := client.ProtoClient().KeyExport(context.TODO(), req)
-				if err != nil {
-					return err
-				}
-				fmt.Println(string(resp.Export))
-				return nil
-			},
-		},
-		cli.Command{
-			Name:  "import",
-			Usage: "Import a key",
-			Flags: []cli.Flag{},
-			Action: func(c *cli.Context) error {
-				in, err := ioutil.ReadAll(bufio.NewReader(os.Stdin))
-				if err != nil {
-					return err
-				}
-				req := &KeyImportRequest{
-					In: in,
-				}
-				resp, err := client.ProtoClient().KeyImport(context.TODO(), req)
 				if err != nil {
 					return err
 				}
