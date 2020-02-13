@@ -15,55 +15,61 @@ import (
 func dbCommands(client *Client) []cli.Command {
 	return []cli.Command{
 		cli.Command{
-			Name:      "collections",
-			Usage:     "List collections",
-			Flags:     []cli.Flag{},
-			ArgsUsage: "",
-			Action: func(c *cli.Context) error {
-				if c.NArg() > 1 {
-					return errors.Errorf("too many arguments")
-				}
-				path := c.Args().First()
-				req := &CollectionsRequest{
-					Path: path,
-				}
-				resp, err := client.ProtoClient().Collections(context.TODO(), req)
-				if err != nil {
-					return err
-				}
-				fmtCollections(resp.Collections)
-				return nil
-			},
-		},
-		cli.Command{
-			Name:      "documents",
-			Usage:     "List documents",
-			Flags:     []cli.Flag{},
-			ArgsUsage: "<collection>",
-			Action: func(c *cli.Context) error {
-				if c.NArg() > 1 {
-					return errors.Errorf("too many arguments")
-				}
-				path := strings.TrimSpace(c.Args().First())
+			Name:  "db",
+			Usage: "DB",
+			Subcommands: []cli.Command{
+				cli.Command{
+					Name:      "collections",
+					Usage:     "List collections",
+					Flags:     []cli.Flag{},
+					ArgsUsage: "",
+					Action: func(c *cli.Context) error {
+						if c.NArg() > 1 {
+							return errors.Errorf("too many arguments")
+						}
+						path := c.Args().First()
+						req := &CollectionsRequest{
+							Path: path,
+						}
+						resp, err := client.ProtoClient().Collections(context.TODO(), req)
+						if err != nil {
+							return err
+						}
+						fmtCollections(resp.Collections)
+						return nil
+					},
+				},
+				cli.Command{
+					Name:      "documents",
+					Usage:     "List documents",
+					Flags:     []cli.Flag{},
+					ArgsUsage: "<collection>",
+					Action: func(c *cli.Context) error {
+						if c.NArg() > 1 {
+							return errors.Errorf("too many arguments")
+						}
+						path := strings.TrimSpace(c.Args().First())
 
-				if path == "" {
-					resp, err := client.ProtoClient().Collections(context.TODO(), &CollectionsRequest{})
-					if err != nil {
-						return err
-					}
-					fmtCollections(resp.Collections)
-					return nil
-				}
+						if path == "" {
+							resp, err := client.ProtoClient().Collections(context.TODO(), &CollectionsRequest{})
+							if err != nil {
+								return err
+							}
+							fmtCollections(resp.Collections)
+							return nil
+						}
 
-				req := &DocumentsRequest{
-					Path: path,
-				}
-				resp, err := client.ProtoClient().Documents(context.TODO(), req)
-				if err != nil {
-					return err
-				}
-				fmtDocuments(resp.Documents)
-				return nil
+						req := &DocumentsRequest{
+							Path: path,
+						}
+						resp, err := client.ProtoClient().Documents(context.TODO(), req)
+						if err != nil {
+							return err
+						}
+						fmtDocuments(resp.Documents)
+						return nil
+					},
+				},
 			},
 		},
 	}
