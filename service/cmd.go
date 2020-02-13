@@ -9,8 +9,6 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	colors "github.com/logrusorgru/aurora"
-
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
@@ -66,13 +64,13 @@ func fmtUser(user *User) string {
 	s := fmt.Sprintf("%s@%s", user.Name, user.Service)
 	switch user.Status {
 	case UserStatusOK:
-		return colors.Green(s).String()
-	case UserStatusUnknown:
 		return s
+	case UserStatusUnknown:
+		return fmt.Sprintf("unknown:%s", s)
 	case UserStatusConnFailure:
-		return colors.Yellow(s).String()
+		return fmt.Sprintf("connfail:%s", s)
 	default:
-		return colors.Red(s).String()
+		return fmt.Sprintf("failed:%s", s)
 	}
 }
 
