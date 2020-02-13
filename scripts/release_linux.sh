@@ -11,8 +11,11 @@ cd "$tmpdir"
 git clone https://github.com/keys-pub/keysd
 cd keysd
 
-goreleaser --config=.goreleaser.linux.yml --rm-dist
 ver=`git describe --abbrev=0 --tags`
+echo "Latest tag: $ver"
+git checkout $ver
+
+goreleaser --config=.goreleaser.linux.yml --rm-dist
 $dir/aptly.sh $ver
 
 # Cleanup
