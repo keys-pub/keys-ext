@@ -16,7 +16,7 @@ func importCommands(client *Client) []cli.Command {
 		cli.Command{
 			Name:      "import",
 			Usage:     "Import a key",
-			ArgsUsage: "<stdin or -in>",
+			ArgsUsage: "stdin or -in",
 			Flags: []cli.Flag{
 				cli.StringFlag{Name: "in, i", Usage: "file to read or stdin if not specified"},
 				cli.StringFlag{Name: "password, p", Usage: "password"},

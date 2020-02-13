@@ -15,12 +15,22 @@ func TestPush(t *testing.T) {
 	testImportKey(t, service, alice)
 	ctx := context.TODO()
 
-	_, err := service.Push(ctx, &PushRequest{KID: alice.ID().String()})
+	_, err := service.Push(ctx, &PushRequest{Identity: alice.ID().String()})
 	require.EqualError(t, err, "nothing to push")
 
 	testUserSetupGithub(t, env, service, alice, "alice")
 
-	resp, err := service.Push(ctx, &PushRequest{KID: alice.ID().String()})
+	res, err := service.users.User(ctx, "alice@github")
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.Equal(t, alice.ID(), res.User.KID)
+
+	resp, err := service.Push(ctx, &PushRequest{Identity: alice.ID().String()})
 	require.NoError(t, err)
 	require.Equal(t, alice.ID().String(), resp.KID)
+
+	users, err := service.searchUsersRemote(ctx, "alice@github", 1)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(users))
+	require.Equal(t, alice.ID(), users[0].KID)
 }

@@ -43,7 +43,7 @@ func dbCommands(client *Client) []cli.Command {
 					Name:      "documents",
 					Usage:     "List documents",
 					Flags:     []cli.Flag{},
-					ArgsUsage: "<collection>",
+					ArgsUsage: "collection",
 					Action: func(c *cli.Context) error {
 						if c.NArg() > 1 {
 							return errors.Errorf("too many arguments")

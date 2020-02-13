@@ -39,7 +39,7 @@ func signCommands(client *Client) []cli.Command {
 		cli.Command{
 			Name:      "sign",
 			Usage:     "Create a signed message",
-			ArgsUsage: "<stdin or -in>",
+			ArgsUsage: "stdin or -in",
 			Flags: []cli.Flag{
 				cli.StringFlag{Name: "signer, s", Usage: "signer"},
 				cli.BoolFlag{Name: "armor, a", Usage: "armored string output"},
@@ -113,7 +113,7 @@ func signCommands(client *Client) []cli.Command {
 		cli.Command{
 			Name:      "verify",
 			Usage:     "Verify a signed message",
-			ArgsUsage: "<message>",
+			ArgsUsage: "message",
 			Flags: []cli.Flag{
 				cli.StringFlag{Name: "signer, s", Usage: "expected signer"},
 				cli.BoolFlag{Name: "armor, a"},

@@ -49,20 +49,16 @@ func keyCommands(client *Client) []cli.Command {
 			},
 		},
 		cli.Command{
-			Name:  "key",
-			Usage: "Show key",
-			Flags: []cli.Flag{
-				cli.StringFlag{Name: "kid, k"},
-				cli.StringFlag{Name: "user, u"},
-			},
+			Name:      "key",
+			Usage:     "Show key",
+			ArgsUsage: "kid or user",
 			Action: func(c *cli.Context) error {
-				kid, err := argString(c, "kid", false)
-				if err != nil {
-					return err
+				identity := c.Args().First()
+				if identity == "" {
+					return errors.Errorf("specify kid or user")
 				}
 				resp, err := client.ProtoClient().Key(context.TODO(), &KeyRequest{
-					KID:  kid,
-					User: c.String("user"),
+					Identity: identity,
 				})
 				if err != nil {
 					return err

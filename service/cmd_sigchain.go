@@ -79,7 +79,7 @@ func sigchainCommands(client *Client) []cli.Command {
 						cli.Command{
 							Name:      "add",
 							Usage:     "Add a signed statement to a sigchain (from stdin)",
-							ArgsUsage: "<stdin>",
+							ArgsUsage: "stdin",
 							Flags: []cli.Flag{
 								cli.StringFlag{Name: "kid, k"},
 								cli.BoolFlag{Name: "local", Usage: "Don't save to the key server"},

@@ -101,6 +101,8 @@ func Run(build Build) {
 		os.Exit(0)
 	}
 
+	// TODO: Disable logging by default
+
 	lg, lgi := setupLogging(cfg, *logPath)
 	SetLogger(lg)
 	keys.SetLogger(lg)

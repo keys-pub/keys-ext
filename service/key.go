@@ -9,22 +9,9 @@ import (
 
 // Key (RPC) ...
 func (s *service) Key(ctx context.Context, req *KeyRequest) (*KeyResponse, error) {
-	var kid keys.ID
-	if req.User != "" {
-		usr, err := s.searchUserExact(ctx, req.User, true)
-		if err != nil {
-			return nil, err
-		}
-		if usr == nil {
-			return &KeyResponse{}, nil
-		}
-		kid = usr.User.KID
-	} else {
-		k, err := s.parseKID(req.KID)
-		if err != nil {
-			return nil, err
-		}
-		kid = k
+	kid, err := s.parseIdentity(context.TODO(), req.Identity)
+	if err != nil {
+		return nil, err
 	}
 
 	if req.Update {

@@ -33,7 +33,7 @@ func TestPull(t *testing.T) {
 	testPush(t, bobService, bob)
 
 	// Alice (pull bob)
-	resp, err := aliceService.Pull(ctx, &PullRequest{KID: bob.ID().String()})
+	resp, err := aliceService.Pull(ctx, &PullRequest{Identity: bob.ID().String()})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(resp.KIDs))
 	require.Equal(t, bob.ID().String(), resp.KIDs[0])
@@ -51,8 +51,8 @@ func TestPull(t *testing.T) {
 	testUserSetupGithub(t, env, charlieService, charlie, "charlie")
 	testPush(t, charlieService, charlie)
 
-	// Charlie pull (alice)
-	resp, err = charlieService.Pull(ctx, &PullRequest{User: "alice@github"})
+	// Charlie (pull alice@github)
+	resp, err = charlieService.Pull(ctx, &PullRequest{Identity: "alice@github"})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(resp.KIDs))
 	require.Equal(t, alice.ID().String(), resp.KIDs[0])
@@ -61,4 +61,10 @@ func TestPull(t *testing.T) {
 	require.Equal(t, 2, len(respKeys.Keys))
 	require.Equal(t, alice.ID().String(), respKeys.Keys[0].ID)
 	require.Equal(t, charlie.ID().String(), respKeys.Keys[1].ID)
+
+	// Alice (pull alice@github)
+	resp, err = aliceService.Pull(ctx, &PullRequest{Identity: "alice@github"})
+	require.NoError(t, err)
+	require.Equal(t, 1, len(resp.KIDs))
+	require.Equal(t, alice.ID().String(), resp.KIDs[0])
 }

@@ -194,8 +194,8 @@ func usersToRPC(in []*keys.User) []*User {
 	return users
 }
 
-func (s *service) searchUserExact(ctx context.Context, query string, local bool) (*keys.UserResult, error) {
-	res, err := s.searchUser(ctx, query, 0, local)
+func (s *service) searchUserRemoteExact(ctx context.Context, query string) (*keys.UserResult, error) {
+	res, err := s.searchUser(ctx, query, 0, false)
 	if err != nil {
 		return nil, err
 	}
@@ -207,18 +207,20 @@ func (s *service) searchUserExact(ctx context.Context, query string, local bool)
 
 func (s *service) searchUser(ctx context.Context, query string, limit int, local bool) ([]*keys.UserSearchResult, error) {
 	if local {
-		return s.searchUserLocal(ctx, query, limit)
+		return s.searchUsersLocal(ctx, query, limit)
 	}
-	return s.searchUserRemote(ctx, query, limit)
+	return s.searchUsersRemote(ctx, query, limit)
 }
 
-func (s *service) searchUserLocal(ctx context.Context, query string, limit int) ([]*keys.UserSearchResult, error) {
+func (s *service) searchUsersLocal(ctx context.Context, query string, limit int) ([]*keys.UserSearchResult, error) {
 	query = strings.TrimSpace(query)
+	logger.Infof("Search users local %q", query)
 	return s.users.Search(ctx, &keys.UserSearchRequest{Query: query, Limit: limit})
 }
 
-func (s *service) searchUserRemote(ctx context.Context, query string, limit int) ([]*keys.UserSearchResult, error) {
+func (s *service) searchUsersRemote(ctx context.Context, query string, limit int) ([]*keys.UserSearchResult, error) {
 	query = strings.TrimSpace(query)
+	logger.Infof("Search users remote %q", query)
 	resp, err := s.remote.UserSearch(query, limit)
 	if err != nil {
 		return nil, err
@@ -226,27 +228,47 @@ func (s *service) searchUserRemote(ctx context.Context, query string, limit int)
 	return resp.Results, nil
 }
 
-func (s *service) parseIdentity(ctx context.Context, rec string) (keys.ID, error) {
-	if rec == "" {
-		return "", nil
+func (s *service) parseIdentity(ctx context.Context, identity string) (keys.ID, error) {
+	return s.loadIdentity(ctx, identity, false)
+}
+
+func (s *service) searchIdentity(ctx context.Context, identity string) (keys.ID, error) {
+	return s.loadIdentity(ctx, identity, true)
+}
+
+func (s *service) loadIdentity(ctx context.Context, identity string, searchRemote bool) (keys.ID, error) {
+	if identity == "" {
+		return "", errors.Errorf("no identity specified")
 	}
-	if strings.Contains(rec, "@") {
-		res, err := s.users.User(ctx, rec)
+	if strings.Contains(identity, "@") {
+		logger.Infof("Looking for user %q", identity)
+		res, err := s.users.User(ctx, identity)
 		if err != nil {
 			return "", err
 		}
 		if res == nil {
-			return "", keys.NewErrNotFound(rec)
+			logger.Infof("User not found %s", identity)
+			if searchRemote {
+				usr, err := s.searchUserRemoteExact(ctx, identity)
+				if err != nil {
+					return "", err
+				}
+				if usr == nil {
+					return "", keys.NewErrNotFound(identity)
+				}
+				return usr.User.KID, nil
+			}
+			return "", keys.NewErrNotFound(identity)
 		}
 		if res.Status != keys.UserStatusOK {
-			return "", errors.Errorf("user %s has failed status %s", rec, res.Status)
+			return "", errors.Errorf("user %s has failed status %s", identity, res.Status)
 		}
 		return res.User.KID, nil
 	}
 
-	id, err := keys.ParseID(rec)
+	id, err := keys.ParseID(identity)
 	if err != nil {
-		return "", errors.Errorf("failed to parse id  %s", rec)
+		return "", errors.Errorf("failed to parse id %s", identity)
 	}
 	return id, nil
 }

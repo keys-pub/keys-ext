@@ -10,12 +10,12 @@ import (
 
 // Push (RPC) publishes sigchain statements.
 func (s *service) Push(ctx context.Context, req *PushRequest) (*PushResponse, error) {
-	key, err := s.parseSignKey(req.KID, true)
+	kid, err := s.parseIdentity(context.TODO(), req.Identity)
 	if err != nil {
 		return nil, err
 	}
 
-	urls, err := s.push(ctx, key.ID())
+	urls, err := s.push(ctx, kid)
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +25,7 @@ func (s *service) Push(ctx context.Context, req *PushRequest) (*PushResponse, er
 	}
 
 	return &PushResponse{
-		KID:  key.ID().String(),
+		KID:  kid.String(),
 		URLs: urls,
 	}, nil
 }

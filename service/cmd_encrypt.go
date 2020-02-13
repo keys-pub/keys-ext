@@ -27,7 +27,7 @@ func encryptCommands(client *Client) []cli.Command {
 		cli.Command{
 			Name:      "encrypt",
 			Usage:     "Encrypt",
-			ArgsUsage: "<stdin or -in>",
+			ArgsUsage: "stdin or -in",
 			Flags: []cli.Flag{
 				cli.StringSliceFlag{Name: "recipients, r", Usage: "recipients"},
 				cli.StringFlag{Name: "signer, s", Usage: "signer (or anonymous if not specified)"},
@@ -113,7 +113,7 @@ func encryptCommands(client *Client) []cli.Command {
 				cli.StringFlag{Name: "out, o", Usage: "file to write or stdout if not specified"},
 				cli.StringFlag{Name: "mode, m", Usage: "encryption mode: encrypt (default) or signcrypt"},
 			},
-			ArgsUsage: "<stdin or -in>",
+			ArgsUsage: "stdin or -in",
 			Action: func(c *cli.Context) error {
 				if c.String("in") != "" && c.String("out") != "" {
 					dec, err := decryptFileForCLI(c, client)

@@ -108,7 +108,7 @@ func TestMessages(t *testing.T) {
 	require.Equal(t, "am2", messagesResp2.Messages[1].Content.Text)
 	require.Equal(t, "bm1", messagesResp2.Messages[2].Content.Text)
 
-	_, err = bobService.Pull(ctx, &PullRequest{KID: alice.ID().String()})
+	_, err = bobService.Pull(ctx, &PullRequest{Identity: alice.ID().String()})
 	require.NoError(t, err)
 
 	// Bob lists messages

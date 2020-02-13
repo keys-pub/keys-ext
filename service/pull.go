@@ -9,8 +9,8 @@ import (
 
 // Pull (RPC)
 func (s *service) Pull(ctx context.Context, req *PullRequest) (*PullResponse, error) {
-	if req.KID != "" {
-		kid, err := keys.ParseID(req.KID)
+	if req.Identity != "" {
+		kid, err := s.searchIdentity(context.TODO(), req.Identity)
 		if err != nil {
 			return nil, err
 		}
@@ -19,25 +19,9 @@ func (s *service) Pull(ctx context.Context, req *PullRequest) (*PullResponse, er
 			return nil, err
 		}
 		if !ok {
-			return nil, keys.NewErrNotFound(req.KID)
+			return nil, keys.NewErrNotFound(kid.String())
 		}
 		return &PullResponse{KIDs: []string{kid.String()}}, nil
-	} else if req.User != "" {
-		usr, err := s.searchUserExact(ctx, req.User, false)
-		if err != nil {
-			return nil, err
-		}
-		if usr == nil {
-			return &PullResponse{}, nil
-		}
-		ok, err := s.pull(ctx, usr.User.KID)
-		if err != nil {
-			return nil, err
-		}
-		if !ok {
-			return nil, errors.Errorf("%s not found", req.User)
-		}
-		return &PullResponse{KIDs: []string{usr.User.KID.String()}}, nil
 	}
 
 	// Update existing if no kid or user specified

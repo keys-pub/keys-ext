@@ -4,26 +4,20 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
 
 func pullCommands(client *Client) []cli.Command {
 	return []cli.Command{
 		cli.Command{
-			Name:  "pull",
-			Usage: "Pull from the key server",
-			Flags: []cli.Flag{
-				cli.StringFlag{Name: "kid, k", Usage: "kid"},
-				cli.StringFlag{Name: "user, u", Usage: "user, eg. gabriel@github"},
-			},
+			Name:      "pull",
+			Usage:     "Pull from the key server",
+			ArgsUsage: "kid or user (optional)",
 			Action: func(c *cli.Context) error {
-				kid, err := argString(c, "kid", false)
-				if err != nil {
-					return err
-				}
+				identity := c.Args().First()
 				req := &PullRequest{
-					KID:  kid,
-					User: c.String("user"),
+					Identity: identity,
 				}
 				resp, err := client.ProtoClient().Pull(context.TODO(), req)
 				if err != nil {
@@ -36,19 +30,17 @@ func pullCommands(client *Client) []cli.Command {
 			},
 		},
 		cli.Command{
-			Name:    "push",
-			Usage:   "Publish to the key server",
-			Aliases: []string{"publish"},
-			Flags: []cli.Flag{
-				cli.StringFlag{Name: "kid, k", Usage: "kid"},
-			},
+			Name:      "push",
+			Usage:     "Publish to the key server",
+			ArgsUsage: "kid or user",
+			Aliases:   []string{"publish"},
 			Action: func(c *cli.Context) error {
-				kid, err := argString(c, "kid", false)
-				if err != nil {
-					return err
+				identity := c.Args().First()
+				if identity == "" {
+					return errors.Errorf("specify kid or user")
 				}
 				req := &PushRequest{
-					KID: kid,
+					Identity: identity,
 				}
 				resp, err := client.ProtoClient().Push(context.TODO(), req)
 				if err != nil {

@@ -492,8 +492,7 @@ message Key {
 }
 
 message KeyRequest {
-  string kid = 1 [(gogoproto.customname) = "KID"];
-  string user = 2;
+  string identity = 1;
   bool update = 5;
 }
 
@@ -564,32 +563,19 @@ message RandResponse {
 }
 
 message PullRequest {
-  string kid = 1 [(gogoproto.customname) = "KID"];
-  string user = 2;
+  string identity = 1;  
 }
 message PullResponse {
   repeated string kids = 1 [(gogoproto.customname) = "KIDs"];
 }
 
 message PushRequest {
-  string kid = 1 [(gogoproto.customname) = "KID"];
+  string identity = 1;
 }
 message PushResponse {
   string kid = 1 [(gogoproto.customname) = "KID"];
   repeated string urls = 2 [(gogoproto.customname) = "URLs"];
 }
-
-message KeyShareRequest {
-  string kid = 1 [(gogoproto.customname) = "KID"];
-  string recipient = 2;
-}
-message KeyShareResponse {}
-
-message KeyRetrieveRequest {
-  string kid = 1 [(gogoproto.customname) = "KID"];
-  string recipient = 2;
-}
-message KeyRetrieveResponse {}
 
 message Collection {
   string path = 1;

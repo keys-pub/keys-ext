@@ -26,14 +26,14 @@ func TestKey(t *testing.T) {
 
 	// Alice
 	resp, err := service.Key(ctx, &KeyRequest{
-		KID: alice.ID().String(),
+		Identity: alice.ID().String(),
 	})
 	require.NoError(t, err)
 	require.Equal(t, alice.ID().String(), resp.Key.ID)
 
 	// Alice (user)
 	resp, err = service.Key(ctx, &KeyRequest{
-		User: "alice@github",
+		Identity: "alice@github",
 	})
 	require.NoError(t, err)
 	require.NotNil(t, resp.Key)

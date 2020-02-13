@@ -142,14 +142,14 @@ func testRemoveKey(t *testing.T, service *service, key *keys.SignKey) {
 
 func testPush(t *testing.T, service *service, key *keys.SignKey) {
 	_, err := service.Push(context.TODO(), &PushRequest{
-		KID: key.ID().String(),
+		Identity: key.ID().String(),
 	})
 	require.NoError(t, err)
 }
 
 func testPull(t *testing.T, service *service, kid keys.ID) {
 	_, err := service.Pull(context.TODO(), &PullRequest{
-		KID: kid.String(),
+		Identity: kid.String(),
 	})
 	require.NoError(t, err)
 }

@@ -21,7 +21,7 @@ func configCommands(client *Client) []cli.Command {
   - port <number>
   - skipUserSetup <bool>
 `,
-					ArgsUsage: "<key> <value>",
+					ArgsUsage: "key value",
 					Action: func(c *cli.Context) error {
 						if c.NArg() != 2 {
 							return errors.Errorf("not enough arguments")
