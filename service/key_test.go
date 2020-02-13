@@ -63,7 +63,7 @@ func TestFmtKey(t *testing.T) {
 	require.NoError(t, err)
 	var buf2 bytes.Buffer
 	fmtKey(&buf2, ak2, "verified ")
-	require.Equal(t, "verified kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077 \x1b[32malice@github\x1b[0m\n", buf2.String())
+	require.Equal(t, "verified kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077 alice@github\n", buf2.String())
 }
 
 func TestKeyGenerate(t *testing.T) {
