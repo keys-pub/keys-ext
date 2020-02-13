@@ -100,7 +100,7 @@ func (s *service) Close() {
 	s.openMtx.Lock()
 	defer s.openMtx.Unlock()
 	if !s.open {
-		logger.Warningf("Service already closed")
+		logger.Infof("Service already closed")
 		return
 	}
 	s.close()
