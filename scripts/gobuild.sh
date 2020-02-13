@@ -23,6 +23,9 @@ echoerr() {
 
 commit=`git rev-parse --short HEAD`
 
+echo "Using go at `which go`"
+echo "Go version: `go version`"
+
 # Build
 echoerr "Building $bin from $pkg ($version $commit $date)"
 (cd "$pkg" && go build -ldflags "-X main.version=$version -X main.commit=$commit -X main.date=$date" . && mv $bin "$tmpdir")
