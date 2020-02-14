@@ -31,8 +31,13 @@ func (s *Server) getUserSearch(c echo.Context) error {
 		return internalError(c, err)
 	}
 
+	users := make([]*api.User, 0, len(results))
+	for _, res := range results {
+		users = append(users, api.UserFromResult(res.UserResult))
+	}
+
 	resp := api.UserSearchResponse{
-		Results: results,
+		Users: users,
 	}
 	return JSON(c, http.StatusOK, resp)
 }
@@ -56,7 +61,7 @@ func (s *Server) getUser(c echo.Context) error {
 	}
 
 	resp := api.UserResponse{
-		UserResult: userResult,
+		User: api.UserFromResult(userResult),
 	}
 	return JSON(c, http.StatusOK, resp)
 }
