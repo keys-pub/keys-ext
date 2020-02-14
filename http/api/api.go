@@ -82,7 +82,7 @@ func UserFromResult(result *keys.UserResult) *User {
 	}
 	return &User{
 		ID:         result.User.Name + "@" + result.User.Service,
-		KID:        result.User.KID.String(),
+		KID:        result.User.KID,
 		Seq:        int32(result.User.Seq),
 		Service:    result.User.Service,
 		Name:       result.User.Name,
@@ -97,7 +97,7 @@ func UserFromResult(result *keys.UserResult) *User {
 type User struct {
 	ID         string          `json:"id,omitempty"`
 	Name       string          `json:"name,omitempty"`
-	KID        string          `json:"kid,omitempty"`
+	KID        keys.ID         `json:"kid,omitempty"`
 	Seq        int32           `json:"seq,omitempty"`
 	Service    string          `json:"service,omitempty"`
 	URL        string          `json:"url,omitempty"`
