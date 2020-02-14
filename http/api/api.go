@@ -75,6 +75,47 @@ func (r SigchainsResponse) MetadataFor(st *keys.Statement) Metadata {
 	return md
 }
 
+// UserFromResult returns User from keys.UserResult.
+func UserFromResult(result *keys.UserResult) *User {
+	if result == nil {
+		return nil
+	}
+	return &User{
+		ID:         result.User.Name + "@" + result.User.Service,
+		KID:        result.User.KID.String(),
+		Seq:        int32(result.User.Seq),
+		Service:    result.User.Service,
+		Name:       result.User.Name,
+		URL:        result.User.URL,
+		Status:     result.Status,
+		VerifiedAt: int64(result.VerifiedAt),
+		Err:        result.Err,
+	}
+}
+
+// User ...
+type User struct {
+	ID         string          `json:"id,omitempty"`
+	Name       string          `json:"name,omitempty"`
+	KID        string          `json:"kid,omitempty"`
+	Seq        int32           `json:"seq,omitempty"`
+	Service    string          `json:"service,omitempty"`
+	URL        string          `json:"url,omitempty"`
+	Status     keys.UserStatus `json:"status,omitempty"`
+	VerifiedAt int64           `json:"verifiedAt,omitempty"`
+	Err        string          `json:"err,omitempty"`
+}
+
+// UserResponse ...
+type UserResponse struct {
+	User *User `json:"user"`
+}
+
+// UserSearchResponse ...
+type UserSearchResponse struct {
+	Users []*User `json:"users"`
+}
+
 // Message ...
 type Message struct {
 	Data []byte `json:"data"`
@@ -93,40 +134,6 @@ type MessagesResponse struct {
 // MetadataFor returns metadata for Message.
 func (r MessagesResponse) MetadataFor(msg *Message) Metadata {
 	md, ok := r.Metadata[msg.Path]
-	if !ok {
-		return Metadata{}
-	}
-	return md
-}
-
-// UserResponse ...
-type UserResponse struct {
-	UserResult *keys.UserResult `json:"result"`
-}
-
-// UserSearchResponse ...
-type UserSearchResponse struct {
-	Results []*keys.UserSearchResult `json:"results"`
-}
-
-// Item ...
-type Item struct {
-	Data []byte `json:"data"`
-	ID   string `json:"id"`
-	Path string `json:"path"`
-}
-
-// VaultResponse ...
-type VaultResponse struct {
-	KID      keys.ID             `json:"kid"`
-	Items    []*Item             `json:"items"`
-	Metadata map[string]Metadata `json:"md,omitempty"`
-	Version  string              `json:"version"`
-}
-
-// MetadataFor returns metadata for Signed.
-func (r VaultResponse) MetadataFor(item *Item) Metadata {
-	md, ok := r.Metadata[item.Path]
 	if !ok {
 		return Metadata{}
 	}
