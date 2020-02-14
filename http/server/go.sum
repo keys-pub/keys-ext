@@ -41,6 +41,8 @@ github.com/keys-pub/keysd/http/api v0.0.0-20200126194816-9555aa1b9e60 h1:WKo9oNI
 github.com/keys-pub/keysd/http/api v0.0.0-20200126194816-9555aa1b9e60/go.mod h1:g8YVahsoK4vJnlKPzb5gVAF+jkwNz1Qhepk+h0x/NeM=
 github.com/keys-pub/keysd/http/api v0.0.0-20200214224242-47eb2c80cd31 h1:xilTTZUVYjRSE/dtPx6olNpZwyYNjWJVM31HCfDFUSo=
 github.com/keys-pub/keysd/http/api v0.0.0-20200214224242-47eb2c80cd31/go.mod h1:QBxSCAzu0FJyB+EM5XqyL/z1YAMRzjkiF/AB7+Xt+V4=
+github.com/keys-pub/keysd/http/api v0.0.0-20200214225533-d7890fd4a9a8 h1:E8/iAAG0aVQ+a1V3HOr4mPvM+DhPdW4E6GNOXPK8qA8=
+github.com/keys-pub/keysd/http/api v0.0.0-20200214225533-d7890fd4a9a8/go.mod h1:QBxSCAzu0FJyB+EM5XqyL/z1YAMRzjkiF/AB7+Xt+V4=
 github.com/labstack/echo/v4 v4.1.11 h1:z0BZoArY4FqdpUEl+wlHp4hnr/oSR6MTmQmv8OHSoww=
 github.com/labstack/echo/v4 v4.1.11/go.mod h1:i541M3Fj6f76NZtHSj7TXnyM8n2gaodfvfxNnFqi74g=
 github.com/labstack/gommon v0.3.0 h1:JEeO0bvc78PKdyHxloTKiF8BD5iGrH8T6MSeGvSgob0=

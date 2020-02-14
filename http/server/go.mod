@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	github.com/keys-pub/keys v0.0.0-20200128210451-9ae521aecfd0
-	github.com/keys-pub/keysd/http/api v0.0.0-20200214224242-47eb2c80cd31
+	github.com/keys-pub/keysd/http/api v0.0.0-20200214225533-d7890fd4a9a8
 	github.com/labstack/echo/v4 v4.1.11
 	github.com/mattn/go-colorable v0.1.4 // indirect
 	github.com/mattn/go-isatty v0.0.10 // indirect
