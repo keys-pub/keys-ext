@@ -54,25 +54,22 @@ func TestUserSearch(t *testing.T) {
 
 	resp, err := env.client.UserSearch("", 0)
 	require.NoError(t, err)
-	require.Equal(t, 10, len(resp.Results))
-	require.NotNil(t, resp.Results[0].UserResult)
-	require.Equal(t, "a0", resp.Results[0].UserResult.User.Name)
+	require.Equal(t, 10, len(resp.Users))
+	require.Equal(t, "a0", resp.Users[0].Name)
 
 	resp, err = env.client.UserSearch("", 1)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(resp.Results))
-	require.NotNil(t, resp.Results[0].UserResult)
-	require.Equal(t, "a0", resp.Results[0].UserResult.User.Name)
+	require.Equal(t, 1, len(resp.Users))
+	require.Equal(t, "a0", resp.Users[0].Name)
 
 	resp, err = env.client.UserSearch("a1", 0)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(resp.Results))
-	require.NotNil(t, resp.Results[0].UserResult)
-	require.Equal(t, "a1", resp.Results[0].UserResult.User.Name)
+	require.Equal(t, 1, len(resp.Users))
+	require.Equal(t, "a1", resp.Users[0].Name)
 
 	resp, err = env.client.UserSearch("z", 1)
 	require.NoError(t, err)
-	require.Equal(t, 0, len(resp.Results))
+	require.Equal(t, 0, len(resp.Users))
 }
 
 func TestUser(t *testing.T) {
@@ -86,8 +83,8 @@ func TestUser(t *testing.T) {
 
 	resp, err := env.client.User(alice.ID())
 	require.NoError(t, err)
-	require.NotNil(t, resp.UserResult)
-	require.Equal(t, "alice", resp.UserResult.User.Name)
+	require.NotNil(t, resp.User)
+	require.Equal(t, "alice", resp.User.Name)
 
 	key := keys.GenerateEdX25519Key()
 	resp, err = env.client.User(key.ID())
