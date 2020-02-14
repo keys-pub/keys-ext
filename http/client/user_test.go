@@ -74,3 +74,23 @@ func TestUserSearch(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 0, len(resp.Results))
 }
+
+func TestUser(t *testing.T) {
+	// SetLogger(NewLogger(DebugLevel))
+	// keys.SetLogger(keys.NewLogger(keys.DebugLevel))
+	env := testEnv(t)
+	defer env.closeFn()
+
+	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
+	saveUser(t, env, alice, "alice", "github")
+
+	resp, err := env.client.User(alice.ID())
+	require.NoError(t, err)
+	require.NotNil(t, resp.UserResult)
+	require.Equal(t, "alice", resp.UserResult.User.Name)
+
+	key := keys.GenerateEdX25519Key()
+	resp, err = env.client.User(key.ID())
+	require.NoError(t, err)
+	require.Nil(t, resp)
+}

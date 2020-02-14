@@ -36,8 +36,8 @@ func TestSigchain(t *testing.T) {
 	require.Equal(t, 2, len(sc.Statements()))
 	// require.Equal(t, keys.TimeFromMillis(1234567890011), sc.Statements()[0].CreatedAt)
 
-	randID := keys.RandID("kex")
-	scResp2, err := env.client.Sigchain(randID)
+	key := keys.GenerateEdX25519Key()
+	scResp2, err := env.client.Sigchain(key.ID())
 	require.NoError(t, err)
 	require.Nil(t, scResp2)
 

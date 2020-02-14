@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keysd/http/api"
 	"github.com/pkg/errors"
 )
@@ -22,10 +23,28 @@ func (c *Client) UserSearch(query string, limit int) (*api.UserSearchResponse, e
 		return nil, err
 	}
 	if e == nil {
-		return nil, errors.Errorf("/search not found")
+		return nil, errors.Errorf("/user/search not found")
 	}
 
 	var val api.UserSearchResponse
+	if err := json.Unmarshal(e.Data, &val); err != nil {
+		return nil, err
+	}
+	return &val, nil
+}
+
+// User ...
+func (c *Client) User(kid keys.ID) (*api.UserResponse, error) {
+	params := url.Values{}
+	e, err := c.get("/user/"+kid.String(), params, nil)
+	if err != nil {
+		return nil, err
+	}
+	if e == nil {
+		return nil, nil
+	}
+
+	var val api.UserResponse
 	if err := json.Unmarshal(e.Data, &val); err != nil {
 		return nil, err
 	}
