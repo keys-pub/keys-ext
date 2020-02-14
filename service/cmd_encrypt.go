@@ -29,7 +29,7 @@ func encryptCommands(client *Client) []cli.Command {
 			Usage:     "Encrypt",
 			ArgsUsage: "stdin or -in",
 			Flags: []cli.Flag{
-				cli.StringSliceFlag{Name: "recipients, r", Usage: "recipients"},
+				cli.StringSliceFlag{Name: "recipient, r", Usage: "recipients"},
 				cli.StringFlag{Name: "signer, s", Usage: "signer (or anonymous if not specified)"},
 				cli.BoolFlag{Name: "armor, a", Usage: "armored"},
 				cli.StringFlag{Name: "in, i", Usage: "file to read or stdin if not specified"},
@@ -60,7 +60,7 @@ func encryptCommands(client *Client) []cli.Command {
 				}
 
 				if err := encryptClient.Send(&EncryptInput{
-					Recipients: c.StringSlice("recipients"),
+					Recipients: c.StringSlice("recipient"),
 					Signer:     c.String("signer"),
 					Armored:    c.Bool("armor"),
 					Mode:       mode,
@@ -200,7 +200,7 @@ func encryptFileForCLI(c *cli.Context, client *Client) error {
 	if err != nil {
 		return err
 	}
-	return encryptFile(client, c.StringSlice("recipients"), c.String("signer"), c.Bool("armored"), mode, c.String("in"), c.String("out"))
+	return encryptFile(client, c.StringSlice("recipient"), c.String("signer"), c.Bool("armored"), mode, c.String("in"), c.String("out"))
 }
 
 func encryptFile(client *Client, recipients []string, signer string, armored bool, mode EncryptMode, in string, out string) error {

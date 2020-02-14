@@ -18,13 +18,13 @@ kid=`keys generate`
 echo "gen $kid"
 
 echo "encrypt $kid"
-keys encrypt -recipients $kid -in "$tmpfile" -out "$encfile"
+keys encrypt -recipient $kid -in "$tmpfile" -out "$encfile"
 echo "decrypt"
 keys decrypt -in "$encfile" -out "$tmpfile2"
 diff "$tmpfile2" "$tmpfile2"
 
 echo "encrypt $kid"
-cat "$tmpfile2" | keys encrypt -recipients $kid > "$encfile2"
+cat "$tmpfile2" | keys encrypt -recipient $kid > "$encfile2"
 echo "decrypt"
 cat "$encfile2" | keys decrypt > "$tmpfile3"
 diff "$tmpfile2" "$tmpfile3"
