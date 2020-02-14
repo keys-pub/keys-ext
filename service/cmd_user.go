@@ -19,12 +19,37 @@ func userCommands(client *Client) []cli.Command {
 			Usage: "Manage users",
 			Subcommands: []cli.Command{
 				cli.Command{
+					Name:  "find",
+					Usage: "Find by kid",
+					Flags: []cli.Flag{
+						cli.StringFlag{Name: "kid, k", Usage: "kid"},
+						cli.BoolFlag{Name: "local", Usage: "search local index only"},
+					},
+					Action: func(c *cli.Context) error {
+						kid, err := argString(c, "kid", false)
+						if err != nil {
+							return err
+						}
+						resp, err := client.ProtoClient().User(context.TODO(), &UserRequest{
+							KID:   kid,
+							Local: c.Bool("local"),
+						})
+						if err != nil {
+							return err
+						}
+						if resp.User != nil {
+							fmt.Println(fmtUser(resp.User))
+						}
+						return nil
+					},
+				},
+				cli.Command{
 					Name:  "search",
-					Usage: "Search",
+					Usage: "Search for users",
 					Flags: []cli.Flag{
 						cli.StringFlag{Name: "query, q", Usage: "query"},
 						cli.IntFlag{Name: "limit, l", Usage: "limit number of results"},
-						cli.BoolFlag{Name: "local", Usage: "search local index"},
+						cli.BoolFlag{Name: "local", Usage: "search local index only"},
 					},
 					Action: func(c *cli.Context) error {
 						query, err := argString(c, "query", true)
@@ -43,8 +68,8 @@ func userCommands(client *Client) []cli.Command {
 						out := &bytes.Buffer{}
 						w := new(tabwriter.Writer)
 						w.Init(out, 0, 8, 1, ' ', 0)
-						for _, res := range searchResp.Results {
-							fmt.Fprintf(w, "%s\t%s\n", fmtUser(res.User), res.KID)
+						for _, user := range searchResp.Users {
+							fmt.Fprintf(w, "%s\t%s\n", fmtUser(user), user.KID)
 						}
 						w.Flush()
 						fmt.Printf(out.String())
@@ -58,11 +83,12 @@ func userCommands(client *Client) []cli.Command {
 						cli.StringFlag{Name: "kid, k", Usage: "key (defaults to current key)"},
 					},
 					Action: func(c *cli.Context) error {
-						fmt.Println("In the next steps we'll link your key with your Github or Twitter account, by generating a signed message and posting it there.")
-						reader := bufio.NewReader(os.Stdin)
+						kid, err := argString(c, "kid", false)
+						if err != nil {
+							return err
+						}
 
-						kid := c.String("kid")
-						fmt.Println("")
+						reader := bufio.NewReader(os.Stdin)
 						fmt.Println("What's the service? ")
 						fmt.Println("(g) Github")
 						fmt.Println("(t) Twitter")

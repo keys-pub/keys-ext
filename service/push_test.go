@@ -32,5 +32,5 @@ func TestPush(t *testing.T) {
 	users, err := service.searchUsersRemote(ctx, "alice@github", 1)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(users))
-	require.Equal(t, alice.ID(), users[0].KID)
+	require.Equal(t, alice.ID().String(), users[0].KID)
 }

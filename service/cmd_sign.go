@@ -21,8 +21,8 @@ func checkSigner(signer *Key, expected string) error {
 		if signer.User == nil {
 			return errors.Errorf("invalid signer, expected %s, was %s", expected, signer.ID)
 		}
-		if signer.User.Label != expected {
-			return errors.Errorf("invalid signer, expected %s, was %s", expected, signer.User.Label)
+		if signer.User.ID != expected {
+			return errors.Errorf("invalid signer, expected %s, was %s", expected, signer.User.ID)
 		}
 		return nil
 	}

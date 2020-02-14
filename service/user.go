@@ -6,8 +6,44 @@ import (
 	strings "strings"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keysd/http/api"
 	"github.com/pkg/errors"
 )
+
+// User (RPC) lookup user by kid.
+func (s *service) User(ctx context.Context, req *UserRequest) (*UserResponse, error) {
+	if req.KID == "" {
+		return nil, errors.Errorf("no kid specified")
+	}
+	kid, err := keys.ParseID(req.KID)
+	if err != nil {
+		return nil, err
+	}
+
+	var user *User
+
+	res, err := s.users.Get(ctx, kid)
+	if err != nil {
+		return nil, err
+	}
+	if res != nil {
+		user = userResultToRPC(res)
+	} else {
+		if !req.Local {
+			resp, err := s.remote.User(kid)
+			if err != nil {
+				return nil, err
+			}
+			if resp != nil {
+				user = apiUserToRPC(resp.User)
+			}
+		}
+	}
+
+	return &UserResponse{
+		User: user,
+	}, nil
+}
 
 // UserService (RPC) validates a service.
 func (s *service) UserService(ctx context.Context, req *UserServiceRequest) (*UserServiceResponse, error) {
@@ -152,11 +188,28 @@ func userStatus(s keys.UserStatus) UserStatus {
 	}
 }
 
+func userSearchResultsToRPC(results []*keys.UserSearchResult) []*User {
+	users := make([]*User, 0, len(results))
+	for _, r := range results {
+		users = append(users, userResultToRPC(r.UserResult))
+	}
+	return users
+}
+
+func userResultsToRPC(results []*keys.UserResult) []*User {
+	users := make([]*User, 0, len(results))
+	for _, r := range results {
+		users = append(users, userResultToRPC(r))
+	}
+	return users
+}
+
 func userResultToRPC(result *keys.UserResult) *User {
 	if result == nil {
 		return nil
 	}
 	return &User{
+		ID:         result.User.Name + "@" + result.User.Service,
 		KID:        result.User.KID.String(),
 		Seq:        int32(result.User.Seq),
 		Service:    result.User.Service,
@@ -165,7 +218,31 @@ func userResultToRPC(result *keys.UserResult) *User {
 		Status:     userStatus(result.Status),
 		VerifiedAt: int64(result.VerifiedAt),
 		Err:        result.Err,
-		Label:      result.User.Name + "@" + result.User.Service,
+	}
+}
+
+func apiUsersToRPC(aus []*api.User) []*User {
+	users := make([]*User, 0, len(aus))
+	for _, au := range aus {
+		users = append(users, apiUserToRPC(au))
+	}
+	return users
+}
+
+func apiUserToRPC(user *api.User) *User {
+	if user == nil {
+		return nil
+	}
+	return &User{
+		ID:         user.ID,
+		KID:        user.KID.String(),
+		Seq:        int32(user.Seq),
+		Service:    user.Service,
+		Name:       user.Name,
+		URL:        user.URL,
+		Status:     userStatus(user.Status),
+		VerifiedAt: int64(user.VerifiedAt),
+		Err:        user.Err,
 	}
 }
 
@@ -194,38 +271,42 @@ func usersToRPC(in []*keys.User) []*User {
 	return users
 }
 
-func (s *service) searchUserRemoteExact(ctx context.Context, query string) (*keys.UserResult, error) {
-	res, err := s.searchUser(ctx, query, 0, false)
+func (s *service) searchUserRemoteExact(ctx context.Context, query string) (*User, error) {
+	user, err := s.searchUser(ctx, query, 0, false)
 	if err != nil {
 		return nil, err
 	}
-	if len(res) == 0 {
+	if len(user) == 0 {
 		return nil, nil
 	}
-	return res[0].UserResult, nil
+	return user[0], nil
 }
 
-func (s *service) searchUser(ctx context.Context, query string, limit int, local bool) ([]*keys.UserSearchResult, error) {
+func (s *service) searchUser(ctx context.Context, query string, limit int, local bool) ([]*User, error) {
 	if local {
 		return s.searchUsersLocal(ctx, query, limit)
 	}
 	return s.searchUsersRemote(ctx, query, limit)
 }
 
-func (s *service) searchUsersLocal(ctx context.Context, query string, limit int) ([]*keys.UserSearchResult, error) {
+func (s *service) searchUsersLocal(ctx context.Context, query string, limit int) ([]*User, error) {
 	query = strings.TrimSpace(query)
 	logger.Infof("Search users local %q", query)
-	return s.users.Search(ctx, &keys.UserSearchRequest{Query: query, Limit: limit})
+	res, err := s.users.Search(ctx, &keys.UserSearchRequest{Query: query, Limit: limit})
+	if err != nil {
+		return nil, err
+	}
+	return userSearchResultsToRPC(res), nil
 }
 
-func (s *service) searchUsersRemote(ctx context.Context, query string, limit int) ([]*keys.UserSearchResult, error) {
+func (s *service) searchUsersRemote(ctx context.Context, query string, limit int) ([]*User, error) {
 	query = strings.TrimSpace(query)
 	logger.Infof("Search users remote %q", query)
 	resp, err := s.remote.UserSearch(query, limit)
 	if err != nil {
 		return nil, err
 	}
-	return resp.Results, nil
+	return apiUsersToRPC(resp.Users), nil
 }
 
 func (s *service) parseIdentity(ctx context.Context, identity string) (keys.ID, error) {
@@ -249,14 +330,14 @@ func (s *service) loadIdentity(ctx context.Context, identity string, searchRemot
 		if res == nil {
 			logger.Infof("User not found %s", identity)
 			if searchRemote {
-				usr, err := s.searchUserRemoteExact(ctx, identity)
+				user, err := s.searchUserRemoteExact(ctx, identity)
 				if err != nil {
 					return "", err
 				}
-				if usr == nil {
+				if user == nil {
 					return "", keys.NewErrNotFound(identity)
 				}
-				return usr.User.KID, nil
+				return keys.ID(user.KID), nil
 			}
 			return "", keys.NewErrNotFound(identity)
 		}

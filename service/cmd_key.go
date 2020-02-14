@@ -67,6 +67,7 @@ func keyCommands(client *Client) []cli.Command {
 					return errors.Errorf("key not found")
 				}
 				// fmtKeys([]*Key{resp.Key})
+				// TODO: key type outputs as int
 				b, err := json.MarshalIndent(resp.Key, "", "  ")
 				if err != nil {
 					return err

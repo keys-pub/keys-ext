@@ -9,9 +9,9 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.1.0
 	github.com/keys-pub/keys v0.0.0-20200210010948-79a48e2dc181
 	github.com/keys-pub/keysd/db v0.0.0-20200110200550-f472e79d2ba3
-	github.com/keys-pub/keysd/http/api v0.0.0-20200128211114-8182e2f364bf
-	github.com/keys-pub/keysd/http/client v0.0.0-20200128211114-8182e2f364bf
-	github.com/keys-pub/keysd/http/server v0.0.0-20200128211114-8182e2f364bf
+	github.com/keys-pub/keysd/http/api v0.0.0-20200214230144-e746f3104ded
+	github.com/keys-pub/keysd/http/client v0.0.0-20200214230144-e746f3104ded
+	github.com/keys-pub/keysd/http/server v0.0.0-20200214230144-e746f3104ded
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/logrusorgru/aurora v0.0.0-20191116043053-66b7ad493a23
 	github.com/mercari/go-grpc-interceptor v0.0.0-20180110035004-b8ad3827e82a

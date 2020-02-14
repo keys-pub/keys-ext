@@ -50,7 +50,7 @@ func (s *service) keys(ctx context.Context, ks []keys.Key, query string, sortFie
 		if err != nil {
 			return nil, err
 		}
-		if query == "" || (key.User != nil && strings.HasPrefix(key.User.Label, query)) || strings.HasPrefix(key.ID, query) {
+		if query == "" || (key.User != nil && strings.HasPrefix(key.User.ID, query)) || strings.HasPrefix(key.ID, query) {
 			keys = append(keys, key)
 		}
 	}
