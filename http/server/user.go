@@ -51,6 +51,9 @@ func (s *Server) getUser(c echo.Context) error {
 	if err != nil {
 		return internalError(c, err)
 	}
+	if userResult == nil {
+		return ErrNotFound(c, nil)
+	}
 
 	resp := api.UserResponse{
 		UserResult: userResult,

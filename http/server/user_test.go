@@ -72,4 +72,11 @@ func TestUserSearch(t *testing.T) {
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, `{"result":{"status":"ok","ts":1234567890005,"user":{"k":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","n":"alice","sq":1,"sr":"github","u":"https://gist.github.com/alice/1"},"vts":1234567890006}}`, body)
+
+	// GET /user/:kid (not found)
+	key := keys.GenerateEdX25519Key()
+	req, err = http.NewRequest("GET", "/user/"+key.ID().String(), nil)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusNotFound, code)
 }
