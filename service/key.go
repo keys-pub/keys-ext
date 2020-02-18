@@ -15,7 +15,7 @@ func (s *service) Key(ctx context.Context, req *KeyRequest) (*KeyResponse, error
 	}
 
 	if req.Update {
-		if _, err := s.update(ctx, kid); err != nil {
+		if _, _, err := s.update(ctx, kid); err != nil {
 			return nil, err
 		}
 	}

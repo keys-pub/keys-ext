@@ -14,7 +14,7 @@ func (s *service) Pull(ctx context.Context, req *PullRequest) (*PullResponse, er
 		if err != nil {
 			return nil, err
 		}
-		ok, err := s.pull(ctx, kid)
+		ok, _, err := s.pull(ctx, kid)
 		if err != nil {
 			return nil, err
 		}
@@ -31,7 +31,7 @@ func (s *service) Pull(ctx context.Context, req *PullRequest) (*PullResponse, er
 		return nil, errors.Wrapf(err, "failed to load keys")
 	}
 	for _, spk := range spks {
-		ok, err := s.pull(ctx, spk.ID())
+		ok, _, err := s.pull(ctx, spk.ID())
 		if err != nil {
 			return nil, err
 		}
@@ -44,38 +44,42 @@ func (s *service) Pull(ctx context.Context, req *PullRequest) (*PullResponse, er
 	return &PullResponse{KIDs: pulled}, nil
 }
 
-func (s *service) pull(ctx context.Context, kid keys.ID) (bool, error) {
+func (s *service) pull(ctx context.Context, kid keys.ID) (bool, *keys.UserResult, error) {
 	logger.Infof("Pull %s", kid)
 
 	if err := s.importID(kid); err != nil {
-		return false, err
+		return false, nil, err
 	}
 
-	return s.update(ctx, kid)
+	ok, res, err := s.update(ctx, kid)
+	if err != nil {
+		return false, nil, err
+	}
+	return ok, res, nil
 }
 
-func (s *service) update(ctx context.Context, kid keys.ID) (bool, error) {
+func (s *service) update(ctx context.Context, kid keys.ID) (bool, *keys.UserResult, error) {
 	logger.Infof("Update %s", kid)
 
 	resp, err := s.remote.Sigchain(kid)
 	if err != nil {
-		return false, err
+		return false, nil, err
 	}
 	if resp == nil {
 		logger.Infof("No sigchain for %s", kid)
-		return false, nil
+		return false, nil, nil
 	}
 	logger.Infof("Received sigchain %s, len=%d", kid, len(resp.Statements))
 	for _, st := range resp.Statements {
 		if err := s.db.Set(ctx, keys.Path("sigchain", st.Key()), st.Bytes()); err != nil {
-			return false, err
+			return false, nil, err
 		}
 	}
 
-	// Update users
-	if _, err = s.users.Update(ctx, kid); err != nil {
-		return false, err
+	res, err := s.users.Update(ctx, kid)
+	if err != nil {
+		return false, nil, err
 	}
 
-	return true, nil
+	return true, res, nil
 }

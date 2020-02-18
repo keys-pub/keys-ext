@@ -34,7 +34,7 @@ func TestUserSearch(t *testing.T) {
 	// Charlie
 	require.Equal(t, bob.ID().String(), resp.Users[1].KID)
 
-	// TODO: More tests
+	// TODO: Test stale result
 }
 
 func TestUser(t *testing.T) {

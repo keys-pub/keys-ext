@@ -69,7 +69,7 @@ func (s *service) push(ctx context.Context, kid keys.ID) ([]string, error) {
 	}
 
 	// TODO: instead of pulling, save resource from push
-	if _, err := s.pull(ctx, kid); err != nil {
+	if _, _, err := s.pull(ctx, kid); err != nil {
 		return nil, err
 	}
 

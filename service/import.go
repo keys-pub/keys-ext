@@ -32,7 +32,7 @@ func (s *service) KeyImport(ctx context.Context, req *KeyImportRequest) (*KeyImp
 	}
 
 	// TODO: Should this be optional?
-	if _, err := s.update(ctx, kid); err != nil {
+	if _, _, err := s.update(ctx, kid); err != nil {
 		return nil, err
 	}
 
