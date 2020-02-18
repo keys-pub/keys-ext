@@ -10,6 +10,18 @@ import (
 	"github.com/pkg/errors"
 )
 
+// UserSearch (RPC) ...
+func (s *service) UserSearch(ctx context.Context, req *UserSearchRequest) (*UserSearchResponse, error) {
+	users, err := s.searchUser(ctx, req.Query, int(req.Limit), req.Local)
+	if err != nil {
+		return nil, err
+	}
+
+	return &UserSearchResponse{
+		Users: users,
+	}, nil
+}
+
 // User (RPC) lookup user by kid.
 func (s *service) User(ctx context.Context, req *UserRequest) (*UserResponse, error) {
 	if req.KID == "" {
@@ -221,12 +233,33 @@ func userResultToRPC(result *keys.UserResult) *User {
 	}
 }
 
-func apiUsersToRPC(aus []*api.User) []*User {
+func (s *service) apiUsersToRPC(ctx context.Context, aus []*api.User) ([]*User, error) {
 	users := make([]*User, 0, len(aus))
 	for _, au := range aus {
-		users = append(users, apiUserToRPC(au))
+		res, err := s.users.Get(ctx, au.KID)
+		if err != nil {
+			return nil, err
+		}
+		if res == nil {
+			u, err := s.users.Update(ctx, au.KID)
+			if err != nil {
+				return nil, err
+			}
+			res = u
+		} else {
+			if res.User.Name != au.Name || res.User.Service != au.Service {
+				u, err := s.users.Update(ctx, au.KID)
+				if err != nil {
+					return nil, err
+				}
+				res = u
+			}
+		}
+		if res != nil {
+			users = append(users, userResultToRPC(res))
+		}
 	}
-	return users
+	return users, nil
 }
 
 func apiUserToRPC(user *api.User) *User {
@@ -306,7 +339,7 @@ func (s *service) searchUsersRemote(ctx context.Context, query string, limit int
 	if err != nil {
 		return nil, err
 	}
-	return apiUsersToRPC(resp.Users), nil
+	return s.apiUsersToRPC(ctx, resp.Users)
 }
 
 func (s *service) parseIdentity(ctx context.Context, identity string) (keys.ID, error) {
