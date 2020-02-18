@@ -79,11 +79,22 @@ func keyCommands(client *Client) []cli.Command {
 		cli.Command{
 			Name:  "generate",
 			Usage: "Generate a key",
-			Flags: []cli.Flag{},
+			Flags: []cli.Flag{
+				cli.StringFlag{Name: "type, t", Usage: "type (edx25519, x25519)"},
+			},
 			Action: func(c *cli.Context) error {
-				// TODO: Key type
+				var typ KeyType
+				switch c.String("type") {
+				case "", "edx25519":
+					typ = EdX25519
+				case "x25519":
+					typ = X25519
+				default:
+					return errors.Errorf("unrecognized key type")
+				}
+
 				req := &KeyGenerateRequest{
-					Type: EdX25519,
+					Type: typ,
 				}
 				resp, err := client.ProtoClient().KeyGenerate(context.TODO(), req)
 				if err != nil {
