@@ -68,7 +68,11 @@ func (s *service) KeyExport(ctx context.Context, req *KeyExportRequest) (*KeyExp
 
 func (s *service) importID(id keys.ID) error {
 	// Check if item already exists and skip if so.
-	item, err := s.ks.Keyring().Get(id.String())
+	kr, err := s.ks.Keyring()
+	if err != nil {
+		return err
+	}
+	item, err := kr.Get(id.String())
 	if err != nil {
 		return err
 	}
@@ -82,13 +86,13 @@ func (s *service) importID(id keys.ID) error {
 		if err != nil {
 			return err
 		}
-		return s.ks.SaveSignPublicKey(spk)
+		return s.ks.SaveEdX25519PublicKey(spk)
 	case keys.X25519Public:
 		bpk, err := keys.X25519PublicKeyFromID(id)
 		if err != nil {
 			return err
 		}
-		return s.ks.SaveBoxPublicKey(bpk)
+		return s.ks.SaveX25519PublicKey(bpk)
 	default:
 		return errors.Errorf("unrecognized key type for %s", id)
 	}

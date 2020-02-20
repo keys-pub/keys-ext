@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/keys-pub/keys"
-	"github.com/pkg/errors"
 )
 
 // RuntimeStatus (RPC) gets the current runtime status.
@@ -14,9 +13,9 @@ func (s *service) RuntimeStatus(ctx context.Context, req *RuntimeStatusRequest) 
 	if exeErr != nil {
 		logger.Errorf("Failed to get current executable path: %s", exeErr)
 	}
-	kr := s.ks.Keyring()
-	if kr == nil {
-		return nil, errors.Errorf("no keyring set")
+	kr, err := s.ks.Keyring()
+	if err != nil {
+		return nil, err
 	}
 	authed, authedErr := kr.Authed()
 	if authedErr != nil {

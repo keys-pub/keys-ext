@@ -166,9 +166,9 @@ func (a clientAuth) RequireTransportSecurity() bool {
 }
 
 func (s *service) isAuthSetupNeeded() (bool, error) {
-	kr := s.ks.Keyring()
-	if kr == nil {
-		return false, errors.Errorf("no keyring set")
+	kr, err := s.ks.Keyring()
+	if err != nil {
+		return false, err
 	}
 	authed, err := kr.Authed()
 	if err != nil {

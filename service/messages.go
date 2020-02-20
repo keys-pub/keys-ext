@@ -172,7 +172,7 @@ func (s *service) message(ctx context.Context, path string) (*Message, error) {
 	return &message, nil
 }
 
-func (s *service) messages(ctx context.Context, key *keys.SignKey) ([]*Message, error) {
+func (s *service) messages(ctx context.Context, key *keys.EdX25519Key) ([]*Message, error) {
 	path := fmt.Sprintf("messages-%s", key.ID())
 	iter, iterErr := s.db.Documents(ctx, path, &keys.DocumentsOpts{PathOnly: true})
 	if iterErr != nil {
@@ -204,7 +204,7 @@ func (s *service) messages(ctx context.Context, key *keys.SignKey) ([]*Message, 
 }
 
 func (s *service) pullMessages(ctx context.Context, kid keys.ID) error {
-	key, err := s.ks.SignKey(kid)
+	key, err := s.ks.EdX25519Key(kid)
 	if err != nil {
 		return err
 	}

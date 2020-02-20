@@ -26,7 +26,7 @@ func (s *service) Pull(ctx context.Context, req *PullRequest) (*PullResponse, er
 
 	// Update existing if no kid or user specified
 	pulled := []string{}
-	spks, err := s.ks.SignPublicKeys()
+	spks, err := s.ks.EdX25519PublicKeys()
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load keys")
 	}

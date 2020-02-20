@@ -12,7 +12,11 @@ import (
 
 // Item (RPC) returns an item for an ID.
 func (s *service) Item(ctx context.Context, req *ItemRequest) (*ItemResponse, error) {
-	item, err := s.ks.Keyring().Get(req.ID)
+	kr, err := s.ks.Keyring()
+	if err != nil {
+		return nil, err
+	}
+	item, err := kr.Get(req.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +34,11 @@ func (s *service) Items(ctx context.Context, req *ItemsRequest) (*ItemsResponse,
 		return nil, errors.Errorf("query not implemented")
 	}
 
-	items, err := s.ks.Keyring().List(nil)
+	kr, err := s.ks.Keyring()
+	if err != nil {
+		return nil, err
+	}
+	items, err := kr.List(nil)
 	if err != nil {
 		return nil, err
 	}

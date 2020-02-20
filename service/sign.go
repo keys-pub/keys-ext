@@ -13,7 +13,7 @@ import (
 )
 
 type sign struct {
-	key      *keys.SignKey
+	key      *keys.EdX25519Key
 	armored  bool
 	detached bool
 	sp       *saltpack.Saltpack

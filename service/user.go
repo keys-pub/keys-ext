@@ -142,7 +142,7 @@ func (s *service) UserAdd(ctx context.Context, req *UserAddRequest) (*UserAddRes
 	}, nil
 }
 
-func (s *service) sigchainUserAdd(ctx context.Context, key *keys.SignKey, service, name, url string, localOnly bool) (*keys.UserResult, *keys.Statement, error) {
+func (s *service) sigchainUserAdd(ctx context.Context, key *keys.EdX25519Key, service, name, url string, localOnly bool) (*keys.UserResult, *keys.Statement, error) {
 	sc, err := s.scs.Sigchain(key.ID())
 	if err != nil {
 		return nil, nil, err

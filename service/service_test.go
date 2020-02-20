@@ -89,7 +89,7 @@ func testAuthSetup(t *testing.T, service *service) {
 	require.NoError(t, err)
 }
 
-func testImportKey(t *testing.T, service *service, key *keys.SignKey) {
+func testImportKey(t *testing.T, service *service, key *keys.EdX25519Key) {
 	saltpack, err := keys.EncodeKeyToSaltpack(key, "testpassword")
 	require.NoError(t, err)
 	_, err = service.KeyImport(context.TODO(), &KeyImportRequest{
@@ -106,7 +106,7 @@ func testImportID(t *testing.T, service *service, kid keys.ID) {
 	require.NoError(t, err)
 }
 
-func userSetupGithub(env *testEnv, service *service, key *keys.SignKey, username string) error {
+func userSetupGithub(env *testEnv, service *service, key *keys.EdX25519Key, username string) error {
 	resp, err := service.UserSign(context.TODO(), &UserSignRequest{
 		KID:     key.ID().String(),
 		Service: "github",
@@ -128,19 +128,19 @@ func userSetupGithub(env *testEnv, service *service, key *keys.SignKey, username
 	return err
 }
 
-func testUserSetupGithub(t *testing.T, env *testEnv, service *service, key *keys.SignKey, username string) {
+func testUserSetupGithub(t *testing.T, env *testEnv, service *service, key *keys.EdX25519Key, username string) {
 	err := userSetupGithub(env, service, key, username)
 	require.NoError(t, err)
 }
 
-func testRemoveKey(t *testing.T, service *service, key *keys.SignKey) {
+func testRemoveKey(t *testing.T, service *service, key *keys.EdX25519Key) {
 	_, err := service.KeyRemove(context.TODO(), &KeyRemoveRequest{
 		KID: key.ID().String(),
 	})
 	require.NoError(t, err)
 }
 
-func testPush(t *testing.T, service *service, key *keys.SignKey) {
+func testPush(t *testing.T, service *service, key *keys.EdX25519Key) {
 	_, err := service.Push(context.TODO(), &PushRequest{
 		Identity: key.ID().String(),
 	})

@@ -33,9 +33,7 @@ type service struct {
 }
 
 func newService(cfg *Config, build Build, auth *auth, req keys.Requestor, nowFn func() time.Time) (*service, error) {
-	ks := keys.NewKeystore()
-	ks.SetKeyring(auth.keyring)
-
+	ks := keys.NewKeystore(auth.keyring)
 	db := db.NewDB()
 	db.SetTimeNow(nowFn)
 	scs := keys.NewSigchainStore(db)

@@ -76,7 +76,7 @@ func (s *service) Encrypt(ctx context.Context, req *EncryptRequest) (*EncryptRes
 		if enc.signer == "" {
 			return nil, errors.Errorf("no signer specified: signer is required for signcrypt mode")
 		}
-		sk, err := s.ks.SignKey(enc.signer)
+		sk, err := s.ks.EdX25519Key(enc.signer)
 		if err != nil {
 			return nil, err
 		}
@@ -149,7 +149,7 @@ func (s *service) encryptWriter(ctx context.Context, w io.Writer, enc *encrypt) 
 		if enc.signer == "" {
 			return nil, errors.Errorf("no signer specified")
 		}
-		sk, err := s.ks.SignKey(enc.signer)
+		sk, err := s.ks.EdX25519Key(enc.signer)
 		if err != nil {
 			return nil, err
 		}

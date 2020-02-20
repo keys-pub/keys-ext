@@ -182,13 +182,13 @@ func (s *service) KeyGenerate(ctx context.Context, req *KeyGenerateRequest) (*Ke
 	switch req.Type {
 	case EdX25519:
 		key := keys.GenerateEdX25519Key()
-		if err := s.ks.SaveSignKey(key); err != nil {
+		if err := s.ks.SaveEdX25519Key(key); err != nil {
 			return nil, err
 		}
 		kid = key.ID()
 	case X25519:
 		key := keys.GenerateX25519Key()
-		if err := s.ks.SaveBoxKey(key); err != nil {
+		if err := s.ks.SaveX25519Key(key); err != nil {
 			return nil, err
 		}
 		kid = key.ID()
@@ -237,7 +237,7 @@ func (s *service) parseKey(kid string, required bool) (keys.Key, error) {
 // equivalent if found and returns that ID, otherwise returns itself.
 func (s *service) checkSignerID(id keys.ID) (keys.ID, error) {
 	if id.IsX25519() {
-		bpk, err := keys.BoxPublicKeyForID(id)
+		bpk, err := keys.X25519PublicKeyForID(id)
 		if err != nil {
 			return "", err
 		}
@@ -254,7 +254,7 @@ func (s *service) checkSignerID(id keys.ID) (keys.ID, error) {
 	return id, nil
 }
 
-func (s *service) parseSigner(signer string, required bool) (*keys.SignKey, error) {
+func (s *service) parseSigner(signer string, required bool) (*keys.EdX25519Key, error) {
 	if signer == "" {
 		if required {
 			return nil, errors.Errorf("no signer specified")
@@ -265,7 +265,7 @@ func (s *service) parseSigner(signer string, required bool) (*keys.SignKey, erro
 	if err != nil {
 		return nil, err
 	}
-	sk, err := s.ks.SignKey(kid)
+	sk, err := s.ks.EdX25519Key(kid)
 	if err != nil {
 		return nil, err
 	}
@@ -275,13 +275,13 @@ func (s *service) parseSigner(signer string, required bool) (*keys.SignKey, erro
 	return sk, nil
 }
 
-func (s *service) parseBoxKey(kid keys.ID) (*keys.BoxKey, error) {
+func (s *service) parseBoxKey(kid keys.ID) (*keys.X25519Key, error) {
 	if kid == "" {
 		return nil, nil
 	}
 	switch kid.KeyType() {
 	case keys.EdX25519Public:
-		key, err := s.ks.SignKey(kid)
+		key, err := s.ks.EdX25519Key(kid)
 		if err != nil {
 			return nil, err
 		}
@@ -290,13 +290,13 @@ func (s *service) parseBoxKey(kid keys.ID) (*keys.BoxKey, error) {
 		}
 		return key.X25519Key(), nil
 	case keys.X25519Public:
-		return s.ks.BoxKey(kid)
+		return s.ks.X25519Key(kid)
 	default:
 		return nil, errors.Errorf("unsupported key type for %s", kid)
 	}
 }
 
-func (s *service) parseSignKey(kid string, required bool) (*keys.SignKey, error) {
+func (s *service) parseSignKey(kid string, required bool) (*keys.EdX25519Key, error) {
 	if kid == "" {
 		if required {
 			return nil, errors.Errorf("no kid specified")
@@ -309,7 +309,7 @@ func (s *service) parseSignKey(kid string, required bool) (*keys.SignKey, error)
 	}
 	switch id.KeyType() {
 	case keys.EdX25519Public:
-		key, err := s.ks.SignKey(id)
+		key, err := s.ks.EdX25519Key(id)
 		if err != nil {
 			return nil, err
 		}
