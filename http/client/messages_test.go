@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/keyring"
 	"github.com/keys-pub/keys/saltpack"
 	"github.com/stretchr/testify/require"
 )
@@ -21,7 +22,8 @@ func TestMessages(t *testing.T) {
 	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
 	group := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x04}, 32)))
 
-	ks := keys.NewKeystore()
+	kr := keyring.NewMem()
+	ks := keys.NewKeystore(kr)
 	sp := saltpack.NewSaltpack(ks)
 
 	// PutMessage #1

@@ -101,7 +101,7 @@ func checkResponse(resp *http.Response) error {
 	return err
 }
 
-func (c *Client) req(method string, path string, params url.Values, key *keys.SignKey, body io.Reader) (*http.Response, error) {
+func (c *Client) req(method string, path string, params url.Values, key *keys.EdX25519Key, body io.Reader) (*http.Response, error) {
 	if strings.HasPrefix(path, "http://") || strings.HasPrefix(path, "https://") {
 		return nil, errors.Errorf("req accepts a path, not an url")
 	}
@@ -132,7 +132,7 @@ func (c *Client) req(method string, path string, params url.Values, key *keys.Si
 	return c.httpClient.Do(req)
 }
 
-func (c *Client) get(path string, params url.Values, key *keys.SignKey) (*keys.Document, error) {
+func (c *Client) get(path string, params url.Values, key *keys.EdX25519Key) (*keys.Document, error) {
 	resp, respErr := c.getResponse(path, params, key)
 	if respErr != nil {
 		return nil, respErr
@@ -173,7 +173,7 @@ func (c *Client) get(path string, params url.Values, key *keys.SignKey) (*keys.D
 	return doc, nil
 }
 
-func (c *Client) getResponse(path string, params url.Values, key *keys.SignKey) (*http.Response, error) {
+func (c *Client) getResponse(path string, params url.Values, key *keys.EdX25519Key) (*http.Response, error) {
 	resp, respErr := c.req("GET", path, params, key, nil)
 	if respErr != nil {
 		return nil, respErr
@@ -188,7 +188,7 @@ func (c *Client) getResponse(path string, params url.Values, key *keys.SignKey) 
 	return resp, nil
 }
 
-func (c *Client) put(path string, params url.Values, key *keys.SignKey, reader io.Reader) (*http.Response, error) {
+func (c *Client) put(path string, params url.Values, key *keys.EdX25519Key, reader io.Reader) (*http.Response, error) {
 	resp, err := c.req("PUT", path, params, key, reader)
 	if err != nil {
 		return nil, err
@@ -199,7 +199,7 @@ func (c *Client) put(path string, params url.Values, key *keys.SignKey, reader i
 	return resp, nil
 }
 
-func (c *Client) post(path string, params url.Values, key *keys.SignKey, reader io.Reader) (*http.Response, error) {
+func (c *Client) post(path string, params url.Values, key *keys.EdX25519Key, reader io.Reader) (*http.Response, error) {
 	resp, err := c.req("POST", path, params, key, reader)
 	if err != nil {
 		return nil, err
@@ -210,7 +210,7 @@ func (c *Client) post(path string, params url.Values, key *keys.SignKey, reader 
 	return resp, nil
 }
 
-func (c *Client) delete(path string, params url.Values, key *keys.SignKey) (*http.Response, error) {
+func (c *Client) delete(path string, params url.Values, key *keys.EdX25519Key) (*http.Response, error) {
 	resp, err := c.req("DELETE", path, params, key, nil)
 	if err != nil {
 		return nil, err

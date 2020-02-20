@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func saveUser(t *testing.T, env *env, key *keys.SignKey, name string, service string) *keys.Statement {
+func saveUser(t *testing.T, env *env, key *keys.EdX25519Key, name string, service string) *keys.Statement {
 	url := ""
 	switch service {
 	case "github":

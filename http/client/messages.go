@@ -27,7 +27,7 @@ type Messages struct {
 }
 
 // PutMessage ...
-func (c *Client) PutMessage(key *keys.SignKey, id string, data []byte) error {
+func (c *Client) PutMessage(key *keys.EdX25519Key, id string, data []byte) error {
 	path := keys.Path("messages", key.ID(), id)
 	if _, err := c.put(path, url.Values{}, key, bytes.NewReader(data)); err != nil {
 		return err
@@ -36,7 +36,7 @@ func (c *Client) PutMessage(key *keys.SignKey, id string, data []byte) error {
 }
 
 // Messages ...
-func (c *Client) Messages(key *keys.SignKey, version string) (*api.MessagesResponse, error) {
+func (c *Client) Messages(key *keys.EdX25519Key, version string) (*api.MessagesResponse, error) {
 	path := keys.Path("messages", key.ID())
 
 	params := url.Values{}
