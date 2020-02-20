@@ -26,11 +26,11 @@ func (a Auth) Header() string {
 
 // NewAuth returns auth for an HTTP request.
 // The url shouldn't have ? or &.
-func NewAuth(method string, urs string, tm time.Time, key *keys.SignKey) (*Auth, error) {
+func NewAuth(method string, urs string, tm time.Time, key *keys.EdX25519Key) (*Auth, error) {
 	return newAuth(method, urs, tm, keys.Rand32(), key)
 }
 
-func newAuth(method string, urs string, tm time.Time, nonce *[32]byte, key *keys.SignKey) (*Auth, error) {
+func newAuth(method string, urs string, tm time.Time, nonce *[32]byte, key *keys.EdX25519Key) (*Auth, error) {
 	ur, err := url.Parse(urs)
 	if err != nil {
 		return nil, err
@@ -49,11 +49,11 @@ func newAuth(method string, urs string, tm time.Time, nonce *[32]byte, key *keys
 }
 
 // NewRequest returns new authorized/signed HTTP request.
-func NewRequest(method string, urs string, body io.Reader, tm time.Time, key *keys.SignKey) (*http.Request, error) {
+func NewRequest(method string, urs string, body io.Reader, tm time.Time, key *keys.EdX25519Key) (*http.Request, error) {
 	return newRequest(method, urs, body, tm, keys.Rand32(), key)
 }
 
-func newRequest(method string, urs string, body io.Reader, tm time.Time, nonce *[32]byte, key *keys.SignKey) (*http.Request, error) {
+func newRequest(method string, urs string, body io.Reader, tm time.Time, nonce *[32]byte, key *keys.EdX25519Key) (*http.Request, error) {
 	auth, err := newAuth(method, urs, tm, nonce, key)
 	if err != nil {
 		return nil, err
