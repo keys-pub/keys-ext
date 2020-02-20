@@ -118,7 +118,7 @@ func (s *testServer) Serve(req *http.Request) (int, http.Header, string) {
 // 	return resp.StatusCode, resp.Header, string(b)
 // }
 
-func userMock(t *testing.T, users *keys.UserStore, key *keys.SignKey, name string, service string, mock *keys.MockRequestor) *keys.Statement {
+func userMock(t *testing.T, users *keys.UserStore, key *keys.EdX25519Key, name string, service string, mock *keys.MockRequestor) *keys.Statement {
 	url := ""
 	switch service {
 	case "github":
