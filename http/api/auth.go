@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/encoding"
 )
 
 // Auth describes auth for a HTTP request.
@@ -36,7 +37,7 @@ func newAuth(method string, urs string, tm time.Time, nonce *[32]byte, key *keys
 		return nil, err
 	}
 	q := ur.Query()
-	ns := keys.MustEncode(nonce[:], keys.Base62)
+	ns := encoding.MustEncode(nonce[:], encoding.Base62)
 	q.Set("nonce", ns)
 	ts := keys.TimeToMillis(tm)
 	q.Set("ts", fmt.Sprintf("%d", ts))
@@ -44,7 +45,7 @@ func newAuth(method string, urs string, tm time.Time, nonce *[32]byte, key *keys
 
 	msg := method + "," + ur.String()
 	sb := key.SignDetached([]byte(msg))
-	sig := keys.MustEncode(sb, keys.Base62)
+	sig := encoding.MustEncode(sb, encoding.Base62)
 	return &Auth{KID: key.ID(), Method: method, URL: ur, Sig: sig, Message: msg}, nil
 }
 
