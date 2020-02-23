@@ -1,28 +1,28 @@
 package service
 
 import (
-	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/encoding"
 	"github.com/pkg/errors"
 )
 
-func encodingFromRPC(enc Encoding) (keys.Encoding, error) {
+func encodingFromRPC(enc Encoding) (encoding.Encoding, error) {
 	switch enc {
 	case Base62:
-		return keys.Base62, nil
+		return encoding.Base62, nil
 	case Base58:
-		return keys.Base58, nil
+		return encoding.Base58, nil
 	case Base32:
-		return keys.Base32, nil
+		return encoding.Base32, nil
 	case Hex:
-		return keys.Hex, nil
+		return encoding.Hex, nil
 	case Base64:
-		return keys.Base64, nil
+		return encoding.Base64, nil
 	case Saltpack:
-		return keys.Saltpack, nil
+		return encoding.Saltpack, nil
 	case BIP39:
-		return keys.BIP39, nil
+		return encoding.BIP39, nil
 	default:
-		return keys.Base62, errors.Errorf("invalid encoding")
+		return encoding.Base62, errors.Errorf("invalid encoding")
 	}
 }
 

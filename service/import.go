@@ -79,23 +79,7 @@ func (s *service) importID(id keys.ID) error {
 	if item != nil {
 		return nil
 	}
-
-	switch id.KeyType() {
-	case keys.EdX25519Public:
-		spk, err := keys.EdX25519PublicKeyFromID(id)
-		if err != nil {
-			return err
-		}
-		return s.ks.SaveEdX25519PublicKey(spk)
-	case keys.X25519Public:
-		bpk, err := keys.X25519PublicKeyFromID(id)
-		if err != nil {
-			return err
-		}
-		return s.ks.SaveX25519PublicKey(bpk)
-	default:
-		return errors.Errorf("unrecognized key type for %s", id)
-	}
+	return s.ks.SavePublicKey(id)
 }
 
 func (s *service) importSaltpack(in string, password string) (keys.ID, error) {

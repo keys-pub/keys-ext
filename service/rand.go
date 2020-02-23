@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/encoding"
 )
 
 // Rand (RPC) ...
@@ -17,7 +18,7 @@ func (s *service) Rand(ctx context.Context, req *RandRequest) (*RandResponse, er
 		if err != nil {
 			return nil, err
 		}
-		s, encErr := keys.Encode(b, enc)
+		s, encErr := encoding.Encode(b, enc)
 		if encErr != nil {
 			return nil, encErr
 		}

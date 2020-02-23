@@ -237,11 +237,7 @@ func (s *service) parseKey(kid string, required bool) (keys.Key, error) {
 // equivalent if found and returns that ID, otherwise returns itself.
 func (s *service) checkSignerID(id keys.ID) (keys.ID, error) {
 	if id.IsX25519() {
-		bpk, err := keys.X25519PublicKeyForID(id)
-		if err != nil {
-			return "", err
-		}
-		spk, err := s.ks.FindEdX25519PublicKey(bpk)
+		spk, err := s.ks.FindEdX25519PublicKey(id)
 		if err != nil {
 			return "", err
 		}

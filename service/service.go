@@ -37,7 +37,7 @@ func newService(cfg *Config, build Build, auth *auth, req keys.Requestor, nowFn 
 	db := db.NewDB()
 	db.SetTimeNow(nowFn)
 	scs := keys.NewSigchainStore(db)
-	users, err := keys.NewUserStore(db, scs, []string{keys.Twitter, keys.Github}, req, nowFn)
+	users, err := keys.NewUserStore(db, scs, req, nowFn)
 	if err != nil {
 		return nil, err
 	}

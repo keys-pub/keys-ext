@@ -54,7 +54,7 @@ func newTestEnv(t *testing.T) *testEnv {
 }
 
 func testUserStore(t *testing.T, dst keys.DocumentStore, scs keys.SigchainStore, req *keys.MockRequestor, clock *clock) *keys.UserStore {
-	ust, err := keys.NewUserStore(dst, scs, []string{keys.Twitter, keys.Github}, req, clock.Now)
+	ust, err := keys.NewUserStore(dst, scs, req, clock.Now)
 	require.NoError(t, err)
 	return ust
 }

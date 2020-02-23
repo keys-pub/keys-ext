@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/keyring"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
@@ -101,7 +102,7 @@ func (a *auth) unlock(password string, client string) (string, error) {
 }
 
 func generateToken() string {
-	return keys.MustEncode(keys.Rand32()[:], keys.Base62)
+	return encoding.MustEncode(keys.Rand32()[:], encoding.Base62)
 }
 
 func (a *auth) streamInterceptor(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
