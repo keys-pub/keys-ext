@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/encoding"
 	"github.com/pkg/errors"
 )
 
@@ -44,7 +45,7 @@ func CheckAuthorization(ctx context.Context, method string, urs string, auth str
 		return nil, errors.Errorf("not a valid sign public key")
 	}
 
-	sigBytes, sigerr := keys.Decode(sig, keys.Base62)
+	sigBytes, sigerr := encoding.Decode(sig, encoding.Base62)
 	if sigerr != nil {
 		return nil, sigerr
 	}
@@ -64,7 +65,7 @@ func CheckAuthorization(ctx context.Context, method string, urs string, auth str
 	if nonce == "" {
 		return nil, errors.Errorf("nonce is missing")
 	}
-	nb, err := keys.Decode(nonce, keys.Base62)
+	nb, err := encoding.Decode(nonce, encoding.Base62)
 	if err != nil {
 		return nil, err
 	}

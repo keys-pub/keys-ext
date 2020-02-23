@@ -121,7 +121,7 @@ func TestSigchains(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusBadRequest, code)
-	require.Equal(t, `{"error":{"code":400,"message":"invalid key type"}}`, body)
+	require.Equal(t, `{"error":{"code":400,"message":"invalid key type for edx25519"}}`, body)
 
 	// GET /sigchain/:kid (not found)
 	req, err = http.NewRequest("GET", keys.Path("sigchain", keys.RandID("kex")), nil)

@@ -66,7 +66,7 @@ func testFire(t *testing.T, clock *clock) Fire {
 }
 
 func testUserStore(t *testing.T, ds keys.DocumentStore, req keys.Requestor, clock *clock) *keys.UserStore {
-	us, err := keys.NewUserStore(ds, keys.NewSigchainStore(ds), []string{keys.Twitter, keys.Github}, req, clock.Now)
+	us, err := keys.NewUserStore(ds, keys.NewSigchainStore(ds), req, clock.Now)
 	require.NoError(t, err)
 	return us
 }
