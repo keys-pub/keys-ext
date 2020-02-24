@@ -5,22 +5,34 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+
+	"github.com/pkg/errors"
 )
 
-func defaultServicePath() string {
-	exe, exeErr := ExecutablePath()
-	if exeErr != nil {
-		panic(exeErr)
+func exeDir() string {
+	exe, err := ExecutablePath()
+	if err != nil {
+		panic(err)
 	}
-	dir := filepath.Dir(exe)
+	return filepath.Dir(exe)
+}
 
+func defaultBinPath() string {
+	dir := exeDir()
+	name := "keys"
+	if runtime.GOOS == "windows" {
+		name = "keys.exe"
+	}
+	return filepath.Join(dir, name)
+}
+
+func defaultServicePath() string {
+	dir := exeDir()
 	name := "keysd"
 	if runtime.GOOS == "windows" {
 		name = "keysd.exe"
 	}
-
-	servicePath := filepath.Join(dir, name)
-	return servicePath
+	return filepath.Join(dir, name)
 }
 
 func restart(cfg *Config) error {
@@ -81,4 +93,48 @@ func Uninstall(cfg *Config) error {
 	fmt.Printf("Uninstalled %q.\n", cfg.AppName())
 	fmt.Printf("Run `keysd -reset-keyring` to remove keyring items.\n")
 	return nil
+}
+
+func startFromApp(cfg *Config) error {
+	if !cfg.GetBool("disableSymlinkCheck") {
+		if err := installSymlink(); err != nil {
+			logger.Warningf("Failed to install symlink: %s", err)
+		}
+		if err := cfg.Set("disableSymlinkCheck", "1", true); err != nil {
+			return err
+		}
+	}
+	return restart(cfg)
+}
+
+func installSymlink() error {
+	logger.Infof("Install symlink")
+	if runtime.GOOS == "windows" {
+		return errors.Errorf("failed to install symlink: not implemented on windows")
+	}
+
+	binPath := defaultBinPath()
+	linkDir := "/usr/local/bin"
+	linkPath := filepath.Join(linkDir, "keys")
+
+	logger.Infof("Checking if %s exists", linkDir)
+	// Check if /usr/local/bin directory exists
+	if _, err := os.Stat(linkDir); os.IsNotExist(err) {
+		return errors.Errorf("failed to install symlink: %s does not exist", linkDir)
+	}
+
+	logger.Infof("Checking if %s exists", linkPath)
+	// Check if /usr/local/bin/keys exists
+	if _, err := os.Stat(linkPath); err == nil {
+		logger.Infof("%s already exists", linkPath)
+		return nil
+	} else if os.IsNotExist(err) {
+		// OK
+		logger.Infof("%s doesn't exist", linkPath)
+	} else {
+		return err
+	}
+
+	logger.Infof("Linking %s to %s", linkPath, binPath)
+	return os.Symlink(binPath, linkPath)
 }
