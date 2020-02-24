@@ -18,7 +18,30 @@ import (
 // Config ...
 type Config struct {
 	appName string
-	values  values
+	values  map[string]string
+}
+
+// Config key names
+const ckServer = "server"
+const ckPort = "port"
+const ckLogLevel = "logLevel"
+const ckKeyringType = "keyringType"
+
+// Port to connect.
+func (c Config) Port() int {
+	return c.GetInt(ckPort, 22405)
+}
+
+// Server to connect to.
+func (c Config) Server() string {
+	return c.Get(ckServer, "https://keys.pub")
+}
+
+// LogLevel for logging.
+func (c *Config) LogLevel() LogLevel {
+	ll := c.Get(ckLogLevel, "")
+	l, _ := parseLogLevel(ll)
+	return l
 }
 
 // Build describes build flags.
@@ -146,27 +169,6 @@ func DefaultHomeDir() string {
 	return usr.HomeDir
 }
 
-type values struct {
-	Server              string      `json:"server"`
-	KeyringType         KeyringType `json:"keyringType"`
-	LogLevel            string      `json:"logLevel"`
-	Port                int         `json:"port"`
-	DisablePromptKeygen bool        `json:"disablePromptKeygen"`
-	DisablePromptUser   bool        `json:"disablePromptUser"`
-}
-
-// KeyringType is the keyring to use.
-type KeyringType string
-
-const (
-	// KeyringTypeDefault is the default, using the system keyring.
-	KeyringTypeDefault KeyringType = ""
-	// KeyringTypeFS uses the FS based keyring.
-	KeyringTypeFS KeyringType = "fs"
-	// KeyringTypeMem uses the in memory based keyring.
-	KeyringTypeMem KeyringType = "mem"
-)
-
 // NewConfig creates a Config.
 func NewConfig(appName string) (*Config, error) {
 	if appName == "" {
@@ -187,16 +189,18 @@ func (c *Config) Load() error {
 	if err != nil {
 		return err
 	}
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return nil
+	var values map[string]string
+	if _, err := os.Stat(path); !os.IsNotExist(err) {
+		b, err := ioutil.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(b, &values); err != nil {
+			return err
+		}
 	}
-	b, err := ioutil.ReadFile(path)
-	if err != nil {
-		return err
-	}
-	var values values
-	if err := json.Unmarshal(b, &values); err != nil {
-		return err
+	if values == nil {
+		values = map[string]string{}
 	}
 	c.values = values
 	return nil
@@ -230,145 +234,74 @@ func (c *Config) Reset() error {
 	return os.Remove(path)
 }
 
-// Server ...
-func (c *Config) Server() string {
-	if c.values.Server == "" {
-		return "https://keys.pub"
-	}
-	return c.values.Server
-}
-
-// SetServer ...
-func (c *Config) SetServer(s string) {
-	c.values.Server = s
-}
-
-// Port returns port to use to connect to service.
-func (c Config) Port() int {
-	if c.values.Port == 0 {
-		return 22405
-	}
-	return c.values.Port
-}
-
-// SetPort set port.
-func (c *Config) SetPort(n int) {
-	c.values.Port = n
-}
-
-// LogLevel ...
-func (c *Config) LogLevel() LogLevel {
-	l, _ := parseLogLevel(c.values.LogLevel)
-	return l
-}
-
-// SetLogLevel ...
-func (c *Config) SetLogLevel(l LogLevel) {
-	c.values.LogLevel = l.String()
-}
-
-// KeyringType ...
-func (c Config) KeyringType() KeyringType {
-	return c.values.KeyringType
-}
-
-// SetKeyringType ...
-func (c *Config) SetKeyringType(t KeyringType) {
-	c.values.KeyringType = t
-}
-
-// DisablePromptKeygen ...
-func (c *Config) DisablePromptKeygen() bool {
-	return c.values.DisablePromptKeygen
-}
-
-// SetDisablePromptKeygen ...
-func (c *Config) SetDisablePromptKeygen(b bool) {
-	c.values.DisablePromptKeygen = b
-}
-
-// DisablePromptUser ...
-func (c *Config) DisablePromptUser() bool {
-	return c.values.DisablePromptUser
-}
-
-// SetDisablePromptUser ...
-func (c *Config) SetDisablePromptUser(b bool) {
-	c.values.DisablePromptUser = b
-}
-
 // Export ...
 func (c Config) Export() ([]byte, error) {
 	return json.MarshalIndent(c.values, "", "  ")
 }
 
-// Map returns config as map values.
-func (c Config) Map() map[string]string {
-	return map[string]string{
-		"keyringType":       string(c.values.KeyringType),
-		"logLevel":          string(c.values.LogLevel),
-		"port":              strconv.Itoa(c.values.Port),
-		"disablePromptUser": truthyString(c.values.DisablePromptUser),
+// Get config value.
+func (c *Config) Get(key string, dflt string) string {
+	v, ok := c.values[key]
+	if !ok {
+		return dflt
 	}
+	return v
+}
+
+// GetInt gets config value as int.
+func (c *Config) GetInt(key string, dflt int) int {
+	v, ok := c.values[key]
+	if !ok {
+		return dflt
+	}
+	n, err := strconv.Atoi(v)
+	if err != nil {
+		logger.Warningf("config value %s not an int", key)
+		return 0
+	}
+	return n
+
+}
+
+// GetBool gets config value as bool.
+func (c *Config) GetBool(key string) bool {
+	v, ok := c.values[key]
+	if !ok {
+		return false
+	}
+	b, _ := truthy(v)
+	return b
+}
+
+// SetBool sets bool value for key.
+func (c *Config) SetBool(key string, b bool, save bool) error {
+	return c.Set(key, truthyString(b), save)
+}
+
+// SetInt sets int value for key.
+func (c *Config) SetInt(key string, n int, save bool) error {
+	return c.Set(key, strconv.Itoa(n), save)
 }
 
 // Set value.
-func (c *Config) Set(key string, value string) error {
-	switch key {
-	case "keyringType":
-		switch value {
-		case "default":
-			c.SetKeyringType(KeyringTypeDefault)
-		case string(KeyringTypeFS):
-			c.SetKeyringType(KeyringTypeFS)
-		case string(KeyringTypeMem):
-			c.SetKeyringType(KeyringTypeMem)
-		default:
-			return errors.Errorf("invalid value for keyringType")
-		}
-		return nil
-	case "port":
-		port, portErr := strconv.Atoi(value)
-		if portErr != nil {
-			return portErr
-		}
-		c.SetPort(port)
-		return nil
-	case "logLevel":
-		l, ok := parseLogLevel(value)
-		if !ok {
-			return errors.Errorf("invalid value for logLevel")
-		}
-		c.SetLogLevel(l)
-		return nil
-	case "disablePromptUser":
-		if value == "" {
-			return errors.Errorf("empty value")
-		}
-		b, err := truthy(value)
-		if err != nil {
-			return err
-		}
-		c.SetDisablePromptUser(b)
-		return nil
-	default:
-		return errors.Errorf("unknown config key")
+func (c *Config) Set(key string, value string, save bool) error {
+	c.values[key] = value
+	if save {
+		return c.Save()
 	}
+	return nil
 }
 
 // Config (RPC) ...
 func (s *service) Config(ctx context.Context, req *ConfigRequest) (*ConfigResponse, error) {
 	return &ConfigResponse{
-		Config: s.cfg.Map(),
+		Config: s.cfg.values,
 	}, nil
 }
 
 // ConfigSet (RPC) ...
 func (s *service) ConfigSet(ctx context.Context, req *ConfigSetRequest) (*ConfigSetResponse, error) {
-	if err := s.cfg.Set(req.Key, req.Value); err != nil {
-		return nil, err
-	}
-	if err := s.cfg.Save(); err != nil {
+	if err := s.cfg.Set(req.Key, req.Value, true); err != nil {
 		return nil, err
 	}
 	return &ConfigSetResponse{}, nil

@@ -18,7 +18,8 @@ func testConfig(t *testing.T, serverURL string) (*Config, CloseFn) {
 	appName := "KeysTest-" + keys.RandPassphrase(12)
 	cfg, err := NewConfig(appName)
 	require.NoError(t, err)
-	cfg.SetServer(serverURL)
+	err = cfg.Set("server", serverURL, false)
+	require.NoError(t, err)
 
 	closeFn := func() {
 		removeErr := os.RemoveAll(cfg.AppDir())

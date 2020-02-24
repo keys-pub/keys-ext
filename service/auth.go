@@ -51,22 +51,23 @@ func newAuth(cfg *Config) (*auth, error) {
 }
 
 func newKeyring(cfg *Config) (keyring.Keyring, error) {
-	switch cfg.KeyringType() {
-	case KeyringTypeDefault:
+	kt := cfg.Get(ckKeyringType, "")
+	switch kt {
+	case "":
 		logger.Infof("Keyring: default")
 		return keyring.NewKeyring(cfg.AppName())
-	case KeyringTypeFS:
+	case "fs":
 		logger.Infof("Keyring: fs")
 		dir, err := cfg.AppPath("keyring", false)
 		if err != nil {
 			return nil, err
 		}
 		return keyring.NewFS(dir)
-	case KeyringTypeMem:
+	case "mem":
 		logger.Infof("Keyring: mem")
 		return keyring.NewMem(), nil
 	default:
-		return nil, errors.Errorf("unknown keyring type")
+		return nil, errors.Errorf("unknown keyring type %s", kt)
 	}
 }
 

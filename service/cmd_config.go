@@ -14,13 +14,8 @@ func configCommands(client *Client) []cli.Command {
 			Usage: "Config",
 			Subcommands: []cli.Command{
 				cli.Command{
-					Name: "set",
-					Usage: `Set config.
-  - keyringType [default, fs, mem]
-  - logLevel [debug, info, warn, err]
-  - port <number>
-  - skipUserSetup <bool>
-`,
+					Name:      "set",
+					Usage:     "Set config",
 					ArgsUsage: "key value",
 					Action: func(c *cli.Context) error {
 						if c.NArg() != 2 {
@@ -40,10 +35,7 @@ func configCommands(client *Client) []cli.Command {
 						if err != nil {
 							return err
 						}
-						if err := cfg.Set(key, value); err != nil {
-							return err
-						}
-						if err := cfg.Save(); err != nil {
+						if err := cfg.Set(key, value, true); err != nil {
 							return err
 						}
 
