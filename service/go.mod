@@ -13,7 +13,6 @@ require (
 	github.com/keys-pub/keysd/http/client v0.0.0-20200223204014-135c03e7b2d3
 	github.com/keys-pub/keysd/http/server v0.0.0-20200223203834-3dc7040c6558
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
-	github.com/logrusorgru/aurora v0.0.0-20191116043053-66b7ad493a23
 	github.com/mercari/go-grpc-interceptor v0.0.0-20180110035004-b8ad3827e82a
 	github.com/mitchellh/go-ps v0.0.0-20190716172923-621e5597135b
 	github.com/onsi/ginkgo v1.9.0 // indirect
