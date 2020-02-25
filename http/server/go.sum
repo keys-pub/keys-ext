@@ -37,6 +37,8 @@ github.com/keys-pub/keys v0.0.0-20200220193200-0db28e999cf3 h1:S14k1/NvnEh+UWipR
 github.com/keys-pub/keys v0.0.0-20200220193200-0db28e999cf3/go.mod h1:/uNDuQDL1kCcJVsKMG2xLwUMS7zvoUrWL9k1OMZ7GZw=
 github.com/keys-pub/keys v0.0.0-20200223202242-70e1f1ef5e5f h1:fAC4Fny/niAbMq08jP5Mgg9hsB8r5NvISwjQrPYHh5A=
 github.com/keys-pub/keys v0.0.0-20200223202242-70e1f1ef5e5f/go.mod h1:/uNDuQDL1kCcJVsKMG2xLwUMS7zvoUrWL9k1OMZ7GZw=
+github.com/keys-pub/keys v0.0.0-20200225190846-c4c290641183 h1:qvLWRP0lSnbZaKmpASQSaf+VbF1DsOGasiY5c6P3kBk=
+github.com/keys-pub/keys v0.0.0-20200225190846-c4c290641183/go.mod h1:/uNDuQDL1kCcJVsKMG2xLwUMS7zvoUrWL9k1OMZ7GZw=
 github.com/keys-pub/keysd/http/api v0.0.0-20200107201206-c0f295622c20 h1:d1vFlbu2IrOEDtBwefOFI7nmb+w5/3uz7qnBzyGT7yg=
 github.com/keys-pub/keysd/http/api v0.0.0-20200107201206-c0f295622c20/go.mod h1:Wb7CizkwyJDE1NvYbL6ZmANI4Cq2953MoV8fXzrZASY=
 github.com/keys-pub/keysd/http/api v0.0.0-20200118233442-784585ea9454 h1:kVndkj3WvlFXON1C1cGIwArUPSitbxMMW3lo1zIkgA4=
