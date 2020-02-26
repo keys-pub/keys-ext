@@ -34,13 +34,17 @@ func pullCommands(client *Client) []cli.Command {
 			Usage:     "Publish to the key server",
 			ArgsUsage: "kid or user",
 			Aliases:   []string{"publish"},
+			Flags: []cli.Flag{
+				cli.BoolFlag{Name: "check", Usage: "check remote", Hidden: true},
+			},
 			Action: func(c *cli.Context) error {
 				identity := c.Args().First()
 				if identity == "" {
 					return errors.Errorf("specify kid or user")
 				}
 				req := &PushRequest{
-					Identity: identity,
+					Identity:    identity,
+					RemoteCheck: c.Bool("check"),
 				}
 				resp, err := client.ProtoClient().Push(context.TODO(), req)
 				if err != nil {

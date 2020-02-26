@@ -24,6 +24,20 @@ func (s *service) Push(ctx context.Context, req *PushRequest) (*PushResponse, er
 		return nil, errors.Errorf("nothing to push")
 	}
 
+	// TODO: Is remote check appropriate here?
+	if req.RemoteCheck {
+		key, err := s.ks.EdX25519Key(kid)
+		if err != nil {
+			return nil, err
+		}
+		if key == nil {
+			return nil, keys.NewErrNotFound(kid.String())
+		}
+		if err := s.remote.Check(key); err != nil {
+			return nil, err
+		}
+	}
+
 	return &PushResponse{
 		KID:  kid.String(),
 		URLs: urls,
