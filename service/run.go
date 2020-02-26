@@ -55,6 +55,18 @@ func logFatal(err error) {
 	os.Exit(1)
 }
 
+func resetKeyringAndExit(cfg *Config) {
+	kr, err := keyring.NewKeyring(cfg.AppName())
+	if err != nil {
+		logFatal(errors.Wrapf(err, "failed to new keyring"))
+	}
+	if err := kr.Reset(); err != nil {
+		logFatal(errors.Wrapf(err, "failed to reset keyring"))
+	}
+	fmt.Println("Keyring reset.")
+	os.Exit(0)
+}
+
 // Run the service.
 func Run(build Build) {
 	appName := flag.String("app", "Keys", "app name")
@@ -62,6 +74,7 @@ func Run(build Build) {
 	port := flag.Int("port", 0, "set port")
 	version := flag.Bool("version", false, "print version")
 	resetKeyring := flag.Bool("reset-keyring", false, "reset keyring")
+	force := flag.Bool("force", false, "force it")
 
 	flag.Parse()
 
@@ -80,26 +93,20 @@ func Run(build Build) {
 	}
 
 	if *resetKeyring {
-		reader := bufio.NewReader(os.Stdin)
-		words := keys.RandWords(6)
-		fmt.Printf("Are you sure you want to reset the app and remove keys?\n")
-		fmt.Printf("If so enter this phrase: %s\n\n", words)
-		text, _ := reader.ReadString('\n')
-		text = strings.Trim(text, "\r\n")
-		fmt.Println("")
-		if text != words {
-			fmt.Println("Phrase doesn't match.")
-			os.Exit(1)
+		if !*force {
+			reader := bufio.NewReader(os.Stdin)
+			words := keys.RandWords(6)
+			fmt.Printf("Are you sure you want to reset the app and remove keys?\n")
+			fmt.Printf("If so enter this phrase: %s\n\n", words)
+			text, _ := reader.ReadString('\n')
+			text = strings.Trim(text, "\r\n")
+			fmt.Println("")
+			if text != words {
+				fmt.Println("Phrase doesn't match.")
+				os.Exit(1)
+			}
 		}
-		kr, err := keyring.NewKeyring(cfg.AppName())
-		if err != nil {
-			logFatal(errors.Wrapf(err, "failed to init keyring"))
-		}
-		if err := kr.Reset(); err != nil {
-			logFatal(errors.Wrapf(err, "failed to reset keyring"))
-		}
-		fmt.Println("Keyring reset.")
-		os.Exit(0)
+		resetKeyringAndExit(cfg)
 	}
 
 	// TODO: Disable logging by default

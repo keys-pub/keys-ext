@@ -11,23 +11,23 @@ head -c 500000 </dev/urandom > "$tmpfile"
 encfile=`mktemp /tmp/XXXXXXXXXXX`
 encfile2=`mktemp /tmp/XXXXXXXXXXX`
 
-# echo "list"
-# kid=`keys list | head -1 | cut -d ' ' -f 1`
+keycmd=${KEYS:-"keys"}
+
 echo "gen"
-kid=`keys generate`
+kid=`$keycmd generate`
 echo "gen $kid"
 
 echo "encrypt $kid"
-keys encrypt -recipient $kid -in "$tmpfile" -out "$encfile"
+$keycmd encrypt -recipient $kid -in "$tmpfile" -out "$encfile"
 echo "decrypt"
-keys decrypt -in "$encfile" -out "$tmpfile2"
+$keycmd decrypt -in "$encfile" -out "$tmpfile2"
 diff "$tmpfile2" "$tmpfile2"
 
 echo "encrypt $kid"
-cat "$tmpfile2" | keys encrypt -recipient $kid > "$encfile2"
+cat "$tmpfile2" | $keycmd encrypt -recipient $kid > "$encfile2"
 echo "decrypt"
-cat "$encfile2" | keys decrypt > "$tmpfile3"
+cat "$encfile2" | $keycmd decrypt > "$tmpfile3"
 diff "$tmpfile2" "$tmpfile3"
 
 echo "remove $kid"
-keys remove "$kid"
+$keycmd remove "$kid"

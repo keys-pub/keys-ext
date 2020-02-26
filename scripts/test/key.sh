@@ -2,21 +2,23 @@
 
 set -e -u -o pipefail # Fail on error
 
+keycmd=${KEYS:-"keys"}
+
 echo "gen"
-kid=`keys generate`
+kid=`${keycmd} generate`
 echo "gen $kid"
 
 echo "export"
-keys export -kid $kid -password "testpassword123" > key.txt
+$keycmd export -kid $kid -password "testpassword123" > key.txt
 
 echo "remove $kid"
-keys remove -kid "$kid"
+$keycmd remove -kid "$kid"
 
 echo "import"
-cat key.txt | keys import -password "testpassword123"
+cat key.txt | $keycmd import -password "testpassword123"
+rm key.txt
 
 echo "remove $kid"
-keys remove "$kid"
+$keycmd remove "$kid"
 
-rm key.txt
 
