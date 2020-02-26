@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestKeyImportExport(t *testing.T) {
+func TestKeyImport(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
 	env := newTestEnv(t)
 	service, closeFn := newTestService(t, env)
@@ -17,34 +17,21 @@ func TestKeyImportExport(t *testing.T) {
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
 
-	genResp, err := service.KeyGenerate(ctx, &KeyGenerateRequest{Type: EdX25519})
-	require.NoError(t, err)
-	kid, err := keys.ParseID(genResp.KID)
-	require.NoError(t, err)
-
-	// Export
-	exportResp, err := service.KeyExport(ctx, &KeyExportRequest{
-		KID:      kid.String(),
-		Password: "test",
-	})
-	require.NoError(t, err)
-	require.NotEmpty(t, exportResp.Export)
-
-	// Remove
-	_, err = service.KeyRemove(ctx, &KeyRemoveRequest{KID: kid.String()})
+	key := keys.GenerateEdX25519Key()
+	export, err := keys.EncodeKeyToSaltpack(key, "testpassword")
 	require.NoError(t, err)
 
 	// Import
 	importResp, err := service.KeyImport(ctx, &KeyImportRequest{
-		In:       exportResp.Export,
-		Password: "test",
+		In:       []byte(export),
+		Password: "testpassword",
 	})
 	require.NoError(t, err)
-	require.Equal(t, kid.String(), importResp.KID)
+	require.Equal(t, key.ID().String(), importResp.KID)
 
-	keyResp, err := service.Key(ctx, &KeyRequest{Identity: kid.String()})
+	keyResp, err := service.Key(ctx, &KeyRequest{Identity: key.ID().String()})
 	require.NoError(t, err)
-	require.Equal(t, kid.String(), keyResp.Key.ID)
+	require.Equal(t, key.ID().String(), keyResp.Key.ID)
 
 	// Import (bob, ID)
 	importResp, err = service.KeyImport(ctx, &KeyImportRequest{

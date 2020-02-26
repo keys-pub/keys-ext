@@ -42,30 +42,6 @@ func (s *service) KeyImport(ctx context.Context, req *KeyImportRequest) (*KeyImp
 
 }
 
-// KeyExport (RPC) returns exports a key.
-func (s *service) KeyExport(ctx context.Context, req *KeyExportRequest) (*KeyExportResponse, error) {
-	id, err := keys.ParseID(req.KID)
-	if err != nil {
-		return nil, err
-	}
-
-	typ := req.Type
-	if typ == DefaultExportType {
-		typ = SaltpackExportType
-	}
-
-	switch typ {
-	case SaltpackExportType:
-		msg, err := s.ks.ExportSaltpack(id, req.Password)
-		if err != nil {
-			return nil, err
-		}
-		return &KeyExportResponse{Export: []byte(msg)}, nil
-	default:
-		return nil, errors.Errorf("unrecognized export type")
-	}
-}
-
 func (s *service) importID(id keys.ID) error {
 	// Check if item already exists and skip if so.
 	kr, err := s.ks.Keyring()

@@ -78,21 +78,28 @@ func (a *auth) lock() {
 	a.tokens = map[string]string{}
 }
 
-func (a *auth) unlock(password string, client string) (string, error) {
-	logger.Infof("Unlock")
+func (a *auth) verifyPassword(password string) error {
 	salt, err := a.keyring.Salt()
 	if err != nil {
-		return "", errors.Wrapf(err, "failed to load salt")
+		return errors.Wrapf(err, "failed to load salt")
 	}
 	auth, err := keyring.NewPasswordAuth(password, salt)
 	if err != nil {
-		return "", err
+		return err
 	}
 	if err := a.keyring.Unlock(auth); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *auth) unlock(password string, client string) (string, error) {
+	logger.Infof("Unlock")
+	if err := a.verifyPassword(password); err != nil {
 		if err == keyring.ErrInvalidAuth {
 			return "", status.Error(codes.PermissionDenied, "invalid password")
 		}
-		return "", err
+		return "", errors.Wrapf(err, "failed to unlock")
 	}
 
 	token := generateToken()

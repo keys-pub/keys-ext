@@ -122,9 +122,6 @@ func TestAuthSetup(t *testing.T) {
 	defer closeFn()
 	ctx := context.TODO()
 
-	_, err := service.AuthSetup(ctx, &AuthSetupRequest{Password: "short"})
-	require.EqualError(t, err, "password too short")
-
 	setupResp, err := service.AuthSetup(ctx, &AuthSetupRequest{Password: "password123"})
 	require.NoError(t, err)
 	require.NotEmpty(t, setupResp.AuthToken)
