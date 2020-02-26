@@ -59,6 +59,7 @@ func logFatal(err error) {
 func Run(build Build) {
 	appName := flag.String("app", "Keys", "app name")
 	logPath := flag.String("log-path", "", "log path")
+	port := flag.Int("port", 0, "set port")
 	version := flag.Bool("version", false, "print version")
 	resetKeyring := flag.Bool("reset-keyring", false, "reset keyring")
 
@@ -115,6 +116,13 @@ func Run(build Build) {
 	}
 	if runtime.GOOS == "darwin" {
 		if err := checkCodesigned(); err != nil {
+			logFatal(err)
+		}
+	}
+
+	if *port > 0 {
+		logger.Infof("Setting port %d", *port)
+		if err := cfg.SetInt("port", *port, true); err != nil {
 			logFatal(err)
 		}
 	}
