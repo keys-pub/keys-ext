@@ -11,13 +11,15 @@ import (
 )
 
 func TestServiceFn(t *testing.T) {
-	cfg, err := service.NewConfig("KeysTest")
+	// service.SetLogger(service.NewLogger(service.DebugLevel))
+	cfg, err := service.NewConfig("KeysServiceTest")
 	require.NoError(t, err)
 	defer func() {
 		err := os.RemoveAll(cfg.AppDir())
 		require.NoError(t, err)
 	}()
-	cfg.SetPort(2001)
+	cfg.SetInt("port", 2001)
+	cfg.Set("keyring", "mem")
 	build := service.Build{
 		Version: version,
 		Commit:  commit,
@@ -27,6 +29,7 @@ func TestServiceFn(t *testing.T) {
 	serveFn, closeFn, serviceErr := service.NewServiceFn(cfg, build, lgi)
 	require.NoError(t, serviceErr)
 
+	t.Logf("testing")
 	go func() {
 		time.Sleep(time.Second)
 		closeFn()
