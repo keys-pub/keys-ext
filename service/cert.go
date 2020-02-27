@@ -10,8 +10,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func certificateKey(cfg *Config, generate bool) (*keys.CertificateKey, error) {
-	st := keyring.NewStore()
+func certificateKey(cfg *Config, st keyring.Store, generate bool) (*keys.CertificateKey, error) {
 	private, err := st.Get(cfg.AppName(), ".cert-private")
 	if err != nil {
 		return nil, err
@@ -35,11 +34,11 @@ func certificateKey(cfg *Config, generate bool) (*keys.CertificateKey, error) {
 		}
 		return keys.NewCertificateKey(string(private), string(public))
 	}
-	return generateCertificate(cfg)
+	return generateCertificate(cfg, st)
 }
 
 // generateCertificate generates a certificate key.
-func generateCertificate(cfg *Config) (*keys.CertificateKey, error) {
+func generateCertificate(cfg *Config, st keyring.Store) (*keys.CertificateKey, error) {
 	logger.Infof("Generating certificate...")
 	certKey, err := keys.GenerateCertificateKey("localhost", true, nil)
 	if err != nil {
@@ -47,7 +46,6 @@ func generateCertificate(cfg *Config) (*keys.CertificateKey, error) {
 	}
 
 	logger.Infof("Saving certificate to keyring...")
-	st := keyring.NewStore()
 	if err := st.Set(cfg.AppName(), ".cert-private", []byte(certKey.Private()), ""); err != nil {
 		return nil, err
 	}

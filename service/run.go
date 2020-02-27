@@ -56,7 +56,11 @@ func logFatal(err error) {
 }
 
 func resetKeyringAndExit(cfg *Config) {
-	kr, err := keyring.NewKeyring(cfg.AppName())
+	st, err := newKeyringStore(cfg)
+	if err != nil {
+		logFatal(errors.Wrapf(err, "failed to new keyring"))
+	}
+	kr, err := keyring.NewKeyring(cfg.AppName(), st)
 	if err != nil {
 		logFatal(errors.Wrapf(err, "failed to new keyring"))
 	}
@@ -129,7 +133,8 @@ func Run(build Build) {
 
 	if *port > 0 {
 		logger.Infof("Setting port %d", *port)
-		if err := cfg.SetInt("port", *port, true); err != nil {
+		cfg.SetInt("port", *port)
+		if err := cfg.Save(); err != nil {
 			logFatal(err)
 		}
 	}
@@ -169,7 +174,12 @@ func NewServiceFn(cfg *Config, build Build, lgi LogInterceptor) (ServeFn, CloseF
 		return nil, nil, errors.Errorf("port %d in use", cfg.Port())
 	}
 
-	cert, err := certificateKey(cfg, true)
+	st, err := newKeyringStore(cfg)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	cert, err := certificateKey(cfg, st, true)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -184,7 +194,7 @@ func NewServiceFn(cfg *Config, build Build, lgi LogInterceptor) (ServeFn, CloseF
 		grpc.Creds(creds),
 	}
 
-	auth, err := newAuth(cfg)
+	auth, err := newAuth(cfg, st)
 	if err != nil {
 		return nil, nil, err
 	}

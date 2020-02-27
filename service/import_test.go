@@ -15,7 +15,6 @@ func TestKeyImport(t *testing.T) {
 	defer closeFn()
 	ctx := context.TODO()
 	testAuthSetup(t, service)
-	testImportKey(t, service, alice)
 
 	key := keys.GenerateEdX25519Key()
 	export, err := keys.EncodeKeyToSaltpack(key, "testpassword")
@@ -32,6 +31,15 @@ func TestKeyImport(t *testing.T) {
 	keyResp, err := service.Key(ctx, &KeyRequest{Identity: key.ID().String()})
 	require.NoError(t, err)
 	require.Equal(t, key.ID().String(), keyResp.Key.ID)
+
+	// Check key
+	k, err := service.ks.EdX25519Key(key.ID())
+	require.NoError(t, err)
+	require.NotNil(t, k)
+
+	sks, err := service.ks.EdX25519Keys()
+	require.NoError(t, err)
+	require.Equal(t, 1, len(sks))
 
 	// Import (bob, ID)
 	importResp, err = service.KeyImport(ctx, &KeyImportRequest{

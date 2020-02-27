@@ -13,24 +13,23 @@ import (
 	"google.golang.org/grpc"
 )
 
-type verify struct {
-	armored bool
-	sp      *saltpack.Saltpack
-}
-
-func (s *service) newVerify(armored bool) *verify {
-	sp := saltpack.NewSaltpack(s.ks)
-	sp.SetArmored(armored)
-	return &verify{armored: armored, sp: sp}
-}
-
 // Verify (RPC) ...
 func (s *service) Verify(ctx context.Context, req *VerifyRequest) (*VerifyResponse, error) {
-	ver := s.newVerify(req.Armored)
-
-	verified, kid, err := ver.sp.Verify(req.Data)
-	if err != nil {
-		return nil, err
+	sp := saltpack.NewSaltpack(s.ks)
+	var verified []byte
+	var kid keys.ID
+	if req.Armored {
+		v, k, err := sp.VerifyArmored(string(req.Data))
+		if err != nil {
+			return nil, err
+		}
+		verified, kid = v, k
+	} else {
+		v, k, err := sp.Verify(req.Data)
+		if err != nil {
+			return nil, err
+		}
+		verified, kid = v, k
 	}
 
 	var signer *Key
@@ -65,9 +64,7 @@ func (s *service) VerifyFile(srv Keys_VerifyFileServer) error {
 		}
 	}
 
-	ver := s.newVerify(req.Armored)
-
-	signer, err := s.verifyWriteInOut(srv.Context(), req.In, out, ver)
+	signer, err := s.verifyWriteInOut(srv.Context(), req.In, out, req.Armored)
 	if err != nil {
 		return err
 	}
@@ -109,8 +106,7 @@ func (s *service) verifyStream(srv verifyStreamServer, armored bool) error {
 
 	reader := newStreamReader(srv.Context(), recvFn)
 
-	ver := s.newVerify(armored)
-	streamReader, kid, err := s.verifyReader(srv.Context(), reader, ver)
+	streamReader, kid, err := s.verifyReader(srv.Context(), reader, armored)
 	if err != nil {
 		return err
 	}
@@ -182,18 +178,22 @@ func (s *service) readFromStream(ctx context.Context, streamReader io.Reader, si
 	return nil
 }
 
-func (s *service) verifyReader(ctx context.Context, reader io.Reader, ver *verify) (io.Reader, keys.ID, error) {
-	return ver.sp.NewVerifyStream(reader)
+func (s *service) verifyReader(ctx context.Context, reader io.Reader, armored bool) (io.Reader, keys.ID, error) {
+	sp := saltpack.NewSaltpack(s.ks)
+	if armored {
+		return sp.NewVerifyArmoredStream(reader)
+	}
+	return sp.NewVerifyStream(reader)
 }
 
-func (s *service) verifyWriteInOut(ctx context.Context, in string, out string, ver *verify) (*Key, error) {
+func (s *service) verifyWriteInOut(ctx context.Context, in string, out string, armored bool) (*Key, error) {
 	inFile, err := os.Open(in)
 	if err != nil {
 		return nil, err
 	}
 	reader := bufio.NewReader(inFile)
 
-	verifyReader, kid, err := s.verifyReader(ctx, reader, ver)
+	verifyReader, kid, err := s.verifyReader(ctx, reader, armored)
 	if err != nil {
 		return nil, err
 	}

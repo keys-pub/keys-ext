@@ -25,7 +25,7 @@ func TestKeyExport(t *testing.T) {
 		KID:      kid.String(),
 		Password: "invalid",
 	})
-	require.EqualError(t, err, "rpc error: code = PermissionDenied desc = invalid password")
+	require.EqualError(t, err, "invalid password")
 
 	resp, err = service.KeyExport(ctx, &KeyExportRequest{
 		KID:      kid.String(),

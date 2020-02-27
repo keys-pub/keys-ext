@@ -100,7 +100,8 @@ func startFromApp(cfg *Config) error {
 		if err := installSymlink(); err != nil {
 			logger.Warningf("Failed to install symlink: %s", err)
 		}
-		if err := cfg.Set("disableSymlinkCheck", "1", true); err != nil {
+		cfg.Set("disableSymlinkCheck", "1")
+		if err := cfg.Save(); err != nil {
 			return err
 		}
 	}

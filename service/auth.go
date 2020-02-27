@@ -28,7 +28,7 @@ type auth struct {
 	whitelist *keys.StringSet
 }
 
-func newAuth(cfg *Config) (*auth, error) {
+func newAuth(cfg *Config, st keyring.Store) (*auth, error) {
 	// We don't need auth for the following methods.
 	whitelist := keys.NewStringSet(
 		"/service.Keys/AuthGenerate",
@@ -37,7 +37,7 @@ func newAuth(cfg *Config) (*auth, error) {
 		"/service.Keys/AuthLock",
 		"/service.Keys/RuntimeStatus")
 
-	kr, err := newKeyring(cfg)
+	kr, err := keyring.NewKeyring(cfg.AppName(), st)
 	if err != nil {
 		return nil, err
 	}
@@ -48,27 +48,6 @@ func newAuth(cfg *Config) (*auth, error) {
 		tokens:    map[string]string{},
 		whitelist: whitelist,
 	}, nil
-}
-
-func newKeyring(cfg *Config) (keyring.Keyring, error) {
-	kt := cfg.Get(ckKeyringType, "")
-	switch kt {
-	case "":
-		logger.Infof("Keyring: default")
-		return keyring.NewKeyring(cfg.AppName())
-	case "fs":
-		logger.Infof("Keyring: fs")
-		dir, err := cfg.AppPath("keyring", false)
-		if err != nil {
-			return nil, err
-		}
-		return keyring.NewFS(dir)
-	case "mem":
-		logger.Infof("Keyring: mem")
-		return keyring.NewMem(), nil
-	default:
-		return nil, errors.Errorf("unknown keyring type %s", kt)
-	}
 }
 
 func (a *auth) lock() {

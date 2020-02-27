@@ -9,17 +9,16 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/keyring"
 	"github.com/keys-pub/keysd/http/server"
 	"github.com/stretchr/testify/require"
 )
 
-func testConfig(t *testing.T, serverURL string) (*Config, CloseFn) {
+func testConfig(t *testing.T, serverURL string, keyringType string) (*Config, CloseFn) {
 	appName := "KeysTest-" + keys.RandPassphrase(12)
 	cfg, err := NewConfig(appName)
 	require.NoError(t, err)
-	err = cfg.Set("server", serverURL, false)
-	require.NoError(t, err)
+	cfg.Set("server", serverURL)
+	cfg.Set("keyring", keyringType)
 
 	closeFn := func() {
 		removeErr := os.RemoveAll(cfg.AppDir())
@@ -35,10 +34,11 @@ func testFire(t *testing.T, clock *clock) server.Fire {
 }
 
 type testEnv struct {
-	clock *clock
-	fi    server.Fire
-	req   *keys.MockRequestor
-	users *keys.UserStore
+	clock       *clock
+	fi          server.Fire
+	req         *keys.MockRequestor
+	users       *keys.UserStore
+	keyringType string
 }
 
 func newTestEnv(t *testing.T) *testEnv {
@@ -61,10 +61,15 @@ func testUserStore(t *testing.T, dst keys.DocumentStore, scs keys.SigchainStore,
 }
 
 func newTestService(t *testing.T, env *testEnv) (*service, CloseFn) {
-	serverEnv := newTestServerEnv(t, env)
+	return newTestServiceWithOpts(t, env, "mem")
+}
 
-	cfg, closeCfg := testConfig(t, serverEnv.url)
-	auth, err := newAuth(cfg)
+func newTestServiceWithOpts(t *testing.T, env *testEnv, keyringType string) (*service, CloseFn) {
+	serverEnv := newTestServerEnv(t, env)
+	cfg, closeCfg := testConfig(t, serverEnv.url, keyringType)
+	st, err := newKeyringStore(cfg)
+	require.NoError(t, err)
+	auth, err := newAuth(cfg, st)
 	require.NoError(t, err)
 	svc, err := newService(cfg, Build{Version: "1.2.3", Commit: "deadbeef"}, auth, env.req, env.clock.Now)
 	require.NoError(t, err)
@@ -72,9 +77,7 @@ func newTestService(t *testing.T, env *testEnv) (*service, CloseFn) {
 	closeFn := func() {
 		serverEnv.closeFn()
 		svc.Close()
-		kr, err := keyring.NewKeyring(cfg.AppName())
-		require.NoError(t, err)
-		err = kr.Reset()
+		err := auth.keyring.Reset()
 		require.NoError(t, err)
 		closeCfg()
 	}

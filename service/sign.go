@@ -14,36 +14,41 @@ import (
 
 type sign struct {
 	key      *keys.EdX25519Key
-	armored  bool
 	detached bool
-	sp       *saltpack.Saltpack
 }
 
-func (s *service) newSign(signer string, armored bool, detached bool) (*sign, error) {
+func (s *service) newSign(signer string, detached bool) (*sign, error) {
 	key, err := s.parseSigner(signer, true)
 	if err != nil {
 		return nil, err
 	}
-	sp := saltpack.NewSaltpack(s.ks)
-	sp.SetArmored(armored)
 	return &sign{
 		key:      key,
-		armored:  armored,
 		detached: detached,
-		sp:       sp,
 	}, nil
 }
 
 // Sign (RPC) ...
 func (s *service) Sign(ctx context.Context, req *SignRequest) (*SignResponse, error) {
-	sign, err := s.newSign(req.Signer, req.Armored, req.Detached)
+	sign, err := s.newSign(req.Signer, req.Detached)
 	if err != nil {
 		return nil, err
 	}
 
-	signed, err := sign.sp.Sign(req.Data, sign.key)
-	if err != nil {
-		return nil, err
+	sp := saltpack.NewSaltpack(s.ks)
+	var signed []byte
+	if req.Armored {
+		s, err := sp.SignArmored(req.Data, sign.key)
+		if err != nil {
+			return nil, err
+		}
+		signed = []byte(s)
+	} else {
+		s, err := sp.Sign(req.Data, sign.key)
+		if err != nil {
+			return nil, err
+		}
+		signed = s
 	}
 
 	return &SignResponse{
@@ -65,12 +70,12 @@ func (s *service) SignFile(srv Keys_SignFileServer) error {
 		return errors.Errorf("out not specified")
 	}
 
-	sign, err := s.newSign(req.Signer, req.Armored, req.Detached)
+	sign, err := s.newSign(req.Signer, req.Detached)
 	if err != nil {
 		return err
 	}
 
-	if err := s.signWriteInOut(srv.Context(), req.In, req.Out, sign); err != nil {
+	if err := s.signWriteInOut(srv.Context(), req.In, req.Out, sign, req.Armored); err != nil {
 		return err
 	}
 
@@ -112,11 +117,11 @@ func (s *service) SignStream(srv Keys_SignStreamServer) error {
 			if stream != nil {
 				return errors.Errorf("stream already initialized")
 			}
-			sign, err := s.newSign(req.Signer, req.Armored, req.Detached)
+			sign, err := s.newSign(req.Signer, req.Detached)
 			if err != nil {
 				return err
 			}
-			s, err := s.signWriter(ctx, &buf, sign)
+			s, err := s.signWriter(ctx, &buf, sign, req.Armored)
 			if err != nil {
 				return err
 			}
@@ -166,11 +171,15 @@ func (s *service) SignStream(srv Keys_SignStreamServer) error {
 	return nil
 }
 
-func (s *service) signWriter(ctx context.Context, w io.Writer, sign *sign) (io.WriteCloser, error) {
-	return sign.sp.NewSignStream(w, sign.key, sign.detached)
+func (s *service) signWriter(ctx context.Context, w io.Writer, sign *sign, armored bool) (io.WriteCloser, error) {
+	sp := saltpack.NewSaltpack(s.ks)
+	if armored {
+		return sp.NewSignArmoredStream(w, sign.key, sign.detached)
+	}
+	return sp.NewSignStream(w, sign.key, sign.detached)
 }
 
-func (s *service) signWriteInOut(ctx context.Context, in string, out string, sign *sign) error {
+func (s *service) signWriteInOut(ctx context.Context, in string, out string, sign *sign, armored bool) error {
 	outTmp := out + ".tmp"
 	defer os.Remove(outTmp)
 	outFile, err := os.Create(outTmp)
@@ -179,7 +188,7 @@ func (s *service) signWriteInOut(ctx context.Context, in string, out string, sig
 	}
 	writer := bufio.NewWriter(outFile)
 
-	stream, err := s.signWriter(ctx, writer, sign)
+	stream, err := s.signWriter(ctx, writer, sign, armored)
 	if err != nil {
 		return err
 	}

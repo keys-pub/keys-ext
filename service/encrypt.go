@@ -16,10 +16,9 @@ type encrypt struct {
 	recipients []keys.ID
 	signer     keys.ID
 	mode       EncryptMode
-	sp         *saltpack.Saltpack
 }
 
-func (s *service) newEncrypt(ctx context.Context, recipients []string, signer string, armored bool, mode EncryptMode) (*encrypt, error) {
+func (s *service) newEncrypt(ctx context.Context, recipients []string, signer string, mode EncryptMode) (*encrypt, error) {
 	if len(recipients) == 0 {
 		return nil, errors.Errorf("no recipients specified")
 	}
@@ -42,24 +41,21 @@ func (s *service) newEncrypt(ctx context.Context, recipients []string, signer st
 		kid = s
 	}
 
-	sp := saltpack.NewSaltpack(s.ks)
-	sp.SetArmored(armored)
-
 	return &encrypt{
 		recipients: identities,
 		signer:     kid,
 		mode:       mode,
-		sp:         sp,
 	}, nil
 }
 
 // Encrypt (RPC) data.
 func (s *service) Encrypt(ctx context.Context, req *EncryptRequest) (*EncryptResponse, error) {
-	enc, err := s.newEncrypt(ctx, req.Recipients, req.Signer, req.Armored, req.Mode)
+	enc, err := s.newEncrypt(ctx, req.Recipients, req.Signer, req.Mode)
 	if err != nil {
 		return nil, err
 	}
 
+	sp := saltpack.NewSaltpack(s.ks)
 	var out []byte
 	switch enc.mode {
 	case EncryptV2:
@@ -67,11 +63,19 @@ func (s *service) Encrypt(ctx context.Context, req *EncryptRequest) (*EncryptRes
 		if err != nil {
 			return nil, err
 		}
-		data, err := enc.sp.Encrypt(req.Data, sbk, enc.recipients...)
-		if err != nil {
-			return nil, err
+		if req.Armored {
+			data, err := sp.EncryptArmored(req.Data, sbk, enc.recipients...)
+			if err != nil {
+				return nil, err
+			}
+			out = []byte(data)
+		} else {
+			data, err := sp.Encrypt(req.Data, sbk, enc.recipients...)
+			if err != nil {
+				return nil, err
+			}
+			out = data
 		}
-		out = data
 	case SigncryptV1:
 		if enc.signer == "" {
 			return nil, errors.Errorf("no signer specified: signer is required for signcrypt mode")
@@ -83,11 +87,19 @@ func (s *service) Encrypt(ctx context.Context, req *EncryptRequest) (*EncryptRes
 		if sk == nil {
 			return nil, keys.NewErrNotFound(enc.signer.String())
 		}
-		data, err := enc.sp.Signcrypt(req.Data, sk, enc.recipients...)
-		if err != nil {
-			return nil, err
+		if req.Armored {
+			data, err := sp.SigncryptArmored(req.Data, sk, enc.recipients...)
+			if err != nil {
+				return nil, err
+			}
+			out = []byte(data)
+		} else {
+			data, err := sp.Signcrypt(req.Data, sk, enc.recipients...)
+			if err != nil {
+				return nil, err
+			}
+			out = data
 		}
-		out = data
 	default:
 		return nil, errors.Errorf("unsupported mode %s", enc.mode)
 	}
@@ -97,7 +109,7 @@ func (s *service) Encrypt(ctx context.Context, req *EncryptRequest) (*EncryptRes
 	}, nil
 }
 
-func (s *service) encryptWriteInOut(ctx context.Context, in string, out string, enc *encrypt) error {
+func (s *service) encryptWriteInOut(ctx context.Context, in string, out string, enc *encrypt, armored bool) error {
 	outTmp := out + ".tmp"
 	defer os.Remove(outTmp)
 	outFile, err := os.Create(outTmp)
@@ -106,7 +118,7 @@ func (s *service) encryptWriteInOut(ctx context.Context, in string, out string, 
 	}
 	writer := bufio.NewWriter(outFile)
 
-	stream, err := s.encryptWriter(ctx, writer, enc)
+	stream, err := s.encryptWriter(ctx, writer, enc, armored)
 	if err != nil {
 		return err
 	}
@@ -130,9 +142,10 @@ func (s *service) encryptWriteInOut(ctx context.Context, in string, out string, 
 	return nil
 }
 
-func (s *service) encryptWriter(ctx context.Context, w io.Writer, enc *encrypt) (io.WriteCloser, error) {
+func (s *service) encryptWriter(ctx context.Context, w io.Writer, enc *encrypt, armored bool) (io.WriteCloser, error) {
 	var stream io.WriteCloser
 
+	sp := saltpack.NewSaltpack(s.ks)
 	switch enc.mode {
 	case EncryptV2:
 		sbk, err := s.parseBoxKey(enc.signer)
@@ -140,11 +153,20 @@ func (s *service) encryptWriter(ctx context.Context, w io.Writer, enc *encrypt) 
 			return nil, err
 		}
 		logger.Infof("Encrypt stream for %s from %s", enc.recipients, enc.signer)
-		s, err := enc.sp.NewEncryptStream(w, sbk, enc.recipients...)
-		if err != nil {
-			return nil, err
+		if armored {
+			s, err := sp.NewEncryptArmoredStream(w, sbk, enc.recipients...)
+			if err != nil {
+				return nil, err
+			}
+			stream = s
+		} else {
+			s, err := sp.NewEncryptStream(w, sbk, enc.recipients...)
+			if err != nil {
+				return nil, err
+			}
+			stream = s
 		}
-		stream = s
+
 	case SigncryptV1:
 		if enc.signer == "" {
 			return nil, errors.Errorf("no signer specified")
@@ -157,11 +179,19 @@ func (s *service) encryptWriter(ctx context.Context, w io.Writer, enc *encrypt) 
 			return nil, keys.NewErrNotFound(enc.signer.String())
 		}
 		logger.Infof("Signcrypt stream for %s from %s", enc.recipients, enc.signer)
-		s, err := enc.sp.NewSigncryptStream(w, sk, enc.recipients...)
-		if err != nil {
-			return nil, err
+		if armored {
+			s, err := sp.NewSigncryptArmoredStream(w, sk, enc.recipients...)
+			if err != nil {
+				return nil, err
+			}
+			stream = s
+		} else {
+			s, err := sp.NewSigncryptStream(w, sk, enc.recipients...)
+			if err != nil {
+				return nil, err
+			}
+			stream = s
 		}
-		stream = s
 	default:
 		return nil, errors.Errorf("unsupported mode %s", enc.mode)
 	}
@@ -181,12 +211,12 @@ func (s *service) EncryptFile(srv Keys_EncryptFileServer) error {
 		return errors.Errorf("out not specified")
 	}
 
-	enc, err := s.newEncrypt(srv.Context(), req.Recipients, req.Signer, req.Armored, req.Mode)
+	enc, err := s.newEncrypt(srv.Context(), req.Recipients, req.Signer, req.Mode)
 	if err != nil {
 		return err
 	}
 
-	if err := s.encryptWriteInOut(srv.Context(), req.In, req.Out, enc); err != nil {
+	if err := s.encryptWriteInOut(srv.Context(), req.In, req.Out, enc, req.Armored); err != nil {
 		return err
 	}
 
@@ -226,12 +256,12 @@ func (s *service) EncryptStream(srv Keys_EncryptStreamServer) error {
 				return errors.Errorf("stream already initialized")
 			}
 
-			enc, err := s.newEncrypt(ctx, req.Recipients, req.Signer, req.Armored, req.Mode)
+			enc, err := s.newEncrypt(ctx, req.Recipients, req.Signer, req.Mode)
 			if err != nil {
 				return err
 			}
 
-			s, err := s.encryptWriter(ctx, &buf, enc)
+			s, err := s.encryptWriter(ctx, &buf, enc, req.Armored)
 			if err != nil {
 				return err
 			}

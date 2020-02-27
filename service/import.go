@@ -26,10 +26,12 @@ func (s *service) KeyImport(ctx context.Context, req *KeyImportRequest) (*KeyImp
 		return &KeyImportResponse{KID: id.String()}, nil
 	}
 
+	logger.Infof("Importing key %s", in)
 	kid, err := s.importSaltpack(in, req.Password)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to import key")
 	}
+	logger.Infof("Imported %s", kid)
 
 	// TODO: Should this be optional?
 	if _, _, err := s.update(ctx, kid); err != nil {

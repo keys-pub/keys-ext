@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/saltpack"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/status"
 )
@@ -19,7 +18,6 @@ func TestEncryptDecrypt(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
 	// keys.SetLogger(NewLogger(DebugLevel))
 	// saltpack.SetLogger(NewLogger(DebugLevel))
-	// client.SetLogger(newLog(DebugLevel))
 	env := newTestEnv(t)
 
 	aliceService, aliceCloseFn := newTestService(t, env)
@@ -31,7 +29,6 @@ func TestEncryptDecrypt(t *testing.T) {
 	defer bobCloseFn()
 	testAuthSetup(t, bobService)
 	testImportKey(t, bobService, bob)
-
 	testImportID(t, bobService, alice.ID())
 
 	testEncryptDecrypt(t, aliceService, bobService, alice.ID().String(), bob.ID().String(), EncryptV2, true, alice.ID())
@@ -249,9 +246,6 @@ func testEncryptStream(t *testing.T, service *service, plaintext []byte, signer 
 }
 
 func testDecryptStream(t *testing.T, service *service, b []byte, mode EncryptMode, armored bool) ([]byte, *Key, error) {
-	sp := saltpack.NewSaltpack(service.ks)
-	sp.SetArmored(armored)
-
 	client, clientCloseFn := newTestRPCClient(t, service)
 	defer clientCloseFn()
 

@@ -25,7 +25,7 @@ type Config struct {
 const ckServer = "server"
 const ckPort = "port"
 const ckLogLevel = "logLevel"
-const ckKeyringType = "keyringType"
+const ckKeyringType = "keyring"
 
 // Port to connect.
 func (c Config) Port() int {
@@ -274,22 +274,18 @@ func (c *Config) GetBool(key string) bool {
 }
 
 // SetBool sets bool value for key.
-func (c *Config) SetBool(key string, b bool, save bool) error {
-	return c.Set(key, truthyString(b), save)
+func (c *Config) SetBool(key string, b bool) {
+	c.Set(key, truthyString(b))
 }
 
 // SetInt sets int value for key.
-func (c *Config) SetInt(key string, n int, save bool) error {
-	return c.Set(key, strconv.Itoa(n), save)
+func (c *Config) SetInt(key string, n int) {
+	c.Set(key, strconv.Itoa(n))
 }
 
 // Set value.
-func (c *Config) Set(key string, value string, save bool) error {
+func (c *Config) Set(key string, value string) {
 	c.values[key] = value
-	if save {
-		return c.Save()
-	}
-	return nil
 }
 
 // Config (RPC) ...
@@ -301,7 +297,8 @@ func (s *service) Config(ctx context.Context, req *ConfigRequest) (*ConfigRespon
 
 // ConfigSet (RPC) ...
 func (s *service) ConfigSet(ctx context.Context, req *ConfigSetRequest) (*ConfigSetResponse, error) {
-	if err := s.cfg.Set(req.Key, req.Value, true); err != nil {
+	s.cfg.Set(req.Key, req.Value)
+	if err := s.cfg.Save(); err != nil {
 		return nil, err
 	}
 	return &ConfigSetResponse{}, nil

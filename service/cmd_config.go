@@ -35,7 +35,8 @@ func configCommands(client *Client) []cli.Command {
 						if err != nil {
 							return err
 						}
-						if err := cfg.Set(key, value, true); err != nil {
+						cfg.Set(key, value)
+						if err := cfg.Save(); err != nil {
 							return err
 						}
 

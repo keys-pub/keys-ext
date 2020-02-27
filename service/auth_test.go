@@ -9,9 +9,11 @@ import (
 )
 
 func TestAuth(t *testing.T) {
-	cfg, closeFn := testConfig(t, "")
+	cfg, closeFn := testConfig(t, "", "mem")
 	defer closeFn()
-	auth, err := newAuth(cfg)
+	st, err := newKeyringStore(cfg)
+	require.NoError(t, err)
+	auth, err := newAuth(cfg, st)
 	require.NoError(t, err)
 	defer func() { _ = auth.keyring.Reset() }()
 	kr := auth.keyring
@@ -45,9 +47,11 @@ func TestAuth(t *testing.T) {
 }
 
 func TestAuthorize(t *testing.T) {
-	cfg, closeFn := testConfig(t, "")
+	cfg, closeFn := testConfig(t, "", "mem")
 	defer closeFn()
-	auth, err := newAuth(cfg)
+	st, err := newKeyringStore(cfg)
+	require.NoError(t, err)
+	auth, err := newAuth(cfg, st)
 	require.NoError(t, err)
 	defer func() { _ = auth.keyring.Reset() }()
 
