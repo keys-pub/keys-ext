@@ -14,7 +14,7 @@ import (
 
 func readerFromArgs(in string) (io.Reader, error) {
 	if in != "" {
-		file, err := os.Open(in)
+		file, err := os.Open(in) // #nosec
 		if err != nil {
 			return nil, err
 		}
@@ -52,7 +52,9 @@ func fmtKeys(keys []*Key) {
 	for _, key := range keys {
 		fmtKey(w, key, "")
 	}
-	w.Flush()
+	if err := w.Flush(); err != nil {
+		panic(err)
+	}
 	fmt.Print(out.String())
 }
 
@@ -96,7 +98,9 @@ func fmtItems(items []*Item) {
 	for _, item := range items {
 		fmtItem(w, item)
 	}
-	w.Flush()
+	if err := w.Flush(); err != nil {
+		panic(err)
+	}
 	fmt.Print(out.String())
 }
 

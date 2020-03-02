@@ -71,7 +71,9 @@ func userCommands(client *Client) []cli.Command {
 						for _, user := range searchResp.Users {
 							fmt.Fprintf(w, "%s\t%s\n", fmtUser(user), user.KID)
 						}
-						w.Flush()
+						if err := w.Flush(); err != nil {
+							return err
+						}
 						fmt.Print(out.String())
 						return nil
 					},

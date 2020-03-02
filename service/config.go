@@ -191,7 +191,7 @@ func (c *Config) Load() error {
 	}
 	var values map[string]string
 	if _, err := os.Stat(path); !os.IsNotExist(err) {
-		b, err := ioutil.ReadFile(path)
+		b, err := ioutil.ReadFile(path) // #nosec
 		if err != nil {
 			return err
 		}

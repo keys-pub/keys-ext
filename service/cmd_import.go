@@ -29,7 +29,7 @@ func importCommands(client *Client) []cli.Command {
 					if err != nil {
 						return err
 					}
-					in, err := ioutil.ReadFile(inPath)
+					in, err := ioutil.ReadFile(inPath) // #nosec
 					if err != nil {
 						return err
 					}

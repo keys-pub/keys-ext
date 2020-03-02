@@ -82,7 +82,9 @@ func fmtCollections(cols []*Collection) {
 	for _, col := range cols {
 		fmtCollection(w, col)
 	}
-	w.Flush()
+	if err := w.Flush(); err != nil {
+		panic(err)
+	}
 	fmt.Print(out.String())
 }
 
@@ -101,7 +103,9 @@ func fmtDocuments(docs []*Document) {
 	for _, doc := range docs {
 		fmtDocument(w, doc)
 	}
-	w.Flush()
+	if err := w.Flush(); err != nil {
+		panic(err)
+	}
 	fmt.Print(out.String())
 }
 

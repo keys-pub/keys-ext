@@ -205,7 +205,7 @@ func (s *service) decryptReader(ctx context.Context, reader io.Reader, mode Encr
 }
 
 func (s *service) decryptWriteInOut(ctx context.Context, in string, out string, mode EncryptMode, armored bool) (*Key, error) {
-	inFile, err := os.Open(in)
+	inFile, err := os.Open(in) // #nosec
 	if err != nil {
 		return nil, err
 	}
@@ -226,7 +226,9 @@ func (s *service) decryptWriteInOut(ctx context.Context, in string, out string, 
 	if _, err := writer.ReadFrom(decReader); err != nil {
 		return nil, err
 	}
-	writer.Flush()
+	if err := writer.Flush(); err != nil {
+		return nil, err
+	}
 
 	if err := os.Rename(outTmp, out); err != nil {
 		return nil, err

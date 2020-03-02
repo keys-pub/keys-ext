@@ -15,7 +15,7 @@ func checkForPID(path string) (int, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return -1, nil
 	}
-	data, err := ioutil.ReadFile(path)
+	data, err := ioutil.ReadFile(path) // #nosec
 	if err != nil {
 		return -1, err
 	}

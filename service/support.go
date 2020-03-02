@@ -23,7 +23,7 @@ func checkCodesigned() error {
 	if exeErr != nil {
 		return exeErr
 	}
-	cmd := exec.Command("/usr/bin/codesign", "-v", exe)
+	cmd := exec.Command("/usr/bin/codesign", "-v", exe) // #nosec
 	if err := cmd.Run(); err != nil {
 		return errors.Wrapf(err, "%s is not codesigned", exe)
 	}

@@ -87,7 +87,7 @@ func startProcess(cfg *Config) error {
 		"-log-path", logPath,
 	}
 	logger.Debugf("Starting %s %s", binPath, strings.Join(args, " "))
-	cmd := exec.Command(binPath, args...)
+	cmd := exec.Command(binPath, args...) // #nosec
 	return cmd.Start()
 }
 
