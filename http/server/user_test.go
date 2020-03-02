@@ -79,4 +79,5 @@ func TestUserSearch(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)
+	require.Equal(t, `{"error":{"code":404,"message":"resource not found"}}`, body)
 }

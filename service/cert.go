@@ -79,7 +79,7 @@ func loadCertificate(cfg *Config) (string, error) {
 		return "", nil
 	}
 	logger.Debugf("Loading certificate %s", certPath)
-	b, err := ioutil.ReadFile(certPath)
+	b, err := ioutil.ReadFile(certPath) // #nosec
 	if err != nil {
 		return "", err
 	}

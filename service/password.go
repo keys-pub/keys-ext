@@ -31,7 +31,7 @@ func readPassword(prompt string) (string, error) {
 	// Restore it in the event of an interrupt.
 	// CITATION: Konstantin Shaposhnikov - https://groups.google.com/forum/#!topic/golang-nuts/kTVAbtee9UA
 	c := make(chan os.Signal)
-	signal.Notify(c, os.Interrupt, os.Kill)
+	signal.Notify(c, os.Interrupt, os.Kill) //nolint
 	go func() {
 		<-c
 		_ = terminal.Restore(int(syscall.Stdin), initialTermState)
@@ -39,7 +39,7 @@ func readPassword(prompt string) (string, error) {
 	}()
 
 	// Now get the password.
-	fmt.Fprintf(os.Stderr, prompt)
+	fmt.Fprint(os.Stderr, prompt)
 	p, err := terminal.ReadPassword(int(syscall.Stdin))
 	fmt.Fprintf(os.Stderr, "\n")
 

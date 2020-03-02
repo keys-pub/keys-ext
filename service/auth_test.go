@@ -37,7 +37,8 @@ func TestAuth(t *testing.T) {
 	require.NotEmpty(t, token)
 
 	// Lock
-	auth.lock()
+	err = auth.lock()
+	require.NoError(t, err)
 
 	// Unlock with invalid password
 	_, err = auth.unlock("invalidpassword", "test")

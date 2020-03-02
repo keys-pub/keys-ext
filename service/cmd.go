@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 	"text/tabwriter"
 
 	"github.com/pkg/errors"
@@ -15,7 +14,7 @@ import (
 
 func readerFromArgs(in string) (io.Reader, error) {
 	if in != "" {
-		file, err := os.Open(in)
+		file, err := os.Open(in) // #nosec
 		if err != nil {
 			return nil, err
 		}
@@ -53,7 +52,9 @@ func fmtKeys(keys []*Key) {
 	for _, key := range keys {
 		fmtKey(w, key, "")
 	}
-	w.Flush()
+	if err := w.Flush(); err != nil {
+		panic(err)
+	}
 	fmt.Print(out.String())
 }
 
@@ -74,26 +75,18 @@ func fmtUser(user *User) string {
 	}
 }
 
-func fmtUsers(users []*User) string {
-	out := []string{}
-	for _, user := range users {
-		out = append(out, fmtUser(user))
-	}
-	return strings.Join(out, ",")
-}
-
 func fmtKey(w io.Writer, key *Key, prefix string) {
 	if key == nil {
 		fmt.Fprintf(w, "∅\n")
 		return
 	}
 	if prefix != "" {
-		fmt.Fprintf(w, prefix)
+		fmt.Fprint(w, prefix)
 	}
 	fmt.Fprintf(w, key.ID)
 	if key.User != nil {
-		fmt.Fprintf(w, " ")
-		fmt.Fprintf(w, fmtUser(key.User))
+		fmt.Fprint(w, " ")
+		fmt.Fprint(w, fmtUser(key.User))
 	}
 	fmt.Fprintf(w, "\n")
 }
@@ -105,7 +98,9 @@ func fmtItems(items []*Item) {
 	for _, item := range items {
 		fmtItem(w, item)
 	}
-	w.Flush()
+	if err := w.Flush(); err != nil {
+		panic(err)
+	}
 	fmt.Print(out.String())
 }
 

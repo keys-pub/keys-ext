@@ -177,7 +177,8 @@ func TestSigchains(t *testing.T) {
 	require.Equal(t, "2009-02-13T15:31:30.002-08:00", header.Get("CreatedAt-RFC3339M"))
 	require.Equal(t, "Fri, 13 Feb 2009 15:31:30 GMT", header.Get("Last-Modified"))
 	require.Equal(t, "2009-02-13T15:31:30.002-08:00", header.Get("Last-Modified-RFC3339M"))
-	expectedSigned = `{".sig":"RQcZiGchACuPFiIIulcrfJ7d7Sb44EERqgxhlnZg4DFa6GstTY3dx0j+MaQVx42VcHm4E8Xi29CxrVZ+dcwyCg==","data":"dGVzdGluZw==","kid":"HX7DWqV9FtkXWJpXw656Uabtt98yjPH8iybGkfz2hvec","seq":1,"ts":1234567890001}`
+	expectedSigned = `{".sig":"j5FZVQKWrnclXHHHIVX7JZ0letgR22cGl7ItlAUHqEsW+kCCMZvDBGEunVJScjVphrqGrPb7oCuMZouGv7GwCQ==","data":"dGVzdGluZw==","kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","seq":1,"ts":1234567890001}`
+	require.Equal(t, expectedSigned, body)
 
 	// PUT /:kid/:seq
 	req, err = http.NewRequest("PUT", fmt.Sprintf("/%s/2", alice.ID()), bytes.NewReader(aliceSt2.Bytes()))

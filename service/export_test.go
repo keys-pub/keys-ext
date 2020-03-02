@@ -21,13 +21,13 @@ func TestKeyExport(t *testing.T) {
 	kid, err := keys.ParseID(genResp.KID)
 	require.NoError(t, err)
 
-	resp, err := service.KeyExport(ctx, &KeyExportRequest{
+	_, err = service.KeyExport(ctx, &KeyExportRequest{
 		KID:      kid.String(),
 		Password: "invalid",
 	})
 	require.EqualError(t, err, "invalid password")
 
-	resp, err = service.KeyExport(ctx, &KeyExportRequest{
+	resp, err := service.KeyExport(ctx, &KeyExportRequest{
 		KID:      kid.String(),
 		Password: "testpassword",
 	})

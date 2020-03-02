@@ -123,7 +123,7 @@ func (s *service) encryptWriteInOut(ctx context.Context, in string, out string, 
 		return err
 	}
 
-	inFile, err := os.Open(in)
+	inFile, err := os.Open(in) // #nosec
 	if err != nil {
 		return err
 	}
@@ -132,8 +132,12 @@ func (s *service) encryptWriteInOut(ctx context.Context, in string, out string, 
 		return err
 	}
 
-	stream.Close()
-	writer.Flush()
+	if err := stream.Close(); err != nil {
+		return err
+	}
+	if err := writer.Flush(); err != nil {
+		return err
+	}
 
 	if err := os.Rename(outTmp, out); err != nil {
 		return err
@@ -294,7 +298,9 @@ func (s *service) EncryptStream(srv Keys_EncryptStreamServer) error {
 	}
 	logger.Debugf("Stream close")
 	// Close stream and flush buffer
-	stream.Close()
+	if err := stream.Close(); err != nil {
+		return err
+	}
 	if buf.Len() > 0 {
 		out := buf.Bytes()
 		if err := srv.Send(&EncryptOutput{Data: out}); err != nil {

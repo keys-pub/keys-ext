@@ -188,6 +188,7 @@ func TestSearchUsers(t *testing.T) {
 		_, err = service.Push(context.TODO(), &PushRequest{
 			Identity: kid.String(),
 		})
+		require.NoError(t, err)
 	}
 
 	resp, err := service.UserSearch(ctx, &UserSearchRequest{})

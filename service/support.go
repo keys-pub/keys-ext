@@ -2,7 +2,6 @@ package service
 
 import (
 	"bufio"
-	"encoding/json"
 	"io"
 	"os/exec"
 	"runtime"
@@ -24,7 +23,7 @@ func checkCodesigned() error {
 	if exeErr != nil {
 		return exeErr
 	}
-	cmd := exec.Command("/usr/bin/codesign", "-v", exe)
+	cmd := exec.Command("/usr/bin/codesign", "-v", exe) // #nosec
 	if err := cmd.Run(); err != nil {
 		return errors.Wrapf(err, "%s is not codesigned", exe)
 	}
@@ -55,12 +54,4 @@ func readFrom(reader io.Reader, chunkSize int, processFn func([]byte) error) (in
 		return numBytes, err
 	}
 	return numBytes, nil
-}
-
-func mustJSONMarshal(i interface{}) string {
-	b, err := json.Marshal(i)
-	if err != nil {
-		panic(err)
-	}
-	return string(b)
 }

@@ -187,7 +187,7 @@ func (s *service) verifyReader(ctx context.Context, reader io.Reader, armored bo
 }
 
 func (s *service) verifyWriteInOut(ctx context.Context, in string, out string, armored bool) (*Key, error) {
-	inFile, err := os.Open(in)
+	inFile, err := os.Open(in) // #nosec
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +208,9 @@ func (s *service) verifyWriteInOut(ctx context.Context, in string, out string, a
 	if _, err := writer.ReadFrom(verifyReader); err != nil {
 		return nil, err
 	}
-	writer.Flush()
+	if err := writer.Flush(); err != nil {
+		return nil, err
+	}
 
 	if err := os.Rename(outTmp, out); err != nil {
 		return nil, err

@@ -35,6 +35,11 @@ func TestEncryptDecrypt(t *testing.T) {
 	testEncryptDecrypt(t, aliceService, bobService, alice.ID().String(), bob.ID().String(), EncryptV2, false, alice.ID())
 	testEncryptDecrypt(t, aliceService, bobService, alice.ID().String(), bob.ID().String(), SigncryptV1, true, alice.ID())
 	testEncryptDecrypt(t, aliceService, bobService, alice.ID().String(), bob.ID().String(), SigncryptV1, false, alice.ID())
+
+	testEncryptDecryptErrors(t, aliceService, bobService, EncryptV2, true)
+	testEncryptDecryptErrors(t, aliceService, bobService, EncryptV2, false)
+	testEncryptDecryptErrors(t, aliceService, bobService, SigncryptV1, true)
+	testEncryptDecryptErrors(t, aliceService, bobService, SigncryptV1, false)
 }
 
 func testEncryptDecrypt(t *testing.T, aliceService *service, bobService *service, signer string, recipient string, mode EncryptMode, armored bool, expectedSigner keys.ID) {
@@ -98,7 +103,11 @@ func testEncryptDecryptErrors(t *testing.T, aliceService *service, bobService *s
 		Mode:    mode,
 		Armored: armored,
 	})
-	require.EqualError(t, err, "invalid data")
+	if armored {
+		require.EqualError(t, err, "unexpected EOF")
+	} else {
+		require.EqualError(t, err, "invalid data")
+	}
 
 	// Decrypt empty
 	_, err = aliceService.Decrypt(context.TODO(), &DecryptRequest{
@@ -106,7 +115,11 @@ func testEncryptDecryptErrors(t *testing.T, aliceService *service, bobService *s
 		Mode:    mode,
 		Armored: armored,
 	})
-	require.EqualError(t, err, "invalid data")
+	if armored {
+		require.EqualError(t, err, "unexpected EOF")
+	} else {
+		require.EqualError(t, err, "invalid data")
+	}
 }
 
 func TestEncryptAnonymous(t *testing.T) {

@@ -157,7 +157,9 @@ func (s *service) SignStream(srv Keys_SignStreamServer) error {
 		}
 	}
 	// Close stream and flush buffer
-	stream.Close()
+	if err := stream.Close(); err != nil {
+		return err
+	}
 	if buf.Len() > 0 {
 		out := buf.Bytes()
 		if err := srv.Send(&SignOutput{
@@ -193,7 +195,7 @@ func (s *service) signWriteInOut(ctx context.Context, in string, out string, sig
 		return err
 	}
 
-	inFile, err := os.Open(in)
+	inFile, err := os.Open(in) // #nosec
 	if err != nil {
 		return err
 	}
@@ -202,8 +204,12 @@ func (s *service) signWriteInOut(ctx context.Context, in string, out string, sig
 		return err
 	}
 
-	stream.Close()
-	writer.Flush()
+	if err := stream.Close(); err != nil {
+		return err
+	}
+	if err := writer.Flush(); err != nil {
+		return err
+	}
 
 	if err := os.Rename(outTmp, out); err != nil {
 		return err
