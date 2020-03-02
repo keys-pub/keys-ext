@@ -5,6 +5,8 @@ set -e -u -o pipefail # Fail on error
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd $dir
 
+keys stop
+
 echo "auth"
 eval $(keys -app Test auth -password "testpassword123")
 
