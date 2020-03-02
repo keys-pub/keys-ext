@@ -28,6 +28,7 @@ func TestMessages(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)
+	require.Equal(t, `{"error":{"code":404,"message":"messages not found"}}`, body)
 
 	// PUT /messages/:kid/:id (no body)
 	req, err = api.NewRequest("PUT", keys.Path("messages", group.ID(), keys.RandString(32)), nil, clock.Now(), group)
@@ -43,12 +44,14 @@ func TestMessages(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
+	require.Equal(t, "{}", body)
 
 	// POST /messages/:kid/:id (invalid method)
 	req, err = api.NewRequest("POST", keys.Path("messages", group.ID(), keys.RandString(32)), bytes.NewReader([]byte{}), clock.Now(), group)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusMethodNotAllowed, code)
+	require.Equal(t, `{"error":{"code":405,"message":"method not allowed"}}`, body)
 
 	// GET /messages/:kid
 	req, err = api.NewRequest("GET", keys.Path("messages", group.ID()), nil, clock.Now(), group)
@@ -89,6 +92,7 @@ func TestMessagesAuth(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)
+	require.Equal(t, `{"error":{"code":404,"message":"messages not found"}}`, body)
 
 	// Replay last request
 	reqReplay, err := http.NewRequest("GET", req.URL.String(), nil)

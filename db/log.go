@@ -110,10 +110,6 @@ func NewContextLogger(lev LogLevel) ContextLogger {
 	return &defaultContextLog{Level: lev}
 }
 
-func newContextLogFromEnv() ContextLogger {
-	return NewContextLogger(parseLogLevel(os.Getenv("LOG")))
-}
-
 type defaultContextLog struct {
 	Level LogLevel
 }

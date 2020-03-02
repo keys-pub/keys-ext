@@ -222,14 +222,6 @@ func userSearchResultsToRPC(results []*keys.UserSearchResult) []*User {
 	return users
 }
 
-func userResultsToRPC(results []*keys.UserResult) []*User {
-	users := make([]*User, 0, len(results))
-	for _, r := range results {
-		users = append(users, userResultToRPC(r))
-	}
-	return users
-}
-
 func userResultToRPC(result *keys.UserResult) *User {
 	if result == nil {
 		return nil
@@ -272,31 +264,6 @@ func apiUserToRPC(user *api.User) *User {
 	}
 }
 
-func userToRPC(user *keys.User) *User {
-	if user == nil {
-		return nil
-	}
-	return &User{
-		KID:     user.KID.String(),
-		Seq:     int32(user.Seq),
-		Service: user.Service,
-		Name:    user.Name,
-		URL:     user.URL,
-		Status:  UserStatusUnknown,
-	}
-}
-
-func usersToRPC(in []*keys.User) []*User {
-	if in == nil {
-		return nil
-	}
-	users := make([]*User, 0, len(in))
-	for _, u := range in {
-		users = append(users, userToRPC(u))
-	}
-	return users
-}
-
 func (s *service) searchRemoteCheckUser(ctx context.Context, userID string) (*User, error) {
 	users, err := s.searchUsersRemote(ctx, userID, 1)
 	if err != nil {
@@ -310,6 +277,9 @@ func (s *service) searchRemoteCheckUser(ctx context.Context, userID string) (*Us
 		return nil, errors.Errorf("user search mismatch %s != %s", user.ID, userID)
 	}
 	_, r, err := s.update(ctx, keys.ID(user.KID))
+	if err != nil {
+		return nil, err
+	}
 	return userResultToRPC(r), nil
 }
 

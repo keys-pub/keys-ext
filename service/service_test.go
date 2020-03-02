@@ -34,11 +34,10 @@ func testFire(t *testing.T, clock *clock) server.Fire {
 }
 
 type testEnv struct {
-	clock       *clock
-	fi          server.Fire
-	req         *keys.MockRequestor
-	users       *keys.UserStore
-	keyringType string
+	clock *clock
+	fi    server.Fire
+	req   *keys.MockRequestor
+	users *keys.UserStore
 }
 
 func newTestEnv(t *testing.T) *testEnv {
@@ -137,12 +136,12 @@ func testUserSetupGithub(t *testing.T, env *testEnv, service *service, key *keys
 	require.NoError(t, err)
 }
 
-func testRemoveKey(t *testing.T, service *service, key *keys.EdX25519Key) {
-	_, err := service.KeyRemove(context.TODO(), &KeyRemoveRequest{
-		KID: key.ID().String(),
-	})
-	require.NoError(t, err)
-}
+// func testRemoveKey(t *testing.T, service *service, key *keys.EdX25519Key) {
+// 	_, err := service.KeyRemove(context.TODO(), &KeyRemoveRequest{
+// 		KID: key.ID().String(),
+// 	})
+// 	require.NoError(t, err)
+// }
 
 func testPush(t *testing.T, service *service, key *keys.EdX25519Key) {
 	_, err := service.Push(context.TODO(), &PushRequest{
@@ -158,12 +157,12 @@ func testPull(t *testing.T, service *service, kid keys.ID) {
 	require.NoError(t, err)
 }
 
-func testUnlock(t *testing.T, service *service) {
-	_, err := service.AuthUnlock(context.TODO(), &AuthUnlockRequest{
-		Password: keys.RandPassphrase(12),
-	})
-	require.NoError(t, err)
-}
+// func testUnlock(t *testing.T, service *service) {
+// 	_, err := service.AuthUnlock(context.TODO(), &AuthUnlockRequest{
+// 		Password: keys.RandPassphrase(12),
+// 	})
+// 	require.NoError(t, err)
+// }
 
 type clock struct {
 	t time.Time
@@ -209,13 +208,13 @@ func newTestServerEnv(t *testing.T, env *testEnv) *serverEnv {
 	}
 }
 
-func spewService(t *testing.T, service *service) {
-	iter, iterErr := service.db.Documents(context.TODO(), "", nil)
-	require.NoError(t, iterErr)
-	spew, err := keys.Spew(iter, nil)
-	require.NoError(t, err)
-	t.Logf(spew.String())
-}
+// func spewService(t *testing.T, service *service) {
+// 	iter, iterErr := service.db.Documents(context.TODO(), "", nil)
+// 	require.NoError(t, iterErr)
+// 	spew, err := keys.Spew(iter, nil)
+// 	require.NoError(t, err)
+// 	t.Logf(spew.String())
+// }
 
 func TestRuntimeStatus(t *testing.T) {
 	env := newTestEnv(t)

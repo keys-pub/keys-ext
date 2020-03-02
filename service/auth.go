@@ -50,11 +50,14 @@ func newAuth(cfg *Config, st keyring.Store) (*auth, error) {
 	}, nil
 }
 
-func (a *auth) lock() {
+func (a *auth) lock() error {
 	// TODO: Lock after running for a certain amount of time (maybe a few hours?)
 	logger.Infof("Locking")
-	a.keyring.Lock()
+	if err := a.keyring.Lock(); err != nil {
+		return err
+	}
 	a.tokens = map[string]string{}
+	return nil
 }
 
 func (a *auth) verifyPassword(password string) error {
@@ -219,7 +222,9 @@ func (s *service) AuthUnlock(ctx context.Context, req *AuthUnlockRequest) (*Auth
 
 // AuthLock (RPC) ...
 func (s *service) AuthLock(ctx context.Context, req *AuthLockRequest) (*AuthLockResponse, error) {
-	s.auth.lock()
+	if err := s.auth.lock(); err != nil {
+		return nil, err
+	}
 
 	s.Close()
 

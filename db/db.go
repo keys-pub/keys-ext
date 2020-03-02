@@ -265,11 +265,6 @@ func (d *DB) DeleteAll(ctx context.Context, parent string) error {
 	return nil
 }
 
-func timeTrack(start time.Time, fn func() string) {
-	elapsed := time.Since(start)
-	logger.Infof("[%s] %s", elapsed, fn())
-}
-
 func (d *DB) document(path string, b []byte) (*keys.Document, error) {
 	md, err := d.getMetadata(path)
 	if err != nil {

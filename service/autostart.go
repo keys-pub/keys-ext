@@ -88,8 +88,7 @@ func startProcess(cfg *Config) error {
 	}
 	logger.Debugf("Starting %s %s", binPath, strings.Join(args, " "))
 	cmd := exec.Command(binPath, args...)
-	cmd.Start()
-	return nil
+	return cmd.Start()
 }
 
 func stopProcess(cfg *Config) error {

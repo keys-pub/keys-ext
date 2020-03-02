@@ -210,13 +210,13 @@ func (c *Client) post(path string, params url.Values, key *keys.EdX25519Key, rea
 	return resp, nil
 }
 
-func (c *Client) delete(path string, params url.Values, key *keys.EdX25519Key) (*http.Response, error) {
-	resp, err := c.req("DELETE", path, params, key, nil)
-	if err != nil {
-		return nil, err
-	}
-	if err := checkResponse(resp); err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
+// func (c *Client) delete(path string, params url.Values, key *keys.EdX25519Key) (*http.Response, error) {
+// 	resp, err := c.req("DELETE", path, params, key, nil)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	if err := checkResponse(resp); err != nil {
+// 		return nil, err
+// 	}
+// 	return resp, nil
+// }

@@ -17,7 +17,7 @@ func newKeyringStore(cfg *Config) (keyring.Store, error) {
 		if err != nil {
 			return nil, err
 		}
-		return keyring.NewFSStore(dir), nil
+		return keyring.NewFSStore(dir)
 	case "mem":
 		logger.Infof("Keyring (%s, store): mem", cfg.AppName())
 		return keyring.NewMemStore(), nil

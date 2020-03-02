@@ -48,10 +48,6 @@ func NewLogger(lev LogLevel) Logger {
 	return &defaultLog{Level: lev}
 }
 
-func newLogFromEnv() Logger {
-	return NewLogger(parseLogLevel(os.Getenv("LOG")))
-}
-
 func parseLogLevel(s string) LogLevel {
 	switch s {
 	case "debug":
