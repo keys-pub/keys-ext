@@ -52,7 +52,7 @@ type Build struct {
 }
 
 func (b Build) String() string {
-	return fmt.Sprintf("%s %s %s", b.Version, b.Commit, b.Date)
+	return fmt.Sprintf("%s %s %s yucca", b.Version, b.Commit, b.Date)
 }
 
 // AppName returns current app name.
