@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -36,7 +37,12 @@ func TestEncryptDecryptCommand(t *testing.T) {
 
 	argsEncrypt := append(os.Args[0:1], "-test", "encrypt", "-r", alice.ID().String(), "-r", bob.ID().String(), "-in", inPath, "-out", outPath)
 	runClient(Build{Version: "1.2.3"}, argsEncrypt, client, errorFn)
-	require.EqualError(t, clientErr, fmt.Sprintf("rpc error: code = Unknown desc = open %s: no such file or directory", inPath))
+	// TODO: This error
+	if runtime.GOOS == "windows" {
+		require.EqualError(t, clientErr, fmt.Sprintf("rpc error: code = Unknown desc = open %s: The system cannot find the file specified.", inPath))
+	} else {
+		require.EqualError(t, clientErr, fmt.Sprintf("rpc error: code = Unknown desc = open %s: no such file or directory", inPath))
+	}
 	clientErr = nil
 
 	writeErr := ioutil.WriteFile(inPath, []byte("test message"), 0644)

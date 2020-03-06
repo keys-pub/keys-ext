@@ -183,11 +183,14 @@ func (s *service) signWriter(ctx context.Context, w io.Writer, sign *sign, armor
 
 func (s *service) signWriteInOut(ctx context.Context, in string, out string, sign *sign, armored bool) error {
 	outTmp := out + ".tmp"
-	defer os.Remove(outTmp)
 	outFile, err := os.Create(outTmp)
 	if err != nil {
 		return err
 	}
+	defer func() {
+		_ = outFile.Close()
+		_ = os.Remove(outTmp)
+	}()
 	writer := bufio.NewWriter(outFile)
 
 	stream, err := s.signWriter(ctx, writer, sign, armored)
@@ -199,6 +202,9 @@ func (s *service) signWriteInOut(ctx context.Context, in string, out string, sig
 	if err != nil {
 		return err
 	}
+	defer func() {
+		_ = inFile.Close()
+	}()
 	reader := bufio.NewReader(inFile)
 	if _, err := reader.WriteTo(stream); err != nil {
 		return err
@@ -208,6 +214,12 @@ func (s *service) signWriteInOut(ctx context.Context, in string, out string, sig
 		return err
 	}
 	if err := writer.Flush(); err != nil {
+		return err
+	}
+	if err := inFile.Close(); err != nil {
+		return err
+	}
+	if err := outFile.Close(); err != nil {
 		return err
 	}
 

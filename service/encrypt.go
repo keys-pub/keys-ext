@@ -111,11 +111,15 @@ func (s *service) Encrypt(ctx context.Context, req *EncryptRequest) (*EncryptRes
 
 func (s *service) encryptWriteInOut(ctx context.Context, in string, out string, enc *encrypt, armored bool) error {
 	outTmp := out + ".tmp"
-	defer os.Remove(outTmp)
 	outFile, err := os.Create(outTmp)
 	if err != nil {
 		return err
 	}
+	defer func() {
+		_ = outFile.Close()
+		_ = os.Remove(outTmp)
+	}()
+
 	writer := bufio.NewWriter(outFile)
 
 	stream, err := s.encryptWriter(ctx, writer, enc, armored)
@@ -127,15 +131,24 @@ func (s *service) encryptWriteInOut(ctx context.Context, in string, out string, 
 	if err != nil {
 		return err
 	}
+	defer func() {
+		_ = inFile.Close()
+	}()
 	reader := bufio.NewReader(inFile)
 	if _, err := reader.WriteTo(stream); err != nil {
 		return err
 	}
-
 	if err := stream.Close(); err != nil {
 		return err
 	}
 	if err := writer.Flush(); err != nil {
+		return err
+	}
+
+	if err := inFile.Close(); err != nil {
+		return err
+	}
+	if err := outFile.Close(); err != nil {
 		return err
 	}
 

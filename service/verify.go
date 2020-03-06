@@ -191,6 +191,9 @@ func (s *service) verifyWriteInOut(ctx context.Context, in string, out string, a
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		_ = inFile.Close()
+	}()
 	reader := bufio.NewReader(inFile)
 
 	verifyReader, kid, err := s.verifyReader(ctx, reader, armored)
@@ -198,17 +201,27 @@ func (s *service) verifyWriteInOut(ctx context.Context, in string, out string, a
 		return nil, err
 	}
 	outTmp := out + ".tmp"
-	defer os.Remove(outTmp)
 	outFile, err := os.Create(outTmp)
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		_ = outFile.Close()
+		_ = os.Remove(outTmp)
+	}()
+
 	writer := bufio.NewWriter(outFile)
 
 	if _, err := writer.ReadFrom(verifyReader); err != nil {
 		return nil, err
 	}
 	if err := writer.Flush(); err != nil {
+		return nil, err
+	}
+	if err := inFile.Close(); err != nil {
+		return nil, err
+	}
+	if err := outFile.Close(); err != nil {
 		return nil, err
 	}
 
