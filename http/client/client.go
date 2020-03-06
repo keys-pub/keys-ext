@@ -43,6 +43,7 @@ func (c *Client) SetHTTPClient(httpClient *http.Client) {
 	c.httpClient = httpClient
 }
 
+// TODO: are these timeouts too agressive?
 func defaultHTTPClient() *http.Client {
 	return &http.Client{
 		Timeout: time.Second * 10,
