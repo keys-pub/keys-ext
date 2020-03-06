@@ -20,6 +20,7 @@ var ctx = context.TODO()
 func testFirestore(t *testing.T, clear bool) *Firestore {
 	opts := []option.ClientOption{option.WithCredentialsFile("credentials.json")}
 	fs, err := NewFirestore(testURL, opts...)
+	require.NoError(t, err)
 	fs.test = true
 	require.NoError(t, err)
 	if clear {
