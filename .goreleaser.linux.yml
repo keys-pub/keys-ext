@@ -10,7 +10,7 @@ builds:
     goarch:
       - amd64
       - 386
-      - arm
+      # - arm
   - id: keysd
     binary: keysd
     main: ./
@@ -21,7 +21,7 @@ builds:
     goarch:
       - amd64
       - 386
-      - arm
+      # - arm
 archives:
   - replacements:
       386: i386
