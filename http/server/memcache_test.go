@@ -1,4 +1,4 @@
-package server
+package server_test
 
 import (
 	"context"
@@ -6,12 +6,13 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keysd/http/server"
 	"github.com/stretchr/testify/require"
 )
 
 func TestMemTestCache(t *testing.T) {
 	clock := newClock()
-	mc := newMemTestCache(clock.Now)
+	mc := server.NewMemTestCache(clock.Now)
 
 	n1 := keys.RandString(32)
 	val, err := mc.Get(context.TODO(), n1)
@@ -21,20 +22,24 @@ func TestMemTestCache(t *testing.T) {
 	err = mc.Set(context.TODO(), n1, "1")
 	require.NoError(t, err)
 
-	val2, err := mc.Get(context.TODO(), n1)
+	val, err = mc.Get(context.TODO(), n1)
 	require.NoError(t, err)
-	require.NotEmpty(t, val2)
+	require.Equal(t, "1", val)
 
 	n, err := mc.Increment(context.TODO(), n1)
 	require.NoError(t, err)
 	require.Equal(t, 2, n)
+
+	val, err = mc.Get(context.TODO(), n1)
+	require.NoError(t, err)
+	require.Equal(t, "2", val)
 }
 
 func TestMemTestCacheExpiration(t *testing.T) {
 	// SetLog(newLog(DebugLevel))
 	clock := newClock()
 	clock.setTick(time.Second)
-	mc := NewMemTestCache(clock.Now)
+	mc := server.NewMemTestCache(clock.Now)
 
 	n1 := keys.RandString(32)
 	val, err := mc.Get(context.TODO(), n1)

@@ -1,7 +1,8 @@
-package server
+package server_test
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keysd/http/server"
 	"github.com/stretchr/testify/require"
 )
 
@@ -46,7 +48,7 @@ func (c *clock) Now() time.Time {
 }
 
 type testServer struct {
-	Server  *Server
+	Server  *server.Server
 	Handler http.Handler
 }
 
@@ -59,10 +61,27 @@ type testServer struct {
 // 	return fs
 // }
 
-func testFire(t *testing.T, clock *clock) Fire {
+func testFire(t *testing.T, clock *clock) server.Fire {
 	fi := keys.NewMem()
 	fi.SetTimeNow(clock.Now)
 	return fi
+}
+
+func TestFireCreatedAt(t *testing.T) {
+	clock := newClock()
+	fi := testFire(t, clock)
+
+	err := fi.Set(context.TODO(), "/test/a", []byte{0x01})
+	require.NoError(t, err)
+
+	doc, err := fi.Get(context.TODO(), "/test/a")
+	require.NoError(t, err)
+	require.NotNil(t, doc)
+
+	ftime := doc.CreatedAt.Format(http.TimeFormat)
+	require.Equal(t, "Fri, 13 Feb 2009 23:31:30 GMT", ftime)
+	ftime = doc.CreatedAt.Format(keys.RFC3339Milli)
+	require.Equal(t, "2009-02-13T23:31:30.001Z", ftime)
 }
 
 func testUserStore(t *testing.T, ds keys.DocumentStore, req keys.Requestor, clock *clock) *keys.UserStore {
@@ -71,19 +90,19 @@ func testUserStore(t *testing.T, ds keys.DocumentStore, req keys.Requestor, cloc
 	return us
 }
 
-func newTestServer(t *testing.T, clock *clock, fs Fire, users *keys.UserStore) *testServer {
-	mc := NewMemTestCache(clock.Now)
-	server := NewServer(fs, mc, users)
-	tasks := NewTestTasks(server)
-	server.SetTasks(tasks)
-	server.SetInternalAuth(keys.RandString(32))
-	server.SetNowFn(clock.Now)
-	server.SetAccessFn(func(c AccessContext, resource AccessResource, action AccessAction) Access {
-		return AccessAllow()
+func newTestServer(t *testing.T, clock *clock, fs server.Fire, users *keys.UserStore) *testServer {
+	mc := server.NewMemTestCache(clock.Now)
+	svr := server.NewServer(fs, mc, users)
+	tasks := server.NewTestTasks(svr)
+	svr.SetTasks(tasks)
+	svr.SetInternalAuth(keys.RandString(32))
+	svr.SetNowFn(clock.Now)
+	svr.SetAccessFn(func(c server.AccessContext, resource server.AccessResource, action server.AccessAction) server.Access {
+		return server.AccessAllow()
 	})
-	handler := NewHandler(server)
+	handler := server.NewHandler(svr)
 	return &testServer{
-		Server:  server,
+		Server:  svr,
 		Handler: handler,
 	}
 }
@@ -151,26 +170,18 @@ func TestAccess(t *testing.T) {
 
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 
-	upkCount := 0
 	scCount := 0
-	srv.Server.SetAccessFn(func(c AccessContext, resource AccessResource, action AccessAction) Access {
+	srv.Server.SetAccessFn(func(c server.AccessContext, resource server.AccessResource, action server.AccessAction) server.Access {
 		switch resource {
-		case UserPublicKeyResource:
-			if action == Put {
-				upkCount++
-				if upkCount%2 == 0 {
-					return AccessDenyTooManyRequests("")
-				}
-			}
-		case SigchainResource:
-			if action == Put {
+		case server.SigchainResource:
+			if action == server.Put {
 				scCount++
 				if scCount == 2 {
-					return AccessDenyTooManyRequests("sigchain deny test")
+					return server.AccessDenyTooManyRequests("sigchain deny test")
 				}
 			}
 		}
-		return AccessAllow()
+		return server.AccessAllow()
 	})
 
 	// PUT /sigchain/:kid/:seq (alice, allow)
@@ -220,10 +231,13 @@ func TestAccess(t *testing.T) {
 	require.Equal(t, http.StatusForbidden, code)
 	require.Equal(t, `{"error":{"code":403,"message":"no auth token specified"}}`, body)
 
+	// Set internal auth token
+	srv.Server.SetInternalAuth("testtoken")
+
 	// POST /task/check/:kid (with auth)
 	req, err = http.NewRequest("POST", "/task/check/"+alice.ID().String(), nil)
 	require.NoError(t, err)
-	req.Header.Set("Authorization", srv.Server.internalAuth)
+	req.Header.Set("Authorization", "testtoken")
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, "", body)

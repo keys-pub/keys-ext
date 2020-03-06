@@ -9,8 +9,6 @@ import (
 type AccessResource string
 
 const (
-	// UserPublicKeyResource for a user public key.
-	UserPublicKeyResource AccessResource = "user-public-key"
 	// SigchainResource for sigchain.
 	SigchainResource AccessResource = "sigchain"
 )

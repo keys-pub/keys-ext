@@ -1,4 +1,4 @@
-package server
+package server_test
 
 import (
 	"bytes"
@@ -101,10 +101,10 @@ func TestSigchains(t *testing.T) {
 	require.NoError(t, err)
 	code, header, body := srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, "Fri, 13 Feb 2009 15:31:30 GMT", header.Get("CreatedAt"))
-	require.Equal(t, "2009-02-13T15:31:30.002-08:00", header.Get("CreatedAt-RFC3339M"))
-	require.Equal(t, "Fri, 13 Feb 2009 15:31:30 GMT", header.Get("Last-Modified"))
-	require.Equal(t, "2009-02-13T15:31:30.002-08:00", header.Get("Last-Modified-RFC3339M"))
+	require.Equal(t, "Fri, 13 Feb 2009 23:31:30 GMT", header.Get("CreatedAt"))
+	require.Equal(t, "2009-02-13T23:31:30.002Z", header.Get("CreatedAt-RFC3339M"))
+	require.Equal(t, "Fri, 13 Feb 2009 23:31:30 GMT", header.Get("Last-Modified"))
+	require.Equal(t, "2009-02-13T23:31:30.002Z", header.Get("Last-Modified-RFC3339M"))
 	expectedSigned := `{".sig":"j5FZVQKWrnclXHHHIVX7JZ0letgR22cGl7ItlAUHqEsW+kCCMZvDBGEunVJScjVphrqGrPb7oCuMZouGv7GwCQ==","data":"dGVzdGluZw==","kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","seq":1,"ts":1234567890001}`
 	require.Equal(t, expectedSigned, body)
 
@@ -135,7 +135,7 @@ func TestSigchains(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	expectedSigchain2 := `{"kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","md":{"/kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077/1":{"createdAt":"2009-02-13T15:31:30.002-08:00","updatedAt":"2009-02-13T15:31:30.002-08:00"}},"statements":[{".sig":"j5FZVQKWrnclXHHHIVX7JZ0letgR22cGl7ItlAUHqEsW+kCCMZvDBGEunVJScjVphrqGrPb7oCuMZouGv7GwCQ==","data":"dGVzdGluZw==","kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","seq":1,"ts":1234567890001}]}`
+	expectedSigchain2 := `{"kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","md":{"/kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077/1":{"createdAt":"2009-02-13T23:31:30.002Z","updatedAt":"2009-02-13T23:31:30.002Z"}},"statements":[{".sig":"j5FZVQKWrnclXHHHIVX7JZ0letgR22cGl7ItlAUHqEsW+kCCMZvDBGEunVJScjVphrqGrPb7oCuMZouGv7GwCQ==","data":"dGVzdGluZw==","kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","seq":1,"ts":1234567890001}]}`
 	require.Equal(t, expectedSigchain2, body)
 
 	// GET /sigchains
@@ -151,7 +151,7 @@ func TestSigchains(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	expectedSigsWithMetadata := `{"md":{"/kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077/1":{"createdAt":"2009-02-13T15:31:30.002-08:00","updatedAt":"2009-02-13T15:31:30.002-08:00"}},"statements":[{".sig":"j5FZVQKWrnclXHHHIVX7JZ0letgR22cGl7ItlAUHqEsW+kCCMZvDBGEunVJScjVphrqGrPb7oCuMZouGv7GwCQ==","data":"dGVzdGluZw==","kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","seq":1,"ts":1234567890001}],"version":"1234567890003"}`
+	expectedSigsWithMetadata := `{"md":{"/kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077/1":{"createdAt":"2009-02-13T23:31:30.002Z","updatedAt":"2009-02-13T23:31:30.002Z"}},"statements":[{".sig":"j5FZVQKWrnclXHHHIVX7JZ0letgR22cGl7ItlAUHqEsW+kCCMZvDBGEunVJScjVphrqGrPb7oCuMZouGv7GwCQ==","data":"dGVzdGluZw==","kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","seq":1,"ts":1234567890001}],"version":"1234567890003"}`
 	require.Equal(t, expectedSigsWithMetadata, body)
 
 	// GET /:kid
@@ -173,10 +173,10 @@ func TestSigchains(t *testing.T) {
 	require.NoError(t, err)
 	code, header, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, "Fri, 13 Feb 2009 15:31:30 GMT", header.Get("CreatedAt"))
-	require.Equal(t, "2009-02-13T15:31:30.002-08:00", header.Get("CreatedAt-RFC3339M"))
-	require.Equal(t, "Fri, 13 Feb 2009 15:31:30 GMT", header.Get("Last-Modified"))
-	require.Equal(t, "2009-02-13T15:31:30.002-08:00", header.Get("Last-Modified-RFC3339M"))
+	require.Equal(t, "Fri, 13 Feb 2009 23:31:30 GMT", header.Get("CreatedAt"))
+	require.Equal(t, "2009-02-13T23:31:30.002Z", header.Get("CreatedAt-RFC3339M"))
+	require.Equal(t, "Fri, 13 Feb 2009 23:31:30 GMT", header.Get("Last-Modified"))
+	require.Equal(t, "2009-02-13T23:31:30.002Z", header.Get("Last-Modified-RFC3339M"))
 	expectedSigned = `{".sig":"j5FZVQKWrnclXHHHIVX7JZ0letgR22cGl7ItlAUHqEsW+kCCMZvDBGEunVJScjVphrqGrPb7oCuMZouGv7GwCQ==","data":"dGVzdGluZw==","kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","seq":1,"ts":1234567890001}`
 	require.Equal(t, expectedSigned, body)
 

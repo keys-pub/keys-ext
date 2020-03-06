@@ -18,6 +18,8 @@ type MemCache interface {
 	Set(ctx context.Context, k string, v string) error
 	// Expire key.
 	Expire(ctx context.Context, k string, dt time.Duration) error
+	// Increment
+	Increment(ctx context.Context, k string) (int, error)
 }
 
 type memCache struct {
