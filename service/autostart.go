@@ -28,6 +28,7 @@ func findProcessByName(name string) (ps.Process, error) {
 }
 
 func autostart(cfg *Config) error {
+	logger.Infof("Autostart")
 	if err := startProcess(cfg); err != nil {
 		if err == errAlreadyRunning {
 			logger.Debugf("Already running")

@@ -34,7 +34,7 @@ func TestEncryptDecryptCommand(t *testing.T) {
 		clientErr = err
 	}
 
-	argsEncrypt := append(os.Args[0:1], "encrypt", "-r", alice.ID().String(), "-r", bob.ID().String(), "-in", inPath, "-out", outPath)
+	argsEncrypt := append(os.Args[0:1], "-test", "encrypt", "-r", alice.ID().String(), "-r", bob.ID().String(), "-in", inPath, "-out", outPath)
 	runClient(Build{Version: "1.2.3"}, argsEncrypt, client, errorFn)
 	require.EqualError(t, clientErr, fmt.Sprintf("rpc error: code = Unknown desc = open %s: no such file or directory", inPath))
 	clientErr = nil
@@ -47,7 +47,7 @@ func TestEncryptDecryptCommand(t *testing.T) {
 	require.NoError(t, clientErr)
 
 	outPath2 := inPath + ".out"
-	argsDecrypt := append(os.Args[0:1], "decrypt", "-in", outPath, "-out", outPath2)
+	argsDecrypt := append(os.Args[0:1], "-test", "decrypt", "-in", outPath, "-out", outPath2)
 	runClient(Build{Version: "1.2.3"}, argsDecrypt, client, errorFn)
 	require.NoError(t, clientErr)
 
@@ -57,12 +57,12 @@ func TestEncryptDecryptCommand(t *testing.T) {
 	require.Equal(t, string(out), "test message")
 
 	// Armored
-	argsEncrypt = append(os.Args[0:1], "encrypt", "-r", alice.ID().String(), "-r", bob.ID().String(), "-a", "-in", inPath, "-out", outPath)
+	argsEncrypt = append(os.Args[0:1], "-test", "encrypt", "-r", alice.ID().String(), "-r", bob.ID().String(), "-a", "-in", inPath, "-out", outPath)
 	runClient(Build{Version: "1.2.3"}, argsEncrypt, client, errorFn)
 	require.NoError(t, clientErr)
 
 	outPath2 = inPath + ".out"
-	argsDecrypt = append(os.Args[0:1], "decrypt", "-a", "-in", outPath, "-out", outPath2)
+	argsDecrypt = append(os.Args[0:1], "-test", "decrypt", "-a", "-in", outPath, "-out", outPath2)
 	runClient(Build{Version: "1.2.3"}, argsDecrypt, client, errorFn)
 	require.NoError(t, clientErr)
 

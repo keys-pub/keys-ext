@@ -141,6 +141,10 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 			Value: "Keys",
 			Usage: "app name",
 		},
+		cli.BoolFlag{
+			Name:   "test",
+			Hidden: true,
+		},
 	}
 
 	// app.Action = func(c *cli.Context) error {
@@ -210,8 +214,10 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 			return nil
 		}
 
-		if err := autostart(cfg); err != nil {
-			errorFn(err)
+		if !c.GlobalBool("test") {
+			if err := autostart(cfg); err != nil {
+				errorFn(err)
+			}
 		}
 
 		authToken := os.Getenv("KEYS_AUTH")
