@@ -2,7 +2,7 @@ project_name: "keys"
 builds:
   - id: keys
     binary: keys
-    main: ./service/keys
+    main: ./service/keys/
     env:
       - CGO_ENABLED=1
     goos:
