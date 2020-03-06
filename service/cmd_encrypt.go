@@ -30,7 +30,7 @@ func encryptCommands(client *Client) []cli.Command {
 			ArgsUsage: "stdin or -in",
 			Flags: []cli.Flag{
 				cli.StringSliceFlag{Name: "recipient, r", Usage: "recipients"},
-				cli.StringFlag{Name: "signer, s", Usage: "signer (or anonymous if not specified)"},
+				cli.StringFlag{Name: "sender, s", Usage: "sender (or anonymous if not specified)"},
 				cli.BoolFlag{Name: "armor, a", Usage: "armored"},
 				cli.StringFlag{Name: "in, i", Usage: "file to read or stdin if not specified"},
 				cli.StringFlag{Name: "out, o", Usage: "file to write or stdout if not specified"},
@@ -61,7 +61,7 @@ func encryptCommands(client *Client) []cli.Command {
 
 				if err := encryptClient.Send(&EncryptInput{
 					Recipients: c.StringSlice("recipient"),
-					Signer:     c.String("signer"),
+					Sender:     c.String("sender"),
 					Armored:    c.Bool("armor"),
 					Mode:       mode,
 				}); err != nil {
@@ -120,8 +120,8 @@ func encryptCommands(client *Client) []cli.Command {
 					if err != nil {
 						return err
 					}
-					if dec.Signer != nil {
-						fmtKey(os.Stdout, dec.Signer, "verified ")
+					if dec.Sender != nil {
+						fmtKey(os.Stdout, dec.Sender, "verified ")
 					}
 					return nil
 				}
@@ -173,8 +173,8 @@ func encryptCommands(client *Client) []cli.Command {
 							openErr = recvErr
 							break
 						}
-						if resp.Signer != nil {
-							fmtKey(os.Stdout, resp.Signer, "verified ")
+						if resp.Sender != nil {
+							fmtKey(os.Stdout, resp.Sender, "verified ")
 						}
 						if len(resp.Data) == 0 {
 							break
@@ -200,10 +200,10 @@ func encryptFileForCLI(c *cli.Context, client *Client) error {
 	if err != nil {
 		return err
 	}
-	return encryptFile(client, c.StringSlice("recipient"), c.String("signer"), c.Bool("armored"), mode, c.String("in"), c.String("out"))
+	return encryptFile(client, c.StringSlice("recipient"), c.String("sender"), c.Bool("armored"), mode, c.String("in"), c.String("out"))
 }
 
-func encryptFile(client *Client, recipients []string, signer string, armored bool, mode EncryptMode, in string, out string) error {
+func encryptFile(client *Client, recipients []string, sender string, armored bool, mode EncryptMode, in string, out string) error {
 	in, err := filepath.Abs(in)
 	if err != nil {
 		return err
@@ -220,7 +220,7 @@ func encryptFile(client *Client, recipients []string, signer string, armored boo
 
 	if err := encryptClient.Send(&EncryptFileInput{
 		Recipients: recipients,
-		Signer:     signer,
+		Sender:     sender,
 		Armored:    armored,
 		Mode:       mode,
 		In:         in,

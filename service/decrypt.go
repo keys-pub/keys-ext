@@ -13,13 +13,14 @@ import (
 	"google.golang.org/grpc"
 )
 
-func (s *service) decryptSigner(ctx context.Context, kid keys.ID, mode EncryptMode) (*Key, error) {
+func (s *service) decryptSender(ctx context.Context, kid keys.ID, mode EncryptMode) (*Key, error) {
 	if kid == "" {
+		logger.Infof("No decrypt sender")
 		return nil, nil
 	}
 	// If EncryptV2 check the kid.
 	if mode == EncryptV2 {
-		k, err := s.checkSignerID(kid)
+		k, err := s.checkSenderID(kid)
 		if err != nil {
 			return nil, err
 		}
@@ -34,8 +35,14 @@ func (s *service) Decrypt(ctx context.Context, req *DecryptRequest) (*DecryptRes
 	var kid keys.ID
 	var err error
 	sp := saltpack.NewSaltpack(s.ks)
-	switch req.Mode {
-	case DefaultEncryptMode, EncryptV2:
+
+	mode := req.Mode
+	if mode == DefaultEncryptMode {
+		mode = EncryptV2
+	}
+
+	switch mode {
+	case EncryptV2:
 		if req.Armored {
 			decrypted, kid, err = sp.DecryptArmored(string(req.Data))
 		} else {
@@ -48,7 +55,7 @@ func (s *service) Decrypt(ctx context.Context, req *DecryptRequest) (*DecryptRes
 			decrypted, kid, err = sp.SigncryptOpen(req.Data)
 		}
 	default:
-		return nil, errors.Errorf("unsupported mode %s", req.Mode)
+		return nil, errors.Errorf("unsupported mode %s", mode)
 	}
 
 	if err != nil {
@@ -58,14 +65,14 @@ func (s *service) Decrypt(ctx context.Context, req *DecryptRequest) (*DecryptRes
 		return nil, err
 	}
 
-	signer, err := s.decryptSigner(ctx, kid, req.Mode)
+	sender, err := s.decryptSender(ctx, kid, mode)
 	if err != nil {
 		return nil, err
 	}
 
 	return &DecryptResponse{
 		Data:   decrypted,
-		Signer: signer,
+		Sender: sender,
 	}, nil
 }
 
@@ -89,13 +96,13 @@ func (s *service) DecryptFile(srv Keys_DecryptFileServer) error {
 		}
 	}
 
-	signer, err := s.decryptWriteInOut(srv.Context(), req.In, out, req.Mode, req.Armored)
+	sender, err := s.decryptWriteInOut(srv.Context(), req.In, out, req.Mode, req.Armored)
 	if err != nil {
 		return err
 	}
 
 	if err := srv.Send(&DecryptFileOutput{
-		Signer: signer,
+		Sender: sender,
 		Out:    out,
 	}); err != nil {
 		return err
@@ -171,19 +178,19 @@ func (s *service) decryptStream(srv decryptStreamServer, mode EncryptMode, armor
 		return err
 	}
 
-	signer, err := s.decryptSigner(srv.Context(), kid, mode)
+	sender, err := s.decryptSender(srv.Context(), kid, mode)
 	if err != nil {
 		return err
 	}
 
-	sendFn := func(b []byte, signer *Key) error {
+	sendFn := func(b []byte, sender *Key) error {
 		resp := DecryptOutput{
 			Data:   b,
-			Signer: signer,
+			Sender: sender,
 		}
 		return srv.Send(&resp)
 	}
-	return s.readFromStream(srv.Context(), streamReader, signer, sendFn)
+	return s.readFromStream(srv.Context(), streamReader, sender, sendFn)
 }
 
 func (s *service) decryptReader(ctx context.Context, reader io.Reader, mode EncryptMode, armored bool) (io.Reader, keys.ID, error) {
@@ -234,10 +241,10 @@ func (s *service) decryptWriteInOut(ctx context.Context, in string, out string, 
 		return nil, err
 	}
 
-	signer, err := s.decryptSigner(ctx, kid, mode)
+	sender, err := s.decryptSender(ctx, kid, mode)
 	if err != nil {
 		return nil, err
 	}
 
-	return signer, nil
+	return sender, nil
 }

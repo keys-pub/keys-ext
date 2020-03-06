@@ -14,11 +14,11 @@ import (
 
 type encrypt struct {
 	recipients []keys.ID
-	signer     keys.ID
+	sender     keys.ID
 	mode       EncryptMode
 }
 
-func (s *service) newEncrypt(ctx context.Context, recipients []string, signer string, mode EncryptMode) (*encrypt, error) {
+func (s *service) newEncrypt(ctx context.Context, recipients []string, sender string, mode EncryptMode) (*encrypt, error) {
 	if len(recipients) == 0 {
 		return nil, errors.Errorf("no recipients specified")
 	}
@@ -33,8 +33,8 @@ func (s *service) newEncrypt(ctx context.Context, recipients []string, signer st
 	}
 
 	var kid keys.ID
-	if signer != "" {
-		s, err := s.parseIdentity(ctx, signer)
+	if sender != "" {
+		s, err := s.parseIdentity(ctx, sender)
 		if err != nil {
 			return nil, err
 		}
@@ -43,14 +43,14 @@ func (s *service) newEncrypt(ctx context.Context, recipients []string, signer st
 
 	return &encrypt{
 		recipients: identities,
-		signer:     kid,
+		sender:     kid,
 		mode:       mode,
 	}, nil
 }
 
 // Encrypt (RPC) data.
 func (s *service) Encrypt(ctx context.Context, req *EncryptRequest) (*EncryptResponse, error) {
-	enc, err := s.newEncrypt(ctx, req.Recipients, req.Signer, req.Mode)
+	enc, err := s.newEncrypt(ctx, req.Recipients, req.Sender, req.Mode)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func (s *service) Encrypt(ctx context.Context, req *EncryptRequest) (*EncryptRes
 	var out []byte
 	switch enc.mode {
 	case EncryptV2:
-		sbk, err := s.parseBoxKey(enc.signer)
+		sbk, err := s.parseBoxKey(enc.sender)
 		if err != nil {
 			return nil, err
 		}
@@ -77,15 +77,15 @@ func (s *service) Encrypt(ctx context.Context, req *EncryptRequest) (*EncryptRes
 			out = data
 		}
 	case SigncryptV1:
-		if enc.signer == "" {
-			return nil, errors.Errorf("no signer specified: signer is required for signcrypt mode")
+		if enc.sender == "" {
+			return nil, errors.Errorf("no sender specified: sender is required for signcrypt mode")
 		}
-		sk, err := s.ks.EdX25519Key(enc.signer)
+		sk, err := s.ks.EdX25519Key(enc.sender)
 		if err != nil {
 			return nil, err
 		}
 		if sk == nil {
-			return nil, keys.NewErrNotFound(enc.signer.String())
+			return nil, keys.NewErrNotFound(enc.sender.String())
 		}
 		if req.Armored {
 			data, err := sp.SigncryptArmored(req.Data, sk, enc.recipients...)
@@ -152,11 +152,11 @@ func (s *service) encryptWriter(ctx context.Context, w io.Writer, enc *encrypt, 
 	sp := saltpack.NewSaltpack(s.ks)
 	switch enc.mode {
 	case EncryptV2:
-		sbk, err := s.parseBoxKey(enc.signer)
+		sbk, err := s.parseBoxKey(enc.sender)
 		if err != nil {
 			return nil, err
 		}
-		logger.Infof("Encrypt stream for %s from %s", enc.recipients, enc.signer)
+		logger.Infof("Encrypt stream for %s from %s", enc.recipients, enc.sender)
 		if armored {
 			s, err := sp.NewEncryptArmoredStream(w, sbk, enc.recipients...)
 			if err != nil {
@@ -172,17 +172,17 @@ func (s *service) encryptWriter(ctx context.Context, w io.Writer, enc *encrypt, 
 		}
 
 	case SigncryptV1:
-		if enc.signer == "" {
-			return nil, errors.Errorf("no signer specified")
+		if enc.sender == "" {
+			return nil, errors.Errorf("no sender specified")
 		}
-		sk, err := s.ks.EdX25519Key(enc.signer)
+		sk, err := s.ks.EdX25519Key(enc.sender)
 		if err != nil {
 			return nil, err
 		}
 		if sk == nil {
-			return nil, keys.NewErrNotFound(enc.signer.String())
+			return nil, keys.NewErrNotFound(enc.sender.String())
 		}
-		logger.Infof("Signcrypt stream for %s from %s", enc.recipients, enc.signer)
+		logger.Infof("Signcrypt stream for %s from %s", enc.recipients, enc.sender)
 		if armored {
 			s, err := sp.NewSigncryptArmoredStream(w, sk, enc.recipients...)
 			if err != nil {
@@ -215,7 +215,7 @@ func (s *service) EncryptFile(srv Keys_EncryptFileServer) error {
 		return errors.Errorf("out not specified")
 	}
 
-	enc, err := s.newEncrypt(srv.Context(), req.Recipients, req.Signer, req.Mode)
+	enc, err := s.newEncrypt(srv.Context(), req.Recipients, req.Sender, req.Mode)
 	if err != nil {
 		return err
 	}
@@ -260,7 +260,7 @@ func (s *service) EncryptStream(srv Keys_EncryptStreamServer) error {
 				return errors.Errorf("stream already initialized")
 			}
 
-			enc, err := s.newEncrypt(ctx, req.Recipients, req.Signer, req.Mode)
+			enc, err := s.newEncrypt(ctx, req.Recipients, req.Sender, req.Mode)
 			if err != nil {
 				return err
 			}
@@ -273,7 +273,7 @@ func (s *service) EncryptStream(srv Keys_EncryptStreamServer) error {
 
 		} else {
 			// Make sure request only sends data after init
-			if len(req.Recipients) != 0 || req.Signer != "" {
+			if len(req.Recipients) != 0 || req.Sender != "" {
 				return errors.Errorf("after stream is initalized, only data should be sent")
 			}
 		}

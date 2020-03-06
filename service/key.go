@@ -233,18 +233,21 @@ func (s *service) parseKey(kid string, required bool) (keys.Key, error) {
 	return key, nil
 }
 
-// checkSignerID checks if the ID is a box public key, finds the sign public key
+// checkSenderID checks if the ID is a box public key, finds the sign public key
 // equivalent if found and returns that ID, otherwise returns itself.
-func (s *service) checkSignerID(id keys.ID) (keys.ID, error) {
+func (s *service) checkSenderID(id keys.ID) (keys.ID, error) {
+	logger.Debugf("Check sender %s", id)
 	if id.IsX25519() {
 		spk, err := s.ks.FindEdX25519PublicKey(id)
 		if err != nil {
 			return "", err
 		}
 		if spk == nil {
+			logger.Debugf("No edx25519 key found for %s", id)
 			// Not found, return original id.
 			return id, nil
 		}
+		logger.Debugf("Found edx25519 key %s (for %s)", spk.ID(), id)
 		return spk.ID(), nil
 	}
 	return id, nil
