@@ -6,25 +6,29 @@ require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1
 	github.com/gogo/protobuf v1.3.1
-	github.com/grpc-ecosystem/go-grpc-middleware v1.1.0
-	github.com/keys-pub/keys v0.0.0-20200302194536-8d981e7bb498
-	github.com/keys-pub/keysd/db v0.0.0-20200110200550-f472e79d2ba3
-	github.com/keys-pub/keysd/http/api v0.0.0-20200223203725-9c5a5d442011
-	github.com/keys-pub/keysd/http/client v0.0.0-20200223204014-135c03e7b2d3
+	github.com/golang/protobuf v1.3.4 // indirect
+	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
+	github.com/keybase/go-keychain v0.0.0-20200218013740-86d4642e4ce2 // indirect
+	github.com/keybase/saltpack v0.0.0-20200228190633-d75baa96bffb // indirect
+	github.com/keys-pub/keys v0.0.0-20200306033554-02897e0a5bbe
+	github.com/keys-pub/keysd/db v0.0.0-20200306174951-faa8a8074ae0
+	github.com/keys-pub/keysd/http/api v0.0.0-20200306174951-faa8a8074ae0
+	github.com/keys-pub/keysd/http/client v0.0.0-20200306174951-faa8a8074ae0
 	github.com/keys-pub/keysd/http/server v0.0.0-20200223203834-3dc7040c6558
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/mercari/go-grpc-interceptor v0.0.0-20180110035004-b8ad3827e82a
-	github.com/mitchellh/go-ps v0.0.0-20190716172923-621e5597135b
+	github.com/mitchellh/go-ps v1.0.0
 	github.com/onsi/ginkgo v1.9.0 // indirect
 	github.com/onsi/gomega v1.7.0 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.4.2
 	github.com/stretchr/testify v1.4.0
 	github.com/urfave/cli v1.22.2
-	golang.org/x/crypto v0.0.0-20200117160349-530e935923ad
-	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553 // indirect
-	google.golang.org/genproto v0.0.0-20191216205247-b31c10ee225f // indirect
-	google.golang.org/grpc v1.26.0
+	golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073
+	golang.org/x/net v0.0.0-20200301022130-244492dfa37a // indirect
+	golang.org/x/sys v0.0.0-20200302150141-5c8b2ff67527 // indirect
+	google.golang.org/genproto v0.0.0-20200306153348-d950eab6f860 // indirect
+	google.golang.org/grpc v1.27.1
 )
 
 // replace github.com/keys-pub/keys => ../../keys
