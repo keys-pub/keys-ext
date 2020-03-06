@@ -2,7 +2,7 @@ project_name: "keys"
 builds:
   - id: keys
     binary: keys
-    main: ./service/keys/main.go
+    main: ./service/keys
     env:
       - CGO_ENABLED=1
     goos:
@@ -18,7 +18,7 @@ builds:
       post: ./scripts/codesign.sh dist/keys_darwin_amd64/keys
   - id: keysd
     binary: keysd
-    main: ./main.go
+    main: ./
     env:
       - CGO_ENABLED=1
     goos:
