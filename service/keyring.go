@@ -6,7 +6,7 @@ import (
 )
 
 func newKeyringStore(cfg *Config) (keyring.Store, error) {
-	kt := cfg.Get(ckKeyringType, "")
+	kt := cfg.Get(keyringTypeKey, "")
 	switch kt {
 	case "":
 		logger.Infof("Keyring (system)")

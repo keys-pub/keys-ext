@@ -22,24 +22,36 @@ type Config struct {
 }
 
 // Config key names
-const ckServer = "server"
-const ckPort = "port"
-const ckLogLevel = "logLevel"
-const ckKeyringType = "keyring"
+const serverKey = "server"
+const portKey = "port"
+const logLevelKey = "logLevel"
+const keyringTypeKey = "keyring"
+
+var configKeys = []string{serverKey, portKey, logLevelKey, keyringTypeKey}
+
+// IsKey returns true if config key is recognized.
+func (c Config) IsKey(s string) bool {
+	for _, k := range configKeys {
+		if s == k {
+			return true
+		}
+	}
+	return false
+}
 
 // Port to connect.
 func (c Config) Port() int {
-	return c.GetInt(ckPort, 22405)
+	return c.GetInt(portKey, 22405)
 }
 
 // Server to connect to.
 func (c Config) Server() string {
-	return c.Get(ckServer, "https://keys.pub")
+	return c.Get(serverKey, "https://keys.pub")
 }
 
 // LogLevel for logging.
 func (c *Config) LogLevel() LogLevel {
-	ll := c.Get(ckLogLevel, "")
+	ll := c.Get(logLevelKey, "")
 	l, _ := parseLogLevel(ll)
 	return l
 }
