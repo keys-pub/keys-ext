@@ -13,27 +13,21 @@ import (
 	"google.golang.org/grpc"
 )
 
-func (s *service) decryptSender(ctx context.Context, kid keys.ID, mode EncryptMode) (*Key, error) {
+func (s *service) findSender(ctx context.Context, kid keys.ID) (*Key, error) {
 	if kid == "" {
 		logger.Infof("No decrypt sender")
 		return nil, nil
 	}
-	// If EncryptV2 check the kid.
-	if mode == EncryptV2 {
-		k, err := s.checkSenderID(kid)
-		if err != nil {
-			return nil, err
-		}
-		kid = k
+	k, err := s.convertX25519ID(kid)
+	if err != nil {
+		return nil, err
 	}
+	kid = k
 	return s.loadKey(ctx, kid)
 }
 
 // Decrypt (RPC) data.
 func (s *service) Decrypt(ctx context.Context, req *DecryptRequest) (*DecryptResponse, error) {
-	var decrypted []byte
-	var kid keys.ID
-	var err error
 	sp := saltpack.NewSaltpack(s.ks)
 
 	mode := req.Mode
@@ -41,18 +35,35 @@ func (s *service) Decrypt(ctx context.Context, req *DecryptRequest) (*DecryptRes
 		mode = EncryptV2
 	}
 
+	var decrypted []byte
+	var kid keys.ID
+	var err error
 	switch mode {
 	case EncryptV2:
+		var sender *keys.X25519PublicKey
 		if req.Armored {
-			decrypted, kid, err = sp.DecryptArmored(string(req.Data))
+			decrypted, sender, err = sp.DecryptArmored(string(req.Data))
+			if sender != nil {
+				kid = sender.ID()
+			}
 		} else {
-			decrypted, kid, err = sp.Decrypt(req.Data)
+			decrypted, sender, err = sp.Decrypt(req.Data)
+			if sender != nil {
+				kid = sender.ID()
+			}
 		}
 	case SigncryptV1:
+		var sender *keys.EdX25519PublicKey
 		if req.Armored {
-			decrypted, kid, err = sp.SigncryptArmoredOpen(string(req.Data))
+			decrypted, sender, err = sp.SigncryptArmoredOpen(string(req.Data))
+			if sender != nil {
+				kid = sender.ID()
+			}
 		} else {
-			decrypted, kid, err = sp.SigncryptOpen(req.Data)
+			decrypted, sender, err = sp.SigncryptOpen(req.Data)
+			if sender != nil {
+				kid = sender.ID()
+			}
 		}
 	default:
 		return nil, errors.Errorf("unsupported mode %s", mode)
@@ -65,14 +76,14 @@ func (s *service) Decrypt(ctx context.Context, req *DecryptRequest) (*DecryptRes
 		return nil, err
 	}
 
-	sender, err := s.decryptSender(ctx, kid, mode)
+	senderKey, err := s.findSender(ctx, kid)
 	if err != nil {
 		return nil, err
 	}
 
 	return &DecryptResponse{
 		Data:   decrypted,
-		Sender: sender,
+		Sender: senderKey,
 	}, nil
 }
 
@@ -178,7 +189,7 @@ func (s *service) decryptStream(srv decryptStreamServer, mode EncryptMode, armor
 		return err
 	}
 
-	sender, err := s.decryptSender(srv.Context(), kid, mode)
+	sender, err := s.findSender(srv.Context(), kid)
 	if err != nil {
 		return err
 	}
@@ -195,20 +206,41 @@ func (s *service) decryptStream(srv decryptStreamServer, mode EncryptMode, armor
 
 func (s *service) decryptReader(ctx context.Context, reader io.Reader, mode EncryptMode, armored bool) (io.Reader, keys.ID, error) {
 	sp := saltpack.NewSaltpack(s.ks)
+	var out io.Reader
+	var kid keys.ID
+	var err error
 	switch mode {
 	case DefaultEncryptMode, EncryptV2:
+		var sender *keys.X25519PublicKey
 		if armored {
-			return sp.NewDecryptArmoredStream(reader)
+			out, sender, err = sp.NewDecryptArmoredStream(reader)
+			if sender != nil {
+				kid = sender.ID()
+			}
+		} else {
+			out, sender, err = sp.NewDecryptStream(reader)
+			if sender != nil {
+				kid = sender.ID()
+			}
 		}
-		return sp.NewDecryptStream(reader)
 	case SigncryptV1:
+		var sender *keys.EdX25519PublicKey
 		if armored {
-			return sp.NewSigncryptArmoredOpenStream(reader)
+			out, sender, err = sp.NewSigncryptArmoredOpenStream(reader)
+			if sender != nil {
+				kid = sender.ID()
+			}
+		} else {
+			out, sender, err = sp.NewSigncryptOpenStream(reader)
+			if sender != nil {
+				kid = sender.ID()
+			}
 		}
-		return sp.NewSigncryptOpenStream(reader)
 	default:
 		return nil, "", errors.Errorf("unsupported mode %s", mode)
 	}
+
+	return out, kid, err
 }
 
 func (s *service) decryptWriteInOut(ctx context.Context, in string, out string, mode EncryptMode, armored bool) (*Key, error) {
@@ -254,7 +286,7 @@ func (s *service) decryptWriteInOut(ctx context.Context, in string, out string, 
 		return nil, err
 	}
 
-	sender, err := s.decryptSender(ctx, kid, mode)
+	sender, err := s.findSender(ctx, kid)
 	if err != nil {
 		return nil, err
 	}

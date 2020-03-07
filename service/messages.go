@@ -168,7 +168,11 @@ func (s *service) message(ctx context.Context, path string) (*Message, error) {
 		return nil, err
 	}
 	createdAt := doc.CreatedAt
-	s.fillMessage(ctx, &message, createdAt, sender, path)
+	var kid keys.ID
+	if sender != nil {
+		kid = sender.ID()
+	}
+	s.fillMessage(ctx, &message, createdAt, kid, path)
 	return &message, nil
 }
 
