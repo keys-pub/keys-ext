@@ -29,7 +29,7 @@ echo "protoc $protoc_include --gogo_out=plugins=grpc:. *.proto"
 protoc $protoc_include --gogo_out=plugins=grpc:. *.proto
 
 if [ -d "$keysapp" ]; then
-    cp keys.proto "$keysapp/src/renderer/rpc/keys.proto"
+    cp keys.proto "$keysapp/src/main/rpc/keys.proto"
 
     # tstypes
     if [ ! -x "$(command -v protoc-gen-tstypes)" ]; then
@@ -37,15 +37,17 @@ if [ -d "$keysapp" ]; then
         go install github.com/tmc/grpcutil/protoc-gen-tstypes
     fi
     protoc $protoc_include --tstypes_out=. --tstypes_opt=declare_namespace=false keys.proto
-    mv service.keys.d.ts "$keysapp/src/renderer/rpc/types.ts"
+    cp service.keys.d.ts "$keysapp/src/main/rpc/types.ts"
+    cp service.keys.d.ts "$keysapp/src/renderer/rpc/types.ts"
+    rm service.keys.d.ts
 
-    # tsrpc (redux)
-    if [ ! -x "$(command -v protoc-gen-tsrpc)" ]; then
-        echo "Installing github.com/gabriel/grpcutil/protoc-gen-tsrpc"
-        go install github.com/gabriel/grpcutil/protoc-gen-tsrpc
+    # tsipc
+    if [ ! -x "$(command -v protoc-gen-tsipc)" ]; then
+        echo "Installing github.com/gabriel/grpcutil/protoc-gen-tsipc"
+        go install github.com/gabriel/grpcutil/protoc-gen-tsipc
     fi
-    echo "protoc $protoc_include --tsrpc_out=. keys.proto"    
-    protoc $protoc_include --tsrpc_out=. keys.proto
+    echo "protoc $protoc_include --tsipc_out=. keys.proto"    
+    protoc $protoc_include --tsipc_out=. keys.proto
     mv keys.ts "$keysapp/src/renderer/rpc/rpc.ts"
 fi
 
