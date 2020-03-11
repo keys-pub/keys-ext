@@ -35,6 +35,8 @@ func (s *service) Decrypt(ctx context.Context, req *DecryptRequest) (*DecryptRes
 		mode = EncryptV2
 	}
 
+	// TODO: Autodetect if input data is armored or not
+
 	var decrypted []byte
 	var kid keys.ID
 	var err error
