@@ -19,5 +19,8 @@ $keycmd import -in "$outfile" -password testpassword123
 echo "import (stdin)"
 cat "$outfile" | $keycmd import -stdin -password testpassword123
 
+echo "import (kid)"
+echo "$kid" | $keycmd import -stdin
+
 echo "remove $kid"
 $keycmd remove "$kid"

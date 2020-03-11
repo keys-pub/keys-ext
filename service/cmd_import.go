@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/keys-pub/keys"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
@@ -49,6 +50,19 @@ func importCommands(client *Client) []cli.Command {
 						return err
 					}
 					b = in
+				}
+
+				typ := keys.DetectDataType(b)
+				if typ == keys.IDType {
+					req := &KeyImportRequest{
+						In: b,
+					}
+					resp, err := client.ProtoClient().KeyImport(context.TODO(), req)
+					if err != nil {
+						return err
+					}
+					fmt.Println(resp.KID)
+					return nil
 				}
 
 				password := c.String("password")
