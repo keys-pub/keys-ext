@@ -32,11 +32,26 @@ func encryptCommands(client *Client) []cli.Command {
 				cli.StringSliceFlag{Name: "recipient, r", Usage: "recipients"},
 				cli.StringFlag{Name: "sender, s", Usage: "sender (or anonymous if not specified)"},
 				cli.BoolFlag{Name: "armor, a", Usage: "armored"},
-				cli.StringFlag{Name: "in, i", Usage: "file to read or stdin if not specified"},
-				cli.StringFlag{Name: "out, o", Usage: "file to write or stdout if not specified"},
+				cli.StringFlag{Name: "in, i", Usage: "file to read"},
+				cli.StringFlag{Name: "out, o", Usage: "file to write"},
+				cli.BoolFlag{Name: "stdin", Usage: "read from stdin"},
+				cli.BoolFlag{Name: "stdout", Usage: "write to stdout"},
 				cli.StringFlag{Name: "mode, m", Usage: "encryption mode: encrypt (default) or signcrypt"},
 			},
 			Action: func(c *cli.Context) error {
+				if c.String("in") != "" && c.Bool("stdin") {
+					return errors.Errorf("specify -in or -stdin, but not both")
+				}
+				if c.String("in") == "" && !c.Bool("stdin") {
+					return errors.Errorf("specify -in or -stdin")
+				}
+				if c.String("out") != "" && c.Bool("stdout") {
+					return errors.Errorf("specify -out or -stdout, but not both")
+				}
+				if c.String("out") == "" && !c.Bool("stdout") {
+					return errors.Errorf("specify -out or -stdout")
+				}
+
 				if c.String("in") != "" && c.String("out") != "" {
 					return encryptFileForCLI(c, client)
 				}
@@ -109,12 +124,27 @@ func encryptCommands(client *Client) []cli.Command {
 			Usage: "Decrypt",
 			Flags: []cli.Flag{
 				cli.BoolFlag{Name: "armor, a", Usage: "armored"},
-				cli.StringFlag{Name: "in, i", Usage: "file to read or stdin if not specified"},
-				cli.StringFlag{Name: "out, o", Usage: "file to write or stdout if not specified"},
+				cli.StringFlag{Name: "in, i", Usage: "file to read"},
+				cli.StringFlag{Name: "out, o", Usage: "file to write"},
+				cli.BoolFlag{Name: "stdin", Usage: "read from stdin"},
+				cli.BoolFlag{Name: "stdout", Usage: "write to stdout"},
 				cli.StringFlag{Name: "mode, m", Usage: "encryption mode: encrypt (default) or signcrypt"},
 			},
 			ArgsUsage: "stdin or -in",
 			Action: func(c *cli.Context) error {
+				if c.String("in") != "" && c.Bool("stdin") {
+					return errors.Errorf("specify -in or -stdin, but not both")
+				}
+				if c.String("in") == "" && !c.Bool("stdin") {
+					return errors.Errorf("specify -in or -stdin")
+				}
+				if c.String("out") != "" && c.Bool("stdout") {
+					return errors.Errorf("specify -out or -stdout, but not both")
+				}
+				if c.String("out") == "" && !c.Bool("stdout") {
+					return errors.Errorf("specify -out or -stdout")
+				}
+
 				if c.String("in") != "" && c.String("out") != "" {
 					dec, err := decryptFileForCLI(c, client)
 					if err != nil {

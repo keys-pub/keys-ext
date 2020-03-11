@@ -11,9 +11,9 @@ echo "auth"
 eval $(keys -app Test auth -password "testpassword123")
 
 export KEYS="keys -app Test"
-./key.sh
 ./encrypt.sh
 ./sign.sh
+./import.sh
 
 keys -app Test uninstall
 keysd -app Test -reset-keyring -force

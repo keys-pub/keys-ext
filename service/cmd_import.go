@@ -8,33 +8,42 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
 
 func importCommands(client *Client) []cli.Command {
 	return []cli.Command{
 		cli.Command{
-			Name:      "import",
-			Usage:     "Import a key",
-			ArgsUsage: "stdin or -in",
+			Name:  "import",
+			Usage: "Import a key",
 			Flags: []cli.Flag{
-				cli.StringFlag{Name: "in, i", Usage: "file to read or stdin if not specified"},
+				cli.StringFlag{Name: "in, i", Usage: "file to read"},
+				cli.BoolFlag{Name: "stdin", Usage: "read from stdin"},
 				cli.StringFlag{Name: "password, p", Usage: "password"},
 			},
 			Action: func(c *cli.Context) error {
-				inPath := c.String("in")
+				if c.String("in") != "" && c.Bool("stdin") {
+					return errors.Errorf("specify -in or -stdin, but not both")
+				}
+				if c.String("in") == "" && !c.Bool("stdin") {
+					return errors.Errorf("specify -in or -stdin")
+				}
+
 				var b []byte
-				if inPath != "" {
-					inPath, err := filepath.Abs(inPath)
+				if c.String("in") != "" {
+					path, err := filepath.Abs(c.String("in"))
 					if err != nil {
 						return err
 					}
-					in, err := ioutil.ReadFile(inPath) // #nosec
+					in, err := ioutil.ReadFile(path) // #nosec
 					if err != nil {
 						return err
 					}
 					b = in
-				} else {
+				}
+
+				if c.Bool("stdin") {
 					in, err := ioutil.ReadAll(bufio.NewReader(os.Stdin))
 					if err != nil {
 						return err

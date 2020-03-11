@@ -44,10 +44,25 @@ func signCommands(client *Client) []cli.Command {
 				cli.StringFlag{Name: "signer, s", Usage: "signer"},
 				cli.BoolFlag{Name: "armor, a", Usage: "armored string output"},
 				cli.BoolFlag{Name: "detached, d", Usage: "only output signature bytes"},
-				cli.StringFlag{Name: "in, i", Usage: "file to read or stdin if not specified"},
-				cli.StringFlag{Name: "out, o", Usage: "file to write or stdout if not specified"},
+				cli.StringFlag{Name: "in, i", Usage: "file to read"},
+				cli.StringFlag{Name: "out, o", Usage: "file to write"},
+				cli.BoolFlag{Name: "stdin", Usage: "read from stdin"},
+				cli.BoolFlag{Name: "stdout", Usage: "write to stdout"},
 			},
 			Action: func(c *cli.Context) error {
+				if c.String("in") != "" && c.Bool("stdin") {
+					return errors.Errorf("specify -in or -stdin, but not both")
+				}
+				if c.String("in") == "" && !c.Bool("stdin") {
+					return errors.Errorf("specify -in or -stdin")
+				}
+				if c.String("out") != "" && c.Bool("stdout") {
+					return errors.Errorf("specify -out or -stdout, but not both")
+				}
+				if c.String("out") == "" && !c.Bool("stdout") {
+					return errors.Errorf("specify -out or -stdout")
+				}
+
 				if c.String("in") != "" && c.String("out") != "" {
 					return signFileForCLI(c, client)
 				}
@@ -117,10 +132,25 @@ func signCommands(client *Client) []cli.Command {
 			Flags: []cli.Flag{
 				cli.StringFlag{Name: "signer, s", Usage: "expected signer"},
 				cli.BoolFlag{Name: "armor, a"},
-				cli.StringFlag{Name: "in, i", Usage: "file to read or stdin if not specified"},
-				cli.StringFlag{Name: "out, o", Usage: "file to write or stdout if not specified"},
+				cli.StringFlag{Name: "in, i", Usage: "file to read"},
+				cli.StringFlag{Name: "out, o", Usage: "file to write"},
+				cli.BoolFlag{Name: "stdin", Usage: "read from stdin"},
+				cli.BoolFlag{Name: "stdout", Usage: "write to stdout"},
 			},
 			Action: func(c *cli.Context) error {
+				if c.String("in") != "" && c.Bool("stdin") {
+					return errors.Errorf("specify -in or -stdin, but not both")
+				}
+				if c.String("in") == "" && !c.Bool("stdin") {
+					return errors.Errorf("specify -in or -stdin")
+				}
+				if c.String("out") != "" && c.Bool("stdout") {
+					return errors.Errorf("specify -out or -stdout, but not both")
+				}
+				if c.String("out") == "" && !c.Bool("stdout") {
+					return errors.Errorf("specify -out or -stdout")
+				}
+
 				signer := c.String("signer")
 
 				if c.String("in") != "" && c.String("out") != "" {

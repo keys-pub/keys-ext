@@ -2,32 +2,47 @@
 
 set -e -u -o pipefail # Fail on error
 
-tmpfile=`mktemp /tmp/XXXXXXXXXXX`
-tmpfile2=`mktemp /tmp/XXXXXXXXXXX`
-tmpfile3=`mktemp /tmp/XXXXXXXXXXX`
+infile=`mktemp /tmp/XXXXXXXXXXX`
+outfile=`mktemp /tmp/XXXXXXXXXXX`
 
-head -c 500000 </dev/urandom > "$tmpfile"
+head -c 500000 </dev/urandom > "$infile"
+echo "infile: $infile"
 
 encfile=`mktemp /tmp/XXXXXXXXXXX`
 encfile2=`mktemp /tmp/XXXXXXXXXXX`
 
 keycmd=${KEYS:-"keys"}
+echo "cmd: $keycmd"
 
 echo "gen"
 kid=`$keycmd generate`
 echo "gen $kid"
 
 echo "encrypt $kid"
-$keycmd encrypt -recipient $kid -in "$tmpfile" -out "$encfile"
+$keycmd encrypt -recipient $kid -in "$infile" -out "$encfile"
 echo "decrypt"
-$keycmd decrypt -in "$encfile" -out "$tmpfile2"
-diff "$tmpfile2" "$tmpfile2"
+$keycmd decrypt -in "$encfile" -out "$outfile"
+diff "$infile" "$outfile"
 
-echo "encrypt $kid"
-cat "$tmpfile2" | $keycmd encrypt -recipient $kid > "$encfile2"
-echo "decrypt"
-cat "$encfile2" | $keycmd decrypt > "$tmpfile3"
-diff "$tmpfile2" "$tmpfile3"
+echo "encrypt (armor) $kid"
+$keycmd encrypt -armor -recipient $kid -in "$infile" -out "$encfile"
+echo "decrypt (armor)"
+$keycmd decrypt -armor -in "$encfile" -out "$outfile"
+diff "$infile" "$outfile"
+
+echo "encrypt (stdin/stdout) $kid"
+cat "$infile" | $keycmd encrypt -stdin -stdout -recipient $kid > "$encfile"
+echo "decrypt (stdin/stdout) $encfile"
+cat "$encfile" | $keycmd decrypt -stdin -stdout > "$outfile"
+diff "$infile" "$outfile"
+
+echo "decrypt (stdin/out)"
+cat "$encfile" | $keycmd decrypt -stdin -out "$outfile"
+diff "$infile" "$outfile"
+
+echo "decrypt (in/stdout)"
+$keycmd decrypt -in "$encfile" -stdout > "$outfile"
+diff "$infile" "$outfile"
 
 echo "remove $kid"
 $keycmd remove "$kid"

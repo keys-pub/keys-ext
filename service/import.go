@@ -15,7 +15,8 @@ func (s *service) KeyImport(ctx context.Context, req *KeyImportRequest) (*KeyImp
 		return nil, errors.Errorf("unrecognized key format")
 	}
 
-	in := strings.TrimSpace(string(req.In))
+	in := string(req.In)
+	in = strings.TrimSpace(in)
 
 	// Try to import key ID
 	id, err := keys.ParseID(in)
@@ -25,6 +26,9 @@ func (s *service) KeyImport(ctx context.Context, req *KeyImportRequest) (*KeyImp
 		}
 		return &KeyImportResponse{KID: id.String()}, nil
 	}
+
+	// TODO: better detection if a ID, so we get a better error message if mistyped
+	// TODO: Report password needed on command line, is optional
 
 	logger.Infof("Importing key %s", in)
 	kid, err := s.importSaltpack(in, req.Password)
