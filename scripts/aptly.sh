@@ -37,7 +37,7 @@ gsutil -m rsync -r gs://aptly.keys.pub $HOME/.aptly/public
 # Get release
 wget https://github.com/keys-pub/keysd/releases/download/v${ver}/keys_${ver}_linux_i386.deb
 wget https://github.com/keys-pub/keysd/releases/download/v${ver}/keys_${ver}_linux_amd64.deb
-wget https://github.com/keys-pub/keysd/releases/download/v${ver}/keys_${ver}_linux_armv6.deb
+# wget https://github.com/keys-pub/keysd/releases/download/v${ver}/keys_${ver}_linux_armv6.deb
 
 echo "Create apt repo"
 aptly repo create -distribution=current -component=main keys-release
