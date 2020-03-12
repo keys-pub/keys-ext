@@ -9,6 +9,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+// TODO: Difference between pull and import is confusing?
+
 // KeyImport (RPC) imports a key.
 func (s *service) KeyImport(ctx context.Context, req *KeyImportRequest) (*KeyImportResponse, error) {
 	if !utf8.Valid(req.In) {

@@ -13,7 +13,7 @@ func pullCommands(client *Client) []cli.Command {
 		cli.Command{
 			Name:      "pull",
 			Usage:     "Pull from the key server",
-			ArgsUsage: "kid or user (optional)",
+			ArgsUsage: "kid or user identity",
 			Action: func(c *cli.Context) error {
 				identity := c.Args().First()
 				req := &PullRequest{
@@ -32,7 +32,7 @@ func pullCommands(client *Client) []cli.Command {
 		cli.Command{
 			Name:      "push",
 			Usage:     "Publish to the key server",
-			ArgsUsage: "kid or user",
+			ArgsUsage: "kid or user identity",
 			Aliases:   []string{"publish"},
 			Flags: []cli.Flag{
 				cli.BoolFlag{Name: "check", Usage: "check remote", Hidden: true},
