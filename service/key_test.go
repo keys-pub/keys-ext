@@ -104,6 +104,12 @@ func TestKeyRemove(t *testing.T) {
 	_, err = service.KeyRemove(ctx, &KeyRemoveRequest{KID: key.ID().String()})
 	require.NoError(t, err)
 
+	// Remove (X25519)
+	genResp, err = service.KeyGenerate(ctx, &KeyGenerateRequest{Type: X25519})
+	require.NoError(t, err)
+	_, err = service.KeyRemove(ctx, &KeyRemoveRequest{KID: genResp.KID})
+	require.NoError(t, err)
+
 	// Remove (not found)
 	randKey := keys.GenerateEdX25519Key()
 	_, err = service.KeyRemove(ctx, &KeyRemoveRequest{KID: randKey.ID().String()})

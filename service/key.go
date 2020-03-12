@@ -161,13 +161,14 @@ func (s *service) KeyRemove(ctx context.Context, req *KeyRemoveRequest) (*KeyRem
 		return nil, keys.NewErrNotFound(kid.String())
 	}
 
-	_, err = s.scs.DeleteSigchain(kid)
-	if err != nil {
-		return nil, err
-	}
-
-	if _, err := s.users.Update(ctx, kid); err != nil {
-		return nil, err
+	if kid.IsEdX25519() {
+		_, err = s.scs.DeleteSigchain(kid)
+		if err != nil {
+			return nil, err
+		}
+		if _, err := s.users.Update(ctx, kid); err != nil {
+			return nil, err
+		}
 	}
 
 	return &KeyRemoveResponse{}, nil
