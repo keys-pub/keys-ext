@@ -7,7 +7,7 @@ import (
 // RuntimeStatus (RPC) gets the current runtime status.
 // This call is NOT AUTHENTICATED.
 func (s *service) RuntimeStatus(ctx context.Context, req *RuntimeStatusRequest) (*RuntimeStatusResponse, error) {
-	exe, exeErr := ExecutablePath()
+	exe, exeErr := executablePath()
 	if exeErr != nil {
 		logger.Errorf("Failed to get current executable path: %s", exeErr)
 	}

@@ -190,9 +190,10 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 	app.Commands = cmds
 
 	app.Before = func(c *cli.Context) error {
-		logLevel, levErr := logrusLevel(c.GlobalString("log-level"))
-		if levErr != nil {
-			errorFn(levErr)
+		logLevel, err := logrusLevel(c.GlobalString("log-level"))
+		if err != nil {
+			errorFn(err)
+			return err
 		}
 		logger.SetLevel(logLevel)
 		logger.Infof("Version: %s", build.String())
@@ -203,6 +204,11 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 		cfg, err := config(c)
 		if err != nil {
 			errorFn(err)
+			return err
+		}
+
+		if err := checkForAppConflict(); err != nil {
+			logger.Warningf("%s", err)
 		}
 
 		command := c.Args().Get(0)
@@ -217,6 +223,7 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 		if !c.GlobalBool("test") {
 			if err := autostart(cfg); err != nil {
 				errorFn(err)
+				return err
 			}
 		}
 
@@ -224,6 +231,7 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 
 		if err := connect(cfg, client, build, authToken, true); err != nil {
 			errorFn(err)
+			return err
 		}
 
 		return nil
@@ -248,7 +256,7 @@ func connect(cfg *Config, client *Client, build Build, authToken string, reconne
 	logger.Debugf("Service status %s", status.String())
 
 	// Check service and client running from same directories.
-	exe, exeErr := ExecutablePath()
+	exe, exeErr := executablePath()
 	if exeErr != nil {
 		return errors.Wrapf(exeErr, "failed to get executable path")
 	}

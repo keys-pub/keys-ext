@@ -3,14 +3,16 @@ package service
 import (
 	"fmt"
 	"os"
+	"os/user"
 	"path/filepath"
 	"runtime"
+	strings "strings"
 
 	"github.com/pkg/errors"
 )
 
 func exeDir() string {
-	exe, err := ExecutablePath()
+	exe, err := executablePath()
 	if err != nil {
 		panic(err)
 	}
@@ -138,4 +140,33 @@ func installSymlink() error {
 
 	logger.Infof("Linking %s to %s", linkPath, binPath)
 	return os.Symlink(binPath, linkPath)
+}
+
+func checkForAppConflict() error {
+	path, err := executablePath()
+	if err != nil {
+		return err
+	}
+
+	usr, err := user.Current()
+	if err != nil {
+		return err
+	}
+
+	var check []string
+	switch runtime.GOOS {
+	case "darwin":
+		check = []string{"/Applications/Keys.app", filepath.Join(usr.HomeDir, "Applications", "Keys.app")}
+	case "windows":
+		// TODO
+	}
+	for _, c := range check {
+		if !strings.HasPrefix(path, c) {
+			if _, err := os.Stat(c); err == nil {
+				return errors.Errorf("You have the app installed (%s), but this (%s) doesn't point there. You may have multiple installations?", c, path)
+			}
+		}
+	}
+
+	return nil
 }

@@ -19,7 +19,7 @@ func checkSupportedOS() error {
 }
 
 func checkCodesigned() error {
-	exe, exeErr := ExecutablePath()
+	exe, exeErr := executablePath()
 	if exeErr != nil {
 		return exeErr
 	}

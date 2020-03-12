@@ -7,9 +7,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-// ExecutablePath returns path to the current executable. If the executable path
+// executablePath returns path to the current executable. If the executable path
 // is a symlink, the target path is returned.
-func ExecutablePath() (string, error) {
+func executablePath() (string, error) {
 	exePath, exeErr := os.Executable()
 	if exeErr != nil {
 		return "", errors.Wrapf(exeErr, "os.Executable failed")
