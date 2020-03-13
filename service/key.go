@@ -134,7 +134,7 @@ func (s *service) keyIDToRPC(ctx context.Context, kid keys.ID) (*Key, error) {
 		return nil, err
 	}
 
-	typ := keyTypeToRPC(kid.KeyType())
+	typ := keyTypeToRPC(kid.PublicKeyType())
 
 	return &Key{
 		ID:    kid.String(),
@@ -282,7 +282,7 @@ func (s *service) parseBoxKey(kid keys.ID) (*keys.X25519Key, error) {
 	if kid == "" {
 		return nil, nil
 	}
-	switch kid.KeyType() {
+	switch kid.PublicKeyType() {
 	case keys.EdX25519Public:
 		key, err := s.ks.EdX25519Key(kid)
 		if err != nil {
@@ -310,7 +310,7 @@ func (s *service) parseSignKey(kid string, required bool) (*keys.EdX25519Key, er
 	if err != nil {
 		return nil, err
 	}
-	switch id.KeyType() {
+	switch id.PublicKeyType() {
 	case keys.EdX25519Public:
 		key, err := s.ks.EdX25519Key(id)
 		if err != nil {
