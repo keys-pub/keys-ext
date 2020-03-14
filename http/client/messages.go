@@ -4,35 +4,34 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/url"
-	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/saltpack"
 	"github.com/keys-pub/keysd/http/api"
+	"github.com/pkg/errors"
 )
 
-// Message ...
-type Message struct {
-	// Data ...
-	Data []byte
-	// ID ...
-	ID string
-	// CreatedAt ...
-	CreatedAt time.Time
-}
-
-// Messages ...
-type Messages struct {
-	Messages []*Message
-	Version  string
-}
-
-// PutMessage ...
-func (c *Client) PutMessage(key *keys.EdX25519Key, id string, data []byte) error {
-	path := keys.Path("messages", key.ID(), id)
-	if _, err := c.put(path, url.Values{}, key, bytes.NewReader(data)); err != nil {
-		return err
+func (c *Client) PostMessage(sender *keys.EdX25519Key, recipient keys.ID, data []byte) (*api.MessageResponse, error) {
+	sp := saltpack.NewSaltpack(c.ks)
+	encrypted, err := sp.Encrypt(data, sender.X25519Key(), recipient)
+	if err != nil {
+		return nil, err
 	}
-	return nil
+
+	path := keys.Path("messages", recipient)
+	doc, err := c.postDocument(path, url.Values{}, sender, bytes.NewReader(encrypted))
+	if err != nil {
+		return nil, err
+	}
+	if doc == nil {
+		return nil, errors.Errorf("failed to post message: no response")
+	}
+
+	var msg api.MessageResponse
+	if err := json.Unmarshal(doc.Data, &msg); err != nil {
+		return nil, err
+	}
+	return &msg, nil
 }
 
 // Messages ...
@@ -45,17 +44,30 @@ func (c *Client) Messages(key *keys.EdX25519Key, version string) (*api.MessagesR
 
 	// TODO: What if we hit limit, we won't have all the messages
 
-	e, err := c.get(path, params, key)
+	doc, err := c.getDocument(path, params, key)
 	if err != nil {
 		return nil, err
 	}
-	if e == nil {
+	if doc == nil {
 		return nil, nil
 	}
 
 	var resp api.MessagesResponse
-	if err := json.Unmarshal(e.Data, &resp); err != nil {
+	if err := json.Unmarshal(doc.Data, &resp); err != nil {
 		return nil, err
+	}
+
+	// Decrypt messages
+	sp := saltpack.NewSaltpack(c.ks)
+	for _, msg := range resp.Messages {
+		decrypted, pk, err := sp.Decrypt(msg.Data)
+		if err != nil {
+			return nil, err
+		}
+		if pk.ID() != key.X25519Key().ID() {
+			return nil, errors.Errorf("invalid message kid")
+		}
+		msg.Data = decrypted
 	}
 	return &resp, nil
 }
