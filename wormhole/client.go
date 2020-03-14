@@ -1,101 +1,144 @@
 package wormhole
 
 import (
-	"fmt"
+	"log"
 	"net"
+	"time"
 
+	"github.com/davecgh/go-spew/spew"
+
+	"github.com/pkg/errors"
 	"gortc.io/stun"
 )
 
+var stunServer = "stun.l.google.com:19302"
+var udp = "udp4"
+
+type PublicAddressLn func(addr string)
+
 type Client struct {
-	sc   *stun.Client
-	addr stun.XORMappedAddress
+	publicAddr      stun.XORMappedAddress
+	peerAddr        *net.UDPAddr
+	conn            *net.UDPConn
+	quit            chan bool
+	publicAddressLn PublicAddressLn
 }
 
-type Addr struct {
-	IP   net.IP
-	Port int
-}
-
-func (a Addr) String() string {
-	return fmt.Sprintf("%s:%d", a.IP, a.Port)
-}
-
-func NewClient() (*Client, error) {
-	// Creating a "connection" to STUN server.
-	sc, err := stun.Dial("udp", "stun.l.google.com:19302")
-	if err != nil {
-		return nil, err
-	}
+func NewClient() *Client {
 	return &Client{
-		sc: sc,
-	}, nil
+		publicAddressLn: func(addr string) {},
+		quit:            make(chan bool),
+	}
 }
 
-func (c *Client) Close() error {
-	return c.sc.Close()
+func (c *Client) Close() {
+	c.quit <- true
 }
 
-func (c *Client) STUN() error {
-	// Building binding request with random transaction id.
-	message := stun.MustBuild(stun.TransactionID, stun.BindingRequest)
-	// Sending request to STUN server, waiting for response message.
-	err := c.sc.Do(message, func(res stun.Event) {
-		if res.Error != nil {
-			logger.Errorf("Stun event error: %v", res.Error)
-			return
-		}
-		// Decoding XOR-MAPPED-ADDRESS attribute from message.
-		var addr stun.XORMappedAddress
-		if err := addr.GetFrom(res.Message); err != nil {
-			panic(err)
-		}
-		logger.Infof("IP: %s, port: %d", addr.IP, addr.Port)
-		c.addr = addr
-	})
+func (c *Client) SetPublicAddressLn(publicAddressLn PublicAddressLn) {
+	c.publicAddressLn = publicAddressLn
+}
+
+func (c *Client) SetPeer(addr string) error {
+	a, err := net.ResolveUDPAddr(udp, addr)
 	if err != nil {
 		return err
 	}
-	return nil
-}
 
-func (c *Client) Write(addr *Addr) error {
-	conn, err := net.Dial("tcp", addr.String())
+	srvAddr, err := net.ResolveUDPAddr(udp, stunServer)
 	if err != nil {
-		panic(err)
+		return errors.Wrapf(err, "failed to resolve addr")
 	}
-	defer conn.Close()
 
-	// Call the `Write()` method of the implementor
-	// of the `io.Writer` interface.
-	_, err = fmt.Fprintf(conn, "hello")
-	if err != nil {
+	if err := sendBindingRequest(c.conn, srvAddr); err != nil {
 		return err
 	}
+
+	c.peerAddr = a
 
 	return nil
 }
 
 func (c *Client) Listen() error {
-	listener, err := net.Listen("tcp", ":8888")
+	conn, err := net.ListenUDP(udp, nil)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to net.Listen")
 	}
+	c.conn = conn
+	defer c.conn.Close()
 
-	defer func() {
-		listener.Close()
-		logger.Infof("Listener closed")
-	}()
+	log.Printf("Listening on %s\n", c.conn.LocalAddr())
+
+	messageChan := listen(c.conn)
+	keepAlive := time.NewTicker(time.Minute)
 
 	for {
-		_, err := listener.Accept()
-		if err != nil {
-			fmt.Println(err)
-			break
+		select {
+		case message, ok := <-messageChan:
+			if !ok {
+				return nil
+			}
+			if stun.IsMessage(message) {
+				m := new(stun.Message)
+				m.Raw = message
+				decErr := m.Decode()
+				if decErr != nil {
+					return errors.Wrapf(decErr, "failed to decode stun message")
+				}
+				var xorAddr stun.XORMappedAddress
+				if getErr := xorAddr.GetFrom(m); getErr != nil {
+					return errors.Wrapf(getErr, "failed to get address from stun")
+				}
+
+				if c.publicAddr.String() != xorAddr.String() {
+					logger.Infof("Public address: %s\n", xorAddr)
+					c.publicAddr = xorAddr
+					c.publicAddressLn(c.publicAddr.String())
+				}
+			} else {
+				spew.Sdump(message)
+				// Received message
+			}
+
+		case <-keepAlive.C:
+			// Keep alive
+		case <-c.quit:
+			c.conn.Close()
 		}
-
-		// go handleConnection(conn)
 	}
+}
 
+func listen(conn *net.UDPConn) <-chan []byte {
+	messages := make(chan []byte)
+	go func() {
+		for {
+			buf := make([]byte, 1024)
+
+			n, _, err := conn.ReadFromUDP(buf)
+			if err != nil {
+				close(messages)
+				return
+			}
+			buf = buf[:n]
+
+			messages <- buf
+		}
+	}()
+	return messages
+}
+
+func sendBindingRequest(conn *net.UDPConn, addr *net.UDPAddr) error {
+	m := stun.MustBuild(stun.TransactionID, stun.BindingRequest)
+	if err := send(m.Raw, conn, addr); err != nil {
+		return errors.Wrapf(err, "failed to bind")
+	}
+	return nil
+}
+
+func send(msg []byte, conn *net.UDPConn, addr *net.UDPAddr) error {
+	_, err := conn.WriteToUDP(msg, addr)
+	if err != nil {
+		return errors.Wrapf(err, "failed to send")
+	}
 	return nil
 }
