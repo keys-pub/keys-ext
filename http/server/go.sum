@@ -41,7 +41,10 @@ github.com/keys-pub/keys v0.0.0-20200225190846-c4c290641183 h1:qvLWRP0lSnbZaKmpA
 github.com/keys-pub/keys v0.0.0-20200225190846-c4c290641183/go.mod h1:/uNDuQDL1kCcJVsKMG2xLwUMS7zvoUrWL9k1OMZ7GZw=
 github.com/keys-pub/keys v0.0.0-20200306031145-ead068a10f45 h1:26ga7WASJsmNgyQhPiXONud+AHPxwgR8q8qO3sE1SIg=
 github.com/keys-pub/keys v0.0.0-20200306031145-ead068a10f45/go.mod h1:/uNDuQDL1kCcJVsKMG2xLwUMS7zvoUrWL9k1OMZ7GZw=
+github.com/keys-pub/keys v0.0.0-20200314221622-6f842a6599a4 h1:2awUHyEYYvXcgsbd1k2cQChCl3q9LnhDSF/Atn9gnF0=
+github.com/keys-pub/keys v0.0.0-20200314221622-6f842a6599a4/go.mod h1:/uNDuQDL1kCcJVsKMG2xLwUMS7zvoUrWL9k1OMZ7GZw=
 github.com/keys-pub/keysd v0.0.18 h1:wKF+7CFnAUW0TPlhm+VCdj+0Oyyrth0JZbDq+CO03mE=
+github.com/keys-pub/keysd v0.0.23 h1:t166nYPZFhXUP/s1pv5QUjln5Q3j+WF1Y2gJWd+7iJI=
 github.com/keys-pub/keysd/http/api v0.0.0-20200107201206-c0f295622c20 h1:d1vFlbu2IrOEDtBwefOFI7nmb+w5/3uz7qnBzyGT7yg=
 github.com/keys-pub/keysd/http/api v0.0.0-20200107201206-c0f295622c20/go.mod h1:Wb7CizkwyJDE1NvYbL6ZmANI4Cq2953MoV8fXzrZASY=
 github.com/keys-pub/keysd/http/api v0.0.0-20200118233442-784585ea9454 h1:kVndkj3WvlFXON1C1cGIwArUPSitbxMMW3lo1zIkgA4=
@@ -58,6 +61,8 @@ github.com/keys-pub/keysd/http/api v0.0.0-20200220193726-e181801dd20a h1:KUa6tAW
 github.com/keys-pub/keysd/http/api v0.0.0-20200220193726-e181801dd20a/go.mod h1:0B4Zsi72aNWx8XpMPI1Dox03Q4iadU5TRnd87gam640=
 github.com/keys-pub/keysd/http/api v0.0.0-20200223203725-9c5a5d442011 h1:cbemaD+yWU1fnuecmjAZhsYu2E7X/dGG0DiC2lo/C20=
 github.com/keys-pub/keysd/http/api v0.0.0-20200223203725-9c5a5d442011/go.mod h1:oCloF/zhufOxDjykCl9bb1VjDHBQL4mljs5yz21p9/4=
+github.com/keys-pub/keysd/http/api v0.0.0-20200314221420-0da6c9407c23 h1:xoHQS/dXWd1njzYU+6vxwVvp07LuT5ZiBhCBHbU1Bfo=
+github.com/keys-pub/keysd/http/api v0.0.0-20200314221420-0da6c9407c23/go.mod h1:oCloF/zhufOxDjykCl9bb1VjDHBQL4mljs5yz21p9/4=
 github.com/labstack/echo/v4 v4.1.11 h1:z0BZoArY4FqdpUEl+wlHp4hnr/oSR6MTmQmv8OHSoww=
 github.com/labstack/echo/v4 v4.1.11/go.mod h1:i541M3Fj6f76NZtHSj7TXnyM8n2gaodfvfxNnFqi74g=
 github.com/labstack/gommon v0.3.0 h1:JEeO0bvc78PKdyHxloTKiF8BD5iGrH8T6MSeGvSgob0=

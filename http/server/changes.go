@@ -9,10 +9,10 @@ import (
 )
 
 type changes struct {
-	docs        []*keys.Document
-	version     int64
-	versionNext int64
-	badRequest  error
+	docs          []*keys.Document
+	version       int64
+	versionNext   int64
+	errBadRequest error
 }
 
 func (s *Server) changes(c echo.Context, path string) (*changes, error) {
@@ -23,7 +23,7 @@ func (s *Server) changes(c echo.Context, path string) (*changes, error) {
 	if f := c.QueryParam("version"); f != "" {
 		i, err := strconv.Atoi(f)
 		if err != nil {
-			return &changes{badRequest: ErrBadRequest(c, errors.Wrapf(err, "invalid version"))}, nil
+			return &changes{errBadRequest: errors.Wrapf(err, "invalid version")}, nil
 		}
 		version = keys.TimeMs(i)
 	}
@@ -33,10 +33,10 @@ func (s *Server) changes(c echo.Context, path string) (*changes, error) {
 	}
 	limit, err := strconv.Atoi(plimit)
 	if err != nil {
-		return &changes{badRequest: ErrBadRequest(c, errors.Wrapf(err, "invalid limit"))}, nil
+		return &changes{errBadRequest: errors.Wrapf(err, "invalid limit")}, nil
 	}
 	if limit > 100 {
-		return &changes{badRequest: ErrBadRequest(c, errors.Wrapf(err, "invalid limit, too large"))}, nil
+		return &changes{errBadRequest: errors.Wrapf(err, "invalid limit, too large")}, nil
 	}
 
 	logger.Infof(ctx, "Changes %s", path)

@@ -49,7 +49,7 @@ func (s *Server) getUser(c echo.Context) error {
 
 	kid, err := keys.ParseID(c.Param("kid"))
 	if err != nil {
-		return ErrNotFound(c, nil)
+		return ErrNotFound(c, errors.Errorf("kid not found"))
 	}
 
 	userResult, err := s.users.Get(ctx, kid)
@@ -57,7 +57,7 @@ func (s *Server) getUser(c echo.Context) error {
 		return internalError(c, err)
 	}
 	if userResult == nil {
-		return ErrNotFound(c, nil)
+		return ErrNotFound(c, errors.Errorf("user not found"))
 	}
 
 	resp := api.UserResponse{

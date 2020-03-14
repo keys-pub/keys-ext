@@ -13,6 +13,8 @@ import (
 
 // TODO: Support If-Modified-Since
 
+// TODO: Turn off logging
+
 // Server ...
 type Server struct {
 	fi    Fire
@@ -91,13 +93,19 @@ func AddRoutes(s *Server, e *echo.Echo) {
 	// Cron
 	e.POST("/cron/check", s.cronCheck)
 
+	// Messages
+	e.POST("/messages/:kid", s.postMessage)
+	e.GET("/messages/:kid", s.listMessages)
+
+	// Snaps
+	e.PUT("/snap/:kid", s.putSnap)
+	e.GET("/snap/:kid", s.getSnap)
+	e.DELETE("/snap/:kid", s.deleteSnap)
+
+	// Sigchain (aliases)
 	e.GET("/:kid", s.getSigchain)
 	e.GET("/:kid/:seq", s.getSigchainStatement)
 	e.PUT("/:kid/:seq", s.putSigchainStatement)
-
-	// Messages
-	e.PUT("/messages/:kid/:id", s.putMessage)
-	e.GET("/messages/:kid", s.listMessages)
 }
 
 // SetNowFn sets clock Now function.

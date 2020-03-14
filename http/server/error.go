@@ -35,26 +35,22 @@ func ErrResponse(c echo.Context, status int, msg string) error {
 
 // ErrBadRequest response.
 func ErrBadRequest(c echo.Context, err error) error {
-	logger.Warningf(c.Request().Context(), "Bad request (400): %v", err)
-	return JSON(c, http.StatusBadRequest, newErrorResponse(err.Error(), http.StatusBadRequest))
+	return ErrResponse(c, http.StatusBadRequest, err.Error())
 }
 
 // ErrEntityTooLarge response.
 func ErrEntityTooLarge(c echo.Context, err error) error {
-	logger.Warningf(c.Request().Context(), "Entity too large (413): %v", err)
-	return JSON(c, http.StatusRequestEntityTooLarge, newErrorResponse(err.Error(), http.StatusRequestEntityTooLarge))
+	return ErrResponse(c, http.StatusRequestEntityTooLarge, err.Error())
 }
 
 // ErrForbidden response.
 func ErrForbidden(c echo.Context, err error) error {
-	logger.Warningf(c.Request().Context(), "Forbidden (403): %v", err)
-	return JSON(c, http.StatusForbidden, newErrorResponse(err.Error(), http.StatusForbidden))
+	return ErrResponse(c, http.StatusForbidden, err.Error())
 }
 
 // ErrConflict response.
 func ErrConflict(c echo.Context, err error) error {
-	logger.Warningf(c.Request().Context(), "Conflict (409): %v", err)
-	return JSON(c, http.StatusConflict, newErrorResponse(err.Error(), http.StatusConflict))
+	return ErrResponse(c, http.StatusConflict, err.Error())
 }
 
 // ErrNotFound response.
@@ -62,19 +58,16 @@ func ErrNotFound(c echo.Context, err error) error {
 	if err == nil {
 		err = errors.Errorf("resource not found")
 	}
-	logger.Warningf(c.Request().Context(), "Not found: %s", err)
-	return JSON(c, http.StatusNotFound, newErrorResponse(err.Error(), http.StatusNotFound))
+	return ErrResponse(c, http.StatusNotFound, err.Error())
 }
 
 // ErrUnauthorized response.
 func ErrUnauthorized(c echo.Context, err error) error {
-	logger.Warningf(c.Request().Context(), "Bad auth: %v", err)
-	return JSON(c, http.StatusUnauthorized, newErrorResponse(err.Error(), http.StatusUnauthorized))
+	return ErrResponse(c, http.StatusUnauthorized, err.Error())
 }
 
 func internalError(c echo.Context, err error) error {
-	logger.Errorf(c.Request().Context(), "Error (internal): %v", err)
-	return JSON(c, http.StatusInternalServerError, newErrorResponse(err.Error(), http.StatusInternalServerError))
+	return ErrResponse(c, http.StatusInternalServerError, err.Error())
 }
 
 // ErrorHandler returns error handler that returns in the format:
