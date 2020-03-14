@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strings"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keysd/http/api"
@@ -13,41 +12,23 @@ import (
 	"github.com/pkg/errors"
 )
 
+// TODO: Message expiry
+
 const msgChanges = "msg-changes"
 
-func (s *Server) putMessage(c echo.Context) error {
+func (s *Server) postMessage(c echo.Context) error {
 	request := c.Request()
 	ctx := request.Context()
-	logger.Infof(ctx, "Server PUT message %s", s.urlString(c))
+	logger.Infof(ctx, "Server POST message %s", s.urlString(c))
 
-	// Auth
-	auth := request.Header.Get("Authorization")
-	if auth == "" {
-		return ErrUnauthorized(c, errors.Errorf("missing Authorization header"))
-	}
-	now := s.nowFn()
-	authRes, err := CheckAuthorization(request.Context(), request.Method, s.urlString(c), auth, s.mc, now)
+	kid, status, err := s.authorize(c)
 	if err != nil {
-		return ErrForbidden(c, err)
-	}
-	kidAuth := authRes.kid
-	// End Auth
-
-	kid, err := keys.ParseID(c.Param("kid"))
-	if err != nil {
-		return ErrBadRequest(c, err)
-	}
-
-	if kid != kidAuth {
-		return ErrForbidden(c, errors.Errorf("invalid kid"))
+		return ErrResponse(c, status, err.Error())
 	}
 
 	logname := msgChanges + "-" + kid.String()
 
-	id := strings.TrimSpace(c.Param("id"))
-	if len(id) == 0 {
-		return ErrBadRequest(c, errors.Errorf("invalid id"))
-	}
+	id := keys.RandIDString()
 
 	if c.Request().Body == nil {
 		return ErrBadRequest(c, errors.Errorf("missing body"))
@@ -63,22 +44,21 @@ func (s *Server) putMessage(c echo.Context) error {
 	msg := api.Message{
 		ID:   id,
 		Data: bin,
-		Path: path,
 	}
-	logger.Infof(ctx, "Save message %s", msg.Path)
+	logger.Infof(ctx, "Save message %s", path)
 	mb, err := json.Marshal(msg)
 	if err != nil {
 		return internalError(c, err)
 	}
-	if err := s.fi.Create(ctx, msg.Path, mb); err != nil {
+	if err := s.fi.Create(ctx, path, mb); err != nil {
 		return internalError(c, err)
 	}
-	logger.Infof(ctx, "Add change %s %s", logname, msg.Path)
-	if err := s.fi.ChangeAdd(ctx, logname, msg.Path); err != nil {
+	logger.Infof(ctx, "Add change %s %s", logname, path)
+	if err := s.fi.ChangeAdd(ctx, logname, path); err != nil {
 		return internalError(c, err)
 	}
 
-	return c.String(http.StatusOK, "{}")
+	return JSON(c, http.StatusOK, msg)
 }
 
 func (s *Server) listMessages(c echo.Context) error {
@@ -86,49 +66,33 @@ func (s *Server) listMessages(c echo.Context) error {
 	ctx := request.Context()
 	logger.Infof(ctx, "Server GET messages %s", s.urlString(c))
 
-	// Auth
-	auth := request.Header.Get("Authorization")
-	if auth == "" {
-		return ErrUnauthorized(c, errors.Errorf("missing Authorization header"))
-	}
-	now := s.nowFn()
-	authRes, err := CheckAuthorization(request.Context(), request.Method, s.urlString(c), auth, s.mc, now)
+	kid, status, err := s.authorize(c)
 	if err != nil {
-		return ErrForbidden(c, err)
-	}
-	kidAuth := authRes.kid
-	// End Auth
-
-	kid, err := keys.ParseID(c.Param("kid"))
-	if err != nil {
-		return ErrBadRequest(c, err)
+		return ErrResponse(c, status, err.Error())
 	}
 
-	if kid != kidAuth {
-		return ErrForbidden(c, errors.Errorf("invalid kid"))
-	}
 	path := msgChanges + "-" + kid.String()
 
-	le, err := s.changes(c, path)
+	chgs, err := s.changes(c, path)
 	if err != nil {
 		return internalError(c, err)
 	}
-	if le.badRequest != nil {
-		return le.badRequest
+	if chgs.errBadRequest != nil {
+		return ErrResponse(c, http.StatusBadRequest, chgs.errBadRequest.Error())
 	}
-	if len(le.docs) == 0 && le.version == 0 {
+	if len(chgs.docs) == 0 && chgs.version == 0 {
 		return ErrNotFound(c, errors.Errorf("messages not found"))
 	}
 
-	messages := make([]*api.Message, 0, len(le.docs))
-	md := make(map[string]api.Metadata, len(le.docs))
-	for _, doc := range le.docs {
+	messages := make([]*api.Message, 0, len(chgs.docs))
+	md := make(map[string]api.Metadata, len(chgs.docs))
+	for _, doc := range chgs.docs {
 		var msg api.Message
 		if err := json.Unmarshal(doc.Data, &msg); err != nil {
 			return internalError(c, err)
 		}
 		messages = append(messages, &msg)
-		md[msg.Path] = api.Metadata{
+		md[msg.ID] = api.Metadata{
 			CreatedAt: doc.CreatedAt,
 			UpdatedAt: doc.UpdatedAt,
 		}
@@ -137,7 +101,7 @@ func (s *Server) listMessages(c echo.Context) error {
 	resp := api.MessagesResponse{
 		Messages: messages,
 		KID:      kid,
-		Version:  fmt.Sprintf("%d", le.versionNext),
+		Version:  fmt.Sprintf("%d", chgs.versionNext),
 	}
 	fields := keys.NewStringSetSplit(c.QueryParam("include"), ",")
 	if fields.Contains("md") {

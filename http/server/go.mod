@@ -3,8 +3,8 @@ module github.com/keys-pub/keysd/http/server
 go 1.12
 
 require (
-	github.com/keys-pub/keys v0.0.0-20200306031145-ead068a10f45
-	github.com/keys-pub/keysd/http/api v0.0.0-20200223203725-9c5a5d442011
+	github.com/keys-pub/keys v0.0.0-20200314221622-6f842a6599a4
+	github.com/keys-pub/keysd/http/api v0.0.0-20200314221420-0da6c9407c23
 	github.com/labstack/echo/v4 v4.1.11
 	github.com/mattn/go-colorable v0.1.4 // indirect
 	github.com/mattn/go-isatty v0.0.10 // indirect
