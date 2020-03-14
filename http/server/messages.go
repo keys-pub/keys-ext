@@ -58,7 +58,10 @@ func (s *Server) postMessage(c echo.Context) error {
 		return internalError(c, err)
 	}
 
-	return JSON(c, http.StatusOK, msg)
+	resp := api.MessageResponse{
+		ID: id,
+	}
+	return JSON(c, http.StatusOK, resp)
 }
 
 func (s *Server) listMessages(c echo.Context) error {

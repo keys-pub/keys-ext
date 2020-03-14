@@ -44,11 +44,10 @@ func TestMessages(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	var msg api.Message
-	err = json.Unmarshal([]byte(body), &msg)
+	var msgResp api.MessageResponse
+	err = json.Unmarshal([]byte(body), &msgResp)
 	require.NoError(t, err)
-	require.NotEmpty(t, msg.ID)
-	require.Equal(t, []byte("hi"), msg.Data)
+	require.NotEmpty(t, msgResp.ID)
 
 	// PUT /messages/:kid (invalid method)
 	req, err = api.NewRequest("PUT", keys.Path("messages", charlie.ID()), bytes.NewReader([]byte{}), clock.Now(), charlie)
