@@ -23,43 +23,54 @@ func TestMessages(t *testing.T) {
 	err := ks.SaveEdX25519Key(alice)
 	require.NoError(t, err)
 
-	// PostMessage #1
+	// SendMessage #1
 	b1 := []byte("hi alice")
-	msg, err := client.PostMessage(alice, alice.ID(), b1)
+	msg, err := client.SendMessage(alice, alice.ID(), b1)
 	require.NoError(t, err)
 	require.NotEmpty(t, msg.ID)
 
-	// PutMessage #2
+	// SendMessage #2
 	b2 := []byte("what time we meeting?")
-	msg, err = client.PostMessage(alice, alice.ID(), b2)
+	msg, err = client.SendMessage(alice, alice.ID(), b2)
 	require.NoError(t, err)
 	require.NotEmpty(t, msg.ID)
 
 	// Messages #1
-	resp, err := client.Messages(alice, "")
+	msgs, version, err := client.Messages(alice, "")
 	require.NoError(t, err)
-	require.Equal(t, 2, len(resp.Messages))
-	require.Equal(t, b1, resp.Messages[0].Data)
-	require.Equal(t, b2, resp.Messages[1].Data)
-	ts0 := keys.TimeToMillis(resp.MetadataFor(resp.Messages[0]).CreatedAt)
-	require.Equal(t, keys.TimeMs(1234567890004), ts0)
+	require.Equal(t, 2, len(msgs))
+	data1, pk1, err := client.DecryptMessage(alice, msgs[0])
+	require.NoError(t, err)
+	require.Equal(t, b1, data1)
+	require.Equal(t, alice.ID(), pk1)
+	data2, pk2, err := client.DecryptMessage(alice, msgs[1])
+	require.NoError(t, err)
+	require.Equal(t, b2, data2)
+	require.Equal(t, alice.ID(), pk2)
+	require.Equal(t, keys.TimeMs(1234567890004), keys.TimeToMillis(msgs[0].CreatedAt))
 
-	// PostMessage #3
+	// SendMessage #3
 	b3 := []byte("3pm")
-	msg, err = client.PostMessage(alice, alice.ID(), b3)
+	msg, err = client.SendMessage(alice, alice.ID(), b3)
 	require.NoError(t, err)
 	require.NotEmpty(t, msg.ID)
 
 	// Messages #2 (from version)
-	resp, err = client.Messages(alice, resp.Version)
+	msgs, _, err = client.Messages(alice, version)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(resp.Messages))
-	require.Equal(t, b2, resp.Messages[0].Data)
-	require.Equal(t, b3, resp.Messages[1].Data)
+	require.Equal(t, 2, len(msgs))
+	data2, pk2, err = client.DecryptMessage(alice, msgs[0])
+	require.NoError(t, err)
+	require.Equal(t, b2, data2)
+	require.Equal(t, alice.ID(), pk2)
+	data3, pk3, err := client.DecryptMessage(alice, msgs[1])
+	require.NoError(t, err)
+	require.Equal(t, b3, data3)
+	require.Equal(t, alice.ID(), pk3)
 
 	// Messages not found
 	unknown := keys.GenerateEdX25519Key()
-	resp, err = client.Messages(unknown, "")
+	msgs, _, err = client.Messages(unknown, "")
 	require.NoError(t, err)
-	require.Nil(t, resp)
+	require.Empty(t, msgs)
 }
