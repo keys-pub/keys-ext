@@ -31,13 +31,13 @@ func (c *clock) Now() time.Time {
 }
 
 type env struct {
-	clock   *clock
-	client  *Client
-	srv     *server.Server
-	dst     keys.DocumentStore
-	users   *keys.UserStore
-	req     *keys.MockRequestor
-	closeFn func()
+	clock      *clock
+	httpServer *httptest.Server
+	srv        *server.Server
+	dst        keys.DocumentStore
+	users      *keys.UserStore
+	req        *keys.MockRequestor
+	closeFn    func()
 }
 
 func testEnv(t *testing.T) *env {
@@ -58,15 +58,19 @@ func testEnv(t *testing.T) *env {
 	})
 	handler := server.NewHandler(svr)
 	httpServer := httptest.NewServer(handler)
+	svr.URL = httpServer.URL
 
-	client, err := NewClient(httpServer.URL)
+	return &env{clock, httpServer, svr, fi, users, req, func() { httpServer.Close() }}
+}
+
+func testClient(t *testing.T, env *env, ks *keys.Keystore) *Client {
+	client, err := NewClient(env.httpServer.URL, ks)
 	require.NoError(t, err)
 	require.NotNil(t, client.nowFn)
 	require.NotNil(t, client.httpClient)
-	client.SetHTTPClient(httpServer.Client())
-	client.SetTimeNow(clock.Now)
-	svr.URL = httpServer.URL
-	return &env{clock, client, svr, fi, users, req, func() { httpServer.Close() }}
+	client.SetHTTPClient(env.httpServer.Client())
+	client.SetTimeNow(env.clock.Now)
+	return client
 }
 
 func testUserStore(t *testing.T, ds keys.DocumentStore, req keys.Requestor, clock *clock) *keys.UserStore {

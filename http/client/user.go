@@ -18,16 +18,16 @@ func (c *Client) UserSearch(query string, limit int) (*api.UserSearchResponse, e
 		params.Add("limit", strconv.Itoa(limit))
 	}
 
-	e, err := c.get("/user/search", params, nil)
+	doc, err := c.getDocument("/user/search", params, nil)
 	if err != nil {
 		return nil, err
 	}
-	if e == nil {
+	if doc == nil {
 		return nil, errors.Errorf("/user/search not found")
 	}
 
 	var val api.UserSearchResponse
-	if err := json.Unmarshal(e.Data, &val); err != nil {
+	if err := json.Unmarshal(doc.Data, &val); err != nil {
 		return nil, err
 	}
 	return &val, nil
@@ -36,16 +36,16 @@ func (c *Client) UserSearch(query string, limit int) (*api.UserSearchResponse, e
 // User ...
 func (c *Client) User(kid keys.ID) (*api.UserResponse, error) {
 	params := url.Values{}
-	e, err := c.get("/user/"+kid.String(), params, nil)
+	doc, err := c.getDocument("/user/"+kid.String(), params, nil)
 	if err != nil {
 		return nil, err
 	}
-	if e == nil {
+	if doc == nil {
 		return nil, nil
 	}
 
 	var val api.UserResponse
-	if err := json.Unmarshal(e.Data, &val); err != nil {
+	if err := json.Unmarshal(doc.Data, &val); err != nil {
 		return nil, err
 	}
 	return &val, nil

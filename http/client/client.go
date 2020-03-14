@@ -21,11 +21,12 @@ import (
 type Client struct {
 	url        *url.URL
 	httpClient *http.Client
+	ks         *keys.Keystore
 	nowFn      func() time.Time
 }
 
 // NewClient creates a Client for an HTTP API.
-func NewClient(urs string) (*Client, error) {
+func NewClient(urs string, ks *keys.Keystore) (*Client, error) {
 	urp, err := url.Parse(urs)
 	if err != nil {
 		return nil, err
@@ -34,6 +35,7 @@ func NewClient(urs string) (*Client, error) {
 	return &Client{
 		url:        urp,
 		httpClient: defaultHTTPClient(),
+		ks:         ks,
 		nowFn:      time.Now,
 	}, nil
 }
@@ -133,16 +135,7 @@ func (c *Client) req(method string, path string, params url.Values, key *keys.Ed
 	return c.httpClient.Do(req)
 }
 
-func (c *Client) get(path string, params url.Values, key *keys.EdX25519Key) (*keys.Document, error) {
-	resp, respErr := c.getResponse(path, params, key)
-	if respErr != nil {
-		return nil, respErr
-	}
-	if resp == nil {
-		return nil, nil
-	}
-	defer resp.Body.Close()
-
+func (c *Client) document(path string, resp *http.Response) (*keys.Document, error) {
 	b, readErr := ioutil.ReadAll(resp.Body)
 	if readErr != nil {
 		return nil, readErr
@@ -174,7 +167,19 @@ func (c *Client) get(path string, params url.Values, key *keys.EdX25519Key) (*ke
 	return doc, nil
 }
 
-func (c *Client) getResponse(path string, params url.Values, key *keys.EdX25519Key) (*http.Response, error) {
+func (c *Client) getDocument(path string, params url.Values, key *keys.EdX25519Key) (*keys.Document, error) {
+	resp, err := c.get(path, params, key)
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil {
+		return nil, nil
+	}
+	defer resp.Body.Close()
+	return c.document(path, resp)
+}
+
+func (c *Client) get(path string, params url.Values, key *keys.EdX25519Key) (*http.Response, error) {
 	resp, respErr := c.req("GET", path, params, key, nil)
 	if respErr != nil {
 		return nil, respErr
@@ -200,6 +205,18 @@ func (c *Client) put(path string, params url.Values, key *keys.EdX25519Key, read
 	return resp, nil
 }
 
+func (c *Client) putDocument(path string, params url.Values, key *keys.EdX25519Key, reader io.Reader) (*keys.Document, error) {
+	resp, err := c.put(path, params, key, reader)
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil {
+		return nil, nil
+	}
+	defer resp.Body.Close()
+	return c.document(path, resp)
+}
+
 func (c *Client) post(path string, params url.Values, key *keys.EdX25519Key, reader io.Reader) (*http.Response, error) {
 	resp, err := c.req("POST", path, params, key, reader)
 	if err != nil {
@@ -211,13 +228,25 @@ func (c *Client) post(path string, params url.Values, key *keys.EdX25519Key, rea
 	return resp, nil
 }
 
-// func (c *Client) delete(path string, params url.Values, key *keys.EdX25519Key) (*http.Response, error) {
-// 	resp, err := c.req("DELETE", path, params, key, nil)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	if err := checkResponse(resp); err != nil {
-// 		return nil, err
-// 	}
-// 	return resp, nil
-// }
+func (c *Client) postDocument(path string, params url.Values, key *keys.EdX25519Key, reader io.Reader) (*keys.Document, error) {
+	resp, err := c.post(path, params, key, reader)
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil {
+		return nil, nil
+	}
+	defer resp.Body.Close()
+	return c.document(path, resp)
+}
+
+func (c *Client) delete(path string, params url.Values, key *keys.EdX25519Key) (*http.Response, error) {
+	resp, err := c.req("DELETE", path, params, key, nil)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkResponse(resp); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}

@@ -23,16 +23,16 @@ func (c *Client) Sigchain(kid keys.ID) (*api.SigchainResponse, error) {
 
 	params := url.Values{}
 	params.Add("include", "md")
-	e, err := c.get(path, params, nil)
+	doc, err := c.getDocument(path, params, nil)
 	if err != nil {
 		return nil, err
 	}
-	if e == nil {
+	if doc == nil {
 		return nil, nil
 	}
 
 	var resp api.SigchainResponse
-	if err := json.Unmarshal(e.Data, &resp); err != nil {
+	if err := json.Unmarshal(doc.Data, &resp); err != nil {
 		return nil, err
 	}
 
@@ -51,16 +51,16 @@ func (c *Client) Sigchains(version string) (*api.SigchainsResponse, error) {
 	params.Add("include", "md")
 	params.Add("version", version)
 
-	e, err := c.get(path, params, nil)
+	doc, err := c.getDocument(path, params, nil)
 	if err != nil {
 		return nil, err
 	}
-	if e == nil {
+	if doc == nil {
 		return nil, errors.Errorf("sigchains response not found")
 	}
 
 	var val api.SigchainsResponse
-	if err := json.Unmarshal(e.Data, &val); err != nil {
+	if err := json.Unmarshal(doc.Data, &val); err != nil {
 		return nil, err
 	}
 	return &val, nil

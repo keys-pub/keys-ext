@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func saveUser(t *testing.T, env *env, key *keys.EdX25519Key, name string, service string) *keys.Statement {
+func saveUser(t *testing.T, env *env, client *Client, key *keys.EdX25519Key, name string, service string) *keys.Statement {
 	url := ""
 	switch service {
 	case "github":
@@ -30,10 +30,10 @@ func saveUser(t *testing.T, env *env, key *keys.EdX25519Key, name string, servic
 	require.NoError(t, err)
 	env.req.SetResponse(url, []byte(msg))
 
-	err = env.client.PutSigchainStatement(st)
+	err = client.PutSigchainStatement(st)
 	require.NoError(t, err)
 
-	// err = env.client.Check(key)
+	// err = client.Check(key)
 	// require.NoError(t, err)
 
 	return st
@@ -45,29 +45,32 @@ func TestUserSearch(t *testing.T) {
 	env := testEnv(t)
 	defer env.closeFn()
 
+	ks := keys.NewMemKeystore()
+	client := testClient(t, env, ks)
+
 	for i := 0; i < 10; i++ {
 		key := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{byte(i)}, 32)))
 		t.Logf("%s", key.ID())
 		username := fmt.Sprintf("a%d", i)
-		saveUser(t, env, key, username, "github")
+		saveUser(t, env, client, key, username, "github")
 	}
 
-	resp, err := env.client.UserSearch("", 0)
+	resp, err := client.UserSearch("", 0)
 	require.NoError(t, err)
 	require.Equal(t, 10, len(resp.Users))
 	require.Equal(t, "a0", resp.Users[0].Name)
 
-	resp, err = env.client.UserSearch("", 1)
+	resp, err = client.UserSearch("", 1)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(resp.Users))
 	require.Equal(t, "a0", resp.Users[0].Name)
 
-	resp, err = env.client.UserSearch("a1", 0)
+	resp, err = client.UserSearch("a1", 0)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(resp.Users))
 	require.Equal(t, "a1", resp.Users[0].Name)
 
-	resp, err = env.client.UserSearch("z", 1)
+	resp, err = client.UserSearch("z", 1)
 	require.NoError(t, err)
 	require.Equal(t, 0, len(resp.Users))
 }
@@ -78,16 +81,19 @@ func TestUser(t *testing.T) {
 	env := testEnv(t)
 	defer env.closeFn()
 
-	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
-	saveUser(t, env, alice, "alice", "github")
+	ks := keys.NewMemKeystore()
+	client := testClient(t, env, ks)
 
-	resp, err := env.client.User(alice.ID())
+	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
+	saveUser(t, env, client, alice, "alice", "github")
+
+	resp, err := client.User(alice.ID())
 	require.NoError(t, err)
 	require.NotNil(t, resp.User)
 	require.Equal(t, "alice", resp.User.Name)
 
 	key := keys.GenerateEdX25519Key()
-	resp, err = env.client.User(key.ID())
+	resp, err = client.User(key.ID())
 	require.NoError(t, err)
 	require.Nil(t, resp)
 }
