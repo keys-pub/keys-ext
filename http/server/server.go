@@ -97,11 +97,6 @@ func AddRoutes(s *Server, e *echo.Echo) {
 	e.POST("/messages/:kid", s.postMessage)
 	e.GET("/messages/:kid", s.listMessages)
 
-	// Snaps
-	e.PUT("/snap/:kid", s.putSnap)
-	e.GET("/snap/:kid", s.getSnap)
-	e.DELETE("/snap/:kid", s.deleteSnap)
-
 	// Sigchain (aliases)
 	e.GET("/:kid", s.getSigchain)
 	e.GET("/:kid/:seq", s.getSigchainStatement)
