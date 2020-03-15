@@ -724,9 +724,6 @@ message MessagePrepareResponse {
 message MessageCreateRequest {
   string kid = 1 [(gogoproto.customname) = "KID"];
   string sender = 2;
-
-  // ID is usually from MessagePrepareResponse.ID, or auto generated if empty
-  string id = 10 [(gogoproto.customname) = "ID"];
   string text = 11;
 }
 

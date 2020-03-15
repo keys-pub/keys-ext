@@ -25,7 +25,7 @@ func (s *service) MessagePrepare(ctx context.Context, req *MessagePrepareRequest
 
 // MessageCreate (RPC) creates a message for a recipient
 func (s *service) MessageCreate(ctx context.Context, req *MessageCreateRequest) (*MessageCreateResponse, error) {
-	message, createErr := s.messageCreate(ctx, req.Sender, req.KID, req.ID, req.Text)
+	message, createErr := s.messageCreate(ctx, req.Sender, req.KID, req.Text)
 	if createErr != nil {
 		return nil, createErr
 	}
@@ -80,7 +80,6 @@ func (s *service) messagePrepare(ctx context.Context, sender string, kid string,
 	}
 
 	message := &Message{
-		ID: keys.RandString(32),
 		Content: &MessageContent{
 			Text: text,
 		},
@@ -90,12 +89,9 @@ func (s *service) messagePrepare(ctx context.Context, sender string, kid string,
 	return message, nil
 }
 
-func (s *service) messageCreate(ctx context.Context, sender string, kid string, id string, text string) (*Message, error) {
+func (s *service) messageCreate(ctx context.Context, sender string, kid string, text string) (*Message, error) {
 	if kid == "" {
 		return nil, errors.Errorf("no kid specified")
-	}
-	if id == "" {
-		id = keys.RandString(32)
 	}
 
 	senderKey, err := s.parseSignKey(sender, true)
@@ -109,7 +105,6 @@ func (s *service) messageCreate(ctx context.Context, sender string, kid string, 
 	}
 
 	message := &Message{
-		ID: id,
 		Content: &MessageContent{
 			Text: text,
 		},
@@ -119,15 +114,12 @@ func (s *service) messageCreate(ctx context.Context, sender string, kid string, 
 		return nil, err
 	}
 
-	sp := saltpack.NewSaltpack(s.ks)
-	encrypted, err := sp.Signcrypt(b, senderKey, key.ID())
+	sent, err := s.remote.SendMessage(senderKey, key.ID(), b)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := s.remote.PutMessage(key, id, encrypted); err != nil {
-		return nil, err
-	}
+	message.ID = sent.ID
 
 	// TODO: Sync to local
 
@@ -225,18 +217,13 @@ func (s *service) pullMessages(ctx context.Context, kid keys.ID) error {
 	if e != nil {
 		version = string(e.Data)
 	}
-	resp, err := s.remote.Messages(key, version)
+	msgs, version, err := s.remote.Messages(key, version)
 	if err != nil {
 		return err
 	}
-	if resp == nil {
-		logger.Infof("No messages")
-		return nil
-	}
-	logger.Infof("Received %d messages", len(resp.Messages))
-	for _, msg := range resp.Messages {
-		md := resp.MetadataFor(msg)
-		ts := 9223372036854775807 - keys.TimeToMillis(md.CreatedAt)
+	logger.Infof("Received %d messages", len(msgs))
+	for _, msg := range msgs {
+		ts := 9223372036854775807 - keys.TimeToMillis(msg.CreatedAt)
 		pathKey := fmt.Sprintf("messages-%s", key.ID())
 		pathVal := fmt.Sprintf("%d-%s", ts, msg.ID)
 		path := keys.Path(pathKey, pathVal)
@@ -244,7 +231,7 @@ func (s *service) pullMessages(ctx context.Context, kid keys.ID) error {
 			return err
 		}
 	}
-	if err := s.db.Set(ctx, versionPath, []byte(resp.Version)); err != nil {
+	if err := s.db.Set(ctx, versionPath, []byte(version)); err != nil {
 		return err
 	}
 	return nil
