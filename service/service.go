@@ -42,7 +42,7 @@ func newService(cfg *Config, build Build, auth *auth, req keys.Requestor, nowFn 
 		return nil, err
 	}
 
-	remote, err := client.NewClient(cfg.Server())
+	remote, err := client.NewClient(cfg.Server(), ks)
 	if err != nil {
 		return nil, err
 	}

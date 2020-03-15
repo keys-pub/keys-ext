@@ -37,18 +37,27 @@ func TestMessages(t *testing.T) {
 	defer aliceCloseFn()
 	ctx := context.TODO()
 	testAuthSetup(t, aliceService)
-	testImportKey(t, aliceService, alice)
-	testUserSetupGithub(t, env, aliceService, alice, "alice")
-	testPush(t, aliceService, alice)
 	testImportKey(t, aliceService, group)
+	testUserSetupGithub(t, env, aliceService, group, "group")
+	testPush(t, aliceService, group)
+
+	// testImportKey(t, aliceService, alice)
+	// testUserSetupGithub(t, env, aliceService, alice, "alice")
+	// testPush(t, aliceService, alice)
+	// testImportKey(t, aliceService, group)
 
 	// Bob service
 	bobService, bobCloseFn := newTestService(t, env)
 	defer bobCloseFn()
 	testAuthSetup(t, bobService)
-	testImportKey(t, bobService, bob)
-	testUserSetupGithub(t, env, bobService, bob, "bob")
 	testImportKey(t, bobService, group)
+	// testImportKey(t, bobService, bob)
+	// testUserSetupGithub(t, env, bobService, bob, "bob")
+	// testImportKey(t, bobService, group)
+
+	// We currently only allow messages to to/from 1 key
+	alice := group
+	bob := group
 
 	// Alice lists messages
 	messagesResp, err := aliceService.Messages(ctx, &MessagesRequest{
@@ -104,7 +113,8 @@ func TestMessages(t *testing.T) {
 
 	require.Equal(t, "am1", messagesResp2.Messages[0].Content.Text)
 	require.NotNil(t, messagesResp2.Messages[0].User)
-	require.Equal(t, "alice", messagesResp2.Messages[0].User.Name)
+	// require.Equal(t, "alice", messagesResp2.Messages[0].User.Name)
+	require.Equal(t, "group", messagesResp2.Messages[0].User.Name)
 	require.Equal(t, "am2", messagesResp2.Messages[1].Content.Text)
 	require.Equal(t, "bm1", messagesResp2.Messages[2].Content.Text)
 
@@ -120,7 +130,8 @@ func TestMessages(t *testing.T) {
 
 	require.Equal(t, "am1", messagesResp3.Messages[0].Content.Text)
 	require.NotNil(t, messagesResp3.Messages[0].User)
-	require.Equal(t, "alice", messagesResp3.Messages[0].User.Name)
+	// require.Equal(t, "alice", messagesResp3.Messages[0].User.Name)
+	require.Equal(t, "group", messagesResp3.Messages[0].User.Name)
 	require.Equal(t, "am2", messagesResp3.Messages[1].Content.Text)
 	require.Equal(t, "bm1", messagesResp3.Messages[2].Content.Text)
 }

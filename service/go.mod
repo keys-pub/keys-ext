@@ -10,11 +10,11 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
 	github.com/keybase/go-keychain v0.0.0-20200218013740-86d4642e4ce2 // indirect
 	github.com/keybase/saltpack v0.0.0-20200228190633-d75baa96bffb // indirect
-	github.com/keys-pub/keys v0.0.0-20200313003500-7ab7cb427e1b
+	github.com/keys-pub/keys v0.0.0-20200314221622-6f842a6599a4
 	github.com/keys-pub/keysd/db v0.0.0-20200306174951-faa8a8074ae0
-	github.com/keys-pub/keysd/http/api v0.0.0-20200306174951-faa8a8074ae0
-	github.com/keys-pub/keysd/http/client v0.0.0-20200306174951-faa8a8074ae0
-	github.com/keys-pub/keysd/http/server v0.0.0-20200223203834-3dc7040c6558
+	github.com/keys-pub/keysd/http/api v0.0.0-20200314221420-0da6c9407c23
+	github.com/keys-pub/keysd/http/client v0.0.0-20200314235320-35573bdad79a
+	github.com/keys-pub/keysd/http/server v0.0.0-20200314232636-a2d0d8a25814
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/mercari/go-grpc-interceptor v0.0.0-20180110035004-b8ad3827e82a
 	github.com/mitchellh/go-ps v1.0.0
