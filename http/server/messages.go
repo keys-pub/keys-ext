@@ -26,20 +26,26 @@ func (s *Server) postMessage(c echo.Context) error {
 		return ErrResponse(c, status, err.Error())
 	}
 
-	logname := msgChanges + "-" + kid.String()
+	channel := c.QueryParam("channel")
+	if channel == "" {
+		channel = "default"
+	}
 
-	id := keys.RandIDString()
+	changePath := msgChanges + "-" + kid.String() + "-" + channel
 
 	if c.Request().Body == nil {
 		return ErrBadRequest(c, errors.Errorf("missing body"))
 	}
 
+	// TODO: Limit body size
+
+	id := keys.RandIDString()
+	path := keys.Path("messages", fmt.Sprintf("%s-%s-%s", kid, channel, id))
+
 	bin, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
 		return internalError(c, err)
 	}
-
-	path := keys.Path("messages", fmt.Sprintf("%s-%s", kid, id))
 
 	msg := api.Message{
 		ID:   id,
@@ -53,8 +59,8 @@ func (s *Server) postMessage(c echo.Context) error {
 	if err := s.fi.Create(ctx, path, mb); err != nil {
 		return internalError(c, err)
 	}
-	logger.Infof(ctx, "Add change %s %s", logname, path)
-	if err := s.fi.ChangeAdd(ctx, logname, path); err != nil {
+	logger.Infof(ctx, "Add change %s %s", changePath, path)
+	if err := s.fi.ChangeAdd(ctx, changePath, path); err != nil {
 		return internalError(c, err)
 	}
 
@@ -74,9 +80,14 @@ func (s *Server) listMessages(c echo.Context) error {
 		return ErrResponse(c, status, err.Error())
 	}
 
-	path := msgChanges + "-" + kid.String()
+	channel := c.QueryParam("channel")
+	if channel == "" {
+		channel = "default"
+	}
 
-	chgs, err := s.changes(c, path)
+	changePath := msgChanges + "-" + kid.String() + "-" + channel
+
+	chgs, err := s.changes(c, changePath)
 	if err != nil {
 		return internalError(c, err)
 	}

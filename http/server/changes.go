@@ -36,11 +36,26 @@ func (s *Server) changes(c echo.Context, path string) (*changes, error) {
 		return &changes{errBadRequest: errors.Wrapf(err, "invalid limit")}, nil
 	}
 	if limit > 100 {
-		return &changes{errBadRequest: errors.Wrapf(err, "invalid limit, too large")}, nil
+		return &changes{errBadRequest: errors.Errorf("invalid limit, too large")}, nil
+	}
+
+	pdir := c.QueryParam("direction")
+	if pdir == "" {
+		pdir = "asc"
+	}
+
+	var dir keys.Direction
+	switch pdir {
+	case "asc":
+		dir = keys.Ascending
+	case "desc":
+		dir = keys.Descending
+	default:
+		return &changes{errBadRequest: errors.Errorf("invalid dir")}, nil
 	}
 
 	logger.Infof(ctx, "Changes %s", path)
-	chngs, to, err := s.fi.Changes(ctx, path, keys.TimeFromMillis(version), limit)
+	chngs, to, err := s.fi.Changes(ctx, path, keys.TimeFromMillis(version), limit, dir)
 	if err != nil {
 		return nil, err
 	}
