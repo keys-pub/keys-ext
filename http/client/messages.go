@@ -51,14 +51,35 @@ func (c *Client) postMessage(sender *keys.EdX25519Key, recipient keys.ID, b []by
 	}, nil
 }
 
+// MessagesOpts options for Messages.
+type MessagesOpts struct {
+	// Version to list to/from
+	Version string
+	// Direction ascending or descending
+	Direction keys.Direction
+	// Channel to filter by
+	Channel string
+}
+
 // Messages returns encrypted messages.
 // To decrypt a message, use Client#DecryptMessage.
-func (c *Client) Messages(key *keys.EdX25519Key, version string) ([]*Message, string, error) {
+func (c *Client) Messages(key *keys.EdX25519Key, opts *MessagesOpts) ([]*Message, string, error) {
 	path := keys.Path("messages", key.ID())
+	if opts == nil {
+		opts = &MessagesOpts{}
+	}
 
 	params := url.Values{}
 	params.Add("include", "md")
-	params.Add("version", version)
+	if opts.Version != "" {
+		params.Add("version", opts.Version)
+	}
+	if opts.Direction != "" {
+		params.Add("direction", string(opts.Direction))
+	}
+	if opts.Channel != "" {
+		params.Add("channel", opts.Channel)
+	}
 
 	// TODO: What if we hit limit, we won't have all the messages
 

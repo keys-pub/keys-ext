@@ -36,7 +36,7 @@ func TestMessages(t *testing.T) {
 	require.NotEmpty(t, msg.ID)
 
 	// Messages #1
-	msgs, version, err := client.Messages(alice, "")
+	msgs, version, err := client.Messages(alice, nil)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(msgs))
 	data1, pk1, err := client.DecryptMessage(alice, msgs[0])
@@ -56,7 +56,7 @@ func TestMessages(t *testing.T) {
 	require.NotEmpty(t, msg.ID)
 
 	// Messages #2 (from version)
-	msgs, _, err = client.Messages(alice, version)
+	msgs, _, err = client.Messages(alice, &MessagesOpts{Version: version})
 	require.NoError(t, err)
 	require.Equal(t, 2, len(msgs))
 	data2, pk2, err = client.DecryptMessage(alice, msgs[0])
@@ -68,9 +68,23 @@ func TestMessages(t *testing.T) {
 	require.Equal(t, b3, data3)
 	require.Equal(t, alice.ID(), pk3)
 
+	// Messages (desc)
+	msgs, _, err = client.Messages(alice, &MessagesOpts{Direction: keys.Descending})
+	require.NoError(t, err)
+	require.Equal(t, 3, len(msgs))
+	data1, _, err = client.DecryptMessage(alice, msgs[0])
+	require.NoError(t, err)
+	require.Equal(t, b3, data1)
+	data2, _, err = client.DecryptMessage(alice, msgs[1])
+	require.NoError(t, err)
+	require.Equal(t, b2, data2)
+	data3, _, err = client.DecryptMessage(alice, msgs[2])
+	require.NoError(t, err)
+	require.Equal(t, b1, data3)
+
 	// Messages not found
 	unknown := keys.GenerateEdX25519Key()
-	msgs, _, err = client.Messages(unknown, "")
+	msgs, _, err = client.Messages(unknown, nil)
 	require.NoError(t, err)
 	require.Empty(t, msgs)
 }
