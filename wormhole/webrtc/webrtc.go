@@ -92,7 +92,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(out)
+	fmt.Println(string(out))
 	remote := MustReadStdin()
 	var remoteSignal Signal
 	if err = json.Unmarshal([]byte(remote), &remoteSignal); err != nil {
