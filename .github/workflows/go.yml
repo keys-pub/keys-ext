@@ -9,21 +9,7 @@ jobs:
       - name: Install gosec
         uses: "cedrickring/golang-action@1.4.1"
         with:
-          args: go get github.com/securego/gosec/cmd/gosec
-      - name: gosec (db)
-        run: cd db; `go env GOPATH`/bin/gosec .
-      - name: gosec (http/api)
-        run: cd http/api; `go env GOPATH`/bin/gosec .
-      - name: gosec (http/api)
-        run: cd http/api; `go env GOPATH`/bin/gosec .
-      - name: gosec (http/client)
-        run: cd http/client; `go env GOPATH`/bin/gosec .
-      - name: gosec (http/server)
-        run: cd http/server; `go env GOPATH`/bin/gosec .
-      - name: gosec (service)
-        run: cd service; `go env GOPATH`/bin/gosec .
-      - name: gosec (main)
-        run: cd .; `go env GOPATH`/bin/gosec .
+          args: go get github.com/securego/gosec/cmd/gosec; gosec ./...      
   test:
     strategy:
       matrix:
