@@ -9,6 +9,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/saltpack"
+	"github.com/keys-pub/keysd/http/client"
 	"github.com/pkg/errors"
 )
 
@@ -217,10 +218,12 @@ func (s *service) pullMessages(ctx context.Context, kid keys.ID) error {
 	if e != nil {
 		version = string(e.Data)
 	}
-	msgs, version, err := s.remote.Messages(key, version)
+	msgs, version, err := s.remote.Messages(key, &client.MessagesOpts{Version: version})
 	if err != nil {
 		return err
 	}
+	// TODO: If limit hit this doesn't get all messages
+
 	logger.Infof("Received %d messages", len(msgs))
 	for _, msg := range msgs {
 		ts := 9223372036854775807 - keys.TimeToMillis(msg.CreatedAt)
