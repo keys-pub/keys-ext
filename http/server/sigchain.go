@@ -38,13 +38,13 @@ func (s *Server) listSigchains(c echo.Context) error {
 		return ErrBadRequest(c, errors.Wrapf(err, "invalid limit"))
 	}
 	if limit < 1 {
-		return ErrBadRequest(c, errors.Wrapf(err, "invalid limit, too small"))
+		return ErrBadRequest(c, errors.Errorf("invalid limit, too small"))
 	}
 	if limit > 100 {
-		return ErrBadRequest(c, errors.Wrapf(err, "invalid limit, too large"))
+		return ErrBadRequest(c, errors.Errorf("invalid limit, too large"))
 	}
 
-	changes, to, err := s.fi.Changes(ctx, sigchainChanges, version, limit)
+	changes, to, err := s.fi.Changes(ctx, sigchainChanges, version, limit, keys.Ascending)
 	if err != nil {
 		return internalError(c, err)
 	}
