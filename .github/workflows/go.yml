@@ -23,7 +23,7 @@ jobs:
       - name: gosec (service)
         run: cd service; `go env GOPATH`/bin/gosec .
       - name: gosec (main)
-        run: `go env GOPATH`/bin/gosec .
+        run: cd .; `go env GOPATH`/bin/gosec .
   test:
     strategy:
       matrix:
