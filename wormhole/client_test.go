@@ -50,11 +50,15 @@ func ExampleNewClient() {
 		channelWg.Done()
 	})
 
-	if err := alice.Start(bob.Signal(), true); err != nil {
+	offer, err := alice.Offer()
+	if err != nil {
 		log.Fatal(err)
 	}
-
-	if err := bob.Start(alice.Signal(), false); err != nil {
+	answer, err := bob.Answer(offer)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := alice.SetAnswer(answer); err != nil {
 		log.Fatal(err)
 	}
 
