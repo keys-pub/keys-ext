@@ -19,7 +19,7 @@ type MemCache interface {
 	// Expire key.
 	Expire(ctx context.Context, k string, dt time.Duration) error
 	// Increment
-	Increment(ctx context.Context, k string) (int, error)
+	Increment(ctx context.Context, k string) (int64, error)
 }
 
 type memCache struct {
@@ -98,19 +98,19 @@ func (m *memCache) set(ctx context.Context, k string, e *mcEntry) error {
 	return nil
 }
 
-func (m *memCache) Increment(ctx context.Context, k string) (int, error) {
+func (m *memCache) Increment(ctx context.Context, k string) (int64, error) {
 	m.Lock()
 	defer m.Unlock()
 	e, err := m.get(ctx, k)
 	if err != nil {
 		return 0, err
 	}
-	n, err := strconv.Atoi(e.Value)
+	n, err := strconv.ParseInt(e.Value, 10, 64)
 	if err != nil {
 		return 0, err
 	}
 	n++
-	inc := strconv.Itoa(n)
+	inc := strconv.FormatInt(n, 10)
 	e.Value = inc
 	return n, m.set(ctx, k, e)
 }
