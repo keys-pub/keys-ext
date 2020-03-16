@@ -6,36 +6,27 @@ import (
 	"sync"
 
 	"github.com/keys-pub/keysd/wormhole"
+	"github.com/pion/webrtc/v2"
 )
 
 func ExampleNewClient() {
 	wormhole.SetLogger(wormhole.NewLogger(wormhole.DebugLevel))
 
-	alice := wormhole.NewClient()
-	bob := wormhole.NewClient()
-
-	peerWg := &sync.WaitGroup{}
-	peerWg.Add(2)
-
-	alice.SetPublicAddressLn(func(addr string) {
-		if err := bob.SetPeer(addr); err != nil {
-			log.Fatal(err)
-		}
-		peerWg.Done()
-	})
-	bob.SetPublicAddressLn(func(addr string) {
-		if err := alice.SetPeer(addr); err != nil {
-			log.Fatal(err)
-		}
-		peerWg.Done()
-	})
+	alice, err := wormhole.NewClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+	bob, err := wormhole.NewClient()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	messageWg := &sync.WaitGroup{}
 	messageWg.Add(2)
 
-	alice.SetMessageLn(func(message []byte) {
-		fmt.Printf("bob: %s\n", string(message))
-		if string(message) == "ping" {
+	alice.OnMessage(func(message webrtc.DataChannelMessage) {
+		fmt.Printf("bob: %s\n", string(message.Data))
+		if string(message.Data) == "ping" {
 			if err := alice.Send([]byte("pong")); err != nil {
 				log.Fatal(err)
 			}
@@ -43,32 +34,32 @@ func ExampleNewClient() {
 		}
 	})
 
-	bob.SetMessageLn(func(message []byte) {
-		fmt.Printf("alice: %s\n", string(message))
+	bob.OnMessage(func(message webrtc.DataChannelMessage) {
+		fmt.Printf("alice: %s\n", string(message.Data))
 		messageWg.Done()
 	})
 
-	// Listen
-	go func() {
-		if err := alice.Listen(); err != nil {
-			log.Fatal(err)
-		}
-	}()
-	go func() {
-		if err := bob.Listen(); err != nil {
-			log.Fatal(err)
-		}
-	}()
+	channelWg := &sync.WaitGroup{}
+	channelWg.Add(2)
 
-	// Wait for peer addresses
-	log.Printf("Wait for peer addresses...\n")
-	peerWg.Wait()
-	log.Printf("Got peer addresses\n")
+	alice.OnChannel(func(msg *webrtc.DataChannel) {
+		channelWg.Done()
+	})
 
-	// This message is ignored (needed to allow bob to send)
-	if err := alice.Send([]byte("?")); err != nil {
+	bob.OnChannel(func(msg *webrtc.DataChannel) {
+		channelWg.Done()
+	})
+
+	if err := alice.Start(bob.Signal(), true); err != nil {
 		log.Fatal(err)
 	}
+
+	if err := bob.Start(alice.Signal(), false); err != nil {
+		log.Fatal(err)
+	}
+
+	// Wait for channels
+	channelWg.Wait()
 
 	if err := bob.Send([]byte("ping")); err != nil {
 		log.Fatal(err)

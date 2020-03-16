@@ -1,4 +1,4 @@
-package wormhole
+package stun
 
 import (
 	"net"
