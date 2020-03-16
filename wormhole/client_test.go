@@ -35,7 +35,12 @@ func ExampleNewClient() {
 
 	alice.SetMessageLn(func(message []byte) {
 		fmt.Printf("bob: %s\n", string(message))
-		messageWg.Done()
+		if string(message) == "ping" {
+			if err := alice.Send([]byte("pong")); err != nil {
+				log.Fatal(err)
+			}
+			messageWg.Done()
+		}
 	})
 
 	bob.SetMessageLn(func(message []byte) {
@@ -60,16 +65,12 @@ func ExampleNewClient() {
 	peerWg.Wait()
 	log.Printf("Got peer addresses\n")
 
-	// This message is ignored
+	// This message is ignored (needed to allow bob to send)
 	if err := alice.Send([]byte("?")); err != nil {
 		log.Fatal(err)
 	}
 
-	if err := bob.Send([]byte("hi alice")); err != nil {
-		log.Fatal(err)
-	}
-
-	if err := alice.Send([]byte("hello bob!")); err != nil {
+	if err := bob.Send([]byte("ping")); err != nil {
 		log.Fatal(err)
 	}
 
@@ -80,6 +81,6 @@ func ExampleNewClient() {
 	alice.Close()
 	bob.Close()
 	// Output:
-	// bob: hi alice
-	// alice: hello bob!
+	// bob: ping
+	// alice: pong
 }

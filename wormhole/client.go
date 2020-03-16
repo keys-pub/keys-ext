@@ -8,15 +8,22 @@ import (
 )
 
 var stunServer = "stun.l.google.com:19302"
-var udp = "udp4"
 
 type PublicAddressLn func(addr string)
 type MessageLn func(message []byte)
 
+type Conn interface {
+	Send(message []byte) error
+	Listen() <-chan []byte
+	LocalAddr() net.Addr
+	SendBindingRequest() error
+	SetPeer(addr string) error
+	Close()
+}
+
 type Client struct {
 	publicAddr      stun.XORMappedAddress
-	peerAddr        *net.UDPAddr
-	conn            *net.UDPConn
+	conn            Conn
 	quit            chan bool
 	publicAddressLn PublicAddressLn
 	messageLn       MessageLn
@@ -45,38 +52,28 @@ func (c *Client) SetMessageLn(messageLn MessageLn) {
 // SetPeer sets peer address.
 func (c *Client) SetPeer(addr string) error {
 	logger.Infof("Set peer %s", addr)
-	a, err := net.ResolveUDPAddr(udp, addr)
-	if err != nil {
-		return err
-	}
-	c.peerAddr = a
-	return nil
+	return c.conn.SetPeer(addr)
 }
 
 // Send to peer.
 func (c *Client) Send(message []byte) error {
-	return send(message, c.conn, c.peerAddr)
+	return c.conn.Send(message)
 }
 
 func (c *Client) Listen() error {
-	conn, err := net.ListenUDP(udp, nil)
+	conn, err := ListenUDP()
 	if err != nil {
-		return errors.Wrapf(err, "failed to net.Listen")
+		return err
 	}
 	c.conn = conn
 	defer c.conn.Close()
 
 	logger.Infof("Listening on %s", c.conn.LocalAddr())
 
-	messageChan := listen(c.conn)
+	messageChan := c.conn.Listen()
 	// keepAlive := time.NewTicker(time.Second)
 
-	logger.Infof("Send binding request...")
-	srvAddr, err := net.ResolveUDPAddr(udp, stunServer)
-	if err != nil {
-		return errors.Wrapf(err, "failed to resolve addr")
-	}
-	if err := sendBindingRequest(c.conn, srvAddr); err != nil {
+	if err := c.conn.SendBindingRequest(); err != nil {
 		return err
 	}
 
@@ -118,40 +115,4 @@ func (c *Client) Listen() error {
 			c.conn.Close()
 		}
 	}
-}
-
-func listen(conn *net.UDPConn) <-chan []byte {
-	messages := make(chan []byte)
-	go func() {
-		for {
-			buf := make([]byte, 1024)
-
-			n, _, err := conn.ReadFromUDP(buf)
-			if err != nil {
-				// logger.Infof("Error reading: %v", err)
-				close(messages)
-				return
-			}
-			buf = buf[:n]
-
-			messages <- buf
-		}
-	}()
-	return messages
-}
-
-func sendBindingRequest(conn *net.UDPConn, addr *net.UDPAddr) error {
-	m := stun.MustBuild(stun.TransactionID, stun.BindingRequest)
-	if err := send(m.Raw, conn, addr); err != nil {
-		return errors.Wrapf(err, "failed to bind")
-	}
-	return nil
-}
-
-func send(msg []byte, conn *net.UDPConn, addr *net.UDPAddr) error {
-	_, err := conn.WriteToUDP(msg, addr)
-	if err != nil {
-		return errors.Wrapf(err, "failed to send")
-	}
-	return nil
 }
