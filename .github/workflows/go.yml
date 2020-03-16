@@ -6,10 +6,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
-      - name: gosec
+      - name: Install gosec
         uses: "cedrickring/golang-action@1.4.1"
         with:
-          args: go get github.com/securego/gosec/cmd/gosec; gosec ./... # https://github.com/securego/gosec  
+          args: go get github.com/securego/gosec/cmd/gosec
+      - name: gosec (db)
+        run: cd db; gosec .
+      - name: gosec (http/api)
+        run: cd http/api; gosec .
+      - name: gosec (http/api)
+        run: cd http/api; gosec .
+      - name: gosec (http/client)
+        run: cd http/client; gosec .
+      - name: gosec (http/server)
+        run: cd http/server; gosec .
+      - name: gosec (service)
+        run: cd service; gosec .
+      - name: gosec (main)
+        run: gosec .
   test:
     strategy:
       matrix:
@@ -34,4 +48,4 @@ jobs:
       - name: Test (service)
         run: cd service; go test ./...
       - name: Test (main)
-        run: go test ./...
+        run: go test .
