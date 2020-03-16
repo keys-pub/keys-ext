@@ -28,7 +28,7 @@ func TestMemTestCache(t *testing.T) {
 
 	n, err := mc.Increment(context.TODO(), n1)
 	require.NoError(t, err)
-	require.Equal(t, 2, n)
+	require.Equal(t, int64(2), n)
 
 	val, err = mc.Get(context.TODO(), n1)
 	require.NoError(t, err)
