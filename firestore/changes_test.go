@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/encoding"
 	"github.com/stretchr/testify/require"
 )
 
@@ -18,21 +17,15 @@ func TestFirestoreChanges(t *testing.T) {
 	testChanges(t, fs, fs)
 }
 
-func genPath(n int) string {
-	return encoding.MustEncode(keys.SHA256([]byte{byte(n)}), encoding.Base62)
-}
-
 func testChanges(t *testing.T, ds keys.DocumentStore, changes keys.Changes) {
 	ctx := context.TODO()
 
-	length := 40
 	paths := []string{}
-	for i := 0; i < length; i++ {
-		p := keys.Path("test", fmt.Sprintf("%s-%06d", genPath(i), i))
-		paths = append(paths, p)
-	}
+	length := 40
 
-	for i, p := range paths {
+	for i := 0; i < length; i++ {
+		p := keys.Path("test", fmt.Sprintf("%s-%06d", keys.RandIDString(), i))
+		paths = append(paths, p)
 		err := ds.Create(ctx, p, []byte(fmt.Sprintf("value%d", i)))
 		require.NoError(t, err)
 		err = changes.ChangeAdd(ctx, "test-changes", p)
@@ -50,11 +43,9 @@ func testChanges(t *testing.T, ds keys.DocumentStore, changes keys.Changes) {
 	require.NoError(t, err)
 	doc, err := iter.Next()
 	require.NoError(t, err)
-	require.NotNil(t, doc)
 	require.Equal(t, sorted[1], doc.Path)
 	doc, err = iter.Next()
 	require.NoError(t, err)
-	require.NotNil(t, doc)
 	require.Equal(t, sorted[2], doc.Path)
 	iter.Release()
 
@@ -79,6 +70,16 @@ func testChanges(t *testing.T, ds keys.DocumentStore, changes keys.Changes) {
 	}
 	require.Equal(t, paths[9:19], recentPaths)
 
+	keys.SetLogger(keys.NewLogger(keys.DebugLevel))
+
+	// Changes (now)
+	now := time.Now()
+	recent, ts, err = changes.Changes(ctx, "test-changes", now, 100, keys.Ascending)
+	require.NoError(t, err)
+	require.Equal(t, 0, len(recent))
+	require.Equal(t, now, ts)
+
+	// Descending
 	revpaths := reverseCopy(paths)
 
 	// Changes (limit=10, desc)
