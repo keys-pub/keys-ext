@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/url"
-	"sort"
 	"strings"
 	"time"
 
@@ -169,19 +168,32 @@ func (f *Firestore) Change(ctx context.Context, name string, ref string) (*keys.
 }
 
 // Changes ...
-func (f *Firestore) Changes(ctx context.Context, name string, from time.Time, limit int) ([]*keys.Change, time.Time, error) {
+func (f *Firestore) Changes(ctx context.Context, name string, ts time.Time, limit int, direction keys.Direction) ([]*keys.Change, time.Time, error) {
 	col := f.client.Collection(name)
 	if col == nil {
 		return nil, time.Time{}, nil
 	}
+
 	var q firestore.Query
-	if from.IsZero() {
-		logger.Infof(ctx, "List changes...")
-		q = col.Offset(0)
-	} else {
-		logger.Infof(ctx, "List changes >= %s", from)
-		q = col.Where(timestampField, ">=", from)
+	switch direction {
+	case keys.Ascending:
+		if ts.IsZero() {
+			logger.Infof(ctx, "List changes (asc)...")
+			q = col.OrderBy(timestampField, firestore.Asc)
+		} else {
+			logger.Infof(ctx, "List changes (asc >= %s)", ts)
+			q = col.OrderBy(timestampField, firestore.Asc).Where(timestampField, ">=", ts)
+		}
+	case keys.Descending:
+		if ts.IsZero() {
+			logger.Infof(ctx, "List changes (desc)...")
+			q = col.OrderBy(timestampField, firestore.Desc)
+		} else {
+			logger.Infof(ctx, "List changes (desc <= %s)", ts)
+			q = col.OrderBy(timestampField, firestore.Desc).Where(timestampField, "<=", ts)
+		}
 	}
+
 	iter := q.Documents(context.TODO())
 
 	if limit == 0 {
@@ -189,7 +201,7 @@ func (f *Firestore) Changes(ctx context.Context, name string, from time.Time, li
 	}
 
 	docs := make([]*keys.Change, 0, limit)
-	to := from
+
 	defer iter.Stop()
 	for {
 		doc, err := iter.Next()
@@ -205,19 +217,15 @@ func (f *Firestore) Changes(ctx context.Context, name string, from time.Time, li
 		}
 
 		docs = append(docs, &change)
-		if change.Timestamp.After(to) {
-			to = change.Timestamp
-		}
 		if len(docs) >= limit {
 			break
 		}
 	}
-	sort.Slice(docs, func(i, j int) bool {
-		if docs[i].Timestamp == docs[j].Timestamp {
-			return docs[i].Path < docs[j].Path
-		}
-		return docs[i].Timestamp.Before(docs[j].Timestamp)
-	})
+
+	to := ts
+	if len(docs) != 0 {
+		to = docs[len(docs)-1].Timestamp
+	}
 
 	return docs, to, nil
 }
