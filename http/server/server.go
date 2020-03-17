@@ -94,8 +94,8 @@ func AddRoutes(s *Server, e *echo.Echo) {
 	e.POST("/cron/check", s.cronCheck)
 
 	// Messages
-	e.POST("/messages/:kid", s.postMessage)
-	e.GET("/messages/:kid", s.listMessages)
+	e.POST("/messages/:kid/:rid", s.postMessage)
+	e.GET("/messages/:kid/:rid", s.listMessages)
 
 	// Sigchain (aliases)
 	e.GET("/:kid", s.getSigchain)
