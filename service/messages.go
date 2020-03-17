@@ -15,7 +15,7 @@ import (
 
 // MessagePrepare (RPC) prepares to create a message, the response can be used to show a pending message
 func (s *service) MessagePrepare(ctx context.Context, req *MessagePrepareRequest) (*MessagePrepareResponse, error) {
-	message, prepareErr := s.messagePrepare(ctx, req.Sender, req.KID, req.Text)
+	message, prepareErr := s.messagePrepare(ctx, req.Sender, req.Recipient, req.Text)
 	if prepareErr != nil {
 		return nil, prepareErr
 	}
@@ -26,7 +26,7 @@ func (s *service) MessagePrepare(ctx context.Context, req *MessagePrepareRequest
 
 // MessageCreate (RPC) creates a message for a recipient
 func (s *service) MessageCreate(ctx context.Context, req *MessageCreateRequest) (*MessageCreateResponse, error) {
-	message, createErr := s.messageCreate(ctx, req.Sender, req.KID, req.Text)
+	message, createErr := s.messageCreate(ctx, req.Sender, req.Recipient, req.Text)
 	if createErr != nil {
 		return nil, createErr
 	}
@@ -37,19 +37,26 @@ func (s *service) MessageCreate(ctx context.Context, req *MessageCreateRequest) 
 
 // Messages (RPC) lists messages.
 func (s *service) Messages(ctx context.Context, req *MessagesRequest) (*MessagesResponse, error) {
-	if req.KID == "" {
+	if req.Sender == "" {
 		return nil, errors.Errorf("no kid specified")
 	}
-	key, err := s.parseSignKey(req.KID, true)
+	key, err := s.parseSignKey(req.Sender, true)
+	if err != nil {
+		return nil, err
+	}
+	if req.Recipient == "" {
+		return nil, errors.Errorf("no recipient")
+	}
+	recipient, err := keys.ParseID(req.Recipient)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := s.pullMessages(ctx, key.ID()); err != nil {
+	if err := s.pullMessages(ctx, key.ID(), recipient); err != nil {
 		return nil, err
 	}
 
-	messages, err := s.messages(ctx, key)
+	messages, err := s.messages(ctx, key, recipient)
 	if err != nil {
 		return nil, err
 	}
@@ -67,15 +74,18 @@ func (s *service) Inbox(ctx context.Context, req *InboxRequest) (*InboxResponse,
 // should then use messageCreate to save the message. This needs to be fast, so
 // the client can show the a pending message right away. Preparing before create
 // is optional.
-func (s *service) messagePrepare(ctx context.Context, sender string, kid string, text string) (*Message, error) {
-	if kid == "" {
-		return nil, errors.Errorf("no kid specified")
+func (s *service) messagePrepare(ctx context.Context, sender string, recipient string, text string) (*Message, error) {
+	if sender == "" {
+		return nil, errors.Errorf("no sender specified")
 	}
-	_, err := s.parseSignKey(kid, true)
+	key, err := s.parseSignKey(sender, true)
 	if err != nil {
 		return nil, err
 	}
-	key, err := s.parseSignKey(sender, true)
+	if recipient == "" {
+		return nil, errors.Errorf("no recipient specified")
+	}
+	_, err = keys.ParseID(recipient)
 	if err != nil {
 		return nil, err
 	}
@@ -90,9 +100,9 @@ func (s *service) messagePrepare(ctx context.Context, sender string, kid string,
 	return message, nil
 }
 
-func (s *service) messageCreate(ctx context.Context, sender string, kid string, text string) (*Message, error) {
-	if kid == "" {
-		return nil, errors.Errorf("no kid specified")
+func (s *service) messageCreate(ctx context.Context, sender string, recipient string, text string) (*Message, error) {
+	if recipient == "" {
+		return nil, errors.Errorf("no recipient specified")
 	}
 
 	senderKey, err := s.parseSignKey(sender, true)
@@ -100,7 +110,7 @@ func (s *service) messageCreate(ctx context.Context, sender string, kid string, 
 		return nil, err
 	}
 
-	key, err := s.parseSignKey(kid, true)
+	rid, err := keys.ParseID(recipient)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +125,7 @@ func (s *service) messageCreate(ctx context.Context, sender string, kid string, 
 		return nil, err
 	}
 
-	sent, err := s.remote.SendMessage(senderKey, key.ID(), b)
+	sent, err := s.remote.SendMessage(senderKey, rid, b, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -169,8 +179,8 @@ func (s *service) message(ctx context.Context, path string) (*Message, error) {
 	return &message, nil
 }
 
-func (s *service) messages(ctx context.Context, key *keys.EdX25519Key) ([]*Message, error) {
-	path := fmt.Sprintf("messages-%s", key.ID())
+func (s *service) messages(ctx context.Context, key *keys.EdX25519Key, recipient keys.ID) ([]*Message, error) {
+	path := fmt.Sprintf("messages-%s-%s", key.ID(), recipient)
 	iter, iterErr := s.db.Documents(ctx, path, &keys.DocumentsOpts{PathOnly: true})
 	if iterErr != nil {
 		return nil, iterErr
@@ -186,9 +196,9 @@ func (s *service) messages(ctx context.Context, key *keys.EdX25519Key) ([]*Messa
 			break
 		}
 		logger.Debugf("Message %s", e.Path)
-		message, messageErr := s.message(ctx, e.Path)
-		if messageErr != nil {
-			return nil, messageErr
+		message, err := s.message(ctx, e.Path)
+		if err != nil {
+			return nil, err
 		}
 		messages = append(messages, message)
 	}
@@ -200,7 +210,7 @@ func (s *service) messages(ctx context.Context, key *keys.EdX25519Key) ([]*Messa
 	return messages, nil
 }
 
-func (s *service) pullMessages(ctx context.Context, kid keys.ID) error {
+func (s *service) pullMessages(ctx context.Context, kid keys.ID, recipient keys.ID) error {
 	key, err := s.ks.EdX25519Key(kid)
 	if err != nil {
 		return err
@@ -218,7 +228,7 @@ func (s *service) pullMessages(ctx context.Context, kid keys.ID) error {
 	if e != nil {
 		version = string(e.Data)
 	}
-	msgs, version, err := s.remote.Messages(key, &client.MessagesOpts{Version: version})
+	msgs, version, err := s.remote.Messages(key, recipient, &client.MessagesOpts{Version: version})
 	if err != nil {
 		return err
 	}
@@ -227,7 +237,7 @@ func (s *service) pullMessages(ctx context.Context, kid keys.ID) error {
 	logger.Infof("Received %d messages", len(msgs))
 	for _, msg := range msgs {
 		ts := 9223372036854775807 - keys.TimeToMillis(msg.CreatedAt)
-		pathKey := fmt.Sprintf("messages-%s", key.ID())
+		pathKey := fmt.Sprintf("messages-%s-%s", key.ID(), recipient)
 		pathVal := fmt.Sprintf("%d-%s", ts, msg.ID)
 		path := keys.Path(pathKey, pathVal)
 		if err := s.db.Set(ctx, path, msg.Data); err != nil {

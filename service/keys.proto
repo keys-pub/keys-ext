@@ -682,7 +682,7 @@ message ConfigSetRequest {
 message ConfigSetResponse {}
 
 message Inbox {
-  string kid = 1 [(gogoproto.customname) = "KID"];
+  string recipient = 1 [(gogoproto.customname) = "KID"];
   string name = 2;
   int64 createdAt = 3;
   int32 messageCount = 4;
@@ -711,9 +711,9 @@ message MessageContent {
   string text = 1;
 }
 
-message MessagePrepareRequest {
-  string kid = 1 [(gogoproto.customname) = "KID"];
-  string sender = 2;
+message MessagePrepareRequest {  
+  string sender = 1;
+  string recipient = 2;
   string text = 10;
 }
 
@@ -721,9 +721,9 @@ message MessagePrepareResponse {
   Message message = 1;
 }
 
-message MessageCreateRequest {
-  string kid = 1 [(gogoproto.customname) = "KID"];
-  string sender = 2;
+message MessageCreateRequest {  
+  string sender = 1;
+  string recipient = 2;
   string text = 11;
 }
 
@@ -731,8 +731,9 @@ message MessageCreateResponse {
   Message message = 1;
 }
 
-message MessagesRequest {
-  string kid = 1 [(gogoproto.customname) = "KID"];
+message MessagesRequest {  
+  string sender = 1;
+  string recipient = 2;
 }
 
 message MessagesResponse {

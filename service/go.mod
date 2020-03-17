@@ -12,9 +12,9 @@ require (
 	github.com/keybase/saltpack v0.0.0-20200228190633-d75baa96bffb // indirect
 	github.com/keys-pub/keys v0.0.0-20200316013823-95ce7c6cb5fa
 	github.com/keys-pub/keysd/db v0.0.0-20200306174951-faa8a8074ae0
-	github.com/keys-pub/keysd/http/api v0.0.0-20200316022130-a19167d8e7a7
-	github.com/keys-pub/keysd/http/client v0.0.0-20200316022130-a19167d8e7a7
-	github.com/keys-pub/keysd/http/server v0.0.0-20200316022130-a19167d8e7a7
+	github.com/keys-pub/keysd/http/api v0.0.0-20200317222534-a1c37d8b9903
+	github.com/keys-pub/keysd/http/client v0.0.0-20200317222829-c8315c994ea2
+	github.com/keys-pub/keysd/http/server v0.0.0-20200317222721-717bf70f4f22
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/mercari/go-grpc-interceptor v0.0.0-20180110035004-b8ad3827e82a
 	github.com/mitchellh/go-ps v1.0.0

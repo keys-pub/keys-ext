@@ -9,4 +9,3 @@ import (
 var alice = keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 var bob = keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
 var charlie = keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x03}, 32)))
-var group = keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x04}, 32)))
