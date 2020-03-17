@@ -3,6 +3,7 @@ package client
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/url"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Message from server.
 type Message struct {
 	ID   string
 	Data []byte
@@ -20,19 +22,32 @@ type Message struct {
 	UpdatedAt time.Time
 }
 
+// MessageOpts are options for SendMessage.
+type MessageOpts struct {
+	// Channel to post on.
+	Channel string
+}
+
 // SendMessage posts an encrypted message.
-func (c *Client) SendMessage(sender *keys.EdX25519Key, recipient keys.ID, b []byte) (*Message, error) {
+func (c *Client) SendMessage(sender *keys.EdX25519Key, recipient keys.ID, b []byte, opts *MessageOpts) (*Message, error) {
 	sp := saltpack.NewSaltpack(c.ks)
-	encrypted, err := sp.Signcrypt(b, sender, recipient)
+	encrypted, err := sp.Signcrypt(b, sender, recipient, sender.ID())
 	if err != nil {
 		return nil, err
 	}
-	return c.postMessage(sender, recipient, encrypted)
+	return c.postMessage(sender, recipient, encrypted, opts)
 }
 
-func (c *Client) postMessage(sender *keys.EdX25519Key, recipient keys.ID, b []byte) (*Message, error) {
-	path := keys.Path("messages", recipient)
-	doc, err := c.postDocument(path, url.Values{}, sender, bytes.NewReader(b))
+func (c *Client) postMessage(sender *keys.EdX25519Key, recipient keys.ID, b []byte, opts *MessageOpts) (*Message, error) {
+	if opts == nil {
+		opts = &MessageOpts{}
+	}
+	path := keys.Path("messages", sender.ID(), recipient)
+	vals := url.Values{}
+	if opts.Channel != "" {
+		vals.Add("channel", opts.Channel)
+	}
+	doc, err := c.postDocument(path, vals, sender, bytes.NewReader(b))
 	if err != nil {
 		return nil, err
 	}
@@ -59,12 +74,14 @@ type MessagesOpts struct {
 	Direction keys.Direction
 	// Channel to filter by
 	Channel string
+	// Limit by
+	Limit int
 }
 
 // Messages returns encrypted messages.
 // To decrypt a message, use Client#DecryptMessage.
-func (c *Client) Messages(key *keys.EdX25519Key, opts *MessagesOpts) ([]*Message, string, error) {
-	path := keys.Path("messages", key.ID())
+func (c *Client) Messages(key *keys.EdX25519Key, from keys.ID, opts *MessagesOpts) ([]*Message, string, error) {
+	path := keys.Path("messages", key.ID(), from)
 	if opts == nil {
 		opts = &MessagesOpts{}
 	}
@@ -79,6 +96,9 @@ func (c *Client) Messages(key *keys.EdX25519Key, opts *MessagesOpts) ([]*Message
 	}
 	if opts.Channel != "" {
 		params.Add("channel", opts.Channel)
+	}
+	if opts.Limit != 0 {
+		params.Add("limit", fmt.Sprintf("%d", opts.Limit))
 	}
 
 	// TODO: What if we hit limit, we won't have all the messages
@@ -114,9 +134,6 @@ func (c *Client) DecryptMessage(key *keys.EdX25519Key, msg *Message) ([]byte, ke
 	decrypted, pk, err := sp.SigncryptOpen(msg.Data)
 	if err != nil {
 		return nil, "", err
-	}
-	if pk.ID() != key.ID() {
-		return nil, "", errors.Errorf("invalid message kid")
 	}
 	return decrypted, pk.ID(), nil
 }
