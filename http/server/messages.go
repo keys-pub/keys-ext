@@ -26,12 +26,23 @@ func (s *Server) postMessage(c echo.Context) error {
 		return ErrResponse(c, status, err.Error())
 	}
 
+	recipient := c.Param("rid")
+	if recipient == "" {
+		return ErrBadRequest(c, errors.Errorf("no recipient id"))
+	}
+	rid, err := keys.ParseID(recipient)
+	if err != nil {
+		return ErrBadRequest(c, err)
+	}
+
 	channel := c.QueryParam("channel")
 	if channel == "" {
 		channel = "default"
 	}
-
-	changePath := msgChanges + "-" + kid.String() + "-" + channel
+	if len(channel) > 16 {
+		// TODO: Test this
+		return ErrBadRequest(c, errors.Errorf("channel name too long"))
+	}
 
 	if c.Request().Body == nil {
 		return ErrBadRequest(c, errors.Errorf("missing body"))
@@ -40,7 +51,6 @@ func (s *Server) postMessage(c echo.Context) error {
 	// TODO: Limit body size
 
 	id := keys.RandIDString()
-	path := keys.Path("messages", fmt.Sprintf("%s-%s-%s", kid, channel, id))
 
 	bin, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
@@ -51,17 +61,36 @@ func (s *Server) postMessage(c echo.Context) error {
 		ID:   id,
 		Data: bin,
 	}
-	logger.Infof(ctx, "Save message %s", path)
+
 	mb, err := json.Marshal(msg)
 	if err != nil {
 		return internalError(c, err)
 	}
+
+	path := keys.Path("messages", fmt.Sprintf("%s-%s-%s-%s", kid, rid, channel, id))
+	logger.Infof(ctx, "Save message %s", path)
 	if err := s.fi.Create(ctx, path, mb); err != nil {
 		return internalError(c, err)
 	}
+	rpath := keys.Path("messages", fmt.Sprintf("%s-%s-%s-%s", rid, kid, channel, id))
+	if kid != rid {
+		logger.Infof(ctx, "Save message (recipient) %s", rpath)
+		if err := s.fi.Create(ctx, rpath, mb); err != nil {
+			return internalError(c, err)
+		}
+	}
+
+	changePath := fmt.Sprintf("%s-%s-%s-%s", msgChanges, kid, rid, channel)
 	logger.Infof(ctx, "Add change %s %s", changePath, path)
 	if err := s.fi.ChangeAdd(ctx, changePath, path); err != nil {
 		return internalError(c, err)
+	}
+	if kid != rid {
+		rchangePath := fmt.Sprintf("%s-%s-%s-%s", msgChanges, rid, kid, channel)
+		logger.Infof(ctx, "Add change (recipient) %s %s", rchangePath, rpath)
+		if err := s.fi.ChangeAdd(ctx, rchangePath, rpath); err != nil {
+			return internalError(c, err)
+		}
 	}
 
 	resp := api.MessageResponse{
@@ -80,12 +109,25 @@ func (s *Server) listMessages(c echo.Context) error {
 		return ErrResponse(c, status, err.Error())
 	}
 
+	recipient := c.Param("rid")
+	if recipient == "" {
+		return ErrBadRequest(c, errors.Errorf("no recipient id"))
+	}
+	rid, err := keys.ParseID(recipient)
+	if err != nil {
+		return ErrBadRequest(c, err)
+	}
+
 	channel := c.QueryParam("channel")
 	if channel == "" {
 		channel = "default"
 	}
+	if len(channel) > 16 {
+		// TODO: Test this
+		return ErrBadRequest(c, errors.Errorf("channel name too long"))
+	}
 
-	changePath := msgChanges + "-" + kid.String() + "-" + channel
+	changePath := fmt.Sprintf("%s-%s-%s-%s", msgChanges, kid, rid, channel)
 
 	chgs, err := s.changes(c, changePath)
 	if err != nil {
@@ -114,7 +156,6 @@ func (s *Server) listMessages(c echo.Context) error {
 
 	resp := api.MessagesResponse{
 		Messages: messages,
-		KID:      kid,
 		Version:  fmt.Sprintf("%d", chgs.versionNext),
 	}
 	fields := keys.NewStringSetSplit(c.QueryParam("include"), ",")
