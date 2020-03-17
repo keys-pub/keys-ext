@@ -1,7 +1,5 @@
 package api
 
-import "github.com/keys-pub/keys"
-
 // Message ...
 type Message struct {
 	Data []byte `json:"data"`
@@ -15,7 +13,6 @@ type MessageResponse struct {
 
 // MessagesResponse is the response from messages.
 type MessagesResponse struct {
-	KID      keys.ID             `json:"kid"`
 	Messages []*Message          `json:"messages"`
 	Metadata map[string]Metadata `json:"md,omitempty"`
 	Version  string              `json:"version"`
