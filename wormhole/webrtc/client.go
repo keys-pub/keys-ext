@@ -141,11 +141,15 @@ func (c *Client) Close() {
 	c.Lock()
 	defer c.Unlock()
 
-	if c.conn != nil {
-		c.conn.Close()
-	}
 	if c.channel != nil {
-		c.channel.Close()
+		if err := c.channel.Close(); err != nil {
+			logger.Warningf("Error closing webrtc channel: %v", err)
+		}
+	}
+	if c.conn != nil {
+		if err := c.conn.Close(); err != nil {
+			logger.Warningf("Error closing webrtc connection: %v", err)
+		}
 	}
 }
 

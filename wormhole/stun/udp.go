@@ -48,8 +48,8 @@ func (c *UDPConn) Send(msg []byte) error {
 	return nil
 }
 
-func (c *UDPConn) Close() {
-	c.conn.Close()
+func (c *UDPConn) Close() error {
+	return c.conn.Close()
 }
 
 func (c *UDPConn) Listen() <-chan []byte {

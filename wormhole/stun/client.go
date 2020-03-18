@@ -18,7 +18,7 @@ type Conn interface {
 	LocalAddr() net.Addr
 	SendBindingRequest() error
 	SetPeer(addr string) error
-	Close()
+	Close() error
 }
 
 type Client struct {
@@ -112,7 +112,9 @@ func (c *Client) Listen() error {
 		// 	logger.Infof("Keep alive...")
 		case <-c.quit:
 			logger.Infof("Closing connection...")
-			c.conn.Close()
+			if err := c.conn.Close(); err != nil {
+				logger.Warningf("Error closing connection: %v", err)
+			}
 		}
 	}
 }
