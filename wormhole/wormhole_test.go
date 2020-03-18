@@ -91,6 +91,13 @@ func TestWormholeCancel(t *testing.T) {
 
 	env := testEnv(t)
 	defer env.closeFn()
+
+	testWormholeCancel(t, env, 100*time.Millisecond)
+	testWormholeCancel(t, env, time.Second)
+	// testWormholeCancel(t, env, time.Second*5)
+}
+
+func testWormholeCancel(t *testing.T, env *env, dt time.Duration) {
 	server := env.httpServer.URL
 
 	alice := keys.GenerateEdX25519Key()
@@ -104,8 +111,7 @@ func TestWormholeCancel(t *testing.T) {
 	require.NoError(t, err)
 	defer wha.Close()
 	wha.SetTimeNow(env.clock.Now)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), dt)
 	defer cancel()
 	err = wha.Start(ctx, alice, bob.PublicKey())
 	require.EqualError(t, err, "context deadline exceeded")
