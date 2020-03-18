@@ -9,7 +9,7 @@ import (
 )
 
 func ExampleNewClient() {
-	stun.SetLogger(stun.NewLogger(stun.DebugLevel))
+	// stun.SetLogger(stun.NewLogger(stun.DebugLevel))
 
 	alice := stun.NewClient()
 	bob := stun.NewClient()

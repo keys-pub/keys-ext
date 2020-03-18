@@ -70,8 +70,6 @@ func testChanges(t *testing.T, ds keys.DocumentStore, changes keys.Changes) {
 	}
 	require.Equal(t, paths[9:19], recentPaths)
 
-	keys.SetLogger(keys.NewLogger(keys.DebugLevel))
-
 	// Changes (now)
 	now := time.Now()
 	recent, ts, err = changes.Changes(ctx, "test-changes", now, 100, keys.Ascending)

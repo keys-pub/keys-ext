@@ -13,7 +13,7 @@ import (
 )
 
 func TestNewWormhole(t *testing.T) {
-	wormhole.SetLogger(wormhole.NewLogger(wormhole.DebugLevel))
+	// wormhole.SetLogger(wormhole.NewLogger(wormhole.DebugLevel))
 	// webrtc.SetLogger(wormhole.NewLogger(wormhole.DebugLevel))
 
 	env := testEnv(t)
@@ -99,7 +99,7 @@ func TestNewWormhole(t *testing.T) {
 }
 
 func TestWormholeCancel(t *testing.T) {
-	wormhole.SetLogger(wormhole.NewLogger(wormhole.DebugLevel))
+	// wormhole.SetLogger(wormhole.NewLogger(wormhole.DebugLevel))
 	// webrtc.SetLogger(wormhole.NewLogger(wormhole.DebugLevel))
 
 	env := testEnv(t)
