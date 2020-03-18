@@ -682,7 +682,7 @@ message ConfigSetRequest {
 message ConfigSetResponse {}
 
 message Inbox {
-  string recipient = 1 [(gogoproto.customname) = "KID"];
+  string kid = 1 [(gogoproto.customname) = "KID"];
   string name = 2;
   int64 createdAt = 3;
   int32 messageCount = 4;
