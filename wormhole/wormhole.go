@@ -16,6 +16,9 @@ import (
 // ErrOfferNotFound error if offer not found for recipient.
 var ErrOfferNotFound = errors.New("offer not found")
 
+// ErrHandshakeTimeout if we timed out during handshake
+var ErrHandshakeTimeout = errors.New("handshake timeout")
+
 // Wormhole for connecting two participants using webrtc, noise and
 // keys.pub.
 type Wormhole struct {
@@ -27,8 +30,6 @@ type Wormhole struct {
 	onOpen    func()
 	onClose   func()
 	onMessage func(b []byte)
-
-	offerDelay time.Duration
 }
 
 // NewWormhole creates a new Wormhole.
@@ -51,12 +52,11 @@ func NewWormhole(server string, ks *keys.Keystore) (*Wormhole, error) {
 	}
 
 	w := &Wormhole{
-		rtc:        rtc,
-		hcl:        hcl,
-		onOpen:     func() {},
-		onClose:    func() {},
-		onMessage:  func(b []byte) {},
-		offerDelay: time.Second * 2,
+		rtc:       rtc,
+		hcl:       hcl,
+		onOpen:    func() {},
+		onClose:   func() {},
+		onMessage: func(b []byte) {},
 	}
 
 	rtc.OnClose(func(channel webrtc.Channel) {
@@ -156,11 +156,11 @@ func (w *Wormhole) Start(ctx context.Context, sender *keys.EdX25519Key, recipien
 	})
 
 	if initiator {
-		if err := w.offer(ctx, sender, recipient, "wormhole", w.offerDelay); err != nil {
+		if err := w.offer(ctx, sender, recipient, "wormhole"); err != nil {
 			return err
 		}
 	} else {
-		if err := w.answer(ctx, sender, recipient, w.offerDelay); err != nil {
+		if err := w.answer(ctx, sender, recipient); err != nil {
 			return err
 		}
 	}
@@ -170,7 +170,7 @@ func (w *Wormhole) Start(ctx context.Context, sender *keys.EdX25519Key, recipien
 		logger.Infof("Wait for handshake...")
 		wg.Wait()
 		c <- true
-		logger.Infof("Handshake wait over")
+		logger.Infof("Handshake done")
 	}()
 
 	select {
@@ -178,8 +178,8 @@ func (w *Wormhole) Start(ctx context.Context, sender *keys.EdX25519Key, recipien
 		break
 	case <-ctx.Done():
 		return ctx.Err()
-	case <-time.After(time.Second * 5):
-		return errors.Errorf("handshake timeout")
+	case <-time.After(time.Second * 20):
+		return ErrHandshakeTimeout
 	}
 
 	if noiseErr != nil {
@@ -206,8 +206,8 @@ func (w *Wormhole) Send(b []byte) error {
 	return w.rtc.Send(encrypted)
 }
 
-func (w *Wormhole) offer(ctx context.Context, sender *keys.EdX25519Key, recipient *keys.EdX25519PublicKey, label string, delay time.Duration) error {
-	logger.Infof("Creating webrtc offer...")
+func (w *Wormhole) offer(ctx context.Context, sender *keys.EdX25519Key, recipient *keys.EdX25519PublicKey, label string) error {
+	logger.Infof("Creating offer...")
 	offer, err := w.rtc.Offer(label)
 	if err != nil {
 		return err
@@ -216,7 +216,7 @@ func (w *Wormhole) offer(ctx context.Context, sender *keys.EdX25519Key, recipien
 	if err != nil {
 		return err
 	}
-	logger.Infof("Offer: %s", string(b))
+	// logger.Infof("Offer: %s", string(b))
 
 	logger.Infof("Sending offer message...")
 	opts := &httpclient.MessageOpts{
@@ -229,7 +229,7 @@ func (w *Wormhole) offer(ctx context.Context, sender *keys.EdX25519Key, recipien
 	logger.Infof("Offer sent")
 
 	logger.Infof("Wait for answer...")
-	answer, err := w.findSession(ctx, sender, recipient, msg.ID, delay)
+	answer, err := w.findSession(ctx, sender, recipient, msg.ID)
 	if err != nil {
 		return err
 	}
@@ -245,17 +245,36 @@ func (w *Wormhole) offer(ctx context.Context, sender *keys.EdX25519Key, recipien
 	return nil
 }
 
-func (w *Wormhole) findSession(ctx context.Context, sender *keys.EdX25519Key, recipient *keys.EdX25519PublicKey, sessionMsgID string, delay time.Duration) (*webrtc.SessionDescription, error) {
-	offer, err := w.findMessage(sender, recipient, sessionMsgID)
-	if err != nil {
-		return nil, err
-	}
-	if offer != nil {
-		return offer, nil
-	}
+func (w *Wormhole) findSession(ctx context.Context, sender *keys.EdX25519Key, recipient *keys.EdX25519PublicKey, sessionMsgID string) (*webrtc.SessionDescription, error) {
+	offerChan := make(chan *webrtc.SessionDescription)
+	errChan := make(chan error)
+	done := false
+
+	go func() {
+		delay := time.Second
+		for !done {
+			offer, err := w.findMessage(sender, recipient, sessionMsgID)
+			if err != nil {
+				errChan <- err
+			}
+			if offer != nil {
+				offerChan <- offer
+			}
+			time.Sleep(delay)
+			if delay < time.Second*5 {
+				delay += (time.Second * 2)
+			}
+		}
+	}()
+	defer func() {
+		done = true
+	}()
+
 	select {
-	case <-time.After(delay):
-		return w.findSession(ctx, sender, recipient, sessionMsgID, delay)
+	case offer := <-offerChan:
+		return offer, nil
+	case err := <-errChan:
+		return nil, err
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	}
@@ -276,28 +295,29 @@ func (w *Wormhole) findMessage(sender *keys.EdX25519Key, recipient *keys.EdX2551
 		if msg.ID == sessionMsgID {
 			continue
 		}
-		logger.Infof("Found message, decrypting...")
+		logger.Infof("Found session message...")
 		b, pk, err := w.hcl.DecryptMessage(sender, msgs[0])
 		if err != nil {
 			return nil, err
 		}
 		if pk != recipient.ID() {
-			return nil, errors.Errorf("offer not by recipient %s != %s", pk, recipient.ID())
+			return nil, errors.Errorf("session not by recipient %s != %s", pk, recipient.ID())
 		}
 
 		var offer webrtc.SessionDescription
 		if err := json.Unmarshal(b, &offer); err != nil {
-			return nil, errors.Wrapf(err, "failed to unmarshal wormhole offer")
+			return nil, errors.Wrapf(err, "failed to unmarshal wormhole session")
 		}
-		logger.Infof("Found offer: %s", string(b))
+		logger.Infof("Found session: %s", string(b))
 		return &offer, nil
 	}
+	logger.Infof("Session not found")
 	return nil, nil
 }
 
-func (w *Wormhole) answer(ctx context.Context, sender *keys.EdX25519Key, recipient *keys.EdX25519PublicKey, delay time.Duration) error {
-	logger.Infof("Find offer...")
-	offer, err := w.findSession(ctx, sender, recipient, "", delay)
+func (w *Wormhole) answer(ctx context.Context, sender *keys.EdX25519Key, recipient *keys.EdX25519PublicKey) error {
+	logger.Infof("Find answer...")
+	offer, err := w.findSession(ctx, sender, recipient, "")
 	if err != nil {
 		return err
 	}
