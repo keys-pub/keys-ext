@@ -43,23 +43,23 @@ func TestSigchains(t *testing.T) {
 	require.Equal(t, expected, body)
 
 	// Alice sign "testing"
-	aliceSpk := alice.PublicKey()
-	aliceSc := keys.NewSigchain(aliceSpk)
-	aliceSt, err := keys.GenerateStatement(aliceSc, []byte("testing"), alice, "", clock.Now())
+	spka := alice.PublicKey()
+	sca := keys.NewSigchain(spka)
+	sta, err := keys.GenerateStatement(sca, []byte("testing"), alice, "", clock.Now())
 	require.NoError(t, err)
-	err = aliceSc.Add(aliceSt)
+	err = sca.Add(sta)
 	require.NoError(t, err)
-	aliceStBytes := aliceSt.Bytes()
+	staBytes := sta.Bytes()
 
 	// PUT /sigchain/:kid/:seq
-	req, err = http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/1", alice.ID()), bytes.NewReader(aliceStBytes))
+	req, err = http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/1", alice.ID()), bytes.NewReader(staBytes))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, "", body)
+	require.Equal(t, "{}", body)
 
 	// PUT /sigchain/:kid/:seq again (conflict error)
-	req, err = http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/1", alice.ID()), bytes.NewReader(aliceStBytes))
+	req, err = http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/1", alice.ID()), bytes.NewReader(staBytes))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusConflict, code)
@@ -67,13 +67,13 @@ func TestSigchains(t *testing.T) {
 	require.Equal(t, expected, body)
 
 	// Bob sign "testing"
-	bobSpk := bob.PublicKey()
-	bobSc := keys.NewSigchain(bobSpk)
-	bobSt, err := keys.GenerateStatement(bobSc, []byte("testing"), bob, "", clock.Now())
+	spkb := bob.PublicKey()
+	scb := keys.NewSigchain(spkb)
+	stb, err := keys.GenerateStatement(scb, []byte("testing"), bob, "", clock.Now())
 	require.NoError(t, err)
 
 	// PUT /sigchain/:kid/:seq (invalid, bob's statement)
-	req, err = http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/1", alice.ID()), bytes.NewReader([]byte(bobSt.Bytes())))
+	req, err = http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/1", alice.ID()), bytes.NewReader([]byte(stb.Bytes())))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusBadRequest, code)
@@ -163,9 +163,9 @@ func TestSigchains(t *testing.T) {
 	require.Equal(t, expectedSigchain, body)
 
 	// Alice sign "testing2"
-	aliceSt2, err := keys.GenerateStatement(aliceSc, []byte("testing2"), alice, "", clock.Now())
+	sta2, err := keys.GenerateStatement(sca, []byte("testing2"), alice, "", clock.Now())
 	require.NoError(t, err)
-	err = aliceSc.Add(aliceSt2)
+	err = sca.Add(sta2)
 	require.NoError(t, err)
 
 	// GET /:kid/:seq
@@ -181,16 +181,30 @@ func TestSigchains(t *testing.T) {
 	require.Equal(t, expectedSigned, body)
 
 	// PUT /:kid/:seq
-	req, err = http.NewRequest("PUT", fmt.Sprintf("/%s/2", alice.ID()), bytes.NewReader(aliceSt2.Bytes()))
+	req, err = http.NewRequest("PUT", fmt.Sprintf("/%s/2", alice.ID()), bytes.NewReader(sta2.Bytes()))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, "", body)
+	require.Equal(t, "{}", body)
 
 	// PUT /invalidloc/:seq
-	req, err = http.NewRequest("PUT", keys.Path("invalidloc", 1), bytes.NewReader(aliceSt2.Bytes()))
+	req, err = http.NewRequest("PUT", keys.Path("invalidloc", 1), bytes.NewReader(sta2.Bytes()))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusBadRequest, code)
 	require.Equal(t, `{"error":{"code":400,"message":"invalid kid"}}`, body)
+
+	// Alice sign large message
+	large := bytes.Repeat([]byte{0x01}, 17*1024)
+	sta, err = keys.GenerateStatement(sca, large, alice, "", clock.Now())
+	require.NoError(t, err)
+	err = sca.Add(sta)
+	require.NoError(t, err)
+
+	// PUT /sigchain/:kid/:seq (too large)
+	req, err = http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/%d", alice.ID(), sta.Seq), bytes.NewReader(sta.Bytes()))
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusBadRequest, code)
+	require.Equal(t, `{"error":{"code":400,"message":"too much data for sigchain statement (greater than 16KiB)"}}`, body)
 }

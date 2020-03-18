@@ -30,12 +30,12 @@ func TestUserResult(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, "", body)
+	require.Equal(t, "{}", body)
 
 	// POST /check
 	req, err = api.NewRequest("POST", "/check", nil, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, "", body)
+	require.Equal(t, "{}", body)
 }

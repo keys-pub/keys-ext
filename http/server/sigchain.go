@@ -198,8 +198,8 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 	if err != nil {
 		return ErrBadRequest(c, err)
 	}
-	if len(st.Data) > 1024 {
-		return ErrBadRequest(c, errors.Errorf("too much data for sigchain statement (>1KiB)"))
+	if len(st.Data) > 16*1024 {
+		return ErrBadRequest(c, errors.Errorf("too much data for sigchain statement (greater than 16KiB)"))
 	}
 
 	if c.Param("kid") != st.KID.String() {
@@ -255,7 +255,8 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 		return internalError(c, err)
 	}
 
-	return c.String(http.StatusOK, "")
+	var resp struct{}
+	return JSON(c, http.StatusOK, resp)
 }
 
 func (s *Server) statement(ctx context.Context, path string) (*keys.Statement, *keys.Document, error) {

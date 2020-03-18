@@ -40,7 +40,6 @@ func (s *Server) postMessage(c echo.Context) error {
 		channel = "default"
 	}
 	if len(channel) > 16 {
-		// TODO: Test this
 		return ErrBadRequest(c, errors.Errorf("channel name too long"))
 	}
 
@@ -48,13 +47,15 @@ func (s *Server) postMessage(c echo.Context) error {
 		return ErrBadRequest(c, errors.Errorf("missing body"))
 	}
 
-	// TODO: Limit body size
-
 	id := keys.RandIDString()
 
 	bin, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
 		return internalError(c, err)
+	}
+
+	if len(bin) > 512*1024 {
+		return ErrBadRequest(c, errors.Errorf("message too large (greater than 512KiB)"))
 	}
 
 	msg := api.Message{
@@ -123,7 +124,6 @@ func (s *Server) listMessages(c echo.Context) error {
 		channel = "default"
 	}
 	if len(channel) > 16 {
-		// TODO: Test this
 		return ErrBadRequest(c, errors.Errorf("channel name too long"))
 	}
 
