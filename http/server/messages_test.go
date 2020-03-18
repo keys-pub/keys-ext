@@ -162,6 +162,28 @@ func TestMessages(t *testing.T) {
 	require.NoError(t, err)
 	code, _, _ = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
+
+	// POST /messages/:kid/:rid (channel invalid)
+	req, err = api.NewRequest("POST", keys.Path("messages", alice.ID(), charlie.ID())+"?channel=channelnametoolongtoolongtoolong", bytes.NewReader([]byte("test1")), clock.Now(), alice)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusBadRequest, code)
+	require.Equal(t, `{"error":{"code":400,"message":"channel name too long"}}`, body)
+
+	// GET /messages/:kid/:rid (channel invalid)
+	req, err = api.NewRequest("GET", keys.Path("messages", alice.ID(), charlie.ID()+"?channel=channelnametoolongtoolongtoolong"), nil, clock.Now(), alice)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusBadRequest, code)
+	require.Equal(t, `{"error":{"code":400,"message":"channel name too long"}}`, body)
+
+	// POST /messages/:kid/:rid (message too large)
+	large := bytes.Repeat([]byte{0x01}, 513*1024)
+	req, err = api.NewRequest("POST", keys.Path("messages", alice.ID(), charlie.ID()), bytes.NewReader(large), clock.Now(), alice)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusBadRequest, code)
+	require.Equal(t, `{"error":{"code":400,"message":"message too large (greater than 512KiB)"}}`, body)
 }
 
 func TestMessagesAuth(t *testing.T) {

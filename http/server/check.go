@@ -28,5 +28,6 @@ func (s *Server) check(c echo.Context) error {
 		return internalError(c, err)
 	}
 
-	return c.String(http.StatusOK, "")
+	var resp struct{}
+	return JSON(c, http.StatusOK, resp)
 }

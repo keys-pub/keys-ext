@@ -195,7 +195,7 @@ func TestAccess(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, "", body)
+	require.Equal(t, "{}", body)
 
 	// PUT /sigchain/:kid/:seq (alice, deny)
 	aliceSt2, err := keys.GenerateStatement(aliceSc, []byte("testing"), alice, "", clock.Now())
@@ -222,7 +222,7 @@ func TestAccess(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, "", body)
+	require.Equal(t, "{}", body)
 
 	// POST /task/check/:kid
 	req, err = http.NewRequest("POST", "/task/check/"+alice.ID().String(), nil)

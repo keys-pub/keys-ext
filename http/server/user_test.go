@@ -36,7 +36,7 @@ func TestUserSearch(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, "", body)
+	require.Equal(t, "{}", body)
 
 	// GET /user/search
 	req, err = http.NewRequest("GET", "/user/search", nil)
