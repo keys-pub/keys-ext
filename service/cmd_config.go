@@ -38,6 +38,7 @@ func configCommands(client *Client) []cli.Command {
 						if !cfg.IsKey(key) {
 							return errors.Errorf("unrecognized config key %q", key)
 						}
+						fmt.Printf("Setting %s=%s\n", key, value)
 						cfg.Set(key, value)
 						if err := cfg.Save(); err != nil {
 							return err
