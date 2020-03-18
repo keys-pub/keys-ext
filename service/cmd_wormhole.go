@@ -18,7 +18,7 @@ func wormholeCommands(client *Client) []cli.Command {
 			Usage: "Wormhole",
 			Flags: []cli.Flag{
 				cli.StringFlag{Name: "sender, s", Usage: "sender"},
-				cli.StringFlag{Name: "recipient", Usage: "recipient"},
+				cli.StringFlag{Name: "recipient, r", Usage: "recipient"},
 			},
 			Action: func(c *cli.Context) error {
 				client, err := client.ProtoClient().Wormhole(context.TODO())
@@ -67,7 +67,7 @@ func wormholeCommands(client *Client) []cli.Command {
 					}
 				}()
 
-				fmt.Printf("Waiting for wormhole to open...")
+				fmt.Printf("Waiting for wormhole to open...\n")
 				wg.Wait()
 
 				if recvErr != nil {
