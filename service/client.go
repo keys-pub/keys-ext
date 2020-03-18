@@ -183,6 +183,7 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 	cmds = append(cmds, keyCommands(client)...)
 	cmds = append(cmds, configCommands(client)...)
 	cmds = append(cmds, logCommands(client)...)
+	cmds = append(cmds, wormholeCommands(client)...)
 	sort.Slice(cmds, func(i, j int) bool {
 		return cmds[i].Name < cmds[j].Name
 	})

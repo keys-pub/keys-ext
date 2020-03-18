@@ -324,3 +324,29 @@ func (s *service) parseSignKey(kid string, required bool) (*keys.EdX25519Key, er
 		return nil, errors.Errorf("unsupported key type for signing %s", id)
 	}
 }
+
+func (s *service) parseIdentityForEdX25519Key(ctx context.Context, identity string) (*keys.EdX25519Key, error) {
+	kid, err := s.parseIdentity(ctx, identity)
+	if err != nil {
+		return nil, err
+	}
+	if !kid.IsEdX25519() {
+		return nil, errors.Errorf("identity needs to be a edx25519 key")
+	}
+	key, err := s.ks.EdX25519Key(kid)
+	if err != nil {
+		return nil, err
+	}
+	if key == nil {
+		return nil, keys.NewErrNotFound(kid.String())
+	}
+	return key, nil
+}
+
+func (s *service) parseIdentityForEdX25519PublicKey(ctx context.Context, identity string) (*keys.EdX25519PublicKey, error) {
+	kid, err := s.parseIdentity(ctx, identity)
+	if err != nil {
+		return nil, err
+	}
+	return keys.NewEdX25519PublicKeyFromID(kid)
+}

@@ -68,6 +68,8 @@ service Keys {
   
   rpc Config(ConfigRequest) returns (ConfigResponse) {}
   rpc ConfigSet(ConfigSetRequest) returns (ConfigSetResponse) {}
+
+  rpc Wormhole(stream WormholeInput) returns (stream WormholeOutput) {}  
   
   // These requests do not need auth, since they are used to set or check auth.
   // BEGIN NO AUTH
@@ -613,12 +615,12 @@ enum UserStatus {
   option (gogoproto.goproto_enum_prefix) = false;
   option (gogoproto.enum_customname) = "UserStatus";
 
-  UNKNOWN = 0 [(gogoproto.enumvalue_customname) = "UserStatusUnknown"];
-  OK = 1 [(gogoproto.enumvalue_customname) = "UserStatusOK"];
-  RESOURCE_NOT_FOUND = 2 [(gogoproto.enumvalue_customname) = "UserStatusResourceNotFound"];
-  CONTENT_NOT_FOUND = 3 [(gogoproto.enumvalue_customname) = "UserStatusContentNotFound"];
-  CONN_FAILURE = 4 [(gogoproto.enumvalue_customname) = "UserStatusConnFailure"];
-  FAILURE = 5 [(gogoproto.enumvalue_customname) = "UserStatusFailure"];
+  USER_UNKNOWN = 0 [(gogoproto.enumvalue_customname) = "UserStatusUnknown"];
+  USER_OK = 1 [(gogoproto.enumvalue_customname) = "UserStatusOK"];
+  USER_RESOURCE_NOT_FOUND = 2 [(gogoproto.enumvalue_customname) = "UserStatusResourceNotFound"];
+  USER_CONTENT_NOT_FOUND = 3 [(gogoproto.enumvalue_customname) = "UserStatusContentNotFound"];
+  USER_CONN_FAILURE = 4 [(gogoproto.enumvalue_customname) = "UserStatusConnFailure"];
+  USER_FAILURE = 5 [(gogoproto.enumvalue_customname) = "UserStatusFailure"];
 }
 
 message User {  
@@ -658,11 +660,11 @@ enum WatchStatus {
   option (gogoproto.goproto_enum_prefix) = false;
   option (gogoproto.enum_customname) = "WatchStatus";
 
-  NO_STATUS = 0 [(gogoproto.enumvalue_customname) = "WatchStatusNone"];
-  OUTAGE = 12 [(gogoproto.enumvalue_customname) = "WatchStatusOutage"];    // Persisting error, the service may be down
-  DISRUPTED = 13 [(gogoproto.enumvalue_customname) = "WatchStatusDisrupted"]; // Temporary error, we'll retry and probably come back
-  STARTING = 14 [(gogoproto.enumvalue_customname) = "WatchStatusStarting"];
-  DATA = 16 [(gogoproto.enumvalue_customname) = "WatchStatusData"];
+  WATCH_UKNOWN = 0 [(gogoproto.enumvalue_customname) = "WatchStatusUnknown"];
+  WATCH_OUTAGE = 12 [(gogoproto.enumvalue_customname) = "WatchStatusOutage"];    // Persisting error, the service may be down
+  WATCH_DISRUPTED = 13 [(gogoproto.enumvalue_customname) = "WatchStatusDisrupted"]; // Temporary error, we'll retry and probably come back
+  WATCH_STARTING = 14 [(gogoproto.enumvalue_customname) = "WatchStatusStarting"];
+  WATCH_DATA = 16 [(gogoproto.enumvalue_customname) = "WatchStatusData"];
 }
 
 message WatchEvent {  
@@ -680,6 +682,28 @@ message ConfigSetRequest {
   string value = 2;
 }
 message ConfigSetResponse {}
+
+message WormholeInput {
+  string sender = 1;
+  string recipient = 2;
+  bytes data = 3;
+}
+
+enum WormholeStatus {
+  option (gogoproto.goproto_enum_prefix) = false;
+  option (gogoproto.enum_customname) = "WormholeStatus";
+
+  WORMHOLE_UNKNOWN = 0 [(gogoproto.enumvalue_customname) = "WormholeStatusUnknown"];
+  WORMHOLE_OPEN = 1 [(gogoproto.enumvalue_customname) = "WormholeStatusOpen"];
+  WORMHOLE_CLOSED = 2 [(gogoproto.enumvalue_customname) = "WormholeStatusClosed"]; 
+}
+
+message WormholeOutput {
+  WormholeStatus status = 1;
+  
+  // Data from the recipient
+  bytes data = 3; 
+}
 
 message Inbox {
   string kid = 1 [(gogoproto.customname) = "KID"];
