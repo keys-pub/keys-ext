@@ -18,7 +18,7 @@ builds:
       post: ./scripts/codesign.sh dist/keys_darwin_amd64/keys
   - id: keysd
     binary: keysd
-    main: ./
+    main: ./service/keysd/main.go
     env:
       - CGO_ENABLED=1
     goos:

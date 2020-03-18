@@ -18,6 +18,6 @@ require (
 	gortc.io/stun v1.22.1
 )
 
-replace github.com/keys-pub/keys => ../../keys
+// replace github.com/keys-pub/keys => ../../keys
 
 // replace github.com/keys-pub/keysd/http/client => ../http/client
