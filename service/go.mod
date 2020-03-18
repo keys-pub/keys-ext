@@ -8,7 +8,7 @@ require (
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/protobuf v1.3.4 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
-	github.com/keys-pub/keys v0.0.0-20200317181626-44d21a618612
+	github.com/keys-pub/keys v0.0.0-20200318230220-d1e9a6a02f2f
 	github.com/keys-pub/keysd/db v0.0.0-20200306174951-faa8a8074ae0
 	github.com/keys-pub/keysd/http/api v0.0.0-20200317224602-68134b1264db
 	github.com/keys-pub/keysd/http/client v0.0.0-20200317224602-68134b1264db
