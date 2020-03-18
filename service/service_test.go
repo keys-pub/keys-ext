@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/keyring"
 	"github.com/keys-pub/keysd/http/server"
 	"github.com/stretchr/testify/require"
 )
@@ -220,6 +221,22 @@ func TestRuntimeStatus(t *testing.T) {
 	env := newTestEnv(t)
 	service, closeFn := newTestService(t, env)
 	defer closeFn()
+
+	resp, err := service.RuntimeStatus(context.TODO(), &RuntimeStatusRequest{})
+	require.NoError(t, err)
+	require.Equal(t, "1.2.3", resp.Version)
+}
+
+func TestKeyringFS(t *testing.T) {
+	SetLogger(NewLogger(DebugLevel))
+	keys.SetLogger(NewLogger(DebugLevel))
+	keyring.SetLogger(NewLogger(DebugLevel))
+
+	env := newTestEnv(t)
+	service, closeFn := newTestServiceWithOpts(t, env, "fs")
+	defer closeFn()
+
+	testAuthSetup(t, service)
 
 	resp, err := service.RuntimeStatus(context.TODO(), &RuntimeStatusRequest{})
 	require.NoError(t, err)
