@@ -36,6 +36,7 @@ github.com/keys-pub/keys v0.0.0-20200316013823-95ce7c6cb5fa/go.mod h1:/uNDuQDL1k
 github.com/keys-pub/keys v0.0.0-20200317181626-44d21a618612 h1:BH+/EXbdGG5FAvMtW5ZZ+QnyMuep/bEbP7cUSBq949U=
 github.com/keys-pub/keys v0.0.0-20200317181626-44d21a618612/go.mod h1:k/6AQo72ji46Q03AX8C2jLUd4dmGM6djrEZY+LVr6Ww=
 github.com/keys-pub/keysd v0.0.23 h1:t166nYPZFhXUP/s1pv5QUjln5Q3j+WF1Y2gJWd+7iJI=
+github.com/keys-pub/keysd v0.0.24 h1:f43MvTtJCOKkbFdO+Ikbz+glVEHV6TJ9pTLmR2cIZdE=
 github.com/keys-pub/keysd/http/api v0.0.0-20200314221420-0da6c9407c23 h1:xoHQS/dXWd1njzYU+6vxwVvp07LuT5ZiBhCBHbU1Bfo=
 github.com/keys-pub/keysd/http/api v0.0.0-20200314221420-0da6c9407c23/go.mod h1:oCloF/zhufOxDjykCl9bb1VjDHBQL4mljs5yz21p9/4=
 github.com/keys-pub/keysd/http/api v0.0.0-20200317222534-a1c37d8b9903 h1:fFcAW62c14k/6GMzaf73LqTf+oPQzRtU2erVCW98zLw=

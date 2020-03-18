@@ -38,7 +38,7 @@ func TestNewWormhole(t *testing.T) {
 	require.NoError(t, err)
 	defer wha.Close()
 	wha.SetTimeNow(env.clock.Now)
-	wha.OnChannel(func(label string, id uint16) {
+	wha.OnOpen(func() {
 		wg.Done()
 	})
 	go func() {
@@ -52,7 +52,7 @@ func TestNewWormhole(t *testing.T) {
 	require.NoError(t, err)
 	defer whb.Close()
 	whb.SetTimeNow(env.clock.Now)
-	whb.OnChannel(func(label string, id uint16) {
+	whb.OnOpen(func() {
 		wg.Done()
 	})
 	go func() {
@@ -83,6 +83,19 @@ func TestNewWormhole(t *testing.T) {
 	require.NoError(t, err)
 
 	msgWg.Wait()
+
+	// Close
+	closeWg := &sync.WaitGroup{}
+	closeWg.Add(2)
+	wha.OnClose(func() {
+		closeWg.Done()
+	})
+	wha.OnClose(func() {
+		closeWg.Done()
+	})
+
+	wha.Close()
+	whb.Close()
 }
 
 func TestWormholeCancel(t *testing.T) {

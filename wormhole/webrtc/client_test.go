@@ -11,7 +11,7 @@ import (
 )
 
 func TestNewClient(t *testing.T) {
-	webrtc.SetLogger(webrtc.NewLogger(webrtc.DebugLevel))
+	// webrtc.SetLogger(webrtc.NewLogger(webrtc.DebugLevel))
 
 	alice, err := webrtc.NewClient()
 	require.NoError(t, err)
@@ -21,31 +21,41 @@ func TestNewClient(t *testing.T) {
 	messageWg := &sync.WaitGroup{}
 	messageWg.Add(2)
 
-	alice.OnMessage(func(message *webrtc.DataChannelMessage) {
-		t.Logf("bob: %s", string(message.Data))
-		if string(message.Data) == "ping" {
+	alice.OnMessage(func(message webrtc.Message) {
+		t.Logf("bob: %s", string(message.Data()))
+		if string(message.Data()) == "ping" {
 			err := alice.Send([]byte("pong"))
 			require.NoError(t, err)
 			messageWg.Done()
 		}
 	})
 
-	bob.OnMessage(func(message *webrtc.DataChannelMessage) {
-		t.Logf("alice: %s", string(message.Data))
+	bob.OnMessage(func(message webrtc.Message) {
+		t.Logf("alice: %s", string(message.Data()))
 		messageWg.Done()
 	})
 
+	// Open wait group
 	channelWg := &sync.WaitGroup{}
 	channelWg.Add(2)
-
-	alice.OnChannel(func(channel *webrtc.DataChannel) {
+	alice.OnOpen(func(channel webrtc.Channel) {
+		channelWg.Done()
+	})
+	bob.OnOpen(func(channel webrtc.Channel) {
 		channelWg.Done()
 	})
 
-	bob.OnChannel(func(channel *webrtc.DataChannel) {
-		channelWg.Done()
+	// Close wait group
+	closeWg := &sync.WaitGroup{}
+	closeWg.Add(2)
+	alice.OnClose(func(channel webrtc.Channel) {
+		closeWg.Done()
+	})
+	bob.OnClose(func(channel webrtc.Channel) {
+		closeWg.Done()
 	})
 
+	// Offer
 	offer, err := alice.Offer("test")
 	require.NoError(t, err)
 	answer, err := bob.Answer(offer)
@@ -65,11 +75,11 @@ func TestNewClient(t *testing.T) {
 
 	alice.Close()
 	bob.Close()
+
+	closeWg.Wait()
 }
 
 func ExampleNewClient() {
-	webrtc.SetLogger(webrtc.NewLogger(webrtc.DebugLevel))
-
 	alice, err := webrtc.NewClient()
 	if err != nil {
 		log.Fatal(err)
@@ -82,9 +92,9 @@ func ExampleNewClient() {
 	messageWg := &sync.WaitGroup{}
 	messageWg.Add(2)
 
-	alice.OnMessage(func(message *webrtc.DataChannelMessage) {
-		fmt.Printf("bob: %s\n", string(message.Data))
-		if string(message.Data) == "ping" {
+	alice.OnMessage(func(message webrtc.Message) {
+		fmt.Printf("bob: %s\n", string(message.Data()))
+		if string(message.Data()) == "ping" {
 			if err := alice.Send([]byte("pong")); err != nil {
 				log.Fatal(err)
 			}
@@ -92,19 +102,19 @@ func ExampleNewClient() {
 		}
 	})
 
-	bob.OnMessage(func(message *webrtc.DataChannelMessage) {
-		fmt.Printf("alice: %s\n", string(message.Data))
+	bob.OnMessage(func(message webrtc.Message) {
+		fmt.Printf("alice: %s\n", string(message.Data()))
 		messageWg.Done()
 	})
 
 	channelWg := &sync.WaitGroup{}
 	channelWg.Add(2)
 
-	alice.OnChannel(func(msg *webrtc.DataChannel) {
+	alice.OnOpen(func(msg webrtc.Channel) {
 		channelWg.Done()
 	})
 
-	bob.OnChannel(func(msg *webrtc.DataChannel) {
+	bob.OnOpen(func(msg webrtc.Channel) {
 		channelWg.Done()
 	})
 
