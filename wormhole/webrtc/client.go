@@ -9,7 +9,9 @@ import (
 
 type DataChannel = webrtc.DataChannel
 type DataChannelMessage = webrtc.DataChannelMessage
+type SessionDescription = webrtc.SessionDescription
 
+// Client for webrtc.
 type Client struct {
 	sync.Mutex
 	config  webrtc.Configuration
@@ -20,6 +22,7 @@ type Client struct {
 	messageLn func(msg *DataChannelMessage)
 }
 
+// NewClient creates webrtc Client.
 func NewClient() (*Client, error) {
 	config := webrtc.Configuration{
 		ICEServers: []webrtc.ICEServer{
@@ -144,6 +147,10 @@ func (c *Client) Close() {
 	if c.channel != nil {
 		c.channel.Close()
 	}
+}
+
+func (c *Client) Channel() *DataChannel {
+	return c.channel
 }
 
 func (c *Client) onChannel(channel *DataChannel) {

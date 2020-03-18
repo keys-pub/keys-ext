@@ -16,16 +16,16 @@ func TestMessages(t *testing.T) {
 	env := testEnv(t)
 	defer env.closeFn()
 
-	aliceKs := keys.NewMemKeystore()
-	aliceClient := testClient(t, env, aliceKs)
+	ksa := keys.NewMemKeystore()
+	aliceClient := testClient(t, env, ksa)
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
-	err := aliceKs.SaveEdX25519Key(alice)
+	err := ksa.SaveEdX25519Key(alice)
 	require.NoError(t, err)
 
-	bobKs := keys.NewMemKeystore()
-	bobClient := testClient(t, env, bobKs)
+	ksb := keys.NewMemKeystore()
+	bobClient := testClient(t, env, ksb)
 	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
-	err = bobKs.SaveEdX25519Key(bob)
+	err = ksb.SaveEdX25519Key(bob)
 	require.NoError(t, err)
 
 	// SendMessage #1

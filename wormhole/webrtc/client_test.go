@@ -38,11 +38,11 @@ func TestNewClient(t *testing.T) {
 	channelWg := &sync.WaitGroup{}
 	channelWg.Add(2)
 
-	alice.OnChannel(func(msg *webrtc.DataChannel) {
+	alice.OnChannel(func(channel *webrtc.DataChannel) {
 		channelWg.Done()
 	})
 
-	bob.OnChannel(func(msg *webrtc.DataChannel) {
+	bob.OnChannel(func(channel *webrtc.DataChannel) {
 		channelWg.Done()
 	})
 
@@ -112,6 +112,7 @@ func ExampleNewClient() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	answer, err := bob.Answer(offer)
 	if err != nil {
 		log.Fatal(err)
