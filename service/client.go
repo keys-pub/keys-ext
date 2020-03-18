@@ -335,7 +335,7 @@ func (e errorHandler) clientError(err error) {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(1)
 	}
-	logger.Infof("Received status error %d %s", st.Code(), st.Message())
+	logger.Infof("Received error %d %s", st.Code(), st.Message())
 
 	switch st.Code() {
 	case codes.Unavailable:
