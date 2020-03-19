@@ -77,7 +77,7 @@ func NewClient() (*Client, error) {
 
 func (c *Client) newAPI() (*webrtc.API, error) {
 	wlg := logging.NewDefaultLoggerFactory()
-	wlg.DefaultLogLevel = logging.LogLevelTrace
+	// wlg.DefaultLogLevel = logging.LogLevelTrace
 	se := webrtc.SettingEngine{
 		LoggerFactory: wlg,
 	}
@@ -166,6 +166,7 @@ func (c *Client) Answer(offer *webrtc.SessionDescription) (*webrtc.SessionDescri
 	if err := conn.SetRemoteDescription(*offer); err != nil {
 		return nil, err
 	}
+
 	answer, err := conn.CreateAnswer(nil)
 	if err != nil {
 		return nil, err
@@ -173,6 +174,7 @@ func (c *Client) Answer(offer *webrtc.SessionDescription) (*webrtc.SessionDescri
 	if err := conn.SetLocalDescription(answer); err != nil {
 		return nil, err
 	}
+
 	return &answer, nil
 }
 
