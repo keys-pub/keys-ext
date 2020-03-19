@@ -28,6 +28,18 @@ func (m message) Data() []byte {
 
 type SessionDescription = webrtc.SessionDescription
 
+type Status string
+
+const (
+	Initialized  Status = "init"
+	Checking     Status = "checking"
+	Connected    Status = "connected"
+	Completed    Status = "completed"
+	Disconnected Status = "disconnected"
+	Failed       Status = "failed"
+	Closed       Status = "closed"
+)
+
 // Client for webrtc.
 type Client struct {
 	sync.Mutex
@@ -37,6 +49,7 @@ type Client struct {
 
 	openLn    func(channel Channel)
 	closeLn   func(channel Channel)
+	statusLn  func(status Status)
 	messageLn func(msg Message)
 }
 
@@ -55,6 +68,7 @@ func NewClient() (*Client, error) {
 		openLn:    func(channel Channel) {},
 		closeLn:   func(channel Channel) {},
 		messageLn: func(msg Message) {},
+		statusLn:  func(status Status) {},
 	}
 
 	return c, nil
@@ -67,7 +81,9 @@ func (c *Client) newConnection() (*webrtc.PeerConnection, error) {
 	}
 
 	conn.OnICEConnectionStateChange(func(connectionState webrtc.ICEConnectionState) {
-		logger.Infof("ICE: %s", connectionState.String())
+		status := connectionStatus(connectionState)
+		logger.Infof("Status: %s", status)
+		c.statusLn(status)
 	})
 
 	conn.OnDataChannel(func(channel *webrtc.DataChannel) {
@@ -191,6 +207,10 @@ func (c *Client) onMessage(m webrtc.DataChannelMessage) {
 	c.messageLn(&message{m})
 }
 
+func (c *Client) OnStatus(f func(Status)) {
+	c.statusLn = f
+}
+
 func (c *Client) OnOpen(f func(Channel)) {
 	c.openLn = f
 }
@@ -208,4 +228,25 @@ func (c *Client) Send(data []byte) error {
 		return errors.Errorf("no channel")
 	}
 	return c.channel.Send(data)
+}
+
+func connectionStatus(connectionState webrtc.ICEConnectionState) Status {
+	switch connectionState {
+	case webrtc.ICEConnectionStateNew:
+		return Initialized
+	case webrtc.ICEConnectionStateChecking:
+		return Checking
+	case webrtc.ICEConnectionStateConnected:
+		return Connected
+	case webrtc.ICEConnectionStateCompleted:
+		return Completed
+	case webrtc.ICEConnectionStateDisconnected:
+		return Disconnected
+	case webrtc.ICEConnectionStateFailed:
+		return Failed
+	case webrtc.ICEConnectionStateClosed:
+		return Closed
+	default:
+		return Initialized
+	}
 }

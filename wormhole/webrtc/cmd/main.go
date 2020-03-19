@@ -30,6 +30,22 @@ func main() {
 
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
+	client.OnStatus(func(status webrtc.Status) {
+		switch status {
+		case webrtc.Failed:
+			log.Printf("Failed.\n")
+			os.Exit(1)
+		case webrtc.Disconnected:
+			log.Printf("Disconnected.\n")
+			os.Exit(2)
+		case webrtc.Closed:
+			log.Printf("Closed.\n")
+			os.Exit(1)
+		default:
+			log.Printf("Status: %s\n", status)
+		}
+
+	})
 	client.OnOpen(func(channel webrtc.Channel) {
 		fmt.Printf("opened\n")
 		wg.Done()
@@ -37,6 +53,7 @@ func main() {
 	client.OnMessage(func(message webrtc.Message) {
 		fmt.Printf("Recieved: %s\n", string(message.Data()))
 		if string(message.Data()) == "ping" {
+			fmt.Printf("Send pong...\n")
 			if err := client.Send([]byte("pong")); err != nil {
 				panic(err)
 			}
@@ -64,6 +81,7 @@ func main() {
 		if err := client.SetAnswer(answer); err != nil {
 			log.Fatal(err)
 		}
+		fmt.Printf("Set answer.\n")
 	} else {
 		fmt.Printf("Enter offer:\n")
 		offer, err := readSession()
@@ -80,6 +98,7 @@ func main() {
 		}
 	}
 
+	fmt.Printf("Waiting for channel...\n")
 	wg.Wait()
 
 	fmt.Printf("Send ping...\n")
