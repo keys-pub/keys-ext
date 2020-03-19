@@ -103,8 +103,6 @@ func main() {
 	}
 
 	if *offer {
-		waitForOK()
-
 		fmt.Printf("Creating channel...\n")
 		if err := client.CreateChannel(""); err != nil {
 			log.Fatal(err)
@@ -120,17 +118,6 @@ func main() {
 	}
 
 	select {}
-}
-
-func waitForOK() {
-	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Printf("Continue [y/n]? ")
-	for scanner.Scan() {
-		if strings.ToLower(scanner.Text()) == "y" {
-			fmt.Printf("\n")
-			return
-		}
-	}
 }
 
 func readSession() (*webrtc.SessionDescription, error) {
