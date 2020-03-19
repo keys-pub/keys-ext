@@ -1,8 +1,6 @@
 package stun
 
 import (
-	"net"
-
 	"github.com/pkg/errors"
 	"gortc.io/stun"
 )
@@ -12,18 +10,9 @@ var stunServer = "stun.l.google.com:19302"
 type OnPeer func(addr string)
 type OnMessage func(message []byte)
 
-type Conn interface {
-	Send(message []byte) error
-	Listen() <-chan []byte
-	LocalAddr() net.Addr
-	SendBindingRequest() error
-	SetPeer(addr string) error
-	Close() error
-}
-
 type Client struct {
 	publicAddr stun.XORMappedAddress
-	conn       Conn
+	conn       *UDPConn
 	quit       chan bool
 	onPeer     OnPeer
 	onMessage  OnMessage

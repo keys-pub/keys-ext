@@ -10,10 +10,8 @@ require (
 	github.com/keys-pub/keysd/http/client v0.0.0-20200317224602-68134b1264db
 	github.com/keys-pub/keysd/http/server v0.0.0-20200317222721-717bf70f4f22
 	github.com/pion/logging v0.2.2
-	github.com/pion/quic v0.1.1
 	github.com/pion/webrtc/v2 v2.2.3
 	github.com/pkg/errors v0.9.1
-	github.com/schollz/logger v1.2.0
 	github.com/stretchr/testify v1.5.1
 	golang.org/x/crypto v0.0.0-20200317142112-1b76d66859c6 // indirect
 	golang.org/x/sys v0.0.0-20200317113312-5766fd39f98d // indirect

@@ -10,8 +10,8 @@ import (
 var udp = "udp"
 
 type UDPConn struct {
-	addr *net.UDPAddr
-	conn *net.UDPConn
+	peerAddr *net.UDPAddr
+	conn     *net.UDPConn
 }
 
 func ListenUDP() (*UDPConn, error) {
@@ -35,10 +35,10 @@ func (c *UDPConn) SendBindingRequest() error {
 }
 
 func (c *UDPConn) Send(msg []byte) error {
-	if c.addr == nil {
+	if c.peerAddr == nil {
 		return errors.Errorf("no peer address set")
 	}
-	n, err := c.conn.WriteToUDP(msg, c.addr)
+	n, err := c.conn.WriteToUDP(msg, c.peerAddr)
 	if err != nil {
 		return err
 	}
@@ -80,7 +80,7 @@ func (c *UDPConn) SetPeer(addr string) error {
 	if err != nil {
 		return err
 	}
-	c.addr = a
+	c.peerAddr = a
 	return nil
 }
 
