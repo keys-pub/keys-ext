@@ -39,7 +39,7 @@ func main() {
 			log.Printf("Closed.\n")
 			os.Exit(1)
 		default:
-			// log.Printf("Status: %s\n", status)
+			log.Printf("Status: %s\n", status)
 		}
 
 	})
