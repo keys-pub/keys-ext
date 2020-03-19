@@ -135,8 +135,14 @@ func (w *Wormhole) Start(ctx context.Context, sender *keys.EdX25519Key, recipien
 		}
 	})
 
+	received := false
 	w.rtc.OnMessage(func(message webrtc.Message) {
 		logger.Infof("Handshake received...")
+		if received {
+			noiseErr = errors.Errorf("handshake already received")
+			return
+		}
+		received = true
 		if _, err := noise.HandshakeRead(message.Data()); err != nil {
 			noiseErr = err
 			wg.Done()

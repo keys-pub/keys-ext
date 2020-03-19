@@ -47,13 +47,19 @@ func wormholeCommands(client *Client) []cli.Command {
 								return
 							}
 							recvErr = err
-							wg.Done()
+							if wg != nil {
+								wg.Done()
+								wg = nil
+							}
 							return
 						}
 
 						if resp.Status == WormholeStatusOpen && !open {
 							fmt.Printf("Wormhole open, type a message.\n")
-							wg.Done()
+							if wg != nil {
+								wg.Done()
+								wg = nil
+							}
 						}
 
 						if len(resp.Data) != 0 {
