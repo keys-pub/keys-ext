@@ -2,7 +2,6 @@ package webrtc
 
 import (
 	"sync"
-	"time"
 
 	"github.com/pion/logging"
 	"github.com/pion/webrtc/v2"
@@ -173,13 +172,9 @@ func (c *Client) Answer(offer *webrtc.SessionDescription) (*webrtc.SessionDescri
 		return nil, err
 	}
 
-	go func() {
-		time.Sleep(time.Second * 5)
-		if err := conn.SetLocalDescription(answer); err != nil {
-			// return nil, err
-			panic(err)
-		}
-	}()
+	if err := conn.SetLocalDescription(answer); err != nil {
+		return nil, err
+	}
 
 	return &answer, nil
 }
