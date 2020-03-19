@@ -52,11 +52,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// This message is ignored (needed to allow bob to send)
-	if err := client.Send([]byte("?")); err != nil {
-		log.Fatal(err)
-	}
-
 	if err := client.Send([]byte("ping")); err != nil {
 		log.Fatal(err)
 	}

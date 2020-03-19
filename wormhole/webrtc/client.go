@@ -3,6 +3,7 @@ package webrtc
 import (
 	"sync"
 
+	"github.com/pion/logging"
 	"github.com/pion/webrtc/v2"
 	"github.com/pkg/errors"
 )
@@ -74,8 +75,22 @@ func NewClient() (*Client, error) {
 	return c, nil
 }
 
+func (c *Client) newAPI() (*webrtc.API, error) {
+	wlg := logging.NewDefaultLoggerFactory()
+	wlg.DefaultLogLevel = logging.LogLevelTrace
+	se := webrtc.SettingEngine{
+		LoggerFactory: wlg,
+	}
+	api := webrtc.NewAPI(webrtc.WithSettingEngine(se))
+	return api, nil
+}
+
 func (c *Client) newConnection() (*webrtc.PeerConnection, error) {
-	conn, err := webrtc.NewPeerConnection(c.config)
+	api, err := c.newAPI()
+	if err != nil {
+		return nil, err
+	}
+	conn, err := api.NewPeerConnection(c.config)
 	if err != nil {
 		return nil, err
 	}

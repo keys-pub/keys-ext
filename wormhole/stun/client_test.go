@@ -65,8 +65,7 @@ func ExampleNewClient() {
 	peerWg.Wait()
 	log.Printf("Got peer addresses\n")
 
-	// This message is ignored (needed to allow bob to send)
-	if err := alice.Send([]byte("?")); err != nil {
+	if err := alice.Send([]byte("ping")); err != nil {
 		log.Fatal(err)
 	}
 
