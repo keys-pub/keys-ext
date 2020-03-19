@@ -11,6 +11,7 @@ import (
 // Channel.
 type Channel interface {
 	Label() string
+	Send(b []byte) error
 	OnClose(f func())
 }
 
@@ -51,7 +52,7 @@ type Client struct {
 	openLn    func(channel Channel)
 	closeLn   func(channel Channel)
 	statusLn  func(status Status)
-	messageLn func(msg Message)
+	messageLn func(channel Channel, msg Message)
 }
 
 // NewClient creates webrtc Client.
@@ -68,7 +69,7 @@ func NewClient() (*Client, error) {
 		config:    config,
 		openLn:    func(channel Channel) {},
 		closeLn:   func(channel Channel) {},
-		messageLn: func(msg Message) {},
+		messageLn: func(channel Channel, msg Message) {},
 		statusLn:  func(status Status) {},
 	}
 
@@ -102,6 +103,7 @@ func (c *Client) newConnection() (*webrtc.PeerConnection, error) {
 	})
 
 	conn.OnDataChannel(func(channel *webrtc.DataChannel) {
+		logger.Infof("Data channel: %s", channel.Label())
 		c.register(channel)
 	})
 
@@ -116,11 +118,11 @@ func (c *Client) register(channel *webrtc.DataChannel) {
 		c.onClose(channel)
 	})
 	channel.OnMessage(func(m webrtc.DataChannelMessage) {
-		c.onMessage(m)
+		c.onMessage(channel, m)
 	})
 }
 
-func (c *Client) Offer(label string) (*webrtc.SessionDescription, error) {
+func (c *Client) Offer() (*webrtc.SessionDescription, error) {
 	c.Lock()
 	defer c.Unlock()
 
@@ -132,12 +134,6 @@ func (c *Client) Offer(label string) (*webrtc.SessionDescription, error) {
 		return nil, err
 	}
 	c.conn = conn
-
-	channel, err := conn.CreateDataChannel(label, nil)
-	if err != nil {
-		return nil, err
-	}
-	c.register(channel)
 
 	offer, err := conn.CreateOffer(nil)
 	if err != nil {
@@ -208,6 +204,21 @@ func (c *Client) Close() {
 	}
 }
 
+func (c *Client) CreateChannel(label string) error {
+	if c.conn == nil {
+		return errors.Errorf("no connection")
+	}
+	if c.channel != nil {
+		return errors.Errorf("channel already exists")
+	}
+	channel, err := c.conn.CreateDataChannel(label, nil)
+	if err != nil {
+		return err
+	}
+	c.register(channel)
+	return nil
+}
+
 func (c *Client) Channel() Channel {
 	return c.channel
 }
@@ -218,11 +229,12 @@ func (c *Client) onOpen(channel *webrtc.DataChannel) {
 }
 
 func (c *Client) onClose(channel *webrtc.DataChannel) {
+	c.channel = nil
 	c.closeLn(channel)
 }
 
-func (c *Client) onMessage(m webrtc.DataChannelMessage) {
-	c.messageLn(&message{m})
+func (c *Client) onMessage(channel *webrtc.DataChannel, m webrtc.DataChannelMessage) {
+	c.messageLn(channel, &message{m})
 }
 
 func (c *Client) OnStatus(f func(Status)) {
@@ -237,7 +249,7 @@ func (c *Client) OnClose(f func(Channel)) {
 	c.closeLn = f
 }
 
-func (c *Client) OnMessage(f func(Message)) {
+func (c *Client) OnMessage(f func(Channel, Message)) {
 	c.messageLn = f
 }
 

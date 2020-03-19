@@ -21,16 +21,16 @@ func TestNewClient(t *testing.T) {
 	messageWg := &sync.WaitGroup{}
 	messageWg.Add(2)
 
-	alice.OnMessage(func(message webrtc.Message) {
+	alice.OnMessage(func(channel webrtc.Channel, message webrtc.Message) {
 		t.Logf("bob: %s", string(message.Data()))
 		if string(message.Data()) == "ping" {
-			err := alice.Send([]byte("pong"))
+			err := channel.Send([]byte("pong"))
 			require.NoError(t, err)
 			messageWg.Done()
 		}
 	})
 
-	bob.OnMessage(func(message webrtc.Message) {
+	bob.OnMessage(func(channel webrtc.Channel, message webrtc.Message) {
 		t.Logf("alice: %s", string(message.Data()))
 		messageWg.Done()
 	})
@@ -56,11 +56,15 @@ func TestNewClient(t *testing.T) {
 	})
 
 	// Offer
-	offer, err := alice.Offer("test")
+	offer, err := alice.Offer()
 	require.NoError(t, err)
 	answer, err := bob.Answer(offer)
 	require.NoError(t, err)
 	err = alice.SetAnswer(answer)
+	require.NoError(t, err)
+
+	// Channel
+	err = alice.CreateChannel("test")
 	require.NoError(t, err)
 
 	// Wait for channels
@@ -92,17 +96,17 @@ func ExampleNewClient() {
 	messageWg := &sync.WaitGroup{}
 	messageWg.Add(2)
 
-	alice.OnMessage(func(message webrtc.Message) {
+	alice.OnMessage(func(channel webrtc.Channel, message webrtc.Message) {
 		fmt.Printf("bob: %s\n", string(message.Data()))
 		if string(message.Data()) == "ping" {
-			if err := alice.Send([]byte("pong")); err != nil {
+			if err := channel.Send([]byte("pong")); err != nil {
 				log.Fatal(err)
 			}
 			messageWg.Done()
 		}
 	})
 
-	bob.OnMessage(func(message webrtc.Message) {
+	bob.OnMessage(func(channel webrtc.Channel, message webrtc.Message) {
 		fmt.Printf("alice: %s\n", string(message.Data()))
 		messageWg.Done()
 	})
@@ -118,7 +122,7 @@ func ExampleNewClient() {
 		channelWg.Done()
 	})
 
-	offer, err := alice.Offer("test")
+	offer, err := alice.Offer()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -128,6 +132,11 @@ func ExampleNewClient() {
 		log.Fatal(err)
 	}
 	if err := alice.SetAnswer(answer); err != nil {
+		log.Fatal(err)
+	}
+
+	// Channel
+	if err := alice.CreateChannel("test"); err != nil {
 		log.Fatal(err)
 	}
 

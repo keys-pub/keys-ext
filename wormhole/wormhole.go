@@ -88,7 +88,7 @@ func (w *Wormhole) OnMessage(f func(b []byte)) {
 	w.onMessage = f
 }
 
-func (w *Wormhole) messageLn(message webrtc.Message) {
+func (w *Wormhole) messageLn(channel webrtc.Channel, message webrtc.Message) {
 	logger.Infof("Message (%d)", len(message.Data()))
 	decrypted, err := w.noise.Decrypt(nil, nil, message.Data())
 	if err != nil {
@@ -112,6 +112,7 @@ func (w *Wormhole) Start(ctx context.Context, sender *keys.EdX25519Key, recipien
 	}
 	// Initiator is whichever ID is less than
 	initiator := sender.ID() < recipient.ID()
+	logger.Infof("Initator: %t", initiator)
 
 	noise, err := noise.NewNoise(sender.X25519Key(), recipient.X25519PublicKey(), initiator)
 	if err != nil {
@@ -125,50 +126,57 @@ func (w *Wormhole) Start(ctx context.Context, sender *keys.EdX25519Key, recipien
 
 	// Start handshake when channel is connected.
 	w.rtc.OnOpen(func(channel webrtc.Channel) {
+		w.rtc.OnOpen(func(webrtc.Channel) {}) // Once
+
 		if initiator {
 			logger.Infof("Initiate handshake...")
-			if err := w.handshakeWrite(); err != nil {
-				noiseErr = err
-				wg.Done()
+			if err := handshakeWrite(w.noise, channel); err != nil {
+				if noiseErr == nil {
+					noiseErr = err
+					wg.Done()
+				}
 				return
 			}
 		}
 	})
 
-	received := false
-	w.rtc.OnMessage(func(message webrtc.Message) {
+	w.rtc.OnMessage(func(channel webrtc.Channel, message webrtc.Message) {
+		w.rtc.OnMessage(func(webrtc.Channel, webrtc.Message) {}) // Once
+
 		logger.Infof("Handshake received...")
-		if received {
-			noiseErr = errors.Errorf("handshake already received")
-			return
-		}
-		received = true
 		if _, err := noise.HandshakeRead(message.Data()); err != nil {
-			noiseErr = err
-			wg.Done()
+			if noiseErr == nil {
+				noiseErr = err
+				wg.Done()
+			}
 			return
 		}
 		if !initiator {
 			logger.Infof("Handshake respond...")
-			if err := w.handshakeWrite(); err != nil {
-				noiseErr = err
-				wg.Done()
+			if err := handshakeWrite(w.noise, channel); err != nil {
+				if noiseErr == nil {
+					noiseErr = err
+					wg.Done()
+				}
 				return
 			}
-			wg.Done()
-		} else {
-			wg.Done()
 		}
+		wg.Done()
 	})
 
 	if initiator {
-		if err := w.offer(ctx, sender, recipient, "wormhole"); err != nil {
+		if err := w.offer(ctx, sender, recipient); err != nil {
 			return err
 		}
 	} else {
 		if err := w.answer(ctx, sender, recipient); err != nil {
 			return err
 		}
+	}
+
+	// Create channel
+	if err := w.rtc.CreateChannel("wormhole"); err != nil {
+		return err
 	}
 
 	c := make(chan bool)
@@ -212,9 +220,9 @@ func (w *Wormhole) Send(b []byte) error {
 	return w.rtc.Send(encrypted)
 }
 
-func (w *Wormhole) offer(ctx context.Context, sender *keys.EdX25519Key, recipient *keys.EdX25519PublicKey, label string) error {
+func (w *Wormhole) offer(ctx context.Context, sender *keys.EdX25519Key, recipient *keys.EdX25519PublicKey) error {
 	logger.Infof("Creating offer...")
-	offer, err := w.rtc.Offer(label)
+	offer, err := w.rtc.Offer()
 	if err != nil {
 		return err
 	}
@@ -358,12 +366,12 @@ func (w *Wormhole) answer(ctx context.Context, sender *keys.EdX25519Key, recipie
 	return nil
 }
 
-func (w *Wormhole) handshakeWrite() error {
-	out, err := w.noise.HandshakeWrite(nil)
+func handshakeWrite(noise *noise.Noise, channel webrtc.Channel) error {
+	out, err := noise.HandshakeWrite(nil)
 	if err != nil {
 		return err
 	}
-	if err := w.rtc.Send(out); err != nil {
+	if err := channel.Send(out); err != nil {
 		return err
 	}
 	return nil

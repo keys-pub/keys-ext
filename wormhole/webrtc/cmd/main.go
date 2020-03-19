@@ -39,7 +39,7 @@ func main() {
 			log.Printf("Closed.\n")
 			os.Exit(1)
 		default:
-			log.Printf("Status: %s\n", status)
+			// log.Printf("Status: %s\n", status)
 		}
 
 	})
@@ -47,11 +47,11 @@ func main() {
 		fmt.Printf("opened\n")
 		wg.Done()
 	})
-	client.OnMessage(func(message webrtc.Message) {
+	client.OnMessage(func(channel webrtc.Channel, message webrtc.Message) {
 		fmt.Printf("Recieved: %s\n", string(message.Data()))
 		if string(message.Data()) == "ping" {
 			fmt.Printf("Send pong...\n")
-			if err := client.Send([]byte("pong")); err != nil {
+			if err := channel.Send([]byte("pong")); err != nil {
 				panic(err)
 			}
 		}
@@ -61,13 +61,13 @@ func main() {
 	})
 
 	if *offer {
-		offer, err := client.Offer("test")
+		offer, err := client.Offer()
 		if err != nil {
 			log.Fatal(err)
 		}
 		fmt.Printf("Offer:\n")
-		fmt.Printf("%s\n", offer.SDP)
-		fmt.Printf("Encoded:\n")
+		// fmt.Printf("%s\n", offer.SDP)
+		// fmt.Printf("Encoded:\n")
 		if err := writeSession(offer); err != nil {
 			log.Fatal(err)
 		}
@@ -81,23 +81,32 @@ func main() {
 			log.Fatal(err)
 		}
 		fmt.Printf("Set answer.\n")
-		fmt.Printf("%s\n", answer.SDP)
+		// fmt.Printf("%s\n", answer.SDP)
 	} else {
 		fmt.Printf("Enter offer:\n")
 		offer, err := readSession()
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Printf("Offer:\n")
-		fmt.Printf("%s\n", offer.SDP)
+		// fmt.Printf("Offer:\n")
+		// fmt.Printf("%s\n", offer.SDP)
 		answer, err := client.Answer(offer)
 		if err != nil {
 			log.Fatal(err)
 		}
 		fmt.Printf("Answer:\n")
-		fmt.Printf("%s\n", answer.SDP)
-		fmt.Printf("Encoded:\n")
+		// fmt.Printf("%s\n", answer.SDP)
+		// fmt.Printf("Encoded:\n")
 		if err := writeSession(answer); err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	if *offer {
+		waitForOK()
+
+		fmt.Printf("Creating channel...\n")
+		if err := client.CreateChannel(""); err != nil {
 			log.Fatal(err)
 		}
 	}
@@ -111,6 +120,17 @@ func main() {
 	}
 
 	select {}
+}
+
+func waitForOK() {
+	scanner := bufio.NewScanner(os.Stdin)
+	fmt.Printf("Continue [y/n]? ")
+	for scanner.Scan() {
+		if strings.ToLower(scanner.Text()) == "y" {
+			fmt.Printf("\n")
+			return
+		}
+	}
 }
 
 func readSession() (*webrtc.SessionDescription, error) {
