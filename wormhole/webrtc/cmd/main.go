@@ -69,6 +69,8 @@ func main() {
 			log.Fatal(err)
 		}
 		fmt.Printf("Offer:\n")
+		fmt.Printf("%s\n", offer.SDP)
+		fmt.Printf("Encoded:\n")
 		if err := writeSession(offer); err != nil {
 			log.Fatal(err)
 		}
@@ -82,17 +84,22 @@ func main() {
 			log.Fatal(err)
 		}
 		fmt.Printf("Set answer.\n")
+		fmt.Printf("%s\n", answer.SDP)
 	} else {
 		fmt.Printf("Enter offer:\n")
 		offer, err := readSession()
 		if err != nil {
 			log.Fatal(err)
 		}
+		fmt.Printf("Offer:\n")
+		fmt.Printf("%s\n", offer.SDP)
 		answer, err := client.Answer(offer)
 		if err != nil {
 			log.Fatal(err)
 		}
 		fmt.Printf("Answer:\n")
+		fmt.Printf("%s\n", answer.SDP)
+		fmt.Printf("Encoded:\n")
 		if err := writeSession(answer); err != nil {
 			log.Fatal(err)
 		}
@@ -161,6 +168,6 @@ func writeSession(s *webrtc.SessionDescription) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%s\n", enc)
+	fmt.Printf("%s\n\n", enc)
 	return nil
 }

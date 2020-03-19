@@ -77,7 +77,7 @@ func NewClient() (*Client, error) {
 
 func (c *Client) newAPI() (*webrtc.API, error) {
 	wlg := logging.NewDefaultLoggerFactory()
-	wlg.DefaultLogLevel = logging.LogLevelTrace
+	// wlg.DefaultLogLevel = logging.LogLevelDebug
 	se := webrtc.SettingEngine{
 		LoggerFactory: wlg,
 	}
