@@ -301,10 +301,12 @@ func (w *Wormhole) findMessage(sender *keys.EdX25519Key, recipient *keys.EdX2551
 		if msg.ID == sessionMsgID {
 			continue
 		}
-		logger.Infof("Found session message...")
 		b, pk, err := w.hcl.DecryptMessage(sender, msgs[0])
 		if err != nil {
 			return nil, err
+		}
+		if pk == sender.ID() {
+			continue
 		}
 		if pk != recipient.ID() {
 			return nil, errors.Errorf("session not by recipient %s != %s", pk, recipient.ID())
