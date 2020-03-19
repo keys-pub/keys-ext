@@ -32,9 +32,6 @@ func main() {
 	wg.Add(1)
 	client.OnStatus(func(status webrtc.Status) {
 		switch status {
-		case webrtc.Failed:
-			log.Printf("Failed.\n")
-			os.Exit(1)
 		case webrtc.Disconnected:
 			log.Printf("Disconnected.\n")
 			os.Exit(2)
