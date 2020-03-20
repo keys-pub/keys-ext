@@ -29,6 +29,7 @@ github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSs
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
+github.com/flynn/noise v0.0.0-20180327030543-2492fe189ae6/go.mod h1:1i71OnUq3iUe1ma7Lr6yG6/rjvM3emb6yoL7xLFzcVQ=
 github.com/go-gl/glfw v0.0.0-20190409004039-e6da0acd62b1/go.mod h1:vR7hzQXu2zJy9AVAgeJqvqgH9Q5CA+iKCZ2gyEVpxRU=
 github.com/go-gl/glfw/v3.3/glfw v0.0.0-20191125211704-12ad95a8df72/go.mod h1:tQ2UAYgL5IevRw8kRxooKSPJfGvJ9fJQFa0TUsXzTg8=
 github.com/godbus/dbus v4.1.0+incompatible h1:WqqLRTsQic3apZUK9qC5sGNfXthmPXzUZ7nQPrNITa4=
@@ -93,6 +94,8 @@ github.com/keys-pub/keys v0.0.0-20200314221622-6f842a6599a4/go.mod h1:/uNDuQDL1k
 github.com/keys-pub/keys v0.0.0-20200316010352-3204a0fbc383/go.mod h1:/uNDuQDL1kCcJVsKMG2xLwUMS7zvoUrWL9k1OMZ7GZw=
 github.com/keys-pub/keys v0.0.0-20200316013823-95ce7c6cb5fa h1:Cew0/Hs7vrKmwwqhvqFmQUXlb2gv5D0epMSfcTpCPRA=
 github.com/keys-pub/keys v0.0.0-20200316013823-95ce7c6cb5fa/go.mod h1:/uNDuQDL1kCcJVsKMG2xLwUMS7zvoUrWL9k1OMZ7GZw=
+github.com/keys-pub/keys v0.0.0-20200320021630-30bfb06feb37 h1:q8cwoF0EHy3AdZaGZuvFk85upt2+fTMwzdU2YSHDKpo=
+github.com/keys-pub/keys v0.0.0-20200320021630-30bfb06feb37/go.mod h1:k/6AQo72ji46Q03AX8C2jLUd4dmGM6djrEZY+LVr6Ww=
 github.com/keys-pub/keysd/firestore v0.0.0-20200316164109-d91c033d5a0d/go.mod h1:TtTWQiaTCJFuld8NyvQOPKnUucWs+GQMDbheaVTiWTM=
 github.com/keys-pub/keysd/http/api v0.0.0-20200107201206-c0f295622c20 h1:d1vFlbu2IrOEDtBwefOFI7nmb+w5/3uz7qnBzyGT7yg=
 github.com/keys-pub/keysd/http/api v0.0.0-20200107201206-c0f295622c20/go.mod h1:Wb7CizkwyJDE1NvYbL6ZmANI4Cq2953MoV8fXzrZASY=
@@ -147,6 +150,8 @@ github.com/keys-pub/keysd/http/server v0.0.0-20200316015545-74d8e4c8a014 h1:UjHs
 github.com/keys-pub/keysd/http/server v0.0.0-20200316015545-74d8e4c8a014/go.mod h1:jcZgkH6XO1L4U1FEsapkqSlKC3qtmQ+fqvU81GC8JwM=
 github.com/keys-pub/keysd/http/server v0.0.0-20200317222721-717bf70f4f22 h1:XXZWs2q8wp0mI/zdkRF/uK98NbDfUkbmbbmSYunIzlE=
 github.com/keys-pub/keysd/http/server v0.0.0-20200317222721-717bf70f4f22/go.mod h1:bMbtQowPg3FT5A0LJ3ZzH+Rc/eWrqV+24SVFRLzylyM=
+github.com/keys-pub/keysd/http/server v0.0.0-20200320024609-6e3fca134965 h1:1k+Vt0PmT/iTnI09OQLLjYYdQx2K/ugCCx8WJC08oVw=
+github.com/keys-pub/keysd/http/server v0.0.0-20200320024609-6e3fca134965/go.mod h1:ZxZkbKAUbFhR3w+pzTDY/ulGSW8CSsOEr9KTS0Y45rs=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
@@ -172,6 +177,7 @@ github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4/go.mod h1:
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/stretchr/objx v0.1.0 h1:4G4v2dO3VZwixGIRoQ5Lfboy6nUhCyYzaqnIAPPhYs4=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
+github.com/stretchr/objx v0.2.0 h1:Hbg2NidpLE8veEBkEZTL3CvlkUIVzuU9jDplZO54c48=
 github.com/stretchr/objx v0.2.0/go.mod h1:qt09Ya8vawLte6SNmTgCsAVtYtaKzEcn8ATUoHMkEqE=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/stretchr/testify v1.4.0 h1:2E4SXV/wtOkTonXsotYi4li6zVWxYlZuYNCXe9XRJyk=
