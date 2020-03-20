@@ -80,8 +80,6 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		// fmt.Printf("Offer:\n")
-		// fmt.Printf("%s\n", offer.SDP)
 		answer, err := client.Answer(offer)
 		if err != nil {
 			log.Fatal(err)
@@ -103,12 +101,28 @@ func main() {
 }
 
 func writeOffer(offer *webrtc.SessionDescription) error {
-	b, err := json.Marshal(offer)
+	return writeSession(offer, "https://keys.pub/relay/offer")
+}
+
+func readOffer() (*webrtc.SessionDescription, error) {
+	return readSession("https://keys.pub/relay/offer")
+}
+
+func writeAnswer(answer *webrtc.SessionDescription) error {
+	return writeSession(answer, "https://keys.pub/relay/answer")
+}
+
+func readAnswer() (*webrtc.SessionDescription, error) {
+	return readSession("https://keys.pub/relay/answer")
+}
+
+func writeSession(session *webrtc.SessionDescription, url string) error {
+	b, err := json.Marshal(session)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Write offer: %s\n", string(b))
-	resp, err := http.Post("https://keys.pub/relay/offer", "application/json; charset=utf-8", bytes.NewBuffer(b))
+	fmt.Printf("Write %s: %s\n", url, string(b))
+	resp, err := http.Post(url, "application/json; charset=utf-8", bytes.NewBuffer(b))
 	if err != nil {
 		return err
 	}
@@ -116,10 +130,10 @@ func writeOffer(offer *webrtc.SessionDescription) error {
 	return nil
 }
 
-func readOffer() (*webrtc.SessionDescription, error) {
+func readSession(url string) (*webrtc.SessionDescription, error) {
 	for {
 		fmt.Printf("Get offer...\n")
-		resp, err := http.Get("https://keys.pub/relay/offer")
+		resp, err := http.Get(url)
 		if err != nil {
 			return nil, err
 		}
@@ -129,42 +143,6 @@ func readOffer() (*webrtc.SessionDescription, error) {
 				return nil, err
 			}
 			fmt.Printf("Got offer.\n")
-			return &answer, nil
-		} else if resp.StatusCode == 404 {
-			time.Sleep(time.Second)
-		} else {
-			return nil, errors.Errorf("Failed to get offer %d", resp.StatusCode)
-		}
-	}
-}
-
-func writeAnswer(answer *webrtc.SessionDescription) error {
-	b, err := json.Marshal(answer)
-	if err != nil {
-		return err
-	}
-	fmt.Printf("Write answer: %s\n", string(b))
-	resp, err := http.Post("https://keys.pub/relay/answer", "application/json; charset=utf-8", bytes.NewBuffer(b))
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	return nil
-}
-
-func readAnswer() (*webrtc.SessionDescription, error) {
-	for {
-		fmt.Printf("Get answer...\n")
-		resp, err := http.Get("https://keys.pub/relay/answer")
-		if err != nil {
-			return nil, err
-		}
-		if resp.StatusCode == 200 {
-			var answer webrtc.SessionDescription
-			if err = json.NewDecoder(resp.Body).Decode(&answer); err != nil {
-				return nil, err
-			}
-			fmt.Printf("Got answer.\n")
 			return &answer, nil
 		} else if resp.StatusCode == 404 {
 			time.Sleep(time.Second)
