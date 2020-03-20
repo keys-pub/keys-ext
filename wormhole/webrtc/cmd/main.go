@@ -127,7 +127,7 @@ func main() {
 }
 
 func newKeyring() keyring.Keyring {
-	kr, err := keyring.NewKeyring("webrtc", keyring.System())
+	kr, err := keyring.NewFS("webrtc", os.TempDir())
 	if err != nil {
 		log.Fatal(err)
 	}
