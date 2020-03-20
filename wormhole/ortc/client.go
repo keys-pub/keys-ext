@@ -14,8 +14,9 @@ type Client struct {
 	dtls     *webrtc.DTLSTransport
 	sctp     *webrtc.SCTPTransport
 
-	onOpen    func(*webrtc.DataChannel)
-	onMessage func(*webrtc.DataChannel, webrtc.DataChannelMessage)
+	openLn    func(*webrtc.DataChannel)
+	statusLn  func(status Status)
+	messageLn func(*webrtc.DataChannel, webrtc.DataChannelMessage)
 }
 
 func NewClient() (*Client, error) {
@@ -37,12 +38,6 @@ func NewClient() (*Client, error) {
 
 	ice := api.NewICETransport(gatherer)
 
-	ice.OnConnectionStateChange(func(state webrtc.ICETransportState) {
-		status := connectionStatus(state)
-		logger.Infof("Status: %s", status)
-		// c.statusLn(status)
-	})
-
 	dtls, err := api.NewDTLSTransport(ice, nil)
 	if err != nil {
 		return nil, err
@@ -56,16 +51,23 @@ func NewClient() (*Client, error) {
 		ice:       ice,
 		dtls:      dtls,
 		sctp:      sctp,
-		onOpen:    func(*webrtc.DataChannel) {},
-		onMessage: func(*webrtc.DataChannel, webrtc.DataChannelMessage) {},
+		openLn:    func(*webrtc.DataChannel) {},
+		messageLn: func(*webrtc.DataChannel, webrtc.DataChannelMessage) {},
+		statusLn:  func(status Status) {},
 	}
+
+	ice.OnConnectionStateChange(func(state webrtc.ICETransportState) {
+		status := connectionStatus(state)
+		logger.Infof("Status: %s", status)
+		cl.statusLn(status)
+	})
 
 	sctp.OnDataChannel(func(channel *webrtc.DataChannel) {
 		channel.OnOpen(func() {
-			cl.openLn(channel)
+			cl.onOpen(channel)
 		})
 		channel.OnMessage(func(msg webrtc.DataChannelMessage) {
-			cl.messageLn(channel, msg)
+			cl.onMessage(channel, msg)
 		})
 	})
 
@@ -156,10 +158,10 @@ func (c *Client) Start(signal *Signal, offer bool) error {
 		}
 
 		channel.OnOpen(func() {
-			c.openLn(channel)
+			c.onOpen(channel)
 		})
 		channel.OnMessage(func(msg webrtc.DataChannelMessage) {
-			c.messageLn(channel, msg)
+			c.onMessage(channel, msg)
 		})
 	}
 
@@ -176,20 +178,24 @@ type Signal struct {
 	SCTPCapabilities webrtc.SCTPCapabilities `json:"sctpCapabilities"`
 }
 
-func (c *Client) openLn(channel *webrtc.DataChannel) {
-	c.onOpen(channel)
+func (c *Client) onOpen(channel *webrtc.DataChannel) {
+	c.openLn(channel)
 }
 
-func (c *Client) messageLn(channel *webrtc.DataChannel, msg webrtc.DataChannelMessage) {
-	c.onMessage(channel, msg)
+func (c *Client) onMessage(channel *webrtc.DataChannel, msg webrtc.DataChannelMessage) {
+	c.messageLn(channel, msg)
+}
+
+func (c *Client) OnStatus(f func(Status)) {
+	c.statusLn = f
 }
 
 func (c *Client) OnOpen(f func(channel *webrtc.DataChannel)) {
-	c.onOpen = f
+	c.openLn = f
 }
 
 func (c *Client) OnMessage(f func(channel *webrtc.DataChannel, msg webrtc.DataChannelMessage)) {
-	c.onMessage = f
+	c.messageLn = f
 }
 
 type Status string

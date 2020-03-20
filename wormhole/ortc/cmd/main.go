@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/keys-pub/keys"
@@ -25,6 +26,20 @@ func main() {
 		log.Fatal(err)
 	}
 	defer client.Close()
+
+	client.OnStatus(func(status ortc.Status) {
+		switch status {
+		case ortc.Disconnected:
+			log.Printf("Disconnected.\n")
+			os.Exit(2)
+		case ortc.Closed:
+			log.Printf("Closed.\n")
+			os.Exit(1)
+		default:
+			log.Printf("Status: %s\n", status)
+		}
+
+	})
 
 	signal, err := client.Gather()
 	if err != nil {
