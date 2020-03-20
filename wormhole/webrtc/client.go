@@ -51,6 +51,7 @@ type Client struct {
 	config  webrtc.Configuration
 	conn    *webrtc.PeerConnection
 	channel *webrtc.DataChannel
+	trace   bool
 
 	openLn    func(channel Channel)
 	closeLn   func(channel Channel)
@@ -81,7 +82,9 @@ func NewClient() (*Client, error) {
 
 func (c *Client) newAPI() (*webrtc.API, error) {
 	wlg := logging.NewDefaultLoggerFactory()
-	// wlg.DefaultLogLevel = logging.LogLevelTrace
+	if c.trace {
+		wlg.DefaultLogLevel = logging.LogLevelTrace
+	}
 	// wlg.DefaultLogLevel = logging.LogLevelDebug
 	wlg.Writer = os.Stderr
 	se := webrtc.SettingEngine{
@@ -89,6 +92,10 @@ func (c *Client) newAPI() (*webrtc.API, error) {
 	}
 	api := webrtc.NewAPI(webrtc.WithSettingEngine(se))
 	return api, nil
+}
+
+func (c *Client) SetTrace(trace bool) {
+	c.trace = trace
 }
 
 func (c *Client) newConnection() (*webrtc.PeerConnection, error) {

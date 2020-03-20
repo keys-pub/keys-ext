@@ -21,6 +21,7 @@ func main() {
 	generate := flag.Bool("generate", false, "Generate key")
 	sender := flag.String("sender", "", "Sender")
 	recipient := flag.String("recipient", "", "Recipient")
+	trace := flag.Bool("trace", false, "Trace (debug)")
 	flag.Parse()
 
 	kr := newKeyring()
@@ -50,6 +51,7 @@ func main() {
 		log.Fatal(err)
 	}
 	defer client.Close()
+	client.SetTrace(*trace)
 
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
