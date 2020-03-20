@@ -9,7 +9,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keysd/wormhole/ortc"
+	"github.com/pion/webrtc/v2"
 	"github.com/pkg/errors"
 )
 
@@ -28,62 +30,101 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	postSignal(signal, *offer)
+	if *offer {
+		if err := writeOffer(signal); err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		if err := writeAnswer(signal); err != nil {
+			log.Fatal(err)
+		}
+	}
 
-	remote := readSignal(*offer)
+	var remote *ortc.Signal
+	if *offer {
+		remote, err = readAnswer()
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		remote, err = readOffer()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 
-	if err := client.SetRemote(remote, *offer); err != nil {
+	client.OnOpen(func(channel *webrtc.DataChannel) {
+		go func() {
+			for range time.NewTicker(5 * time.Second).C {
+				message := keys.RandPhrase()
+				fmt.Printf("Sending %s\n", message)
+
+				if err := channel.SendText(message); err != nil {
+					panic(err)
+				}
+			}
+		}()
+	})
+
+	client.OnMessage(func(channel *webrtc.DataChannel, msg webrtc.DataChannelMessage) {
+		fmt.Printf("Message (%s): %s\n", channel.Label(), string(msg.Data))
+	})
+
+	if err := client.Start(remote, *offer); err != nil {
 		log.Fatal(err)
 	}
+
+	select {}
 }
 
-func postSignal(signal *ortc.Signal, offer bool) {
-	b, err := json.Marshal(signal)
-	if err != nil {
-		panic(err)
-	}
+func writeOffer(offer *ortc.Signal) error {
+	return writeSession(offer, "https://keys.pub/relay/offer")
+}
 
-	fmt.Printf("Post signal: %s\n", string(b))
-	url := "https://keys.pub/relay/offer"
-	if !offer {
-		url = "https://keys.pub/relay/answer"
+func readOffer() (*ortc.Signal, error) {
+	return readSession("https://keys.pub/relay/offer")
+}
+
+func writeAnswer(answer *ortc.Signal) error {
+	return writeSession(answer, "https://keys.pub/relay/answer")
+}
+
+func readAnswer() (*ortc.Signal, error) {
+	return readSession("https://keys.pub/relay/answer")
+}
+
+func writeSession(session *ortc.Signal, url string) error {
+	b, err := json.Marshal(session)
+	if err != nil {
+		return err
 	}
+	fmt.Printf("Write %s: %s\n", url, string(b))
 	resp, err := http.Post(url, "application/json; charset=utf-8", bytes.NewBuffer(b))
 	if err != nil {
-		panic(err)
+		return err
 	}
-	defer func() {
-		closeErr := resp.Body.Close()
-		if closeErr != nil {
-			panic(closeErr)
-		}
-	}()
+	defer resp.Body.Close()
+	return nil
 }
 
-func readSignal(offer bool) *ortc.Signal {
-	fmt.Printf("Read signal (offer=%t)..\n", offer)
-	url := "https://keys.pub/relay/answer"
-	if !offer {
-		url = "https://keys.pub/relay/offer"
-	}
+func readSession(url string) (*ortc.Signal, error) {
 	for {
-		fmt.Printf("Get signal..\n")
+		fmt.Printf("Get offer...\n")
 		resp, err := http.Get(url)
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 		if resp.StatusCode == 200 {
-			var signal ortc.Signal
-			err = json.NewDecoder(resp.Body).Decode(&signal)
-			if err != nil {
-				panic(err)
+			var answer ortc.Signal
+			if err = json.NewDecoder(resp.Body).Decode(&answer); err != nil {
+				return nil, err
 			}
-			fmt.Printf("Got signal\n")
-			return &signal
+			fmt.Printf("Got offer.\n")
+			return &answer, nil
 		} else if resp.StatusCode == 404 {
 			time.Sleep(time.Second)
 		} else {
-			panic(errors.Errorf("get failed %d", resp.StatusCode))
+			return nil, errors.Errorf("Failed to get offer %d", resp.StatusCode)
 		}
 	}
 }

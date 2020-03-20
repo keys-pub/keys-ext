@@ -1,11 +1,8 @@
 package ortc
 
 import (
-	"fmt"
 	"os"
-	"time"
 
-	"github.com/keys-pub/keys"
 	"github.com/pion/logging"
 	"github.com/pion/webrtc/v2"
 )
@@ -16,6 +13,9 @@ type Client struct {
 	gatherer *webrtc.ICEGatherer
 	dtls     *webrtc.DTLSTransport
 	sctp     *webrtc.SCTPTransport
+
+	onOpen    func(*webrtc.DataChannel)
+	onMessage func(*webrtc.DataChannel, webrtc.DataChannelMessage)
 }
 
 func NewClient() (*Client, error) {
@@ -44,23 +44,26 @@ func NewClient() (*Client, error) {
 
 	sctp := api.NewSCTPTransport(dtls)
 
-	sctp.OnDataChannel(func(channel *webrtc.DataChannel) {
-		fmt.Printf("New DataChannel %s %d\n", channel.Label(), channel.ID())
+	cl := &Client{
+		api:       api,
+		gatherer:  gatherer,
+		ice:       ice,
+		dtls:      dtls,
+		sctp:      sctp,
+		onOpen:    func(*webrtc.DataChannel) {},
+		onMessage: func(*webrtc.DataChannel, webrtc.DataChannelMessage) {},
+	}
 
-		// Register the handlers
-		channel.OnOpen(handleOnOpen(channel))
+	sctp.OnDataChannel(func(channel *webrtc.DataChannel) {
+		channel.OnOpen(func() {
+			cl.openLn(channel)
+		})
 		channel.OnMessage(func(msg webrtc.DataChannelMessage) {
-			fmt.Printf("Message from DataChannel '%s': '%s'\n", channel.Label(), string(msg.Data))
+			cl.messageLn(channel, msg)
 		})
 	})
 
-	return &Client{
-		api:      api,
-		gatherer: gatherer,
-		ice:      ice,
-		dtls:     dtls,
-		sctp:     sctp,
-	}, nil
+	return cl, nil
 }
 
 func (c *Client) Close() {
@@ -82,7 +85,6 @@ func newAPI(trace bool) (*webrtc.API, error) {
 }
 
 func (c *Client) Gather() (*Signal, error) {
-	// Gather candidates
 	if err := c.gatherer.Gather(); err != nil {
 		return nil, err
 	}
@@ -113,7 +115,7 @@ func (c *Client) Gather() (*Signal, error) {
 	return s, nil
 }
 
-func (c *Client) SetRemote(signal *Signal, offer bool) error {
+func (c *Client) Start(signal *Signal, offer bool) error {
 	iceRole := webrtc.ICERoleControlled
 	if offer {
 		iceRole = webrtc.ICERoleControlling
@@ -135,7 +137,6 @@ func (c *Client) SetRemote(signal *Signal, offer bool) error {
 		return err
 	}
 
-	// Construct the data channel as the offerer
 	if offer {
 		var id uint16 = 1
 
@@ -148,15 +149,15 @@ func (c *Client) SetRemote(signal *Signal, offer bool) error {
 			return err
 		}
 
-		// Register the handlers
-		// channel.OnOpen(handleOnOpen(channel)) // TODO: OnOpen on handle ChannelAck
-		go handleOnOpen(channel)() // Temporary alternative
+		channel.OnOpen(func() {
+			c.openLn(channel)
+		})
 		channel.OnMessage(func(msg webrtc.DataChannelMessage) {
-			fmt.Printf("Message from DataChannel '%s': '%s'\n", channel.Label(), string(msg.Data))
+			c.messageLn(channel, msg)
 		})
 	}
 
-	select {}
+	return nil
 }
 
 // Signal is used to exchange signaling info.
@@ -169,18 +170,18 @@ type Signal struct {
 	SCTPCapabilities webrtc.SCTPCapabilities `json:"sctpCapabilities"`
 }
 
-func handleOnOpen(channel *webrtc.DataChannel) func() {
-	return func() {
-		fmt.Printf("Data channel '%s'-'%d' open. Random messages will now be sent to any connected DataChannels every 5 seconds\n", channel.Label(), channel.ID())
+func (c *Client) openLn(channel *webrtc.DataChannel) {
+	c.onOpen(channel)
+}
 
-		for range time.NewTicker(5 * time.Second).C {
-			message := keys.RandPhrase()
-			fmt.Printf("Sending '%s' \n", message)
+func (c *Client) messageLn(channel *webrtc.DataChannel, msg webrtc.DataChannelMessage) {
+	c.onMessage(channel, msg)
+}
 
-			err := channel.SendText(message)
-			if err != nil {
-				panic(err)
-			}
-		}
-	}
+func (c *Client) OnOpen(f func(channel *webrtc.DataChannel)) {
+	c.onOpen = f
+}
+
+func (c *Client) OnMessage(f func(channel *webrtc.DataChannel, msg webrtc.DataChannelMessage)) {
+	c.onMessage = f
 }
