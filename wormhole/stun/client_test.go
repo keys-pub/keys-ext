@@ -17,13 +17,13 @@ func ExampleNewClient() {
 	peerWg := &sync.WaitGroup{}
 	peerWg.Add(2)
 
-	alice.OnPeer(func(addr string) {
+	alice.OnStunAddr(func(addr string) {
 		if err := bob.SetPeer(addr); err != nil {
 			log.Fatal(err)
 		}
 		peerWg.Done()
 	})
-	bob.OnPeer(func(addr string) {
+	bob.OnStunAddr(func(addr string) {
 		if err := alice.SetPeer(addr); err != nil {
 			log.Fatal(err)
 		}

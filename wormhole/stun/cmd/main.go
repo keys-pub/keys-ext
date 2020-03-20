@@ -20,7 +20,7 @@ func main() {
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 
-	client.OnPeer(func(addr string) {
+	client.OnStunAddr(func(addr string) {
 		fmt.Printf("Our address: %s\n", addr)
 		wg.Done()
 	})
