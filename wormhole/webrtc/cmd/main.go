@@ -150,6 +150,7 @@ func writeOffer(hcl *httpclient.Client, offer *webrtc.SessionDescription, sender
 	if err != nil {
 		return err
 	}
+	fmt.Printf("Offer: %s\n", string(b))
 	if err := hcl.PutEphemeral(senderID, recipientID, "offer", b); err != nil {
 		return err
 	}
@@ -180,6 +181,7 @@ func writeAnswer(hcl *httpclient.Client, offer *webrtc.SessionDescription, sende
 	if err != nil {
 		return err
 	}
+	fmt.Printf("Answer: %s\n", string(b))
 	if err := hcl.PutEphemeral(senderID, recipientID, "answer", b); err != nil {
 		return err
 	}
