@@ -1,6 +1,7 @@
 package webrtc
 
 import (
+	"os"
 	"sync"
 
 	"github.com/pion/logging"
@@ -78,7 +79,9 @@ func NewClient() (*Client, error) {
 
 func (c *Client) newAPI() (*webrtc.API, error) {
 	wlg := logging.NewDefaultLoggerFactory()
-	wlg.DefaultLogLevel = logging.LogLevelTrace
+	// wlg.DefaultLogLevel = logging.LogLevelTrace
+	// wlg.DefaultLogLevel = logging.LogLevelDebug
+	wlg.Writer = os.Stderr
 	se := webrtc.SettingEngine{
 		LoggerFactory: wlg,
 	}
@@ -182,6 +185,7 @@ func (c *Client) SetAnswer(answer *webrtc.SessionDescription) error {
 	if c.conn == nil {
 		return errors.Errorf("no connection")
 	}
+
 	if err := c.conn.SetRemoteDescription(*answer); err != nil {
 		return err
 	}

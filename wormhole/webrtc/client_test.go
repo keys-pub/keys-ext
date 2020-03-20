@@ -35,14 +35,15 @@ func TestNewClient(t *testing.T) {
 		messageWg.Done()
 	})
 
-	// Open wait group
-	channelWg := &sync.WaitGroup{}
-	channelWg.Add(2)
+	openWg := &sync.WaitGroup{}
+	openWg.Add(2)
 	alice.OnOpen(func(channel webrtc.Channel) {
-		channelWg.Done()
+		openWg.Done()
 	})
+	bobWg := &sync.WaitGroup{}
+	bobWg.Add(1)
 	bob.OnOpen(func(channel webrtc.Channel) {
-		channelWg.Done()
+		openWg.Done()
 	})
 
 	// Close wait group
@@ -60,6 +61,9 @@ func TestNewClient(t *testing.T) {
 	require.NoError(t, err)
 	answer, err := bob.Answer(offer)
 	require.NoError(t, err)
+
+	// time.Sleep(time.Second * 12)
+
 	err = alice.SetAnswer(answer)
 	require.NoError(t, err)
 
@@ -67,8 +71,7 @@ func TestNewClient(t *testing.T) {
 	err = alice.CreateChannel("test")
 	require.NoError(t, err)
 
-	// Wait for channels
-	channelWg.Wait()
+	openWg.Wait()
 
 	err = bob.Send([]byte("ping"))
 	require.NoError(t, err)
@@ -126,7 +129,6 @@ func ExampleNewClient() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	answer, err := bob.Answer(offer)
 	if err != nil {
 		log.Fatal(err)
