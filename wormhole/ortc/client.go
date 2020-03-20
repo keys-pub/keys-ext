@@ -26,7 +26,7 @@ func NewClient() (*Client, error) {
 		},
 	}
 
-	api, err := newAPI(false)
+	api, err := newAPI(true)
 	if err != nil {
 		return nil, err
 	}
@@ -102,6 +102,12 @@ func (c *Client) Gather() (*Signal, error) {
 		return nil, err
 	}
 
+	candidate, err := c.stunCandidate()
+	if err != nil {
+		return nil, err
+	}
+	iceCandidates = append(iceCandidates, *candidate)
+
 	iceParams, err := c.gatherer.GetLocalParameters()
 	if err != nil {
 		return nil, err
@@ -121,6 +127,30 @@ func (c *Client) Gather() (*Signal, error) {
 		SCTPCapabilities: sctpCapabilities,
 	}
 	return s, nil
+}
+
+func (c *Client) stunCandidate() (*webrtc.ICECandidate, error) {
+	stunAddr, _, err := stunAddress()
+	if err != nil {
+		return nil, err
+	}
+	// conn.Close()
+
+	addr := stunAddr.IP.String()
+	port := uint16(stunAddr.Port)
+
+	return &webrtc.ICECandidate{
+		Foundation: "foundation",
+		Priority:   1694498815,
+		Address:    addr,
+		Port:       port,
+		Protocol:   webrtc.ICEProtocolUDP,
+		Typ:        webrtc.ICECandidateTypeSrflx,
+		Component:  1,
+		// RelatedAddress: "0.0.0.0",
+		// RelatedPort:    port,
+	}, nil
+
 }
 
 func (c *Client) Start(signal *Signal, offer bool) error {

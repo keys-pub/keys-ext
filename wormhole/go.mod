@@ -12,6 +12,7 @@ require (
 	github.com/pion/webrtc/v2 v2.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.5.1
+	gortc.io/stun v1.22.1
 )
 
 // replace github.com/keys-pub/keys => ../../keys
