@@ -10,24 +10,33 @@ import (
 )
 
 // PutEphemeral ...
-func (c *Client) PutEphemeral(sender *keys.EdX25519Key, recipient keys.ID, id string, b []byte) error {
-	sp := saltpack.NewSaltpack(c.ks)
-	encrypted, err := sp.Signcrypt(b, sender, recipient, sender.ID())
+func (c *Client) PutEphemeral(sender keys.ID, recipient keys.ID, id string, b []byte) error {
+	senderKey, err := c.ks.EdX25519Key(sender)
 	if err != nil {
 		return err
 	}
-	path := keys.Path("ephem", sender.ID(), recipient, id)
+
+	sp := saltpack.NewSaltpack(c.ks)
+	encrypted, err := sp.Signcrypt(b, senderKey, recipient, sender)
+	if err != nil {
+		return err
+	}
+	path := keys.Path("ephem", senderKey.ID(), recipient, id)
 	vals := url.Values{}
-	if _, err := c.putDocument(path, vals, sender, bytes.NewReader(encrypted)); err != nil {
+	if _, err := c.putDocument(path, vals, senderKey, bytes.NewReader(encrypted)); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *Client) GetEphemeral(sender *keys.EdX25519Key, recipient keys.ID, id string) ([]byte, error) {
-	path := keys.Path("ephem", sender.ID(), recipient, id)
+func (c *Client) GetEphemeral(sender keys.ID, recipient keys.ID, id string) ([]byte, error) {
+	senderKey, err := c.ks.EdX25519Key(sender)
+	if err != nil {
+		return nil, err
+	}
+	path := keys.Path("ephem", sender, recipient, id)
 	vals := url.Values{}
-	doc, err := c.getDocument(path, vals, sender)
+	doc, err := c.getDocument(path, vals, senderKey)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +49,7 @@ func (c *Client) GetEphemeral(sender *keys.EdX25519Key, recipient keys.ID, id st
 	if err != nil {
 		return nil, err
 	}
-	if pk.ID() != sender.ID() && pk.ID() != recipient {
+	if pk.ID() != sender && pk.ID() != recipient {
 		return nil, errors.Errorf("invalid sender %s", pk.ID())
 	}
 

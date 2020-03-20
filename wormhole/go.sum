@@ -35,6 +35,8 @@ github.com/keys-pub/keys v0.0.0-20200316013823-95ce7c6cb5fa h1:Cew0/Hs7vrKmwwqhv
 github.com/keys-pub/keys v0.0.0-20200316013823-95ce7c6cb5fa/go.mod h1:/uNDuQDL1kCcJVsKMG2xLwUMS7zvoUrWL9k1OMZ7GZw=
 github.com/keys-pub/keys v0.0.0-20200317181626-44d21a618612 h1:BH+/EXbdGG5FAvMtW5ZZ+QnyMuep/bEbP7cUSBq949U=
 github.com/keys-pub/keys v0.0.0-20200317181626-44d21a618612/go.mod h1:k/6AQo72ji46Q03AX8C2jLUd4dmGM6djrEZY+LVr6Ww=
+github.com/keys-pub/keys v0.0.0-20200320021630-30bfb06feb37 h1:q8cwoF0EHy3AdZaGZuvFk85upt2+fTMwzdU2YSHDKpo=
+github.com/keys-pub/keys v0.0.0-20200320021630-30bfb06feb37/go.mod h1:k/6AQo72ji46Q03AX8C2jLUd4dmGM6djrEZY+LVr6Ww=
 github.com/keys-pub/keysd v0.0.24 h1:f43MvTtJCOKkbFdO+Ikbz+glVEHV6TJ9pTLmR2cIZdE=
 github.com/keys-pub/keysd/http/api v0.0.0-20200317222534-a1c37d8b9903 h1:fFcAW62c14k/6GMzaf73LqTf+oPQzRtU2erVCW98zLw=
 github.com/keys-pub/keysd/http/api v0.0.0-20200317222534-a1c37d8b9903/go.mod h1:oCloF/zhufOxDjykCl9bb1VjDHBQL4mljs5yz21p9/4=
@@ -44,6 +46,7 @@ github.com/keys-pub/keysd/http/client v0.0.0-20200317224602-68134b1264db h1:KaP0
 github.com/keys-pub/keysd/http/client v0.0.0-20200317224602-68134b1264db/go.mod h1:zUP1AYPhUmQwRVfgeIz5Omt0enlcCBmxaLXPzWy5ufE=
 github.com/keys-pub/keysd/http/server v0.0.0-20200317222721-717bf70f4f22 h1:XXZWs2q8wp0mI/zdkRF/uK98NbDfUkbmbbmSYunIzlE=
 github.com/keys-pub/keysd/http/server v0.0.0-20200317222721-717bf70f4f22/go.mod h1:bMbtQowPg3FT5A0LJ3ZzH+Rc/eWrqV+24SVFRLzylyM=
+github.com/keys-pub/keysd/http/server v0.0.0-20200320024609-6e3fca134965/go.mod h1:ZxZkbKAUbFhR3w+pzTDY/ulGSW8CSsOEr9KTS0Y45rs=
 github.com/kr/pretty v0.1.0 h1:L/CwN0zerZDmRFUapSPitk6f+Q3+0za1rQkzVuMiMFI=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=

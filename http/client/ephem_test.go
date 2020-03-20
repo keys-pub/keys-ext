@@ -29,16 +29,16 @@ func TestEphem(t *testing.T) {
 	require.NoError(t, err)
 
 	// Put
-	err = aliceClient.PutEphemeral(alice, bob.ID(), "offer", []byte("hi"))
+	err = aliceClient.PutEphemeral(alice.ID(), bob.ID(), "offer", []byte("hi"))
 	require.NoError(t, err)
 
 	// Get
-	out, err := bobClient.GetEphemeral(bob, alice.ID(), "offer")
+	out, err := bobClient.GetEphemeral(bob.ID(), alice.ID(), "offer")
 	require.NoError(t, err)
 	require.Equal(t, []byte("hi"), out)
 
 	// Get (again)
-	out, err = bobClient.GetEphemeral(bob, alice.ID(), "offer")
+	out, err = bobClient.GetEphemeral(bob.ID(), alice.ID(), "offer")
 	require.NoError(t, err)
 	require.Nil(t, out)
 }
