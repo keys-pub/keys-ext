@@ -15,6 +15,9 @@ func (c *Client) PutEphemeral(sender keys.ID, recipient keys.ID, id string, b []
 	if err != nil {
 		return err
 	}
+	if senderKey == nil {
+		return keys.NewErrNotFound(sender.String())
+	}
 
 	sp := saltpack.NewSaltpack(c.ks)
 	encrypted, err := sp.Signcrypt(b, senderKey, recipient, sender)
