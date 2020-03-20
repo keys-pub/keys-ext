@@ -1,50 +1,25 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"sync"
 	"time"
 
-	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/keyring"
-	httpclient "github.com/keys-pub/keysd/http/client"
 	"github.com/keys-pub/keysd/wormhole/webrtc"
+	"github.com/pkg/errors"
 )
 
 func main() {
 	// webrtc.SetLogger(webrtc.NewLogger(webrtc.DebugLevel))
 	offer := flag.Bool("offer", false, "Initiate offer")
-	generate := flag.Bool("generate", false, "Generate key")
-	sender := flag.String("sender", "", "Sender")
-	recipient := flag.String("recipient", "", "Recipient")
 	trace := flag.Bool("trace", false, "Trace (debug)")
 	flag.Parse()
-
-	kr := newKeyring()
-	ks := keys.NewKeystore(kr)
-
-	if *generate {
-		generateKey(ks)
-		return
-	}
-
-	senderID, err := keys.ParseID(*sender)
-	if err != nil {
-		log.Fatal(err)
-	}
-	recipientID, err := keys.ParseID(*recipient)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	hcl, err := httpclient.NewClient("https://keys.pub", ks)
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	client, err := webrtc.NewClient()
 	if err != nil {
@@ -90,10 +65,10 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		if err := writeOffer(hcl, offer, senderID, recipientID); err != nil {
+		if err := writeOffer(offer); err != nil {
 			log.Fatal(err)
 		}
-		answer, err := readAnswer(hcl, senderID, recipientID)
+		answer, err := readAnswer()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -101,7 +76,7 @@ func main() {
 			log.Fatal(err)
 		}
 	} else {
-		offer, err := readOffer(hcl, senderID, recipientID)
+		offer, err := readOffer()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -111,7 +86,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		if err := writeAnswer(hcl, answer, senderID, recipientID); err != nil {
+		if err := writeAnswer(answer); err != nil {
 			log.Fatal(err)
 		}
 	}
@@ -127,83 +102,74 @@ func main() {
 	select {}
 }
 
-func newKeyring() keyring.Keyring {
-	kr, err := keyring.NewFS("webrtc", os.TempDir())
-	if err != nil {
-		log.Fatal(err)
-	}
-	if err := keyring.UnlockWithPassword(kr, "webrtc"); err != nil {
-		log.Fatal(err)
-	}
-	return kr
-}
-
-func generateKey(ks *keys.Keystore) {
-	key := keys.GenerateEdX25519Key()
-	if err := ks.SaveEdX25519Key(key); err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("Generated key %s\n", key.ID())
-}
-
-func writeOffer(hcl *httpclient.Client, offer *webrtc.SessionDescription, senderID keys.ID, recipientID keys.ID) error {
-	fmt.Printf("Write offer...\n")
+func writeOffer(offer *webrtc.SessionDescription) error {
 	b, err := json.Marshal(offer)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Offer: %s\n", string(b))
-	if err := hcl.PutEphemeral(senderID, recipientID, "offer", b); err != nil {
-		return err
-	}
-	return nil
-}
-
-func readOffer(hcl *httpclient.Client, senderID keys.ID, recipientID keys.ID) (*webrtc.SessionDescription, error) {
-	for {
-		fmt.Printf("Read offer...\n")
-		ab, err := hcl.GetEphemeral(senderID, recipientID, "offer")
-		if err != nil {
-			log.Fatal(err)
-		}
-		if ab != nil {
-			var offer webrtc.SessionDescription
-			if err := json.Unmarshal(ab, &offer); err != nil {
-				log.Fatal(err)
-			}
-			return &offer, nil
-		}
-		time.Sleep(time.Second)
-	}
-}
-
-func writeAnswer(hcl *httpclient.Client, offer *webrtc.SessionDescription, senderID keys.ID, recipientID keys.ID) error {
-	fmt.Printf("Write answer...\n")
-	b, err := json.Marshal(offer)
+	fmt.Printf("Write offer: %s\n", string(b))
+	resp, err := http.Post("https://keys.pub/relay/offer", "application/json; charset=utf-8", bytes.NewBuffer(b))
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Answer: %s\n", string(b))
-	if err := hcl.PutEphemeral(senderID, recipientID, "answer", b); err != nil {
-		return err
-	}
+	defer resp.Body.Close()
 	return nil
 }
 
-func readAnswer(hcl *httpclient.Client, senderID keys.ID, recipientID keys.ID) (*webrtc.SessionDescription, error) {
+func readOffer() (*webrtc.SessionDescription, error) {
 	for {
-		fmt.Printf("Read answer...\n")
-		ab, err := hcl.GetEphemeral(senderID, recipientID, "answer")
+		fmt.Printf("Get offer...\n")
+		resp, err := http.Get("https://keys.pub/relay/offer")
 		if err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
-		if ab != nil {
+		if resp.StatusCode == 200 {
 			var answer webrtc.SessionDescription
-			if err := json.Unmarshal(ab, &answer); err != nil {
-				log.Fatal(err)
+			if err = json.NewDecoder(resp.Body).Decode(&answer); err != nil {
+				return nil, err
 			}
+			fmt.Printf("Got offer.\n")
 			return &answer, nil
+		} else if resp.StatusCode == 404 {
+			time.Sleep(time.Second)
+		} else {
+			return nil, errors.Errorf("Failed to get offer %d", resp.StatusCode)
 		}
-		time.Sleep(time.Second)
+	}
+}
+
+func writeAnswer(answer *webrtc.SessionDescription) error {
+	b, err := json.Marshal(answer)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Write answer: %s\n", string(b))
+	resp, err := http.Post("https://keys.pub/relay/answer", "application/json; charset=utf-8", bytes.NewBuffer(b))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	return nil
+}
+
+func readAnswer() (*webrtc.SessionDescription, error) {
+	for {
+		fmt.Printf("Get answer...\n")
+		resp, err := http.Get("https://keys.pub/relay/answer")
+		if err != nil {
+			return nil, err
+		}
+		if resp.StatusCode == 200 {
+			var answer webrtc.SessionDescription
+			if err = json.NewDecoder(resp.Body).Decode(&answer); err != nil {
+				return nil, err
+			}
+			fmt.Printf("Got answer.\n")
+			return &answer, nil
+		} else if resp.StatusCode == 404 {
+			time.Sleep(time.Second)
+		} else {
+			return nil, errors.Errorf("Failed to get offer %d", resp.StatusCode)
+		}
 	}
 }

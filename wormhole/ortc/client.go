@@ -25,7 +25,7 @@ func NewClient() (*Client, error) {
 		},
 	}
 
-	api, err := newAPI(true)
+	api, err := newAPI(false)
 	if err != nil {
 		return nil, err
 	}
