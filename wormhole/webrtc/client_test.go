@@ -67,10 +67,6 @@ func TestNewClient(t *testing.T) {
 	err = alice.SetAnswer(answer)
 	require.NoError(t, err)
 
-	// Channel
-	err = alice.CreateChannel("test")
-	require.NoError(t, err)
-
 	openWg.Wait()
 
 	err = bob.Send([]byte("ping"))
@@ -134,11 +130,6 @@ func ExampleNewClient() {
 		log.Fatal(err)
 	}
 	if err := alice.SetAnswer(answer); err != nil {
-		log.Fatal(err)
-	}
-
-	// Channel
-	if err := alice.CreateChannel("test"); err != nil {
 		log.Fatal(err)
 	}
 

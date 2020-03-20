@@ -102,13 +102,6 @@ func main() {
 		}
 	}
 
-	if *offer {
-		fmt.Printf("Creating channel...\n")
-		if err := client.CreateChannel(""); err != nil {
-			log.Fatal(err)
-		}
-	}
-
 	fmt.Printf("Waiting for channel...\n")
 	wg.Wait()
 

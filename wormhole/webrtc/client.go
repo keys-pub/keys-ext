@@ -4,6 +4,8 @@ import (
 	"os"
 	"sync"
 
+	"github.com/keys-pub/keys"
+
 	"github.com/pion/logging"
 	"github.com/pion/webrtc/v2"
 	"github.com/pkg/errors"
@@ -138,6 +140,12 @@ func (c *Client) Offer() (*webrtc.SessionDescription, error) {
 	}
 	c.conn = conn
 
+	channel, err := c.conn.CreateDataChannel(keys.RandIDString(), nil)
+	if err != nil {
+		return nil, err
+	}
+	c.register(channel)
+
 	offer, err := conn.CreateOffer(nil)
 	if err != nil {
 		return nil, err
@@ -206,21 +214,6 @@ func (c *Client) Close() {
 			logger.Warningf("Error closing webrtc connection: %v", err)
 		}
 	}
-}
-
-func (c *Client) CreateChannel(label string) error {
-	if c.conn == nil {
-		return errors.Errorf("no connection")
-	}
-	if c.channel != nil {
-		return errors.Errorf("channel already exists")
-	}
-	channel, err := c.conn.CreateDataChannel(label, nil)
-	if err != nil {
-		return err
-	}
-	c.register(channel)
-	return nil
 }
 
 func (c *Client) Channel() Channel {
