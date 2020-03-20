@@ -14,8 +14,9 @@ import (
 )
 
 func main() {
-	// stun.SetLogger(stun.NewLogger(stun.DebugLevel))
+	// ortc.SetLogger(ortc.NewLogger(ortc.DebugLevel))
 	offer := flag.Bool("offer", false, "Initiate offer")
+	flag.Parse()
 
 	client, err := ortc.NewClient()
 	if err != nil {
