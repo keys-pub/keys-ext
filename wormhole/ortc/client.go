@@ -37,6 +37,12 @@ func NewClient() (*Client, error) {
 
 	ice := api.NewICETransport(gatherer)
 
+	ice.OnConnectionStateChange(func(state webrtc.ICETransportState) {
+		status := connectionStatus(state)
+		logger.Infof("Status: %s", status)
+		// c.statusLn(status)
+	})
+
 	dtls, err := api.NewDTLSTransport(ice, nil)
 	if err != nil {
 		return nil, err
@@ -184,4 +190,37 @@ func (c *Client) OnOpen(f func(channel *webrtc.DataChannel)) {
 
 func (c *Client) OnMessage(f func(channel *webrtc.DataChannel, msg webrtc.DataChannelMessage)) {
 	c.onMessage = f
+}
+
+type Status string
+
+const (
+	Initialized  Status = "init"
+	Checking     Status = "checking"
+	Connected    Status = "connected"
+	Completed    Status = "completed"
+	Disconnected Status = "disconnected"
+	Failed       Status = "failed"
+	Closed       Status = "closed"
+)
+
+func connectionStatus(state webrtc.ICETransportState) Status {
+	switch state {
+	case webrtc.ICETransportStateNew:
+		return Initialized
+	case webrtc.ICETransportStateChecking:
+		return Checking
+	case webrtc.ICETransportStateConnected:
+		return Connected
+	case webrtc.ICETransportStateCompleted:
+		return Completed
+	case webrtc.ICETransportStateDisconnected:
+		return Disconnected
+	case webrtc.ICETransportStateFailed:
+		return Failed
+	case webrtc.ICETransportStateClosed:
+		return Closed
+	default:
+		return Initialized
+	}
 }

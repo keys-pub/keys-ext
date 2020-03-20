@@ -57,7 +57,7 @@ func main() {
 		go func() {
 			for range time.NewTicker(5 * time.Second).C {
 				message := keys.RandPhrase()
-				fmt.Printf("Sending %s\n", message)
+				fmt.Printf("Sending: %s\n", message)
 
 				if err := channel.SendText(message); err != nil {
 					panic(err)
