@@ -98,7 +98,6 @@ func main() {
 		if err := client.SetAnswer(answer); err != nil {
 			log.Fatal(err)
 		}
-		fmt.Printf("Set answer.\n")
 	} else {
 		offer, err := readOffer(hcl, senderID, recipientID)
 		if err != nil {
@@ -146,6 +145,7 @@ func generateKey(ks *keys.Keystore) {
 }
 
 func writeOffer(hcl *httpclient.Client, offer *webrtc.SessionDescription, senderID keys.ID, recipientID keys.ID) error {
+	fmt.Printf("Write offer...\n")
 	b, err := json.Marshal(offer)
 	if err != nil {
 		return err
@@ -158,6 +158,7 @@ func writeOffer(hcl *httpclient.Client, offer *webrtc.SessionDescription, sender
 
 func readOffer(hcl *httpclient.Client, senderID keys.ID, recipientID keys.ID) (*webrtc.SessionDescription, error) {
 	for {
+		fmt.Printf("Read offer...\n")
 		ab, err := hcl.GetEphemeral(senderID, recipientID, "offer")
 		if err != nil {
 			log.Fatal(err)
@@ -174,6 +175,7 @@ func readOffer(hcl *httpclient.Client, senderID keys.ID, recipientID keys.ID) (*
 }
 
 func writeAnswer(hcl *httpclient.Client, offer *webrtc.SessionDescription, senderID keys.ID, recipientID keys.ID) error {
+	fmt.Printf("Write answer...\n")
 	b, err := json.Marshal(offer)
 	if err != nil {
 		return err
@@ -186,6 +188,7 @@ func writeAnswer(hcl *httpclient.Client, offer *webrtc.SessionDescription, sende
 
 func readAnswer(hcl *httpclient.Client, senderID keys.ID, recipientID keys.ID) (*webrtc.SessionDescription, error) {
 	for {
+		fmt.Printf("Read answer...\n")
 		ab, err := hcl.GetEphemeral(senderID, recipientID, "answer")
 		if err != nil {
 			log.Fatal(err)
