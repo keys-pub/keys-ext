@@ -2,9 +2,11 @@ package ortc
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/pion/logging"
 	"github.com/pion/webrtc/v2"
 )
 
@@ -23,7 +25,10 @@ func NewClient() (*Client, error) {
 		},
 	}
 
-	api := webrtc.NewAPI()
+	api, err := newAPI(true)
+	if err != nil {
+		return nil, err
+	}
 
 	gatherer, err := api.NewICEGatherer(iceOptions)
 	if err != nil {
@@ -60,6 +65,20 @@ func NewClient() (*Client, error) {
 
 func (c *Client) Close() {
 	c.gatherer.Close()
+}
+
+func newAPI(trace bool) (*webrtc.API, error) {
+	wlg := logging.NewDefaultLoggerFactory()
+	if trace {
+		wlg.DefaultLogLevel = logging.LogLevelTrace
+	}
+	// wlg.DefaultLogLevel = logging.LogLevelDebug
+	wlg.Writer = os.Stderr
+	se := webrtc.SettingEngine{
+		LoggerFactory: wlg,
+	}
+	api := webrtc.NewAPI(webrtc.WithSettingEngine(se))
+	return api, nil
 }
 
 func (c *Client) Gather() (*Signal, error) {
