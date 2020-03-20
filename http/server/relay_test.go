@@ -17,10 +17,17 @@ func TestRelay(t *testing.T) {
 	fi := testFire(t, clock)
 	srv := newTestServer(t, clock, fi, nil)
 
-	// PUT /relay/:id
-	req, err := http.NewRequest("PUT", keys.Path("relay", "offer"), bytes.NewReader([]byte("hi")))
+	// POST /relay/:id
+	req, err := http.NewRequest("POST", keys.Path("relay", "offer"), bytes.NewReader([]byte("hi")))
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
+	require.Equal(t, http.StatusOK, code)
+	require.Equal(t, "{}", body)
+
+	// PUT /relay/:id
+	req, err = http.NewRequest("PUT", keys.Path("relay", "offer"), bytes.NewReader([]byte("hi")))
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, "{}", body)
 

@@ -103,6 +103,7 @@ func AddRoutes(s *Server, e *echo.Echo) {
 
 	// Relay
 	e.PUT("/relay/:id", s.putRelay)
+	e.POST("/relay/:id", s.postRelay)
 	e.GET("/relay/:id", s.getRelay)
 
 	// Sigchain (aliases)

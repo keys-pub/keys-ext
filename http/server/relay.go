@@ -11,10 +11,23 @@ import (
 	"github.com/pkg/errors"
 )
 
+func (s *Server) postRelay(c echo.Context) error {
+	request := c.Request()
+	ctx := request.Context()
+	logger.Infof(ctx, "Server POST relay %s", s.urlString(c))
+	return s.toRelay(c)
+}
+
 func (s *Server) putRelay(c echo.Context) error {
 	request := c.Request()
 	ctx := request.Context()
 	logger.Infof(ctx, "Server PUT relay %s", s.urlString(c))
+	return s.toRelay(c)
+}
+
+func (s *Server) toRelay(c echo.Context) error {
+	request := c.Request()
+	ctx := request.Context()
 
 	id := c.Param("id")
 	if id == "" {
