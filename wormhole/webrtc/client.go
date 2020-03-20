@@ -61,7 +61,10 @@ func NewClient() (*Client, error) {
 	config := webrtc.Configuration{
 		ICEServers: []webrtc.ICEServer{
 			{
-				URLs: []string{"stun:stun.l.google.com:19302"},
+				// URLs: []string{"stun:stun.l.google.com:19302"},
+				URLs:       []string{"turn:192.158.29.39:3478?transport=udp"},
+				Username:   "JZEOEt2V3Qb0y27GRntt2u2PAYA=",
+				Credential: "28224511:1379330808",
 			},
 		},
 	}
@@ -80,7 +83,7 @@ func NewClient() (*Client, error) {
 func (c *Client) newAPI() (*webrtc.API, error) {
 	wlg := logging.NewDefaultLoggerFactory()
 	// wlg.DefaultLogLevel = logging.LogLevelTrace
-	wlg.DefaultLogLevel = logging.LogLevelDebug
+	// wlg.DefaultLogLevel = logging.LogLevelDebug
 	wlg.Writer = os.Stderr
 	se := webrtc.SettingEngine{
 		LoggerFactory: wlg,
