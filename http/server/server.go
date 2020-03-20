@@ -97,6 +97,10 @@ func AddRoutes(s *Server, e *echo.Echo) {
 	e.POST("/messages/:kid/:rid", s.postMessage)
 	e.GET("/messages/:kid/:rid", s.listMessages)
 
+	// Ephemeral
+	e.PUT("/ephem/:kid/:rid/:id", s.putEphem)
+	e.GET("/ephem/:kid/:rid/:id", s.getEphem)
+
 	// Sigchain (aliases)
 	e.GET("/:kid", s.getSigchain)
 	e.GET("/:kid/:seq", s.getSigchainStatement)
