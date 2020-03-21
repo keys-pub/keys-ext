@@ -68,11 +68,7 @@ func (c *Client) Read(ctx context.Context, b []byte) (int, error) {
 	if c.stream == nil {
 		return 0, errors.Errorf("no stream")
 	}
-	n, err := c.read(ctx, b)
-	if err != nil {
-		return n, errors.Wrapf(err, "stream read error")
-	}
-	return n, nil
+	return c.read(ctx, b)
 }
 
 func (c *Client) read(ctx context.Context, b []byte) (int, error) {

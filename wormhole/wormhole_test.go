@@ -32,6 +32,8 @@ func TestNewWormhole(t *testing.T) {
 	err = ksb.SaveEdX25519Key(bob)
 	require.NoError(t, err)
 
+	ctx := context.TODO()
+
 	wg := &sync.WaitGroup{}
 	wg.Add(2)
 
@@ -43,7 +45,7 @@ func TestNewWormhole(t *testing.T) {
 		wg.Done()
 	})
 	go func() {
-		err = wha.Start(context.TODO(), alice, bob.PublicKey())
+		err = wha.Start(ctx, alice, bob.PublicKey())
 		if err != nil {
 			panic(err)
 		}
@@ -57,7 +59,7 @@ func TestNewWormhole(t *testing.T) {
 		wg.Done()
 	})
 	go func() {
-		err = whb.Start(context.TODO(), bob, alice.PublicKey())
+		err = whb.Start(ctx, bob, alice.PublicKey())
 		if err != nil {
 			panic(err)
 		}
@@ -65,25 +67,21 @@ func TestNewWormhole(t *testing.T) {
 
 	wg.Wait()
 
-	// Send ping/pong
-	msgWg := sync.WaitGroup{}
-	msgWg.Add(1)
-
-	whb.OnMessage(func(data []byte) {
-		if string(data) == "ping" {
-			err := whb.Send(context.TODO(), []byte("pong"))
-			require.NoError(t, err)
-		}
-	})
-
-	wha.OnMessage(func(data []byte) {
-		msgWg.Done()
-	})
-
-	err = wha.Send(context.TODO(), []byte("ping"))
+	err = wha.Send(ctx, []byte("ping"))
 	require.NoError(t, err)
 
-	msgWg.Wait()
+	go func() {
+		data, err := whb.Read(ctx)
+		require.NoError(t, err)
+
+		if string(data) == "ping" {
+			err := whb.Send(ctx, []byte("pong"))
+			require.NoError(t, err)
+		}
+	}()
+
+	_, err = wha.Read(ctx)
+	require.NoError(t, err)
 
 	// Close
 	closeWg := &sync.WaitGroup{}

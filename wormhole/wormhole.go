@@ -29,7 +29,6 @@ type Wormhole struct {
 
 	onConnect func()
 	onClose   func()
-	onMessage func(b []byte)
 }
 
 // NewWormhole creates a new Wormhole.
@@ -53,7 +52,6 @@ func NewWormhole(server string, ks *keys.Keystore) (*Wormhole, error) {
 		hcl:       hcl,
 		onConnect: func() {},
 		onClose:   func() {},
-		onMessage: func(b []byte) {},
 	}
 
 	// TODO: Close
@@ -80,20 +78,6 @@ func (w *Wormhole) OnConnect(f func()) {
 
 func (w *Wormhole) OnClose(f func()) {
 	w.onClose = f
-}
-
-func (w *Wormhole) OnMessage(f func(b []byte)) {
-	w.onMessage = f
-}
-
-func (w *Wormhole) messageLn(b []byte) {
-	logger.Infof("Message (%d)", len(b))
-	decrypted, err := w.noise.Decrypt(nil, nil, b)
-	if err != nil {
-		logger.Errorf("Failed to decrypt message: %s", err)
-		return
-	}
-	w.onMessage(decrypted)
 }
 
 func (w *Wormhole) Start(ctx context.Context, sender *keys.EdX25519Key, recipient *keys.EdX25519PublicKey) error {
@@ -161,16 +145,6 @@ func (w *Wormhole) Start(ctx context.Context, sender *keys.EdX25519Key, recipien
 	logger.Infof("Started")
 	w.onConnect()
 
-	// Read
-	go func() {
-		buf := make([]byte, 1024)
-		n, err := w.rtc.Read(ctx, buf)
-		if err != nil {
-			logger.Errorf("Read error: %v", err)
-		}
-		w.messageLn(buf[:n])
-	}()
-
 	return nil
 }
 
@@ -184,6 +158,24 @@ func (w *Wormhole) Send(ctx context.Context, b []byte) error {
 		return err
 	}
 	return w.rtc.Write(ctx, encrypted)
+}
+
+// Read.
+func (w *Wormhole) Read(ctx context.Context) ([]byte, error) {
+	buf := make([]byte, 1024)
+
+	n, err := w.rtc.Read(ctx, buf)
+	if err != nil {
+		return nil, err
+	}
+
+	logger.Infof("Wormhole read (%d)", n)
+	decrypted, err := w.noise.Decrypt(nil, nil, buf[:n])
+	if err != nil {
+		return nil, err
+	}
+
+	return decrypted, nil
 }
 
 func (w *Wormhole) connect(ctx context.Context, sender keys.ID, recipient keys.ID) error {

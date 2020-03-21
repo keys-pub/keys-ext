@@ -18,16 +18,18 @@ func TestNewClient(t *testing.T) {
 	defer alice.Close()
 	defer bob.Close()
 
-	aliceAddr, err := alice.STUN(context.TODO(), time.Second*5)
+	ctx := context.TODO()
+
+	aliceAddr, err := alice.STUN(ctx, time.Second*5)
 	require.NoError(t, err)
-	bobAddr, err := bob.STUN(context.TODO(), time.Second*5)
+	bobAddr, err := bob.STUN(ctx, time.Second*5)
 	require.NoError(t, err)
 
 	aliceWg := &sync.WaitGroup{}
 	aliceWg.Add(1)
 
 	go func() {
-		err = alice.Connect(context.TODO(), bobAddr)
+		err = alice.Connect(ctx, bobAddr)
 		require.NoError(t, err)
 		aliceWg.Done()
 	}()
@@ -36,26 +38,26 @@ func TestNewClient(t *testing.T) {
 	bobWg.Add(1)
 
 	go func() {
-		err = bob.Listen(context.TODO(), aliceAddr)
+		err = bob.Listen(ctx, aliceAddr)
 		require.NoError(t, err)
 		bobWg.Done()
 	}()
 
 	aliceWg.Wait()
 
-	err = alice.Write(context.TODO(), []byte("ping"))
+	err = alice.Write(ctx, []byte("ping"))
 	require.NoError(t, err)
 
 	bobWg.Wait()
 
 	buf := make([]byte, 1024)
-	n, err := bob.Read(context.TODO(), buf)
+	n, err := bob.Read(ctx, buf)
 	require.NoError(t, err)
 	require.Equal(t, "ping", string(buf[:n]))
 
-	err = bob.Write(context.TODO(), []byte("ping"))
+	err = bob.Write(ctx, []byte("ping"))
 	require.NoError(t, err)
-	n, err = alice.Read(context.TODO(), buf)
+	n, err = alice.Read(ctx, buf)
 	require.NoError(t, err)
 	require.Equal(t, "ping", string(buf[:n]))
 
@@ -63,7 +65,7 @@ func TestNewClient(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 	defer cancel()
 
-	n, err = alice.Read(ctx, buf)
+	_, err = alice.Read(ctx, buf)
 	require.EqualError(t, err, "stream read error: context deadline exceeded")
 
 	alice.Close()
