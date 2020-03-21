@@ -12,6 +12,7 @@ func (s *service) Wormhole(srv Keys_WormholeServer) error {
 	if err != nil {
 		return err
 	}
+	defer wormhole.Close()
 
 	ctx := srv.Context()
 
@@ -34,15 +35,9 @@ func (s *service) Wormhole(srv Keys_WormholeServer) error {
 			logger.Errorf("Failed to send wormhole closed status: %v", err)
 		}
 	})
-	wormhole.OnMessage(func(b []byte) {
-		if err := srv.Send(&WormholeOutput{
-			Data:   b,
-			Status: status,
-		}); err != nil {
-			logger.Errorf("Failed to send wormhole message: %v", err)
-		}
-	})
 
+	var readErr error
+	var relayErr error
 	for {
 		select {
 		case <-ctx.Done():
@@ -73,15 +68,38 @@ func (s *service) Wormhole(srv Keys_WormholeServer) error {
 			if err := wormhole.Start(ctx, sender, recipient); err != nil {
 				return err
 			}
+
+			// Read and send output to client
+			go func() {
+				for {
+					b, err := wormhole.Read(ctx)
+					if err != nil {
+						readErr = err
+						break
+					}
+					if err := srv.Send(&WormholeOutput{
+						Data:   b,
+						Status: status,
+					}); err != nil {
+						relayErr = err
+						break
+					}
+				}
+			}()
 		}
 		// TODO: Ensure req.Sender and req.Recipient aren't changed on subsequent requests?
 
-		if err := wormhole.Send(req.Data); err != nil {
+		if readErr != nil {
+			return readErr
+		}
+		if relayErr != nil {
+			return relayErr
+		}
+
+		if err := wormhole.Send(ctx, req.Data); err != nil {
 			return err
 		}
 	}
-
-	wormhole.Close()
 
 	return nil
 }

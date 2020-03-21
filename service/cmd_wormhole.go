@@ -55,11 +55,11 @@ func wormholeCommands(client *Client) []cli.Command {
 						}
 
 						if resp.Status == WormholeStatusOpen && !open {
-							fmt.Printf("Wormhole open, type a message.\n")
 							if wg != nil {
 								wg.Done()
 								wg = nil
 							}
+							open = true
 						}
 
 						if len(resp.Data) != 0 {
@@ -80,15 +80,21 @@ func wormholeCommands(client *Client) []cli.Command {
 					return recvErr
 				}
 
-				for {
-					reader := bufio.NewReader(os.Stdin)
-					text, _ := reader.ReadString('\n')
+				fmt.Printf("Wormhole open, type a message.\n")
+				scanner := bufio.NewScanner(os.Stdin)
+				for scanner.Scan() {
+					text := scanner.Text()
 					if err := client.Send(&WormholeInput{
 						Data: []byte(text),
 					}); err != nil {
 						return err
 					}
 				}
+				if err := scanner.Err(); err != nil {
+					return err
+				}
+
+				return nil
 			},
 		},
 	}
