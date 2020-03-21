@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
 
@@ -17,6 +18,7 @@ func authCommands(client *Client) []cli.Command {
 				cli.StringFlag{Name: "password", Usage: "password"},
 				cli.BoolFlag{Name: "token", Usage: "output token only"},
 				cli.BoolFlag{Name: "force", Usage: "force recovery"},
+				cli.StringFlag{Name: "client", Value: "cli", Hidden: true},
 			},
 			Aliases: []string{"unlock"},
 			Action: func(c *cli.Context) error {
@@ -28,6 +30,10 @@ func authCommands(client *Client) []cli.Command {
 				logger.Infof("Auth setup needed? %t", setupNeeded)
 
 				password := c.String("password")
+				clientName := c.String("client")
+				if clientName == "" {
+					return errors.Errorf("no client name")
+				}
 
 				var authToken string
 				if setupNeeded {
@@ -62,7 +68,7 @@ func authCommands(client *Client) []cli.Command {
 					logger.Infof("Auth unlock...")
 					unlock, unlockErr := client.ProtoClient().AuthUnlock(context.TODO(), &AuthUnlockRequest{
 						Password: password,
-						Client:   "cli",
+						Client:   clientName,
 					})
 					if unlockErr != nil {
 						return unlockErr
