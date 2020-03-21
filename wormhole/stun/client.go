@@ -11,7 +11,7 @@ var stunServer = "stun.l.google.com:19302"
 
 type Client struct {
 	publicAddr stun.XORMappedAddress
-	conn       *UDPConn
+	conn       *udpConn
 	onStunAddr func(addr string)
 	onMessage  func(message []byte)
 }

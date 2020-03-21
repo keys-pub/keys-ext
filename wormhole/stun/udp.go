@@ -9,21 +9,21 @@ import (
 
 var udp = "udp"
 
-type UDPConn struct {
+type udpConn struct {
 	peerAddr *net.UDPAddr
 	conn     *net.UDPConn
 }
 
-func ListenUDP() (*UDPConn, error) {
+func ListenUDP() (*udpConn, error) {
 	conn, err := net.ListenUDP(udp, nil)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to net.ListenUDP")
 	}
-	c := &UDPConn{conn: conn}
+	c := &udpConn{conn: conn}
 	return c, nil
 }
 
-func (c *UDPConn) SendBindingRequest() error {
+func (c *udpConn) SendBindingRequest() error {
 	srvAddr, err := net.ResolveUDPAddr(udp, stunServer)
 	if err != nil {
 		return errors.Wrapf(err, "failed to resolve addr")
@@ -34,7 +34,7 @@ func (c *UDPConn) SendBindingRequest() error {
 	return nil
 }
 
-func (c *UDPConn) Send(msg []byte) error {
+func (c *udpConn) Send(msg []byte) error {
 	if c.peerAddr == nil {
 		return errors.Errorf("no peer address set")
 	}
@@ -48,11 +48,11 @@ func (c *UDPConn) Send(msg []byte) error {
 	return nil
 }
 
-func (c *UDPConn) Close() error {
+func (c *udpConn) Close() error {
 	return c.conn.Close()
 }
 
-func (c *UDPConn) Listen() <-chan []byte {
+func (c *udpConn) Listen() <-chan []byte {
 	messages := make(chan []byte)
 	go func() {
 		for {
@@ -71,11 +71,11 @@ func (c *UDPConn) Listen() <-chan []byte {
 	return messages
 }
 
-func (c *UDPConn) LocalAddr() net.Addr {
+func (c *udpConn) LocalAddr() net.Addr {
 	return c.conn.LocalAddr()
 }
 
-func (c *UDPConn) SetPeer(addr string) error {
+func (c *udpConn) SetPeer(addr string) error {
 	a, err := net.ResolveUDPAddr(udp, addr)
 	if err != nil {
 		return err
