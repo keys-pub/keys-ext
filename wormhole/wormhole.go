@@ -126,10 +126,10 @@ func (w *Wormhole) Start(ctx context.Context, sender *keys.EdX25519Key, recipien
 	if err != nil {
 		return err
 	}
-	w.noise = noise
 
+	// TODO: Noise handshake timeout
 	if initiator {
-		out, err := w.noise.HandshakeWrite(nil)
+		out, err := noise.HandshakeWrite(nil)
 		if err != nil {
 			return err
 		}
@@ -141,7 +141,7 @@ func (w *Wormhole) Start(ctx context.Context, sender *keys.EdX25519Key, recipien
 		if err != nil {
 			return err
 		}
-		if _, err := w.noise.HandshakeRead(buf[:n]); err != nil {
+		if _, err := noise.HandshakeRead(buf[:n]); err != nil {
 			return err
 		}
 	} else {
@@ -150,10 +150,10 @@ func (w *Wormhole) Start(ctx context.Context, sender *keys.EdX25519Key, recipien
 		if err != nil {
 			return err
 		}
-		if _, err := w.noise.HandshakeRead(buf[:n]); err != nil {
+		if _, err := noise.HandshakeRead(buf[:n]); err != nil {
 			return err
 		}
-		out, err := w.noise.HandshakeWrite(nil)
+		out, err := noise.HandshakeWrite(nil)
 		if err != nil {
 			return err
 		}
@@ -161,6 +161,7 @@ func (w *Wormhole) Start(ctx context.Context, sender *keys.EdX25519Key, recipien
 			return err
 		}
 	}
+	w.noise = noise
 
 	logger.Infof("Started")
 	w.openLn()
