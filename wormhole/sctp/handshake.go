@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (c *Client) Handshake(ctx context.Context, addr *Addr, timeout time.Duration) error {
+func (c *Client) handshake(ctx context.Context, addr *Addr, timeout time.Duration) error {
 	wg := &sync.WaitGroup{}
 	wg.Add(2)
 

@@ -50,13 +50,9 @@ func main() {
 		}
 	}
 
-	if err := client.Handshake(context.TODO(), remote, time.Second*5); err != nil {
-		log.Fatal(err)
-	}
-
 	if *offer {
 		fmt.Printf("Connect to %s...\n", remote)
-		if err := client.Connect(remote); err != nil {
+		if err := client.Connect(context.TODO(), remote); err != nil {
 			log.Fatal(err)
 		}
 	} else {

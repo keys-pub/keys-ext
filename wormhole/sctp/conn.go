@@ -3,6 +3,8 @@ package sctp
 import (
 	"net"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 type udpConn struct {
@@ -22,15 +24,22 @@ func newUDPConn(conn *net.UDPConn, addr *Addr) (*udpConn, error) {
 }
 
 func (c *udpConn) Read(p []byte) (int, error) {
-	n, _, err := c.conn.ReadFromUDP(p)
+	n, addr, err := c.conn.ReadFromUDP(p)
 	if err != nil {
-		return 0, err
+		return 0, errors.Wrapf(err, "udp read error")
 	}
-	return n, err
+	if addr.String() != c.peerAddr.String() {
+		return 0, errors.Errorf("received data from an unexpected address")
+	}
+	return n, nil
 }
 
-func (c *udpConn) Write(p []byte) (n int, err error) {
-	return c.conn.WriteToUDP(p, c.peerAddr)
+func (c *udpConn) Write(p []byte) (int, error) {
+	n, err := c.conn.WriteToUDP(p, c.peerAddr)
+	if err != nil {
+		return n, errors.Wrapf(err, "udp write error")
+	}
+	return n, nil
 }
 
 func (c *udpConn) Close() error {

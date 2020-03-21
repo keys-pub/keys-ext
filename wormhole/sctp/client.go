@@ -16,6 +16,7 @@ import (
 
 var stunServer = "stun.l.google.com:19302"
 
+// Client for SCTP.
 type Client struct {
 	conn *net.UDPConn
 
@@ -23,17 +24,13 @@ type Client struct {
 	stream *sctp.Stream
 }
 
+// NewClient creates SCTP client.
 func NewClient() *Client {
 	return &Client{}
 }
 
+// Close ...
 func (c *Client) Close() {
-	c.close(false)
-}
-
-func (c *Client) close(notify bool) {
-	// TODO: notify
-
 	if c.stream != nil {
 		c.stream.Close()
 	}
@@ -45,20 +42,30 @@ func (c *Client) close(notify bool) {
 	}
 }
 
+// Write to stream (if connected).
 func (c *Client) Write(b []byte) error {
 	if c.stream == nil {
 		return errors.Errorf("no stream")
 	}
 	if _, err := c.stream.Write(b); err != nil {
-		return err
+		return errors.Wrapf(err, "stream write error")
 	}
 	return nil
 }
 
+// Read from stream (if connected).
 func (c *Client) Read(b []byte) (int, error) {
-	return c.stream.Read(b)
+	if c.stream == nil {
+		return 0, errors.Errorf("no stream")
+	}
+	n, err := c.stream.Read(b)
+	if err != nil {
+		return n, errors.Wrapf(err, "stream read error")
+	}
+	return n, nil
 }
 
+// STUN initiates the stun requests and returns an address.
 func (c *Client) STUN(ctx context.Context, timeout time.Duration) (*Addr, error) {
 	if c.conn != nil {
 		return nil, errors.Errorf("stun already connected")
@@ -114,7 +121,9 @@ Stun:
 	}, nil
 }
 
-func (c *Client) Connect(peerAddr *Addr) error {
+// Connect to peer.
+// Call this with address from STUN.
+func (c *Client) Connect(ctx context.Context, peerAddr *Addr) error {
 	if c.conn == nil {
 		return errors.Errorf("no stun connection, run STUN()")
 	}
@@ -123,6 +132,10 @@ func (c *Client) Connect(peerAddr *Addr) error {
 	}
 	if c.stream != nil {
 		return errors.Errorf("stream already exists")
+	}
+
+	if err := c.handshake(ctx, peerAddr, time.Second*10); err != nil {
+		return err
 	}
 
 	netConn, err := newUDPConn(c.conn, peerAddr)
@@ -152,6 +165,7 @@ func (c *Client) Connect(peerAddr *Addr) error {
 	return nil
 }
 
+// Listen for connections from peer.
 func (c *Client) Listen(ctx context.Context, peerAddr *Addr) error {
 	if c.conn == nil {
 		return errors.Errorf("no stun connection, run STUN()")
@@ -161,6 +175,10 @@ func (c *Client) Listen(ctx context.Context, peerAddr *Addr) error {
 	}
 	if c.stream != nil {
 		return errors.Errorf("stream already exists")
+	}
+
+	if err := c.handshake(ctx, peerAddr, time.Second*10); err != nil {
+		return err
 	}
 
 	slog := logging.NewDefaultLoggerFactory()
@@ -204,6 +222,7 @@ func (c *Client) readFromUDP() ([]byte, error) {
 	return buf, nil
 }
 
+// Addr is an SCTP address.
 type Addr struct {
 	IP   string `json:"ip"`
 	Port int    `json:"port"`

@@ -3,7 +3,6 @@ package wormhole
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"sync"
 	"time"
 
@@ -209,11 +208,7 @@ func (w *Wormhole) connect(ctx context.Context, sender keys.ID, recipient keys.I
 		return ErrNoResponse
 	}
 
-	if err := w.rtc.Handshake(ctx, answer, time.Second*5); err != nil {
-		return err
-	}
-
-	if err := w.rtc.Connect(answer); err != nil {
+	if err := w.rtc.Connect(ctx, answer); err != nil {
 		return err
 	}
 
@@ -238,12 +233,8 @@ func (w *Wormhole) listen(ctx context.Context, sender keys.ID, recipient keys.ID
 		return ErrNoResponse
 	}
 
-	if err := w.rtc.Handshake(ctx, offer, time.Second*5); err != nil {
-		return err
-	}
-
 	if err := w.rtc.Listen(context.TODO(), offer); err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	return nil
