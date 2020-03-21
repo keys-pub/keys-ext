@@ -18,7 +18,6 @@ github.com/keybase/saltpack v0.0.0-20190828020936-3f47e8e2e6ec/go.mod h1:loEJH62
 github.com/keys-pub/keys v0.0.0-20200223202242-70e1f1ef5e5f/go.mod h1:/uNDuQDL1kCcJVsKMG2xLwUMS7zvoUrWL9k1OMZ7GZw=
 github.com/keys-pub/keys v0.0.0-20200320021630-30bfb06feb37 h1:q8cwoF0EHy3AdZaGZuvFk85upt2+fTMwzdU2YSHDKpo=
 github.com/keys-pub/keys v0.0.0-20200320021630-30bfb06feb37/go.mod h1:k/6AQo72ji46Q03AX8C2jLUd4dmGM6djrEZY+LVr6Ww=
-github.com/keys-pub/keysd v0.0.24 h1:f43MvTtJCOKkbFdO+Ikbz+glVEHV6TJ9pTLmR2cIZdE=
 github.com/keys-pub/keysd/http/api v0.0.0-20200317222534-a1c37d8b9903 h1:fFcAW62c14k/6GMzaf73LqTf+oPQzRtU2erVCW98zLw=
 github.com/keys-pub/keysd/http/api v0.0.0-20200317222534-a1c37d8b9903/go.mod h1:oCloF/zhufOxDjykCl9bb1VjDHBQL4mljs5yz21p9/4=
 github.com/keys-pub/keysd/http/api v0.0.0-20200321022921-59e50adf15e4 h1:kx80pRSqEmmbvQU4RgshP1bBJC0GliX2/JyBKAgZYCo=
@@ -55,8 +54,6 @@ github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/schollz/logger v1.2.0 h1:5WXfINRs3lEUTCZ7YXhj0uN+qukjizvITLm3Ca2m0Ho=
-github.com/schollz/logger v1.2.0/go.mod h1:P6F4/dGMGcx8wh+kG1zrNEd4vnNpEBY/mwEMd/vn6AM=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.2.0 h1:Hbg2NidpLE8veEBkEZTL3CvlkUIVzuU9jDplZO54c48=
 github.com/stretchr/objx v0.2.0/go.mod h1:qt09Ya8vawLte6SNmTgCsAVtYtaKzEcn8ATUoHMkEqE=

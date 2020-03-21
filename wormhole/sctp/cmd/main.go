@@ -12,7 +12,6 @@ import (
 	"github.com/keys-pub/keys"
 	httpclient "github.com/keys-pub/keysd/http/client"
 	"github.com/keys-pub/keysd/wormhole/sctp"
-	"github.com/schollz/logger"
 )
 
 func main() {
@@ -180,7 +179,7 @@ func (c *cmd) writeSession(ctx context.Context, sender keys.ID, recipient keys.I
 
 func (c *cmd) readSession(ctx context.Context, sender keys.ID, recipient keys.ID, id string) (*sctp.Addr, error) {
 	for {
-		logger.Debugf("Get session (ephem/%s)...", id)
+		fmt.Printf("Get session (ephem/%s)...\n", id)
 		b, err := c.hcl.GetEphemeral(ctx, sender, recipient, id)
 		if err != nil {
 			return nil, err
