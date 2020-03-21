@@ -1,11 +1,9 @@
 package wormhole
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"log"
-	"net/http"
 	"sync"
 	"time"
 
@@ -115,11 +113,11 @@ func (w *Wormhole) Start(ctx context.Context, sender *keys.EdX25519Key, recipien
 	logger.Infof("Initator: %t", initiator)
 
 	if initiator {
-		if err := w.connect(ctx, sender, recipient); err != nil {
+		if err := w.connect(ctx, sender.ID(), recipient.ID()); err != nil {
 			return err
 		}
 	} else {
-		if err := w.listen(ctx, sender, recipient); err != nil {
+		if err := w.listen(ctx, sender.ID(), recipient.ID()); err != nil {
 			return err
 		}
 	}
@@ -192,17 +190,17 @@ func (w *Wormhole) Send(b []byte) error {
 	return w.rtc.Write(encrypted)
 }
 
-func (w *Wormhole) connect(ctx context.Context, sender *keys.EdX25519Key, recipient *keys.EdX25519PublicKey) error {
+func (w *Wormhole) connect(ctx context.Context, sender keys.ID, recipient keys.ID) error {
 	logger.Infof("Connect...")
 	offer, err := w.rtc.STUN(ctx, time.Second*10)
 	if err != nil {
 		return err
 	}
-	if err := writeOffer(offer); err != nil {
+	if err := w.writeOffer(offer, sender, recipient); err != nil {
 		return err
 	}
 
-	answer, err := readAnswer()
+	answer, err := w.readAnswer(sender, recipient)
 	if err != nil {
 		return err
 	}
@@ -221,17 +219,17 @@ func (w *Wormhole) connect(ctx context.Context, sender *keys.EdX25519Key, recipi
 	return nil
 }
 
-func (w *Wormhole) listen(ctx context.Context, sender *keys.EdX25519Key, recipient *keys.EdX25519PublicKey) error {
+func (w *Wormhole) listen(ctx context.Context, sender keys.ID, recipient keys.ID) error {
 	logger.Infof("Listen...")
 	answer, err := w.rtc.STUN(ctx, time.Second*10)
 	if err != nil {
 		return err
 	}
-	if err := writeAnswer(answer); err != nil {
+	if err := w.writeAnswer(answer, sender, recipient); err != nil {
 		return err
 	}
 
-	offer, err := readOffer()
+	offer, err := w.readOffer(sender, recipient)
 	if err != nil {
 		return err
 	}
@@ -250,54 +248,44 @@ func (w *Wormhole) listen(ctx context.Context, sender *keys.EdX25519Key, recipie
 	return nil
 }
 
-func writeOffer(offer *sctp.Addr) error {
-	return sendAddr(offer, "https://keys.pub/relay/offer")
+func (w *Wormhole) writeOffer(offer *sctp.Addr, sender keys.ID, recipient keys.ID) error {
+	return w.writeSession(offer, sender, recipient, "offer")
 }
 
-func readOffer() (*sctp.Addr, error) {
-	return readAddr("https://keys.pub/relay/offer")
+func (w *Wormhole) readOffer(sender keys.ID, recipient keys.ID) (*sctp.Addr, error) {
+	return w.readSession(sender, recipient, "offer")
 }
 
-func writeAnswer(answer *sctp.Addr) error {
-	return sendAddr(answer, "https://keys.pub/relay/answer")
+func (w *Wormhole) writeAnswer(answer *sctp.Addr, sender keys.ID, recipient keys.ID) error {
+	return w.writeSession(answer, sender, recipient, "answer")
 }
 
-func readAnswer() (*sctp.Addr, error) {
-	return readAddr("https://keys.pub/relay/answer")
+func (w *Wormhole) readAnswer(sender keys.ID, recipient keys.ID) (*sctp.Addr, error) {
+	return w.readSession(sender, recipient, "answer")
 }
 
-func sendAddr(addr *sctp.Addr, url string) error {
-	b, err := json.Marshal(addr)
+func (w *Wormhole) writeSession(answer *sctp.Addr, sender keys.ID, recipient keys.ID, id string) error {
+	b, err := json.Marshal(answer)
 	if err != nil {
 		return err
 	}
-	logger.Infof("Send %s: %s", url, string(b))
-	resp, err := http.Post(url, "application/json; charset=utf-8", bytes.NewBuffer(b))
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	return nil
+	return w.hcl.PutEphemeral(sender, recipient, id, b)
 }
 
-func readAddr(url string) (*sctp.Addr, error) {
+func (w *Wormhole) readSession(sender keys.ID, recipient keys.ID, id string) (*sctp.Addr, error) {
+	// TODO: Context
 	for {
-		logger.Infof("Look %s...", url)
-		resp, err := http.Get(url)
+		b, err := w.hcl.GetEphemeral(sender, recipient, id)
 		if err != nil {
 			return nil, err
 		}
-		if resp.StatusCode == 200 {
+		if b != nil {
 			var addr sctp.Addr
-			if err = json.NewDecoder(resp.Body).Decode(&addr); err != nil {
+			if err := json.Unmarshal(b, &addr); err != nil {
 				return nil, err
 			}
-			logger.Infof("Got address.")
 			return &addr, nil
-		} else if resp.StatusCode == 404 {
-			time.Sleep(time.Second)
-		} else {
-			return nil, errors.Errorf("Failed to get offer %d", resp.StatusCode)
 		}
+		time.Sleep(time.Second)
 	}
 }
