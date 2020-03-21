@@ -8,11 +8,11 @@ require (
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/protobuf v1.3.4 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
-	github.com/keys-pub/keys v0.0.0-20200318233408-7314de4cb442
+	github.com/keys-pub/keys v0.0.0-20200320021630-30bfb06feb37
 	github.com/keys-pub/keysd/db v0.0.0-20200306174951-faa8a8074ae0
 	github.com/keys-pub/keysd/http/api v0.0.0-20200317224602-68134b1264db
-	github.com/keys-pub/keysd/http/client v0.0.0-20200317224602-68134b1264db
-	github.com/keys-pub/keysd/http/server v0.0.0-20200317222721-717bf70f4f22
+	github.com/keys-pub/keysd/http/client v0.0.0-20200320171528-bd2d6df945a0
+	github.com/keys-pub/keysd/http/server v0.0.0-20200320024609-6e3fca134965
 	github.com/keys-pub/keysd/wormhole v0.0.0-20200318175959-d85e63958206
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/mercari/go-grpc-interceptor v0.0.0-20180110035004-b8ad3827e82a

@@ -17,19 +17,14 @@ import (
 var stunServer = "stun.l.google.com:19302"
 
 type Client struct {
-	conn      *net.UDPConn
-	onMessage func(message []byte)
-	onClose   func()
+	conn *net.UDPConn
 
 	assoc  *sctp.Association
 	stream *sctp.Stream
 }
 
 func NewClient() *Client {
-	return &Client{
-		onMessage: func([]byte) {},
-		onClose:   func() {},
-	}
+	return &Client{}
 }
 
 func (c *Client) Close() {
@@ -37,9 +32,7 @@ func (c *Client) Close() {
 }
 
 func (c *Client) close(notify bool) {
-	if notify {
-		c.onClose()
-	}
+	// TODO: notify
 
 	if c.stream != nil {
 		c.stream.Close()
@@ -52,72 +45,21 @@ func (c *Client) close(notify bool) {
 	}
 }
 
-func (c *Client) OnMessage(f func(b []byte)) {
-	c.onMessage = f
-}
-
-func (c *Client) OnClose(f func()) {
-	c.onClose = f
-}
-
-func (c *Client) Connect(peerAddr *net.UDPAddr) error {
-	if c.conn == nil {
-		return errors.Errorf("no stun connection, run STUN()")
-	}
-
-	config := sctp.Config{
-		NetConn:       &udpConn{conn: c.conn, peerAddr: peerAddr},
-		LoggerFactory: logging.NewDefaultLoggerFactory(),
-	}
-	logger.Infof("Create client...")
-	a, err := sctp.Client(config)
-	if err != nil {
-		return err
-	}
-	c.assoc = a
-
-	logger.Infof("Open stream read...")
-	stream, err := a.OpenStream(0, sctp.PayloadTypeWebRTCDCEP)
-	if err != nil {
-		return err
-	}
-	logger.Infof("Stream opened.")
-	stream.SetReliabilityParams(false, sctp.ReliabilityTypeReliable, 0)
-	c.stream = stream
-
-	go func() {
-		logger.Infof("Stream read.")
-		if err := c.read(); err != nil {
-			logger.Errorf("Read error: %v", err)
-			c.close(true)
-		}
-	}()
-
-	return nil
-}
-
-func (c *Client) read() error {
-	buf := make([]byte, 1024)
-	for {
-		n, err := c.stream.Read(buf)
-		if err != nil {
-			return err
-		}
-		c.onMessage(buf[:n])
-	}
-}
-
-func (c *Client) Send(message []byte) error {
+func (c *Client) Write(b []byte) error {
 	if c.stream == nil {
 		return errors.Errorf("no stream")
 	}
-	if _, err := c.stream.Write(message); err != nil {
+	if _, err := c.stream.Write(b); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *Client) STUN(ctx context.Context, timeout time.Duration) (*stun.XORMappedAddress, error) {
+func (c *Client) Read(b []byte) (int, error) {
+	return c.stream.Read(b)
+}
+
+func (c *Client) STUN(ctx context.Context, timeout time.Duration) (*Addr, error) {
 	if c.conn != nil {
 		return nil, errors.Errorf("stun already connected")
 	}
@@ -166,22 +108,74 @@ Stun:
 		}
 	}
 
-	return &stunAddr, nil
+	return &Addr{
+		IP:   stunAddr.IP.String(),
+		Port: stunAddr.Port,
+	}, nil
 }
 
-func (c *Client) Listen(ctx context.Context, peerAddr *net.UDPAddr) error {
+func (c *Client) Connect(peerAddr *Addr) error {
 	if c.conn == nil {
 		return errors.Errorf("no stun connection, run STUN()")
+	}
+	if c.assoc != nil {
+		return errors.Errorf("client already exists")
+	}
+	if c.stream != nil {
+		return errors.Errorf("stream already exists")
+	}
+
+	netConn, err := newUDPConn(c.conn, peerAddr)
+	if err != nil {
+		return err
+	}
+	config := sctp.Config{
+		NetConn:       netConn,
+		LoggerFactory: logging.NewDefaultLoggerFactory(),
+	}
+	logger.Infof("Create client (for peer %s)...", peerAddr)
+	a, err := sctp.Client(config)
+	if err != nil {
+		return err
+	}
+	c.assoc = a
+
+	logger.Infof("Open stream read...")
+	stream, err := a.OpenStream(0, sctp.PayloadTypeWebRTCDCEP)
+	if err != nil {
+		return err
+	}
+	logger.Infof("Stream opened.")
+	stream.SetReliabilityParams(false, sctp.ReliabilityTypeReliable, 0)
+	c.stream = stream
+
+	return nil
+}
+
+func (c *Client) Listen(ctx context.Context, peerAddr *Addr) error {
+	if c.conn == nil {
+		return errors.Errorf("no stun connection, run STUN()")
+	}
+	if c.assoc != nil {
+		return errors.Errorf("server already exists")
+	}
+	if c.stream != nil {
+		return errors.Errorf("stream already exists")
 	}
 
 	slog := logging.NewDefaultLoggerFactory()
 	// slog.DefaultLogLevel = logging.LogLevelTrace
 	slog.Writer = os.Stderr
+
+	netConn, err := newUDPConn(c.conn, peerAddr)
+	if err != nil {
+		return err
+	}
 	config := sctp.Config{
-		NetConn:       &udpConn{conn: c.conn, peerAddr: peerAddr},
+		NetConn:       netConn,
 		LoggerFactory: slog,
 	}
-	logger.Infof("Create server...")
+	logger.Infof("Create server (for peer %s)...", peerAddr)
 	a, err := sctp.Server(config)
 	if err != nil {
 		return err
@@ -197,25 +191,6 @@ func (c *Client) Listen(ctx context.Context, peerAddr *net.UDPAddr) error {
 	stream.SetReliabilityParams(false, sctp.ReliabilityTypeReliable, 0)
 	c.stream = stream
 
-	logger.Infof("Stream read...")
-	go func() {
-		if err := c.read(); err != nil {
-			logger.Errorf("Read error: %v", err)
-			c.close(true)
-		}
-	}()
-
-	return nil
-}
-
-func (c *Client) writeToUDP(b []byte, addr string) error {
-	a, err := net.ResolveUDPAddr("udp", addr)
-	if err != nil {
-		return err
-	}
-	if _, err := c.conn.WriteToUDP(b, a); err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -236,4 +211,9 @@ type Addr struct {
 
 func (a Addr) String() string {
 	return fmt.Sprintf("%s:%d", a.IP, a.Port)
+}
+
+func (a Addr) UDPAddr() (*net.UDPAddr, error) {
+	return net.ResolveUDPAddr("udp", a.String())
+
 }

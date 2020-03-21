@@ -10,6 +10,17 @@ type udpConn struct {
 	conn     *net.UDPConn
 }
 
+func newUDPConn(conn *net.UDPConn, addr *Addr) (*udpConn, error) {
+	peerAddr, err := addr.UDPAddr()
+	if err != nil {
+		return nil, err
+	}
+	return &udpConn{
+		peerAddr: peerAddr,
+		conn:     conn,
+	}, nil
+}
+
 func (c *udpConn) Read(p []byte) (int, error) {
 	n, _, err := c.conn.ReadFromUDP(p)
 	if err != nil {

@@ -2,43 +2,43 @@ package sctp
 
 import (
 	"context"
-	"fmt"
-	"net"
 	"sync"
 	"time"
 
 	"github.com/pkg/errors"
 )
 
-func (c *Client) Handshake(ctx context.Context, addr *net.UDPAddr, timeout time.Duration) error {
+func (c *Client) Handshake(ctx context.Context, addr *Addr, timeout time.Duration) error {
 	wg := &sync.WaitGroup{}
 	wg.Add(2)
 
+	udpAddr, err := addr.UDPAddr()
+	if err != nil {
+		return err
+	}
+
 	var writeErr error
 	var readErr error
-	writeDone := false
+	write := true
 	send := "syn"
 	go func() {
-		logger.Infof("Starting handshake write...")
-		for !writeDone {
-			if _, err := c.conn.WriteToUDP([]byte(send), addr); err != nil {
+		for write {
+			if _, err := c.conn.WriteToUDP([]byte(send), udpAddr); err != nil {
 				writeErr = err
-				writeDone = true
+				break
 			}
 			if send == "ack" {
-				writeDone = true
+				break
 			}
-			if !writeDone {
-				time.Sleep(time.Millisecond * 100)
-			}
+			time.Sleep(time.Millisecond * 100)
 		}
-		logger.Infof("Stopped handshake write.")
 		wg.Done()
 	}()
 
-	readDone := false
+	read := true
 	go func() {
-		for !readDone {
+	ReadLoop:
+		for read {
 			b, err := c.readFromUDP()
 			if err != nil {
 				readErr = err
@@ -46,15 +46,15 @@ func (c *Client) Handshake(ctx context.Context, addr *net.UDPAddr, timeout time.
 			}
 			switch string(b) {
 			case "syn":
-				fmt.Printf("Received syn.\n")
+				// logger.Debugf("SCTP syn")
 				send = "syn-ack"
 			case "syn-ack":
-				fmt.Printf("Received syn-ack.\n")
+				// logger.Debugf("SCTP syn-ack")
 				send = "ack"
 			case "ack":
-				fmt.Printf("Received ack.\n")
+				// logger.Debugf("SCTP ack")
 				send = "ack"
-				readDone = true
+				break ReadLoop
 			}
 		}
 		wg.Done()
@@ -62,10 +62,10 @@ func (c *Client) Handshake(ctx context.Context, addr *net.UDPAddr, timeout time.
 
 	ch := make(chan bool)
 	go func() {
-		logger.Infof("Wait for handshake...")
+		logger.Debugf("Wait for (sctp) handshake...")
 		wg.Wait()
 		ch <- true
-		logger.Infof("Handshake done")
+		logger.Debugf("Handshake (sctp) done")
 	}()
 
 	select {

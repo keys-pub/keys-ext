@@ -1,29 +1,32 @@
 package wormhole
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"log"
+	"net/http"
 	"sync"
 	"time"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/noise"
 	httpclient "github.com/keys-pub/keysd/http/client"
-	"github.com/keys-pub/keysd/wormhole/webrtc"
+	"github.com/keys-pub/keysd/wormhole/sctp"
 	"github.com/pkg/errors"
 )
 
-// ErrOfferNotFound error if offer not found for recipient.
-var ErrOfferNotFound = errors.New("offer not found")
+// ErrNoResponse error if offer not found for recipient.
+var ErrNoResponse = errors.New("no response")
 
-// ErrHandshakeTimeout if we timed out during handshake
-var ErrHandshakeTimeout = errors.New("handshake timeout")
+// ErrNoiseHandshakeTimeout if we timed out during handshake
+var ErrNoiseHandshakeTimeout = errors.New("noise handshake timeout")
 
 // Wormhole for connecting two participants using webrtc, noise and
 // keys.pub.
 type Wormhole struct {
 	sync.Mutex
-	rtc   *webrtc.Client
+	rtc   *sctp.Client
 	hcl   *httpclient.Client
 	noise *noise.Noise
 
@@ -36,16 +39,13 @@ type Wormhole struct {
 // Server is offer/answer message server, only used to coordinate starting the
 // webrtc channel.
 func NewWormhole(server string, ks *keys.Keystore) (*Wormhole, error) {
-	rtc, err := webrtc.NewClient()
-	if err != nil {
-		return nil, err
-	}
+	rtc := sctp.NewClient()
 
 	if server == "" {
 		server = "https://keys.pub"
 	}
 
-	logger.Infof("New wormhole: %s", server)
+	logger.Infof("New wormhole (%s)", server)
 	hcl, err := httpclient.NewClient(server, ks)
 	if err != nil {
 		return nil, err
@@ -59,9 +59,10 @@ func NewWormhole(server string, ks *keys.Keystore) (*Wormhole, error) {
 		onMessage: func(b []byte) {},
 	}
 
-	rtc.OnClose(func(channel webrtc.Channel) {
-		w.onClose()
-	})
+	// TODO: Close
+	// rtc.OnClose(func() {
+	// 	w.onClose()
+	// })
 
 	return w, nil
 }
@@ -88,9 +89,9 @@ func (w *Wormhole) OnMessage(f func(b []byte)) {
 	w.onMessage = f
 }
 
-func (w *Wormhole) messageLn(channel webrtc.Channel, message webrtc.Message) {
-	logger.Infof("Message (%d)", len(message.Data()))
-	decrypted, err := w.noise.Decrypt(nil, nil, message.Data())
+func (w *Wormhole) messageLn(b []byte) {
+	logger.Infof("Message (%d)", len(b))
+	decrypted, err := w.noise.Decrypt(nil, nil, b)
 	if err != nil {
 		logger.Errorf("Failed to decrypt message: %s", err)
 		return
@@ -98,8 +99,7 @@ func (w *Wormhole) messageLn(channel webrtc.Channel, message webrtc.Message) {
 	w.onMessage(decrypted)
 }
 
-func (w *Wormhole) openLn(channel webrtc.Channel) {
-	logger.Infof("Channel: %+v", channel)
+func (w *Wormhole) openLn() {
 	w.onOpen()
 }
 
@@ -114,96 +114,68 @@ func (w *Wormhole) Start(ctx context.Context, sender *keys.EdX25519Key, recipien
 	initiator := sender.ID() < recipient.ID()
 	logger.Infof("Initator: %t", initiator)
 
+	if initiator {
+		if err := w.connect(ctx, sender, recipient); err != nil {
+			return err
+		}
+	} else {
+		if err := w.listen(ctx, sender, recipient); err != nil {
+			return err
+		}
+	}
+
 	noise, err := noise.NewNoise(sender.X25519Key(), recipient.X25519PublicKey(), initiator)
 	if err != nil {
 		return err
 	}
 	w.noise = noise
 
-	var noiseErr error
-	wg := &sync.WaitGroup{}
-	wg.Add(1)
-
-	// Start handshake when channel is connected.
-	w.rtc.OnOpen(func(channel webrtc.Channel) {
-		w.rtc.OnOpen(func(webrtc.Channel) {}) // Once
-
-		if initiator {
-			logger.Infof("Initiate handshake...")
-			if err := handshakeWrite(w.noise, channel); err != nil {
-				if noiseErr == nil {
-					noiseErr = err
-					wg.Done()
-				}
-				return
-			}
-		}
-	})
-
-	w.rtc.OnMessage(func(channel webrtc.Channel, message webrtc.Message) {
-		w.rtc.OnMessage(func(webrtc.Channel, webrtc.Message) {}) // Once
-
-		logger.Infof("Handshake received...")
-		if _, err := noise.HandshakeRead(message.Data()); err != nil {
-			if noiseErr == nil {
-				noiseErr = err
-				wg.Done()
-			}
-			return
-		}
-		if !initiator {
-			logger.Infof("Handshake respond...")
-			if err := handshakeWrite(w.noise, channel); err != nil {
-				if noiseErr == nil {
-					noiseErr = err
-					wg.Done()
-				}
-				return
-			}
-		}
-		wg.Done()
-	})
-
 	if initiator {
-		if err := w.offer(ctx, sender, recipient); err != nil {
+		out, err := w.noise.HandshakeWrite(nil)
+		if err != nil {
+			return err
+		}
+		if err := w.rtc.Write(out); err != nil {
+			return err
+		}
+		buf := make([]byte, 1024)
+		n, err := w.rtc.Read(buf)
+		if err != nil {
+			return err
+		}
+		if _, err := w.noise.HandshakeRead(buf[:n]); err != nil {
 			return err
 		}
 	} else {
-		if err := w.answer(ctx, sender, recipient); err != nil {
+		buf := make([]byte, 1024)
+		n, err := w.rtc.Read(buf)
+		if err != nil {
+			return err
+		}
+		if _, err := w.noise.HandshakeRead(buf[:n]); err != nil {
+			return err
+		}
+		out, err := w.noise.HandshakeWrite(nil)
+		if err != nil {
+			return err
+		}
+		if err := w.rtc.Write(out); err != nil {
 			return err
 		}
 	}
 
-	// Create channel
-	if err := w.rtc.CreateChannel("wormhole"); err != nil {
-		return err
-	}
-
-	c := make(chan bool)
-	go func() {
-		logger.Infof("Wait for handshake...")
-		wg.Wait()
-		c <- true
-		logger.Infof("Handshake done")
-	}()
-
-	select {
-	case <-c:
-		break
-	case <-ctx.Done():
-		return ctx.Err()
-	case <-time.After(time.Second * 20):
-		return ErrHandshakeTimeout
-	}
-
-	if noiseErr != nil {
-		logger.Errorf("Handshake error: %v", noiseErr)
-		return noiseErr
-	}
-
 	logger.Infof("Started")
-	w.rtc.OnMessage(w.messageLn)
-	w.openLn(w.rtc.Channel())
+	w.openLn()
+
+	// Read
+	go func() {
+		buf := make([]byte, 1024)
+		n, err := w.rtc.Read(buf)
+		if err != nil {
+			logger.Errorf("Read error: %v", err)
+		}
+		w.messageLn(buf[:n])
+	}()
 
 	return nil
 }
@@ -217,162 +189,115 @@ func (w *Wormhole) Send(b []byte) error {
 	if err != nil {
 		return err
 	}
-	return w.rtc.Send(encrypted)
+	return w.rtc.Write(encrypted)
 }
 
-func (w *Wormhole) offer(ctx context.Context, sender *keys.EdX25519Key, recipient *keys.EdX25519PublicKey) error {
-	logger.Infof("Creating offer...")
-	offer, err := w.rtc.Offer()
+func (w *Wormhole) connect(ctx context.Context, sender *keys.EdX25519Key, recipient *keys.EdX25519PublicKey) error {
+	logger.Infof("Connect...")
+	offer, err := w.rtc.STUN(ctx, time.Second*10)
 	if err != nil {
 		return err
 	}
-	b, err := json.Marshal(offer)
-	if err != nil {
+	if err := writeOffer(offer); err != nil {
 		return err
 	}
-	// logger.Infof("Offer: %s", string(b))
 
-	logger.Infof("Sending offer message...")
-	opts := &httpclient.MessageOpts{
-		Channel: "wormhole",
-	}
-	msg, err := w.hcl.SendMessage(sender, recipient.ID(), b, opts)
-	if err != nil {
-		return err
-	}
-	logger.Infof("Offer sent")
-
-	logger.Infof("Wait for answer...")
-	answer, err := w.findSession(ctx, sender, recipient, msg.ID)
+	answer, err := readAnswer()
 	if err != nil {
 		return err
 	}
 	if answer == nil {
-		return ErrOfferNotFound
+		return ErrNoResponse
 	}
 
-	logger.Infof("Setting answer...")
-	if err := w.rtc.SetAnswer(answer); err != nil {
+	if err := w.rtc.Handshake(ctx, answer, time.Second*5); err != nil {
+		return err
+	}
+
+	if err := w.rtc.Connect(answer); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (w *Wormhole) findSession(ctx context.Context, sender *keys.EdX25519Key, recipient *keys.EdX25519PublicKey, sessionMsgID string) (*webrtc.SessionDescription, error) {
-	offerChan := make(chan *webrtc.SessionDescription)
-	errChan := make(chan error)
-	done := false
-
-	go func() {
-		delay := time.Second
-		for !done {
-			offer, err := w.findMessage(sender, recipient, sessionMsgID)
-			if err != nil {
-				errChan <- err
-			}
-			if offer != nil {
-				offerChan <- offer
-			}
-			time.Sleep(delay)
-			if delay < time.Second*5 {
-				delay += (time.Second * 2)
-			}
-		}
-	}()
-	defer func() {
-		done = true
-	}()
-
-	select {
-	case offer := <-offerChan:
-		return offer, nil
-	case err := <-errChan:
-		return nil, err
-	case <-ctx.Done():
-		return nil, ctx.Err()
+func (w *Wormhole) listen(ctx context.Context, sender *keys.EdX25519Key, recipient *keys.EdX25519PublicKey) error {
+	logger.Infof("Listen...")
+	answer, err := w.rtc.STUN(ctx, time.Second*10)
+	if err != nil {
+		return err
 	}
+	if err := writeAnswer(answer); err != nil {
+		return err
+	}
+
+	offer, err := readOffer()
+	if err != nil {
+		return err
+	}
+	if offer == nil {
+		return ErrNoResponse
+	}
+
+	if err := w.rtc.Handshake(ctx, offer, time.Second*5); err != nil {
+		return err
+	}
+
+	if err := w.rtc.Listen(context.TODO(), offer); err != nil {
+		log.Fatal(err)
+	}
+
+	return nil
 }
 
-func (w *Wormhole) findMessage(sender *keys.EdX25519Key, recipient *keys.EdX25519PublicKey, sessionMsgID string) (*webrtc.SessionDescription, error) {
-	logger.Infof("Getting wormhole messages...")
-	opts := &httpclient.MessagesOpts{
-		Channel:   "wormhole",
-		Limit:     1,
-		Direction: keys.Descending,
-	}
-	msgs, _, err := w.hcl.Messages(sender, recipient.ID(), opts)
+func writeOffer(offer *sctp.Addr) error {
+	return sendAddr(offer, "https://keys.pub/relay/offer")
+}
+
+func readOffer() (*sctp.Addr, error) {
+	return readAddr("https://keys.pub/relay/offer")
+}
+
+func writeAnswer(answer *sctp.Addr) error {
+	return sendAddr(answer, "https://keys.pub/relay/answer")
+}
+
+func readAnswer() (*sctp.Addr, error) {
+	return readAddr("https://keys.pub/relay/answer")
+}
+
+func sendAddr(addr *sctp.Addr, url string) error {
+	b, err := json.Marshal(addr)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	for _, msg := range msgs {
-		if msg.ID == sessionMsgID {
-			continue
-		}
-		b, pk, err := w.hcl.DecryptMessage(sender, msgs[0])
+	logger.Infof("Send %s: %s", url, string(b))
+	resp, err := http.Post(url, "application/json; charset=utf-8", bytes.NewBuffer(b))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	return nil
+}
+
+func readAddr(url string) (*sctp.Addr, error) {
+	for {
+		logger.Infof("Look %s...", url)
+		resp, err := http.Get(url)
 		if err != nil {
 			return nil, err
 		}
-		if pk == sender.ID() {
-			continue
+		if resp.StatusCode == 200 {
+			var addr sctp.Addr
+			if err = json.NewDecoder(resp.Body).Decode(&addr); err != nil {
+				return nil, err
+			}
+			logger.Infof("Got address.")
+			return &addr, nil
+		} else if resp.StatusCode == 404 {
+			time.Sleep(time.Second)
+		} else {
+			return nil, errors.Errorf("Failed to get offer %d", resp.StatusCode)
 		}
-		if pk != recipient.ID() {
-			return nil, errors.Errorf("session not by recipient %s != %s", pk, recipient.ID())
-		}
-
-		var offer webrtc.SessionDescription
-		if err := json.Unmarshal(b, &offer); err != nil {
-			return nil, errors.Wrapf(err, "failed to unmarshal wormhole session")
-		}
-		logger.Infof("Found session: %s", string(b))
-		return &offer, nil
 	}
-	logger.Infof("Session not found")
-	return nil, nil
-}
-
-func (w *Wormhole) answer(ctx context.Context, sender *keys.EdX25519Key, recipient *keys.EdX25519PublicKey) error {
-	logger.Infof("Find answer...")
-	offer, err := w.findSession(ctx, sender, recipient, "")
-	if err != nil {
-		return err
-	}
-
-	if offer == nil {
-		return ErrOfferNotFound
-	}
-
-	logger.Infof("Creating answer...")
-	answer, err := w.rtc.Answer(offer)
-	if err != nil {
-		return err
-	}
-
-	b, err := json.Marshal(answer)
-	if err != nil {
-		return err
-	}
-	logger.Infof("Answer: %s", string(b))
-
-	logger.Infof("Sending answer message...")
-	opts := &httpclient.MessageOpts{
-		Channel: "wormhole",
-	}
-	if _, err := w.hcl.SendMessage(sender, recipient.ID(), b, opts); err != nil {
-		return err
-	}
-	logger.Infof("Answer sent")
-
-	return nil
-}
-
-func handshakeWrite(noise *noise.Noise, channel webrtc.Channel) error {
-	out, err := noise.HandshakeWrite(nil)
-	if err != nil {
-		return err
-	}
-	if err := channel.Send(out); err != nil {
-		return err
-	}
-	return nil
 }

@@ -7,7 +7,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net"
 	"net/http"
 	"time"
 
@@ -24,21 +23,10 @@ func main() {
 	client := sctp.NewClient()
 	defer client.Close()
 
-	client.OnMessage(func(message []byte) {
-		fmt.Printf("Received: %s\n", string(message))
-		if string(message) == "ping" {
-			fmt.Printf("Sending pong...\n")
-			if err := client.Send([]byte("pong")); err != nil {
-				log.Fatal(err)
-			}
-		}
-	})
-
-	stunAddr, err := client.STUN(context.TODO(), time.Second*5)
+	addr, err := client.STUN(context.TODO(), time.Second*5)
 	if err != nil {
 		log.Fatal(err)
 	}
-	addr := &sctp.Addr{IP: stunAddr.IP.String(), Port: stunAddr.Port}
 	if *offer {
 		if err := writeOffer(addr); err != nil {
 			log.Fatal(err)
@@ -62,33 +50,72 @@ func main() {
 		}
 	}
 
-	udpAddr, err := net.ResolveUDPAddr("udp", remote.String())
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if err := client.Handshake(context.TODO(), udpAddr, time.Second*5); err != nil {
+	if err := client.Handshake(context.TODO(), remote, time.Second*5); err != nil {
 		log.Fatal(err)
 	}
 
 	if *offer {
-		fmt.Printf("Listen...\n")
-		if err := client.Listen(context.TODO(), udpAddr); err != nil {
+		fmt.Printf("Connect to %s...\n", remote)
+		if err := client.Connect(remote); err != nil {
 			log.Fatal(err)
 		}
 	} else {
-		fmt.Printf("Connect to %s...\n", udpAddr)
-		if err := client.Connect(udpAddr); err != nil {
+		fmt.Printf("Listen...\n")
+		if err := client.Listen(context.TODO(), remote); err != nil {
 			log.Fatal(err)
 		}
 	}
 
-	for {
-		fmt.Printf("Sending ping...\n")
-		if err := client.Send([]byte("ping")); err != nil {
-			log.Fatal(err)
+	if *offer {
+		go func() {
+			b := make([]byte, 1024)
+			for {
+				n, err := client.Read(b)
+				if err != nil {
+					log.Fatal(err)
+				}
+				message := b[:n]
+				fmt.Printf("Received: %s\n", string(message))
+				if string(message) == "answer/ping" {
+					fmt.Printf("Sending offer/pong...\n")
+					if err := client.Write([]byte("offer/pong")); err != nil {
+						log.Fatal(err)
+					}
+				}
+			}
+		}()
+		for {
+			fmt.Printf("Sending offer/ping...\n")
+			if err := client.Write([]byte("offer/ping")); err != nil {
+				log.Fatal(err)
+			}
+			time.Sleep(time.Second * 5)
 		}
-		time.Sleep(time.Second * 5)
+	} else {
+		go func() {
+			b := make([]byte, 1024)
+			for {
+				n, err := client.Read(b)
+				if err != nil {
+					log.Fatal(err)
+				}
+				message := b[:n]
+				fmt.Printf("Received: %s\n", string(message))
+				if string(message) == "offer/ping" {
+					fmt.Printf("Sending answer/pong...\n")
+					if err := client.Write([]byte("answer/pong")); err != nil {
+						log.Fatal(err)
+					}
+				}
+			}
+		}()
+		for {
+			fmt.Printf("Sending answer/ping...\n")
+			if err := client.Write([]byte("answer/ping")); err != nil {
+				log.Fatal(err)
+			}
+			time.Sleep(time.Second * 5)
+		}
 	}
 }
 

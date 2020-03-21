@@ -9,12 +9,13 @@ import (
 	"github.com/keys-pub/keys"
 
 	"github.com/keys-pub/keysd/wormhole"
+	"github.com/keys-pub/keysd/wormhole/sctp"
 	"github.com/stretchr/testify/require"
 )
 
 func TestNewWormhole(t *testing.T) {
-	// wormhole.SetLogger(wormhole.NewLogger(wormhole.DebugLevel))
-	// webrtc.SetLogger(wormhole.NewLogger(wormhole.DebugLevel))
+	wormhole.SetLogger(wormhole.NewLogger(wormhole.DebugLevel))
+	sctp.SetLogger(sctp.NewLogger(sctp.DebugLevel))
 
 	env := testEnv(t)
 	defer env.closeFn()
