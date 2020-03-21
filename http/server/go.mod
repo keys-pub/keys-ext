@@ -5,7 +5,7 @@ go 1.12
 require (
 	github.com/danieljoos/wincred v1.0.3-0.20190627210546-1fd2f0dfbd6a // indirect
 	github.com/keys-pub/keys v0.0.0-20200320021630-30bfb06feb37
-	github.com/keys-pub/keysd/http/api v0.0.0-20200317222534-a1c37d8b9903
+	github.com/keys-pub/keysd/http/api v0.0.0-20200321022921-59e50adf15e4
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/labstack/echo/v4 v4.1.11
 	github.com/mattn/go-colorable v0.1.4 // indirect

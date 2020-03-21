@@ -7,12 +7,11 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keysd/http/api"
-	"github.com/keys-pub/keysd/http/server"
 	"github.com/stretchr/testify/require"
 )
 
 func TestEphem(t *testing.T) {
-	server.SetContextLogger(server.NewContextLogger(server.DebugLevel))
+	// server.SetContextLogger(server.NewContextLogger(server.DebugLevel))
 
 	clock := newClock()
 	fi := testFire(t, clock)

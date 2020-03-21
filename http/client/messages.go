@@ -2,6 +2,7 @@ package client
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/url"
@@ -29,16 +30,16 @@ type MessageOpts struct {
 }
 
 // SendMessage posts an encrypted message.
-func (c *Client) SendMessage(sender *keys.EdX25519Key, recipient keys.ID, b []byte, opts *MessageOpts) (*Message, error) {
+func (c *Client) SendMessage(ctx context.Context, sender *keys.EdX25519Key, recipient keys.ID, b []byte, opts *MessageOpts) (*Message, error) {
 	sp := saltpack.NewSaltpack(c.ks)
 	encrypted, err := sp.Signcrypt(b, sender, recipient, sender.ID())
 	if err != nil {
 		return nil, err
 	}
-	return c.postMessage(sender, recipient, encrypted, opts)
+	return c.postMessage(ctx, sender, recipient, encrypted, opts)
 }
 
-func (c *Client) postMessage(sender *keys.EdX25519Key, recipient keys.ID, b []byte, opts *MessageOpts) (*Message, error) {
+func (c *Client) postMessage(ctx context.Context, sender *keys.EdX25519Key, recipient keys.ID, b []byte, opts *MessageOpts) (*Message, error) {
 	if opts == nil {
 		opts = &MessageOpts{}
 	}
@@ -47,7 +48,7 @@ func (c *Client) postMessage(sender *keys.EdX25519Key, recipient keys.ID, b []by
 	if opts.Channel != "" {
 		vals.Add("channel", opts.Channel)
 	}
-	doc, err := c.postDocument(path, vals, sender, bytes.NewReader(b))
+	doc, err := c.postDocument(ctx, path, vals, sender, bytes.NewReader(b))
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +81,7 @@ type MessagesOpts struct {
 
 // Messages returns encrypted messages.
 // To decrypt a message, use Client#DecryptMessage.
-func (c *Client) Messages(key *keys.EdX25519Key, from keys.ID, opts *MessagesOpts) ([]*Message, string, error) {
+func (c *Client) Messages(ctx context.Context, key *keys.EdX25519Key, from keys.ID, opts *MessagesOpts) ([]*Message, string, error) {
 	path := keys.Path("messages", key.ID(), from)
 	if opts == nil {
 		opts = &MessagesOpts{}
@@ -103,7 +104,7 @@ func (c *Client) Messages(key *keys.EdX25519Key, from keys.ID, opts *MessagesOpt
 
 	// TODO: What if we hit limit, we won't have all the messages
 
-	doc, err := c.getDocument(path, params, key)
+	doc, err := c.getDocument(ctx, path, params, key)
 	if err != nil {
 		return nil, "", err
 	}

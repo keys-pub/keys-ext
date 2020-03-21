@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -104,7 +105,7 @@ func checkResponse(resp *http.Response) error {
 	return err
 }
 
-func (c *Client) req(method string, path string, params url.Values, key *keys.EdX25519Key, body io.Reader) (*http.Response, error) {
+func (c *Client) req(ctx context.Context, method string, path string, params url.Values, key *keys.EdX25519Key, body io.Reader) (*http.Response, error) {
 	if strings.HasPrefix(path, "http://") || strings.HasPrefix(path, "https://") {
 		return nil, errors.Errorf("req accepts a path, not an url")
 	}
@@ -119,13 +120,13 @@ func (c *Client) req(method string, path string, params url.Values, key *keys.Ed
 
 	var req *http.Request
 	if key != nil {
-		r, err := api.NewRequest(method, urs, body, c.nowFn(), key)
+		r, err := api.NewRequestWithContext(ctx, method, urs, body, c.nowFn(), key)
 		if err != nil {
 			return nil, err
 		}
 		req = r
 	} else {
-		r, err := http.NewRequest(method, urs, body)
+		r, err := http.NewRequestWithContext(ctx, method, urs, body)
 		if err != nil {
 			return nil, err
 		}
@@ -167,8 +168,8 @@ func (c *Client) document(path string, resp *http.Response) (*keys.Document, err
 	return doc, nil
 }
 
-func (c *Client) getDocument(path string, params url.Values, key *keys.EdX25519Key) (*keys.Document, error) {
-	resp, err := c.get(path, params, key)
+func (c *Client) getDocument(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key) (*keys.Document, error) {
+	resp, err := c.get(ctx, path, params, key)
 	if err != nil {
 		return nil, err
 	}
@@ -179,8 +180,8 @@ func (c *Client) getDocument(path string, params url.Values, key *keys.EdX25519K
 	return c.document(path, resp)
 }
 
-func (c *Client) get(path string, params url.Values, key *keys.EdX25519Key) (*http.Response, error) {
-	resp, respErr := c.req("GET", path, params, key, nil)
+func (c *Client) get(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key) (*http.Response, error) {
+	resp, respErr := c.req(ctx, "GET", path, params, key, nil)
 	if respErr != nil {
 		return nil, respErr
 	}
@@ -194,8 +195,8 @@ func (c *Client) get(path string, params url.Values, key *keys.EdX25519Key) (*ht
 	return resp, nil
 }
 
-func (c *Client) put(path string, params url.Values, key *keys.EdX25519Key, reader io.Reader) (*http.Response, error) {
-	resp, err := c.req("PUT", path, params, key, reader)
+func (c *Client) put(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key, reader io.Reader) (*http.Response, error) {
+	resp, err := c.req(ctx, "PUT", path, params, key, reader)
 	if err != nil {
 		return nil, err
 	}
@@ -205,8 +206,8 @@ func (c *Client) put(path string, params url.Values, key *keys.EdX25519Key, read
 	return resp, nil
 }
 
-func (c *Client) putDocument(path string, params url.Values, key *keys.EdX25519Key, reader io.Reader) (*keys.Document, error) {
-	resp, err := c.put(path, params, key, reader)
+func (c *Client) putDocument(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key, reader io.Reader) (*keys.Document, error) {
+	resp, err := c.put(ctx, path, params, key, reader)
 	if err != nil {
 		return nil, err
 	}
@@ -217,8 +218,8 @@ func (c *Client) putDocument(path string, params url.Values, key *keys.EdX25519K
 	return c.document(path, resp)
 }
 
-func (c *Client) post(path string, params url.Values, key *keys.EdX25519Key, reader io.Reader) (*http.Response, error) {
-	resp, err := c.req("POST", path, params, key, reader)
+func (c *Client) post(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key, reader io.Reader) (*http.Response, error) {
+	resp, err := c.req(ctx, "POST", path, params, key, reader)
 	if err != nil {
 		return nil, err
 	}
@@ -228,8 +229,8 @@ func (c *Client) post(path string, params url.Values, key *keys.EdX25519Key, rea
 	return resp, nil
 }
 
-func (c *Client) postDocument(path string, params url.Values, key *keys.EdX25519Key, reader io.Reader) (*keys.Document, error) {
-	resp, err := c.post(path, params, key, reader)
+func (c *Client) postDocument(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key, reader io.Reader) (*keys.Document, error) {
+	resp, err := c.post(ctx, path, params, key, reader)
 	if err != nil {
 		return nil, err
 	}
@@ -240,8 +241,8 @@ func (c *Client) postDocument(path string, params url.Values, key *keys.EdX25519
 	return c.document(path, resp)
 }
 
-func (c *Client) delete(path string, params url.Values, key *keys.EdX25519Key) (*http.Response, error) {
-	resp, err := c.req("DELETE", path, params, key, nil)
+func (c *Client) delete(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key) (*http.Response, error) {
+	resp, err := c.req(ctx, "DELETE", path, params, key, nil)
 	if err != nil {
 		return nil, err
 	}

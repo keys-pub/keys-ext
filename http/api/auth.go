@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -51,16 +52,21 @@ func newAuth(method string, urs string, tm time.Time, nonce *[32]byte, key *keys
 
 // NewRequest returns new authorized/signed HTTP request.
 func NewRequest(method string, urs string, body io.Reader, tm time.Time, key *keys.EdX25519Key) (*http.Request, error) {
-	return newRequest(method, urs, body, tm, keys.Rand32(), key)
+	return newRequest(context.TODO(), method, urs, body, tm, keys.Rand32(), key)
 }
 
-func newRequest(method string, urs string, body io.Reader, tm time.Time, nonce *[32]byte, key *keys.EdX25519Key) (*http.Request, error) {
+// NewRequestWithContext returns new authorized/signed HTTP request with context.
+func NewRequestWithContext(ctx context.Context, method string, urs string, body io.Reader, tm time.Time, key *keys.EdX25519Key) (*http.Request, error) {
+	return newRequest(ctx, method, urs, body, tm, keys.Rand32(), key)
+}
+
+func newRequest(ctx context.Context, method string, urs string, body io.Reader, tm time.Time, nonce *[32]byte, key *keys.EdX25519Key) (*http.Request, error) {
 	auth, err := newAuth(method, urs, tm, nonce, key)
 	if err != nil {
 		return nil, err
 	}
 	logger.Infof("Auth for %s", auth.Message)
-	req, err := http.NewRequest(method, auth.URL.String(), body)
+	req, err := http.NewRequestWithContext(ctx, method, auth.URL.String(), body)
 	if err != nil {
 		return nil, err
 	}
