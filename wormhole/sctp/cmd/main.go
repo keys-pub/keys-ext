@@ -1,12 +1,14 @@
 package main
 
 import (
-	"bufio"
+	"bytes"
+	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
 	"net"
-	"os"
+	"net/http"
 	"time"
 
 	"github.com/keys-pub/keysd/wormhole/sctp"
@@ -16,7 +18,7 @@ import (
 func main() {
 	sctp.SetLogger(sctp.NewLogger(sctp.DebugLevel))
 
-	listen := flag.Bool("listen", false, "Listen for connections")
+	offer := flag.Bool("offer", false, "Offer")
 	flag.Parse()
 
 	client := sctp.NewClient()
@@ -32,29 +34,46 @@ func main() {
 		}
 	})
 
-	addr, err := client.STUN()
+	stunAddr, err := client.STUN(context.TODO(), time.Second*5)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("Our address: %s\n", addr)
+	addr := &sctp.Addr{IP: stunAddr.IP.String(), Port: stunAddr.Port}
+	if *offer {
+		if err := writeOffer(addr); err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		if err := writeAnswer(addr); err != nil {
+			log.Fatal(err)
+		}
+	}
 
-	fmt.Printf("Peer address: ")
-	peerAddr, err := readAddress()
+	var remote *sctp.Addr
+	if *offer {
+		remote, err = readAnswer()
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		remote, err = readOffer()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	udpAddr, err := net.ResolveUDPAddr("udp", remote.String())
 	if err != nil {
 		log.Fatal(err)
 	}
-	udpAddr, err := net.ResolveUDPAddr("udp", peerAddr)
-	if err != nil {
+
+	if err := client.Handshake(context.TODO(), udpAddr, time.Second*5); err != nil {
 		log.Fatal(err)
 	}
 
-	if err := client.Handshake(udpAddr); err != nil {
-		log.Fatal(err)
-	}
-
-	if *listen {
+	if *offer {
 		fmt.Printf("Listen...\n")
-		if err := client.Listen(udpAddr); err != nil {
+		if err := client.Listen(context.TODO(), udpAddr); err != nil {
 			log.Fatal(err)
 		}
 	} else {
@@ -73,15 +92,54 @@ func main() {
 	}
 }
 
-func readAddress() (string, error) {
-	scanner := bufio.NewScanner(os.Stdin)
+func writeOffer(offer *sctp.Addr) error {
+	return writeSession(offer, "https://keys.pub/relay/offer")
+}
 
-	for scanner.Scan() {
-		text := scanner.Text()
-		return text, nil
+func readOffer() (*sctp.Addr, error) {
+	return readSession("https://keys.pub/relay/offer")
+}
+
+func writeAnswer(answer *sctp.Addr) error {
+	return writeSession(answer, "https://keys.pub/relay/answer")
+}
+
+func readAnswer() (*sctp.Addr, error) {
+	return readSession("https://keys.pub/relay/answer")
+}
+
+func writeSession(session *sctp.Addr, url string) error {
+	b, err := json.Marshal(session)
+	if err != nil {
+		return err
 	}
-	if err := scanner.Err(); err != nil {
-		return "", err
+	fmt.Printf("Write %s: %s\n", url, string(b))
+	resp, err := http.Post(url, "application/json; charset=utf-8", bytes.NewBuffer(b))
+	if err != nil {
+		return err
 	}
-	return "", errors.Errorf("no input")
+	defer resp.Body.Close()
+	return nil
+}
+
+func readSession(url string) (*sctp.Addr, error) {
+	for {
+		fmt.Printf("Get offer...\n")
+		resp, err := http.Get(url)
+		if err != nil {
+			return nil, err
+		}
+		if resp.StatusCode == 200 {
+			var answer sctp.Addr
+			if err = json.NewDecoder(resp.Body).Decode(&answer); err != nil {
+				return nil, err
+			}
+			fmt.Printf("Got offer.\n")
+			return &answer, nil
+		} else if resp.StatusCode == 404 {
+			time.Sleep(time.Second)
+		} else {
+			return nil, errors.Errorf("Failed to get offer %d", resp.StatusCode)
+		}
+	}
 }

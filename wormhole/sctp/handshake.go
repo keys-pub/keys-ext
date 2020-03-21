@@ -1,13 +1,16 @@
 package sctp
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"sync"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
-func (c *Client) Handshake(addr *net.UDPAddr) error {
+func (c *Client) Handshake(ctx context.Context, addr *net.UDPAddr, timeout time.Duration) error {
 	wg := &sync.WaitGroup{}
 	wg.Add(2)
 
@@ -16,7 +19,7 @@ func (c *Client) Handshake(addr *net.UDPAddr) error {
 	writeDone := false
 	send := "syn"
 	go func() {
-		logger.Infof("Sending syn/ack...")
+		logger.Infof("Starting handshake write...")
 		for !writeDone {
 			if _, err := c.conn.WriteToUDP([]byte(send), addr); err != nil {
 				writeErr = err
@@ -29,7 +32,7 @@ func (c *Client) Handshake(addr *net.UDPAddr) error {
 				time.Sleep(time.Millisecond * 100)
 			}
 		}
-		logger.Infof("Stopped sending syn/ack")
+		logger.Infof("Stopped handshake write.")
 		wg.Done()
 	}()
 
@@ -57,7 +60,22 @@ func (c *Client) Handshake(addr *net.UDPAddr) error {
 		wg.Done()
 	}()
 
-	wg.Wait()
+	ch := make(chan bool)
+	go func() {
+		logger.Infof("Wait for handshake...")
+		wg.Wait()
+		ch <- true
+		logger.Infof("Handshake done")
+	}()
+
+	select {
+	case <-ch:
+		break
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-time.After(timeout):
+		return errors.Errorf("sctp handshake timed out")
+	}
 
 	if writeErr != nil {
 		return writeErr

@@ -1,6 +1,8 @@
 package sctp
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -17,6 +19,7 @@ var stunServer = "stun.l.google.com:19302"
 type Client struct {
 	conn      *net.UDPConn
 	onMessage func(message []byte)
+	onClose   func()
 
 	assoc  *sctp.Association
 	stream *sctp.Stream
@@ -25,10 +28,19 @@ type Client struct {
 func NewClient() *Client {
 	return &Client{
 		onMessage: func([]byte) {},
+		onClose:   func() {},
 	}
 }
 
 func (c *Client) Close() {
+	c.close(false)
+}
+
+func (c *Client) close(notify bool) {
+	if notify {
+		c.onClose()
+	}
+
 	if c.stream != nil {
 		c.stream.Close()
 	}
@@ -44,6 +56,10 @@ func (c *Client) OnMessage(f func(b []byte)) {
 	c.onMessage = f
 }
 
+func (c *Client) OnClose(f func()) {
+	c.onClose = f
+}
+
 func (c *Client) Connect(peerAddr *net.UDPAddr) error {
 	if c.conn == nil {
 		return errors.Errorf("no stun connection, run STUN()")
@@ -53,7 +69,7 @@ func (c *Client) Connect(peerAddr *net.UDPAddr) error {
 		NetConn:       &udpConn{conn: c.conn, peerAddr: peerAddr},
 		LoggerFactory: logging.NewDefaultLoggerFactory(),
 	}
-	logger.Infof("Create client association...")
+	logger.Infof("Create client...")
 	a, err := sctp.Client(config)
 	if err != nil {
 		return err
@@ -66,14 +82,14 @@ func (c *Client) Connect(peerAddr *net.UDPAddr) error {
 		return err
 	}
 	logger.Infof("Stream opened.")
-	stream.SetReliabilityParams(false, sctp.ReliabilityTypeReliable, 10)
+	stream.SetReliabilityParams(false, sctp.ReliabilityTypeReliable, 0)
 	c.stream = stream
 
 	go func() {
 		logger.Infof("Stream read.")
 		if err := c.read(); err != nil {
-			// TODO: Notify read err
 			logger.Errorf("Read error: %v", err)
+			c.close(true)
 		}
 	}()
 
@@ -101,7 +117,7 @@ func (c *Client) Send(message []byte) error {
 	return nil
 }
 
-func (c *Client) STUN() (*stun.XORMappedAddress, error) {
+func (c *Client) STUN(ctx context.Context, timeout time.Duration) (*stun.XORMappedAddress, error) {
 	if c.conn != nil {
 		return nil, errors.Errorf("stun already connected")
 	}
@@ -125,6 +141,8 @@ func (c *Client) STUN() (*stun.XORMappedAddress, error) {
 Stun:
 	for {
 		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
 		case <-time.After(time.Second * 10):
 			return nil, errors.Errorf("stun timed out")
 		case message, ok := <-messageChan:
@@ -151,7 +169,7 @@ Stun:
 	return &stunAddr, nil
 }
 
-func (c *Client) Listen(peerAddr *net.UDPAddr) error {
+func (c *Client) Listen(ctx context.Context, peerAddr *net.UDPAddr) error {
 	if c.conn == nil {
 		return errors.Errorf("no stun connection, run STUN()")
 	}
@@ -163,7 +181,7 @@ func (c *Client) Listen(peerAddr *net.UDPAddr) error {
 		NetConn:       &udpConn{conn: c.conn, peerAddr: peerAddr},
 		LoggerFactory: slog,
 	}
-	logger.Infof("Create server association...")
+	logger.Infof("Create server...")
 	a, err := sctp.Server(config)
 	if err != nil {
 		return err
@@ -176,11 +194,18 @@ func (c *Client) Listen(peerAddr *net.UDPAddr) error {
 		log.Fatal(err)
 	}
 	logger.Infof("Stream accepted.")
-	stream.SetReliabilityParams(false, sctp.ReliabilityTypeReliable, 10)
+	stream.SetReliabilityParams(false, sctp.ReliabilityTypeReliable, 0)
 	c.stream = stream
 
 	logger.Infof("Stream read...")
-	return c.read()
+	go func() {
+		if err := c.read(); err != nil {
+			logger.Errorf("Read error: %v", err)
+			c.close(true)
+		}
+	}()
+
+	return nil
 }
 
 func (c *Client) writeToUDP(b []byte, addr string) error {
@@ -202,4 +227,13 @@ func (c *Client) readFromUDP() ([]byte, error) {
 	}
 	buf = buf[:n]
 	return buf, nil
+}
+
+type Addr struct {
+	IP   string `json:"ip"`
+	Port int    `json:"port"`
+}
+
+func (a Addr) String() string {
+	return fmt.Sprintf("%s:%d", a.IP, a.Port)
 }
