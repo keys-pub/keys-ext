@@ -196,11 +196,11 @@ func (w *Wormhole) connect(ctx context.Context, sender keys.ID, recipient keys.I
 	if err != nil {
 		return err
 	}
-	if err := w.writeOffer(offer, sender, recipient); err != nil {
+	if err := w.writeOffer(ctx, offer, sender, recipient); err != nil {
 		return err
 	}
 
-	answer, err := w.readAnswer(sender, recipient)
+	answer, err := w.readAnswer(ctx, sender, recipient)
 	if err != nil {
 		return err
 	}
@@ -225,11 +225,11 @@ func (w *Wormhole) listen(ctx context.Context, sender keys.ID, recipient keys.ID
 	if err != nil {
 		return err
 	}
-	if err := w.writeAnswer(answer, sender, recipient); err != nil {
+	if err := w.writeAnswer(ctx, answer, sender, recipient); err != nil {
 		return err
 	}
 
-	offer, err := w.readOffer(sender, recipient)
+	offer, err := w.readOffer(ctx, sender, recipient)
 	if err != nil {
 		return err
 	}
@@ -248,34 +248,34 @@ func (w *Wormhole) listen(ctx context.Context, sender keys.ID, recipient keys.ID
 	return nil
 }
 
-func (w *Wormhole) writeOffer(offer *sctp.Addr, sender keys.ID, recipient keys.ID) error {
-	return w.writeSession(offer, sender, recipient, "offer")
+func (w *Wormhole) writeOffer(ctx context.Context, offer *sctp.Addr, sender keys.ID, recipient keys.ID) error {
+	return w.writeSession(ctx, offer, sender, recipient, "offer")
 }
 
-func (w *Wormhole) readOffer(sender keys.ID, recipient keys.ID) (*sctp.Addr, error) {
-	return w.readSession(sender, recipient, "offer")
+func (w *Wormhole) readOffer(ctx context.Context, sender keys.ID, recipient keys.ID) (*sctp.Addr, error) {
+	return w.readSession(ctx, sender, recipient, "offer")
 }
 
-func (w *Wormhole) writeAnswer(answer *sctp.Addr, sender keys.ID, recipient keys.ID) error {
-	return w.writeSession(answer, sender, recipient, "answer")
+func (w *Wormhole) writeAnswer(ctx context.Context, answer *sctp.Addr, sender keys.ID, recipient keys.ID) error {
+	return w.writeSession(ctx, answer, sender, recipient, "answer")
 }
 
-func (w *Wormhole) readAnswer(sender keys.ID, recipient keys.ID) (*sctp.Addr, error) {
-	return w.readSession(sender, recipient, "answer")
+func (w *Wormhole) readAnswer(ctx context.Context, sender keys.ID, recipient keys.ID) (*sctp.Addr, error) {
+	return w.readSession(ctx, sender, recipient, "answer")
 }
 
-func (w *Wormhole) writeSession(answer *sctp.Addr, sender keys.ID, recipient keys.ID, id string) error {
+func (w *Wormhole) writeSession(ctx context.Context, answer *sctp.Addr, sender keys.ID, recipient keys.ID, id string) error {
 	b, err := json.Marshal(answer)
 	if err != nil {
 		return err
 	}
-	return w.hcl.PutEphemeral(sender, recipient, id, b)
+	return w.hcl.PutEphemeral(ctx, sender, recipient, id, b)
 }
 
-func (w *Wormhole) readSession(sender keys.ID, recipient keys.ID, id string) (*sctp.Addr, error) {
+func (w *Wormhole) readSession(ctx context.Context, sender keys.ID, recipient keys.ID, id string) (*sctp.Addr, error) {
 	// TODO: Context
 	for {
-		b, err := w.hcl.GetEphemeral(sender, recipient, id)
+		b, err := w.hcl.GetEphemeral(ctx, sender, recipient, id)
 		if err != nil {
 			return nil, err
 		}

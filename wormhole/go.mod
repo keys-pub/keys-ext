@@ -5,7 +5,7 @@ go 1.13
 require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/keys-pub/keys v0.0.0-20200320021630-30bfb06feb37
-	github.com/keys-pub/keysd/http/client v0.0.0-20200320171528-bd2d6df945a0
+	github.com/keys-pub/keysd/http/client v0.0.0-20200321023318-57a4736fc930
 	github.com/keys-pub/keysd/http/server v0.0.0-20200320024609-6e3fca134965
 	github.com/pion/datachannel v1.4.16 // indirect
 	github.com/pion/ice v0.7.10 // indirect
