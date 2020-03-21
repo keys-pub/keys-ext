@@ -81,14 +81,14 @@ func main() {
 		if err := client.Connect(udpAddr); err != nil {
 			log.Fatal(err)
 		}
+	}
 
-		for {
-			fmt.Printf("Sending ping...\n")
-			if err := client.Send([]byte("ping")); err != nil {
-				log.Fatal(err)
-			}
-			time.Sleep(time.Second)
+	for {
+		fmt.Printf("Sending ping...\n")
+		if err := client.Send([]byte("ping")); err != nil {
+			log.Fatal(err)
 		}
+		time.Sleep(time.Second * 5)
 	}
 }
 
