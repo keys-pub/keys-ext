@@ -38,4 +38,4 @@ require (
 
 // replace github.com/keys-pub/keysd/http/server => ../http/server
 
-replace github.com/keys-pub/keysd/wormhole => ../wormhole
+// replace github.com/keys-pub/keysd/wormhole => ../wormhole
