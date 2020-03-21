@@ -125,7 +125,7 @@ func (s *service) messageCreate(ctx context.Context, sender string, recipient st
 		return nil, err
 	}
 
-	sent, err := s.remote.SendMessage(senderKey, rid, b, nil)
+	sent, err := s.remote.SendMessage(ctx, senderKey, rid, b, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -228,7 +228,7 @@ func (s *service) pullMessages(ctx context.Context, kid keys.ID, recipient keys.
 	if e != nil {
 		version = string(e.Data)
 	}
-	msgs, version, err := s.remote.Messages(key, recipient, &client.MessagesOpts{Version: version})
+	msgs, version, err := s.remote.Messages(ctx, key, recipient, &client.MessagesOpts{Version: version})
 	if err != nil {
 		return err
 	}

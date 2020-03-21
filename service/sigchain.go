@@ -132,7 +132,7 @@ func (s *service) StatementCreate(ctx context.Context, req *StatementCreateReque
 	}
 
 	if !req.Local {
-		if err := s.remote.PutSigchainStatement(st); err != nil {
+		if err := s.remote.PutSigchainStatement(ctx, st); err != nil {
 			return nil, err
 		}
 	}
@@ -166,7 +166,7 @@ func (s *service) StatementRevoke(ctx context.Context, req *StatementRevokeReque
 	}
 
 	if !req.Local {
-		if err := s.remote.PutSigchainStatement(st); err != nil {
+		if err := s.remote.PutSigchainStatement(ctx, st); err != nil {
 			return nil, err
 		}
 	}

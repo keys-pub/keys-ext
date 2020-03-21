@@ -52,7 +52,7 @@ func (s *service) User(ctx context.Context, req *UserRequest) (*UserResponse, er
 		user = userResultToRPC(res)
 	} else {
 		if !req.Local {
-			resp, err := s.remote.User(kid)
+			resp, err := s.remote.User(ctx, kid)
 			if err != nil {
 				return nil, err
 			}
@@ -171,7 +171,7 @@ func (s *service) sigchainUserAdd(ctx context.Context, key *keys.EdX25519Key, se
 	}
 
 	if !localOnly {
-		if err := s.remote.PutSigchainStatement(st); err != nil {
+		if err := s.remote.PutSigchainStatement(ctx, st); err != nil {
 			return nil, nil, err
 		}
 	}
@@ -296,7 +296,7 @@ func (s *service) searchUsersLocal(ctx context.Context, query string, limit int)
 func (s *service) searchUsersRemote(ctx context.Context, query string, limit int) ([]*api.User, error) {
 	query = strings.TrimSpace(query)
 	logger.Infof("Search users remote %q", query)
-	resp, err := s.remote.UserSearch(query, limit)
+	resp, err := s.remote.UserSearch(ctx, query, limit)
 	if err != nil {
 		return nil, err
 	}
