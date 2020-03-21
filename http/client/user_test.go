@@ -2,6 +2,7 @@ package client
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"testing"
 
@@ -30,7 +31,7 @@ func saveUser(t *testing.T, env *env, client *Client, key *keys.EdX25519Key, nam
 	require.NoError(t, err)
 	env.req.SetResponse(url, []byte(msg))
 
-	err = client.PutSigchainStatement(st)
+	err = client.PutSigchainStatement(context.TODO(), st)
 	require.NoError(t, err)
 
 	// err = client.Check(key)
@@ -55,22 +56,22 @@ func TestUserSearch(t *testing.T) {
 		saveUser(t, env, client, key, username, "github")
 	}
 
-	resp, err := client.UserSearch("", 0)
+	resp, err := client.UserSearch(context.TODO(), "", 0)
 	require.NoError(t, err)
 	require.Equal(t, 10, len(resp.Users))
 	require.Equal(t, "a0", resp.Users[0].Name)
 
-	resp, err = client.UserSearch("", 1)
+	resp, err = client.UserSearch(context.TODO(), "", 1)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(resp.Users))
 	require.Equal(t, "a0", resp.Users[0].Name)
 
-	resp, err = client.UserSearch("a1", 0)
+	resp, err = client.UserSearch(context.TODO(), "a1", 0)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(resp.Users))
 	require.Equal(t, "a1", resp.Users[0].Name)
 
-	resp, err = client.UserSearch("z", 1)
+	resp, err = client.UserSearch(context.TODO(), "z", 1)
 	require.NoError(t, err)
 	require.Equal(t, 0, len(resp.Users))
 }
@@ -87,13 +88,13 @@ func TestUser(t *testing.T) {
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	saveUser(t, env, client, alice, "alice", "github")
 
-	resp, err := client.User(alice.ID())
+	resp, err := client.User(context.TODO(), alice.ID())
 	require.NoError(t, err)
 	require.NotNil(t, resp.User)
 	require.Equal(t, "alice", resp.User.Name)
 
 	key := keys.GenerateEdX25519Key()
-	resp, err = client.User(key.ID())
+	resp, err = client.User(context.TODO(), key.ID())
 	require.NoError(t, err)
 	require.Nil(t, resp)
 }

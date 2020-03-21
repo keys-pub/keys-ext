@@ -2,6 +2,7 @@ package client
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/url"
 
@@ -11,19 +12,19 @@ import (
 )
 
 // PutSigchainStatement ...
-func (c *Client) PutSigchainStatement(st *keys.Statement) error {
+func (c *Client) PutSigchainStatement(ctx context.Context, st *keys.Statement) error {
 	path := keys.Path(st.URL())
-	_, err := c.put(path, url.Values{}, nil, bytes.NewReader(st.Bytes()))
+	_, err := c.put(ctx, path, url.Values{}, nil, bytes.NewReader(st.Bytes()))
 	return err
 }
 
 // Sigchain for KID. If sigchain not found, a nil response is returned.
-func (c *Client) Sigchain(kid keys.ID) (*api.SigchainResponse, error) {
+func (c *Client) Sigchain(ctx context.Context, kid keys.ID) (*api.SigchainResponse, error) {
 	path := keys.Path("sigchain", kid)
 
 	params := url.Values{}
 	params.Add("include", "md")
-	doc, err := c.getDocument(path, params, nil)
+	doc, err := c.getDocument(ctx, path, params, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -44,14 +45,14 @@ func (c *Client) Sigchain(kid keys.ID) (*api.SigchainResponse, error) {
 }
 
 // Sigchains ...
-func (c *Client) Sigchains(version string) (*api.SigchainsResponse, error) {
+func (c *Client) Sigchains(ctx context.Context, version string) (*api.SigchainsResponse, error) {
 	path := keys.Path("sigchains")
 
 	params := url.Values{}
 	params.Add("include", "md")
 	params.Add("version", version)
 
-	doc, err := c.getDocument(path, params, nil)
+	doc, err := c.getDocument(ctx, path, params, nil)
 	if err != nil {
 		return nil, err
 	}

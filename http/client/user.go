@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"encoding/json"
 	"net/url"
 	"strconv"
@@ -11,14 +12,14 @@ import (
 )
 
 // UserSearch ...
-func (c *Client) UserSearch(query string, limit int) (*api.UserSearchResponse, error) {
+func (c *Client) UserSearch(ctx context.Context, query string, limit int) (*api.UserSearchResponse, error) {
 	params := url.Values{}
 	params.Add("q", query)
 	if limit > 0 {
 		params.Add("limit", strconv.Itoa(limit))
 	}
 
-	doc, err := c.getDocument("/user/search", params, nil)
+	doc, err := c.getDocument(ctx, "/user/search", params, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -34,9 +35,9 @@ func (c *Client) UserSearch(query string, limit int) (*api.UserSearchResponse, e
 }
 
 // User ...
-func (c *Client) User(kid keys.ID) (*api.UserResponse, error) {
+func (c *Client) User(ctx context.Context, kid keys.ID) (*api.UserResponse, error) {
 	params := url.Values{}
-	doc, err := c.getDocument("/user/"+kid.String(), params, nil)
+	doc, err := c.getDocument(ctx, "/user/"+kid.String(), params, nil)
 	if err != nil {
 		return nil, err
 	}
