@@ -1,7 +1,7 @@
 package stun
 
 import (
-	"net"
+	"time"
 
 	"github.com/pkg/errors"
 	"gortc.io/stun"
@@ -9,43 +9,31 @@ import (
 
 var stunServer = "stun.l.google.com:19302"
 
-type OnPeer func(addr string)
-type OnMessage func(message []byte)
-
-type Conn interface {
-	Send(message []byte) error
-	Listen() <-chan []byte
-	LocalAddr() net.Addr
-	SendBindingRequest() error
-	SetPeer(addr string) error
-	Close() error
-}
-
 type Client struct {
 	publicAddr stun.XORMappedAddress
-	conn       Conn
-	quit       chan bool
-	onPeer     OnPeer
-	onMessage  OnMessage
+	conn       *UDPConn
+	onStunAddr func(addr string)
+	onMessage  func(message []byte)
 }
 
 func NewClient() *Client {
 	return &Client{
-		onPeer:    func(addr string) {},
-		quit:      make(chan bool),
-		onMessage: func([]byte) {},
+		onStunAddr: func(addr string) {},
+		onMessage:  func([]byte) {},
 	}
 }
 
 func (c *Client) Close() {
-	c.quit <- true
+	if c.conn != nil {
+		c.conn.Close()
+	}
 }
 
-func (c *Client) OnPeer(f OnPeer) {
-	c.onPeer = f
+func (c *Client) OnStunAddr(f func(addr string)) {
+	c.onStunAddr = f
 }
 
-func (c *Client) OnMessage(f OnMessage) {
+func (c *Client) OnMessage(f func(b []byte)) {
 	c.onMessage = f
 }
 
@@ -71,7 +59,6 @@ func (c *Client) Listen() error {
 	logger.Infof("Listening on %s", c.conn.LocalAddr())
 
 	messageChan := c.conn.Listen()
-	// keepAlive := time.NewTicker(time.Second)
 
 	if err := c.conn.SendBindingRequest(); err != nil {
 		return err
@@ -80,6 +67,8 @@ func (c *Client) Listen() error {
 	logger.Infof("Waiting for messages...")
 	for {
 		select {
+		case <-time.After(time.Second * 10):
+			return errors.Errorf("stun timed out")
 		case message, ok := <-messageChan:
 			if !ok {
 				logger.Infof("Listen done")
@@ -101,19 +90,11 @@ func (c *Client) Listen() error {
 				if c.publicAddr.String() != xorAddr.String() {
 					logger.Infof("Public address: %s", xorAddr)
 					c.publicAddr = xorAddr
-					c.onPeer(c.publicAddr.String())
+					c.onStunAddr(c.publicAddr.String())
 				}
 			} else {
 				logger.Infof("Got message (%d)", len(message))
 				c.onMessage(message)
-			}
-		// case <-keepAlive.C:
-		// 	// Keep alive
-		// 	logger.Infof("Keep alive...")
-		case <-c.quit:
-			logger.Infof("Closing connection...")
-			if err := c.conn.Close(); err != nil {
-				logger.Warningf("Error closing connection: %v", err)
 			}
 		}
 	}

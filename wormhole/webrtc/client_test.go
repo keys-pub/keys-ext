@@ -21,28 +21,29 @@ func TestNewClient(t *testing.T) {
 	messageWg := &sync.WaitGroup{}
 	messageWg.Add(2)
 
-	alice.OnMessage(func(message webrtc.Message) {
+	alice.OnMessage(func(channel webrtc.Channel, message webrtc.Message) {
 		t.Logf("bob: %s", string(message.Data()))
 		if string(message.Data()) == "ping" {
-			err := alice.Send([]byte("pong"))
+			err := channel.Send([]byte("pong"))
 			require.NoError(t, err)
 			messageWg.Done()
 		}
 	})
 
-	bob.OnMessage(func(message webrtc.Message) {
+	bob.OnMessage(func(channel webrtc.Channel, message webrtc.Message) {
 		t.Logf("alice: %s", string(message.Data()))
 		messageWg.Done()
 	})
 
-	// Open wait group
-	channelWg := &sync.WaitGroup{}
-	channelWg.Add(2)
+	openWg := &sync.WaitGroup{}
+	openWg.Add(2)
 	alice.OnOpen(func(channel webrtc.Channel) {
-		channelWg.Done()
+		openWg.Done()
 	})
+	bobWg := &sync.WaitGroup{}
+	bobWg.Add(1)
 	bob.OnOpen(func(channel webrtc.Channel) {
-		channelWg.Done()
+		openWg.Done()
 	})
 
 	// Close wait group
@@ -56,15 +57,17 @@ func TestNewClient(t *testing.T) {
 	})
 
 	// Offer
-	offer, err := alice.Offer("test")
+	offer, err := alice.Offer()
 	require.NoError(t, err)
 	answer, err := bob.Answer(offer)
 	require.NoError(t, err)
+
+	// time.Sleep(time.Second * 12)
+
 	err = alice.SetAnswer(answer)
 	require.NoError(t, err)
 
-	// Wait for channels
-	channelWg.Wait()
+	openWg.Wait()
 
 	err = bob.Send([]byte("ping"))
 	require.NoError(t, err)
@@ -92,17 +95,17 @@ func ExampleNewClient() {
 	messageWg := &sync.WaitGroup{}
 	messageWg.Add(2)
 
-	alice.OnMessage(func(message webrtc.Message) {
+	alice.OnMessage(func(channel webrtc.Channel, message webrtc.Message) {
 		fmt.Printf("bob: %s\n", string(message.Data()))
 		if string(message.Data()) == "ping" {
-			if err := alice.Send([]byte("pong")); err != nil {
+			if err := channel.Send([]byte("pong")); err != nil {
 				log.Fatal(err)
 			}
 			messageWg.Done()
 		}
 	})
 
-	bob.OnMessage(func(message webrtc.Message) {
+	bob.OnMessage(func(channel webrtc.Channel, message webrtc.Message) {
 		fmt.Printf("alice: %s\n", string(message.Data()))
 		messageWg.Done()
 	})
@@ -118,11 +121,10 @@ func ExampleNewClient() {
 		channelWg.Done()
 	})
 
-	offer, err := alice.Offer("test")
+	offer, err := alice.Offer()
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	answer, err := bob.Answer(offer)
 	if err != nil {
 		log.Fatal(err)

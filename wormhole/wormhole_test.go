@@ -2,6 +2,7 @@ package wormhole_test
 
 import (
 	"context"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -14,7 +15,7 @@ import (
 
 func TestNewWormhole(t *testing.T) {
 	// wormhole.SetLogger(wormhole.NewLogger(wormhole.DebugLevel))
-	// webrtc.SetLogger(wormhole.NewLogger(wormhole.DebugLevel))
+	// sctp.SetLogger(sctp.NewLogger(sctp.DebugLevel))
 
 	env := testEnv(t)
 	defer env.closeFn()
@@ -127,5 +128,5 @@ func testWormholeCancel(t *testing.T, env *env, dt time.Duration) {
 	ctx, cancel := context.WithTimeout(context.Background(), dt)
 	defer cancel()
 	err = wha.Start(ctx, alice, bob.PublicKey())
-	require.EqualError(t, err, "context deadline exceeded")
+	require.True(t, strings.HasSuffix(err.Error(), "context deadline exceeded"))
 }

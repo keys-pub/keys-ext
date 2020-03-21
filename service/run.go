@@ -19,6 +19,7 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/keyring"
 	"github.com/keys-pub/keys/saltpack"
+	"github.com/keys-pub/keysd/db"
 	"github.com/keys-pub/keysd/http/client"
 	"github.com/mercari/go-grpc-interceptor/panichandler"
 	"github.com/pkg/errors"
@@ -121,6 +122,8 @@ func Run(build Build) {
 	saltpack.SetLogger(lg)
 	keyring.SetLogger(lg)
 	client.SetLogger(lg)
+	// wormhole.SetLogger(lg)
+	db.SetLogger(lg)
 
 	if err := checkSupportedOS(); err != nil {
 		logFatal(err)

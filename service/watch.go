@@ -63,6 +63,6 @@ func watchEventStatus(s keys.WatchStatus) WatchStatus {
 	case keys.WatchStatusData:
 		return WatchStatusData
 	default:
-		return WatchStatusNone
+		return WatchStatusUnknown
 	}
 }
