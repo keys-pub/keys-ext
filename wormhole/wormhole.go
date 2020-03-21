@@ -27,7 +27,7 @@ type Wormhole struct {
 	hcl   *httpclient.Client
 	noise *noise.Noise
 
-	onOpen    func()
+	onConnect func()
 	onClose   func()
 	onMessage func(b []byte)
 }
@@ -51,7 +51,7 @@ func NewWormhole(server string, ks *keys.Keystore) (*Wormhole, error) {
 	w := &Wormhole{
 		rtc:       rtc,
 		hcl:       hcl,
-		onOpen:    func() {},
+		onConnect: func() {},
 		onClose:   func() {},
 		onMessage: func(b []byte) {},
 	}
@@ -74,8 +74,8 @@ func (w *Wormhole) SetTimeNow(nowFn func() time.Time) {
 	w.hcl.SetTimeNow(nowFn)
 }
 
-func (w *Wormhole) OnOpen(f func()) {
-	w.onOpen = f
+func (w *Wormhole) OnConnect(f func()) {
+	w.onConnect = f
 }
 
 func (w *Wormhole) OnClose(f func()) {
@@ -94,10 +94,6 @@ func (w *Wormhole) messageLn(b []byte) {
 		return
 	}
 	w.onMessage(decrypted)
-}
-
-func (w *Wormhole) openLn() {
-	w.onOpen()
 }
 
 func (w *Wormhole) Start(ctx context.Context, sender *keys.EdX25519Key, recipient *keys.EdX25519PublicKey) error {
@@ -163,7 +159,7 @@ func (w *Wormhole) Start(ctx context.Context, sender *keys.EdX25519Key, recipien
 	w.noise = noise
 
 	logger.Infof("Started")
-	w.openLn()
+	w.onConnect()
 
 	// Read
 	go func() {

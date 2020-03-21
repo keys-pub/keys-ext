@@ -39,7 +39,7 @@ func TestNewWormhole(t *testing.T) {
 	require.NoError(t, err)
 	defer wha.Close()
 	wha.SetTimeNow(env.clock.Now)
-	wha.OnOpen(func() {
+	wha.OnConnect(func() {
 		wg.Done()
 	})
 	go func() {
@@ -53,7 +53,7 @@ func TestNewWormhole(t *testing.T) {
 	require.NoError(t, err)
 	defer whb.Close()
 	whb.SetTimeNow(env.clock.Now)
-	whb.OnOpen(func() {
+	whb.OnConnect(func() {
 		wg.Done()
 	})
 	go func() {

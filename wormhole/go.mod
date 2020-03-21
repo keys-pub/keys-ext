@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/keys-pub/keys v0.0.0-20200320021630-30bfb06feb37
-	github.com/keys-pub/keysd/http/client v0.0.0-20200321023318-57a4736fc930
+	github.com/keys-pub/keysd/http/client v0.0.0-20200321032707-a15834606910
 	github.com/keys-pub/keysd/http/server v0.0.0-20200320024609-6e3fca134965
 	github.com/pion/logging v0.2.2
 	github.com/pion/sctp v1.7.6
@@ -18,4 +18,4 @@ require (
 
 // replace github.com/keys-pub/keys => ../../keys
 
-replace github.com/keys-pub/keysd/http/client => ../http/client
+// replace github.com/keys-pub/keysd/http/client => ../http/client

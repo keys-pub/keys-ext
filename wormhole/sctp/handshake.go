@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (c *Client) handshake(ctx context.Context, addr *Addr, timeout time.Duration) error {
+func (c *Client) handshake(ctx context.Context, addr *Addr, initiator bool, timeout time.Duration) error {
 	wg := &sync.WaitGroup{}
 	wg.Add(2)
 
@@ -19,10 +19,9 @@ func (c *Client) handshake(ctx context.Context, addr *Addr, timeout time.Duratio
 
 	var writeErr error
 	var readErr error
-	write := true
 	send := "syn"
 	go func() {
-		for write {
+		for {
 			if _, err := c.conn.WriteToUDP([]byte(send), udpAddr); err != nil {
 				writeErr = err
 				break
@@ -51,8 +50,13 @@ func (c *Client) handshake(ctx context.Context, addr *Addr, timeout time.Duratio
 			case "syn-ack":
 				// logger.Debugf("SCTP syn-ack")
 				send = "ack"
+				// Established on syn-ack for client
+				if initiator {
+					break ReadLoop
+				}
 			case "ack":
 				// logger.Debugf("SCTP ack")
+				// Established on ack for server
 				send = "ack"
 				break ReadLoop
 			}

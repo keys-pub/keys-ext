@@ -134,7 +134,7 @@ func (c *Client) Connect(ctx context.Context, peerAddr *Addr) error {
 		return errors.Errorf("stream already exists")
 	}
 
-	if err := c.handshake(ctx, peerAddr, time.Second*10); err != nil {
+	if err := c.handshake(ctx, peerAddr, true, time.Second*10); err != nil {
 		return err
 	}
 
@@ -177,7 +177,7 @@ func (c *Client) Listen(ctx context.Context, peerAddr *Addr) error {
 		return errors.Errorf("stream already exists")
 	}
 
-	if err := c.handshake(ctx, peerAddr, time.Second*10); err != nil {
+	if err := c.handshake(ctx, peerAddr, false, time.Second*10); err != nil {
 		return err
 	}
 
