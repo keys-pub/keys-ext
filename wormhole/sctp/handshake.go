@@ -64,17 +64,17 @@ func (c *Client) handshake(ctx context.Context, addr *Addr, initiator bool, time
 		wg.Done()
 	}()
 
-	ch := make(chan bool)
+	ch := make(chan struct{})
 	go func() {
 		logger.Debugf("Wait for (sctp) handshake...")
 		wg.Wait()
-		ch <- true
+		close(ch)
 		logger.Debugf("Handshake (sctp) done")
+
 	}()
 
 	select {
 	case <-ch:
-		break
 	case <-ctx.Done():
 		return ctx.Err()
 	case <-time.After(timeout):

@@ -43,21 +43,28 @@ func TestNewClient(t *testing.T) {
 
 	aliceWg.Wait()
 
-	err = alice.Write([]byte("ping"))
+	err = alice.Write(context.TODO(), []byte("ping"))
 	require.NoError(t, err)
 
 	bobWg.Wait()
 
 	buf := make([]byte, 1024)
-	n, err := bob.Read(buf)
+	n, err := bob.Read(context.TODO(), buf)
 	require.NoError(t, err)
 	require.Equal(t, "ping", string(buf[:n]))
 
-	err = bob.Write([]byte("ping"))
+	err = bob.Write(context.TODO(), []byte("ping"))
 	require.NoError(t, err)
-	n, err = alice.Read(buf)
+	n, err = alice.Read(context.TODO(), buf)
 	require.NoError(t, err)
 	require.Equal(t, "ping", string(buf[:n]))
+
+	// Read timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+	defer cancel()
+
+	n, err = alice.Read(ctx, buf)
+	require.EqualError(t, err, "stream read error: context deadline exceeded")
 
 	alice.Close()
 	bob.Close()

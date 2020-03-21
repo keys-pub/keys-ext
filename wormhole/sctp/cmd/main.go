@@ -7,11 +7,12 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net/http"
 	"time"
 
+	"github.com/keys-pub/keys"
+	httpclient "github.com/keys-pub/keysd/http/client"
 	"github.com/keys-pub/keysd/wormhole/sctp"
-	"github.com/pkg/errors"
+	"github.com/schollz/logger"
 )
 
 func main() {
@@ -23,28 +24,35 @@ func main() {
 	client := sctp.NewClient()
 	defer client.Close()
 
-	addr, err := client.STUN(context.TODO(), time.Second*5)
+	ctx := context.TODO()
+
+	cmd, err := newCmd()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	addr, err := client.STUN(ctx, time.Second*5)
 	if err != nil {
 		log.Fatal(err)
 	}
 	if *offer {
-		if err := writeOffer(addr); err != nil {
+		if err := cmd.writeOffer(ctx, addr); err != nil {
 			log.Fatal(err)
 		}
 	} else {
-		if err := writeAnswer(addr); err != nil {
+		if err := cmd.writeAnswer(ctx, addr); err != nil {
 			log.Fatal(err)
 		}
 	}
 
 	var remote *sctp.Addr
 	if *offer {
-		remote, err = readAnswer()
+		remote, err = cmd.readAnswer(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
 	} else {
-		remote, err = readOffer()
+		remote, err = cmd.readOffer(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -52,12 +60,12 @@ func main() {
 
 	if *offer {
 		fmt.Printf("Connect to %s...\n", remote)
-		if err := client.Connect(context.TODO(), remote); err != nil {
+		if err := client.Connect(ctx, remote); err != nil {
 			log.Fatal(err)
 		}
 	} else {
 		fmt.Printf("Listen...\n")
-		if err := client.Listen(context.TODO(), remote); err != nil {
+		if err := client.Listen(ctx, remote); err != nil {
 			log.Fatal(err)
 		}
 	}
@@ -66,7 +74,7 @@ func main() {
 		go func() {
 			b := make([]byte, 1024)
 			for {
-				n, err := client.Read(b)
+				n, err := client.Read(ctx, b)
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -74,7 +82,7 @@ func main() {
 				fmt.Printf("Received: %s\n", string(message))
 				if string(message) == "answer/ping" {
 					fmt.Printf("Sending offer/pong...\n")
-					if err := client.Write([]byte("offer/pong")); err != nil {
+					if err := client.Write(ctx, []byte("offer/pong")); err != nil {
 						log.Fatal(err)
 					}
 				}
@@ -82,7 +90,7 @@ func main() {
 		}()
 		for {
 			fmt.Printf("Sending offer/ping...\n")
-			if err := client.Write([]byte("offer/ping")); err != nil {
+			if err := client.Write(ctx, []byte("offer/ping")); err != nil {
 				log.Fatal(err)
 			}
 			time.Sleep(time.Second * 5)
@@ -91,7 +99,7 @@ func main() {
 		go func() {
 			b := make([]byte, 1024)
 			for {
-				n, err := client.Read(b)
+				n, err := client.Read(ctx, b)
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -99,7 +107,7 @@ func main() {
 				fmt.Printf("Received: %s\n", string(message))
 				if string(message) == "offer/ping" {
 					fmt.Printf("Sending answer/pong...\n")
-					if err := client.Write([]byte("answer/pong")); err != nil {
+					if err := client.Write(ctx, []byte("answer/pong")); err != nil {
 						log.Fatal(err)
 					}
 				}
@@ -107,7 +115,7 @@ func main() {
 		}()
 		for {
 			fmt.Printf("Sending answer/ping...\n")
-			if err := client.Write([]byte("answer/ping")); err != nil {
+			if err := client.Write(ctx, []byte("answer/ping")); err != nil {
 				log.Fatal(err)
 			}
 			time.Sleep(time.Second * 5)
@@ -115,54 +123,81 @@ func main() {
 	}
 }
 
-func writeOffer(offer *sctp.Addr) error {
-	return writeSession(offer, "https://keys.pub/relay/offer")
+type cmd struct {
+	hcl       *httpclient.Client
+	offerKey  *keys.EdX25519Key
+	answerKey *keys.EdX25519Key
 }
 
-func readOffer() (*sctp.Addr, error) {
-	return readSession("https://keys.pub/relay/offer")
+func newCmd() (*cmd, error) {
+	ks := keys.NewMemKeystore()
+
+	offerKey := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
+	answerKey := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
+
+	if err := ks.SaveEdX25519Key(offerKey); err != nil {
+		return nil, err
+	}
+	if err := ks.SaveEdX25519Key(answerKey); err != nil {
+		return nil, err
+	}
+
+	hcl, err := httpclient.NewClient("https://keys.pub", ks)
+	if err != nil {
+		return nil, err
+	}
+
+	return &cmd{
+		hcl:       hcl,
+		offerKey:  offerKey,
+		answerKey: answerKey,
+	}, nil
 }
 
-func writeAnswer(answer *sctp.Addr) error {
-	return writeSession(answer, "https://keys.pub/relay/answer")
+func (c *cmd) writeOffer(ctx context.Context, offer *sctp.Addr) error {
+	return c.writeSession(ctx, c.offerKey.ID(), c.answerKey.ID(), offer, "offer")
 }
 
-func readAnswer() (*sctp.Addr, error) {
-	return readSession("https://keys.pub/relay/answer")
+func (c *cmd) readOffer(ctx context.Context) (*sctp.Addr, error) {
+	return c.readSession(ctx, c.answerKey.ID(), c.offerKey.ID(), "offer")
 }
 
-func writeSession(session *sctp.Addr, url string) error {
-	b, err := json.Marshal(session)
+func (c *cmd) writeAnswer(ctx context.Context, answer *sctp.Addr) error {
+	return c.writeSession(ctx, c.answerKey.ID(), c.offerKey.ID(), answer, "answer")
+}
+
+func (c *cmd) readAnswer(ctx context.Context) (*sctp.Addr, error) {
+	return c.readSession(ctx, c.offerKey.ID(), c.answerKey.ID(), "answer")
+}
+
+func (c *cmd) writeSession(ctx context.Context, sender keys.ID, recipient keys.ID, addr *sctp.Addr, id string) error {
+	b, err := json.Marshal(addr)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Write %s: %s\n", url, string(b))
-	resp, err := http.Post(url, "application/json; charset=utf-8", bytes.NewBuffer(b))
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	return nil
+	return c.hcl.PutEphemeral(ctx, sender, recipient, id, b)
 }
 
-func readSession(url string) (*sctp.Addr, error) {
+func (c *cmd) readSession(ctx context.Context, sender keys.ID, recipient keys.ID, id string) (*sctp.Addr, error) {
 	for {
-		fmt.Printf("Get offer...\n")
-		resp, err := http.Get(url)
+		logger.Debugf("Get session (ephem/%s)...", id)
+		b, err := c.hcl.GetEphemeral(ctx, sender, recipient, id)
 		if err != nil {
 			return nil, err
 		}
-		if resp.StatusCode == 200 {
-			var answer sctp.Addr
-			if err = json.NewDecoder(resp.Body).Decode(&answer); err != nil {
+		if b != nil {
+			var addr sctp.Addr
+			if err := json.Unmarshal(b, &addr); err != nil {
 				return nil, err
 			}
-			fmt.Printf("Got offer.\n")
-			return &answer, nil
-		} else if resp.StatusCode == 404 {
-			time.Sleep(time.Second)
-		} else {
-			return nil, errors.Errorf("Failed to get offer %d", resp.StatusCode)
+			return &addr, nil
+		}
+
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-time.After(time.Second):
+			// Continue
 		}
 	}
 }

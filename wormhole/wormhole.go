@@ -105,7 +105,7 @@ func (w *Wormhole) Start(ctx context.Context, sender *keys.EdX25519Key, recipien
 	}
 	// Initiator is whichever ID is less than
 	initiator := sender.ID() < recipient.ID()
-	logger.Infof("Initator: %t", initiator)
+	logger.Infof("Wormhole initator: %t", initiator)
 
 	if initiator {
 		if err := w.connect(ctx, sender.ID(), recipient.ID()); err != nil {
@@ -128,11 +128,11 @@ func (w *Wormhole) Start(ctx context.Context, sender *keys.EdX25519Key, recipien
 		if err != nil {
 			return err
 		}
-		if err := w.rtc.Write(out); err != nil {
+		if err := w.rtc.Write(ctx, out); err != nil {
 			return err
 		}
 		buf := make([]byte, 1024)
-		n, err := w.rtc.Read(buf)
+		n, err := w.rtc.Read(ctx, buf)
 		if err != nil {
 			return err
 		}
@@ -141,7 +141,7 @@ func (w *Wormhole) Start(ctx context.Context, sender *keys.EdX25519Key, recipien
 		}
 	} else {
 		buf := make([]byte, 1024)
-		n, err := w.rtc.Read(buf)
+		n, err := w.rtc.Read(ctx, buf)
 		if err != nil {
 			return err
 		}
@@ -152,7 +152,7 @@ func (w *Wormhole) Start(ctx context.Context, sender *keys.EdX25519Key, recipien
 		if err != nil {
 			return err
 		}
-		if err := w.rtc.Write(out); err != nil {
+		if err := w.rtc.Write(ctx, out); err != nil {
 			return err
 		}
 	}
@@ -164,7 +164,7 @@ func (w *Wormhole) Start(ctx context.Context, sender *keys.EdX25519Key, recipien
 	// Read
 	go func() {
 		buf := make([]byte, 1024)
-		n, err := w.rtc.Read(buf)
+		n, err := w.rtc.Read(ctx, buf)
 		if err != nil {
 			logger.Errorf("Read error: %v", err)
 		}
@@ -175,7 +175,7 @@ func (w *Wormhole) Start(ctx context.Context, sender *keys.EdX25519Key, recipien
 }
 
 // Send data.
-func (w *Wormhole) Send(b []byte) error {
+func (w *Wormhole) Send(ctx context.Context, b []byte) error {
 	if w.noise == nil {
 		return errors.Errorf("no channel (noise)")
 	}
@@ -183,11 +183,11 @@ func (w *Wormhole) Send(b []byte) error {
 	if err != nil {
 		return err
 	}
-	return w.rtc.Write(encrypted)
+	return w.rtc.Write(ctx, encrypted)
 }
 
 func (w *Wormhole) connect(ctx context.Context, sender keys.ID, recipient keys.ID) error {
-	logger.Infof("Connect...")
+	logger.Infof("Wormhole connect...")
 	offer, err := w.rtc.STUN(ctx, time.Second*10)
 	if err != nil {
 		return err
@@ -212,7 +212,7 @@ func (w *Wormhole) connect(ctx context.Context, sender keys.ID, recipient keys.I
 }
 
 func (w *Wormhole) listen(ctx context.Context, sender keys.ID, recipient keys.ID) error {
-	logger.Infof("Listen...")
+	logger.Infof("Wormhole listen...")
 	answer, err := w.rtc.STUN(ctx, time.Second*10)
 	if err != nil {
 		return err
@@ -252,8 +252,8 @@ func (w *Wormhole) readAnswer(ctx context.Context, sender keys.ID, recipient key
 	return w.readSession(ctx, sender, recipient, "answer")
 }
 
-func (w *Wormhole) writeSession(ctx context.Context, answer *sctp.Addr, sender keys.ID, recipient keys.ID, id string) error {
-	b, err := json.Marshal(answer)
+func (w *Wormhole) writeSession(ctx context.Context, addr *sctp.Addr, sender keys.ID, recipient keys.ID, id string) error {
+	b, err := json.Marshal(addr)
 	if err != nil {
 		return err
 	}
@@ -261,8 +261,8 @@ func (w *Wormhole) writeSession(ctx context.Context, answer *sctp.Addr, sender k
 }
 
 func (w *Wormhole) readSession(ctx context.Context, sender keys.ID, recipient keys.ID, id string) (*sctp.Addr, error) {
-	// TODO: Context
 	for {
+		logger.Debugf("Get session (ephem/%s)...", id)
 		b, err := w.hcl.GetEphemeral(ctx, sender, recipient, id)
 		if err != nil {
 			return nil, err
@@ -274,6 +274,12 @@ func (w *Wormhole) readSession(ctx context.Context, sender keys.ID, recipient ke
 			}
 			return &addr, nil
 		}
-		time.Sleep(time.Second)
+
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-time.After(time.Second):
+			// Continue
+		}
 	}
 }

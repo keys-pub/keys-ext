@@ -43,26 +43,56 @@ func (c *Client) Close() {
 }
 
 // Write to stream (if connected).
-func (c *Client) Write(b []byte) error {
+func (c *Client) Write(ctx context.Context, b []byte) error {
 	if c.stream == nil {
 		return errors.Errorf("no stream")
 	}
-	if _, err := c.stream.Write(b); err != nil {
-		return errors.Wrapf(err, "stream write error")
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+		if _, err := c.stream.Write(b); err != nil {
+			return errors.Wrapf(err, "stream write error")
+		}
+		return nil
 	}
-	return nil
+}
+
+type read struct {
+	N   int
+	Err error
 }
 
 // Read from stream (if connected).
-func (c *Client) Read(b []byte) (int, error) {
+func (c *Client) Read(ctx context.Context, b []byte) (int, error) {
 	if c.stream == nil {
 		return 0, errors.Errorf("no stream")
 	}
-	n, err := c.stream.Read(b)
+	n, err := c.read(ctx, b)
 	if err != nil {
 		return n, errors.Wrapf(err, "stream read error")
 	}
 	return n, nil
+}
+
+func (c *Client) read(ctx context.Context, b []byte) (int, error) {
+	if c.stream == nil {
+		return 0, errors.Errorf("no stream")
+	}
+
+	readChan := make(chan read)
+	go func() {
+		// TODO: Use ReadWithContext if that becomes available.
+		n, err := c.stream.Read(b)
+		readChan <- read{N: n, Err: err}
+		close(readChan)
+	}()
+	select {
+	case r := <-readChan:
+		return r.N, r.Err
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	}
 }
 
 // STUN initiates the stun requests and returns an address.
