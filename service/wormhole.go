@@ -4,10 +4,13 @@ import (
 	"io"
 
 	"github.com/keys-pub/keysd/wormhole"
+	"github.com/pkg/errors"
 )
 
 // Wormhole (RPC) ...
 func (s *service) Wormhole(srv Keys_WormholeServer) error {
+	// TODO: EOF's if auth token is stale, need better error
+
 	wormhole, err := wormhole.NewWormhole(s.cfg.Server(), s.ks)
 	if err != nil {
 		return err
@@ -54,11 +57,17 @@ func (s *service) Wormhole(srv Keys_WormholeServer) error {
 		}
 
 		if !init {
+			if req.Sender == "" {
+				return errors.Errorf("no sender specified")
+			}
 			sender, err := s.parseIdentityForEdX25519Key(ctx, req.Sender)
 			if err != nil {
 				return err
 			}
 
+			if req.Recipient == "" {
+				return errors.Errorf("no recipient specified")
+			}
 			recipient, err := s.parseIdentityForEdX25519PublicKey(ctx, req.Recipient)
 			if err != nil {
 				return err
