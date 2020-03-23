@@ -66,7 +66,7 @@ func TestNewClient(t *testing.T) {
 	defer cancel()
 
 	_, err = alice.Read(ctx, buf)
-	require.EqualError(t, err, "stream read error: context deadline exceeded")
+	require.EqualError(t, err, "context deadline exceeded")
 
 	alice.Close()
 	bob.Close()

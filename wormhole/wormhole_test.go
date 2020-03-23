@@ -13,6 +13,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TODO: SCTP write buffer?
+// TODO: Keep alive?
+// TODO: Close, reconnect?
+// TODO: Messages could have been omitted by network, include previous message ID
+
 func TestNewWormhole(t *testing.T) {
 	// wormhole.SetLogger(wormhole.NewLogger(wormhole.DebugLevel))
 	// sctp.SetLogger(sctp.NewLogger(sctp.DebugLevel))
@@ -67,21 +72,35 @@ func TestNewWormhole(t *testing.T) {
 
 	wg.Wait()
 
-	err = wha.Send(ctx, []byte("ping"))
+	err = wha.Write(ctx, []byte("ping"))
 	require.NoError(t, err)
 
 	go func() {
-		data, err := whb.Read(ctx)
+		b, err := whb.Read(ctx)
 		require.NoError(t, err)
-
-		if string(data) == "ping" {
-			err := whb.Send(ctx, []byte("pong"))
-			require.NoError(t, err)
-		}
+		require.Equal(t, "ping", string(b))
+		err = whb.Write(ctx, []byte("pong"))
+		require.NoError(t, err)
 	}()
 
-	_, err = wha.Read(ctx)
+	b, err := wha.Read(ctx)
 	require.NoError(t, err)
+	require.Equal(t, "pong", string(b))
+
+	// Message
+	pending, err := wha.WriteMessage(ctx, []byte("ping"), wormhole.UTF8Content)
+	require.NoError(t, err)
+	require.Equal(t, pending.Type, wormhole.Pending)
+
+	msg, err := whb.ReadMessage(ctx, true)
+	require.NoError(t, err)
+	require.Equal(t, "ping", string(msg.Content.Data))
+	require.Equal(t, pending.ID, string(msg.ID))
+
+	reply, err := wha.ReadMessage(ctx, true)
+	require.NoError(t, err)
+	require.Equal(t, wormhole.Ack, reply.Type)
+	require.Equal(t, pending.ID, reply.ID)
 
 	// Close
 	closeWg := &sync.WaitGroup{}
@@ -89,12 +108,16 @@ func TestNewWormhole(t *testing.T) {
 	wha.OnClose(func() {
 		closeWg.Done()
 	})
-	wha.OnClose(func() {
+	whb.OnClose(func() {
 		closeWg.Done()
 	})
 
 	wha.Close()
-	whb.Close()
+
+	_, err = whb.ReadMessage(ctx, true)
+	require.EqualError(t, err, "closed")
+
+	closeWg.Wait()
 }
 
 func TestWormholeCancel(t *testing.T) {
