@@ -316,25 +316,81 @@ func ExampleDB_Create() {
 
 func ExampleDB_Get() {
 	db := NewDB()
-	defer db.Close()
+	dbPath := filepath.Join(os.TempDir(), "test.db")
+	if err := db.OpenAtPath(dbPath, nil); err != nil {
+		log.Fatal(err)
+	}
+	// Don't remove db in real life
+	defer os.RemoveAll(dbPath)
 
-	path := filepath.Join(os.TempDir(), fmt.Sprintf("example-%s.leveldb", keys.RandString(12)))
-	if err := db.OpenAtPath(path, nil); err != nil {
+	ctx := context.TODO()
+
+	if err := db.Set(ctx, keys.Path("collection1", "doc1"), []byte("hi")); err != nil {
 		log.Fatal(err)
 	}
 
-	if err := db.Create(context.TODO(), "/test/1", []byte{0x01, 0x02, 0x03}); err != nil {
-		log.Fatal(err)
-	}
-
-	doc, err := db.Get(context.TODO(), "/test/1")
+	doc, err := db.Get(ctx, keys.Path("collection1", "doc1"))
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	fmt.Printf("%s\n", doc.Path)
-	fmt.Printf("%v\n", doc.Data)
+	fmt.Printf("Got %s\n", string(doc.Data))
 	// Output:
-	// /test/1
-	// [1 2 3]
+	// Got hi
+}
+
+func ExampleDB_Set() {
+	db := NewDB()
+	dbPath := filepath.Join(os.TempDir(), "test.db")
+	if err := db.OpenAtPath(dbPath, nil); err != nil {
+		log.Fatal(err)
+	}
+	// Don't remove db in real life
+	defer os.RemoveAll(dbPath)
+
+	ctx := context.TODO()
+
+	if err := db.Set(ctx, keys.Path("collection1", "doc1"), []byte("hi")); err != nil {
+		log.Fatal(err)
+	}
+
+	doc, err := db.Get(ctx, keys.Path("collection1", "doc1"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Got %s\n", string(doc.Data))
+	// Output:
+	// Got hi
+}
+
+func ExampleDB_Documents() {
+	db := NewDB()
+	dbPath := filepath.Join(os.TempDir(), "test.db")
+	if err := db.OpenAtPath(dbPath, nil); err != nil {
+		log.Fatal(err)
+	}
+	// Don't remove db in real life
+	defer os.RemoveAll(dbPath)
+
+	ctx := context.TODO()
+
+	if err := db.Set(ctx, keys.Path("collection1", "doc1"), []byte("hi")); err != nil {
+		log.Fatal(err)
+	}
+
+	iter, err := db.Documents(ctx, keys.Path("collection1"), nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for {
+		doc, err := iter.Next()
+		if err != nil {
+			log.Fatal(err)
+		}
+		if doc == nil {
+			break
+		}
+		fmt.Printf("%s: %s\n", doc.Path, string(doc.Data))
+	}
+	// Output:
+	// /collection1/doc1: hi
 }
