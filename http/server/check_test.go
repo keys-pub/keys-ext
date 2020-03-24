@@ -14,16 +14,13 @@ import (
 func TestUserResult(t *testing.T) {
 	// SetContextLogger(NewContextLogger(DebugLevel))
 
-	clock := newClock()
-	fi := testFire(t, clock)
-	rq := keys.NewMockRequestor()
-	users := testUserStore(t, fi, rq, clock)
-	srv := newTestServer(t, clock, fi, users)
+	env := newEnv(t)
+	srv := newTestServer(t, env)
 
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 
 	// Alice sign user statement
-	st := userMock(t, users, alice, "alice", "github", rq)
+	st := userMock(t, env.users, alice, "alice", "github", env.rq)
 
 	// PUT /sigchain/:id/:seq
 	req, err := http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/1", alice.ID()), bytes.NewReader(st.Bytes()))
@@ -33,7 +30,7 @@ func TestUserResult(t *testing.T) {
 	require.Equal(t, "{}", body)
 
 	// POST /check
-	req, err = api.NewRequest("POST", "/check", nil, clock.Now(), alice)
+	req, err = api.NewRequest("POST", "/check", nil, env.clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)

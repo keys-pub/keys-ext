@@ -14,14 +14,9 @@ func TestSigchains(t *testing.T) {
 	// SetContextLogger(NewContextLogger(DebugLevel))
 	// firestore.SetContextLogger(NewContextLogger(DebugLevel))
 
-	clock := newClock()
-	fi := testFire(t, clock)
-	// fs := testFirestore(t)
-	rq := keys.NewMockRequestor()
-	users := testUserStore(t, fi, rq, clock)
-	srv := newTestServer(t, clock, fi, users)
-	// clock := newClockAtNow()
-	// srv := newDevServer(t)
+	env := newEnv(t)
+	srv := newTestServer(t, env)
+	clock := env.clock
 
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))

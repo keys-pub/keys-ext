@@ -15,11 +15,9 @@ import (
 func TestMessages(t *testing.T) {
 	// server.SetContextLogger(server.NewContextLogger(server.DebugLevel))
 
-	clock := newClock()
-	fi := testFire(t, clock)
-	rq := keys.NewMockRequestor()
-	users := testUserStore(t, fi, rq, clock)
-	srv := newTestServer(t, clock, fi, users)
+	env := newEnv(t)
+	srv := newTestServer(t, env)
+	clock := env.clock
 
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	charlie := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x03}, 32)))
@@ -188,11 +186,9 @@ func TestMessages(t *testing.T) {
 
 func TestMessagesAuth(t *testing.T) {
 	// SetContextLogger(NewContextLogger(DebugLevel))
-	clock := newClock()
-	fi := testFire(t, clock)
-	rq := keys.NewMockRequestor()
-	users := testUserStore(t, fi, rq, clock)
-	srv := newTestServer(t, clock, fi, users)
+	env := newEnv(t)
+	srv := newTestServer(t, env)
+	clock := env.clock
 
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))

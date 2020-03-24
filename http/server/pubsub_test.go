@@ -2,23 +2,23 @@ package server_test
 
 import (
 	"bytes"
+	"context"
 	"net/http"
 	"sync"
 	"testing"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keysd/http/api"
+	"github.com/keys-pub/keysd/http/server"
 	"github.com/stretchr/testify/require"
 )
 
 func TestPubSub(t *testing.T) {
 	// server.SetContextLogger(server.NewContextLogger(server.DebugLevel))
 
-	clock := newClock()
-	fi := testFire(t, clock)
-	rq := keys.NewMockRequestor()
-	users := testUserStore(t, fi, rq, clock)
-	srv := newTestServer(t, clock, fi, users)
+	env := newEnv(t)
+	srv := newTestServer(t, env)
+	clock := env.clock
 
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	charlie := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x03}, 32)))
@@ -56,4 +56,26 @@ func TestPubSub(t *testing.T) {
 	require.NoError(t, readErr)
 	expected := `hi`
 	require.Equal(t, expected, string(b[:n]))
+}
+
+func TestPubSubImpl(t *testing.T) {
+	ps := server.NewPubSub()
+
+	err := ps.Publish(context.TODO(), "topic1", []byte("ping1"))
+	require.NoError(t, err)
+	err = ps.Publish(context.TODO(), "topic1", []byte("ping2"))
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	vals := []string{}
+	err = ps.Subscribe(ctx, "topic1", func(b []byte) {
+		vals = append(vals, string(b))
+		if len(vals) == 2 {
+			cancel()
+		}
+	})
+	require.NoError(t, err)
+
+	require.Equal(t, []string{"ping1", "ping2"}, vals)
 }

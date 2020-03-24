@@ -13,11 +13,8 @@ import (
 func TestUserSearch(t *testing.T) {
 	// SetContextLogger(NewContextLogger(DebugLevel))
 
-	clock := newClock()
-	fi := testFire(t, clock)
-	rq := keys.NewMockRequestor()
-	users := testUserStore(t, fi, rq, clock)
-	srv := newTestServer(t, clock, fi, users)
+	env := newEnv(t)
+	srv := newTestServer(t, env)
 
 	// GET /user/search
 	req, err := http.NewRequest("GET", "/user/search", nil)
@@ -30,7 +27,7 @@ func TestUserSearch(t *testing.T) {
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 
 	// Alice sign user statement
-	st := userMock(t, users, alice, "alice", "github", rq)
+	st := userMock(t, env.users, alice, "alice", "github", env.rq)
 	// PUT alice
 	req, err = http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/1", alice.ID()), bytes.NewReader(st.Bytes()))
 	require.NoError(t, err)

@@ -95,13 +95,36 @@ func testUserStore(t *testing.T, ds keys.DocumentStore, req keys.Requestor, cloc
 	return us
 }
 
-func newTestServer(t *testing.T, clock *clock, fs server.Fire, users *keys.UserStore) *testServer {
-	mc := server.NewMemTestCache(clock.Now)
-	svr := server.NewServer(fs, mc, users)
+type env struct {
+	clock *clock
+	fi    server.Fire
+	ps    server.PubSub
+	users *keys.UserStore
+	rq    *keys.MockRequestor
+}
+
+func newEnv(t *testing.T) *env {
+	clock := newClock()
+	fi := testFire(t, clock)
+	rq := keys.NewMockRequestor()
+	ps := server.NewPubSub()
+	users := testUserStore(t, fi, rq, clock)
+	return &env{
+		clock: clock,
+		fi:    fi,
+		rq:    rq,
+		ps:    ps,
+		users: users,
+	}
+}
+
+func newTestServer(t *testing.T, env *env) *testServer {
+	mc := server.NewMemTestCache(env.clock.Now)
+	svr := server.NewServer(env.fi, mc, env.ps, env.users)
 	tasks := server.NewTestTasks(svr)
 	svr.SetTasks(tasks)
 	svr.SetInternalAuth(keys.RandIDString())
-	svr.SetNowFn(clock.Now)
+	svr.SetNowFn(env.clock.Now)
 	svr.SetAccessFn(func(c server.AccessContext, resource server.AccessResource, action server.AccessAction) server.Access {
 		return server.AccessAllow()
 	})
@@ -176,11 +199,9 @@ func userMock(t *testing.T, users *keys.UserStore, key *keys.EdX25519Key, name s
 }
 
 func TestAccess(t *testing.T) {
-	clock := newClock()
-	fi := testFire(t, clock)
-	rq := keys.NewMockRequestor()
-	users := testUserStore(t, fi, rq, clock)
-	srv := newTestServer(t, clock, fi, users)
+	env := newEnv(t)
+	srv := newTestServer(t, env)
+	clock := env.clock
 
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 

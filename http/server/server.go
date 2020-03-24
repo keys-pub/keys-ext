@@ -19,6 +19,7 @@ import (
 type Server struct {
 	fi    Fire
 	mc    MemCache
+	ps    PubSub
 	nowFn func() time.Time
 
 	// URL (base) of form http(s)://host:port with no trailing slash to help
@@ -39,10 +40,11 @@ type Fire interface {
 }
 
 // NewServer creates a Server.
-func NewServer(fi Fire, mc MemCache, users *keys.UserStore) *Server {
+func NewServer(fi Fire, mc MemCache, ps PubSub, users *keys.UserStore) *Server {
 	return &Server{
 		fi:    fi,
 		mc:    mc,
+		ps:    ps,
 		nowFn: time.Now,
 		tasks: newUnsetTasks(),
 		users: users,

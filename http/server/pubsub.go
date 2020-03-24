@@ -1,15 +1,22 @@
 package server
 
 import (
+	"context"
 	"io/ioutil"
 	"net/http"
+	"sync"
+	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/encoding"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"golang.org/x/net/websocket"
 )
+
+type PubSub interface {
+	Publish(ctx context.Context, name string, b []byte) error
+	Subscribe(ctx context.Context, name string, receiveFn func(b []byte)) error
+}
 
 // TODO: Whitelist publish recipients by default
 
@@ -46,10 +53,8 @@ func (s *Server) publish(c echo.Context) error {
 		return ErrBadRequest(c, errors.Errorf("message too large (greater than 16KiB)"))
 	}
 
-	enc := encoding.MustEncode(bin, encoding.Base64)
-
 	logger.Infof(ctx, "Publish to %s", rid)
-	if err := s.mc.Publish(ctx, rid.String(), enc); err != nil {
+	if err := s.ps.Publish(ctx, rid.String(), bin); err != nil {
 		return internalError(c, err)
 	}
 
@@ -72,37 +77,71 @@ func (s *Server) subscribe(c echo.Context) error {
 		defer ws.Close()
 
 		request := ws.Request()
-		ctx := request.Context()
+		ctx, cancel := context.WithCancel(request.Context())
+		defer cancel()
 
 		logger.Infof(ctx, "Subscribe %s", kid)
-		ch, err := s.mc.Subscribe(ctx, kid.String())
-		if err != nil {
-			logger.Errorf(ctx, "Error: %v", err)
-			return
-		}
-		defer func() { _ = s.mc.Unsubscribe(ctx, kid.String()) }()
 
-		logger.Infof(ctx, "Waiting for publishes %s", kid)
-		for {
-			select {
-			case b := <-ch:
-				dec, err := encoding.Decode(string(b), encoding.Base64)
-				if err != nil {
-					logger.Errorf(ctx, "Error: %v", err)
-					continue
-				}
-
-				// logger.Debugf(ctx, "Sending msg: %v", msg)
-				if err := websocket.Message.Send(ws, dec); err != nil {
-					logger.Errorf(ctx, "Error: %v", err)
-					continue
-				}
-			case <-ctx.Done():
-				logger.Errorf(ctx, "Error: %v", ctx.Err())
+		receiveFn := func(b []byte) {
+			if err := websocket.Message.Send(ws, b); err != nil {
+				logger.Warningf(ctx, "Failed to send message: %v", err)
+				cancel()
 				return
 			}
 		}
 
+		if err := s.ps.Subscribe(ctx, kid.String(), receiveFn); err != nil {
+			logger.Errorf(ctx, "Subscribe error: %v", err)
+			return
+		}
+
 	}).ServeHTTP(c.Response(), c.Request())
 	return nil
+}
+
+type pubSub struct {
+	sync.Mutex
+	subs map[string][][]byte
+}
+
+// NewPubSub is PubSub for testing.
+func NewPubSub() PubSub {
+	return &pubSub{
+		subs: map[string][][]byte{},
+	}
+}
+
+func (p *pubSub) Publish(ctx context.Context, name string, b []byte) error {
+	p.Lock()
+	defer p.Unlock()
+	vals, ok := p.subs[name]
+	if ok {
+		p.subs[name] = append(vals, b)
+	} else {
+		p.subs[name] = [][]byte{b}
+	}
+	return nil
+}
+
+func (p *pubSub) Subscribe(ctx context.Context, name string, receiveFn func(b []byte)) error {
+	for {
+		select {
+		case <-ctx.Done():
+			err := ctx.Err()
+			if err == context.Canceled {
+				return nil
+			}
+			return err
+		case <-time.After(time.Millisecond * 10):
+			p.Lock()
+			vals, ok := p.subs[name]
+			delete(p.subs, name)
+			if ok {
+				for _, v := range vals {
+					receiveFn(v)
+				}
+			}
+			p.Unlock()
+		}
+	}
 }
