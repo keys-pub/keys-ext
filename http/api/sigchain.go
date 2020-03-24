@@ -20,7 +20,7 @@ func (r SigchainResponse) MetadataFor(st *keys.Statement) Metadata {
 
 // Sigchain from response.
 func (r SigchainResponse) Sigchain() (*keys.Sigchain, error) {
-	spk, err := keys.SigchainPublicKeyFromID(r.KID)
+	spk, err := keys.StatementPublicKeyFromID(r.KID)
 	if err != nil {
 		return nil, err
 	}
