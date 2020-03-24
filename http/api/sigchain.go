@@ -20,11 +20,7 @@ func (r SigchainResponse) MetadataFor(st *keys.Statement) Metadata {
 
 // Sigchain from response.
 func (r SigchainResponse) Sigchain() (*keys.Sigchain, error) {
-	spk, err := keys.StatementPublicKeyFromID(r.KID)
-	if err != nil {
-		return nil, err
-	}
-	sc := keys.NewSigchain(spk)
+	sc := keys.NewSigchain(r.KID)
 	for _, st := range r.Statements {
 		// md := r.MetadataFor(st)
 		// if md.CreatedAt.IsZero() {

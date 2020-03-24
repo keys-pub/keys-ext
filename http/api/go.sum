@@ -34,6 +34,8 @@ github.com/keys-pub/keys v0.0.0-20200223202242-70e1f1ef5e5f h1:fAC4Fny/niAbMq08j
 github.com/keys-pub/keys v0.0.0-20200223202242-70e1f1ef5e5f/go.mod h1:/uNDuQDL1kCcJVsKMG2xLwUMS7zvoUrWL9k1OMZ7GZw=
 github.com/keys-pub/keys v0.0.0-20200324155654-f682c9b5a51b h1:90tzeUQ2SzZ8teYCumSitsn6ir41YFizkTd0DFWJlcw=
 github.com/keys-pub/keys v0.0.0-20200324155654-f682c9b5a51b/go.mod h1:k/6AQo72ji46Q03AX8C2jLUd4dmGM6djrEZY+LVr6Ww=
+github.com/keys-pub/keys v0.0.0-20200324161647-7b75199a4717 h1:Rbv2j0JFlWimFpV+CizFp+hj/WTj51BwpU8jIM/m3O4=
+github.com/keys-pub/keys v0.0.0-20200324161647-7b75199a4717/go.mod h1:k/6AQo72ji46Q03AX8C2jLUd4dmGM6djrEZY+LVr6Ww=
 github.com/pkg/errors v0.8.1 h1:iURUrRGxPUNPdy5/HRSm+Yj6okJ6UtLINN0Q9M4+h3I=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
