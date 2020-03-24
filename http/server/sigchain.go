@@ -19,7 +19,7 @@ const sigchainChanges = "sigchain-changes"
 
 func (s *Server) listSigchains(c echo.Context) error {
 	ctx := c.Request().Context()
-	logger.Infof(ctx, "Server GET sigchains %s", s.urlString(c))
+	logger.Infof(ctx, "Server GET sigchains %s", s.urlWithBase(c))
 
 	var version time.Time
 	if f := c.QueryParam("version"); f != "" {
@@ -120,7 +120,7 @@ func (s *Server) sigchain(c echo.Context, kid keys.ID) (*keys.Sigchain, map[stri
 
 func (s *Server) getSigchain(c echo.Context) error {
 	ctx := c.Request().Context()
-	logger.Infof(ctx, "Server GET sigchain %s", s.urlString(c))
+	logger.Infof(ctx, "Server GET sigchain %s", s.urlWithBase(c))
 
 	kid, err := keys.ParseID(c.Param("kid"))
 	if err != nil {
@@ -180,7 +180,7 @@ func (s *Server) getSigchainStatement(c echo.Context) error {
 
 func (s *Server) putSigchainStatement(c echo.Context) error {
 	ctx := c.Request().Context()
-	logger.Infof(ctx, "Server PUT sigchain statement %s", s.urlString(c))
+	logger.Infof(ctx, "Server PUT sigchain statement %s", s.urlWithBase(c))
 
 	if c.Request().Body == nil {
 		return ErrBadRequest(c, errors.Errorf("missing body"))

@@ -19,7 +19,7 @@ const msgChanges = "msg-changes"
 func (s *Server) postMessage(c echo.Context) error {
 	request := c.Request()
 	ctx := request.Context()
-	logger.Infof(ctx, "Server POST message %s", s.urlString(c))
+	logger.Infof(ctx, "Server POST message %s", s.urlWithBase(c))
 
 	kid, status, err := s.authorize(c)
 	if err != nil {
@@ -55,6 +55,7 @@ func (s *Server) postMessage(c echo.Context) error {
 	}
 
 	if len(bin) > 512*1024 {
+		// TODO: Check length before reading data
 		return ErrBadRequest(c, errors.Errorf("message too large (greater than 512KiB)"))
 	}
 
@@ -103,7 +104,7 @@ func (s *Server) postMessage(c echo.Context) error {
 func (s *Server) listMessages(c echo.Context) error {
 	request := c.Request()
 	ctx := request.Context()
-	logger.Infof(ctx, "Server GET messages %s", s.urlString(c))
+	logger.Infof(ctx, "Server GET messages %s", s.urlWithBase(c))
 
 	kid, status, err := s.authorize(c)
 	if err != nil {

@@ -21,7 +21,7 @@ type Server struct {
 	mc    MemCache
 	nowFn func() time.Time
 
-	// URL (base) of form http://host:port with no trailing slash to help
+	// URL (base) of form http(s)://host:port with no trailing slash to help
 	// authorization checks in testing where the host is ambiguous.
 	URL string
 
@@ -101,7 +101,7 @@ func AddRoutes(s *Server, e *echo.Echo) {
 	e.PUT("/ephem/:kid/:rid/:id", s.putEphem)
 	e.GET("/ephem/:kid/:rid/:id", s.getEphem)
 
-	// Pubsub
+	// PubSub
 	e.POST("/publish/:kid/:rid", s.publish)
 	e.GET("/subscribe/:kid", s.subscribe)
 
@@ -146,6 +146,6 @@ func (s *Server) checkInternalAuth(c echo.Context) error {
 	return nil
 }
 
-func (s *Server) urlString(c echo.Context) string {
+func (s *Server) urlWithBase(c echo.Context) string {
 	return s.URL + c.Request().URL.String()
 }

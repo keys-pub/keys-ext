@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/pkg/errors"
 )
 
 // MemCache defines interface for memcache.
@@ -24,7 +23,9 @@ type MemCache interface {
 	// Publish value to key.
 	Publish(ctx context.Context, k string, v string) error
 	// Subscribe to key.
-	Subscribe(ctx context.Context, k string, ch chan []byte) error
+	Subscribe(ctx context.Context, k string) (<-chan []byte, error)
+	// Unsubscribe to key.
+	Unsubscribe(ctx context.Context, k string) error
 }
 
 type memCache struct {
@@ -32,6 +33,7 @@ type memCache struct {
 	kv    map[string]*mcEntry
 	nowFn func() time.Time
 
+	msgs   map[string][]string
 	pubsub map[string]chan []byte
 }
 
@@ -43,11 +45,14 @@ func NewMemTestCache(nowFn func() time.Time) MemCache {
 func newMemTestCache(nowFn func() time.Time) *memCache {
 	kv := map[string]*mcEntry{}
 	pubsub := map[string]chan []byte{}
-	return &memCache{
+	msgs := map[string][]string{}
+	mc := &memCache{
 		kv:     kv,
 		nowFn:  nowFn,
 		pubsub: pubsub,
+		msgs:   msgs,
 	}
+	return mc
 }
 
 type mcEntry struct {
@@ -125,16 +130,58 @@ func (m *memCache) Increment(ctx context.Context, k string) (int64, error) {
 }
 
 func (m *memCache) Publish(ctx context.Context, k string, v string) error {
-	ch, ok := m.pubsub[k]
+	m.Lock()
+	defer m.Unlock()
+	vals, ok := m.msgs[k]
 	if !ok {
-		return errors.Errorf("no subscribe for %s", k)
+		m.msgs[k] = []string{v}
+	} else {
+		vals = append(vals, v)
+		m.msgs[k] = vals
 	}
-	logger.Debugf(ctx, "Publishing bytes to channel for %s", k)
-	ch <- []byte(v)
+
+	m.pub(k)
+
 	return nil
 }
 
-func (m *memCache) Subscribe(ctx context.Context, k string, ch chan []byte) error {
+func (m *memCache) Subscribe(ctx context.Context, k string) (<-chan []byte, error) {
+	m.Lock()
+	defer m.Unlock()
+
+	ch := make(chan []byte)
+
 	m.pubsub[k] = ch
+
+	m.pub(k)
+
+	return ch, nil
+}
+
+func (m *memCache) Unsubscribe(ctx context.Context, k string) error {
+	m.Lock()
+	defer m.Unlock()
+	ch, ok := m.pubsub[k]
+	if !ok {
+		return nil
+	}
+	close(ch)
+	delete(m.msgs, k)
+	delete(m.pubsub, k)
 	return nil
+}
+
+func (m *memCache) pub(k string) {
+	ch, ok := m.pubsub[k]
+	if ok {
+		vals, ok := m.msgs[k]
+		if ok {
+			delete(m.msgs, k)
+			go func() {
+				for _, v := range vals {
+					ch <- []byte(v)
+				}
+			}()
+		}
+	}
 }

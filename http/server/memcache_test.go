@@ -70,20 +70,17 @@ func TestMemTestCachePubSub(t *testing.T) {
 	clock := newClock()
 	mc := server.NewMemTestCache(clock.Now)
 
-	ch := make(chan []byte)
-	err := mc.Subscribe(context.TODO(), "key1", ch)
+	err := mc.Publish(context.TODO(), "key1", "ping")
 	require.NoError(t, err)
 
-	go func() {
-		err := mc.Publish(context.TODO(), "key1", "ping")
-		if err != nil {
-			panic(err)
-		}
-	}()
+	ch, err := mc.Subscribe(context.TODO(), "key1")
+	require.NoError(t, err)
 
-	for b := range ch {
-		require.Equal(t, []byte("ping"), b)
-		break
-	}
+	err = mc.Publish(context.TODO(), "key1", "ping")
+	require.NoError(t, err)
 
+	b1 := <-ch
+	require.Equal(t, "ping", string(b1))
+	b2 := <-ch
+	require.Equal(t, "ping", string(b2))
 }

@@ -15,7 +15,7 @@ import (
 func (s *Server) putEphem(c echo.Context) error {
 	request := c.Request()
 	ctx := request.Context()
-	logger.Infof(ctx, "Server PUT ephem %s", s.urlString(c))
+	logger.Infof(ctx, "Server PUT ephem %s", s.urlWithBase(c))
 
 	kid, status, err := s.authorize(c)
 	if err != nil {
@@ -75,7 +75,7 @@ func (s *Server) putEphem(c echo.Context) error {
 func (s *Server) getEphem(c echo.Context) error {
 	request := c.Request()
 	ctx := request.Context()
-	logger.Infof(ctx, "Server GET ephem %s", s.urlString(c))
+	logger.Infof(ctx, "Server GET ephem %s", s.urlWithBase(c))
 
 	kid, status, err := s.authorize(c)
 	if err != nil {
