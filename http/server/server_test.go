@@ -4,14 +4,17 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keysd/http/api"
 	"github.com/keys-pub/keysd/http/server"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/net/websocket"
 )
 
 type clock struct {
@@ -50,6 +53,8 @@ func (c *clock) Now() time.Time {
 type testServer struct {
 	Server  *server.Server
 	Handler http.Handler
+	// Addr if started
+	Addr string
 }
 
 // func testFirestore(t *testing.T) Fire {
@@ -113,29 +118,38 @@ func (s *testServer) Serve(req *http.Request) (int, http.Header, string) {
 	return rr.Code, rr.Header(), rr.Body.String()
 }
 
-// type devServer struct {
-// 	client *http.Client
-// 	t      *testing.T
-// }
+func (s *testServer) Start() (close func()) {
+	server := httptest.NewServer(s.Handler)
+	s.Addr = server.Listener.Addr().String()
+	return func() {
+		server.Close()
+	}
+}
 
-// func newDevServer(t *testing.T) *devServer {
-// 	client := &http.Client{}
-// 	return &devServer{
-// 		t:      t,
-// 		client: client,
-// 	}
-// }
+func (s *testServer) WebsocketDial(t *testing.T, path string, clock *clock, key *keys.EdX25519Key) *websocket.Conn {
+	t.Logf("Server addr: %s", s.Addr)
+	client, err := net.Dial("tcp", s.Addr)
+	require.NoError(t, err)
 
-// func (s devServer) Serve(req *http.Request) (int, http.Header, string) {
-// 	url, err := url.Parse("http://localhost:8080" + req.URL.RequestURI())
-// 	require.NoError(s.t, err)
-// 	req.URL = url
-// 	resp, err := s.client.Do(req)
-// 	require.NoError(s.t, err)
-// 	b, err := ioutil.ReadAll(resp.Body)
-// 	require.NoError(s.t, err)
-// 	return resp.StatusCode, resp.Header, string(b)
-// }
+	var auth *api.Auth
+	if key != nil {
+		a, err := api.NewAuth("GET", path, clock.Now(), key)
+		require.NoError(t, err)
+		auth = a
+	}
+
+	wsAddr := fmt.Sprintf("ws://%s%s", s.Addr, auth.URL.String())
+	t.Logf("WS addr: %s", wsAddr)
+	config, err := websocket.NewConfig(wsAddr, "http://localhost")
+	require.NoError(t, err)
+	if auth != nil {
+		config.Header.Set("Authorization", auth.Header())
+	}
+
+	conn, err := websocket.NewClient(config, client)
+	require.NoError(t, err)
+	return conn
+}
 
 func userMock(t *testing.T, users *keys.UserStore, key *keys.EdX25519Key, name string, service string, mock *keys.MockRequestor) *keys.Statement {
 	url := ""
@@ -148,10 +162,10 @@ func userMock(t *testing.T, users *keys.UserStore, key *keys.EdX25519Key, name s
 		t.Fatal("unsupported service in test")
 	}
 
-	sc := keys.NewSigchain(key.PublicKey())
+	sc := keys.NewSigchain(key.ID())
 	usr, err := keys.NewUser(users, key.ID(), service, name, url, sc.LastSeq()+1)
 	require.NoError(t, err)
-	st, err := keys.GenerateUserStatement(sc, usr, key, users.Now())
+	st, err := keys.NewUserSigchainStatement(sc, usr, key, users.Now())
 	require.NoError(t, err)
 
 	msg, err := usr.Sign(key)
@@ -185,8 +199,8 @@ func TestAccess(t *testing.T) {
 	})
 
 	// PUT /sigchain/:kid/:seq (alice, allow)
-	aliceSc := keys.NewSigchain(alice.PublicKey())
-	aliceSt, err := keys.GenerateStatement(aliceSc, []byte("testing"), alice, "", clock.Now())
+	aliceSc := keys.NewSigchain(alice.ID())
+	aliceSt, err := keys.NewSigchainStatement(aliceSc, []byte("testing"), alice, "", clock.Now())
 	require.NoError(t, err)
 	err = aliceSc.Add(aliceSt)
 	require.NoError(t, err)
@@ -198,7 +212,7 @@ func TestAccess(t *testing.T) {
 	require.Equal(t, "{}", body)
 
 	// PUT /sigchain/:kid/:seq (alice, deny)
-	aliceSt2, err := keys.GenerateStatement(aliceSc, []byte("testing"), alice, "", clock.Now())
+	aliceSt2, err := keys.NewSigchainStatement(aliceSc, []byte("testing"), alice, "", clock.Now())
 	require.NoError(t, err)
 	err = aliceSc.Add(aliceSt2)
 	require.NoError(t, err)
@@ -212,8 +226,8 @@ func TestAccess(t *testing.T) {
 	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
 
 	// PUT /:kid/:seq (bob, allow)
-	bobSc := keys.NewSigchain(bob.PublicKey())
-	bobSt, err := keys.GenerateStatement(bobSc, []byte("testing"), bob, "", clock.Now())
+	bobSc := keys.NewSigchain(bob.ID())
+	bobSt, err := keys.NewSigchainStatement(bobSc, []byte("testing"), bob, "", clock.Now())
 	require.NoError(t, err)
 	bobAddErr := bobSc.Add(bobSt)
 	require.NoError(t, bobAddErr)

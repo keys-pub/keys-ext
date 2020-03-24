@@ -101,6 +101,10 @@ func AddRoutes(s *Server, e *echo.Echo) {
 	e.PUT("/ephem/:kid/:rid/:id", s.putEphem)
 	e.GET("/ephem/:kid/:rid/:id", s.getEphem)
 
+	// Pubsub
+	e.POST("/publish/:kid/:rid", s.publish)
+	e.GET("/subscribe/:kid", s.subscribe)
+
 	// Sigchain (aliases)
 	e.GET("/:kid", s.getSigchain)
 	e.GET("/:kid/:seq", s.getSigchainStatement)

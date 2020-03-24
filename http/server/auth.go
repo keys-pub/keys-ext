@@ -18,7 +18,7 @@ import (
 // AuthResult is the authorized result.
 type AuthResult struct {
 	kid    keys.ID
-	spk    keys.SigchainPublicKey
+	spk    keys.StatementPublicKey
 	method string
 	url    *url.URL
 	nonce  string
@@ -42,7 +42,7 @@ func CheckAuthorization(ctx context.Context, method string, urs string, auth str
 		return nil, err
 	}
 
-	spk, err := keys.SigchainPublicKeyFromID(kid)
+	spk, err := keys.StatementPublicKeyFromID(kid)
 	if err != nil {
 		return nil, errors.Errorf("not a valid sign public key")
 	}

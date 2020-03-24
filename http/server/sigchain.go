@@ -85,14 +85,14 @@ func (s *Server) listSigchains(c echo.Context) error {
 	return JSON(c, http.StatusOK, resp)
 }
 
-func (s *Server) sigchain(c echo.Context, spk keys.SigchainPublicKey) (*keys.Sigchain, map[string]api.Metadata, error) {
+func (s *Server) sigchain(c echo.Context, kid keys.ID) (*keys.Sigchain, map[string]api.Metadata, error) {
 	ctx := c.Request().Context()
-	iter, err := s.fi.Documents(ctx, SigchainResource.String(), &keys.DocumentsOpts{Prefix: spk.ID().String()})
+	iter, err := s.fi.Documents(ctx, SigchainResource.String(), &keys.DocumentsOpts{Prefix: kid.String()})
 	defer iter.Release()
 	if err != nil {
 		return nil, nil, err
 	}
-	sc := keys.NewSigchain(spk)
+	sc := keys.NewSigchain(kid)
 	md := make(map[string]api.Metadata, 100)
 	for {
 		doc, err := iter.Next()
@@ -126,13 +126,9 @@ func (s *Server) getSigchain(c echo.Context) error {
 	if err != nil {
 		return ErrNotFound(c, nil)
 	}
-	spk, err := keys.SigchainPublicKeyFromID(kid)
-	if err != nil {
-		return ErrBadRequest(c, err)
-	}
 
 	logger.Infof(ctx, "Loading sigchain: %s", kid)
-	sc, md, err := s.sigchain(c, spk)
+	sc, md, err := s.sigchain(c, kid)
 	if err != nil {
 		return internalError(c, err)
 	}
@@ -223,12 +219,7 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 		return ErrResponse(c, access.StatusCode, access.Message)
 	}
 
-	spk, err := keys.SigchainPublicKeyFromID(st.KID)
-	if err != nil {
-		return ErrBadRequest(c, err)
-	}
-
-	sc, _, err := s.sigchain(c, spk)
+	sc, _, err := s.sigchain(c, st.KID)
 	if err != nil {
 		return internalError(c, err)
 	}
@@ -284,11 +275,7 @@ func (s *Server) statementFromBytes(ctx context.Context, b []byte) (*keys.Statem
 		logger.Debugf(context.TODO(), "%s != %s", string(b), string(bout))
 		return nil, errors.Errorf("invalid statement bytes")
 	}
-	spk, err := keys.SigchainPublicKeyFromID(st.KID)
-	if err != nil {
-		return nil, err
-	}
-	if err := st.Verify(spk); err != nil {
+	if err := st.Verify(); err != nil {
 		return st, err
 	}
 	return st, nil

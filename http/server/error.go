@@ -73,6 +73,9 @@ func internalError(c echo.Context, err error) error {
 // ErrorHandler returns error handler that returns in the format:
 // {"error": {"message": "error message", status: 500}}".
 func ErrorHandler(err error, c echo.Context) {
+	ctx := c.Request().Context()
+	logger.Warningf(ctx, "Error: %v", err)
+
 	code := http.StatusInternalServerError
 	var resp *response
 
@@ -98,11 +101,11 @@ func ErrorHandler(err error, c echo.Context) {
 	if !c.Response().Committed {
 		if c.Request().Method == http.MethodHead { // Issue #608
 			if err := c.NoContent(code); err != nil {
-				c.Logger().Error(err)
+				logger.Errorf(ctx, "Error: %v", err)
 			}
 		} else {
 			if err := JSON(c, code, resp); err != nil {
-				c.Logger().Error(err)
+				logger.Errorf(ctx, "Error: %v", err)
 			}
 		}
 	}

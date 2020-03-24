@@ -65,3 +65,25 @@ func TestMemTestCacheExpiration(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, val3)
 }
+
+func TestMemTestCachePubSub(t *testing.T) {
+	clock := newClock()
+	mc := server.NewMemTestCache(clock.Now)
+
+	ch := make(chan []byte)
+	err := mc.Subscribe(context.TODO(), "key1", ch)
+	require.NoError(t, err)
+
+	go func() {
+		err := mc.Publish(context.TODO(), "key1", "ping")
+		if err != nil {
+			panic(err)
+		}
+	}()
+
+	for b := range ch {
+		require.Equal(t, []byte("ping"), b)
+		break
+	}
+
+}

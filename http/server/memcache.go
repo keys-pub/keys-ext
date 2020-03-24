@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/pkg/errors"
 )
 
 // MemCache defines interface for memcache.
@@ -18,14 +19,20 @@ type MemCache interface {
 	Set(ctx context.Context, k string, v string) error
 	// Expire key.
 	Expire(ctx context.Context, k string, dt time.Duration) error
-	// Increment
+	// Increment value at key.
 	Increment(ctx context.Context, k string) (int64, error)
+	// Publish value to key.
+	Publish(ctx context.Context, k string, v string) error
+	// Subscribe to key.
+	Subscribe(ctx context.Context, k string, ch chan []byte) error
 }
 
 type memCache struct {
 	sync.Mutex
 	kv    map[string]*mcEntry
 	nowFn func() time.Time
+
+	pubsub map[string]chan []byte
 }
 
 // NewMemTestCache returns in memory MemCache (for testing).
@@ -35,9 +42,11 @@ func NewMemTestCache(nowFn func() time.Time) MemCache {
 
 func newMemTestCache(nowFn func() time.Time) *memCache {
 	kv := map[string]*mcEntry{}
+	pubsub := map[string]chan []byte{}
 	return &memCache{
-		kv:    kv,
-		nowFn: nowFn,
+		kv:     kv,
+		nowFn:  nowFn,
+		pubsub: pubsub,
 	}
 }
 
@@ -113,4 +122,19 @@ func (m *memCache) Increment(ctx context.Context, k string) (int64, error) {
 	inc := strconv.FormatInt(n, 10)
 	e.Value = inc
 	return n, m.set(ctx, k, e)
+}
+
+func (m *memCache) Publish(ctx context.Context, k string, v string) error {
+	ch, ok := m.pubsub[k]
+	if !ok {
+		return errors.Errorf("no subscribe for %s", k)
+	}
+	logger.Debugf(ctx, "Publishing bytes to channel for %s", k)
+	ch <- []byte(v)
+	return nil
+}
+
+func (m *memCache) Subscribe(ctx context.Context, k string, ch chan []byte) error {
+	m.pubsub[k] = ch
+	return nil
 }
