@@ -305,7 +305,7 @@ func TestSigchains(t *testing.T) {
 	kids := []keys.ID{}
 	for i := 0; i < 6; i++ {
 		key := keys.GenerateEdX25519Key()
-		sc := keys.NewSigchain(key.PublicKey())
+		sc := keys.NewSigchain(key.ID())
 		st, err := keys.NewSigchainStatement(sc, []byte("test"), key, "", clock.Now())
 		require.NoError(t, err)
 		err = sc.Add(st)
@@ -315,9 +315,9 @@ func TestSigchains(t *testing.T) {
 		kids = append(kids, key.ID())
 	}
 
-	pk, err := scs.Sigchain(kids[0])
+	sc, err := scs.Sigchain(kids[0])
 	require.NoError(t, err)
-	require.Equal(t, kids[0], pk.ID())
+	require.Equal(t, kids[0], sc.KID())
 }
 
 func ExampleNewFirestore() {
