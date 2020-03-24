@@ -21,10 +21,10 @@ func saveUser(t *testing.T, env *env, client *Client, key *keys.EdX25519Key, nam
 		t.Fatal("unsupported service in test")
 	}
 
-	sc := keys.NewSigchain(key.PublicKey())
+	sc := keys.NewSigchain(key.ID())
 	user, err := keys.NewUser(env.users, key.ID(), service, name, url, sc.LastSeq()+1)
 	require.NoError(t, err)
-	st, err := keys.GenerateUserStatement(sc, user, key, env.clock.Now())
+	st, err := keys.NewUserSigchainStatement(sc, user, key, env.clock.Now())
 	require.NoError(t, err)
 
 	msg, err := user.Sign(key)

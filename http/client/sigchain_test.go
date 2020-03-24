@@ -18,15 +18,15 @@ func TestSigchain(t *testing.T) {
 
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 
-	sc := keys.NewSigchain(alice.PublicKey())
-	st, err := keys.GenerateStatement(sc, []byte("testing1"), alice, "", env.clock.Now())
+	sc := keys.NewSigchain(alice.ID())
+	st, err := keys.NewSigchainStatement(sc, []byte("testing1"), alice, "", env.clock.Now())
 	require.NoError(t, err)
 	err = sc.Add(st)
 	require.NoError(t, err)
 	err = client.PutSigchainStatement(context.TODO(), st)
 	require.NoError(t, err)
 
-	st2, err := keys.GenerateStatement(sc, []byte("testing2"), alice, "", env.clock.Now())
+	st2, err := keys.NewSigchainStatement(sc, []byte("testing2"), alice, "", env.clock.Now())
 	require.NoError(t, err)
 	err = sc.Add(st2)
 	require.NoError(t, err)
@@ -52,7 +52,7 @@ func TestSigchain(t *testing.T) {
 	require.Equal(t, st2.KID, resp3.Statements[1].KID)
 	// require.Equal(t, keys.TimeFromMillis(1234567890011), resp3.MetadataFor(resp3.Statements[0]).CreatedAt)
 
-	st3, err := keys.GenerateStatement(sc, []byte("testing3"), alice, "", env.clock.Now())
+	st3, err := keys.NewSigchainStatement(sc, []byte("testing3"), alice, "", env.clock.Now())
 	require.NoError(t, err)
 	err = sc.Add(st3)
 	require.NoError(t, err)
