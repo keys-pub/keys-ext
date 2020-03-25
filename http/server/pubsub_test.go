@@ -16,7 +16,7 @@ import (
 
 func TestPubSub(t *testing.T) {
 	env := newEnv(t)
-	srv := newTestServer(t, env)
+	srv := newTestPubSubServer(t, env)
 	clock := env.clock
 
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
@@ -77,15 +77,15 @@ func TestPubSubImpl(t *testing.T) {
 	require.Equal(t, []string{"ping1", "ping2"}, vals)
 }
 
-func TestWS(t *testing.T) {
+func TestWebsocket(t *testing.T) {
 	env := newEnv(t)
-	srv := newTestServer(t, env)
+	srv := newTestPubSubServer(t, env)
 	clock := env.clock
 
 	closeFn := srv.Start()
 	defer closeFn()
 
-	conn := srv.WebsocketDial(t, "/wstest", clock, nil)
+	conn := srv.WebsocketDial(t, "/wsecho", clock, nil)
 	defer conn.Close()
 
 	err := conn.WriteMessage(websocket.TextMessage, []byte("ping"))
@@ -93,8 +93,8 @@ func TestWS(t *testing.T) {
 
 	_, b, err := conn.ReadMessage()
 	require.NoError(t, err)
-	require.Equal(t, b, []byte("pong"))
+	require.Equal(t, b, []byte("ping"))
 
-	// err = conn.WriteMessage(websocket.CloseMessage, []byte("close"))
-	// require.NoError(t, err)
+	err = conn.WriteMessage(websocket.CloseMessage, nil)
+	require.NoError(t, err)
 }

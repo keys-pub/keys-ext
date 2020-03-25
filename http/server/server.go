@@ -19,7 +19,6 @@ import (
 type Server struct {
 	fi     Fire
 	mc     MemCache
-	ps     PubSub
 	nowFn  func() time.Time
 	logger Logger
 
@@ -41,11 +40,10 @@ type Fire interface {
 }
 
 // NewServer creates a Server.
-func NewServer(fi Fire, mc MemCache, ps PubSub, users *keys.UserStore, logger Logger) *Server {
+func NewServer(fi Fire, mc MemCache, users *keys.UserStore, logger Logger) *Server {
 	return &Server{
 		fi:     fi,
 		mc:     mc,
-		ps:     ps,
 		nowFn:  time.Now,
 		tasks:  newUnsetTasks(),
 		users:  users,
@@ -74,12 +72,12 @@ func NewHandler(s *Server) http.Handler {
 func newHandler(s *Server) *echo.Echo {
 	e := echo.New()
 	e.HTTPErrorHandler = ErrorHandler
-	AddRoutes(s, e)
+	s.AddRoutes(e)
 	return e
 }
 
 // AddRoutes adds routes to an Echo instance.
-func AddRoutes(s *Server, e *echo.Echo) {
+func (s *Server) AddRoutes(e *echo.Echo) {
 	e.GET("/sigchain/:kid/:seq", s.getSigchainStatement)
 	e.PUT("/sigchain/:kid/:seq", s.putSigchainStatement)
 	e.GET("/sigchain/:kid", s.getSigchain)
@@ -104,12 +102,6 @@ func AddRoutes(s *Server, e *echo.Echo) {
 	// Ephemeral
 	e.PUT("/ephem/:kid/:rid/:id", s.putEphem)
 	e.GET("/ephem/:kid/:rid/:id", s.getEphem)
-
-	// PubSub
-	e.POST("/publish/:kid/:rid", s.publish)
-	e.GET("/subscribe/:kid", s.subscribe)
-
-	e.GET("/wstest", s.wsTest)
 
 	// Sigchain (aliases)
 	e.GET("/:kid", s.getSigchain)
@@ -150,8 +142,4 @@ func (s *Server) checkInternalAuth(c echo.Context) error {
 		return ErrForbidden(c, errors.Errorf("invalid auth token"))
 	}
 	return nil
-}
-
-func (s *Server) urlWithBase(c echo.Context) string {
-	return s.URL + c.Request().URL.String()
 }

@@ -17,10 +17,10 @@ import (
 const msgChanges = "msg-changes"
 
 func (s *Server) postMessage(c echo.Context) error {
-	s.logger.Infof("Server POST message %s", s.urlWithBase(c))
+	s.logger.Infof("Server POST message %s", c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	kid, status, err := s.authorize(c)
+	kid, status, err := authorize(c, s.URL, s.nowFn(), s.mc)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}
@@ -101,9 +101,9 @@ func (s *Server) postMessage(c echo.Context) error {
 }
 
 func (s *Server) listMessages(c echo.Context) error {
-	s.logger.Infof("Server GET messages %s", s.urlWithBase(c))
+	s.logger.Infof("Server GET messages %s", c.Request().URL.String())
 
-	kid, status, err := s.authorize(c)
+	kid, status, err := authorize(c, s.URL, s.nowFn(), s.mc)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}

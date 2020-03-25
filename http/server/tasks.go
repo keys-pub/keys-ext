@@ -67,7 +67,7 @@ func (s *Server) createTaskCheck(c echo.Context) error {
 }
 
 func (s *Server) taskCheck(c echo.Context) error {
-	s.logger.Infof("Server POST check %s", s.urlWithBase(c))
+	s.logger.Infof("Server POST check %s", c.Request().URL.String())
 	ctx := c.Request().Context()
 
 	if err := s.checkInternalAuth(c); err != nil {
@@ -86,7 +86,7 @@ func (s *Server) taskCheck(c echo.Context) error {
 }
 
 func (s *Server) cronCheck(c echo.Context) error {
-	s.logger.Infof("Server POST cron check %s", s.urlWithBase(c))
+	s.logger.Infof("Server POST cron check %s", c.Request().URL.String())
 	ctx := c.Request().Context()
 
 	kids, err := s.users.Expired(ctx, time.Hour*23)

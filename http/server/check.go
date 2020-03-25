@@ -9,7 +9,7 @@ import (
 )
 
 func (s *Server) check(c echo.Context) error {
-	s.logger.Infof("Server GET check %s", s.urlWithBase(c))
+	s.logger.Infof("Server GET check %s", c.Request().URL.String())
 
 	request := c.Request()
 	ctx := request.Context()
@@ -20,7 +20,8 @@ func (s *Server) check(c echo.Context) error {
 		return ErrUnauthorized(c, errors.Errorf("missing Authorization header"))
 	}
 	now := s.nowFn()
-	authRes, err := api.CheckAuthorization(ctx, request.Method, s.urlWithBase(c), auth, s.mc, now)
+	url := s.URL + c.Request().URL.String()
+	authRes, err := api.CheckAuthorization(ctx, request.Method, url, auth, s.mc, now)
 	if err != nil {
 		return ErrForbidden(c, err)
 	}

@@ -18,7 +18,7 @@ import (
 const sigchainChanges = "sigchain-changes"
 
 func (s *Server) listSigchains(c echo.Context) error {
-	s.logger.Infof("Server GET sigchains %s", s.urlWithBase(c))
+	s.logger.Infof("Server GET sigchains %s", c.Request().URL.String())
 	ctx := c.Request().Context()
 
 	var version time.Time
@@ -119,7 +119,7 @@ func (s *Server) sigchain(c echo.Context, kid keys.ID) (*keys.Sigchain, map[stri
 }
 
 func (s *Server) getSigchain(c echo.Context) error {
-	s.logger.Infof("Server GET sigchain %s", s.urlWithBase(c))
+	s.logger.Infof("Server GET sigchain %s", c.Request().URL.String())
 
 	kid, err := keys.ParseID(c.Param("kid"))
 	if err != nil {
@@ -178,7 +178,7 @@ func (s *Server) getSigchainStatement(c echo.Context) error {
 }
 
 func (s *Server) putSigchainStatement(c echo.Context) error {
-	s.logger.Infof("Server PUT sigchain statement %s", s.urlWithBase(c))
+	s.logger.Infof("Server PUT sigchain statement %s", c.Request().URL.String())
 	ctx := c.Request().Context()
 
 	if c.Request().Body == nil {

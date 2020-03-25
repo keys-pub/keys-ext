@@ -119,7 +119,7 @@ func newEnv(t *testing.T) *env {
 
 func newTestServer(t *testing.T, env *env) *testServer {
 	mc := server.NewMemTestCache(env.clock.Now)
-	svr := server.NewServer(env.fi, mc, env.pubSub, env.users, server.NewLogger(server.ErrLevel))
+	svr := server.NewServer(env.fi, mc, env.users, server.NewLogger(server.ErrLevel))
 	tasks := server.NewTestTasks(svr)
 	svr.SetTasks(tasks)
 	svr.SetInternalAuth(keys.RandIDString())
@@ -140,7 +140,32 @@ func (s *testServer) Serve(req *http.Request) (int, http.Header, string) {
 	return rr.Code, rr.Header(), rr.Body.String()
 }
 
-func (s *testServer) Start() (close func()) {
+func newTestPubSubServer(t *testing.T, env *env) *testPubSubServer {
+	pubSub := server.NewPubSub()
+	mc := server.NewMemTestCache(env.clock.Now)
+	svr := server.NewPubSubServer(pubSub, mc, server.NewLogger(server.ErrLevel))
+	svr.SetNowFn(env.clock.Now)
+	handler := server.NewPubSubHandler(svr)
+	return &testPubSubServer{
+		Server:  svr,
+		Handler: handler,
+	}
+}
+
+type testPubSubServer struct {
+	Server  *server.PubSubServer
+	Handler http.Handler
+	// Addr if started
+	Addr string
+}
+
+func (s *testPubSubServer) Serve(req *http.Request) (int, http.Header, string) {
+	rr := httptest.NewRecorder()
+	s.Handler.ServeHTTP(rr, req)
+	return rr.Code, rr.Header(), rr.Body.String()
+}
+
+func (s *testPubSubServer) Start() (close func()) {
 	server := httptest.NewServer(s.Handler)
 	s.Addr = server.Listener.Addr().String()
 	return func() {
@@ -148,7 +173,7 @@ func (s *testServer) Start() (close func()) {
 	}
 }
 
-func (s *testServer) WebsocketDial(t *testing.T, path string, clock *clock, key *keys.EdX25519Key) *websocket.Conn {
+func (s *testPubSubServer) WebsocketDial(t *testing.T, path string, clock *clock, key *keys.EdX25519Key) *websocket.Conn {
 	var wsAddr string
 	header := http.Header{}
 

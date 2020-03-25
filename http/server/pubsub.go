@@ -1,7 +1,6 @@
 package server
 
 import (
-	"bytes"
 	"context"
 	"io/ioutil"
 	"net/http"
@@ -19,13 +18,56 @@ type PubSub interface {
 	Subscribe(ctx context.Context, name string, receiveFn func(b []byte)) error
 }
 
+type PubSubServer struct {
+	pubSub PubSub
+	mc     MemCache
+	logger Logger
+	nowFn  func() time.Time
+
+	URL string
+}
+
+func NewPubSubServer(pubSub PubSub, mc MemCache, logger Logger) *PubSubServer {
+	return &PubSubServer{
+		pubSub: pubSub,
+		mc:     mc,
+		logger: logger,
+	}
+}
+
+// SetNowFn sets clock Now function.
+func (s *PubSubServer) SetNowFn(nowFn func() time.Time) {
+	s.nowFn = nowFn
+}
+
+// NewPubSubHandler returns http.Handler for Server.
+func NewPubSubHandler(s *PubSubServer) http.Handler {
+	return newPubSubHandler(s)
+}
+
+func newPubSubHandler(s *PubSubServer) *echo.Echo {
+	e := echo.New()
+	e.HTTPErrorHandler = ErrorHandler
+	s.AddRoutes(e)
+	return e
+}
+
+// AddRoutes adds routes to an Echo instance.
+func (s *PubSubServer) AddRoutes(e *echo.Echo) {
+	// PubSub
+	e.POST("/publish/:kid/:rid", s.publish)
+	e.GET("/subscribe/:kid", s.subscribe)
+
+	e.GET("/wsecho", s.wsEcho)
+}
+
 // TODO: Whitelist publish recipients by default
 
-func (s *Server) publish(c echo.Context) error {
-	s.logger.Infof("Server POST publish %s", s.urlWithBase(c))
+func (s *PubSubServer) publish(c echo.Context) error {
+	s.logger.Infof("Server POST publish %s", c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	_, status, err := s.authorize(c)
+	_, status, err := authorize(c, s.URL, s.nowFn(), s.mc)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}
@@ -54,7 +96,7 @@ func (s *Server) publish(c echo.Context) error {
 	}
 
 	s.logger.Infof("Publish to %s", rid)
-	if err := s.ps.Publish(ctx, rid.String(), bin); err != nil {
+	if err := s.pubSub.Publish(ctx, rid.String(), bin); err != nil {
 		return internalError(c, err)
 	}
 
@@ -63,13 +105,17 @@ func (s *Server) publish(c echo.Context) error {
 }
 
 var (
-	upgrader = websocket.Upgrader{}
+	upgrader = websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
+	}
 )
 
-func (s *Server) subscribe(c echo.Context) error {
-	s.logger.Infof("Server GET subscribe %s", s.urlWithBase(c))
+func (s *PubSubServer) subscribe(c echo.Context) error {
+	s.logger.Infof("Server GET subscribe %s", c.Request().URL.String())
 
-	kid, status, err := s.authorize(c)
+	kid, status, err := authorize(c, s.URL, s.nowFn(), s.mc)
 	if err != nil {
 		s.logger.Errorf("Authorize error: %v", err)
 		return ErrResponse(c, status, err.Error())
@@ -90,7 +136,6 @@ func (s *Server) subscribe(c echo.Context) error {
 
 	s.logger.Infof("Subscribe %s", kid)
 
-	var readErr error
 	receiveFn := func(b []byte) {
 		if err := ws.WriteMessage(websocket.TextMessage, b); err != nil {
 			s.logger.Errorf("Write error: %v", err)
@@ -99,21 +144,16 @@ func (s *Server) subscribe(c echo.Context) error {
 		}
 	}
 
-	if err := s.ps.Subscribe(subCtx, kid.String(), receiveFn); err != nil {
-		s.logger.Errorf("Read error: %v", err)
-		return nil
-	}
-
-	if readErr != nil {
-		s.logger.Errorf("Read error: %v", err)
+	if err := s.pubSub.Subscribe(subCtx, kid.String(), receiveFn); err != nil {
+		s.logger.Errorf("Subscribe error: %v", err)
 		return nil
 	}
 
 	return nil
 }
 
-func (s *Server) wsTest(c echo.Context) error {
-	s.logger.Infof("Server GET wstest %s", s.urlWithBase(c))
+func (s *PubSubServer) wsEcho(c echo.Context) error {
+	s.logger.Infof("Server GET wsecho %s", c.Request().URL.String())
 
 	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
@@ -126,21 +166,21 @@ func (s *Server) wsTest(c echo.Context) error {
 	// (write error to websocket and return nil).
 
 	for {
-		_, msg, err := ws.ReadMessage()
+		typ, msg, err := ws.ReadMessage()
 		if err != nil {
-			s.logger.Errorf("Read error: %v", err)
+			// s.logger.Errorf("Read error: %v", err)
 			return nil
 		}
-		if bytes.Equal(msg, []byte("ping")) {
-			if err := ws.WriteMessage(websocket.TextMessage, []byte("pong")); err != nil {
+		switch typ {
+		case websocket.CloseMessage:
+			return nil
+		case websocket.TextMessage:
+			if err := ws.WriteMessage(websocket.TextMessage, msg); err != nil {
 				s.logger.Errorf("Write error: %v", err)
 				return nil
 			}
-			break
 		}
 	}
-
-	return nil
 }
 
 type pubSub struct {

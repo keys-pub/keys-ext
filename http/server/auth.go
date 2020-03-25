@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keysd/http/api"
@@ -9,14 +10,16 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *Server) authorize(c echo.Context) (keys.ID, int, error) {
+func authorize(c echo.Context, baseURL string, now time.Time, mc MemCache) (keys.ID, int, error) {
 	request := c.Request()
 	auth := request.Header.Get("Authorization")
 	if auth == "" {
 		return "", http.StatusUnauthorized, errors.Errorf("missing Authorization header")
 	}
-	now := s.nowFn()
-	authRes, err := api.CheckAuthorization(request.Context(), request.Method, s.urlWithBase(c), auth, s.mc, now)
+
+	url := baseURL + c.Request().URL.String()
+
+	authRes, err := api.CheckAuthorization(request.Context(), request.Method, url, auth, mc, now)
 	if err != nil {
 		return "", http.StatusForbidden, err
 	}
