@@ -3,9 +3,10 @@ module github.com/keys-pub/keysd/wormhole
 go 1.13
 
 require (
-	github.com/keys-pub/keys v0.0.0-20200320021630-30bfb06feb37
-	github.com/keys-pub/keysd/http/client v0.0.0-20200321032707-a15834606910
-	github.com/keys-pub/keysd/http/server v0.0.0-20200320024609-6e3fca134965
+	github.com/keys-pub/keys v0.0.0-20200324163809-892a74504eee
+	github.com/keys-pub/keysd/http/api v0.0.0-20200325225552-5f4759861952
+	github.com/keys-pub/keysd/http/client v0.0.0-20200325225859-718d0e8d2147
+	github.com/keys-pub/keysd/http/server v0.0.0-20200325225707-2b3c340b1f5c
 	github.com/pion/logging v0.2.2
 	github.com/pion/sctp v1.7.6
 	github.com/pion/transport v0.9.2 // indirect
@@ -18,4 +19,8 @@ require (
 
 // replace github.com/keys-pub/keys => ../../keys
 
+// replace github.com/keys-pub/keysd/http/api => ../http/api
+
 // replace github.com/keys-pub/keysd/http/client => ../http/client
+
+// replace github.com/keys-pub/keysd/http/server => ../http/server

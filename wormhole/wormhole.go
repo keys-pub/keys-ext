@@ -10,6 +10,7 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/noise"
+	"github.com/keys-pub/keysd/http/api"
 	httpclient "github.com/keys-pub/keysd/http/client"
 	"github.com/keys-pub/keysd/wormhole/sctp"
 	"github.com/pkg/errors"
@@ -24,16 +25,20 @@ var ErrNoiseHandshakeTimeout = errors.New("noise handshake timeout")
 // ErrClosed if we recieve closed message.
 var ErrClosed = errors.New("closed")
 
+// ErrInviteNotFound if invite code not found
+var ErrInviteNotFound = errors.New("invite code not found")
+
 // Wormhole for connecting two participants using webrtc, noise and
 // keys.pub.
 type Wormhole struct {
 	sync.Mutex
 	rtc   *sctp.Client
 	hcl   *httpclient.Client
+	ks    *keys.Keystore
 	noise *noise.Noise
 
-	sender    *keys.EdX25519Key
-	recipient *keys.EdX25519PublicKey
+	sender    keys.ID
+	recipient keys.ID
 
 	buf []byte
 
@@ -64,6 +69,7 @@ func NewWormhole(server string, ks *keys.Keystore) (*Wormhole, error) {
 	w := &Wormhole{
 		rtc:       rtc,
 		hcl:       hcl,
+		ks:        ks,
 		buf:       make([]byte, maxSize),
 		onConnect: func() {},
 		onClose:   func() {},
@@ -103,7 +109,96 @@ func (w *Wormhole) OnClose(f func()) {
 	w.onClose = f
 }
 
-func (w *Wormhole) Start(ctx context.Context, sender *keys.EdX25519Key, recipient *keys.EdX25519PublicKey) error {
+func (w *Wormhole) Connect(ctx context.Context, sender keys.ID, recipient keys.ID, offer *sctp.Addr) error {
+	logger.Infof("Connect")
+	if err := w.connect(ctx, sender, recipient, offer); err != nil {
+		return err
+	}
+	return w.start(ctx, sender, recipient, true)
+}
+
+func (w *Wormhole) ListenByInvite(ctx context.Context, code string) error {
+	// TODO: Brute force here is slow
+	keys, err := w.ks.EdX25519Keys()
+	if err != nil {
+		return err
+	}
+	var invite *api.InviteResponse
+	for _, key := range keys {
+		i, err := w.hcl.GetInvite(ctx, key.ID(), code)
+		if err != nil {
+			return err
+		}
+		if i != nil {
+			invite = i
+			break
+		}
+	}
+	if invite == nil {
+		return ErrInviteNotFound
+	}
+	sender, recipient := invite.Recipient, invite.Sender
+
+	offer, err := w.FindOffer(ctx, sender, recipient)
+	if err != nil {
+		return err
+	}
+
+	return w.Listen(ctx, sender, recipient, offer)
+}
+
+func (w *Wormhole) FindOffer(ctx context.Context, sender keys.ID, recipient keys.ID) (*sctp.Addr, error) {
+	return w.readOnce(ctx, sender, recipient)
+}
+
+func (w *Wormhole) CreateOffer(ctx context.Context, sender keys.ID, recipient keys.ID) (*sctp.Addr, string, error) {
+	offer, err := w.rtc.STUN(ctx, time.Second*10)
+	if err != nil {
+		return nil, "", err
+	}
+	code, err := w.writeOffer(ctx, offer, sender, recipient)
+	if err != nil {
+		return nil, "", err
+	}
+	return offer, code, nil
+}
+
+func (w *Wormhole) connect(ctx context.Context, sender keys.ID, recipient keys.ID, offer *sctp.Addr) error {
+	logger.Infof("Wormhole connect...")
+
+	answer, err := w.readAnswer(ctx, sender, recipient)
+	if err != nil {
+		return err
+	}
+	if answer == nil {
+		return ErrNoResponse
+	}
+
+	if err := w.rtc.Connect(ctx, answer); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (w *Wormhole) Listen(ctx context.Context, sender keys.ID, recipient keys.ID, offer *sctp.Addr) error {
+	logger.Infof("Wormhole listen...")
+	answer, err := w.rtc.STUN(ctx, time.Second*10)
+	if err != nil {
+		return err
+	}
+	if err := w.writeAnswer(ctx, answer, sender, recipient); err != nil {
+		return err
+	}
+
+	if err := w.rtc.Listen(ctx, offer); err != nil {
+		return err
+	}
+
+	return w.start(ctx, sender, recipient, false)
+}
+
+func (w *Wormhole) start(ctx context.Context, sender keys.ID, recipient keys.ID, initiator bool) error {
 	w.Lock()
 	defer w.Unlock()
 
@@ -111,24 +206,25 @@ func (w *Wormhole) Start(ctx context.Context, sender *keys.EdX25519Key, recipien
 		return errors.Errorf("wormhole already started")
 	}
 
+	senderKey, err := w.ks.EdX25519Key(sender)
+	if err != nil {
+		return err
+	}
+	if senderKey == nil {
+		return keys.NewErrNotFound(sender.String())
+	}
+	recipientPublicKey, err := w.ks.EdX25519PublicKey(recipient)
+	if err != nil {
+		return err
+	}
+	if recipientPublicKey == nil {
+		return keys.NewErrNotFound(recipientPublicKey.String())
+	}
+
 	w.sender = sender
 	w.recipient = recipient
 
-	// Initiator is whichever ID is less than
-	initiator := sender.ID() < recipient.ID()
-	logger.Infof("Wormhole initator: %t", initiator)
-
-	if initiator {
-		if err := w.connect(ctx, sender.ID(), recipient.ID()); err != nil {
-			return err
-		}
-	} else {
-		if err := w.listen(ctx, sender.ID(), recipient.ID()); err != nil {
-			return err
-		}
-	}
-
-	noise, err := noise.NewNoise(sender.X25519Key(), recipient.X25519PublicKey(), initiator)
+	noise, err := noise.NewNoise(senderKey.X25519Key(), recipientPublicKey.X25519PublicKey(), initiator)
 	if err != nil {
 		return err
 	}
@@ -233,8 +329,8 @@ func (w *Wormhole) WriteMessage(ctx context.Context, id string, b []byte, conten
 
 	msg := &Message{
 		ID:        id,
-		Sender:    w.sender.ID(),
-		Recipient: w.recipient.ID(),
+		Sender:    w.sender,
+		Recipient: w.recipient,
 		Content: &Content{
 			Data: b,
 			Type: contentType,
@@ -284,8 +380,8 @@ func (w *Wormhole) ReadMessage(ctx context.Context, ack bool) (*Message, error) 
 
 	msg := &Message{
 		ID:        id,
-		Sender:    w.recipient.ID(),
-		Recipient: w.sender.ID(),
+		Sender:    w.recipient,
+		Recipient: w.sender,
 		Content: &Content{
 			Data: payload,
 			Type: contentType,
@@ -310,100 +406,68 @@ func (w *Wormhole) writeClosed(ctx context.Context) error {
 	return w.Write(ctx, []byte{closedByte, 0xAD, 0xBE, 0xEF})
 }
 
-func (w *Wormhole) connect(ctx context.Context, sender keys.ID, recipient keys.ID) error {
-	logger.Infof("Wormhole connect...")
-	offer, err := w.rtc.STUN(ctx, time.Second*10)
-	if err != nil {
-		return err
-	}
-	if err := w.writeOffer(ctx, offer, sender, recipient); err != nil {
-		return err
-	}
-
-	answer, err := w.readAnswer(ctx, sender, recipient)
-	if err != nil {
-		return err
-	}
-	if answer == nil {
-		return ErrNoResponse
-	}
-
-	if err := w.rtc.Connect(ctx, answer); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (w *Wormhole) listen(ctx context.Context, sender keys.ID, recipient keys.ID) error {
-	logger.Infof("Wormhole listen...")
-	answer, err := w.rtc.STUN(ctx, time.Second*10)
-	if err != nil {
-		return err
-	}
-	if err := w.writeAnswer(ctx, answer, sender, recipient); err != nil {
-		return err
-	}
-
-	offer, err := w.readOffer(ctx, sender, recipient)
-	if err != nil {
-		return err
-	}
-	if offer == nil {
-		return ErrNoResponse
-	}
-
-	if err := w.rtc.Listen(context.TODO(), offer); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (w *Wormhole) writeOffer(ctx context.Context, offer *sctp.Addr, sender keys.ID, recipient keys.ID) error {
-	return w.writeSession(ctx, offer, sender, recipient, "offer")
+func (w *Wormhole) writeOffer(ctx context.Context, offer *sctp.Addr, sender keys.ID, recipient keys.ID) (string, error) {
+	return w.writeSession(ctx, offer, sender, recipient, true)
 }
 
 func (w *Wormhole) readOffer(ctx context.Context, sender keys.ID, recipient keys.ID) (*sctp.Addr, error) {
-	return w.readSession(ctx, sender, recipient, "offer")
+	return w.readSession(ctx, sender, recipient)
 }
 
 func (w *Wormhole) writeAnswer(ctx context.Context, answer *sctp.Addr, sender keys.ID, recipient keys.ID) error {
-	return w.writeSession(ctx, answer, sender, recipient, "answer")
+	_, err := w.writeSession(ctx, answer, sender, recipient, false)
+	return err
 }
 
 func (w *Wormhole) readAnswer(ctx context.Context, sender keys.ID, recipient keys.ID) (*sctp.Addr, error) {
-	return w.readSession(ctx, sender, recipient, "answer")
+	return w.readSession(ctx, sender, recipient)
 }
 
-func (w *Wormhole) writeSession(ctx context.Context, addr *sctp.Addr, sender keys.ID, recipient keys.ID, id string) error {
+func (w *Wormhole) writeSession(ctx context.Context, addr *sctp.Addr, sender keys.ID, recipient keys.ID, genCode bool) (string, error) {
 	b, err := json.Marshal(addr)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return w.hcl.PutEphemeral(ctx, sender, recipient, id, b)
+	// logger.Debugf("Put ephem: %s", addr)
+	resp, err := w.hcl.PutEphemeral(ctx, sender, recipient, b, genCode)
+	if err != nil {
+		return "", err
+	}
+	return resp.Code, nil
 }
 
-func (w *Wormhole) readSession(ctx context.Context, sender keys.ID, recipient keys.ID, id string) (*sctp.Addr, error) {
+func (w *Wormhole) readSession(ctx context.Context, sender keys.ID, recipient keys.ID) (*sctp.Addr, error) {
 	for {
-		logger.Debugf("Get session (ephem/%s)...", id)
-		b, err := w.hcl.GetEphemeral(ctx, sender, recipient, id)
+		addr, err := w.readOnce(ctx, sender, recipient)
 		if err != nil {
 			return nil, err
 		}
-		if b != nil {
-			var addr sctp.Addr
-			if err := json.Unmarshal(b, &addr); err != nil {
-				return nil, err
-			}
-			return &addr, nil
+		if addr != nil {
+			return addr, nil
 		}
 
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
-		case <-time.After(time.Second):
+		case <-time.After(time.Second * 2):
 			// Continue
 		}
 	}
+}
+
+func (w *Wormhole) readOnce(ctx context.Context, sender keys.ID, recipient keys.ID) (*sctp.Addr, error) {
+	logger.Debugf("Read ephem...")
+	b, err := w.hcl.GetEphemeral(ctx, sender, recipient)
+	if err != nil {
+		return nil, err
+	}
+	if b == nil {
+		return nil, nil
+	}
+	var addr sctp.Addr
+	if err := json.Unmarshal(b, &addr); err != nil {
+		return nil, err
+	}
+	// logger.Debugf("Found addr: %s", addr)
+	return &addr, nil
 }

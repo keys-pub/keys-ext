@@ -7,6 +7,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keysd/http/server"
+	"github.com/keys-pub/keysd/wormhole"
 	"github.com/stretchr/testify/require"
 )
 
@@ -48,7 +49,7 @@ func testEnv(t *testing.T) *env {
 	req := keys.NewMockRequestor()
 	users := testUserStore(t, fi, req, clock)
 
-	svr := server.NewServer(fi, ns, users)
+	svr := server.NewServer(fi, ns, users, wormhole.NewLogger(wormhole.ErrLevel))
 	svr.SetNowFn(clock.Now)
 	tasks := server.NewTestTasks(svr)
 	svr.SetTasks(tasks)
