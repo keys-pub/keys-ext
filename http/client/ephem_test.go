@@ -45,8 +45,22 @@ func TestEphem(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, []byte("hi"), out)
 
-	// // Get (again)
-	// out, err = bobClient.GetEphemeral(context.TODO(), bob.ID(), alice.ID())
-	// require.NoError(t, err)
-	// require.Nil(t, out)
+	// Get (again)
+	out, err = bobClient.GetEphemeral(context.TODO(), bob.ID(), alice.ID())
+	require.NoError(t, err)
+	require.Nil(t, out)
+
+	// Put
+	_, err = aliceClient.PutEphemeral(context.TODO(), alice.ID(), bob.ID(), []byte("hi2"), false)
+	require.NoError(t, err)
+
+	// Delete
+	err = aliceClient.DeleteEphemeral(context.TODO(), alice.ID(), bob.ID())
+	require.NoError(t, err)
+
+	// Get
+	out, err = bobClient.GetEphemeral(context.TODO(), bob.ID(), alice.ID())
+	require.NoError(t, err)
+	require.Nil(t, out)
+
 }

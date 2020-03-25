@@ -13,6 +13,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+// TODO: Rename client methods to be more idiomatic
+
 // PutEphemeral ...
 func (c *Client) PutEphemeral(ctx context.Context, sender keys.ID, recipient keys.ID, b []byte, genCode bool) (*api.EphemResponse, error) {
 	senderKey, err := c.ks.EdX25519Key(sender)
@@ -94,4 +96,21 @@ func (c *Client) GetEphemeral(ctx context.Context, sender keys.ID, recipient key
 	}
 
 	return decrypted, nil
+}
+
+func (c *Client) DeleteEphemeral(ctx context.Context, sender keys.ID, recipient keys.ID) error {
+	senderKey, err := c.ks.EdX25519Key(sender)
+	if err != nil {
+		return err
+	}
+	if senderKey == nil {
+		return keys.NewErrNotFound(sender.String())
+	}
+
+	path := keys.Path("ephem", senderKey.ID(), recipient)
+	vals := url.Values{}
+	if _, err := c.delete(ctx, path, vals, senderKey); err != nil {
+		return err
+	}
+	return nil
 }

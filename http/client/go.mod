@@ -6,8 +6,8 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/gorilla/websocket v1.4.2
 	github.com/keys-pub/keys v0.0.0-20200324163809-892a74504eee
-	github.com/keys-pub/keysd/http/api v0.0.0-20200325225552-5f4759861952
-	github.com/keys-pub/keysd/http/server v0.0.0-20200325225707-2b3c340b1f5c
+	github.com/keys-pub/keysd/http/api v0.0.0-20200325231903-a02dcbf9955f
+	github.com/keys-pub/keysd/http/server v0.0.0-20200325232116-9802e78a9851
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.4.0
 	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553
