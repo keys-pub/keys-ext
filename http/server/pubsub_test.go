@@ -35,11 +35,9 @@ func TestPubSub(t *testing.T) {
 	wg.Add(1)
 
 	var b []byte
-	var n int
 	var readErr error
 	go func() {
-		b = make([]byte, 1024)
-		n, readErr = conn.Read(b)
+		_, b, readErr = conn.ReadMessage()
 		wg.Done()
 	}()
 
@@ -55,7 +53,7 @@ func TestPubSub(t *testing.T) {
 	// Check read
 	require.NoError(t, readErr)
 	expected := `hi`
-	require.Equal(t, expected, string(b[:n]))
+	require.Equal(t, expected, string(b))
 }
 
 func TestPubSubImpl(t *testing.T) {

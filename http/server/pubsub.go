@@ -7,10 +7,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/keys-pub/keys"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
-	"golang.org/x/net/websocket"
 )
 
 type PubSub interface {
@@ -62,6 +62,10 @@ func (s *Server) publish(c echo.Context) error {
 	return JSON(c, http.StatusOK, resp)
 }
 
+var (
+	upgrader = websocket.Upgrader{}
+)
+
 func (s *Server) subscribe(c echo.Context) error {
 	request := c.Request()
 	ctx := request.Context()
@@ -73,29 +77,34 @@ func (s *Server) subscribe(c echo.Context) error {
 		return ErrResponse(c, status, err.Error())
 	}
 
-	websocket.Handler(func(ws *websocket.Conn) {
-		defer ws.Close()
+	ctx, cancel := context.WithCancel(request.Context())
+	defer cancel()
 
-		request := ws.Request()
-		ctx, cancel := context.WithCancel(request.Context())
-		defer cancel()
+	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
+	if err != nil {
+		return err
+	}
+	defer ws.Close()
 
-		logger.Infof(ctx, "Subscribe %s", kid)
+	var readErr error
+	logger.Infof(ctx, "Subscribe %s", kid)
 
-		receiveFn := func(b []byte) {
-			if err := websocket.Message.Send(ws, b); err != nil {
-				logger.Warningf(ctx, "Failed to send message: %v", err)
-				cancel()
-				return
-			}
-		}
-
-		if err := s.ps.Subscribe(ctx, kid.String(), receiveFn); err != nil {
-			logger.Errorf(ctx, "Subscribe error: %v", err)
+	receiveFn := func(b []byte) {
+		if err := ws.WriteMessage(websocket.TextMessage, b); err != nil {
+			readErr = err
+			cancel()
 			return
 		}
+	}
 
-	}).ServeHTTP(c.Response(), c.Request())
+	if err := s.ps.Subscribe(ctx, kid.String(), receiveFn); err != nil {
+		return internalError(c, err)
+	}
+
+	if readErr != nil {
+		return readErr
+	}
+
 	return nil
 }
 

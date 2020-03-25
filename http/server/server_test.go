@@ -4,17 +4,16 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keysd/http/api"
 	"github.com/keys-pub/keysd/http/server"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/websocket"
 )
 
 type clock struct {
@@ -150,10 +149,6 @@ func (s *testServer) Start() (close func()) {
 }
 
 func (s *testServer) WebsocketDial(t *testing.T, path string, clock *clock, key *keys.EdX25519Key) *websocket.Conn {
-	t.Logf("Server addr: %s", s.Addr)
-	client, err := net.Dial("tcp", s.Addr)
-	require.NoError(t, err)
-
 	var auth *api.Auth
 	if key != nil {
 		a, err := api.NewAuth("GET", path, clock.Now(), key)
@@ -162,15 +157,13 @@ func (s *testServer) WebsocketDial(t *testing.T, path string, clock *clock, key 
 	}
 
 	wsAddr := fmt.Sprintf("ws://%s%s", s.Addr, auth.URL.String())
-	t.Logf("WS addr: %s", wsAddr)
-	config, err := websocket.NewConfig(wsAddr, "http://localhost")
-	require.NoError(t, err)
-	if auth != nil {
-		config.Header.Set("Authorization", auth.Header())
-	}
 
-	conn, err := websocket.NewClient(config, client)
+	header := http.Header{}
+	header.Set("Authorization", auth.Header())
+
+	conn, _, err := websocket.DefaultDialer.Dial(wsAddr, header)
 	require.NoError(t, err)
+
 	return conn
 }
 
