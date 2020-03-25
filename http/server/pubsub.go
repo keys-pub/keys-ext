@@ -67,27 +67,25 @@ var (
 )
 
 func (s *Server) subscribe(c echo.Context) error {
-	request := c.Request()
-	ctx := request.Context()
-
-	logger.Infof(ctx, "Server GET subscribe %s", s.urlWithBase(c))
+	c.Logger().Infof("Server GET subscribe %s", s.urlWithBase(c))
 
 	kid, status, err := s.authorize(c)
 	if err != nil {
-		logger.Errorf(ctx, "Authorize error: %v", err)
+		c.Logger().Errorf("Authorize error: %v", err)
 		return ErrResponse(c, status, err.Error())
 	}
 
-	subCtx, cancel := context.WithCancel(ctx)
+	subCtx, cancel := context.WithCancel(c.Request().Context())
 	defer cancel()
 
 	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
-		return err
+		c.Logger().Errorf("Upgrade error: %v", err)
+		return ErrBadRequest(c, err)
 	}
 	defer ws.Close()
 
-	logger.Infof(ctx, "Subscribe %s", kid)
+	c.Logger().Infof("Subscribe %s", kid)
 
 	var readErr error
 	receiveFn := func(b []byte) {
@@ -103,7 +101,8 @@ func (s *Server) subscribe(c echo.Context) error {
 	}
 
 	if readErr != nil {
-		return readErr
+		c.Logger().Errorf("Read error: %v", err)
+		return ErrBadRequest(c, readErr)
 	}
 
 	return nil
