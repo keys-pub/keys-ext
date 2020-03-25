@@ -44,6 +44,16 @@ func (s *Server) putEphem(c echo.Context) error {
 		return ErrBadRequest(c, errors.Errorf("missing body"))
 	}
 
+	expire := time.Second * 15
+	pexpire := c.QueryParam("expire")
+	if pexpire != "" {
+		expire, err = time.ParseDuration(pexpire)
+		if err != nil {
+			return ErrBadRequest(c, err)
+		}
+	}
+	// TODO: Max expire
+
 	bin, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
 		return internalError(c, err)
@@ -63,7 +73,7 @@ func (s *Server) putEphem(c echo.Context) error {
 		return internalError(c, err)
 	}
 	// TODO: Configurable expiry?
-	if err := s.mc.Expire(ctx, key, time.Hour); err != nil {
+	if err := s.mc.Expire(ctx, key, expire); err != nil {
 		return internalError(c, err)
 	}
 

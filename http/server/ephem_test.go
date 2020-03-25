@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keysd/http/api"
@@ -82,6 +83,21 @@ func TestEphem(t *testing.T) {
 	require.Equal(t, `{}`, body)
 
 	// GET (after delete)
+	req, err = api.NewRequest("GET", keys.Path("ephem", invite.Recipient, invite.Sender), nil, env.clock.Now(), charlie)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusNotFound, code)
+	require.Equal(t, `{"error":{"code":404,"message":"resource not found"}}`, body)
+
+	// PUT /ephem/:kid/:rid (expire 1s)
+	req, err = api.NewRequest("PUT", keys.Path("ephem", alice.ID(), charlie.ID())+"?expire=1ms", bytes.NewReader([]byte("hi")), env.clock.Now(), alice)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusOK, code)
+	require.Equal(t, `{}`, body)
+	time.Sleep(time.Millisecond)
+
+	// GET (after expire)
 	req, err = api.NewRequest("GET", keys.Path("ephem", invite.Recipient, invite.Sender), nil, env.clock.Now(), charlie)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
