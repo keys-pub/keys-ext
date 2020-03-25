@@ -25,14 +25,16 @@ func authorize(c echo.Context, baseURL string, now time.Time, mc MemCache) (keys
 	}
 	kidAuth := authRes.KID
 
-	kid, err := keys.ParseID(c.Param("kid"))
-	if err != nil {
-		return "", http.StatusBadRequest, err
+	if c.Param("kid") != "" {
+		kid, err := keys.ParseID(c.Param("kid"))
+		if err != nil {
+			return "", http.StatusBadRequest, err
+		}
+
+		if kid != kidAuth {
+			return "", http.StatusForbidden, errors.Errorf("invalid kid")
+		}
 	}
 
-	if kid != kidAuth {
-		return "", http.StatusForbidden, errors.Errorf("invalid kid")
-	}
-
-	return kid, 0, nil
+	return kidAuth, 0, nil
 }

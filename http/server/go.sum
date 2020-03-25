@@ -24,6 +24,8 @@ github.com/keys-pub/keys v0.0.0-20200324163809-892a74504eee/go.mod h1:k/6AQo72ji
 github.com/keys-pub/keysd v0.0.24 h1:f43MvTtJCOKkbFdO+Ikbz+glVEHV6TJ9pTLmR2cIZdE=
 github.com/keys-pub/keysd/http/api v0.0.0-20200324205758-903123ffbef9 h1:tOQtI4anuUrPJw6ZDa8oj5eJpvenWuvnWFieHzHa5rY=
 github.com/keys-pub/keysd/http/api v0.0.0-20200324205758-903123ffbef9/go.mod h1:pHF66DvsvhPLHnA1QSM/adRdq3JgAYEG532rWV269bs=
+github.com/keys-pub/keysd/http/api v0.0.0-20200325225552-5f4759861952 h1:URl1sgP3riCDP+VXk4kOAGdxGmdwvrHSeBAi3SgvSNI=
+github.com/keys-pub/keysd/http/api v0.0.0-20200325225552-5f4759861952/go.mod h1:pHF66DvsvhPLHnA1QSM/adRdq3JgAYEG532rWV269bs=
 github.com/kr/pretty v0.1.0 h1:L/CwN0zerZDmRFUapSPitk6f+Q3+0za1rQkzVuMiMFI=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=

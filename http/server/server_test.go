@@ -95,11 +95,12 @@ func testUserStore(t *testing.T, ds keys.DocumentStore, req keys.Requestor, cloc
 }
 
 type env struct {
-	clock  *clock
-	fi     server.Fire
-	pubSub server.PubSub
-	users  *keys.UserStore
-	req    *keys.MockRequestor
+	clock    *clock
+	fi       server.Fire
+	pubSub   server.PubSub
+	users    *keys.UserStore
+	req      *keys.MockRequestor
+	logLevel server.LogLevel
 }
 
 func newEnv(t *testing.T) *env {
@@ -109,17 +110,18 @@ func newEnv(t *testing.T) *env {
 	pubSub := server.NewPubSub()
 	users := testUserStore(t, fi, req, clock)
 	return &env{
-		clock:  clock,
-		fi:     fi,
-		req:    req,
-		pubSub: pubSub,
-		users:  users,
+		clock:    clock,
+		fi:       fi,
+		req:      req,
+		pubSub:   pubSub,
+		users:    users,
+		logLevel: server.ErrLevel,
 	}
 }
 
 func newTestServer(t *testing.T, env *env) *testServer {
 	mc := server.NewMemTestCache(env.clock.Now)
-	svr := server.NewServer(env.fi, mc, env.users, server.NewLogger(server.ErrLevel))
+	svr := server.NewServer(env.fi, mc, env.users, server.NewLogger(env.logLevel))
 	tasks := server.NewTestTasks(svr)
 	svr.SetTasks(tasks)
 	svr.SetInternalAuth(keys.RandIDString())

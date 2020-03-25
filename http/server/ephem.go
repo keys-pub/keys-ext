@@ -1,16 +1,24 @@
 package server
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/encoding"
+	"github.com/keys-pub/keysd/http/api"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 )
+
+type invite struct {
+	Sender    keys.ID `json:"s"`
+	Recipient keys.ID `json:"r"`
+}
 
 func (s *Server) putEphem(c echo.Context) error {
 	ctx := c.Request().Context()
@@ -30,10 +38,7 @@ func (s *Server) putEphem(c echo.Context) error {
 		return ErrBadRequest(c, err)
 	}
 
-	id := c.Param("id")
-	if id == "" {
-		return ErrBadRequest(c, errors.Errorf("no id specified"))
-	}
+	genCode := truthy(c.QueryParam("code"))
 
 	if c.Request().Body == nil {
 		return ErrBadRequest(c, errors.Errorf("missing body"))
@@ -48,26 +53,45 @@ func (s *Server) putEphem(c echo.Context) error {
 		return ErrBadRequest(c, errors.Errorf("too much data (greater than 512KiB)"))
 	}
 
-	addr, err := keys.NewAddress(kid, rid)
-	if err != nil {
-		return internalError(c, err)
-	}
-
 	enc, err := encoding.Encode(bin, encoding.Base64)
 	if err != nil {
 		return internalError(c, err)
 	}
 
-	key := fmt.Sprintf("ephem-%s-%s", addr, id)
+	key := fmt.Sprintf("ephem-%s-%s", kid, rid)
 	if err := s.mc.Set(ctx, key, enc); err != nil {
 		return internalError(c, err)
 	}
 	// TODO: Configurable expiry?
-	if err := s.mc.Expire(ctx, key, time.Minute); err != nil {
+	if err := s.mc.Expire(ctx, key, time.Hour); err != nil {
 		return internalError(c, err)
 	}
 
-	var resp struct{}
+	code := ""
+	if genCode {
+		code = keys.RandWords(3)
+		inv := invite{
+			Sender:    kid,
+			Recipient: rid,
+		}
+		ib, err := json.Marshal(inv)
+		if err != nil {
+			return internalError(c, err)
+		}
+
+		codeKey := fmt.Sprintf("code %s", code)
+		if err := s.mc.Set(ctx, codeKey, string(ib)); err != nil {
+			return internalError(c, err)
+		}
+		// TODO: Configurable expiry?
+		if err := s.mc.Expire(ctx, codeKey, time.Hour); err != nil {
+			return internalError(c, err)
+		}
+	}
+
+	resp := api.EphemResponse{
+		Code: code,
+	}
 	return JSON(c, http.StatusOK, resp)
 }
 
@@ -89,17 +113,7 @@ func (s *Server) getEphem(c echo.Context) error {
 		return ErrBadRequest(c, err)
 	}
 
-	id := c.Param("id")
-	if id == "" {
-		return ErrBadRequest(c, errors.Errorf("no id specified"))
-	}
-
-	addr, err := keys.NewAddress(kid, rid)
-	if err != nil {
-		return internalError(c, err)
-	}
-
-	key := fmt.Sprintf("ephem-%s-%s", addr, id)
+	key := fmt.Sprintf("ephem-%s-%s", rid, kid)
 	out, err := s.mc.Get(ctx, key)
 	if err != nil {
 		return internalError(c, err)
@@ -107,13 +121,66 @@ func (s *Server) getEphem(c echo.Context) error {
 	if out == "" {
 		return ErrNotFound(c, nil)
 	}
-	if err := s.mc.Expire(ctx, key, time.Duration(0)); err != nil {
-		return internalError(c, err)
-	}
+	// TODO: Expire immediately?
+	// if err := s.mc.Expire(ctx, key, time.Duration(0)); err != nil {
+	// 	return internalError(c, err)
+	// }
 
 	b, err := encoding.Decode(out, encoding.Base64)
 	if err != nil {
 		return internalError(c, err)
 	}
 	return c.Blob(http.StatusOK, echo.MIMEOctetStream, b)
+}
+
+func (s *Server) getInvite(c echo.Context) error {
+	s.logger.Infof("Server GET invite %s", c.Request().URL.String())
+	ctx := c.Request().Context()
+
+	s.logger.Debugf("Auth")
+	kid, status, err := authorize(c, s.URL, s.nowFn(), s.mc)
+	if err != nil {
+		return ErrResponse(c, status, err.Error())
+	}
+
+	key := fmt.Sprintf("code %s", c.QueryParam("code"))
+	s.logger.Debugf("Get code: %s", key)
+	out, err := s.mc.Get(ctx, key)
+	if err != nil {
+		return internalError(c, err)
+	}
+	if out == "" {
+		return ErrNotFound(c, errors.Errorf("code not found"))
+	}
+	var inv invite
+	if err := json.Unmarshal([]byte(out), &inv); err != nil {
+		return internalError(c, err)
+	}
+	// This can happen if client has many keys and is brute forcing to find
+	// which one to use.
+	if inv.Recipient != kid {
+		// s.logger.Errorf("Recipient mistmatch: %s != %s", inv.Recipient, kid)
+		return ErrNotFound(c, errors.Errorf("code not found"))
+	}
+	// TODO: Expire immediately?
+	// if err := s.mc.Expire(ctx, key, time.Duration(0)); err != nil {
+	// 	return internalError(c, err)
+	// }
+
+	resp := api.InviteResponse{
+		Sender:    inv.Sender,
+		Recipient: inv.Recipient,
+	}
+
+	return JSON(c, http.StatusOK, resp)
+}
+
+func truthy(s string) bool {
+	s = strings.TrimSpace(s)
+	switch s {
+	case "", "0", "f", "false", "n", "no":
+		return false
+	default:
+		return true
+	}
 }

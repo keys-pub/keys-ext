@@ -100,8 +100,9 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	e.GET("/messages/:kid/:rid", s.listMessages)
 
 	// Ephemeral
-	e.PUT("/ephem/:kid/:rid/:id", s.putEphem)
-	e.GET("/ephem/:kid/:rid/:id", s.getEphem)
+	e.PUT("/ephem/:kid/:rid", s.putEphem)
+	e.GET("/ephem/:kid/:rid", s.getEphem)
+	e.GET("/invite", s.getInvite)
 
 	// Sigchain (aliases)
 	e.GET("/:kid", s.getSigchain)
