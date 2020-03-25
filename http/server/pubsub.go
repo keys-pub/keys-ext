@@ -74,10 +74,11 @@ func (s *Server) subscribe(c echo.Context) error {
 
 	kid, status, err := s.authorize(c)
 	if err != nil {
+		logger.Errorf(ctx, "Authorize error: %v", err)
 		return ErrResponse(c, status, err.Error())
 	}
 
-	ctx, cancel := context.WithCancel(request.Context())
+	subCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
@@ -86,9 +87,9 @@ func (s *Server) subscribe(c echo.Context) error {
 	}
 	defer ws.Close()
 
-	var readErr error
 	logger.Infof(ctx, "Subscribe %s", kid)
 
+	var readErr error
 	receiveFn := func(b []byte) {
 		if err := ws.WriteMessage(websocket.TextMessage, b); err != nil {
 			readErr = err
@@ -97,7 +98,7 @@ func (s *Server) subscribe(c echo.Context) error {
 		}
 	}
 
-	if err := s.ps.Subscribe(ctx, kid.String(), receiveFn); err != nil {
+	if err := s.ps.Subscribe(subCtx, kid.String(), receiveFn); err != nil {
 		return internalError(c, err)
 	}
 
