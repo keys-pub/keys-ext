@@ -16,6 +16,7 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keysd/http/api"
 	"github.com/pkg/errors"
+	"golang.org/x/net/websocket"
 )
 
 // Client ...
@@ -105,15 +106,23 @@ func checkResponse(resp *http.Response) error {
 	return err
 }
 
-func (c *Client) req(ctx context.Context, method string, path string, params url.Values, key *keys.EdX25519Key, body io.Reader) (*http.Response, error) {
+func (c *Client) urlFor(path string, params url.Values) (string, error) {
 	if strings.HasPrefix(path, "http://") || strings.HasPrefix(path, "https://") {
-		return nil, errors.Errorf("req accepts a path, not an url")
+		return "", errors.Errorf("req accepts a path, not an url")
 	}
 
 	urs := c.url.String() + path
 	query := params.Encode()
 	if query != "" {
 		urs = urs + "?" + query
+	}
+	return urs, nil
+}
+
+func (c *Client) req(ctx context.Context, method string, path string, params url.Values, key *keys.EdX25519Key, body io.Reader) (*http.Response, error) {
+	urs, err := c.urlFor(path, params)
+	if err != nil {
+		return nil, err
 	}
 
 	logger.Debugf("Client req %s %s", method, urs)
@@ -193,6 +202,38 @@ func (c *Client) get(ctx context.Context, path string, params url.Values, key *k
 		return nil, err
 	}
 	return resp, nil
+}
+
+func (c *Client) websocketGet(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key) (*websocket.Conn, error) {
+	url := c.url.String() + path
+	query := params.Encode()
+	if query != "" {
+		url = url + "?" + query
+	}
+
+	auth, err := api.NewAuth("GET", url, c.nowFn(), key)
+	if err != nil {
+		return nil, err
+	}
+
+	switch c.url.Scheme {
+	case "http":
+		auth.URL.Scheme = "ws"
+	case "https":
+		auth.URL.Scheme = "wss"
+	}
+
+	config, err := websocket.NewConfig(auth.URL.String(), c.url.String())
+	if err != nil {
+		return nil, err
+	}
+	config.Header.Set("Authorization", auth.Header())
+
+	conn, err := websocket.DialConfig(config)
+	if err != nil {
+		return nil, err
+	}
+	return conn, nil
 }
 
 func (c *Client) put(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key, reader io.Reader) (*http.Response, error) {

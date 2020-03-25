@@ -36,6 +36,7 @@ type env struct {
 	srv        *server.Server
 	dst        keys.DocumentStore
 	users      *keys.UserStore
+	pubSub     server.PubSub
 	req        *keys.MockRequestor
 	closeFn    func()
 }
@@ -47,8 +48,9 @@ func testEnv(t *testing.T) *env {
 	ns := server.NewMemTestCache(clock.Now)
 	req := keys.NewMockRequestor()
 	users := testUserStore(t, fi, req, clock)
+	pubSub := server.NewPubSub()
 
-	svr := server.NewServer(fi, ns, users)
+	svr := server.NewServer(fi, ns, pubSub, users)
 	svr.SetNowFn(clock.Now)
 	tasks := server.NewTestTasks(svr)
 	svr.SetTasks(tasks)
@@ -60,7 +62,7 @@ func testEnv(t *testing.T) *env {
 	httpServer := httptest.NewServer(handler)
 	svr.URL = httpServer.URL
 
-	return &env{clock, httpServer, svr, fi, users, req, func() { httpServer.Close() }}
+	return &env{clock, httpServer, svr, fi, users, pubSub, req, func() { httpServer.Close() }}
 }
 
 func testClient(t *testing.T, env *env, ks *keys.Keystore) *Client {
