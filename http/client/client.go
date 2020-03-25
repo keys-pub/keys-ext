@@ -13,10 +13,10 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/gorilla/websocket"
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keysd/http/api"
 	"github.com/pkg/errors"
-	"golang.org/x/net/websocket"
 )
 
 // Client ...
@@ -223,16 +223,15 @@ func (c *Client) websocketGet(ctx context.Context, path string, params url.Value
 		auth.URL.Scheme = "wss"
 	}
 
-	config, err := websocket.NewConfig(auth.URL.String(), c.url.String())
-	if err != nil {
-		return nil, err
-	}
-	config.Header.Set("Authorization", auth.Header())
+	header := http.Header{}
+	header.Set("Authorization", auth.Header())
 
-	conn, err := websocket.DialConfig(config)
+	logger.Debugf("Websocket dial %s", auth.URL.String())
+	conn, _, err := websocket.DefaultDialer.Dial(auth.URL.String(), header)
 	if err != nil {
 		return nil, err
 	}
+
 	return conn, nil
 }
 

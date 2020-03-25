@@ -14,7 +14,7 @@ func TestMessages(t *testing.T) {
 	// api.SetLogger(NewLogger(DebugLevel))
 	// server.SetContextLogger(NewContextLogger(DebugLevel))
 
-	env := testEnv(t)
+	env := testEnv(t, logger)
 	defer env.closeFn()
 
 	ksa := keys.NewMemKeystore()

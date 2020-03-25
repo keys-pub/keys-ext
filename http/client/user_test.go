@@ -43,7 +43,7 @@ func saveUser(t *testing.T, env *env, client *Client, key *keys.EdX25519Key, nam
 func TestUserSearch(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
 	// keys.SetLogger(keys.NewLogger(keys.DebugLevel))
-	env := testEnv(t)
+	env := testEnv(t, logger)
 	defer env.closeFn()
 
 	ks := keys.NewMemKeystore()
@@ -79,7 +79,7 @@ func TestUserSearch(t *testing.T) {
 func TestUser(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
 	// keys.SetLogger(keys.NewLogger(keys.DebugLevel))
-	env := testEnv(t)
+	env := testEnv(t, logger)
 	defer env.closeFn()
 
 	ks := keys.NewMemKeystore()

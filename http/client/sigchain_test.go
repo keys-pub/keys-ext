@@ -10,7 +10,7 @@ import (
 )
 
 func TestSigchain(t *testing.T) {
-	env := testEnv(t)
+	env := testEnv(t, logger)
 	defer env.closeFn()
 
 	ks := keys.NewMemKeystore()

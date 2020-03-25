@@ -10,7 +10,7 @@ import (
 )
 
 func TestCheck(t *testing.T) {
-	env := testEnv(t)
+	env := testEnv(t, logger)
 	defer env.closeFn()
 	ks := keys.NewMemKeystore()
 	client := testClient(t, env, ks)
