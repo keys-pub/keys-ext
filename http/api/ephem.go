@@ -4,7 +4,7 @@ import "github.com/keys-pub/keys"
 
 // EphemResponse ...
 type EphemResponse struct {
-	Code string `json:"code"`
+	Code string `json:"code,omitempty"`
 }
 
 // InviteResponse ...
