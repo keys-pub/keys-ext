@@ -101,6 +101,7 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 
 	// Ephemeral
 	e.PUT("/ephem/:kid/:rid", s.putEphem)
+	e.DELETE("/ephem/:kid/:rid", s.deleteEphem)
 	e.GET("/ephem/:kid/:rid", s.getEphem)
 	e.GET("/invite", s.getInvite)
 

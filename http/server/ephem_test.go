@@ -52,4 +52,39 @@ func TestEphem(t *testing.T) {
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, "hi", body)
+
+	// GET again
+	req, err = api.NewRequest("GET", keys.Path("ephem", invite.Recipient, invite.Sender), nil, env.clock.Now(), charlie)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusNotFound, code)
+	require.Equal(t, `{"error":{"code":404,"message":"resource not found"}}`, body)
+
+	// PUT /ephem/:kid/:rid (alice to charlie)
+	req, err = api.NewRequest("PUT", keys.Path("ephem", alice.ID(), charlie.ID()), bytes.NewReader([]byte("hi")), env.clock.Now(), alice)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusOK, code)
+	require.Equal(t, `{}`, body)
+
+	// DEL (invalid auth)
+	req, err = api.NewRequest("DELETE", keys.Path("ephem", alice.ID(), charlie.ID()), nil, env.clock.Now(), charlie)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusForbidden, code)
+	require.Equal(t, `{"error":{"code":403,"message":"invalid kid"}}`, body)
+
+	// DEL /ephem/:kid/:rid
+	req, err = api.NewRequest("DELETE", keys.Path("ephem", alice.ID(), charlie.ID()), nil, env.clock.Now(), alice)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusOK, code)
+	require.Equal(t, `{}`, body)
+
+	// GET (after delete)
+	req, err = api.NewRequest("GET", keys.Path("ephem", invite.Recipient, invite.Sender), nil, env.clock.Now(), charlie)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusNotFound, code)
+	require.Equal(t, `{"error":{"code":404,"message":"resource not found"}}`, body)
 }

@@ -6,7 +6,7 @@ require (
 	github.com/danieljoos/wincred v1.0.3-0.20190627210546-1fd2f0dfbd6a // indirect
 	github.com/gorilla/websocket v1.4.2
 	github.com/keys-pub/keys v0.0.0-20200324163809-892a74504eee
-	github.com/keys-pub/keysd/http/api v0.0.0-20200325225552-5f4759861952
+	github.com/keys-pub/keysd/http/api v0.0.0-20200325231903-a02dcbf9955f
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/labstack/echo/v4 v4.1.11
 	github.com/mattn/go-colorable v0.1.4 // indirect
@@ -23,4 +23,4 @@ require (
 
 // replace github.com/keys-pub/keys => ../../../keys
 
-// replace github.com/keys-pub/keysd/http/api => ../api
+replace github.com/keys-pub/keysd/http/api => ../api

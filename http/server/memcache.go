@@ -16,6 +16,8 @@ type MemCache interface {
 	Get(ctx context.Context, k string) (string, error)
 	// Put puts a value at key.
 	Set(ctx context.Context, k string, v string) error
+	// Delete key.
+	Delete(ctx context.Context, k string) error
 	// Expire key.
 	Expire(ctx context.Context, k string, dt time.Duration) error
 	// Increment value at key.
@@ -86,6 +88,11 @@ func (m *memCache) Expire(ctx context.Context, k string, dt time.Duration) error
 	}
 	e.Expire = t
 	return m.set(ctx, k, e)
+}
+
+func (m *memCache) Delete(ctx context.Context, k string) error {
+	delete(m.kv, keys.Path("memcache", k))
+	return nil
 }
 
 func (m *memCache) Set(ctx context.Context, k string, v string) error {
