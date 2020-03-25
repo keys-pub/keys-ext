@@ -22,6 +22,12 @@ func authCommands(client *Client) []cli.Command {
 			},
 			Aliases: []string{"unlock"},
 			Action: func(c *cli.Context) error {
+				if !c.GlobalBool("test") {
+					if err := checkForAppConflict(); err != nil {
+						logger.Warningf("%s", err)
+					}
+				}
+
 				status, err := client.ProtoClient().RuntimeStatus(context.TODO(), &RuntimeStatusRequest{})
 				if err != nil {
 					return err

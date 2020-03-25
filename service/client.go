@@ -208,12 +208,6 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 			return err
 		}
 
-		if !c.GlobalBool("test") {
-			if err := checkForAppConflict(); err != nil {
-				logger.Warningf("%s", err)
-			}
-		}
-
 		command := c.Args().Get(0)
 		logger.Debugf("Command: %s", command)
 
