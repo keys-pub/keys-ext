@@ -78,7 +78,7 @@ func (c *Client) handshake(ctx context.Context, addr *Addr, initiator bool, time
 	case <-ctx.Done():
 		return ctx.Err()
 	case <-time.After(timeout):
-		return errors.Errorf("sctp handshake timed out")
+		return errors.Errorf("sctp handshake timed out (%s)", timeout)
 	}
 
 	if writeErr != nil {
