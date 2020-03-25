@@ -56,13 +56,8 @@ func sigchainCommands(client *Client) []cli.Command {
 							return err
 						}
 
-						spk, err := keys.SigchainPublicKeyFromID(kid)
-						if err != nil {
-							return err
-						}
-
 						logger.Infof("Resolving statements")
-						sc, err := sigchainFromRPC(resp.Key.ID, resp.Statements, spk)
+						sc, err := sigchainFromRPC(kid, resp.Statements)
 						if err != nil {
 							return err
 						}

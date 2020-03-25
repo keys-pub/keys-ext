@@ -85,7 +85,6 @@ service Keys {
   rpc DocumentDelete(DocumentDeleteRequest) returns (DocumentDeleteResponse) {}
 
   // Experimental
-  rpc Inbox(InboxRequest) returns (InboxResponse) {}
   rpc MessagePrepare(MessagePrepareRequest) returns (MessagePrepareResponse) {}
   rpc MessageCreate(MessageCreateRequest) returns (MessageCreateResponse) {}
   rpc Messages(MessagesRequest) returns (MessagesResponse) {}
@@ -683,10 +682,13 @@ message ConfigSetRequest {
 }
 message ConfigSetResponse {}
 
-message WormholeInput {
+message WormholeInput {  
   string sender = 1;
   string recipient = 2;
-  bytes data = 3;
+    
+  string id = 10 [(gogoproto.customname) = "ID"];
+  bytes data = 11;
+  ContentType type = 12;
 }
 
 enum WormholeStatus {
@@ -699,40 +701,44 @@ enum WormholeStatus {
 }
 
 message WormholeOutput {
-  WormholeStatus status = 1;
-  
-  // Data from the recipient
-  bytes data = 3; 
+  Message message = 1;
+  WormholeStatus status = 2;
 }
 
-message Inbox {
-  string kid = 1 [(gogoproto.customname) = "KID"];
-  string name = 2;
-  int64 createdAt = 3;
-  int32 messageCount = 4;
-  string snippet = 5;
-  string error = 10;
+enum ContentType {
+  option (gogoproto.goproto_enum_prefix) = false;
+  option (gogoproto.enum_customname) = "ContentType";
+
+  BINARY_CONTENT = 0 [(gogoproto.enumvalue_customname) = "BinaryContent"];
+  UTF8_CONTENT = 1 [(gogoproto.enumvalue_customname) = "UTF8Content"];
 }
-message InboxRequest {}
-message InboxResponse {
-  repeated Inbox inboxes = 1;
+
+enum MessageType {
+  option (gogoproto.goproto_enum_prefix) = false;
+  option (gogoproto.enum_customname) = "MessageType";
+
+  MESSAGE_SENT = 0 [(gogoproto.enumvalue_customname) = "MessageSent"];
+  MESSAGE_PENDING = 1 [(gogoproto.enumvalue_customname) = "MessagePending"];
+  MESSAGE_ACK = 2 [(gogoproto.enumvalue_customname) = "MessageAck"];
 }
 
 message Message {
   string id = 1 [(gogoproto.customname) = "ID"];
-  string sender = 2;
-  MessageContent content = 10;
+  
+  Key sender = 2;
+  Key recipient = 3;
+  MessageType type = 5;
+  Content content = 10;
     
-  User user = 20;
   int64 createdAt = 21;
 
   string timeDisplay = 31;
   string dateDisplay = 32;  
-  string path = 33;
 }
 
-message MessageContent {
-  string text = 1;
+message Content {
+  bytes data = 1;
+  ContentType type = 2;
 }
 
 message MessagePrepareRequest {  

@@ -65,11 +65,6 @@ func (s *service) Messages(ctx context.Context, req *MessagesRequest) (*Messages
 	}, nil
 }
 
-// Inbox (RPC)
-func (s *service) Inbox(ctx context.Context, req *InboxRequest) (*InboxResponse, error) {
-	return nil, errors.Errorf("not implemented")
-}
-
 // messagePrepare returns a Message for an in progress display. The client
 // should then use messageCreate to save the message. This needs to be fast, so
 // the client can show the a pending message right away. Preparing before create
@@ -91,12 +86,15 @@ func (s *service) messagePrepare(ctx context.Context, sender string, recipient s
 	}
 
 	message := &Message{
-		Content: &MessageContent{
-			Text: text,
+		Content: &Content{
+			Data: []byte(text),
+			Type: UTF8Content,
 		},
 	}
 
-	s.fillMessage(ctx, message, time.Now(), key.ID(), "")
+	if err := s.fillMessage(ctx, message, time.Now(), key.ID()); err != nil {
+		return nil, err
+	}
 	return message, nil
 }
 
@@ -116,8 +114,9 @@ func (s *service) messageCreate(ctx context.Context, sender string, recipient st
 	}
 
 	message := &Message{
-		Content: &MessageContent{
-			Text: text,
+		Content: &Content{
+			Data: []byte(text),
+			Type: UTF8Content,
 		},
 	}
 	b, err := json.Marshal(message)
@@ -130,6 +129,7 @@ func (s *service) messageCreate(ctx context.Context, sender string, recipient st
 		return nil, err
 	}
 
+	// TODO: Generate ID on client
 	message.ID = sent.ID
 
 	// TODO: Sync to local
@@ -137,18 +137,17 @@ func (s *service) messageCreate(ctx context.Context, sender string, recipient st
 	return message, nil
 }
 
-func (s *service) fillMessage(ctx context.Context, message *Message, t time.Time, sender keys.ID, path string) {
-	result, err := s.users.Get(ctx, sender)
+func (s *service) fillMessage(ctx context.Context, message *Message, t time.Time, sender keys.ID) error {
+	key, err := s.keyIDToRPC(ctx, sender)
 	if err != nil {
-		logger.Errorf("Failed to load sigchain: %s", err)
+		return err
 	}
 
-	message.User = userResultToRPC(result)
-	message.Sender = sender.String()
+	message.Sender = key
 	message.CreatedAt = int64(keys.TimeToMillis(t))
 	message.TimeDisplay = timeDisplay(t)
 	message.DateDisplay = dateDisplay(t)
-	message.Path = path
+	return nil
 }
 
 func (s *service) message(ctx context.Context, path string) (*Message, error) {
@@ -175,7 +174,9 @@ func (s *service) message(ctx context.Context, path string) (*Message, error) {
 	if sender != nil {
 		kid = sender.ID()
 	}
-	s.fillMessage(ctx, &message, createdAt, kid, path)
+	if err := s.fillMessage(ctx, &message, createdAt, kid); err != nil {
+		return nil, err
+	}
 	return &message, nil
 }
 

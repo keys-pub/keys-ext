@@ -32,7 +32,7 @@ func TestSigchain(t *testing.T) {
 	require.Equal(t, alice.ID().String(), resp.Key.ID)
 	require.Equal(t, 1, len(resp.Statements))
 
-	rsc, err := sigchainFromRPC(resp.Key.ID, resp.Statements, alice.PublicKey())
+	rsc, err := sigchainFromRPC(alice.ID(), resp.Statements)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(rsc.Statements()))
 }

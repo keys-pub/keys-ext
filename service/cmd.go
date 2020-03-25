@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"text/tabwriter"
+	"unicode/utf8"
 
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
@@ -109,6 +110,35 @@ func fmtItem(w io.Writer, item *Item) {
 		return
 	}
 	fmt.Fprintf(w, "%s\t%s\n", item.ID, item.Type)
+}
+
+func fmtContent(w io.Writer, content *Content) {
+	switch content.Type {
+	case UTF8Content:
+		if utf8.Valid(content.Data) {
+			fmt.Fprintf(w, "%s", string(content.Data))
+		} else {
+			fmt.Fprintf(w, "[invalid utf8]")
+		}
+	default:
+		fmt.Fprintf(w, "[bytes len(%d)]", len(content.Data))
+	}
+}
+
+func identityForKey(k *Key) string {
+	if k.User != nil {
+		return k.User.ID
+	}
+	return k.ID
+}
+
+func fmtMessage(w io.Writer, msg *Message) {
+	if msg == nil || msg.Content == nil || len(msg.Content.Data) == 0 {
+		return
+	}
+	fmt.Fprintf(w, "%s: ", identityForKey(msg.Sender))
+	fmtContent(w, msg.Content)
+	fmt.Fprintf(w, "\n")
 }
 
 func argString(c *cli.Context, name string, optional bool) (string, error) {

@@ -1,7 +1,9 @@
 package service
 
 import (
+	"context"
 	"io"
+	"time"
 
 	"github.com/keys-pub/keysd/wormhole"
 	"github.com/pkg/errors"
@@ -11,18 +13,19 @@ import (
 func (s *service) Wormhole(srv Keys_WormholeServer) error {
 	// TODO: EOF's if auth token is stale, need better error
 
-	wormhole, err := wormhole.NewWormhole(s.cfg.Server(), s.ks)
+	wh, err := wormhole.NewWormhole(s.cfg.Server(), s.ks)
 	if err != nil {
 		return err
 	}
-	defer wormhole.Close()
+	defer wh.Close()
 
-	ctx := srv.Context()
+	ctx, cancel := context.WithCancel(srv.Context())
+	defer cancel()
 
 	init := false
 	var status WormholeStatus
 
-	wormhole.OnConnect(func() {
+	wh.OnConnect(func() {
 		status = WormholeStatusOpen
 		if err := srv.Send(&WormholeOutput{
 			Status: status,
@@ -30,7 +33,7 @@ func (s *service) Wormhole(srv Keys_WormholeServer) error {
 			logger.Errorf("Failed to send wormhole open status: %v", err)
 		}
 	})
-	wormhole.OnClose(func() {
+	wh.OnClose(func() {
 		status = WormholeStatusClosed
 		if err := srv.Send(&WormholeOutput{
 			Status: status,
@@ -40,7 +43,7 @@ func (s *service) Wormhole(srv Keys_WormholeServer) error {
 	})
 
 	var readErr error
-	var relayErr error
+	var startErr error
 	for {
 		select {
 		case <-ctx.Done():
@@ -73,42 +76,108 @@ func (s *service) Wormhole(srv Keys_WormholeServer) error {
 				return err
 			}
 
-			init = true
-			if err := wormhole.Start(ctx, sender, recipient); err != nil {
-				return err
+			if req.ID != "" || len(req.Data) != 0 {
+				return errors.Errorf("first request should only be sender/recipient")
 			}
 
-			// Read and send output to client
+			init = true
+
 			go func() {
-				for {
-					b, err := wormhole.Read(ctx)
-					if err != nil {
-						readErr = err
-						break
-					}
-					if err := srv.Send(&WormholeOutput{
-						Data:   b,
-						Status: status,
-					}); err != nil {
-						relayErr = err
-						break
-					}
+				if err := wh.Start(ctx, sender, recipient); err != nil {
+					startErr = err
+					return
 				}
+
+				// Read and send output to client
+				go func() {
+					for {
+						msg, err := wh.ReadMessage(ctx, true)
+						if err != nil {
+							readErr = err
+							return
+						}
+
+						out, err := s.messageToRPC(ctx, msg)
+						if err != nil {
+							readErr = err
+							return
+						}
+
+						if err := srv.Send(&WormholeOutput{
+							Message: out,
+							Status:  status,
+						}); err != nil {
+							readErr = err
+							return
+						}
+					}
+				}()
 			}()
+			continue
 		}
 		// TODO: Ensure req.Sender and req.Recipient aren't changed on subsequent requests?
 
 		if readErr != nil {
 			return readErr
 		}
-		if relayErr != nil {
-			return relayErr
+		if startErr != nil {
+			return startErr
 		}
-
-		if err := wormhole.Send(ctx, req.Data); err != nil {
-			return err
+		if req.ID != "" {
+			_, err := wh.WriteMessage(ctx, req.ID, req.Data, contentTypeFromRPC(req.Type))
+			if err != nil {
+				return err
+			}
 		}
 	}
 
 	return nil
+}
+
+func contentTypeFromRPC(typ ContentType) wormhole.ContentType {
+	switch typ {
+	case UTF8Content:
+		return wormhole.UTF8Content
+	default:
+		return wormhole.BinaryContent
+	}
+}
+
+func messageTypeToRPC(typ wormhole.MessageType) MessageType {
+	switch typ {
+	case wormhole.Sent:
+		return MessageSent
+	case wormhole.Pending:
+		return MessagePending
+	case wormhole.Ack:
+		return MessageAck
+	default:
+		// TODO:
+		return MessageSent
+	}
+}
+
+func contentTypeToRPC(typ wormhole.ContentType) ContentType {
+	switch typ {
+	case wormhole.UTF8Content:
+		return UTF8Content
+	default:
+		return BinaryContent
+	}
+}
+
+func (s *service) messageToRPC(ctx context.Context, msg *wormhole.Message) (*Message, error) {
+	out := &Message{
+		ID: msg.ID,
+		Content: &Content{
+			Data: msg.Content.Data,
+			Type: contentTypeToRPC(msg.Content.Type),
+		},
+		Type: messageTypeToRPC(msg.Type),
+	}
+
+	if err := s.fillMessage(ctx, out, time.Time{}, msg.Sender); err != nil {
+		return nil, err
+	}
+	return out, nil
 }

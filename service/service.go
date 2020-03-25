@@ -114,6 +114,7 @@ func (s *service) close() {
 
 func (s *service) check(ctx context.Context) {
 	logger.Infof("Checking for expired users...")
+	// TODO: This checks keys that no longer exist in keyring (after they were deleted)
 	ids, err := s.users.Expired(ctx, time.Hour*24)
 	if err != nil {
 		logger.Warningf("Failed to get expired users: %v", err)

@@ -84,11 +84,12 @@ func TestMessages(t *testing.T) {
 	// require.NoError(t, err)
 	// t.Logf("cols: %+v", paths)
 
-	require.Equal(t, "am1", messagesResp2.Messages[0].Content.Text)
-	require.NotNil(t, messagesResp2.Messages[0].User)
-	require.Equal(t, "alice", messagesResp2.Messages[0].User.Name)
-	require.Equal(t, "am2", messagesResp2.Messages[1].Content.Text)
-	require.Equal(t, "bm1", messagesResp2.Messages[2].Content.Text)
+	require.Equal(t, "am1", string(messagesResp2.Messages[0].Content.Data))
+	require.NotNil(t, messagesResp2.Messages[0].Sender)
+	require.NotNil(t, messagesResp2.Messages[0].Sender.User)
+	require.Equal(t, "alice", messagesResp2.Messages[0].Sender.User.Name)
+	require.Equal(t, "am2", string(messagesResp2.Messages[1].Content.Data))
+	require.Equal(t, "bm1", string(messagesResp2.Messages[2].Content.Data))
 
 	_, err = bobService.Pull(ctx, &PullRequest{Identity: alice.ID().String()})
 	require.NoError(t, err)
@@ -101,9 +102,10 @@ func TestMessages(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 3, len(messagesResp3.Messages))
 
-	require.Equal(t, "am1", messagesResp3.Messages[0].Content.Text)
-	require.NotNil(t, messagesResp3.Messages[0].User)
-	require.Equal(t, "alice", messagesResp3.Messages[0].User.Name)
-	require.Equal(t, "am2", messagesResp3.Messages[1].Content.Text)
-	require.Equal(t, "bm1", messagesResp3.Messages[2].Content.Text)
+	require.Equal(t, "am1", string(messagesResp3.Messages[0].Content.Data))
+	require.NotNil(t, messagesResp3.Messages[0].Sender)
+	require.NotNil(t, messagesResp3.Messages[0].Sender.User)
+	require.Equal(t, "alice", messagesResp3.Messages[0].Sender.User.Name)
+	require.Equal(t, "am2", string(messagesResp3.Messages[1].Content.Data))
+	require.Equal(t, "bm1", string(messagesResp3.Messages[2].Content.Data))
 }

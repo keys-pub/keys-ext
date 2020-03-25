@@ -8,6 +8,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/keys-pub/keysd/wormhole"
 	"github.com/urfave/cli"
 )
 
@@ -62,13 +63,11 @@ func wormholeCommands(client *Client) []cli.Command {
 							open = true
 						}
 
-						if len(resp.Data) != 0 {
-							fmt.Printf("%s\n", string(resp.Data))
-						}
+						fmtMessage(os.Stdout, resp.Message)
 
 						if resp.Status == WormholeStatusClosed {
 							fmt.Printf("Wormhole closed.\n")
-							return
+							os.Exit(0)
 						}
 					}
 				}()
@@ -84,8 +83,11 @@ func wormholeCommands(client *Client) []cli.Command {
 				scanner := bufio.NewScanner(os.Stdin)
 				for scanner.Scan() {
 					text := scanner.Text()
+					id := wormhole.NewID()
 					if err := client.Send(&WormholeInput{
+						ID:   id,
 						Data: []byte(text),
+						Type: UTF8Content,
 					}); err != nil {
 						return err
 					}

@@ -72,9 +72,9 @@ func statementsToRPC(sts []*keys.Statement) []*Statement {
 	return stsOut
 }
 
-func sigchainFromRPC(kidStr string, ssts []*Statement, spk keys.SigchainPublicKey) (*keys.Sigchain, error) {
+func sigchainFromRPC(kid keys.ID, ssts []*Statement) (*keys.Sigchain, error) {
 	logger.Infof("Resolving sigchain from statements")
-	sc := keys.NewSigchain(spk)
+	sc := keys.NewSigchain(kid)
 	sts := statementsFromRPC(ssts)
 	if err := sc.AddAll(sts); err != nil {
 		return nil, errors.Wrapf(err, "failed to resolve sigchain from statements")
@@ -123,7 +123,7 @@ func (s *service) StatementCreate(ctx context.Context, req *StatementCreateReque
 	if err != nil {
 		return nil, err
 	}
-	st, err := keys.GenerateStatement(sc, req.Data, key, "", s.Now())
+	st, err := keys.NewSigchainStatement(sc, req.Data, key, "", s.Now())
 	if err != nil {
 		return nil, err
 	}

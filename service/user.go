@@ -153,7 +153,7 @@ func (s *service) sigchainUserAdd(ctx context.Context, key *keys.EdX25519Key, se
 		return nil, nil, errors.Wrap(err, "failed to create user")
 	}
 
-	userResult, err := s.users.Check(ctx, user, key.PublicKey())
+	userResult, err := s.users.Check(ctx, user, key.ID())
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "failed to check user")
 	}
@@ -161,7 +161,7 @@ func (s *service) sigchainUserAdd(ctx context.Context, key *keys.EdX25519Key, se
 		return nil, nil, errors.Errorf("failed to check user: %s", userResult.Err)
 	}
 
-	st, err := keys.GenerateUserStatement(sc, user, key, s.Now())
+	st, err := keys.NewUserSigchainStatement(sc, user, key, s.Now())
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "failed to generate user statement")
 	}
