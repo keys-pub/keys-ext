@@ -16,11 +16,12 @@ func TestUserResult(t *testing.T) {
 
 	env := newEnv(t)
 	srv := newTestServer(t, env)
+	clock := env.clock
 
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 
 	// Alice sign user statement
-	st := userMock(t, env.users, alice, "alice", "github", env.rq)
+	st := userMock(t, env.users, alice, "alice", "github", env.req)
 
 	// PUT /sigchain/:id/:seq
 	req, err := http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/1", alice.ID()), bytes.NewReader(st.Bytes()))
@@ -30,7 +31,7 @@ func TestUserResult(t *testing.T) {
 	require.Equal(t, "{}", body)
 
 	// POST /check
-	req, err = api.NewRequest("POST", "/check", nil, env.clock.Now(), alice)
+	req, err = api.NewRequest("POST", "/check", nil, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)

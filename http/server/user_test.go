@@ -27,7 +27,7 @@ func TestUserSearch(t *testing.T) {
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 
 	// Alice sign user statement
-	st := userMock(t, env.users, alice, "alice", "github", env.rq)
+	st := userMock(t, env.users, alice, "alice", "github", env.req)
 	// PUT alice
 	req, err = http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/1", alice.ID()), bytes.NewReader(st.Bytes()))
 	require.NoError(t, err)
