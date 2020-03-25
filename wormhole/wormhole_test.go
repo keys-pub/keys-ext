@@ -88,19 +88,21 @@ func TestNewWormhole(t *testing.T) {
 	require.Equal(t, "pong", string(b))
 
 	// Message
-	pending, err := wha.WriteMessage(ctx, []byte("ping"), wormhole.UTF8Content)
+	id := wormhole.NewID()
+	pending, err := wha.WriteMessage(ctx, id, []byte("ping"), wormhole.UTF8Content)
 	require.NoError(t, err)
-	require.Equal(t, pending.Type, wormhole.Pending)
+	require.Equal(t, wormhole.Pending, pending.Type)
+	require.Equal(t, id, pending.ID)
 
 	msg, err := whb.ReadMessage(ctx, true)
 	require.NoError(t, err)
 	require.Equal(t, "ping", string(msg.Content.Data))
-	require.Equal(t, pending.ID, string(msg.ID))
+	require.Equal(t, id, string(msg.ID))
 
 	reply, err := wha.ReadMessage(ctx, true)
 	require.NoError(t, err)
 	require.Equal(t, wormhole.Ack, reply.Type)
-	require.Equal(t, pending.ID, reply.ID)
+	require.Equal(t, id, reply.ID)
 
 	// Close
 	closeWg := &sync.WaitGroup{}
@@ -153,7 +155,7 @@ func testWormholeCancel(t *testing.T, env *env, dt time.Duration) {
 }
 
 func TestWormholeNoRecipient(t *testing.T) {
-	wormhole.SetLogger(wormhole.NewLogger(wormhole.DebugLevel))
+	// wormhole.SetLogger(wormhole.NewLogger(wormhole.DebugLevel))
 	// sctp.SetLogger(sctp.NewLogger(sctp.DebugLevel))
 
 	env := testEnv(t)

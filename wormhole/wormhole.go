@@ -206,20 +206,31 @@ func (w *Wormhole) Read(ctx context.Context) ([]byte, error) {
 	return decrypted, nil
 }
 
+// NewID creates new ID for wormhole messages.
+func NewID() string {
+	return encoding.MustEncode(keys.Rand32()[:], encoding.Base62)
+}
+
 // WriteMessage writes a message.
-func (w *Wormhole) WriteMessage(ctx context.Context, b []byte, contentType ContentType) (*Message, error) {
+func (w *Wormhole) WriteMessage(ctx context.Context, id string, b []byte, contentType ContentType) (*Message, error) {
 	if len(b) > maxSize-33 {
 		return nil, errors.Errorf("write exceeds max size")
 	}
 
-	bid := keys.Rand32()
-	out := append([]byte{msgByte}, bid[:]...)
+	decid, err := encoding.Decode(id, encoding.Base62)
+	if err != nil {
+		return nil, err
+	}
+	if len(decid) != 32 {
+		return nil, errors.Errorf("invalid id for wormhole write, 32 != %d", len(decid))
+	}
+
+	out := append([]byte{msgByte}, decid[:]...)
 	out = append(out, b...)
 	if err := w.Write(ctx, out); err != nil {
 		return nil, err
 	}
 
-	id := encoding.MustEncode(bid[:], encoding.Base62)
 	msg := &Message{
 		ID:        id,
 		Sender:    w.sender.ID(),
