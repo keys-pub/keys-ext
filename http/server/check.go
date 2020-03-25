@@ -9,9 +9,10 @@ import (
 )
 
 func (s *Server) check(c echo.Context) error {
+	s.logger.Infof("Server GET check %s", s.urlWithBase(c))
+
 	request := c.Request()
 	ctx := request.Context()
-	logger.Infof(ctx, "Server GET check %s", s.urlWithBase(c))
 
 	// Auth
 	auth := request.Header.Get("Authorization")
@@ -19,7 +20,7 @@ func (s *Server) check(c echo.Context) error {
 		return ErrUnauthorized(c, errors.Errorf("missing Authorization header"))
 	}
 	now := s.nowFn()
-	authRes, err := api.CheckAuthorization(request.Context(), request.Method, s.urlWithBase(c), auth, s.mc, now)
+	authRes, err := api.CheckAuthorization(ctx, request.Method, s.urlWithBase(c), auth, s.mc, now)
 	if err != nil {
 		return ErrForbidden(c, err)
 	}

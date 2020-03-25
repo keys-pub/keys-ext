@@ -18,8 +18,8 @@ import (
 const sigchainChanges = "sigchain-changes"
 
 func (s *Server) listSigchains(c echo.Context) error {
+	s.logger.Infof("Server GET sigchains %s", s.urlWithBase(c))
 	ctx := c.Request().Context()
-	logger.Infof(ctx, "Server GET sigchains %s", s.urlWithBase(c))
 
 	var version time.Time
 	if f := c.QueryParam("version"); f != "" {
@@ -119,15 +119,14 @@ func (s *Server) sigchain(c echo.Context, kid keys.ID) (*keys.Sigchain, map[stri
 }
 
 func (s *Server) getSigchain(c echo.Context) error {
-	ctx := c.Request().Context()
-	logger.Infof(ctx, "Server GET sigchain %s", s.urlWithBase(c))
+	s.logger.Infof("Server GET sigchain %s", s.urlWithBase(c))
 
 	kid, err := keys.ParseID(c.Param("kid"))
 	if err != nil {
 		return ErrNotFound(c, nil)
 	}
 
-	logger.Infof(ctx, "Loading sigchain: %s", kid)
+	s.logger.Infof("Loading sigchain: %s", kid)
 	sc, md, err := s.sigchain(c, kid)
 	if err != nil {
 		return internalError(c, err)
@@ -147,8 +146,8 @@ func (s *Server) getSigchain(c echo.Context) error {
 }
 
 func (s *Server) getSigchainStatement(c echo.Context) error {
+	s.logger.Infof("Server GET sigchain statement %s", c.Path())
 	ctx := c.Request().Context()
-	logger.Infof(ctx, "Server GET sigchain statement %s", c.Path())
 
 	kid, err := keys.ParseID(c.Param("kid"))
 	if err != nil {
@@ -179,8 +178,8 @@ func (s *Server) getSigchainStatement(c echo.Context) error {
 }
 
 func (s *Server) putSigchainStatement(c echo.Context) error {
+	s.logger.Infof("Server PUT sigchain statement %s", s.urlWithBase(c))
 	ctx := c.Request().Context()
-	logger.Infof(ctx, "Server PUT sigchain statement %s", s.urlWithBase(c))
 
 	if c.Request().Body == nil {
 		return ErrBadRequest(c, errors.Errorf("missing body"))
@@ -234,7 +233,7 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 		return ErrBadRequest(c, err)
 	}
 
-	logger.Infof(ctx, "Statement, set %s", path)
+	s.logger.Infof("Statement, set %s", path)
 	if err := s.fi.Create(ctx, path, b); err != nil {
 		return internalError(c, err)
 	}
@@ -272,7 +271,7 @@ func (s *Server) statementFromBytes(ctx context.Context, b []byte) (*keys.Statem
 	}
 	bout := st.Bytes()
 	if !bytes.Equal(b, bout) {
-		logger.Debugf(context.TODO(), "%s != %s", string(b), string(bout))
+		s.logger.Errorf("%s != %s", string(b), string(bout))
 		return nil, errors.Errorf("invalid statement bytes")
 	}
 	if err := st.Verify(); err != nil {

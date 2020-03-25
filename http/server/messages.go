@@ -17,9 +17,8 @@ import (
 const msgChanges = "msg-changes"
 
 func (s *Server) postMessage(c echo.Context) error {
-	request := c.Request()
-	ctx := request.Context()
-	logger.Infof(ctx, "Server POST message %s", s.urlWithBase(c))
+	s.logger.Infof("Server POST message %s", s.urlWithBase(c))
+	ctx := c.Request().Context()
 
 	kid, status, err := s.authorize(c)
 	if err != nil {
@@ -70,26 +69,26 @@ func (s *Server) postMessage(c echo.Context) error {
 	}
 
 	path := keys.Path("messages", fmt.Sprintf("%s-%s-%s-%s", kid, rid, channel, id))
-	logger.Infof(ctx, "Save message %s", path)
+	s.logger.Infof("Save message %s", path)
 	if err := s.fi.Create(ctx, path, mb); err != nil {
 		return internalError(c, err)
 	}
 	rpath := keys.Path("messages", fmt.Sprintf("%s-%s-%s-%s", rid, kid, channel, id))
 	if kid != rid {
-		logger.Infof(ctx, "Save message (recipient) %s", rpath)
+		s.logger.Infof("Save message (recipient) %s", rpath)
 		if err := s.fi.Create(ctx, rpath, mb); err != nil {
 			return internalError(c, err)
 		}
 	}
 
 	changePath := fmt.Sprintf("%s-%s-%s-%s", msgChanges, kid, rid, channel)
-	logger.Infof(ctx, "Add change %s %s", changePath, path)
+	s.logger.Infof("Add change %s %s", changePath, path)
 	if err := s.fi.ChangeAdd(ctx, changePath, path); err != nil {
 		return internalError(c, err)
 	}
 	if kid != rid {
 		rchangePath := fmt.Sprintf("%s-%s-%s-%s", msgChanges, rid, kid, channel)
-		logger.Infof(ctx, "Add change (recipient) %s %s", rchangePath, rpath)
+		s.logger.Infof("Add change (recipient) %s %s", rchangePath, rpath)
 		if err := s.fi.ChangeAdd(ctx, rchangePath, rpath); err != nil {
 			return internalError(c, err)
 		}
@@ -102,9 +101,7 @@ func (s *Server) postMessage(c echo.Context) error {
 }
 
 func (s *Server) listMessages(c echo.Context) error {
-	request := c.Request()
-	ctx := request.Context()
-	logger.Infof(ctx, "Server GET messages %s", s.urlWithBase(c))
+	s.logger.Infof("Server GET messages %s", s.urlWithBase(c))
 
 	kid, status, err := s.authorize(c)
 	if err != nil {

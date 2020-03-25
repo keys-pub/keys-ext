@@ -17,10 +17,11 @@ import (
 
 // Server ...
 type Server struct {
-	fi    Fire
-	mc    MemCache
-	ps    PubSub
-	nowFn func() time.Time
+	fi     Fire
+	mc     MemCache
+	ps     PubSub
+	nowFn  func() time.Time
+	logger Logger
 
 	// URL (base) of form http(s)://host:port with no trailing slash to help
 	// authorization checks in testing where the host is ambiguous.
@@ -40,14 +41,15 @@ type Fire interface {
 }
 
 // NewServer creates a Server.
-func NewServer(fi Fire, mc MemCache, ps PubSub, users *keys.UserStore) *Server {
+func NewServer(fi Fire, mc MemCache, ps PubSub, users *keys.UserStore, logger Logger) *Server {
 	return &Server{
-		fi:    fi,
-		mc:    mc,
-		ps:    ps,
-		nowFn: time.Now,
-		tasks: newUnsetTasks(),
-		users: users,
+		fi:     fi,
+		mc:     mc,
+		ps:     ps,
+		nowFn:  time.Now,
+		tasks:  newUnsetTasks(),
+		users:  users,
+		logger: logger,
 		accessFn: func(c AccessContext, resource AccessResource, action AccessAction) Access {
 			return AccessDeny("no access set")
 		},
@@ -106,6 +108,8 @@ func AddRoutes(s *Server, e *echo.Echo) {
 	// PubSub
 	e.POST("/publish/:kid/:rid", s.publish)
 	e.GET("/subscribe/:kid", s.subscribe)
+
+	e.GET("/wstest", s.wsTest)
 
 	// Sigchain (aliases)
 	e.GET("/:kid", s.getSigchain)

@@ -29,7 +29,7 @@ func newErrorResponse(msg string, code int) *response {
 
 // ErrResponse is a generate error response.
 func ErrResponse(c echo.Context, status int, msg string) error {
-	logger.Warningf(c.Request().Context(), "Error (%d): %s", status, msg)
+	c.Logger().Infof("Error (%d): %s", status, msg)
 	return JSON(c, status, newErrorResponse(msg, status))
 }
 
@@ -73,8 +73,7 @@ func internalError(c echo.Context, err error) error {
 // ErrorHandler returns error handler that returns in the format:
 // {"error": {"message": "error message", status: 500}}".
 func ErrorHandler(err error, c echo.Context) {
-	ctx := c.Request().Context()
-	logger.Warningf(ctx, "Error: %v", err)
+	c.Logger().Infof("Error: %v", err)
 
 	code := http.StatusInternalServerError
 	var resp *response
@@ -101,11 +100,11 @@ func ErrorHandler(err error, c echo.Context) {
 	if !c.Response().Committed {
 		if c.Request().Method == http.MethodHead { // Issue #608
 			if err := c.NoContent(code); err != nil {
-				logger.Errorf(ctx, "Error: %v", err)
+				c.Logger().Errorf("Error (no content): %v", err)
 			}
 		} else {
 			if err := JSON(c, code, resp); err != nil {
-				logger.Errorf(ctx, "Error: %v", err)
+				c.Logger().Errorf("Error (JSON): %v", err)
 			}
 		}
 	}

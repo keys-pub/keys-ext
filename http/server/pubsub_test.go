@@ -7,6 +7,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/gorilla/websocket"
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keysd/http/api"
 	"github.com/keys-pub/keysd/http/server"
@@ -14,8 +15,6 @@ import (
 )
 
 func TestPubSub(t *testing.T) {
-	// server.SetContextLogger(server.NewContextLogger(server.DebugLevel))
-
 	env := newEnv(t)
 	srv := newTestServer(t, env)
 	clock := env.clock
@@ -76,4 +75,26 @@ func TestPubSubImpl(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, []string{"ping1", "ping2"}, vals)
+}
+
+func TestWS(t *testing.T) {
+	env := newEnv(t)
+	srv := newTestServer(t, env)
+	clock := env.clock
+
+	closeFn := srv.Start()
+	defer closeFn()
+
+	conn := srv.WebsocketDial(t, "/wstest", clock, nil)
+	defer conn.Close()
+
+	err := conn.WriteMessage(websocket.TextMessage, []byte("ping"))
+	require.NoError(t, err)
+
+	_, b, err := conn.ReadMessage()
+	require.NoError(t, err)
+	require.Equal(t, b, []byte("pong"))
+
+	// err = conn.WriteMessage(websocket.CloseMessage, []byte("close"))
+	// require.NoError(t, err)
 }

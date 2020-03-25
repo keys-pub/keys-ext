@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"io/ioutil"
 	"net/http"
@@ -21,9 +22,8 @@ type PubSub interface {
 // TODO: Whitelist publish recipients by default
 
 func (s *Server) publish(c echo.Context) error {
-	request := c.Request()
-	ctx := request.Context()
-	logger.Infof(ctx, "Server POST publish %s", s.urlWithBase(c))
+	s.logger.Infof("Server POST publish %s", s.urlWithBase(c))
+	ctx := c.Request().Context()
 
 	_, status, err := s.authorize(c)
 	if err != nil {
@@ -53,7 +53,7 @@ func (s *Server) publish(c echo.Context) error {
 		return ErrBadRequest(c, errors.Errorf("message too large (greater than 16KiB)"))
 	}
 
-	logger.Infof(ctx, "Publish to %s", rid)
+	s.logger.Infof("Publish to %s", rid)
 	if err := s.ps.Publish(ctx, rid.String(), bin); err != nil {
 		return internalError(c, err)
 	}
@@ -67,11 +67,11 @@ var (
 )
 
 func (s *Server) subscribe(c echo.Context) error {
-	c.Logger().Infof("Server GET subscribe %s", s.urlWithBase(c))
+	s.logger.Infof("Server GET subscribe %s", s.urlWithBase(c))
 
 	kid, status, err := s.authorize(c)
 	if err != nil {
-		c.Logger().Errorf("Authorize error: %v", err)
+		s.logger.Errorf("Authorize error: %v", err)
 		return ErrResponse(c, status, err.Error())
 	}
 
@@ -80,29 +80,64 @@ func (s *Server) subscribe(c echo.Context) error {
 
 	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
-		c.Logger().Errorf("Upgrade error: %v", err)
+		s.logger.Errorf("Upgrade error: %v", err)
 		return ErrBadRequest(c, err)
 	}
 	defer ws.Close()
 
-	c.Logger().Infof("Subscribe %s", kid)
+	// After connection has been upgraded, don't write to response writer,
+	// (write error to websocket and return nil).
+
+	s.logger.Infof("Subscribe %s", kid)
 
 	var readErr error
 	receiveFn := func(b []byte) {
 		if err := ws.WriteMessage(websocket.TextMessage, b); err != nil {
-			readErr = err
+			s.logger.Errorf("Write error: %v", err)
 			cancel()
 			return
 		}
 	}
 
 	if err := s.ps.Subscribe(subCtx, kid.String(), receiveFn); err != nil {
-		return internalError(c, err)
+		s.logger.Errorf("Read error: %v", err)
+		return nil
 	}
 
 	if readErr != nil {
-		c.Logger().Errorf("Read error: %v", err)
-		return ErrBadRequest(c, readErr)
+		s.logger.Errorf("Read error: %v", err)
+		return nil
+	}
+
+	return nil
+}
+
+func (s *Server) wsTest(c echo.Context) error {
+	s.logger.Infof("Server GET wstest %s", s.urlWithBase(c))
+
+	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
+	if err != nil {
+		s.logger.Errorf("Upgrade error: %v", err)
+		return ErrBadRequest(c, err)
+	}
+	defer ws.Close()
+
+	// After connection has been upgraded, don't write to response writer,
+	// (write error to websocket and return nil).
+
+	for {
+		_, msg, err := ws.ReadMessage()
+		if err != nil {
+			s.logger.Errorf("Read error: %v", err)
+			return nil
+		}
+		if bytes.Equal(msg, []byte("ping")) {
+			if err := ws.WriteMessage(websocket.TextMessage, []byte("pong")); err != nil {
+				s.logger.Errorf("Write error: %v", err)
+				return nil
+			}
+			break
+		}
 	}
 
 	return nil

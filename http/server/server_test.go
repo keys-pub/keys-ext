@@ -119,7 +119,7 @@ func newEnv(t *testing.T) *env {
 
 func newTestServer(t *testing.T, env *env) *testServer {
 	mc := server.NewMemTestCache(env.clock.Now)
-	svr := server.NewServer(env.fi, mc, env.pubSub, env.users)
+	svr := server.NewServer(env.fi, mc, env.pubSub, env.users, server.NewLogger(server.ErrLevel))
 	tasks := server.NewTestTasks(svr)
 	svr.SetTasks(tasks)
 	svr.SetInternalAuth(keys.RandIDString())
@@ -149,17 +149,18 @@ func (s *testServer) Start() (close func()) {
 }
 
 func (s *testServer) WebsocketDial(t *testing.T, path string, clock *clock, key *keys.EdX25519Key) *websocket.Conn {
-	var auth *api.Auth
-	if key != nil {
-		a, err := api.NewAuth("GET", path, clock.Now(), key)
-		require.NoError(t, err)
-		auth = a
-	}
-
-	wsAddr := fmt.Sprintf("ws://%s%s", s.Addr, auth.URL.String())
-
+	var wsAddr string
 	header := http.Header{}
-	header.Set("Authorization", auth.Header())
+
+	if key != nil {
+		auth, err := api.NewAuth("GET", path, clock.Now(), key)
+		require.NoError(t, err)
+		wsAddr = fmt.Sprintf("ws://%s%s", s.Addr, auth.URL.String())
+
+		header.Set("Authorization", auth.Header())
+	} else {
+		wsAddr = fmt.Sprintf("ws://%s%s", s.Addr, path)
+	}
 
 	conn, _, err := websocket.DefaultDialer.Dial(wsAddr, header)
 	require.NoError(t, err)

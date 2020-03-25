@@ -54,13 +54,13 @@ func (s *Server) changes(c echo.Context, path string) (*changes, error) {
 		return &changes{errBadRequest: errors.Errorf("invalid dir")}, nil
 	}
 
-	logger.Infof(ctx, "Changes %s", path)
+	s.logger.Infof("Changes %s", path)
 	chngs, to, err := s.fi.Changes(ctx, path, keys.TimeFromMillis(version), limit, dir)
 	if err != nil {
 		return nil, err
 	}
 
-	logger.Infof(ctx, "Changes %s, found %d", path, len(chngs))
+	s.logger.Infof("Changes %s, found %d", path, len(chngs))
 	paths := make([]string, 0, len(chngs))
 	for _, a := range chngs {
 		paths = append(paths, a.Path)
@@ -77,7 +77,7 @@ func (s *Server) changes(c echo.Context, path string) (*changes, error) {
 		versionNext = keys.TimeToMillis(to)
 	}
 
-	logger.Infof(ctx, "Changes %s, version next: %d", path, versionNext)
+	s.logger.Infof("Changes %s, version next: %d", path, versionNext)
 
 	return &changes{
 		docs:        docs,
