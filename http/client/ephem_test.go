@@ -30,16 +30,23 @@ func TestEphem(t *testing.T) {
 	require.NoError(t, err)
 
 	// Put
-	err = aliceClient.PutEphemeral(context.TODO(), alice.ID(), bob.ID(), "offer", []byte("hi"))
+	invite, err := aliceClient.PutEphemeral(context.TODO(), alice.ID(), bob.ID(), []byte("hi"), true)
 	require.NoError(t, err)
+	require.NotEmpty(t, invite.Code)
+
+	// Get invite
+	inviteDetails, err := bobClient.GetInvite(context.TODO(), bob.ID(), invite.Code)
+	require.NoError(t, err)
+	require.Equal(t, bob.ID(), inviteDetails.Recipient)
+	require.Equal(t, alice.ID(), inviteDetails.Sender)
 
 	// Get
-	out, err := bobClient.GetEphemeral(context.TODO(), bob.ID(), alice.ID(), "offer")
+	out, err := bobClient.GetEphemeral(context.TODO(), bob.ID(), alice.ID())
 	require.NoError(t, err)
 	require.Equal(t, []byte("hi"), out)
 
-	// Get (again)
-	out, err = bobClient.GetEphemeral(context.TODO(), bob.ID(), alice.ID(), "offer")
-	require.NoError(t, err)
-	require.Nil(t, out)
+	// // Get (again)
+	// out, err = bobClient.GetEphemeral(context.TODO(), bob.ID(), alice.ID())
+	// require.NoError(t, err)
+	// require.Nil(t, out)
 }

@@ -27,11 +27,11 @@ func (c *Client) UserSearch(ctx context.Context, query string, limit int) (*api.
 		return nil, errors.Errorf("/user/search not found")
 	}
 
-	var val api.UserSearchResponse
-	if err := json.Unmarshal(doc.Data, &val); err != nil {
+	var resp api.UserSearchResponse
+	if err := json.Unmarshal(doc.Data, &resp); err != nil {
 		return nil, err
 	}
-	return &val, nil
+	return &resp, nil
 }
 
 // User ...
@@ -45,9 +45,9 @@ func (c *Client) User(ctx context.Context, kid keys.ID) (*api.UserResponse, erro
 		return nil, nil
 	}
 
-	var val api.UserResponse
-	if err := json.Unmarshal(doc.Data, &val); err != nil {
+	var resp api.UserResponse
+	if err := json.Unmarshal(doc.Data, &resp); err != nil {
 		return nil, err
 	}
-	return &val, nil
+	return &resp, nil
 }
