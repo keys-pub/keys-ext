@@ -16,6 +16,9 @@ import (
 	"github.com/pkg/errors"
 )
 
+// TODO: If listening, after a little bit, retry the whole process from the
+// start, in case the other side started over.
+
 // ErrNoResponse error if offer not found for recipient.
 var ErrNoResponse = errors.New("no response")
 
@@ -86,8 +89,16 @@ func (w *Wormhole) Close() {
 	w.onClose()
 	w.onClose = func() {}
 
+	if w.sender != "" {
+		go func() {
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			_ = w.hcl.DeleteEphemeral(ctx, w.sender, w.recipient)
+		}()
+	}
+
 	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
 		_ = w.writeClosed(ctx)
 

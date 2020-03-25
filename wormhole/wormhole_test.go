@@ -27,15 +27,6 @@ func TestNewWormhole(t *testing.T) {
 	defer env.closeFn()
 
 	testWormhole(t, env, false)
-}
-
-func TestNewWormholeInvite(t *testing.T) {
-	// wormhole.SetLogger(wormhole.NewLogger(wormhole.DebugLevel))
-	// sctp.SetLogger(sctp.NewLogger(sctp.DebugLevel))
-
-	env := testEnv(t)
-	defer env.closeFn()
-
 	testWormhole(t, env, true)
 }
 

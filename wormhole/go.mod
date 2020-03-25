@@ -4,9 +4,9 @@ go 1.13
 
 require (
 	github.com/keys-pub/keys v0.0.0-20200324163809-892a74504eee
-	github.com/keys-pub/keysd/http/api v0.0.0-20200325225552-5f4759861952
-	github.com/keys-pub/keysd/http/client v0.0.0-20200325225859-718d0e8d2147
-	github.com/keys-pub/keysd/http/server v0.0.0-20200325225707-2b3c340b1f5c
+	github.com/keys-pub/keysd/http/api v0.0.0-20200325231903-a02dcbf9955f
+	github.com/keys-pub/keysd/http/client v0.0.0-20200325232556-b5ff885f6d8e
+	github.com/keys-pub/keysd/http/server v0.0.0-20200325232116-9802e78a9851
 	github.com/pion/logging v0.2.2
 	github.com/pion/sctp v1.7.6
 	github.com/pion/transport v0.9.2 // indirect
