@@ -95,6 +95,9 @@ func (d *sdb) encrypt(b []byte) ([]byte, error) {
 }
 
 func (d *sdb) decrypt(b []byte) ([]byte, error) {
+	if len(b) == 0 {
+		return b, nil
+	}
 	var buf bytes.Buffer
 	_, err := sio.Decrypt(&buf, bytes.NewReader(b), d.cfg)
 	if err != nil {

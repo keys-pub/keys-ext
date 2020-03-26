@@ -425,3 +425,16 @@ func TestDBGetSetLarge(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, large, doc.Data)
 }
+
+func TestDBGetSetEmpty(t *testing.T) {
+	// SetLogger(NewLogger(DebugLevel))
+	db, closeFn := testDB(t)
+	defer closeFn()
+
+	err := db.Set(context.TODO(), "/test/key1", []byte{})
+	require.NoError(t, err)
+
+	doc, err := db.Get(context.TODO(), "/test/key1")
+	require.NoError(t, err)
+	require.Equal(t, []byte{}, doc.Data)
+}
