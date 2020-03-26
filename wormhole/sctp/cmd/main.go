@@ -174,13 +174,13 @@ func (c *cmd) writeSession(ctx context.Context, sender keys.ID, recipient keys.I
 	if err != nil {
 		return err
 	}
-	return c.hcl.PutEphemeral(ctx, sender, recipient, id, b)
+	return c.hcl.ExpiringMessage(ctx, sender, recipient, id, b, time.Minute*15)
 }
 
 func (c *cmd) readSession(ctx context.Context, sender keys.ID, recipient keys.ID, id string) (*sctp.Addr, error) {
 	for {
-		fmt.Printf("Get session (ephem/%s)...\n", id)
-		b, err := c.hcl.GetEphemeral(ctx, sender, recipient, id)
+		fmt.Printf("Get session (%s)...\n", id)
+		b, err := c.hcl.Message(ctx, sender, recipient, id)
 		if err != nil {
 			return nil, err
 		}

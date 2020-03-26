@@ -93,7 +93,12 @@ func (w *Wormhole) Close() {
 		go func() {
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
-			_ = w.hcl.DeleteEphemeral(ctx, w.sender, w.recipient)
+			_ = w.hcl.DeleteMessage(ctx, w.sender, w.recipient, "offer")
+		}()
+		go func() {
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			_ = w.hcl.DeleteMessage(ctx, w.sender, w.recipient, "answer")
 		}()
 	}
 
@@ -136,7 +141,7 @@ func (w *Wormhole) ListenByInvite(ctx context.Context, code string) error {
 	}
 	var invite *api.InviteResponse
 	for _, key := range keys {
-		i, err := w.hcl.GetInvite(ctx, key.ID(), code)
+		i, err := w.hcl.Invite(ctx, key.ID(), code)
 		if err != nil {
 			return err
 		}
@@ -159,7 +164,14 @@ func (w *Wormhole) ListenByInvite(ctx context.Context, code string) error {
 }
 
 func (w *Wormhole) FindOffer(ctx context.Context, sender keys.ID, recipient keys.ID) (*sctp.Addr, error) {
-	return w.readOnce(ctx, sender, recipient)
+	sess, err := w.readOnce(ctx, sender, recipient, "offer")
+	if err != nil {
+		return nil, err
+	}
+	if sess == nil {
+		return nil, nil
+	}
+	return sess.Addr, nil
 }
 
 func (w *Wormhole) CreateOffer(ctx context.Context, sender keys.ID, recipient keys.ID) (*sctp.Addr, string, error) {
@@ -167,7 +179,7 @@ func (w *Wormhole) CreateOffer(ctx context.Context, sender keys.ID, recipient ke
 	if err != nil {
 		return nil, "", err
 	}
-	code, err := w.writeOffer(ctx, offer, sender, recipient)
+	code, err := w.writeOffer(ctx, offer, sender, recipient, true, time.Second*15)
 	if err != nil {
 		return nil, "", err
 	}
@@ -184,6 +196,24 @@ func (w *Wormhole) connect(ctx context.Context, sender keys.ID, recipient keys.I
 	if answer == nil {
 		return ErrNoResponse
 	}
+
+	// Write the offer every 10 seconds, on 15 second expire.
+	writeCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	go func() {
+		for {
+			if _, err := w.writeOffer(ctx, offer, sender, recipient, false, time.Second*15); err != nil {
+				return
+			}
+			select {
+			case <-writeCtx.Done():
+				return
+			case <-time.After(time.Second * 10):
+				// Continue
+			}
+		}
+	}()
 
 	if err := w.rtc.Connect(ctx, answer); err != nil {
 		return err
@@ -417,44 +447,53 @@ func (w *Wormhole) writeClosed(ctx context.Context) error {
 	return w.Write(ctx, []byte{closedByte, 0xAD, 0xBE, 0xEF})
 }
 
-func (w *Wormhole) writeOffer(ctx context.Context, offer *sctp.Addr, sender keys.ID, recipient keys.ID) (string, error) {
-	return w.writeSession(ctx, offer, sender, recipient, true)
+func (w *Wormhole) writeOffer(ctx context.Context, offer *sctp.Addr, sender keys.ID, recipient keys.ID, genCode bool, expire time.Duration) (string, error) {
+	return w.writeSession(ctx, offer, sender, recipient, "offer", genCode, expire)
 }
 
 func (w *Wormhole) readOffer(ctx context.Context, sender keys.ID, recipient keys.ID) (*sctp.Addr, error) {
-	return w.readSession(ctx, sender, recipient)
+	return w.readSession(ctx, sender, recipient, "offer")
 }
 
 func (w *Wormhole) writeAnswer(ctx context.Context, answer *sctp.Addr, sender keys.ID, recipient keys.ID) error {
-	_, err := w.writeSession(ctx, answer, sender, recipient, false)
+	_, err := w.writeSession(ctx, answer, sender, recipient, "answer", false, time.Hour)
 	return err
 }
 
 func (w *Wormhole) readAnswer(ctx context.Context, sender keys.ID, recipient keys.ID) (*sctp.Addr, error) {
-	return w.readSession(ctx, sender, recipient)
+	return w.readSession(ctx, sender, recipient, "answer")
 }
 
-func (w *Wormhole) writeSession(ctx context.Context, addr *sctp.Addr, sender keys.ID, recipient keys.ID, genCode bool) (string, error) {
-	b, err := json.Marshal(addr)
+type session struct {
+	Addr *sctp.Addr `json:"addr"`
+}
+
+func (w *Wormhole) writeSession(ctx context.Context, addr *sctp.Addr, sender keys.ID, recipient keys.ID, typ string, genCode bool, expire time.Duration) (string, error) {
+	sess := &session{
+		Addr: addr,
+	}
+	b, err := json.Marshal(sess)
 	if err != nil {
 		return "", err
 	}
-	// logger.Debugf("Put ephem: %s", addr)
-	resp, err := w.hcl.PutEphemeral(ctx, sender, recipient, b, genCode)
+	if err := w.hcl.ExpiringMessage(ctx, sender, recipient, typ, b, expire); err != nil {
+		return "", err
+	}
+	invite, err := w.hcl.CreateInvite(ctx, sender, recipient)
 	if err != nil {
 		return "", err
 	}
-	return resp.Code, nil
+	return invite.Code, nil
 }
 
-func (w *Wormhole) readSession(ctx context.Context, sender keys.ID, recipient keys.ID) (*sctp.Addr, error) {
+func (w *Wormhole) readSession(ctx context.Context, sender keys.ID, recipient keys.ID, typ string) (*sctp.Addr, error) {
 	for {
-		addr, err := w.readOnce(ctx, sender, recipient)
+		sess, err := w.readOnce(ctx, sender, recipient, typ)
 		if err != nil {
 			return nil, err
 		}
-		if addr != nil {
-			return addr, nil
+		if sess != nil {
+			return sess.Addr, nil
 		}
 
 		select {
@@ -466,19 +505,19 @@ func (w *Wormhole) readSession(ctx context.Context, sender keys.ID, recipient ke
 	}
 }
 
-func (w *Wormhole) readOnce(ctx context.Context, sender keys.ID, recipient keys.ID) (*sctp.Addr, error) {
-	logger.Debugf("Read ephem...")
-	b, err := w.hcl.GetEphemeral(ctx, sender, recipient)
+func (w *Wormhole) readOnce(ctx context.Context, sender keys.ID, recipient keys.ID, typ string) (*session, error) {
+	logger.Debugf("Read session...")
+	b, err := w.hcl.Message(ctx, sender, recipient, typ)
 	if err != nil {
 		return nil, err
 	}
 	if b == nil {
 		return nil, nil
 	}
-	var addr sctp.Addr
-	if err := json.Unmarshal(b, &addr); err != nil {
+	var sess session
+	if err := json.Unmarshal(b, &sess); err != nil {
 		return nil, err
 	}
 	// logger.Debugf("Found addr: %s", addr)
-	return &addr, nil
+	return &sess, nil
 }
