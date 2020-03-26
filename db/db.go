@@ -9,18 +9,18 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
-	"github.com/syndtr/goleveldb/leveldb/opt"
-	ldbutil "github.com/syndtr/goleveldb/leveldb/util"
 )
 
 var _ keys.DocumentStore = &DB{}
 
 // DB is leveldb implementation of keys.DocumentStore.
 type DB struct {
-	ldb   *leveldb.DB
 	rwmtx *sync.RWMutex
+	sdb   *sdb
 	fpath string
 	nowFn func() time.Time
+
+	key keys.SecretKey
 }
 
 // NewDB creates a DB.
@@ -42,39 +42,41 @@ func (d *DB) Now() time.Time {
 }
 
 // OpenAtPath opens db located at path
-func (d *DB) OpenAtPath(path string, opt *opt.Options) error {
+func (d *DB) OpenAtPath(ctx context.Context, path string, key keys.SecretKey) error {
 	logger.Infof("LevelDB at %s", path)
 	d.fpath = path
 	db, err := leveldb.OpenFile(path, nil)
 	if err != nil {
 		return err
 	}
-	d.ldb = db
+	sdb := newSDB(db, key)
+	d.sdb = sdb
+	d.key = key
 	return nil
 }
 
 // Close the db.
 func (d *DB) Close() {
 	logger.Infof("Closing leveldb %s", d.fpath)
-	if err := d.ldb.Close(); err != nil {
+	if err := d.sdb.Close(); err != nil {
 		logger.Errorf("Error closing DB: %s", err)
 	}
 }
 
 // Exists returns true if the db row exists at path
 func (d *DB) Exists(ctx context.Context, path string) (bool, error) {
-	if d.ldb == nil {
+	if d.sdb == nil {
 		return false, errors.Errorf("db not open")
 	}
 	path = keys.Path(path)
-	return d.ldb.Has([]byte(path), nil)
+	return d.sdb.Has(path)
 }
 
 // Create entry.
 func (d *DB) Create(ctx context.Context, path string, b []byte) error {
 	d.rwmtx.Lock()
 	defer d.rwmtx.Unlock()
-	if d.ldb == nil {
+	if d.sdb == nil {
 		return errors.Errorf("db not open")
 	}
 	path = keys.Path(path)
@@ -88,6 +90,7 @@ func (d *DB) Create(ctx context.Context, path string, b []byte) error {
 	if exists {
 		return keys.NewErrPathExists(path)
 	}
+
 	now := d.Now()
 	md := &metadata{CreateTime: now, UpdateTime: now}
 	return d.put(path, b, md)
@@ -97,7 +100,7 @@ func (d *DB) Create(ctx context.Context, path string, b []byte) error {
 func (d *DB) Set(ctx context.Context, path string, b []byte) error {
 	d.rwmtx.Lock()
 	defer d.rwmtx.Unlock()
-	if d.ldb == nil {
+	if d.sdb == nil {
 		return errors.Errorf("db not open")
 	}
 	path = keys.Path(path)
@@ -108,6 +111,9 @@ func (d *DB) Set(ctx context.Context, path string, b []byte) error {
 	md, err := d.getMetadata(path)
 	if err != nil {
 		return err
+	}
+	if md == nil {
+		md = &metadata{}
 	}
 	now := d.Now()
 	if md.CreateTime.IsZero() {
@@ -126,7 +132,7 @@ func (d *DB) put(path string, b []byte, md *metadata) error {
 		return err
 	}
 	logger.Debugf("Put %s (%d bytes)", path, len(b))
-	if err := d.ldb.Put([]byte(path), b, nil); err != nil {
+	if err := d.sdb.Put(path, b); err != nil {
 		return err
 	}
 	return nil
@@ -138,12 +144,12 @@ type metadata struct {
 }
 
 func (d *DB) getMetadata(path string) (*metadata, error) {
-	b, err := d.ldb.Get([]byte("~"+path), nil)
+	b, err := d.sdb.Get("~" + path)
 	if err != nil {
-		if err == leveldb.ErrNotFound {
-			return &metadata{}, nil
-		}
 		return nil, err
+	}
+	if b == nil {
+		return nil, nil
 	}
 	var md metadata
 	if err := json.Unmarshal(b, &md); err != nil {
@@ -159,10 +165,7 @@ func (d *DB) setMetadata(path string, md *metadata) error {
 	if err != nil {
 		return err
 	}
-	if err := d.ldb.Put([]byte(mpath), b, nil); err != nil {
-		return err
-	}
-	return nil
+	return d.sdb.Put(mpath, b)
 }
 
 func (d *DB) setCollection(path string, md *metadata) error {
@@ -172,10 +175,7 @@ func (d *DB) setCollection(path string, md *metadata) error {
 	if err != nil {
 		return err
 	}
-	if err := d.ldb.Put([]byte(cpath), b, nil); err != nil {
-		return err
-	}
-	return nil
+	return d.sdb.Put(cpath, b)
 }
 
 // Get entry at path.
@@ -210,14 +210,14 @@ func (d *DB) GetAll(ctx context.Context, paths []string) ([]*keys.Document, erro
 
 // Collections ...
 func (d *DB) Collections(ctx context.Context, parent string) (keys.CollectionIterator, error) {
-	if d.ldb == nil {
+	if d.sdb == nil {
 		return nil, errors.Errorf("db not open")
 	}
 	if keys.Path(parent) != "/" {
 		return nil, errors.Errorf("only root collections supported")
 	}
 
-	iter := d.ldb.NewIterator(ldbutil.BytesPrefix([]byte("+")), nil)
+	iter := d.sdb.NewIterator("+")
 	return &colsIterator{iter: iter}, nil
 }
 
@@ -225,11 +225,11 @@ func (d *DB) Collections(ctx context.Context, parent string) (keys.CollectionIte
 func (d *DB) Delete(ctx context.Context, path string) (bool, error) {
 	d.rwmtx.Lock()
 	defer d.rwmtx.Unlock()
-	if d.ldb == nil {
+	if d.sdb == nil {
 		return false, errors.Errorf("db not open")
 	}
 	path = keys.Path(path)
-	ok, err := d.ldb.Has([]byte(path), nil)
+	ok, err := d.sdb.Has(path)
 	if err != nil {
 		return false, err
 	}
@@ -237,7 +237,7 @@ func (d *DB) Delete(ctx context.Context, path string) (bool, error) {
 		return false, nil
 	}
 	logger.Infof("Deleting %s", path)
-	if err := d.ldb.Delete([]byte(path), nil); err != nil {
+	if err := d.sdb.Delete(path); err != nil {
 		return false, err
 	}
 	return true, nil
@@ -284,7 +284,7 @@ func (d *DB) Documents(ctx context.Context, parent string, opts *keys.DocumentsO
 		opts = &keys.DocumentsOpts{}
 	}
 
-	if d.ldb == nil {
+	if d.sdb == nil {
 		return nil, errors.Errorf("db not open")
 	}
 
@@ -305,7 +305,7 @@ func (d *DB) Documents(ctx context.Context, parent string, opts *keys.DocumentsO
 
 	logger.Debugf("Iterator prefix %s", prefix)
 	// TODO: Handle context Done()
-	iter := d.ldb.NewIterator(ldbutil.BytesPrefix([]byte(prefix)), nil)
+	iter := d.sdb.NewIterator(prefix)
 	return &docsIterator{
 		db:    d,
 		iter:  iter,
@@ -315,16 +315,17 @@ func (d *DB) Documents(ctx context.Context, parent string, opts *keys.DocumentsO
 }
 
 func (d *DB) get(ctx context.Context, path string) (*keys.Document, error) {
-	if d.ldb == nil {
+	if d.sdb == nil {
 		return nil, errors.Errorf("db not open")
 	}
-	b, err := d.ldb.Get([]byte(path), nil)
+	b, err := d.sdb.Get(path)
 	if err != nil {
-		if err == leveldb.ErrNotFound {
-			return nil, nil
-		}
 		return nil, err
 	}
+	if b == nil {
+		return nil, nil
+	}
+
 	return d.document(path, b)
 }
 
@@ -332,11 +333,11 @@ func (d *DB) get(ctx context.Context, path string) (*keys.Document, error) {
 func (d *DB) Last(ctx context.Context, prefix string) (*keys.Document, error) {
 	d.rwmtx.RLock()
 	defer d.rwmtx.RUnlock()
-	if d.ldb == nil {
+	if d.sdb == nil {
 		return nil, errors.Errorf("db not open")
 	}
 	var doc *keys.Document
-	iter := d.ldb.NewIterator(ldbutil.BytesPrefix([]byte(prefix)), nil)
+	iter := d.sdb.NewIterator(prefix)
 	if ok := iter.Last(); ok {
 		path := string(iter.Value())
 		val, err := d.get(ctx, path)
@@ -361,14 +362,14 @@ func (d *DB) Count(ctx context.Context, prefix string, contains string) (int, er
 }
 
 func (d *DB) countEntries(prefix string, contains string) (int, error) {
-	if d.ldb == nil {
+	if d.sdb == nil {
 		return 0, errors.Errorf("db not open")
 	}
-	var prefixRange *ldbutil.Range
+	var prefixRange string
 	if prefix != "" {
-		prefixRange = ldbutil.BytesPrefix([]byte(prefix))
+		prefixRange = prefix
 	}
-	iter := d.ldb.NewIterator(prefixRange, nil)
+	iter := d.sdb.NewIterator(prefixRange)
 	total := 0
 	for iter.Next() {
 		path := string(iter.Key())
