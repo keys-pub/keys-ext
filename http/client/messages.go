@@ -23,48 +23,32 @@ type Message struct {
 	UpdatedAt time.Time
 }
 
-// MessageOpts are options for SendMessage.
-type MessageOpts struct {
-	// Channel to post on.
-	Channel string
-}
-
 // SendMessage posts an encrypted message.
-func (c *Client) SendMessage(ctx context.Context, sender *keys.EdX25519Key, recipient keys.ID, b []byte, opts *MessageOpts) (*Message, error) {
+func (c *Client) SendMessage(ctx context.Context, sender *keys.EdX25519Key, recipient keys.ID, id string, b []byte) error {
 	sp := saltpack.NewSaltpack(c.ks)
 	encrypted, err := sp.Signcrypt(b, sender, recipient, sender.ID())
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return c.postMessage(ctx, sender, recipient, encrypted, opts)
+	return c.putMessage(ctx, sender, recipient, encrypted)
 }
 
-func (c *Client) postMessage(ctx context.Context, sender *keys.EdX25519Key, recipient keys.ID, b []byte, opts *MessageOpts) (*Message, error) {
-	if opts == nil {
-		opts = &MessageOpts{}
-	}
-	path := keys.Path("messages", sender.ID(), recipient)
+func (c *Client) putMessage(ctx context.Context, sender *keys.EdX25519Key, recipient keys.ID, b []byte) error {
+	id := keys.Rand3262()
+	path := keys.Path("msgs", sender.ID(), recipient, id)
 	vals := url.Values{}
-	if opts.Channel != "" {
-		vals.Add("channel", opts.Channel)
-	}
-	doc, err := c.postDocument(ctx, path, vals, sender, bytes.NewReader(b))
+	_, err := c.putDocument(ctx, path, vals, sender, bytes.NewReader(b))
 	if err != nil {
-		return nil, err
+		return err
 	}
-	if doc == nil {
-		return nil, errors.Errorf("failed to post message: no response")
-	}
-
-	var msg api.MessageResponse
-	if err := json.Unmarshal(doc.Data, &msg); err != nil {
-		return nil, err
-	}
-	// TODO: CreatedAt, UpdatedAt
-	return &Message{
-		ID:   msg.ID,
-		Data: b,
-	}, nil
+	// if doc == nil {
+	// 	return errors.Errorf("failed to save message: no response")
+	// }
+	// var msg api.MessageResponse
+	// if err := json.Unmarshal(doc.Data, &msg); err != nil {
+	// 	return err
+	// }
+	return nil
 }
 
 // MessagesOpts options for Messages.
@@ -82,7 +66,7 @@ type MessagesOpts struct {
 // Messages returns encrypted messages.
 // To decrypt a message, use Client#DecryptMessage.
 func (c *Client) Messages(ctx context.Context, key *keys.EdX25519Key, from keys.ID, opts *MessagesOpts) ([]*Message, string, error) {
-	path := keys.Path("messages", key.ID(), from)
+	path := keys.Path("msgs", key.ID(), from)
 	if opts == nil {
 		opts = &MessagesOpts{}
 	}
@@ -137,4 +121,84 @@ func (c *Client) DecryptMessage(key *keys.EdX25519Key, msg *Message) ([]byte, ke
 		return nil, "", err
 	}
 	return decrypted, pk.ID(), nil
+}
+
+// ExpiringMessage ...
+func (c *Client) ExpiringMessage(ctx context.Context, sender keys.ID, recipient keys.ID, id string, b []byte, expire time.Duration) error {
+	senderKey, err := c.ks.EdX25519Key(sender)
+	if err != nil {
+		return err
+	}
+	if senderKey == nil {
+		return keys.NewErrNotFound(sender.String())
+	}
+	if expire == time.Duration(0) {
+		return errors.Errorf("expire not set")
+	}
+
+	sp := saltpack.NewSaltpack(c.ks)
+	encrypted, err := sp.Signcrypt(b, senderKey, recipient, sender)
+	if err != nil {
+		return err
+	}
+	path := keys.Path("msgs", senderKey.ID(), recipient, id)
+	vals := url.Values{}
+	vals.Set("expire", expire.String())
+
+	doc, err := c.putDocument(ctx, path, vals, senderKey, bytes.NewReader(encrypted))
+	if err != nil {
+		return err
+	}
+	if doc == nil {
+		return nil
+	}
+	// var resp api.MessageResponse
+	// if err := json.Unmarshal(doc.Data, &resp); err != nil {
+	// 	return err
+	// }
+	return nil
+}
+
+func (c *Client) Message(ctx context.Context, sender keys.ID, recipient keys.ID, id string) ([]byte, error) {
+	senderKey, err := c.ks.EdX25519Key(sender)
+	if err != nil {
+		return nil, err
+	}
+	path := keys.Path("msgs", sender, recipient, id)
+	vals := url.Values{}
+	doc, err := c.getDocument(ctx, path, vals, senderKey)
+	if err != nil {
+		return nil, err
+	}
+	if doc == nil {
+		return nil, nil
+	}
+
+	sp := saltpack.NewSaltpack(c.ks)
+	decrypted, pk, err := sp.SigncryptOpen(doc.Data)
+	if err != nil {
+		return nil, err
+	}
+	if pk.ID() != sender && pk.ID() != recipient {
+		return nil, errors.Errorf("invalid sender %s", pk.ID())
+	}
+
+	return decrypted, nil
+}
+
+func (c *Client) DeleteMessage(ctx context.Context, sender keys.ID, recipient keys.ID, id string) error {
+	senderKey, err := c.ks.EdX25519Key(sender)
+	if err != nil {
+		return err
+	}
+	if senderKey == nil {
+		return keys.NewErrNotFound(sender.String())
+	}
+
+	path := keys.Path("msgs", senderKey.ID(), recipient, id)
+	vals := url.Values{}
+	if _, err := c.delete(ctx, path, vals, senderKey); err != nil {
+		return err
+	}
+	return nil
 }

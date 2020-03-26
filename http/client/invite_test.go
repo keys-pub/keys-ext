@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestEphem(t *testing.T) {
+func TestInvite(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
 	// api.SetLogger(NewLogger(DebugLevel))
 	// server.SetContextLogger(NewContextLogger(DebugLevel))
@@ -29,38 +29,13 @@ func TestEphem(t *testing.T) {
 	err = ksb.SaveEdX25519Key(bob)
 	require.NoError(t, err)
 
-	// Put
-	invite, err := aliceClient.PutEphemeral(context.TODO(), alice.ID(), bob.ID(), []byte("hi"), true)
+	// Create invite
+	resp, err := aliceClient.CreateInvite(context.TODO(), alice.ID(), bob.ID())
 	require.NoError(t, err)
-	require.NotEmpty(t, invite.Code)
 
 	// Get invite
-	inviteDetails, err := bobClient.GetInvite(context.TODO(), bob.ID(), invite.Code)
+	inviteDetails, err := bobClient.Invite(context.TODO(), bob.ID(), resp.Code)
 	require.NoError(t, err)
 	require.Equal(t, bob.ID(), inviteDetails.Recipient)
 	require.Equal(t, alice.ID(), inviteDetails.Sender)
-
-	// Get
-	out, err := bobClient.GetEphemeral(context.TODO(), bob.ID(), alice.ID())
-	require.NoError(t, err)
-	require.Equal(t, []byte("hi"), out)
-
-	// Get (again)
-	out, err = bobClient.GetEphemeral(context.TODO(), bob.ID(), alice.ID())
-	require.NoError(t, err)
-	require.Nil(t, out)
-
-	// Put
-	_, err = aliceClient.PutEphemeral(context.TODO(), alice.ID(), bob.ID(), []byte("hi2"), false)
-	require.NoError(t, err)
-
-	// Delete
-	err = aliceClient.DeleteEphemeral(context.TODO(), alice.ID(), bob.ID())
-	require.NoError(t, err)
-
-	// Get
-	out, err = bobClient.GetEphemeral(context.TODO(), bob.ID(), alice.ID())
-	require.NoError(t, err)
-	require.Nil(t, out)
-
 }

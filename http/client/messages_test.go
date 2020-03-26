@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"testing"
+	"time"
 
 	"github.com/keys-pub/keys"
 	"github.com/stretchr/testify/require"
@@ -30,16 +31,16 @@ func TestMessages(t *testing.T) {
 	require.NoError(t, err)
 
 	// SendMessage #1
+	id1 := keys.Rand3262()
 	b1 := []byte("hi alice")
-	msg, err := aliceClient.SendMessage(context.TODO(), alice, bob.ID(), b1, nil)
+	err = aliceClient.SendMessage(context.TODO(), alice, bob.ID(), id1, b1)
 	require.NoError(t, err)
-	require.NotEmpty(t, msg.ID)
 
 	// SendMessage #2
+	id2 := keys.Rand3262()
 	b2 := []byte("what time we meeting?")
-	msg, err = bobClient.SendMessage(context.TODO(), bob, alice.ID(), b2, nil)
+	err = bobClient.SendMessage(context.TODO(), bob, alice.ID(), id2, b2)
 	require.NoError(t, err)
-	require.NotEmpty(t, msg.ID)
 
 	// Messages #1
 	msgs, version, err := aliceClient.Messages(context.TODO(), alice, bob.ID(), nil)
@@ -56,10 +57,10 @@ func TestMessages(t *testing.T) {
 	require.Equal(t, keys.TimeMs(1234567890004), keys.TimeToMillis(msgs[0].CreatedAt))
 
 	// SendMessage #3
+	id3 := keys.Rand3262()
 	b3 := []byte("3pm")
-	msg, err = aliceClient.SendMessage(context.TODO(), alice, bob.ID(), b3, nil)
+	err = aliceClient.SendMessage(context.TODO(), alice, bob.ID(), id3, b3)
 	require.NoError(t, err)
-	require.NotEmpty(t, msg.ID)
 
 	// Messages #2 (from version)
 	msgs, _, err = aliceClient.Messages(context.TODO(), alice, bob.ID(), &MessagesOpts{Version: version})
@@ -93,4 +94,62 @@ func TestMessages(t *testing.T) {
 	msgs, _, err = aliceClient.Messages(context.TODO(), alice, unknown.ID(), nil)
 	require.NoError(t, err)
 	require.Empty(t, msgs)
+}
+
+func TestMessageExpiring(t *testing.T) {
+	// SetLogger(NewLogger(DebugLevel))
+	// api.SetLogger(NewLogger(DebugLevel))
+	// server.SetContextLogger(NewContextLogger(DebugLevel))
+
+	env := testEnv(t, logger)
+	defer env.closeFn()
+
+	ksa := keys.NewMemKeystore()
+	aliceClient := testClient(t, env, ksa)
+	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
+	err := ksa.SaveEdX25519Key(alice)
+	require.NoError(t, err)
+
+	ksb := keys.NewMemKeystore()
+	bobClient := testClient(t, env, ksb)
+	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
+	err = ksb.SaveEdX25519Key(bob)
+	require.NoError(t, err)
+
+	// Put
+	err = aliceClient.ExpiringMessage(context.TODO(), alice.ID(), bob.ID(), "wormhole", []byte("hi"), time.Second)
+	require.NoError(t, err)
+
+	// Get
+	out, err := bobClient.Message(context.TODO(), bob.ID(), alice.ID(), "wormhole")
+	require.NoError(t, err)
+	require.Equal(t, []byte("hi"), out)
+
+	// Get (again)
+	out, err = bobClient.Message(context.TODO(), bob.ID(), alice.ID(), "wormhole")
+	require.NoError(t, err)
+	require.Nil(t, out)
+
+	// Put
+	err = aliceClient.ExpiringMessage(context.TODO(), alice.ID(), bob.ID(), "wormhole", []byte("hi2"), time.Second)
+	require.NoError(t, err)
+
+	// Delete
+	err = aliceClient.DeleteMessage(context.TODO(), alice.ID(), bob.ID(), "wormhole")
+	require.NoError(t, err)
+
+	// Get (deleted)
+	out, err = bobClient.Message(context.TODO(), bob.ID(), alice.ID(), "wormhole")
+	require.NoError(t, err)
+	require.Nil(t, out)
+
+	// Put
+	err = aliceClient.ExpiringMessage(context.TODO(), alice.ID(), bob.ID(), "wormhole", []byte("hi3"), time.Millisecond)
+	require.NoError(t, err)
+
+	// Get (expired)
+	time.Sleep(time.Millisecond)
+	out, err = bobClient.Message(context.TODO(), bob.ID(), alice.ID(), "wormhole")
+	require.NoError(t, err)
+	require.Nil(t, out)
 }
