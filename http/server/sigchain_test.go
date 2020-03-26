@@ -193,4 +193,18 @@ func TestSigchains(t *testing.T) {
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusBadRequest, code)
 	require.Equal(t, `{"error":{"code":400,"message":"too much data for sigchain statement (greater than 16KiB)"}}`, body)
+
+	// GET /foo/bar
+	req, err = http.NewRequest("GET", "/foo/bar", nil)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusNotFound, code)
+	require.Equal(t, `{"error":{"code":404,"message":"invalid ID: separator '1' at invalid position: pos=-1, len=3"}}`, body)
+
+	// GET /:kid/bar
+	req, err = http.NewRequest("GET", keys.Path(alice.ID(), "bar"), nil)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusNotFound, code)
+	require.Equal(t, `{"error":{"code":404,"message":"strconv.Atoi: parsing \"bar\": invalid syntax"}}`, body)
 }

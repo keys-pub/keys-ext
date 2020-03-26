@@ -18,7 +18,7 @@ import (
 const sigchainChanges = "sigchain-changes"
 
 func (s *Server) listSigchains(c echo.Context) error {
-	s.logger.Infof("Server GET sigchains %s", c.Request().URL.String())
+	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
 	var version time.Time
@@ -119,7 +119,7 @@ func (s *Server) sigchain(c echo.Context, kid keys.ID) (*keys.Sigchain, map[stri
 }
 
 func (s *Server) getSigchain(c echo.Context) error {
-	s.logger.Infof("Server GET sigchain %s", c.Request().URL.String())
+	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
 	kid, err := keys.ParseID(c.Param("kid"))
 	if err != nil {
@@ -146,16 +146,16 @@ func (s *Server) getSigchain(c echo.Context) error {
 }
 
 func (s *Server) getSigchainStatement(c echo.Context) error {
-	s.logger.Infof("Server GET sigchain statement %s", c.Path())
+	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
 	kid, err := keys.ParseID(c.Param("kid"))
 	if err != nil {
-		return ErrBadRequest(c, err)
+		return ErrNotFound(c, err)
 	}
 	i, err := strconv.Atoi(c.Param("seq"))
 	if err != nil {
-		return internalError(c, err)
+		return ErrNotFound(c, err)
 	}
 	path := keys.Path(SigchainResource, kid.WithSeq(i))
 	st, doc, err := s.statement(ctx, path)
@@ -178,7 +178,7 @@ func (s *Server) getSigchainStatement(c echo.Context) error {
 }
 
 func (s *Server) putSigchainStatement(c echo.Context) error {
-	s.logger.Infof("Server PUT sigchain statement %s", c.Request().URL.String())
+	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
 	if c.Request().Body == nil {

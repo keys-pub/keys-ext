@@ -9,7 +9,7 @@ import (
 )
 
 func (s *Server) check(c echo.Context) error {
-	s.logger.Infof("Server GET check %s", c.Request().URL.String())
+	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
 	request := c.Request()
 	ctx := request.Context()

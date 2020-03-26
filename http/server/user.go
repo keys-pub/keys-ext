@@ -11,7 +11,7 @@ import (
 )
 
 func (s *Server) getUserSearch(c echo.Context) error {
-	s.logger.Infof("Server GET user search %s", c.Request().URL.String())
+	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
 	q := c.QueryParam("q")
@@ -42,7 +42,7 @@ func (s *Server) getUserSearch(c echo.Context) error {
 }
 
 func (s *Server) getUser(c echo.Context) error {
-	s.logger.Infof("Server GET users %s", c.Request().URL.String())
+	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
 	kid, err := keys.ParseID(c.Param("kid"))

@@ -124,7 +124,7 @@ func newTestServer(t *testing.T, env *env) *testServer {
 	svr := server.NewServer(env.fi, mc, env.users, server.NewLogger(env.logLevel))
 	tasks := server.NewTestTasks(svr)
 	svr.SetTasks(tasks)
-	svr.SetInternalAuth(keys.RandIDString())
+	svr.SetInternalAuth(keys.Rand3262())
 	svr.SetNowFn(env.clock.Now)
 	svr.SetAccessFn(func(c server.AccessContext, resource server.AccessResource, action server.AccessAction) server.Access {
 		return server.AccessAllow()

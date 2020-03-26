@@ -64,7 +64,7 @@ func (s *PubSubServer) AddRoutes(e *echo.Echo) {
 // TODO: Whitelist publish recipients by default
 
 func (s *PubSubServer) publish(c echo.Context) error {
-	s.logger.Infof("Server POST publish %s", c.Request().URL.String())
+	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
 	_, status, err := authorize(c, s.URL, s.nowFn(), s.mc)
@@ -113,7 +113,7 @@ var (
 )
 
 func (s *PubSubServer) subscribe(c echo.Context) error {
-	s.logger.Infof("Server GET subscribe %s", c.Request().URL.String())
+	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
 	kid, status, err := authorize(c, s.URL, s.nowFn(), s.mc)
 	if err != nil {
@@ -153,7 +153,7 @@ func (s *PubSubServer) subscribe(c echo.Context) error {
 }
 
 func (s *PubSubServer) wsEcho(c echo.Context) error {
-	s.logger.Infof("Server GET wsecho %s", c.Request().URL.String())
+	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
 	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {

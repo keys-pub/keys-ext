@@ -96,13 +96,13 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	e.POST("/cron/check", s.cronCheck)
 
 	// Messages
-	e.POST("/messages/:kid/:rid", s.postMessage)
-	e.GET("/messages/:kid/:rid", s.listMessages)
+	e.PUT("/msgs/:kid/:rid/:id", s.putMessage)
+	e.DELETE("/msgs/:kid/:rid/:id", s.deleteMessage)
+	e.GET("/msgs/:kid/:rid/:id", s.getMessage)
+	e.GET("/msgs/:kid/:rid", s.listMessages)
 
-	// Ephemeral
-	e.PUT("/ephem/:kid/:rid", s.putEphem)
-	e.DELETE("/ephem/:kid/:rid", s.deleteEphem)
-	e.GET("/ephem/:kid/:rid", s.getEphem)
+	// Invite
+	e.POST("/invite/:kid/:rid", s.postInvite)
 	e.GET("/invite", s.getInvite)
 
 	// Sigchain (aliases)
