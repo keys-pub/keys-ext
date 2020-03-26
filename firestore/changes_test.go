@@ -24,7 +24,7 @@ func testChanges(t *testing.T, ds keys.DocumentStore, changes keys.Changes) {
 	length := 40
 
 	for i := 0; i < length; i++ {
-		p := keys.Path("test", fmt.Sprintf("%s-%06d", keys.RandIDString(), i))
+		p := keys.Path("test", fmt.Sprintf("%s-%06d", keys.Rand3262(), i))
 		paths = append(paths, p)
 		err := ds.Create(ctx, p, []byte(fmt.Sprintf("value%d", i)))
 		require.NoError(t, err)
