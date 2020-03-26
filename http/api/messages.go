@@ -7,9 +7,7 @@ type Message struct {
 }
 
 // MessageResponse ...
-type MessageResponse struct {
-	ID string `json:"id"`
-}
+type MessageResponse struct{}
 
 // MessagesResponse is the response from messages.
 type MessagesResponse struct {

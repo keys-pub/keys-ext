@@ -2,9 +2,9 @@ package api
 
 import "github.com/keys-pub/keys"
 
-// EphemResponse ...
-type EphemResponse struct {
-	Code string `json:"code,omitempty"`
+// CreateInviteResponse ...
+type CreateInviteResponse struct {
+	Code string `json:"code"`
 }
 
 // InviteResponse ...
