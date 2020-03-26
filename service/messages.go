@@ -15,7 +15,7 @@ import (
 
 // MessagePrepare (RPC) prepares to create a message, the response can be used to show a pending message
 func (s *service) MessagePrepare(ctx context.Context, req *MessagePrepareRequest) (*MessagePrepareResponse, error) {
-	message, prepareErr := s.messagePrepare(ctx, req.Sender, req.Recipient, req.Text)
+	message, prepareErr := s.messagePrepare(ctx, req.Sender, req.Recipient, req.ID, req.Text)
 	if prepareErr != nil {
 		return nil, prepareErr
 	}
@@ -26,7 +26,7 @@ func (s *service) MessagePrepare(ctx context.Context, req *MessagePrepareRequest
 
 // MessageCreate (RPC) creates a message for a recipient
 func (s *service) MessageCreate(ctx context.Context, req *MessageCreateRequest) (*MessageCreateResponse, error) {
-	message, createErr := s.messageCreate(ctx, req.Sender, req.Recipient, req.Text)
+	message, createErr := s.messageCreate(ctx, req.Sender, req.Recipient, req.ID, req.Text)
 	if createErr != nil {
 		return nil, createErr
 	}
@@ -69,7 +69,7 @@ func (s *service) Messages(ctx context.Context, req *MessagesRequest) (*Messages
 // should then use messageCreate to save the message. This needs to be fast, so
 // the client can show the a pending message right away. Preparing before create
 // is optional.
-func (s *service) messagePrepare(ctx context.Context, sender string, recipient string, text string) (*Message, error) {
+func (s *service) messagePrepare(ctx context.Context, sender string, recipient string, id string, text string) (*Message, error) {
 	if sender == "" {
 		return nil, errors.Errorf("no sender specified")
 	}
@@ -85,7 +85,12 @@ func (s *service) messagePrepare(ctx context.Context, sender string, recipient s
 		return nil, err
 	}
 
+	if id == "" {
+		id = keys.Rand3262()
+	}
+
 	message := &Message{
+		ID: id,
 		Content: &Content{
 			Data: []byte(text),
 			Type: UTF8Content,
@@ -98,7 +103,7 @@ func (s *service) messagePrepare(ctx context.Context, sender string, recipient s
 	return message, nil
 }
 
-func (s *service) messageCreate(ctx context.Context, sender string, recipient string, text string) (*Message, error) {
+func (s *service) messageCreate(ctx context.Context, sender string, recipient string, id string, text string) (*Message, error) {
 	if recipient == "" {
 		return nil, errors.Errorf("no recipient specified")
 	}
@@ -113,7 +118,12 @@ func (s *service) messageCreate(ctx context.Context, sender string, recipient st
 		return nil, err
 	}
 
+	if id == "" {
+		id = keys.Rand3262()
+	}
+
 	message := &Message{
+		ID: id,
 		Content: &Content{
 			Data: []byte(text),
 			Type: UTF8Content,
@@ -124,13 +134,9 @@ func (s *service) messageCreate(ctx context.Context, sender string, recipient st
 		return nil, err
 	}
 
-	sent, err := s.remote.SendMessage(ctx, senderKey, rid, b, nil)
-	if err != nil {
+	if err := s.remote.SendMessage(ctx, senderKey, rid, id, b); err != nil {
 		return nil, err
 	}
-
-	// TODO: Generate ID on client
-	message.ID = sent.ID
 
 	// TODO: Sync to local
 

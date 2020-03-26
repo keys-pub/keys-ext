@@ -2,10 +2,13 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"time"
 
+	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keysd/wormhole"
+	"github.com/keys-pub/keysd/wormhole/sctp"
 	"github.com/pkg/errors"
 )
 
@@ -60,32 +63,68 @@ func (s *service) Wormhole(srv Keys_WormholeServer) error {
 		}
 
 		if !init {
-			if req.Sender == "" {
-				return errors.Errorf("no sender specified")
-			}
-			sender, err := s.parseIdentityForEdX25519Key(ctx, req.Sender)
-			if err != nil {
-				return err
-			}
-
-			if req.Recipient == "" {
-				return errors.Errorf("no recipient specified")
-			}
-			recipient, err := s.parseIdentityForEdX25519PublicKey(ctx, req.Recipient)
-			if err != nil {
-				return err
-			}
-
 			if req.ID != "" || len(req.Data) != 0 {
 				return errors.Errorf("first request should only be sender/recipient")
 			}
 
 			init = true
 
+			var initiator bool
+			var offer *sctp.Addr
+			var sender keys.ID
+			var recipient keys.ID
+			if req.Invite == "" {
+				if req.Sender == "" {
+					return errors.Errorf("no sender specified")
+				}
+				sid, err := s.parseIdentity(ctx, req.Sender)
+				if err != nil {
+					return err
+				}
+				sender = sid
+
+				if req.Recipient == "" {
+					return errors.Errorf("no recipient specified")
+				}
+				rid, err := s.parseIdentity(ctx, req.Recipient)
+				if err != nil {
+					return err
+				}
+				recipient = rid
+
+				found, err := wh.FindOffer(ctx, sender, recipient)
+				if err != nil {
+					return err
+				}
+				if found == nil {
+					initiator = true
+					created, invite, err := wh.CreateOffer(ctx, sender, recipient)
+					if err != nil {
+						return err
+					}
+					fmt.Printf("Invite code: %s\n", invite)
+					offer = created
+				} else {
+					offer = found
+				}
+			}
+
 			go func() {
-				if err := wh.Start(ctx, sender, recipient); err != nil {
-					startErr = err
-					return
+				if req.Invite != "" {
+					if err := wh.ListenByInvite(ctx, req.Invite); err != nil {
+						startErr = err
+						return
+					}
+				} else if initiator {
+					if err := wh.Connect(ctx, sender, recipient, offer); err != nil {
+						startErr = err
+						return
+					}
+				} else {
+					if err := wh.Listen(ctx, sender, recipient, offer); err != nil {
+						startErr = err
+						return
+					}
 				}
 
 				// Read and send output to client

@@ -20,6 +20,7 @@ func wormholeCommands(client *Client) []cli.Command {
 			Flags: []cli.Flag{
 				cli.StringFlag{Name: "sender, s", Usage: "sender"},
 				cli.StringFlag{Name: "recipient, r", Usage: "recipient"},
+				cli.StringFlag{Name: "invite", Usage: "invite code"},
 			},
 			Action: func(c *cli.Context) error {
 				client, err := client.ProtoClient().Wormhole(context.TODO())
@@ -30,6 +31,7 @@ func wormholeCommands(client *Client) []cli.Command {
 				if err := client.Send(&WormholeInput{
 					Sender:    c.String("sender"),
 					Recipient: c.String("recipient"),
+					Invite:    c.String("invite"),
 				}); err != nil {
 					return err
 				}
