@@ -3,7 +3,6 @@ module github.com/keys-pub/keysd/service
 go 1.12
 
 require (
-	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/protobuf v1.3.5 // indirect
@@ -27,7 +26,7 @@ require (
 	google.golang.org/grpc v1.28.0
 )
 
-replace github.com/keys-pub/keys => ../../keys
+// replace github.com/keys-pub/keys => ../../keys
 
 // replace github.com/keys-pub/keysd/db => ../db
 
@@ -37,4 +36,4 @@ replace github.com/keys-pub/keys => ../../keys
 
 // replace github.com/keys-pub/keysd/http/server => ../http/server
 
-replace github.com/keys-pub/keysd/wormhole => ../wormhole
+// replace github.com/keys-pub/keysd/wormhole => ../wormhole

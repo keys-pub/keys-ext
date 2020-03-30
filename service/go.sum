@@ -3,6 +3,7 @@ github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=
+github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d h1:U+s90UTSYgptZMwQh2aRr3LuazLJIa+Pg3Kc1ylSYVY=
 github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d/go.mod h1:maD7wRr/U5Z6m/iR4s+kqSMx2CaBsrgA7czyZG/E6dU=
 github.com/cpuguy83/go-md2man/v2 v2.0.0 h1:EoUDS0afbrsXAZ9YQ9jdu/mZ2sXgT1/2yyNng4PGlyM=
 github.com/cpuguy83/go-md2man/v2 v2.0.0/go.mod h1:maD7wRr/U5Z6m/iR4s+kqSMx2CaBsrgA7czyZG/E6dU=
@@ -62,6 +63,11 @@ github.com/keybase/saltpack v0.0.0-20190828020936-3f47e8e2e6ec h1:ejQ18jEAjyiFen
 github.com/keybase/saltpack v0.0.0-20190828020936-3f47e8e2e6ec/go.mod h1:loEJH62iafRcA8ZYlUEq9WgJh/Z9BHdHHfAmxzacQng=
 github.com/keybase/saltpack v0.0.0-20200228190633-d75baa96bffb h1:+AxJjayBs1yJrAddiOyvj7EjuN7ag1gl9QFszNTQX2M=
 github.com/keybase/saltpack v0.0.0-20200228190633-d75baa96bffb/go.mod h1:loEJH62iafRcA8ZYlUEq9WgJh/Z9BHdHHfAmxzacQng=
+github.com/keys-pub/keys v0.0.0-20200324161647-7b75199a4717/go.mod h1:k/6AQo72ji46Q03AX8C2jLUd4dmGM6djrEZY+LVr6Ww=
+github.com/keys-pub/keys v0.0.0-20200326170554-f32fbcc6b18f/go.mod h1:k/6AQo72ji46Q03AX8C2jLUd4dmGM6djrEZY+LVr6Ww=
+github.com/keys-pub/keys v0.0.0-20200326184146-fa1d5d7bba72/go.mod h1:k/6AQo72ji46Q03AX8C2jLUd4dmGM6djrEZY+LVr6Ww=
+github.com/keys-pub/keys v0.0.0-20200330225100-4b653742d8d5 h1:+kAMEsVvTpeEVD+qkIeDcXXgIPKbO4JINXv2YlrpUcw=
+github.com/keys-pub/keys v0.0.0-20200330225100-4b653742d8d5/go.mod h1:k/6AQo72ji46Q03AX8C2jLUd4dmGM6djrEZY+LVr6Ww=
 github.com/keys-pub/keysd/db v0.0.0-20200326205849-547009e6be10 h1:CNU5chl9IcFP4fdJ0R8CYmEMS3U2Wmq7lPW5HyPtmaw=
 github.com/keys-pub/keysd/db v0.0.0-20200326205849-547009e6be10/go.mod h1:bJrpxWb0TxH8RbdAD8gsgoN/l55WKGkAPiZoJKsbUiI=
 github.com/keys-pub/keysd/http/api v0.0.0-20200326173323-d53753a929e2 h1:rmPp/+bGzxAqaSCFpNX2E5PLEK99pDeNYaoU13sdiPs=
@@ -74,6 +80,8 @@ github.com/keys-pub/keysd/http/server v0.0.0-20200326173537-f15ed1afc333 h1:22/6
 github.com/keys-pub/keysd/http/server v0.0.0-20200326173537-f15ed1afc333/go.mod h1:ohk4jItPx6eCF51jttjy9LxhOBdP8u6ewwD2kK3Lnts=
 github.com/keys-pub/keysd/http/server v0.0.0-20200330224338-ac67d476f58e h1:lEijT1ubQk1WVeaTuxqAXFbAidhsN1MGvbLc+6NEMnA=
 github.com/keys-pub/keysd/http/server v0.0.0-20200330224338-ac67d476f58e/go.mod h1:ohk4jItPx6eCF51jttjy9LxhOBdP8u6ewwD2kK3Lnts=
+github.com/keys-pub/keysd/wormhole v0.0.0-20200330224952-6ff06c0b79bf h1:vWUCJJWSkzN/U7b3PLDW/dfh5IQfM9EhYGsh585ydnI=
+github.com/keys-pub/keysd/wormhole v0.0.0-20200330224952-6ff06c0b79bf/go.mod h1:rlKeDfF6ljxe0Krl4VNx5E5ZWslVF/DO59W21xPxNnM=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=
 github.com/kisielk/errcheck v1.2.0/go.mod h1:/BMXB+zMLi60iA8Vv6Ksmxu/1UDYcXs4uQLJ+jE2L00=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
