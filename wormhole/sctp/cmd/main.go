@@ -64,7 +64,7 @@ func main() {
 		}
 	} else {
 		fmt.Printf("Listen...\n")
-		if err := client.Listen(ctx, remote); err != nil {
+		if err := client.ListenForPeer(ctx, remote); err != nil {
 			log.Fatal(err)
 		}
 	}

@@ -14,6 +14,9 @@ import (
 	"gortc.io/stun"
 )
 
+// ErrHandshakeTimeout if handshake failed.
+var ErrHandshakeTimeout = errors.New("sctp handshake timed out")
+
 var stunServer = "stun.l.google.com:19302"
 
 // Client for SCTP.
@@ -91,23 +94,47 @@ func (c *Client) read(ctx context.Context, b []byte) (int, error) {
 	}
 }
 
+// Local listens for UDP on local address.
+// Use STUN instead for a remote address.
+func (c *Client) Local() (*Addr, error) {
+	conn, err := net.ListenUDP(udp, nil)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to net.ListenUDP")
+	}
+
+	// Is there a better way to get the port? (cast to UDPAddr?)
+	addr := conn.LocalAddr()
+	udpAddr, err := net.ResolveUDPAddr("udp", addr.String())
+	if err != nil {
+		return nil, err
+	}
+
+	c.conn = conn
+
+	return &Addr{
+		IP:   "127.0.0.1",
+		Port: udpAddr.Port,
+	}, nil
+}
+
 // STUN initiates the stun requests and returns an address.
 func (c *Client) STUN(ctx context.Context, timeout time.Duration) (*Addr, error) {
 	if c.conn != nil {
 		return nil, errors.Errorf("stun already connected")
 	}
-	conn, err := net.ListenUDP(udp, nil)
+
+	// Ignore local address, we'll get remote address from STUN server
+	_, err := c.Local()
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to net.ListenUDP")
 	}
-	c.conn = conn
 
-	logger.Infof("Listening on %s", conn.LocalAddr())
+	logger.Infof("STUN listening on %s", c.conn.LocalAddr())
 
-	messageChan := listen(conn)
+	messageChan := listen(c.conn)
 	// keepAlive := time.NewTicker(time.Second)
 
-	if err := stunBindingRequest(conn); err != nil {
+	if err := stunBindingRequest(c.conn); err != nil {
 		return nil, err
 	}
 
@@ -125,8 +152,10 @@ Stun:
 				return nil, errors.Errorf("stun connection closed")
 			}
 			if stun.IsMessage(message) {
+				// logger.Debugf("STUN: %s", spew.Sdump(message))
 				m := new(stun.Message)
 				m.Raw = message
+				// logger.Debugf("STUN decoded: %+v", m)
 				if err := m.Decode(); err != nil {
 					return nil, errors.Wrapf(err, "failed to decode stun message")
 				}
@@ -192,7 +221,7 @@ func (c *Client) Connect(ctx context.Context, peerAddr *Addr) error {
 }
 
 // Listen for connections from peer.
-func (c *Client) Listen(ctx context.Context, peerAddr *Addr) error {
+func (c *Client) ListenForPeer(ctx context.Context, peerAddr *Addr) error {
 	if c.conn == nil {
 		return errors.Errorf("no stun connection, run STUN()")
 	}

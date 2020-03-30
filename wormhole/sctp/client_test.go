@@ -11,8 +11,12 @@ import (
 )
 
 func TestNewClient(t *testing.T) {
-	// sctp.SetLogger(sctp.NewLogger(sctp.DebugLevel))
+	sctp.SetLogger(sctp.NewLogger(sctp.DebugLevel))
+	// testClient(t, true)
+	testClient(t, false)
+}
 
+func testClient(t *testing.T, stun bool) {
 	alice := sctp.NewClient()
 	bob := sctp.NewClient()
 	defer alice.Close()
@@ -20,16 +24,29 @@ func TestNewClient(t *testing.T) {
 
 	ctx := context.TODO()
 
-	aliceAddr, err := alice.STUN(ctx, time.Second*5)
-	require.NoError(t, err)
-	bobAddr, err := bob.STUN(ctx, time.Second*5)
-	require.NoError(t, err)
+	var aliceAddr *sctp.Addr
+	var bobAddr *sctp.Addr
+	if stun {
+		a, err := alice.STUN(ctx, time.Second*5)
+		require.NoError(t, err)
+		aliceAddr = a
+		b, err := bob.STUN(ctx, time.Second*5)
+		require.NoError(t, err)
+		bobAddr = b
+	} else {
+		a, err := alice.Local()
+		require.NoError(t, err)
+		aliceAddr = a
+		b, err := bob.Local()
+		require.NoError(t, err)
+		bobAddr = b
+	}
 
 	aliceWg := &sync.WaitGroup{}
 	aliceWg.Add(1)
 
 	go func() {
-		err = alice.Connect(ctx, bobAddr)
+		err := alice.Connect(ctx, bobAddr)
 		require.NoError(t, err)
 		aliceWg.Done()
 	}()
@@ -38,14 +55,14 @@ func TestNewClient(t *testing.T) {
 	bobWg.Add(1)
 
 	go func() {
-		err = bob.Listen(ctx, aliceAddr)
+		err := bob.ListenForPeer(ctx, aliceAddr)
 		require.NoError(t, err)
 		bobWg.Done()
 	}()
 
 	aliceWg.Wait()
 
-	err = alice.Write(ctx, []byte("ping"))
+	err := alice.Write(ctx, []byte("ping"))
 	require.NoError(t, err)
 
 	bobWg.Wait()

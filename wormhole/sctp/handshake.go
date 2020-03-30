@@ -4,8 +4,6 @@ import (
 	"context"
 	"sync"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 func (c *Client) handshake(ctx context.Context, addr *Addr, initiator bool, timeout time.Duration) error {
@@ -69,8 +67,6 @@ func (c *Client) handshake(ctx context.Context, addr *Addr, initiator bool, time
 		logger.Debugf("Wait for (sctp) handshake...")
 		wg.Wait()
 		close(ch)
-		logger.Debugf("Handshake (sctp) done")
-
 	}()
 
 	select {
@@ -78,7 +74,8 @@ func (c *Client) handshake(ctx context.Context, addr *Addr, initiator bool, time
 	case <-ctx.Done():
 		return ctx.Err()
 	case <-time.After(timeout):
-		return errors.Errorf("sctp handshake timed out (%s)", timeout)
+		logger.Debugf("SCTP handshake timed out")
+		return ErrHandshakeTimeout
 	}
 
 	if writeErr != nil {
@@ -87,6 +84,8 @@ func (c *Client) handshake(ctx context.Context, addr *Addr, initiator bool, time
 	if readErr != nil {
 		return readErr
 	}
+
+	logger.Infof("SCTP handshake done")
 
 	return nil
 }
