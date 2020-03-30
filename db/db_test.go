@@ -302,7 +302,7 @@ func ExampleDB_OpenAtPath() {
 
 	key := keys.RandKey()
 	ctx := context.TODO()
-	path := filepath.Join(os.TempDir(), fmt.Sprintf("example-%s.leveldb", keys.Rand3262()))
+	path := filepath.Join(os.TempDir(), "example-db-open.db")
 	if err := db.OpenAtPath(ctx, path, key); err != nil {
 		log.Fatal(err)
 	}
@@ -314,7 +314,7 @@ func ExampleDB_Create() {
 
 	key := keys.RandKey()
 	ctx := context.TODO()
-	path := filepath.Join(os.TempDir(), fmt.Sprintf("example-%s.leveldb", keys.Rand3262()))
+	path := filepath.Join(os.TempDir(), "example-db-create.db")
 	if err := db.OpenAtPath(ctx, path, key); err != nil {
 		log.Fatal(err)
 	}
@@ -330,7 +330,7 @@ func ExampleDB_Get() {
 
 	key := keys.RandKey()
 	ctx := context.TODO()
-	path := filepath.Join(os.TempDir(), "test.db")
+	path := filepath.Join(os.TempDir(), "example-db-get.db")
 	if err := db.OpenAtPath(ctx, path, key); err != nil {
 		log.Fatal(err)
 	}
@@ -356,7 +356,7 @@ func ExampleDB_Set() {
 
 	key := keys.RandKey()
 	ctx := context.TODO()
-	path := filepath.Join(os.TempDir(), "test.db")
+	path := filepath.Join(os.TempDir(), "example-db-set.db")
 	if err := db.OpenAtPath(ctx, path, key); err != nil {
 		log.Fatal(err)
 	}
@@ -382,7 +382,7 @@ func ExampleDB_Documents() {
 
 	key := keys.RandKey()
 	ctx := context.TODO()
-	path := filepath.Join(os.TempDir(), "test.db")
+	path := filepath.Join(os.TempDir(), "example-db-documents.db")
 	if err := db.OpenAtPath(ctx, path, key); err != nil {
 		log.Fatal(err)
 	}
