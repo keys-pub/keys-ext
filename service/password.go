@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"runtime"
 	"syscall"
 
 	"github.com/pkg/errors"
@@ -18,9 +17,9 @@ func readPassword(prompt string) (string, error) {
 
 	// Bug with windows
 	// https://github.com/golang/go/issues/36609
-	if runtime.GOOS == "windows" {
-		return "", errors.Errorf("temporarily unsupported on windows, use -password option")
-	}
+	// if runtime.GOOS == "windows" {
+	// 	return "", errors.Errorf("temporarily unsupported on windows, use -password option")
+	// }
 
 	// Get the initial state of the terminal.
 	initialTermState, err := terminal.GetState(int(syscall.Stdin))
