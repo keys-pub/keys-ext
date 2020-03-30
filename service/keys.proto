@@ -696,9 +696,23 @@ enum WormholeStatus {
   option (gogoproto.goproto_enum_prefix) = false;
   option (gogoproto.enum_customname) = "WormholeStatus";
 
-  WORMHOLE_UNKNOWN = 0 [(gogoproto.enumvalue_customname) = "WormholeStatusUnknown"];
-  WORMHOLE_OPEN = 1 [(gogoproto.enumvalue_customname) = "WormholeStatusOpen"];
-  WORMHOLE_CLOSED = 2 [(gogoproto.enumvalue_customname) = "WormholeStatusClosed"]; 
+  WORMHOLE_DEFAULT = 0 [(gogoproto.enumvalue_customname) = "WormholeDefault"];
+  
+  // WormholeStarting if starting.
+  WORMHOLE_STARTING = 10 [(gogoproto.enumvalue_customname) = "WormholeStarting"];
+  
+  // WormholeOffering if offering.
+  WORMHOLE_OFFERING = 20 [(gogoproto.enumvalue_customname) = "WormholeOffering"];
+  // WormholeAnswering if answering.
+  WORMHOLE_ANSWERING = 21 [(gogoproto.enumvalue_customname) = "WormholeAnswering"];
+
+  // WormholeHandshake if found offer/answer and trying to SCTP/Noise handshake.
+  WORMHOLE_HANDSHAKE = 40 [(gogoproto.enumvalue_customname) = "WormholeHandshake"];
+  
+  // WormholeConnected if connected
+  WORMHOLE_CONNECTED = 100 [(gogoproto.enumvalue_customname) = "WormholeConnected"];
+  // WormholeClosed if closed
+  WORMHOLE_CLOSED = 200 [(gogoproto.enumvalue_customname) = "WormholeClosed"]; 
 }
 
 message WormholeOutput {

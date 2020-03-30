@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"os"
 	"sync"
 	"time"
 
@@ -10,6 +11,9 @@ import (
 	"github.com/keys-pub/keysd/db"
 	"github.com/keys-pub/keysd/http/client"
 )
+
+// TODO: Detect stale sigchains
+// TODO: If db cleared, reload sigchains on startup
 
 type service struct {
 	cfg    *Config
@@ -69,7 +73,7 @@ func (s *service) Now() time.Time {
 
 // Open the service.
 // If already open, will close and re-open.
-func (s *service) Open() error {
+func (s *service) Open(ctx context.Context, key keys.SecretKey) error {
 	s.openMtx.Lock()
 	defer s.openMtx.Unlock()
 	if s.open {
@@ -77,18 +81,29 @@ func (s *service) Open() error {
 		s.close()
 	}
 	logger.Infof("Opening db...")
-	path, err := s.cfg.AppPath(fmt.Sprintf("keys.leveldb"), true)
+	path, err := s.cfg.AppPath(fmt.Sprintf("keys-v2.leveldb"), true)
 	if err != nil {
 		return err
 	}
 
-	// TODO: leveldb encryption?
+	isNew := false
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		isNew = true
+	}
 
-	if err := s.db.OpenAtPath(path, nil); err != nil {
+	if err := s.db.OpenAtPath(ctx, path, key); err != nil {
 		return err
 	}
-	s.startCheck()
 	s.open = true
+
+	// If database is new, we are either in a new state or from a uninstalled
+	// (or migrated) state. In the uninstalled state, we should try to update
+	// local db for any keys we have in our keyring.
+	if isNew {
+		s.tryCheckUpdate(ctx)
+	}
+
+	s.startCheck()
 
 	return nil
 }
@@ -112,31 +127,49 @@ func (s *service) close() {
 	s.open = false
 }
 
-func (s *service) check(ctx context.Context) {
-	logger.Infof("Checking for expired users...")
-	// TODO: This checks keys that no longer exist in keyring (after they were deleted)
-	ids, err := s.users.Expired(ctx, time.Hour*24)
-	if err != nil {
-		logger.Warningf("Failed to get expired users: %v", err)
-		return
+func (s *service) tryCheckUpdate(ctx context.Context) {
+	if err := s.checkUpdate(ctx); err != nil {
+		logger.Errorf("Failed to check keys: %v", err)
 	}
-	for _, id := range ids {
-		_, err := s.users.Update(ctx, id)
+}
+
+func (s *service) checkUpdate(ctx context.Context) error {
+	logger.Infof("Checking keys...")
+
+	// TODO: Only update keys where we've seen a sigchain?
+
+	pks, err := s.ks.EdX25519PublicKeys()
+	if err != nil {
+		return err
+	}
+	kids := make([]keys.ID, 0, len(pks))
+	for _, pk := range pks {
+		res, err := s.users.Get(ctx, pk.ID())
 		if err != nil {
-			logger.Errorf("Failed to update user index for %s: %v", id, err)
+			return err
+		}
+		if res == nil || res.Expired(s.Now(), time.Hour*24) {
+			kids = append(kids, pk.ID())
 		}
 	}
+
+	for _, kid := range kids {
+		if _, _, err := s.update(ctx, kid); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (s *service) startCheck() {
 	ticker := time.NewTicker(time.Hour)
 	s.closeCh = make(chan bool)
 	go func() {
-		s.check(context.TODO())
+		s.tryCheckUpdate(context.TODO())
 		for {
 			select {
 			case <-ticker.C:
-				s.check(context.TODO())
+				s.tryCheckUpdate(context.TODO())
 			case <-s.closeCh:
 				ticker.Stop()
 				return

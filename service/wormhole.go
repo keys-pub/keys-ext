@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"time"
 
@@ -12,9 +11,124 @@ import (
 	"github.com/pkg/errors"
 )
 
+func (s *service) wormholeInit(ctx context.Context, req *WormholeInput, wh *wormhole.Wormhole, srv Keys_WormholeServer) error {
+	if req.ID != "" || len(req.Data) != 0 {
+		return errors.Errorf("first request should not include a message")
+	}
+
+	if err := srv.Send(&WormholeOutput{Status: WormholeStarting}); err != nil {
+		return err
+	}
+
+	var initiator bool
+	var offer *sctp.Addr
+	var sender keys.ID
+	var recipient keys.ID
+	if req.Invite != "" {
+		if req.Sender == "" || req.Recipient != "" {
+			return errors.Errorf("specify invite or sender/recipient")
+		}
+
+		invite, err := wh.FindInvite(ctx, req.Invite)
+		if err != nil {
+			return err
+		}
+		sender = invite.Sender
+		recipient = invite.Recipient
+	} else {
+		if req.Sender == "" {
+			return errors.Errorf("no sender specified")
+		}
+		sid, err := s.parseIdentity(ctx, req.Sender)
+		if err != nil {
+			return err
+		}
+		sender = sid
+
+		if req.Recipient == "" {
+			return errors.Errorf("no recipient specified")
+		}
+		rid, err := s.parseIdentity(ctx, req.Recipient)
+		if err != nil {
+			return err
+		}
+		recipient = rid
+	}
+
+	found, err := wh.FindOffer(ctx, sender, recipient)
+	if err != nil {
+		return err
+	}
+	if found == nil {
+		initiator = true
+		created, err := wh.CreateLocalOffer(ctx, sender, recipient)
+		// created, err := wh.CreateOffer(ctx, sender, recipient)
+		if err != nil {
+			return err
+		}
+		offer = created
+
+		// Offering
+		if err := srv.Send(&WormholeOutput{Status: WormholeOffering}); err != nil {
+			return err
+		}
+
+		// TODO: Invite
+	} else {
+		offer = found
+		// Answering
+		if err := srv.Send(&WormholeOutput{Status: WormholeAnswering}); err != nil {
+			return err
+		}
+	}
+
+	if initiator {
+		if err := wh.Connect(ctx, sender, recipient, offer); err != nil {
+			return err
+		}
+	} else {
+		if err := wh.Listen(ctx, sender, recipient, offer); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *service) wormholeInput(ctx context.Context, req *WormholeInput, wh *wormhole.Wormhole) error {
+	// TODO: Ensure req.Sender and req.Recipient aren't set on subsequent requests?
+
+	if req.ID == "" {
+		return errors.Errorf("no message")
+	}
+	_, err := wh.WriteMessage(ctx, req.ID, req.Data, contentTypeFromRPC(req.Type))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *service) wormholeReadSend(ctx context.Context, wh *wormhole.Wormhole, srv Keys_WormholeServer) error {
+	msg, err := wh.ReadMessage(ctx, true)
+	if err != nil {
+		return err
+	}
+
+	out, err := s.messageToRPC(ctx, msg)
+	if err != nil {
+		return err
+	}
+
+	if err := srv.Send(&WormholeOutput{
+		Message: out,
+	}); err != nil {
+		return err
+	}
+	return nil
+}
+
 // Wormhole (RPC) ...
 func (s *service) Wormhole(srv Keys_WormholeServer) error {
-	// TODO: EOF's if auth token is stale, need better error
+	// TODO: EOF's if auth token is stale? Need better error?
 
 	wh, err := wormhole.NewWormhole(s.cfg.Server(), s.ks)
 	if err != nil {
@@ -22,155 +136,83 @@ func (s *service) Wormhole(srv Keys_WormholeServer) error {
 	}
 	defer wh.Close()
 
-	ctx, cancel := context.WithCancel(srv.Context())
-	defer cancel()
-
 	init := false
-	var status WormholeStatus
 
-	wh.OnConnect(func() {
-		status = WormholeStatusOpen
-		if err := srv.Send(&WormholeOutput{
-			Status: status,
-		}); err != nil {
+	wh.OnStatus(func(st wormhole.Status) {
+		rst := statusToRPC(st)
+		if rst == WormholeDefault {
+			return
+		}
+		if err := srv.Send(&WormholeOutput{Status: rst}); err != nil {
 			logger.Errorf("Failed to send wormhole open status: %v", err)
 		}
 	})
-	wh.OnClose(func() {
-		status = WormholeStatusClosed
-		if err := srv.Send(&WormholeOutput{
-			Status: status,
-		}); err != nil {
-			logger.Errorf("Failed to send wormhole closed status: %v", err)
-		}
-	})
 
-	var readErr error
-	var startErr error
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
-		}
+	reqCh := make(chan *WormholeInput)
 
-		req, recvErr := srv.Recv()
-		if recvErr == io.EOF {
-			break
-		}
-		if recvErr != nil {
-			return recvErr
-		}
+	ctx, cancel := context.WithCancel(srv.Context())
+	defer cancel()
 
-		if !init {
-			if req.ID != "" || len(req.Data) != 0 {
-				return errors.Errorf("first request should only be sender/recipient")
+	var recvErr error
+	go func() {
+		for {
+			logger.Debugf("Wormhole recv...")
+			req, err := srv.Recv()
+			if err == io.EOF {
+				close(reqCh)
+				cancel()
+				return
 			}
+			if err != nil {
+				recvErr = err
+				close(reqCh)
+				cancel()
+				return
+			}
+			reqCh <- req
+		}
+	}()
 
+	for req := range reqCh {
+		if !init {
 			init = true
 
-			var initiator bool
-			var offer *sctp.Addr
-			var sender keys.ID
-			var recipient keys.ID
-			if req.Invite == "" {
-				if req.Sender == "" {
-					return errors.Errorf("no sender specified")
-				}
-				sid, err := s.parseIdentity(ctx, req.Sender)
-				if err != nil {
-					return err
-				}
-				sender = sid
-
-				if req.Recipient == "" {
-					return errors.Errorf("no recipient specified")
-				}
-				rid, err := s.parseIdentity(ctx, req.Recipient)
-				if err != nil {
-					return err
-				}
-				recipient = rid
-
-				found, err := wh.FindOffer(ctx, sender, recipient)
-				if err != nil {
-					return err
-				}
-				if found == nil {
-					initiator = true
-					created, invite, err := wh.CreateOffer(ctx, sender, recipient)
-					if err != nil {
-						return err
-					}
-					fmt.Printf("Invite code: %s\n", invite)
-					offer = created
-				} else {
-					offer = found
-				}
+			if err := s.wormholeInit(ctx, req, wh, srv); err != nil {
+				return err
 			}
 
 			go func() {
-				if req.Invite != "" {
-					if err := wh.ListenByInvite(ctx, req.Invite); err != nil {
-						startErr = err
-						return
-					}
-				} else if initiator {
-					if err := wh.Connect(ctx, sender, recipient, offer); err != nil {
-						startErr = err
-						return
-					}
-				} else {
-					if err := wh.Listen(ctx, sender, recipient, offer); err != nil {
-						startErr = err
+				for {
+					if err := s.wormholeReadSend(ctx, wh, srv); err != nil {
 						return
 					}
 				}
-
-				// Read and send output to client
-				go func() {
-					for {
-						msg, err := wh.ReadMessage(ctx, true)
-						if err != nil {
-							readErr = err
-							return
-						}
-
-						out, err := s.messageToRPC(ctx, msg)
-						if err != nil {
-							readErr = err
-							return
-						}
-
-						if err := srv.Send(&WormholeOutput{
-							Message: out,
-							Status:  status,
-						}); err != nil {
-							readErr = err
-							return
-						}
-					}
-				}()
 			}()
-			continue
-		}
-		// TODO: Ensure req.Sender and req.Recipient aren't changed on subsequent requests?
 
-		if readErr != nil {
-			return readErr
-		}
-		if startErr != nil {
-			return startErr
-		}
-		if req.ID != "" {
-			_, err := wh.WriteMessage(ctx, req.ID, req.Data, contentTypeFromRPC(req.Type))
-			if err != nil {
+		} else {
+			if err := s.wormholeInput(ctx, req, wh); err != nil {
 				return err
 			}
 		}
 	}
-
+	if recvErr != nil {
+		return recvErr
+	}
 	return nil
+
+}
+
+func statusToRPC(st wormhole.Status) WormholeStatus {
+	switch st {
+	case wormhole.SCTPHandshake:
+		return WormholeHandshake
+	case wormhole.Connected:
+		return WormholeConnected
+	case wormhole.Closed:
+		return WormholeClosed
+	default:
+		return WormholeDefault
+	}
 }
 
 func contentTypeFromRPC(typ ContentType) wormhole.ContentType {

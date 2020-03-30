@@ -60,35 +60,36 @@ func (a *auth) lock() error {
 	return nil
 }
 
-func (a *auth) verifyPassword(password string) error {
+func (a *auth) verifyPassword(password string) (keyring.Auth, error) {
 	salt, err := a.keyring.Salt()
 	if err != nil {
-		return errors.Wrapf(err, "failed to load salt")
+		return nil, errors.Wrapf(err, "failed to load salt")
 	}
 	auth, err := keyring.NewPasswordAuth(password, salt)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if err := a.keyring.Unlock(auth); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return auth, nil
 }
 
-func (a *auth) unlock(password string, client string) (string, error) {
+func (a *auth) unlock(password string, client string) (string, keyring.Auth, error) {
 	logger.Infof("Unlock")
-	if err := a.verifyPassword(password); err != nil {
+	auth, err := a.verifyPassword(password)
+	if err != nil {
 		if err == keyring.ErrInvalidAuth {
-			return "", status.Error(codes.PermissionDenied, "invalid password")
+			return "", nil, status.Error(codes.PermissionDenied, "invalid password")
 		}
-		return "", errors.Wrapf(err, "failed to unlock")
+		return "", nil, errors.Wrapf(err, "failed to unlock")
 	}
 
 	token := generateToken()
 	a.tokens[client] = token
 	logger.Infof("Unlocked")
 
-	return token, nil
+	return token, auth, nil
 }
 
 func generateToken() string {
@@ -178,12 +179,14 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 		return nil, errors.Errorf("auth already setup")
 	}
 
-	token, err := s.auth.unlock(req.Password, req.Client)
+	token, auth, err := s.auth.unlock(req.Password, req.Client)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := s.Open(); err != nil {
+	key := auth.Key()
+
+	if err := s.Open(ctx, keys.SecretKey(key)); err != nil {
 		return nil, err
 	}
 
@@ -206,12 +209,14 @@ func (s *service) AuthUnlock(ctx context.Context, req *AuthUnlockRequest) (*Auth
 		return nil, errors.Errorf("auth setup needed")
 	}
 
-	token, err := s.auth.unlock(req.Password, req.Client)
+	token, auth, err := s.auth.unlock(req.Password, req.Client)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := s.Open(); err != nil {
+	key := auth.Key()
+
+	if err := s.Open(ctx, keys.SecretKey(key)); err != nil {
 		return nil, err
 	}
 

@@ -121,7 +121,7 @@ func RunClient(build Build) {
 
 	client := NewClient()
 	defer client.Close()
-	runClient(build, os.Args, client, errorHandler{}.clientError)
+	runClient(build, os.Args, client, clientFatal)
 }
 
 func runClient(build Build, args []string, client *Client, errorFn func(err error)) {
@@ -309,9 +309,7 @@ func (e errDifferentVersions) Error() string {
 	return fmt.Sprintf("service and client version are different, %s != %s", e.VersionService, e.VersionClient)
 }
 
-type errorHandler struct{}
-
-func (e errorHandler) clientError(err error) {
+func clientFatal(err error) {
 	// TODO: Use executable name instead of `keys`.
 	switch err := err.(type) {
 	case errDifferentVersions:

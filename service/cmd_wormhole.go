@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"sync"
+	"time"
 
 	"github.com/keys-pub/keysd/wormhole"
 	"github.com/urfave/cli"
@@ -28,6 +28,8 @@ func wormholeCommands(client *Client) []cli.Command {
 					return err
 				}
 
+				fmt.Printf("Starting wormhole...\n")
+
 				if err := client.Send(&WormholeInput{
 					Sender:    c.String("sender"),
 					Recipient: c.String("recipient"),
@@ -36,52 +38,45 @@ func wormholeCommands(client *Client) []cli.Command {
 					return err
 				}
 
-				open := false
-				wg := &sync.WaitGroup{}
-				wg.Add(1)
-
-				var recvErr error
+				var status WormholeStatus
 
 				go func() {
 					for {
 						resp, err := client.Recv()
 						if err != nil {
 							if err == io.EOF {
+								os.Exit(0)
 								return
 							}
-							recvErr = err
-							if wg != nil {
-								wg.Done()
-								wg = nil
-							}
-							return
+							clientFatal(err)
 						}
 
-						if resp.Status == WormholeStatusOpen && !open {
-							if wg != nil {
-								wg.Done()
-								wg = nil
+						if resp.Status != status {
+							status = resp.Status
+							switch status {
+							case WormholeStarting:
+							case WormholeOffering:
+								// fmt.Printf("Offering...\n")
+							case WormholeAnswering:
+								// fmt.Printf("Found offer, answering...\n")
+							case WormholeHandshake:
+								fmt.Printf("Trying handshake...\n")
+							case WormholeConnected:
+								fmt.Printf("Wormhole connected, type a message.\n")
+							case WormholeClosed:
+								fmt.Printf("Wormhole closed.\n")
+								go func() {
+									// TODO: Get error before close status so we don't have to sleep
+									time.Sleep(time.Second)
+									os.Exit(0)
+								}()
 							}
-							open = true
 						}
 
 						fmtMessage(os.Stdout, resp.Message)
-
-						if resp.Status == WormholeStatusClosed {
-							fmt.Printf("Wormhole closed.\n")
-							os.Exit(0)
-						}
 					}
 				}()
 
-				fmt.Printf("Waiting for wormhole to open...\n")
-				wg.Wait()
-
-				if recvErr != nil {
-					return recvErr
-				}
-
-				fmt.Printf("Wormhole open, type a message.\n")
 				scanner := bufio.NewScanner(os.Stdin)
 				for scanner.Scan() {
 					text := scanner.Text()

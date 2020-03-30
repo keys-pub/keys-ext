@@ -24,14 +24,14 @@ func TestAuth(t *testing.T) {
 	require.False(t, authed)
 
 	// Unlock (setup)
-	_, err = auth.unlock("password123", "test")
+	_, _, err = auth.unlock("password123", "test")
 	require.NoError(t, err)
 
 	authed2, err := kr.Authed()
 	require.NoError(t, err)
 	require.True(t, authed2)
 
-	token, err := auth.unlock("password123", "test")
+	token, _, err := auth.unlock("password123", "test")
 	require.NoError(t, err)
 	require.NotEmpty(t, auth.tokens)
 	require.NotEmpty(t, token)
@@ -41,7 +41,7 @@ func TestAuth(t *testing.T) {
 	require.NoError(t, err)
 
 	// Unlock with invalid password
-	_, err = auth.unlock("invalidpassword", "test")
+	_, _, err = auth.unlock("invalidpassword", "test")
 	require.EqualError(t, err, "rpc error: code = PermissionDenied desc = invalid password")
 	require.Empty(t, auth.tokens)
 	require.Empty(t, auth.tokens)
@@ -73,7 +73,7 @@ func TestAuthorize(t *testing.T) {
 	require.EqualError(t, err, "rpc error: code = PermissionDenied desc = invalid token")
 
 	// Unlock
-	token, err := auth.unlock("password123", "test")
+	token, _, err := auth.unlock("password123", "test")
 	require.NoError(t, err)
 	require.NotEmpty(t, auth.tokens)
 	require.NotEmpty(t, token)
