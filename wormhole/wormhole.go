@@ -28,8 +28,14 @@ var ErrNoiseHandshakeTimeout = errors.New("noise handshake timeout")
 // ErrClosed if we recieve closed message.
 var ErrClosed = errors.New("closed")
 
-// ErrInviteNotFound if invite code not found
-var ErrInviteNotFound = errors.New("invite code not found")
+type Status string
+
+const (
+	SCTPHandshake  Status = "sctp-handshake"
+	NoiseHandshake Status = "noise-handshake"
+	Connected      Status = "open"
+	Closed         Status = "closed"
+)
 
 // Wormhole for connecting two participants using webrtc, noise and
 // keys.pub.
@@ -45,8 +51,7 @@ type Wormhole struct {
 
 	buf []byte
 
-	onConnect func()
-	onClose   func()
+	onStatus func(Status)
 }
 
 // maxSize of write/read.
@@ -70,12 +75,11 @@ func NewWormhole(server string, ks *keys.Keystore) (*Wormhole, error) {
 	}
 
 	w := &Wormhole{
-		rtc:       rtc,
-		hcl:       hcl,
-		ks:        ks,
-		buf:       make([]byte, maxSize),
-		onConnect: func() {},
-		onClose:   func() {},
+		rtc:      rtc,
+		hcl:      hcl,
+		ks:       ks,
+		buf:      make([]byte, maxSize),
+		onStatus: func(Status) {},
 	}
 
 	return w, nil
@@ -86,16 +90,19 @@ func (w *Wormhole) Close() {
 	w.Lock()
 	defer w.Unlock()
 
-	w.onClose()
-	w.onClose = func() {}
+	logger.Infof("Closing wormhole...")
+	w.onStatus(Closed)
+	w.onStatus = func(Status) {}
 
 	if w.sender != "" {
 		go func() {
+			logger.Infof("Removing offer (if any)...")
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
 			_ = w.hcl.DeleteMessage(ctx, w.sender, w.recipient, "offer")
 		}()
 		go func() {
+			logger.Infof("Removing answer (if any)...")
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
 			_ = w.hcl.DeleteMessage(ctx, w.sender, w.recipient, "answer")
@@ -103,6 +110,7 @@ func (w *Wormhole) Close() {
 	}
 
 	go func() {
+		logger.Infof("Sending close...")
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
 		_ = w.writeClosed(ctx)
@@ -117,33 +125,66 @@ func (w *Wormhole) SetTimeNow(nowFn func() time.Time) {
 	w.hcl.SetTimeNow(nowFn)
 }
 
-func (w *Wormhole) OnConnect(f func()) {
-	w.onConnect = f
-}
-
-func (w *Wormhole) OnClose(f func()) {
-	w.onClose = f
+func (w *Wormhole) OnStatus(f func(Status)) {
+	w.onStatus = f
 }
 
 func (w *Wormhole) Connect(ctx context.Context, sender keys.ID, recipient keys.ID, offer *sctp.Addr) error {
-	logger.Infof("Connect")
-	if err := w.connect(ctx, sender, recipient, offer); err != nil {
+	logger.Infof("Wormhole connect...")
+
+	w.sender = sender
+	w.recipient = recipient
+
+	ctxConnect, cancel := context.WithTimeout(ctx, time.Second*60)
+	defer cancel()
+
+	// While we're checking for an answer, continue to write the offer every 10
+	// seconds, with a 15 second expire.
+	go func() {
+		for {
+			if err := w.writeOffer(ctxConnect, offer, sender, recipient, false, time.Second*15); err != nil {
+				return
+			}
+			select {
+			case <-ctxConnect.Done():
+				return
+			case <-time.After(time.Second * 10):
+				// Continue
+			}
+		}
+	}()
+
+	answer, err := w.readAnswer(ctxConnect, sender, recipient)
+	if err != nil {
 		return err
 	}
-	return w.start(ctx, sender, recipient, true)
+	if answer == nil {
+		return ErrNoResponse
+	}
+
+	cancel()
+
+	w.onStatus(SCTPHandshake)
+
+	if err := w.rtc.Connect(ctx, answer); err != nil {
+		return err
+	}
+
+	return w.noiseHandshake(ctx, sender, recipient, true)
 }
 
-func (w *Wormhole) ListenByInvite(ctx context.Context, code string) error {
+// FindInvite looks for an invite.
+func (w *Wormhole) FindInvite(ctx context.Context, code string) (*api.InviteResponse, error) {
 	// TODO: Brute force here is slow
 	keys, err := w.ks.EdX25519Keys()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	var invite *api.InviteResponse
 	for _, key := range keys {
 		i, err := w.hcl.Invite(ctx, key.ID(), code)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if i != nil {
 			invite = i
@@ -151,16 +192,9 @@ func (w *Wormhole) ListenByInvite(ctx context.Context, code string) error {
 		}
 	}
 	if invite == nil {
-		return ErrInviteNotFound
+		return nil, nil
 	}
-	sender, recipient := invite.Recipient, invite.Sender
-
-	offer, err := w.FindOffer(ctx, sender, recipient)
-	if err != nil {
-		return err
-	}
-
-	return w.Listen(ctx, sender, recipient, offer)
+	return invite, nil
 }
 
 func (w *Wormhole) FindOffer(ctx context.Context, sender keys.ID, recipient keys.ID) (*sctp.Addr, error) {
@@ -174,74 +208,64 @@ func (w *Wormhole) FindOffer(ctx context.Context, sender keys.ID, recipient keys
 	return sess.Addr, nil
 }
 
-func (w *Wormhole) CreateOffer(ctx context.Context, sender keys.ID, recipient keys.ID) (*sctp.Addr, string, error) {
-	offer, err := w.rtc.STUN(ctx, time.Second*10)
-	if err != nil {
-		return nil, "", err
-	}
-	code, err := w.writeOffer(ctx, offer, sender, recipient, true, time.Second*15)
-	if err != nil {
-		return nil, "", err
-	}
-	return offer, code, nil
+// CreateOffer creates an offer.
+func (w *Wormhole) CreateOffer(ctx context.Context, sender keys.ID, recipient keys.ID) (*sctp.Addr, error) {
+	return w.rtc.STUN(ctx, time.Second*10)
 }
 
-func (w *Wormhole) connect(ctx context.Context, sender keys.ID, recipient keys.ID, offer *sctp.Addr) error {
-	logger.Infof("Wormhole connect...")
-
-	answer, err := w.readAnswer(ctx, sender, recipient)
+// CreateInvite creates an invite code for sender/recipient.
+func (w *Wormhole) CreateInvite(ctx context.Context, sender keys.ID, recipient keys.ID) (string, error) {
+	logger.Infof("Creating invite...")
+	invite, err := w.hcl.CreateInvite(ctx, sender, recipient)
 	if err != nil {
-		return err
+		return "", err
 	}
-	if answer == nil {
-		return ErrNoResponse
-	}
+	return invite.Code, nil
+}
 
-	// Write the offer every 10 seconds, on 15 second expire.
-	writeCtx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	go func() {
-		for {
-			if _, err := w.writeOffer(ctx, offer, sender, recipient, false, time.Second*15); err != nil {
-				return
-			}
-			select {
-			case <-writeCtx.Done():
-				return
-			case <-time.After(time.Second * 10):
-				// Continue
-			}
-		}
-	}()
-
-	if err := w.rtc.Connect(ctx, answer); err != nil {
-		return err
-	}
-
-	return nil
+// CreateLocalOffer creates a local offer for testing.
+func (w *Wormhole) CreateLocalOffer(ctx context.Context, sender keys.ID, recipient keys.ID) (*sctp.Addr, error) {
+	return w.rtc.Local()
 }
 
 func (w *Wormhole) Listen(ctx context.Context, sender keys.ID, recipient keys.ID, offer *sctp.Addr) error {
 	logger.Infof("Wormhole listen...")
-	answer, err := w.rtc.STUN(ctx, time.Second*10)
-	if err != nil {
-		return err
+	var answer *sctp.Addr
+	if offer.IP == "127.0.0.1" {
+		a, err := w.rtc.Local()
+		if err != nil {
+			return err
+		}
+		answer = a
+	} else {
+		a, err := w.rtc.STUN(ctx, time.Second*10)
+		if err != nil {
+			return err
+		}
+		answer = a
 	}
+
+	w.sender = sender
+	w.recipient = recipient
+
 	if err := w.writeAnswer(ctx, answer, sender, recipient); err != nil {
 		return err
 	}
 
-	if err := w.rtc.Listen(ctx, offer); err != nil {
+	w.onStatus(SCTPHandshake)
+
+	if err := w.rtc.ListenForPeer(ctx, offer); err != nil {
 		return err
 	}
 
-	return w.start(ctx, sender, recipient, false)
+	return w.noiseHandshake(ctx, sender, recipient, false)
 }
 
-func (w *Wormhole) start(ctx context.Context, sender keys.ID, recipient keys.ID, initiator bool) error {
+func (w *Wormhole) noiseHandshake(ctx context.Context, sender keys.ID, recipient keys.ID, initiator bool) error {
 	w.Lock()
 	defer w.Unlock()
+
+	w.onStatus(NoiseHandshake)
 
 	if w.noise != nil {
 		return errors.Errorf("wormhole already started")
@@ -262,25 +286,25 @@ func (w *Wormhole) start(ctx context.Context, sender keys.ID, recipient keys.ID,
 		return keys.NewErrNotFound(recipientPublicKey.String())
 	}
 
-	w.sender = sender
-	w.recipient = recipient
-
 	noise, err := noise.NewNoise(senderKey.X25519Key(), recipientPublicKey.X25519PublicKey(), initiator)
 	if err != nil {
 		return err
 	}
 
-	// TODO: Noise handshake timeout
+	noiseCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	// TODO: Test noise handshake timeout
 	if initiator {
 		out, err := noise.HandshakeWrite(nil)
 		if err != nil {
 			return err
 		}
-		if err := w.rtc.Write(ctx, out); err != nil {
+		if err := w.rtc.Write(noiseCtx, out); err != nil {
 			return err
 		}
 		buf := make([]byte, 1024)
-		n, err := w.rtc.Read(ctx, buf)
+		n, err := w.rtc.Read(noiseCtx, buf)
 		if err != nil {
 			return err
 		}
@@ -289,7 +313,7 @@ func (w *Wormhole) start(ctx context.Context, sender keys.ID, recipient keys.ID,
 		}
 	} else {
 		buf := make([]byte, 1024)
-		n, err := w.rtc.Read(ctx, buf)
+		n, err := w.rtc.Read(noiseCtx, buf)
 		if err != nil {
 			return err
 		}
@@ -300,14 +324,14 @@ func (w *Wormhole) start(ctx context.Context, sender keys.ID, recipient keys.ID,
 		if err != nil {
 			return err
 		}
-		if err := w.rtc.Write(ctx, out); err != nil {
+		if err := w.rtc.Write(noiseCtx, out); err != nil {
 			return err
 		}
 	}
 	w.noise = noise
 
-	logger.Infof("Started")
-	w.onConnect()
+	logger.Infof("Wormhole connected.")
+	w.onStatus(Connected)
 
 	return nil
 }
@@ -447,7 +471,7 @@ func (w *Wormhole) writeClosed(ctx context.Context) error {
 	return w.Write(ctx, []byte{closedByte, 0xAD, 0xBE, 0xEF})
 }
 
-func (w *Wormhole) writeOffer(ctx context.Context, offer *sctp.Addr, sender keys.ID, recipient keys.ID, genCode bool, expire time.Duration) (string, error) {
+func (w *Wormhole) writeOffer(ctx context.Context, offer *sctp.Addr, sender keys.ID, recipient keys.ID, genCode bool, expire time.Duration) error {
 	return w.writeSession(ctx, offer, sender, recipient, "offer", genCode, expire)
 }
 
@@ -456,8 +480,10 @@ func (w *Wormhole) readOffer(ctx context.Context, sender keys.ID, recipient keys
 }
 
 func (w *Wormhole) writeAnswer(ctx context.Context, answer *sctp.Addr, sender keys.ID, recipient keys.ID) error {
-	_, err := w.writeSession(ctx, answer, sender, recipient, "answer", false, time.Hour)
-	return err
+	if err := w.writeSession(ctx, answer, sender, recipient, "answer", false, time.Hour); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (w *Wormhole) readAnswer(ctx context.Context, sender keys.ID, recipient keys.ID) (*sctp.Addr, error) {
@@ -468,25 +494,23 @@ type session struct {
 	Addr *sctp.Addr `json:"addr"`
 }
 
-func (w *Wormhole) writeSession(ctx context.Context, addr *sctp.Addr, sender keys.ID, recipient keys.ID, typ string, genCode bool, expire time.Duration) (string, error) {
+func (w *Wormhole) writeSession(ctx context.Context, addr *sctp.Addr, sender keys.ID, recipient keys.ID, typ string, genCode bool, expire time.Duration) error {
 	sess := &session{
 		Addr: addr,
 	}
 	b, err := json.Marshal(sess)
 	if err != nil {
-		return "", err
+		return err
 	}
+	logger.Debugf("Writing session: %s (%s)", addr, typ)
 	if err := w.hcl.ExpiringMessage(ctx, sender, recipient, typ, b, expire); err != nil {
-		return "", err
+		return err
 	}
-	invite, err := w.hcl.CreateInvite(ctx, sender, recipient)
-	if err != nil {
-		return "", err
-	}
-	return invite.Code, nil
+	return nil
 }
 
 func (w *Wormhole) readSession(ctx context.Context, sender keys.ID, recipient keys.ID, typ string) (*sctp.Addr, error) {
+	// TODO: Long polling?
 	for {
 		sess, err := w.readOnce(ctx, sender, recipient, typ)
 		if err != nil {
@@ -499,7 +523,7 @@ func (w *Wormhole) readSession(ctx context.Context, sender keys.ID, recipient ke
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
-		case <-time.After(time.Second * 2):
+		case <-time.After(time.Second * 3):
 			// Continue
 		}
 	}

@@ -26,11 +26,14 @@ func TestNewWormhole(t *testing.T) {
 	env := testEnv(t)
 	defer env.closeFn()
 
-	testWormhole(t, env, false)
+	// Local
 	testWormhole(t, env, true)
+
+	// Remote
+	// testWormhole(t, env, false)
 }
 
-func testWormhole(t *testing.T, env *env, useInvite bool) {
+func testWormhole(t *testing.T, env *env, local bool) {
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
 
@@ -48,21 +51,39 @@ func testWormhole(t *testing.T, env *env, useInvite bool) {
 
 	ctx := context.TODO()
 
-	wg := &sync.WaitGroup{}
-	wg.Add(2)
+	openWg := &sync.WaitGroup{}
+	openWg.Add(2)
+
+	closeWg := &sync.WaitGroup{}
+	closeWg.Add(2)
 
 	server := env.httpServer.URL
 	wha, err := wormhole.NewWormhole(server, ksa)
 	require.NoError(t, err)
 	defer wha.Close()
 	wha.SetTimeNow(env.clock.Now)
-	wha.OnConnect(func() {
-		wg.Done()
+	wha.OnStatus(func(st wormhole.Status) {
+		switch st {
+		case wormhole.Connected:
+			openWg.Done()
+		case wormhole.Closed:
+			closeWg.Done()
+		}
 	})
 
-	offer, inviteCode, err := wha.CreateOffer(ctx, alice.ID(), bob.ID())
+	var offer *sctp.Addr
+	if local {
+		o, err := wha.CreateLocalOffer(ctx, alice.ID(), bob.ID())
+		require.NoError(t, err)
+		offer = o
+	} else {
+		o, err := wha.CreateOffer(ctx, alice.ID(), bob.ID())
+		require.NoError(t, err)
+		offer = o
+	}
+
+	inviteCode, err := wha.CreateInvite(ctx, alice.ID(), bob.ID())
 	require.NoError(t, err)
-	require.NotEmpty(t, inviteCode)
 
 	go func() {
 		if err := wha.Connect(ctx, alice.ID(), bob.ID(), offer); err != nil {
@@ -74,22 +95,31 @@ func testWormhole(t *testing.T, env *env, useInvite bool) {
 	require.NoError(t, err)
 	defer whb.Close()
 	whb.SetTimeNow(env.clock.Now)
-	whb.OnConnect(func() {
-		wg.Done()
+	whb.OnStatus(func(st wormhole.Status) {
+		switch st {
+		case wormhole.Connected:
+			openWg.Done()
+		case wormhole.Closed:
+			closeWg.Done()
+		}
 	})
+
+	if inviteCode != "" {
+		invite, err := whb.FindInvite(ctx, inviteCode)
+		if err != nil {
+			return
+		}
+		require.Equal(t, invite.Sender, alice.ID())
+		require.Equal(t, invite.Recipient, bob.ID())
+	}
+
 	go func() {
-		if useInvite {
-			if err := whb.ListenByInvite(ctx, inviteCode); err != nil {
-				panic(err)
-			}
-		} else {
-			if err := whb.Listen(ctx, bob.ID(), alice.ID(), offer); err != nil {
-				panic(err)
-			}
+		if err := whb.Listen(ctx, bob.ID(), alice.ID(), offer); err != nil {
+			panic(err)
 		}
 	}()
 
-	wg.Wait()
+	openWg.Wait()
 
 	err = wha.Write(ctx, []byte("ping"))
 	require.NoError(t, err)
@@ -122,16 +152,6 @@ func testWormhole(t *testing.T, env *env, useInvite bool) {
 	require.NoError(t, err)
 	require.Equal(t, wormhole.Ack, reply.Type)
 	require.Equal(t, id, reply.ID)
-
-	// Close
-	closeWg := &sync.WaitGroup{}
-	closeWg.Add(2)
-	wha.OnClose(func() {
-		closeWg.Done()
-	})
-	whb.OnClose(func() {
-		closeWg.Done()
-	})
 
 	wha.Close()
 
@@ -200,22 +220,16 @@ func TestWormholeNoRecipient(t *testing.T) {
 	require.NoError(t, err)
 	defer wha.Close()
 	wha.SetTimeNow(env.clock.Now)
-	wha.OnConnect(func() {
-		t.Fatalf("Should timeout")
-	})
 
 	whb, err := wormhole.NewWormhole(server, ksb)
 	require.NoError(t, err)
 	defer wha.Close()
 	whb.SetTimeNow(env.clock.Now)
-	whb.OnConnect(func() {
-		t.Fatalf("Should timeout")
-	})
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
-	offer, _, err := wha.CreateOffer(ctx, alice.ID(), bob.ID())
+	offer, err := wha.CreateOffer(ctx, alice.ID(), bob.ID())
 	require.NoError(t, err)
 	// Don't Connect
 
