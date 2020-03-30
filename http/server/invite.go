@@ -34,7 +34,6 @@ func (s *Server) postInvite(c echo.Context) error {
 		return ErrBadRequest(c, err)
 	}
 
-	code := keys.RandWords(3)
 	inv := invite{
 		Sender:    kid,
 		Recipient: rid,
@@ -42,6 +41,24 @@ func (s *Server) postInvite(c echo.Context) error {
 	ib, err := json.Marshal(inv)
 	if err != nil {
 		return internalError(c, err)
+	}
+
+	var code string
+	for i := 0; i < 3; i++ {
+		randWords := keys.RandWords(3)
+		existing, err := s.mc.Get(ctx, code)
+		if err != nil {
+			return internalError(c, err)
+		}
+		if existing != "" {
+			s.logger.Errorf("invite code conflict")
+			continue
+		}
+		code = randWords
+		break
+	}
+	if code == "" {
+		return internalError(c, errors.Errorf("invite code conflict"))
 	}
 
 	codeKey := fmt.Sprintf("code %s", code)
