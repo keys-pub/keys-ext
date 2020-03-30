@@ -91,6 +91,8 @@ func (m *memCache) Expire(ctx context.Context, k string, dt time.Duration) error
 }
 
 func (m *memCache) Delete(ctx context.Context, k string) error {
+	m.Lock()
+	defer m.Unlock()
 	delete(m.kv, keys.Path("memcache", k))
 	return nil
 }
