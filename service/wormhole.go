@@ -61,8 +61,8 @@ func (s *service) wormholeInit(ctx context.Context, req *WormholeInput, wh *worm
 	}
 	if found == nil {
 		initiator = true
-		created, err := wh.CreateLocalOffer(ctx, sender, recipient)
-		// created, err := wh.CreateOffer(ctx, sender, recipient)
+		// created, err := wh.CreateLocalOffer(ctx, sender, recipient)
+		created, err := wh.CreateOffer(ctx, sender, recipient)
 		if err != nil {
 			return err
 		}
