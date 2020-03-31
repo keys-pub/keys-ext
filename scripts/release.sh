@@ -18,7 +18,7 @@ if [ ! "$skip_tag" = "1" ]; then
     $dir/tag.sh `pwd`
 fi
 
-# Other platforms
+cd service
 goreleaser --rm-dist
 
 # Cleanup

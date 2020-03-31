@@ -2,7 +2,7 @@ project_name: "keys"
 builds:
   - id: keys
     binary: keys
-    main: ./service/keys/main.go
+    main: ./keys/main.go
     env:
       - CGO_ENABLED=1
     goos:
@@ -15,10 +15,10 @@ builds:
       - goos: darwin
         goarch: 386
     hooks:
-      post: ./scripts/codesign.sh dist/keys_darwin_amd64/keys
+      post: ../scripts/codesign.sh dist/keys_darwin_amd64/keys
   - id: keysd
     binary: keysd
-    main: ./service/keysd/main.go
+    main: ./keysd/main.go
     env:
       - CGO_ENABLED=1
     goos:
@@ -31,7 +31,7 @@ builds:
       - goos: darwin
         goarch: 386
     hooks:
-      post: ./scripts/codesign.sh dist/keysd_darwin_amd64/keysd
+      post: ../scripts/codesign.sh dist/keysd_darwin_amd64/keysd
 archives:
   - replacements:
       386: i386

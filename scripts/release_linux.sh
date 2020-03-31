@@ -15,6 +15,7 @@ ver=`git describe --abbrev=0 --tags`
 echo "Latest tag: $ver"
 git checkout $ver
 
+cd service
 goreleaser --config=.goreleaser.linux.yml --rm-dist
 $dir/aptly.sh $ver
 
