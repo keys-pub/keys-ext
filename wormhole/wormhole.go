@@ -231,7 +231,7 @@ func (w *Wormhole) CreateLocalOffer(ctx context.Context, sender keys.ID, recipie
 func (w *Wormhole) Listen(ctx context.Context, sender keys.ID, recipient keys.ID, offer *sctp.Addr) error {
 	logger.Infof("Wormhole listen...")
 	var answer *sctp.Addr
-	if offer.IP == "127.0.0.1" {
+	if sctp.IsPrivateIP(offer.IP) {
 		a, err := w.rtc.Local()
 		if err != nil {
 			return err

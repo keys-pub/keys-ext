@@ -109,10 +109,16 @@ func (c *Client) Local() (*Addr, error) {
 		return nil, err
 	}
 
+	local, err := externalIP()
+	if err != nil {
+		return nil, err
+	}
+	logger.Infof("Local IP address: %s", local)
+
 	c.conn = conn
 
 	return &Addr{
-		IP:   "127.0.0.1",
+		IP:   local,
 		Port: udpAddr.Port,
 	}, nil
 }
