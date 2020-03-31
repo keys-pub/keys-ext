@@ -11,6 +11,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+var ErrWormholeTimedOut = errors.New("wormhole timed out")
+
 func (s *service) wormholeInit(ctx context.Context, req *WormholeInput, wh *wormhole.Wormhole, srv Keys_WormholeServer) error {
 	if req.ID != "" || len(req.Data) != 0 {
 		return errors.Errorf("first request should not include a message")
@@ -64,7 +66,7 @@ func (s *service) wormholeInit(ctx context.Context, req *WormholeInput, wh *worm
 		// created, err := wh.CreateLocalOffer(ctx, sender, recipient)
 		created, err := wh.CreateOffer(ctx, sender, recipient)
 		if err != nil {
-			return err
+			return wormholeError(err)
 		}
 		offer = created
 
@@ -84,14 +86,21 @@ func (s *service) wormholeInit(ctx context.Context, req *WormholeInput, wh *worm
 
 	if initiator {
 		if err := wh.Connect(ctx, sender, recipient, offer); err != nil {
-			return err
+			return wormholeError(err)
 		}
 	} else {
 		if err := wh.Listen(ctx, sender, recipient, offer); err != nil {
-			return err
+			return wormholeError(err)
 		}
 	}
 	return nil
+}
+
+func wormholeError(err error) error {
+	if errors.Cause(err) == context.DeadlineExceeded {
+		return ErrWormholeTimedOut
+	}
+	return err
 }
 
 func (s *service) wormholeInput(ctx context.Context, req *WormholeInput, wh *wormhole.Wormhole) error {
