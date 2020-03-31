@@ -80,6 +80,8 @@ github.com/keys-pub/keysd/http/server v0.0.0-20200330224338-ac67d476f58e h1:lEij
 github.com/keys-pub/keysd/http/server v0.0.0-20200330224338-ac67d476f58e/go.mod h1:ohk4jItPx6eCF51jttjy9LxhOBdP8u6ewwD2kK3Lnts=
 github.com/keys-pub/keysd/wormhole v0.0.0-20200331190207-c456db2fd932 h1:hV3ynKVX+wDDwOX9LFCvUjLYCwlFCREYU9Nsmtz5SAQ=
 github.com/keys-pub/keysd/wormhole v0.0.0-20200331190207-c456db2fd932/go.mod h1:CZbpUZolfML0gQqQ+6MAnjQ1YNuneIw08iRbxZz08Ds=
+github.com/keys-pub/keysd/wormhole v0.0.0-20200331202336-e74749cf6176 h1:m8jhO56EWKnEnDuiUodqxlPvh/fQ63I0XzhsUMJ1Qgc=
+github.com/keys-pub/keysd/wormhole v0.0.0-20200331202336-e74749cf6176/go.mod h1:CZbpUZolfML0gQqQ+6MAnjQ1YNuneIw08iRbxZz08Ds=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=
 github.com/kisielk/errcheck v1.2.0/go.mod h1:/BMXB+zMLi60iA8Vv6Ksmxu/1UDYcXs4uQLJ+jE2L00=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=

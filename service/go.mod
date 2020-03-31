@@ -12,7 +12,7 @@ require (
 	github.com/keys-pub/keysd/http/api v0.0.0-20200330224338-ac67d476f58e
 	github.com/keys-pub/keysd/http/client v0.0.0-20200331185811-e1a2e7fb11dd
 	github.com/keys-pub/keysd/http/server v0.0.0-20200330224338-ac67d476f58e
-	github.com/keys-pub/keysd/wormhole v0.0.0-20200331190207-c456db2fd932
+	github.com/keys-pub/keysd/wormhole v0.0.0-20200331202336-e74749cf6176
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/mercari/go-grpc-interceptor v0.0.0-20180110035004-b8ad3827e82a
 	github.com/mitchellh/go-ps v1.0.0
