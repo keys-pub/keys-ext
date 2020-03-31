@@ -27,16 +27,8 @@ func TestNewWormhole(t *testing.T) {
 	defer env.closeFn()
 
 	// Local
-	testWormhole(t, env, true)
-
-	// Remote
-	// testWormhole(t, env, false)
-}
-
-func testWormhole(t *testing.T, env *env, local bool) {
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
-
 	ksa := keys.NewMemKeystore()
 	err := ksa.SaveEdX25519Key(alice)
 	require.NoError(t, err)
@@ -49,6 +41,28 @@ func testWormhole(t *testing.T, env *env, local bool) {
 	err = ksb.SaveEdX25519PublicKey(alice.PublicKey())
 	require.NoError(t, err)
 
+	testWormhole(t, env, true, alice, bob, ksa, ksb)
+
+	// Remote
+	// testWormhole(t, env, false)
+}
+
+func TestWormholeSameKey(t *testing.T) {
+	wormhole.SetLogger(wormhole.NewLogger(wormhole.DebugLevel))
+	sctp.SetLogger(sctp.NewLogger(sctp.DebugLevel))
+
+	env := testEnv(t)
+	defer env.closeFn()
+
+	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
+	ksa := keys.NewMemKeystore()
+	err := ksa.SaveEdX25519Key(alice)
+	require.NoError(t, err)
+
+	testWormhole(t, env, true, alice, alice, ksa, ksa)
+}
+
+func testWormhole(t *testing.T, env *env, local bool, alice *keys.EdX25519Key, bob *keys.EdX25519Key, ksa *keys.Keystore, ksb *keys.Keystore) {
 	ctx := context.TODO()
 
 	openWg := &sync.WaitGroup{}
