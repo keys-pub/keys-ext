@@ -20,6 +20,8 @@ github.com/keybase/saltpack v0.0.0-20190828020936-3f47e8e2e6ec/go.mod h1:loEJH62
 github.com/keys-pub/keys v0.0.0-20200324161647-7b75199a4717/go.mod h1:k/6AQo72ji46Q03AX8C2jLUd4dmGM6djrEZY+LVr6Ww=
 github.com/keys-pub/keys v0.0.0-20200326170554-f32fbcc6b18f h1:vCfUiujsOpTgP4lZy5IWh7VsOU8M1e/uh2FS5UOCWCQ=
 github.com/keys-pub/keys v0.0.0-20200326170554-f32fbcc6b18f/go.mod h1:k/6AQo72ji46Q03AX8C2jLUd4dmGM6djrEZY+LVr6Ww=
+github.com/keys-pub/keys v0.0.0-20200331185030-55a865de2063 h1:ehypcXX+X9YS/g4oYE/2TEN0wzQBfVe2ZtPlxG2KR3M=
+github.com/keys-pub/keys v0.0.0-20200331185030-55a865de2063/go.mod h1:k/6AQo72ji46Q03AX8C2jLUd4dmGM6djrEZY+LVr6Ww=
 github.com/keys-pub/keysd/http/api v0.0.0-20200326173323-d53753a929e2 h1:rmPp/+bGzxAqaSCFpNX2E5PLEK99pDeNYaoU13sdiPs=
 github.com/keys-pub/keysd/http/api v0.0.0-20200326173323-d53753a929e2/go.mod h1:pHF66DvsvhPLHnA1QSM/adRdq3JgAYEG532rWV269bs=
 github.com/keys-pub/keysd/http/server v0.0.0-20200326173537-f15ed1afc333 h1:22/6C1TQV04GR2tqhVkbGFbiie1wtyKjkN+gOuHcgk8=

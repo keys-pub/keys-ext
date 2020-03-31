@@ -94,6 +94,10 @@ func TestMessages(t *testing.T) {
 	msgs, _, err = aliceClient.Messages(context.TODO(), alice, unknown.ID(), nil)
 	require.NoError(t, err)
 	require.Empty(t, msgs)
+
+	// Same sender/recipient
+	err = aliceClient.SendMessage(context.TODO(), alice, alice.ID(), keys.Rand3262(), []byte("selfie"))
+	require.NoError(t, err)
 }
 
 func TestMessageExpiring(t *testing.T) {
