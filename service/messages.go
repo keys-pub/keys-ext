@@ -108,7 +108,7 @@ func (s *service) messageCreate(ctx context.Context, sender string, recipient st
 		return nil, errors.Errorf("no recipient specified")
 	}
 
-	senderKey, err := s.parseSignKey(sender, true)
+	kid, err := keys.ParseID(sender)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +134,7 @@ func (s *service) messageCreate(ctx context.Context, sender string, recipient st
 		return nil, err
 	}
 
-	if err := s.remote.SendMessage(ctx, senderKey, rid, id, b); err != nil {
+	if err := s.remote.SendMessage(ctx, kid, rid, "default", id, b, time.Hour*24); err != nil {
 		return nil, err
 	}
 
@@ -218,13 +218,6 @@ func (s *service) messages(ctx context.Context, key *keys.EdX25519Key, recipient
 }
 
 func (s *service) pullMessages(ctx context.Context, kid keys.ID, recipient keys.ID) error {
-	key, err := s.ks.EdX25519Key(kid)
-	if err != nil {
-		return err
-	}
-	if key == nil {
-		return keys.NewErrNotFound(kid.String())
-	}
 	logger.Infof("Pull messages...")
 	versionPath := keys.Path("versions", fmt.Sprintf("messages-%s", kid))
 	e, err := s.db.Get(ctx, versionPath)
@@ -235,16 +228,18 @@ func (s *service) pullMessages(ctx context.Context, kid keys.ID, recipient keys.
 	if e != nil {
 		version = string(e.Data)
 	}
-	msgs, version, err := s.remote.Messages(ctx, key, recipient, &client.MessagesOpts{Version: version})
+	msgs, version, err := s.remote.Messages(ctx, kid, recipient, "default", &client.MessagesOpts{Version: version})
 	if err != nil {
 		return err
 	}
+
+	// TODO: Expiry
 	// TODO: If limit hit this doesn't get all messages
 
 	logger.Infof("Received %d messages", len(msgs))
 	for _, msg := range msgs {
 		ts := 9223372036854775807 - keys.TimeToMillis(msg.CreatedAt)
-		pathKey := fmt.Sprintf("messages-%s-%s", key.ID(), recipient)
+		pathKey := fmt.Sprintf("messages-%s-%s", kid, recipient)
 		pathVal := fmt.Sprintf("%d-%s", ts, msg.ID)
 		path := keys.Path(pathKey, pathVal)
 		if err := s.db.Set(ctx, path, msg.Data); err != nil {
