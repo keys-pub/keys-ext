@@ -45,25 +45,12 @@ func TestSigchain(t *testing.T) {
 	require.NoError(t, err)
 	require.Nil(t, scResp2)
 
-	resp3, err := client.Sigchains(context.TODO(), "")
-	require.NoError(t, err)
-	require.Equal(t, 2, len(resp3.Statements))
-	require.Equal(t, st.KID, resp3.Statements[0].KID)
-	require.Equal(t, st2.KID, resp3.Statements[1].KID)
-	// require.Equal(t, keys.TimeFromMillis(1234567890011), resp3.MetadataFor(resp3.Statements[0]).CreatedAt)
-
 	st3, err := keys.NewSigchainStatement(sc, []byte("testing3"), alice, "", env.clock.Now())
 	require.NoError(t, err)
 	err = sc.Add(st3)
 	require.NoError(t, err)
 	psiErr3 := client.PutSigchainStatement(context.TODO(), st3)
 	require.NoError(t, psiErr3)
-
-	resp4, err := client.Sigchains(context.TODO(), resp3.Version)
-	require.NoError(t, err)
-	require.Equal(t, 2, len(resp4.Statements))
-	require.Equal(t, st2.KID, resp4.Statements[0].KID)
-	require.Equal(t, st3.KID, resp4.Statements[1].KID)
 
 	spew, err := sc.Spew()
 	require.NoError(t, err)

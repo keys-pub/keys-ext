@@ -32,20 +32,3 @@ func (r SigchainResponse) Sigchain() (*keys.Sigchain, error) {
 	}
 	return sc, nil
 }
-
-// SigchainsResponse is the response format for a listing all sigchain
-// statements.
-type SigchainsResponse struct {
-	Metadata   map[string]Metadata `json:"md,omitempty"`
-	Statements []*keys.Statement   `json:"statements"`
-	Version    string              `json:"version"`
-}
-
-// MetadataFor returns metadata for Signed.
-func (r SigchainsResponse) MetadataFor(st *keys.Statement) Metadata {
-	md, ok := r.Metadata[st.URL()]
-	if !ok {
-		return Metadata{}
-	}
-	return md
-}

@@ -7,83 +7,12 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keysd/http/api"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 )
-
-const sigchainChanges = "sigchain-changes"
-
-func (s *Server) listSigchains(c echo.Context) error {
-	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
-	ctx := c.Request().Context()
-
-	var version time.Time
-	if f := c.QueryParam("version"); f != "" {
-		i, err := strconv.Atoi(f)
-		if err != nil {
-			return err
-		}
-		version = keys.TimeFromMillis(keys.TimeMs(i))
-	}
-	plimit := c.QueryParam("limit")
-	if plimit == "" {
-		plimit = "100"
-	}
-	limit, err := strconv.Atoi(plimit)
-	if err != nil {
-		return ErrBadRequest(c, errors.Wrapf(err, "invalid limit"))
-	}
-	if limit < 1 {
-		return ErrBadRequest(c, errors.Errorf("invalid limit, too small"))
-	}
-	if limit > 100 {
-		return ErrBadRequest(c, errors.Errorf("invalid limit, too large"))
-	}
-
-	changes, to, err := s.fi.Changes(ctx, sigchainChanges, version, limit, keys.Ascending)
-	if err != nil {
-		return s.internalError(c, err)
-	}
-	paths := make([]string, 0, len(changes))
-	for _, a := range changes {
-		paths = append(paths, a.Path)
-	}
-	md := make(map[string]api.Metadata, len(paths))
-	statements := make([]*keys.Statement, 0, len(paths))
-
-	docs, err := s.fi.GetAll(ctx, paths)
-	if err != nil {
-		return s.internalError(c, err)
-	}
-
-	for _, doc := range docs {
-		st, err := s.statementFromBytes(ctx, doc.Data)
-		if err != nil {
-			return s.internalError(c, err)
-		}
-
-		statements = append(statements, st)
-
-		md[st.URL()] = api.Metadata{
-			CreatedAt: doc.CreatedAt,
-			UpdatedAt: doc.UpdatedAt,
-		}
-	}
-	versionNext := fmt.Sprintf("%d", keys.TimeToMillis(to))
-	resp := api.SigchainsResponse{
-		Statements: statements,
-		Version:    versionNext,
-	}
-	fields := keys.NewStringSetSplit(c.QueryParam("include"), ",")
-	if fields.Contains("md") {
-		resp.Metadata = md
-	}
-	return JSON(c, http.StatusOK, resp)
-}
 
 func (s *Server) sigchain(c echo.Context, kid keys.ID) (*keys.Sigchain, map[string]api.Metadata, error) {
 	ctx := c.Request().Context()
@@ -235,10 +164,6 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 
 	s.logger.Infof("Statement, set %s", path)
 	if err := s.fi.Create(ctx, path, b); err != nil {
-		return s.internalError(c, err)
-	}
-	cid := fmt.Sprintf("%s-%d", st.KID, st.Seq)
-	if err := s.fi.ChangeAdd(ctx, sigchainChanges, cid, path); err != nil {
 		return s.internalError(c, err)
 	}
 

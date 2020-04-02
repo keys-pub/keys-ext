@@ -81,7 +81,6 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	e.GET("/sigchain/:kid/:seq", s.getSigchainStatement)
 	e.PUT("/sigchain/:kid/:seq", s.putSigchainStatement)
 	e.GET("/sigchain/:kid", s.getSigchain)
-	e.GET("/sigchains", s.listSigchains)
 
 	e.POST("/check", s.check)
 

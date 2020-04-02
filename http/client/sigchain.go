@@ -43,26 +43,3 @@ func (c *Client) Sigchain(ctx context.Context, kid keys.ID) (*api.SigchainRespon
 
 	return &resp, nil
 }
-
-// Sigchains ...
-func (c *Client) Sigchains(ctx context.Context, version string) (*api.SigchainsResponse, error) {
-	path := keys.Path("sigchains")
-
-	params := url.Values{}
-	params.Add("include", "md")
-	params.Add("version", version)
-
-	doc, err := c.getDocument(ctx, path, params, nil)
-	if err != nil {
-		return nil, err
-	}
-	if doc == nil {
-		return nil, errors.Errorf("sigchains response not found")
-	}
-
-	var val api.SigchainsResponse
-	if err := json.Unmarshal(doc.Data, &val); err != nil {
-		return nil, err
-	}
-	return &val, nil
-}
