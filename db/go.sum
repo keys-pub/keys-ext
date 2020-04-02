@@ -23,6 +23,8 @@ github.com/keybase/saltpack v0.0.0-20190828020936-3f47e8e2e6ec h1:ejQ18jEAjyiFen
 github.com/keybase/saltpack v0.0.0-20190828020936-3f47e8e2e6ec/go.mod h1:loEJH62iafRcA8ZYlUEq9WgJh/Z9BHdHHfAmxzacQng=
 github.com/keys-pub/keys v0.0.0-20200326184146-fa1d5d7bba72 h1:K8IHhnOnV4O6CJyeuoAOG/yVgBLtotrKN+NF1B31PSE=
 github.com/keys-pub/keys v0.0.0-20200326184146-fa1d5d7bba72/go.mod h1:k/6AQo72ji46Q03AX8C2jLUd4dmGM6djrEZY+LVr6Ww=
+github.com/keys-pub/keys v0.0.0-20200401235945-acb465cc8c62 h1:YICmIX2caP/5+1rkV4kG0fUqdB1XcSl/t1b7UElEwGU=
+github.com/keys-pub/keys v0.0.0-20200401235945-acb465cc8c62/go.mod h1:k/6AQo72ji46Q03AX8C2jLUd4dmGM6djrEZY+LVr6Ww=
 github.com/kr/pretty v0.1.0 h1:L/CwN0zerZDmRFUapSPitk6f+Q3+0za1rQkzVuMiMFI=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=

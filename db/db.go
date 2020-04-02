@@ -243,25 +243,13 @@ func (d *DB) Delete(ctx context.Context, path string) (bool, error) {
 	return true, nil
 }
 
-// DeleteAll deletes values with key prefix.
-func (d *DB) DeleteAll(ctx context.Context, parent string) error {
-	iter, err := d.Documents(ctx, parent, &keys.DocumentsOpts{PathOnly: true})
-	if err != nil {
-		return err
-	}
-	for {
-		doc, err := iter.Next()
-		if err != nil {
-			return err
-		}
-		if doc == nil {
-			break
-		}
-		if _, err := d.Delete(ctx, doc.Path); err != nil {
+// DeleteAll paths.
+func (d *DB) DeleteAll(ctx context.Context, paths []string) error {
+	for _, p := range paths {
+		if err := d.sdb.Delete(p); err != nil {
 			return err
 		}
 	}
-	iter.Release()
 	return nil
 }
 

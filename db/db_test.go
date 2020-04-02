@@ -438,3 +438,24 @@ func TestDBGetSetEmpty(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, []byte{}, doc.Data)
 }
+
+func TestDeleteAll(t *testing.T) {
+	// SetLogger(NewLogger(DebugLevel))
+	db, closeFn := testDB(t)
+	defer closeFn()
+
+	err := db.Set(context.TODO(), "/test/key1", []byte("val1"))
+	require.NoError(t, err)
+	err = db.Set(context.TODO(), "/test/key2", []byte("val2"))
+	require.NoError(t, err)
+
+	err = db.DeleteAll(context.TODO(), []string{"/test/key1", "/test/key2", "/test/key3"})
+	require.NoError(t, err)
+
+	doc, err := db.Get(context.TODO(), "/test/key1")
+	require.NoError(t, err)
+	require.Nil(t, doc)
+	doc, err = db.Get(context.TODO(), "/test/key2")
+	require.NoError(t, err)
+	require.Nil(t, doc)
+}
