@@ -3,13 +3,13 @@ package main
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keysd/http/client"
 	httpclient "github.com/keys-pub/keysd/http/client"
 	"github.com/keys-pub/keysd/wormhole/sctp"
 )
@@ -158,7 +158,7 @@ func (c *cmd) writeOffer(ctx context.Context, offer *sctp.Addr) error {
 }
 
 func (c *cmd) readOffer(ctx context.Context) (*sctp.Addr, error) {
-	return c.readSession(ctx, c.answerKey.ID(), c.offerKey.ID(), "offer")
+	return c.readSession(ctx, c.offerKey.ID(), c.answerKey.ID(), "offer")
 }
 
 func (c *cmd) writeAnswer(ctx context.Context, answer *sctp.Addr) error {
@@ -166,30 +166,22 @@ func (c *cmd) writeAnswer(ctx context.Context, answer *sctp.Addr) error {
 }
 
 func (c *cmd) readAnswer(ctx context.Context) (*sctp.Addr, error) {
-	return c.readSession(ctx, c.offerKey.ID(), c.answerKey.ID(), "answer")
+	return c.readSession(ctx, c.answerKey.ID(), c.offerKey.ID(), "answer")
 }
 
-func (c *cmd) writeSession(ctx context.Context, sender keys.ID, recipient keys.ID, addr *sctp.Addr, id string) error {
-	b, err := json.Marshal(addr)
-	if err != nil {
-		return err
-	}
-	return c.hcl.ExpiringMessage(ctx, sender, recipient, id, b, time.Minute*15)
+func (c *cmd) writeSession(ctx context.Context, sender keys.ID, recipient keys.ID, addr *sctp.Addr, typ client.DiscoType) error {
+	return c.hcl.PutDisco(ctx, sender, recipient, typ, addr.String(), time.Minute)
 }
 
-func (c *cmd) readSession(ctx context.Context, sender keys.ID, recipient keys.ID, id string) (*sctp.Addr, error) {
+func (c *cmd) readSession(ctx context.Context, sender keys.ID, recipient keys.ID, typ client.DiscoType) (*sctp.Addr, error) {
 	for {
-		fmt.Printf("Get session (%s)...\n", id)
-		b, err := c.hcl.Message(ctx, sender, recipient, id)
+		fmt.Printf("Get disco (%s)...\n", typ)
+		addr, err := c.hcl.GetDisco(ctx, sender, recipient, typ)
 		if err != nil {
 			return nil, err
 		}
-		if b != nil {
-			var addr sctp.Addr
-			if err := json.Unmarshal(b, &addr); err != nil {
-				return nil, err
-			}
-			return &addr, nil
+		if addr != "" {
+			return sctp.ParseAddr(addr)
 		}
 
 		select {

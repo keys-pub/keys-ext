@@ -2,7 +2,6 @@ package wormhole
 
 import (
 	"context"
-	"encoding/json"
 	"sync"
 	"time"
 	"unicode/utf8"
@@ -11,6 +10,7 @@ import (
 	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/noise"
 	"github.com/keys-pub/keysd/http/api"
+	"github.com/keys-pub/keysd/http/client"
 	httpclient "github.com/keys-pub/keysd/http/client"
 	"github.com/keys-pub/keysd/wormhole/sctp"
 	"github.com/pkg/errors"
@@ -99,13 +99,7 @@ func (w *Wormhole) Close() {
 			logger.Infof("Removing offer (if any)...")
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
-			_ = w.hcl.DeleteMessage(ctx, w.sender, w.recipient, "wormhole", "offer")
-		}()
-		go func() {
-			logger.Infof("Removing answer (if any)...")
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-			defer cancel()
-			_ = w.hcl.DeleteMessage(ctx, w.sender, w.recipient, "wormhole", "answer")
+			_ = w.hcl.DeleteDisco(ctx, w.sender, w.recipient)
 		}()
 	}
 
@@ -154,7 +148,7 @@ func (w *Wormhole) Connect(ctx context.Context, sender keys.ID, recipient keys.I
 		}
 	}()
 
-	answer, err := w.readAnswer(ctxConnect, sender, recipient)
+	answer, err := w.readAnswer(ctxConnect, recipient, sender)
 	if err != nil {
 		return err
 	}
@@ -197,15 +191,12 @@ func (w *Wormhole) FindInvite(ctx context.Context, code string) (*api.InviteResp
 	return invite, nil
 }
 
-func (w *Wormhole) FindOffer(ctx context.Context, sender keys.ID, recipient keys.ID) (*sctp.Addr, error) {
-	sess, err := w.readOnce(ctx, sender, recipient, "offer")
+func (w *Wormhole) FindOffer(ctx context.Context, recipient keys.ID, sender keys.ID) (*sctp.Addr, error) {
+	addr, err := w.readOnce(ctx, recipient, sender, "offer")
 	if err != nil {
 		return nil, err
 	}
-	if sess == nil {
-		return nil, nil
-	}
-	return sess.Addr, nil
+	return addr, nil
 }
 
 // CreateOffer creates an offer.
@@ -472,52 +463,42 @@ func (w *Wormhole) writeClosed(ctx context.Context) error {
 }
 
 func (w *Wormhole) writeOffer(ctx context.Context, offer *sctp.Addr, sender keys.ID, recipient keys.ID, genCode bool, expire time.Duration) error {
-	return w.writeSession(ctx, offer, sender, recipient, "offer", genCode, expire)
+	return w.writeSession(ctx, offer, sender, recipient, client.Offer, genCode, expire)
 }
 
-func (w *Wormhole) readOffer(ctx context.Context, sender keys.ID, recipient keys.ID) (*sctp.Addr, error) {
-	return w.readSession(ctx, sender, recipient, "offer")
-}
+// Use readOnce.
+// func (w *Wormhole) readOffer(ctx context.Context, recipient keys.ID, sender keys.ID) (*sctp.Addr, error) {
+// 	return w.readSession(ctx, recipient, sender, client.Offer)
+// }
 
 func (w *Wormhole) writeAnswer(ctx context.Context, answer *sctp.Addr, sender keys.ID, recipient keys.ID) error {
-	if err := w.writeSession(ctx, answer, sender, recipient, "answer", false, time.Hour); err != nil {
+	if err := w.writeSession(ctx, answer, sender, recipient, client.Answer, false, time.Minute); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (w *Wormhole) readAnswer(ctx context.Context, sender keys.ID, recipient keys.ID) (*sctp.Addr, error) {
-	return w.readSession(ctx, sender, recipient, "answer")
+func (w *Wormhole) readAnswer(ctx context.Context, recipient keys.ID, sender keys.ID) (*sctp.Addr, error) {
+	return w.readSession(ctx, recipient, sender, client.Answer)
 }
 
-type session struct {
-	Addr *sctp.Addr `json:"addr"`
-}
-
-func (w *Wormhole) writeSession(ctx context.Context, addr *sctp.Addr, sender keys.ID, recipient keys.ID, typ string, genCode bool, expire time.Duration) error {
-	sess := &session{
-		Addr: addr,
-	}
-	b, err := json.Marshal(sess)
-	if err != nil {
-		return err
-	}
-	logger.Debugf("Writing session: %s (%s)", addr, typ)
-	if err := w.hcl.SendMessage(ctx, sender, recipient, "wormhole", typ, b, expire); err != nil {
+func (w *Wormhole) writeSession(ctx context.Context, addr *sctp.Addr, sender keys.ID, recipient keys.ID, typ client.DiscoType, genCode bool, expire time.Duration) error {
+	logger.Debugf("Writing disco: %s (%s)", addr, typ)
+	if err := w.hcl.PutDisco(ctx, sender, recipient, typ, addr.String(), expire); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (w *Wormhole) readSession(ctx context.Context, sender keys.ID, recipient keys.ID, typ string) (*sctp.Addr, error) {
+func (w *Wormhole) readSession(ctx context.Context, recipient keys.ID, sender keys.ID, typ client.DiscoType) (*sctp.Addr, error) {
 	// TODO: Long polling?
 	for {
-		sess, err := w.readOnce(ctx, sender, recipient, typ)
+		addr, err := w.readOnce(ctx, recipient, sender, typ)
 		if err != nil {
 			return nil, err
 		}
-		if sess != nil {
-			return sess.Addr, nil
+		if addr != nil {
+			return addr, nil
 		}
 
 		select {
@@ -529,22 +510,18 @@ func (w *Wormhole) readSession(ctx context.Context, sender keys.ID, recipient ke
 	}
 }
 
-func (w *Wormhole) readOnce(ctx context.Context, sender keys.ID, recipient keys.ID, typ string) (*session, error) {
-	logger.Debugf("Read session...")
-	b, err := w.hcl.Message(ctx, sender, recipient, "wormhole", typ)
+func (w *Wormhole) readOnce(ctx context.Context, recipient keys.ID, sender keys.ID, typ client.DiscoType) (*sctp.Addr, error) {
+	logger.Debugf("Read disco...")
+	out, err := w.hcl.GetDisco(ctx, recipient, sender, typ)
 	if err != nil {
 		return nil, err
 	}
-	if b == nil {
+	if out == "" {
 		return nil, nil
 	}
-	if err := w.hcl.DeleteMessage(ctx, sender, recipient, "wormhole", typ); err != nil {
+	addr, err := sctp.ParseAddr(out)
+	if err != nil {
 		return nil, err
 	}
-	var sess session
-	if err := json.Unmarshal(b, &sess); err != nil {
-		return nil, err
-	}
-	// logger.Debugf("Found addr: %s", addr)
-	return &sess, nil
+	return addr, nil
 }

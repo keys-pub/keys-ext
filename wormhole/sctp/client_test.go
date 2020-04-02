@@ -88,3 +88,10 @@ func testClient(t *testing.T, stun bool) {
 	alice.Close()
 	bob.Close()
 }
+
+func TestParseAddr(t *testing.T) {
+	a, err := sctp.ParseAddr("1.2.3.4:123")
+	require.NoError(t, err)
+	require.Equal(t, "1.2.3.4", a.IP)
+	require.Equal(t, 123, a.Port)
+}

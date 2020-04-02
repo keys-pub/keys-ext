@@ -6,6 +6,8 @@ import (
 	"log"
 	"net"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/pion/logging"
@@ -283,10 +285,25 @@ func (c *Client) readFromUDP() ([]byte, error) {
 	return buf, nil
 }
 
+func ParseAddr(s string) (*Addr, error) {
+	spl := strings.SplitN(s, ":", 2)
+	if len(spl) != 2 {
+		return nil, errors.Errorf("invalid addr")
+	}
+	p, err := strconv.Atoi(spl[1])
+	if err != nil {
+		return nil, err
+	}
+	return &Addr{
+		IP:   spl[0],
+		Port: p,
+	}, nil
+}
+
 // Addr is an SCTP address.
 type Addr struct {
-	IP   string `json:"ip"`
-	Port int    `json:"port"`
+	IP   string
+	Port int
 }
 
 func (a Addr) String() string {
