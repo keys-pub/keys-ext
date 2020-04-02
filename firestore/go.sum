@@ -89,6 +89,8 @@ github.com/keys-pub/keys v0.0.0-20200326170554-f32fbcc6b18f h1:vCfUiujsOpTgP4lZy
 github.com/keys-pub/keys v0.0.0-20200326170554-f32fbcc6b18f/go.mod h1:k/6AQo72ji46Q03AX8C2jLUd4dmGM6djrEZY+LVr6Ww=
 github.com/keys-pub/keys v0.0.0-20200401235945-acb465cc8c62 h1:YICmIX2caP/5+1rkV4kG0fUqdB1XcSl/t1b7UElEwGU=
 github.com/keys-pub/keys v0.0.0-20200401235945-acb465cc8c62/go.mod h1:k/6AQo72ji46Q03AX8C2jLUd4dmGM6djrEZY+LVr6Ww=
+github.com/keys-pub/keys v0.0.0-20200402182809-2e21a424687e h1:jwKKnW2E1mdmu+LL1cN5a6LOnq64RAB32cf53/O2khI=
+github.com/keys-pub/keys v0.0.0-20200402182809-2e21a424687e/go.mod h1:k/6AQo72ji46Q03AX8C2jLUd4dmGM6djrEZY+LVr6Ww=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/kr/pretty v0.1.0 h1:L/CwN0zerZDmRFUapSPitk6f+Q3+0za1rQkzVuMiMFI=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=

@@ -23,7 +23,7 @@ var _ keys.Changes = &Firestore{}
 type Firestore struct {
 	uri    string
 	client *firestore.Client
-	test   bool
+	Test   bool
 }
 
 // NewFirestore creates a Firestore
@@ -119,7 +119,7 @@ func (f *Firestore) set(ctx context.Context, path string, b []byte) error {
 	return nil
 }
 
-func (f *Firestore) setValue(ctx context.Context, path string, m map[string]interface{}) error {
+func (f *Firestore) createValue(ctx context.Context, path string, m map[string]interface{}) error {
 	path = normalizePath(path)
 	if len(keys.PathComponents(path)) != 2 {
 		return errors.Errorf("invalid path %s", path)
@@ -138,14 +138,14 @@ func (f *Firestore) setValue(ctx context.Context, path string, m map[string]inte
 const timestampField = "ts"
 
 // ChangeAdd adds Change.
-func (f *Firestore) ChangeAdd(ctx context.Context, name string, ref string) error {
-	path := keys.Path(name, keys.Rand3262())
+func (f *Firestore) ChangeAdd(ctx context.Context, name string, id string, ref string) error {
+	path := keys.Path(name, id)
 	// Map should match keys.Change json format
 	m := map[string]interface{}{
 		"path":         ref,
 		timestampField: firestore.ServerTimestamp,
 	}
-	return f.setValue(ctx, path, m)
+	return f.createValue(ctx, path, m)
 }
 
 // Changes ...
@@ -401,7 +401,7 @@ func (f *Firestore) deleteAll(ctx context.Context) error {
 
 // Delete ...
 func (f *Firestore) Delete(ctx context.Context, path string) (bool, error) {
-	if f.test && keys.Path(path) == "/" {
+	if f.Test && keys.Path(path) == "/" {
 		if err := f.deleteAll(ctx); err != nil {
 			return false, err
 		}
