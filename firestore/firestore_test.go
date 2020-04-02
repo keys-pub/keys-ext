@@ -353,3 +353,22 @@ func ExampleNewFirestore() {
 	// /test/1
 	// value1
 }
+
+func TestDeleteAll(t *testing.T) {
+	fs := testFirestore(t, true)
+
+	err := fs.Set(context.TODO(), "/test/key1", []byte("val1"))
+	require.NoError(t, err)
+	err = fs.Set(context.TODO(), "/test/key2", []byte("val2"))
+	require.NoError(t, err)
+
+	err = fs.DeleteAll(context.TODO(), []string{"/test/key1", "/test/key2", "/test/key3"})
+	require.NoError(t, err)
+
+	doc, err := fs.Get(context.TODO(), "/test/key1")
+	require.NoError(t, err)
+	require.Nil(t, doc)
+	doc, err = fs.Get(context.TODO(), "/test/key2")
+	require.NoError(t, err)
+	require.Nil(t, doc)
+}

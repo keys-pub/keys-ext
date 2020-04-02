@@ -84,7 +84,7 @@ func (f *Firestore) create(ctx context.Context, path string, b []byte) error {
 		"data": b,
 	}
 
-	_, err := doc.Create(context.TODO(), m)
+	_, err := doc.Create(ctx, m)
 	if err != nil {
 		st, ok := status.FromError(err)
 		if !ok {
@@ -112,7 +112,7 @@ func (f *Firestore) set(ctx context.Context, path string, b []byte) error {
 		"data": b,
 	}
 
-	_, err := doc.Set(context.TODO(), m)
+	_, err := doc.Set(ctx, m)
 	if err != nil {
 		return errors.Wrapf(processError(err), "failed to set firestore value")
 	}
@@ -127,7 +127,7 @@ func (f *Firestore) setValue(ctx context.Context, path string, m map[string]inte
 
 	logger.Infof(ctx, "Set (Firestore) %s", path)
 	doc := f.client.Doc(path)
-	_, err := doc.Create(context.TODO(), m)
+	_, err := doc.Create(ctx, m)
 	if err != nil {
 		return errors.Wrapf(processError(err), "failed to set firestore value")
 	}
@@ -137,34 +137,15 @@ func (f *Firestore) setValue(ctx context.Context, path string, m map[string]inte
 // timestampField should match firestore tag on keys.Change.
 const timestampField = "ts"
 
-func changePath(name string, ref string) string {
-	s := strings.ReplaceAll(ref, "/", "-")
-	return keys.Path(name, s)
-}
-
 // ChangeAdd adds Change.
 func (f *Firestore) ChangeAdd(ctx context.Context, name string, ref string) error {
-	path := changePath(name, ref)
+	path := keys.Path(name, keys.Rand3262())
 	// Map should match keys.Change json format
 	m := map[string]interface{}{
 		"path":         ref,
 		timestampField: firestore.ServerTimestamp,
 	}
 	return f.setValue(ctx, path, m)
-}
-
-// Change for name and ref.
-func (f *Firestore) Change(ctx context.Context, name string, ref string) (*keys.Change, error) {
-	path := changePath(name, ref)
-	var change keys.Change
-	ok, err := f.getValue(ctx, path, &change)
-	if err != nil {
-		return nil, err
-	}
-	if !ok {
-		return nil, nil
-	}
-	return &change, nil
 }
 
 // Changes ...
@@ -194,7 +175,7 @@ func (f *Firestore) Changes(ctx context.Context, name string, ts time.Time, limi
 		}
 	}
 
-	iter := q.Documents(context.TODO())
+	iter := q.Documents(ctx)
 
 	if limit == 0 {
 		limit = 100
@@ -363,7 +344,7 @@ func (f *Firestore) Documents(ctx context.Context, parent string, opts *keys.Doc
 		q = q.Limit(opts.Limit)
 	}
 
-	iter := q.Documents(context.TODO())
+	iter := q.Documents(ctx)
 	return &docsIterator{iter: iter, parent: path, prefix: opts.Prefix, pathOnly: opts.PathOnly}, nil
 }
 
@@ -426,7 +407,10 @@ func (f *Firestore) Delete(ctx context.Context, path string) (bool, error) {
 		}
 		return true, nil
 	}
+	return f.delete(ctx, path)
+}
 
+func (f *Firestore) delete(ctx context.Context, path string) (bool, error) {
 	path = normalizePath(path)
 	if len(keys.PathComponents(path)) != 2 {
 		return false, errors.Errorf("invalid path %s", path)
@@ -441,9 +425,18 @@ func (f *Firestore) Delete(ctx context.Context, path string) (bool, error) {
 	}
 
 	doc := f.client.Doc(path)
-	_, err = doc.Delete(context.TODO())
+	_, err = doc.Delete(ctx)
 	if err != nil {
 		return false, err
 	}
 	return true, nil
+}
+
+func (f *Firestore) DeleteAll(ctx context.Context, paths []string) error {
+	for _, p := range paths {
+		if _, err := f.delete(ctx, p); err != nil {
+			return err
+		}
+	}
+	return nil
 }
