@@ -33,17 +33,17 @@ func TestMessages(t *testing.T) {
 	// SendMessage #1
 	id1 := keys.Rand3262()
 	b1 := []byte("hi alice")
-	err = aliceClient.SendMessage(context.TODO(), alice, bob.ID(), id1, b1)
+	err = aliceClient.SendMessage(context.TODO(), alice.ID(), bob.ID(), "default", id1, b1, time.Minute)
 	require.NoError(t, err)
 
 	// SendMessage #2
 	id2 := keys.Rand3262()
 	b2 := []byte("what time we meeting?")
-	err = bobClient.SendMessage(context.TODO(), bob, alice.ID(), id2, b2)
+	err = bobClient.SendMessage(context.TODO(), bob.ID(), alice.ID(), "default", id2, b2, time.Minute)
 	require.NoError(t, err)
 
 	// Messages #1
-	msgs, version, err := aliceClient.Messages(context.TODO(), alice, bob.ID(), nil)
+	msgs, version, err := aliceClient.Messages(context.TODO(), alice.ID(), bob.ID(), "default", nil)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(msgs))
 	data1, pk1, err := aliceClient.DecryptMessage(alice, msgs[0])
@@ -59,11 +59,11 @@ func TestMessages(t *testing.T) {
 	// SendMessage #3
 	id3 := keys.Rand3262()
 	b3 := []byte("3pm")
-	err = aliceClient.SendMessage(context.TODO(), alice, bob.ID(), id3, b3)
+	err = aliceClient.SendMessage(context.TODO(), alice.ID(), bob.ID(), "default", id3, b3, time.Minute)
 	require.NoError(t, err)
 
 	// Messages #2 (from version)
-	msgs, _, err = aliceClient.Messages(context.TODO(), alice, bob.ID(), &MessagesOpts{Version: version})
+	msgs, _, err = aliceClient.Messages(context.TODO(), alice.ID(), bob.ID(), "default", &MessagesOpts{Version: version})
 	require.NoError(t, err)
 	require.Equal(t, 2, len(msgs))
 	data2, pk2, err = aliceClient.DecryptMessage(alice, msgs[0])
@@ -76,7 +76,7 @@ func TestMessages(t *testing.T) {
 	require.Equal(t, alice.ID(), pk3)
 
 	// Messages (desc)
-	msgs, _, err = aliceClient.Messages(context.TODO(), alice, bob.ID(), &MessagesOpts{Direction: keys.Descending})
+	msgs, _, err = aliceClient.Messages(context.TODO(), alice.ID(), bob.ID(), "default", &MessagesOpts{Direction: keys.Descending})
 	require.NoError(t, err)
 	require.Equal(t, 3, len(msgs))
 	data1, _, err = aliceClient.DecryptMessage(alice, msgs[0])
@@ -91,19 +91,18 @@ func TestMessages(t *testing.T) {
 
 	// Messages not found
 	unknown := keys.GenerateEdX25519Key()
-	msgs, _, err = aliceClient.Messages(context.TODO(), alice, unknown.ID(), nil)
+	msgs, _, err = aliceClient.Messages(context.TODO(), alice.ID(), unknown.ID(), "default", nil)
 	require.NoError(t, err)
 	require.Empty(t, msgs)
 
 	// Same sender/recipient
-	err = aliceClient.SendMessage(context.TODO(), alice, alice.ID(), keys.Rand3262(), []byte("selfie"))
+	err = aliceClient.SendMessage(context.TODO(), alice.ID(), alice.ID(), "default", keys.Rand3262(), []byte("selfie"), time.Minute)
 	require.NoError(t, err)
 }
 
 func TestMessageExpiring(t *testing.T) {
-	// SetLogger(NewLogger(DebugLevel))
 	// api.SetLogger(NewLogger(DebugLevel))
-	// server.SetContextLogger(NewContextLogger(DebugLevel))
+	// logger = NewLogger(DebugLevel)
 
 	env := testEnv(t, logger)
 	defer env.closeFn()
@@ -121,39 +120,34 @@ func TestMessageExpiring(t *testing.T) {
 	require.NoError(t, err)
 
 	// Put
-	err = aliceClient.ExpiringMessage(context.TODO(), alice.ID(), bob.ID(), "wormhole", []byte("hi"), time.Second)
+	err = aliceClient.SendMessage(context.TODO(), alice.ID(), bob.ID(), "wormhole", "offer", []byte("hi"), time.Hour)
 	require.NoError(t, err)
 
 	// Get
-	out, err := bobClient.Message(context.TODO(), bob.ID(), alice.ID(), "wormhole")
+	out, err := bobClient.Message(context.TODO(), bob.ID(), alice.ID(), "wormhole", "offer")
 	require.NoError(t, err)
 	require.Equal(t, []byte("hi"), out)
 
-	// Get (again)
-	out, err = bobClient.Message(context.TODO(), bob.ID(), alice.ID(), "wormhole")
-	require.NoError(t, err)
-	require.Nil(t, out)
-
 	// Put
-	err = aliceClient.ExpiringMessage(context.TODO(), alice.ID(), bob.ID(), "wormhole", []byte("hi2"), time.Second)
+	err = aliceClient.SendMessage(context.TODO(), alice.ID(), bob.ID(), "wormhole", "offer", []byte("hi2"), time.Hour)
 	require.NoError(t, err)
 
 	// Delete
-	err = aliceClient.DeleteMessage(context.TODO(), alice.ID(), bob.ID(), "wormhole")
+	err = aliceClient.DeleteMessage(context.TODO(), alice.ID(), bob.ID(), "wormhole", "offer")
 	require.NoError(t, err)
 
 	// Get (deleted)
-	out, err = bobClient.Message(context.TODO(), bob.ID(), alice.ID(), "wormhole")
+	out, err = bobClient.Message(context.TODO(), bob.ID(), alice.ID(), "wormhole", "offer")
 	require.NoError(t, err)
 	require.Nil(t, out)
 
 	// Put
-	err = aliceClient.ExpiringMessage(context.TODO(), alice.ID(), bob.ID(), "wormhole", []byte("hi3"), time.Millisecond)
+	err = aliceClient.SendMessage(context.TODO(), alice.ID(), bob.ID(), "wormhole", "offer", []byte("hi3"), time.Millisecond)
 	require.NoError(t, err)
 
 	// Get (expired)
 	time.Sleep(time.Millisecond)
-	out, err = bobClient.Message(context.TODO(), bob.ID(), alice.ID(), "wormhole")
+	out, err = bobClient.Message(context.TODO(), bob.ID(), alice.ID(), "wormhole", "offer")
 	require.NoError(t, err)
 	require.Nil(t, out)
 }

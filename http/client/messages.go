@@ -23,31 +23,34 @@ type Message struct {
 	UpdatedAt time.Time
 }
 
-// SendMessage posts an encrypted message.
-func (c *Client) SendMessage(ctx context.Context, sender *keys.EdX25519Key, recipient keys.ID, id string, b []byte) error {
-	sp := saltpack.NewSaltpack(c.ks)
-	encrypted, err := sp.Signcrypt(b, sender, recipient, sender.ID())
+// SendMessage posts an encrypted expiring message.
+func (c *Client) SendMessage(ctx context.Context, sender keys.ID, recipient keys.ID, channel string, id string, b []byte, expire time.Duration) error {
+	senderKey, err := c.ks.EdX25519Key(sender)
 	if err != nil {
 		return err
 	}
-	return c.putMessage(ctx, sender, recipient, encrypted)
+	if senderKey == nil {
+		return keys.NewErrNotFound(sender.String())
+	}
+	if expire == time.Duration(0) {
+		return errors.Errorf("no expire specified")
+	}
+	sp := saltpack.NewSaltpack(c.ks)
+	encrypted, err := sp.Signcrypt(b, senderKey, recipient, sender)
+	if err != nil {
+		return err
+	}
+	return c.putMessage(ctx, senderKey, recipient, channel, id, encrypted, expire)
 }
 
-func (c *Client) putMessage(ctx context.Context, sender *keys.EdX25519Key, recipient keys.ID, b []byte) error {
-	id := keys.Rand3262()
-	path := keys.Path("msgs", sender.ID(), recipient, id)
+func (c *Client) putMessage(ctx context.Context, sender *keys.EdX25519Key, recipient keys.ID, channel string, id string, b []byte, expire time.Duration) error {
+	path := keys.Path("msgs", sender.ID(), recipient, channel, id)
 	vals := url.Values{}
+	vals.Set("expire", expire.String())
 	_, err := c.putDocument(ctx, path, vals, sender, bytes.NewReader(b))
 	if err != nil {
 		return err
 	}
-	// if doc == nil {
-	// 	return errors.Errorf("failed to save message: no response")
-	// }
-	// var msg api.MessageResponse
-	// if err := json.Unmarshal(doc.Data, &msg); err != nil {
-	// 	return err
-	// }
 	return nil
 }
 
@@ -57,16 +60,19 @@ type MessagesOpts struct {
 	Version string
 	// Direction ascending or descending
 	Direction keys.Direction
-	// Channel to filter by
-	Channel string
 	// Limit by
 	Limit int
 }
 
 // Messages returns encrypted messages.
 // To decrypt a message, use Client#DecryptMessage.
-func (c *Client) Messages(ctx context.Context, key *keys.EdX25519Key, from keys.ID, opts *MessagesOpts) ([]*Message, string, error) {
-	path := keys.Path("msgs", key.ID(), from)
+func (c *Client) Messages(ctx context.Context, kid keys.ID, from keys.ID, channel string, opts *MessagesOpts) ([]*Message, string, error) {
+	key, err := c.ks.EdX25519Key(kid)
+	if err != nil {
+		return nil, "", err
+	}
+
+	path := keys.Path("msgs", key.ID(), from, channel)
 	if opts == nil {
 		opts = &MessagesOpts{}
 	}
@@ -78,9 +84,6 @@ func (c *Client) Messages(ctx context.Context, key *keys.EdX25519Key, from keys.
 	}
 	if opts.Direction != "" {
 		params.Add("direction", string(opts.Direction))
-	}
-	if opts.Channel != "" {
-		params.Add("channel", opts.Channel)
 	}
 	if opts.Limit != 0 {
 		params.Add("limit", fmt.Sprintf("%d", opts.Limit))
@@ -123,48 +126,12 @@ func (c *Client) DecryptMessage(key *keys.EdX25519Key, msg *Message) ([]byte, ke
 	return decrypted, pk.ID(), nil
 }
 
-// ExpiringMessage ...
-func (c *Client) ExpiringMessage(ctx context.Context, sender keys.ID, recipient keys.ID, id string, b []byte, expire time.Duration) error {
-	senderKey, err := c.ks.EdX25519Key(sender)
-	if err != nil {
-		return err
-	}
-	if senderKey == nil {
-		return keys.NewErrNotFound(sender.String())
-	}
-	if expire == time.Duration(0) {
-		return errors.Errorf("expire not set")
-	}
-
-	sp := saltpack.NewSaltpack(c.ks)
-	encrypted, err := sp.Signcrypt(b, senderKey, recipient, sender)
-	if err != nil {
-		return err
-	}
-	path := keys.Path("msgs", senderKey.ID(), recipient, id)
-	vals := url.Values{}
-	vals.Set("expire", expire.String())
-
-	doc, err := c.putDocument(ctx, path, vals, senderKey, bytes.NewReader(encrypted))
-	if err != nil {
-		return err
-	}
-	if doc == nil {
-		return nil
-	}
-	// var resp api.MessageResponse
-	// if err := json.Unmarshal(doc.Data, &resp); err != nil {
-	// 	return err
-	// }
-	return nil
-}
-
-func (c *Client) Message(ctx context.Context, sender keys.ID, recipient keys.ID, id string) ([]byte, error) {
+func (c *Client) Message(ctx context.Context, sender keys.ID, recipient keys.ID, channel string, id string) ([]byte, error) {
 	senderKey, err := c.ks.EdX25519Key(sender)
 	if err != nil {
 		return nil, err
 	}
-	path := keys.Path("msgs", sender, recipient, id)
+	path := keys.Path("msgs", sender, recipient, channel, id)
 	vals := url.Values{}
 	doc, err := c.getDocument(ctx, path, vals, senderKey)
 	if err != nil {
@@ -186,7 +153,7 @@ func (c *Client) Message(ctx context.Context, sender keys.ID, recipient keys.ID,
 	return decrypted, nil
 }
 
-func (c *Client) DeleteMessage(ctx context.Context, sender keys.ID, recipient keys.ID, id string) error {
+func (c *Client) DeleteMessage(ctx context.Context, sender keys.ID, recipient keys.ID, channel string, id string) error {
 	senderKey, err := c.ks.EdX25519Key(sender)
 	if err != nil {
 		return err
@@ -195,7 +162,7 @@ func (c *Client) DeleteMessage(ctx context.Context, sender keys.ID, recipient ke
 		return keys.NewErrNotFound(sender.String())
 	}
 
-	path := keys.Path("msgs", senderKey.ID(), recipient, id)
+	path := keys.Path("msgs", senderKey.ID(), recipient, channel, id)
 	vals := url.Values{}
 	if _, err := c.delete(ctx, path, vals, senderKey); err != nil {
 		return err
