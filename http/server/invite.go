@@ -40,7 +40,7 @@ func (s *Server) postInvite(c echo.Context) error {
 	}
 	ib, err := json.Marshal(inv)
 	if err != nil {
-		return internalError(c, err)
+		return s.internalError(c, err)
 	}
 
 	var code string
@@ -48,7 +48,7 @@ func (s *Server) postInvite(c echo.Context) error {
 		randWords := keys.RandWords(3)
 		existing, err := s.mc.Get(ctx, code)
 		if err != nil {
-			return internalError(c, err)
+			return s.internalError(c, err)
 		}
 		if existing != "" {
 			s.logger.Errorf("invite code conflict")
@@ -58,16 +58,16 @@ func (s *Server) postInvite(c echo.Context) error {
 		break
 	}
 	if code == "" {
-		return internalError(c, errors.Errorf("invite code conflict"))
+		return s.internalError(c, errors.Errorf("invite code conflict"))
 	}
 
 	codeKey := fmt.Sprintf("code %s", code)
 	if err := s.mc.Set(ctx, codeKey, string(ib)); err != nil {
-		return internalError(c, err)
+		return s.internalError(c, err)
 	}
 	// TODO: Configurable expiry?
 	if err := s.mc.Expire(ctx, codeKey, time.Hour); err != nil {
-		return internalError(c, err)
+		return s.internalError(c, err)
 	}
 
 	s.logger.Debugf("Created code: %s", code)
@@ -91,14 +91,14 @@ func (s *Server) getInvite(c echo.Context) error {
 	s.logger.Debugf("Get code: %s", key)
 	out, err := s.mc.Get(ctx, key)
 	if err != nil {
-		return internalError(c, err)
+		return s.internalError(c, err)
 	}
 	if out == "" {
 		return ErrNotFound(c, errors.Errorf("code not found"))
 	}
 	var inv invite
 	if err := json.Unmarshal([]byte(out), &inv); err != nil {
-		return internalError(c, err)
+		return s.internalError(c, err)
 	}
 
 	// Only allow the sender or recipient to view the invite.
@@ -110,7 +110,7 @@ func (s *Server) getInvite(c echo.Context) error {
 	}
 	// TODO: Remove on access or when it's used?
 	// if err := s.mc.Delete(ctx, key); err != nil {
-	// 	return internalError(c, err)
+	// 	return s.internalError(c, err)
 	// }
 
 	resp := api.InviteResponse{

@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"time"
@@ -61,7 +62,7 @@ func (s *Server) createTaskCheck(c echo.Context) error {
 	}
 
 	if err := s.tasks.CreateTask(ctx, "POST", "/task/check/"+kid.String(), s.internalAuth); err != nil {
-		return internalError(c, err)
+		return s.internalError(c, err)
 	}
 	return c.String(http.StatusOK, "")
 }
@@ -80,7 +81,7 @@ func (s *Server) taskCheck(c echo.Context) error {
 	}
 
 	if _, err := s.users.Update(ctx, kid); err != nil {
-		return internalError(c, err)
+		return s.internalError(c, err)
 	}
 	return c.String(http.StatusOK, "")
 }
@@ -91,15 +92,69 @@ func (s *Server) cronCheck(c echo.Context) error {
 
 	kids, err := s.users.Expired(ctx, time.Hour*23)
 	if err != nil {
-		return internalError(c, err)
+		return s.internalError(c, err)
 	}
 
 	// logger.Infof(ctx, "Expired %s", kids)
 
 	for _, kid := range kids {
 		if err := s.tasks.CreateTask(ctx, "POST", "/task/check/"+kid.String(), s.internalAuth); err != nil {
-			return internalError(c, err)
+			return s.internalError(c, err)
 		}
+	}
+
+	return c.String(http.StatusOK, "")
+}
+
+func (s *Server) taskExpired(c echo.Context) error {
+	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
+	ctx := c.Request().Context()
+
+	if err := s.checkInternalAuth(c); err != nil {
+		return err
+	}
+
+	iter, err := s.fi.Documents(ctx, keys.Path("messages"), nil)
+	if err != nil {
+		return s.internalError(c, err)
+	}
+	defer iter.Release()
+	paths := []string{}
+	for {
+		doc, err := iter.Next()
+		if err != nil {
+			return s.internalError(c, err)
+		}
+		if doc == nil {
+			break
+		}
+		var msg message
+		if err := json.Unmarshal(doc.Data, &msg); err != nil {
+			return s.internalError(c, err)
+		}
+
+		ok, err := s.checkMessage(&msg, doc)
+		if err != nil {
+			return s.internalError(c, err)
+		}
+		if !ok {
+			paths = append(paths, doc.Path)
+		}
+	}
+
+	if err := s.fi.DeleteAll(ctx, paths); err != nil {
+		return s.internalError(c, err)
+	}
+
+	return c.String(http.StatusOK, "")
+}
+
+func (s *Server) cronExpired(c echo.Context) error {
+	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
+	ctx := c.Request().Context()
+
+	if err := s.tasks.CreateTask(ctx, "POST", "/task/expired", s.internalAuth); err != nil {
+		return s.internalError(c, err)
 	}
 
 	return c.String(http.StatusOK, "")

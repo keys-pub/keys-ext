@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keysd/http/api"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
@@ -35,6 +34,14 @@ func (s *Server) putMessage(c echo.Context) error {
 		return ErrBadRequest(c, err)
 	}
 
+	channel := c.Param("channel")
+	if channel == "" {
+		return ErrBadRequest(c, errors.Errorf("no channel"))
+	}
+	if len(channel) > 16 {
+		return ErrBadRequest(c, errors.Errorf("channel name too long"))
+	}
+
 	id := c.Param("id")
 	if id == "" {
 		return ErrBadRequest(c, errors.Errorf("no id"))
@@ -43,22 +50,20 @@ func (s *Server) putMessage(c echo.Context) error {
 		return ErrBadRequest(c, errors.Errorf("id too long"))
 	}
 
-	expire := time.Duration(0)
-	pexpire := c.QueryParam("expire")
-	if pexpire != "" {
-		expire, err = time.ParseDuration(pexpire)
+	expire := time.Hour * 24
+	if c.QueryParam("expire") != "" {
+		e, err := time.ParseDuration(c.QueryParam("expire"))
 		if err != nil {
 			return ErrBadRequest(c, err)
 		}
+		expire = e
 	}
-	if expire > time.Hour {
-		return ErrBadRequest(c, errors.Errorf("max expire is 1h"))
+	if len(expire.String()) > 64 {
+		return ErrBadRequest(c, errors.Errorf("invalid expire"))
 	}
-
-	// channel := c.QueryParam("channel")
-	// if len(channel) > 16 {
-	// 	return ErrBadRequest(c, errors.Errorf("channel name too long"))
-	// }
+	if expire > time.Hour*24 {
+		return ErrBadRequest(c, errors.Errorf("max expire is 24h"))
+	}
 
 	if c.Request().Body == nil {
 		return ErrBadRequest(c, errors.Errorf("missing body"))
@@ -66,61 +71,73 @@ func (s *Server) putMessage(c echo.Context) error {
 
 	b, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
-		return internalError(c, err)
+		return s.internalError(c, err)
 	}
 
-	if len(b) > 512*1024 {
+	if len(b) > 16*1024 {
 		// TODO: Check length before reading data
-		return ErrBadRequest(c, errors.Errorf("message too large (greater than 512KiB)"))
+		return ErrBadRequest(c, errors.Errorf("message too large (greater than 16KiB)"))
 	}
 
-	if expire > 0 {
-		return s.expiringMessage(c, kid, rid, expire, id, b)
-	} else {
-		return s.saveMessage(c, kid, rid, id, b)
-	}
+	return s.saveMessage(c, kid, rid, channel, id, b, expire)
 }
 
-func (s *Server) saveMessage(c echo.Context, kid keys.ID, rid keys.ID, id string, b []byte) error {
+type message struct {
+	ID     string `json:"id"`
+	Data   []byte `json:"data"`
+	Expire string `json:"exp,omitempty"`
+}
+
+func (s *Server) saveMessage(c echo.Context, kid keys.ID, rid keys.ID, channel string, id string, b []byte, expire time.Duration) error {
 	ctx := c.Request().Context()
 
-	msg := api.Message{
-		ID:   id,
-		Data: b,
+	exp := expire.String()
+	if expire == time.Duration(0) {
+		exp = ""
 	}
 
+	msg := message{
+		ID:     id,
+		Data:   b,
+		Expire: exp,
+	}
 	mb, err := json.Marshal(msg)
 	if err != nil {
-		return internalError(c, err)
+		return s.internalError(c, err)
 	}
 
-	path := keys.Path("messages", fmt.Sprintf("%s-%s-%s", kid, rid, id))
-	s.logger.Infof("Save message %s", path)
-	if err := s.fi.Create(ctx, path, mb); err != nil {
-		return internalError(c, err)
+	path := keys.Path("messages", keys.Rand3262())
+	if err := s.fi.Set(ctx, path, mb); err != nil {
+		return s.internalError(c, err)
 	}
-	rpath := keys.Path("messages", fmt.Sprintf("%s-%s-%s", rid, kid, id))
+
+	currpath := keys.Path("messages", fmt.Sprintf("%s-%s-%s-%s", kid, rid, channel, id))
+	s.logger.Infof("Save message %s", path)
+	if err := s.fi.Set(ctx, currpath, []byte(path)); err != nil {
+		return s.internalError(c, err)
+	}
+	rpath := keys.Path("messages", fmt.Sprintf("%s-%s-%s-%s", rid, kid, channel, id))
 	if kid != rid {
 		s.logger.Infof("Save message (recipient) %s", rpath)
-		if err := s.fi.Create(ctx, rpath, mb); err != nil {
-			return internalError(c, err)
+		if err := s.fi.Set(ctx, rpath, []byte(path)); err != nil {
+			return s.internalError(c, err)
 		}
 	}
 
-	changePath := fmt.Sprintf("%s-%s-%s", msgChanges, kid, rid)
+	changePath := fmt.Sprintf("%s-%s-%s-%s", msgChanges, kid, rid, channel)
 	s.logger.Infof("Add change %s %s", changePath, path)
 	if err := s.fi.ChangeAdd(ctx, changePath, path); err != nil {
-		return internalError(c, err)
+		return s.internalError(c, err)
 	}
 	if kid != rid {
-		rchangePath := fmt.Sprintf("%s-%s-%s", msgChanges, rid, kid)
-		s.logger.Infof("Add change (recipient) %s %s", rchangePath, rpath)
-		if err := s.fi.ChangeAdd(ctx, rchangePath, rpath); err != nil {
-			return internalError(c, err)
+		rchangePath := fmt.Sprintf("%s-%s-%s-%s", msgChanges, rid, kid, channel)
+		s.logger.Infof("Add change (recipient) %s %s", rchangePath, path)
+		if err := s.fi.ChangeAdd(ctx, rchangePath, path); err != nil {
+			return s.internalError(c, err)
 		}
 	}
 
-	resp := api.MessageResponse{}
+	var resp struct{}
 	return JSON(c, http.StatusOK, resp)
 }
 
@@ -141,19 +158,19 @@ func (s *Server) listMessages(c echo.Context) error {
 		return ErrBadRequest(c, err)
 	}
 
-	// channel := c.QueryParam("channel")
-	// if channel == "" {
-	// 	channel = "default"
-	// }
-	// if len(channel) > 16 {
-	// 	return ErrBadRequest(c, errors.Errorf("channel name too long"))
-	// }
+	channel := c.Param("channel")
+	if channel == "" {
+		return ErrBadRequest(c, errors.Errorf("no channel"))
+	}
+	if len(channel) > 16 {
+		return ErrBadRequest(c, errors.Errorf("channel name too long"))
+	}
 
-	changePath := fmt.Sprintf("%s-%s-%s", msgChanges, kid, rid)
+	changePath := fmt.Sprintf("%s-%s-%s-%s", msgChanges, kid, rid, channel)
 
 	chgs, err := s.changes(c, changePath)
 	if err != nil {
-		return internalError(c, err)
+		return s.internalError(c, err)
 	}
 	if chgs.errBadRequest != nil {
 		return ErrResponse(c, http.StatusBadRequest, chgs.errBadRequest.Error())
@@ -165,11 +182,15 @@ func (s *Server) listMessages(c echo.Context) error {
 	messages := make([]*api.Message, 0, len(chgs.docs))
 	md := make(map[string]api.Metadata, len(chgs.docs))
 	for _, doc := range chgs.docs {
-		var msg api.Message
-		if err := json.Unmarshal(doc.Data, &msg); err != nil {
-			return internalError(c, err)
+		msg, err := s.msgFromDoc(doc)
+		if err != nil {
+			return s.internalError(c, err)
 		}
-		messages = append(messages, &msg)
+		if msg == nil {
+			continue
+		}
+
+		messages = append(messages, msg)
 		md[msg.ID] = api.Metadata{
 			CreatedAt: doc.CreatedAt,
 			UpdatedAt: doc.UpdatedAt,
@@ -187,25 +208,41 @@ func (s *Server) listMessages(c echo.Context) error {
 	return JSON(c, http.StatusOK, resp)
 }
 
-func (s *Server) expiringMessage(c echo.Context, kid keys.ID, rid keys.ID, expire time.Duration, id string, b []byte) error {
-	ctx := c.Request().Context()
-
-	enc, err := encoding.Encode(b, encoding.Base64)
+func (s *Server) msgFromDoc(doc *keys.Document) (*api.Message, error) {
+	if doc == nil {
+		return nil, nil
+	}
+	var msg message
+	if err := json.Unmarshal(doc.Data, &msg); err != nil {
+		return nil, err
+	}
+	ok, err := s.checkMessage(&msg, doc)
 	if err != nil {
-		return internalError(c, err)
+		return nil, err
 	}
+	if !ok {
+		s.logger.Debugf("Message pruned: %s", doc.Path)
+		return nil, nil
+	}
+	return &api.Message{
+		ID:   msg.ID,
+		Data: msg.Data,
+	}, nil
+}
 
-	key := fmt.Sprintf("msg-%s-%s-%s", kid, rid, id)
-	if err := s.mc.Set(ctx, key, enc); err != nil {
-		return internalError(c, err)
+func (s *Server) checkMessage(msg *message, doc *keys.Document) (bool, error) {
+	if msg.Expire != "" {
+		expiry, err := time.ParseDuration(msg.Expire)
+		if err != nil {
+			return false, errors.Wrapf(err, "invalid expire")
+		}
+		now := s.nowFn()
+		s.logger.Debugf("Now: %s, Created: %s, Expiry: %s, Sub: %s", now, doc.CreatedAt, expiry, now.Sub(doc.CreatedAt))
+		if now.Sub(doc.CreatedAt) > expiry {
+			return false, nil
+		}
 	}
-	// TODO: Configurable expiry?
-	if err := s.mc.Expire(ctx, key, expire); err != nil {
-		return internalError(c, err)
-	}
-
-	resp := api.MessageResponse{}
-	return JSON(c, http.StatusOK, resp)
+	return true, nil
 }
 
 func (s *Server) deleteMessage(c echo.Context) error {
@@ -226,6 +263,14 @@ func (s *Server) deleteMessage(c echo.Context) error {
 		return ErrBadRequest(c, err)
 	}
 
+	channel := c.Param("channel")
+	if channel == "" {
+		return ErrBadRequest(c, errors.Errorf("no channel"))
+	}
+	if len(channel) > 16 {
+		return ErrBadRequest(c, errors.Errorf("channel name too long"))
+	}
+
 	id := c.Param("id")
 	if id == "" {
 		return ErrBadRequest(c, errors.Errorf("no id"))
@@ -234,11 +279,18 @@ func (s *Server) deleteMessage(c echo.Context) error {
 		return ErrBadRequest(c, errors.Errorf("id too long"))
 	}
 
-	// TODO: This only deletes expiring message
-
-	key := fmt.Sprintf("msg-%s-%s-%s", kid, rid, id)
-	if err := s.mc.Delete(ctx, key); err != nil {
-		return internalError(c, err)
+	path := keys.Path("messages", fmt.Sprintf("%s-%s-%s-%s", kid, rid, channel, id))
+	ok, err := s.fi.Delete(ctx, path)
+	if err != nil {
+		return s.internalError(c, err)
+	}
+	rpath := keys.Path("messages", fmt.Sprintf("%s-%s-%s-%s", rid, kid, channel, id))
+	rok, err := s.fi.Delete(ctx, rpath)
+	if err != nil {
+		return s.internalError(c, err)
+	}
+	if !ok && !rok {
+		return ErrNotFound(c, errors.Errorf("message not found"))
 	}
 
 	var resp struct{}
@@ -262,6 +314,15 @@ func (s *Server) getMessage(c echo.Context) error {
 	if err != nil {
 		return ErrBadRequest(c, err)
 	}
+
+	channel := c.Param("channel")
+	if channel == "" {
+		return ErrBadRequest(c, errors.Errorf("no channel"))
+	}
+	if len(channel) > 16 {
+		return ErrBadRequest(c, errors.Errorf("channel name too long"))
+	}
+
 	id := c.Param("id")
 	if id == "" {
 		return ErrBadRequest(c, errors.Errorf("no id"))
@@ -270,25 +331,28 @@ func (s *Server) getMessage(c echo.Context) error {
 		return ErrBadRequest(c, errors.Errorf("id too long"))
 	}
 
-	// TODO: Only gets expiring message
-
-	key := fmt.Sprintf("msg-%s-%s-%s", rid, kid, id)
-	out, err := s.mc.Get(ctx, key)
+	path := keys.Path("messages", fmt.Sprintf("%s-%s-%s-%s", kid, rid, channel, id))
+	docRef, err := s.fi.Get(ctx, path)
 	if err != nil {
-		return internalError(c, err)
+		return s.internalError(c, err)
 	}
-	if out == "" {
-		return ErrNotFound(c, nil)
+	if docRef == nil {
+		return ErrNotFound(c, errors.Errorf("message not found"))
 	}
-	if err := s.mc.Delete(ctx, key); err != nil {
-		return internalError(c, err)
+	doc, err := s.fi.Get(ctx, string(docRef.Data))
+	if err != nil {
+		return s.internalError(c, err)
 	}
 
-	b, err := encoding.Decode(out, encoding.Base64)
+	msg, err := s.msgFromDoc(doc)
 	if err != nil {
-		return internalError(c, err)
+		return s.internalError(c, err)
 	}
-	return c.Blob(http.StatusOK, echo.MIMEOctetStream, b)
+	if msg == nil {
+		return ErrNotFound(c, errors.Errorf("message not found"))
+	}
+
+	return c.Blob(http.StatusOK, echo.MIMEOctetStream, msg.Data)
 }
 
 // func truthy(s string) bool {

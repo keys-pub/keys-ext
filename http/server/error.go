@@ -29,7 +29,6 @@ func newErrorResponse(msg string, code int) *response {
 
 // ErrResponse is a generate error response.
 func ErrResponse(c echo.Context, status int, msg string) error {
-	c.Logger().Infof("Error (%d): %s", status, msg)
 	return JSON(c, status, newErrorResponse(msg, status))
 }
 
@@ -66,7 +65,8 @@ func ErrUnauthorized(c echo.Context, err error) error {
 	return ErrResponse(c, http.StatusUnauthorized, err.Error())
 }
 
-func internalError(c echo.Context, err error) error {
+func (s *Server) internalError(c echo.Context, err error) error {
+	s.logger.Errorf("Internal error: %v", err)
 	return ErrResponse(c, http.StatusInternalServerError, err.Error())
 }
 

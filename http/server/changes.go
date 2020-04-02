@@ -69,6 +69,7 @@ func (s *Server) changes(c echo.Context, path string) (*changes, error) {
 	if err != nil {
 		return nil, err
 	}
+	s.logger.Debugf("Changes %s, got docs %d", path, len(docs))
 
 	versionNext := keys.TimeMs(0)
 	if to.IsZero() {

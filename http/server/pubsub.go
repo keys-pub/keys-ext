@@ -87,7 +87,7 @@ func (s *PubSubServer) publish(c echo.Context) error {
 
 	bin, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
-		return internalError(c, err)
+		return s.internalError(c, err)
 	}
 
 	if len(bin) > 16*1024 {
@@ -97,11 +97,16 @@ func (s *PubSubServer) publish(c echo.Context) error {
 
 	s.logger.Infof("Publish to %s", rid)
 	if err := s.pubSub.Publish(ctx, rid.String(), bin); err != nil {
-		return internalError(c, err)
+		return s.internalError(c, err)
 	}
 
 	var resp struct{}
 	return JSON(c, http.StatusOK, resp)
+}
+
+func (s *PubSubServer) internalError(c echo.Context, err error) error {
+	s.logger.Errorf("Internal error: %v", err)
+	return ErrResponse(c, http.StatusInternalServerError, err.Error())
 }
 
 var (

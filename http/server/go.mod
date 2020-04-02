@@ -5,7 +5,7 @@ go 1.12
 require (
 	github.com/danieljoos/wincred v1.0.3-0.20190627210546-1fd2f0dfbd6a // indirect
 	github.com/gorilla/websocket v1.4.2
-	github.com/keys-pub/keys v0.0.0-20200326170554-f32fbcc6b18f
+	github.com/keys-pub/keys v0.0.0-20200401235945-acb465cc8c62
 	github.com/keys-pub/keysd/http/api v0.0.0-20200326173323-d53753a929e2
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/labstack/echo/v4 v4.1.11

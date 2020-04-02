@@ -90,16 +90,18 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 
 	// Tasks
 	e.POST("/task/check/:kid", s.taskCheck)
-	// Tasks (create)
+	e.POST("/task/expired", s.taskExpired)
 	e.GET("/task/create/check/:kid", s.createTaskCheck)
+
 	// Cron
 	e.POST("/cron/check", s.cronCheck)
+	e.POST("/cron/expired", s.cronExpired)
 
 	// Messages
-	e.PUT("/msgs/:kid/:rid/:id", s.putMessage)
-	e.DELETE("/msgs/:kid/:rid/:id", s.deleteMessage)
-	e.GET("/msgs/:kid/:rid/:id", s.getMessage)
-	e.GET("/msgs/:kid/:rid", s.listMessages)
+	e.PUT("/msgs/:kid/:rid/:channel/:id", s.putMessage)
+	e.DELETE("/msgs/:kid/:rid/:channel/:id", s.deleteMessage)
+	e.GET("/msgs/:kid/:rid/:channel/:id", s.getMessage)
+	e.GET("/msgs/:kid/:rid/:channel", s.listMessages)
 
 	// Invite
 	e.POST("/invite/:kid/:rid", s.postInvite)
@@ -125,7 +127,7 @@ func JSON(c echo.Context, status int, i interface{}) error {
 	default:
 		mb, err := json.Marshal(i)
 		if err != nil {
-			return internalError(c, err)
+			panic(err)
 		}
 		b = mb
 	}

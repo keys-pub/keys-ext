@@ -28,7 +28,7 @@ func (s *Server) check(c echo.Context) error {
 	kid := authRes.KID
 
 	if err := s.tasks.CreateTask(ctx, "POST", "/task/check/"+kid.String(), s.internalAuth); err != nil {
-		return internalError(c, err)
+		return s.internalError(c, err)
 	}
 
 	var resp struct{}

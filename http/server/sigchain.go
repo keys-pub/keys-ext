@@ -46,7 +46,7 @@ func (s *Server) listSigchains(c echo.Context) error {
 
 	changes, to, err := s.fi.Changes(ctx, sigchainChanges, version, limit, keys.Ascending)
 	if err != nil {
-		return internalError(c, err)
+		return s.internalError(c, err)
 	}
 	paths := make([]string, 0, len(changes))
 	for _, a := range changes {
@@ -57,13 +57,13 @@ func (s *Server) listSigchains(c echo.Context) error {
 
 	docs, err := s.fi.GetAll(ctx, paths)
 	if err != nil {
-		return internalError(c, err)
+		return s.internalError(c, err)
 	}
 
 	for _, doc := range docs {
 		st, err := s.statementFromBytes(ctx, doc.Data)
 		if err != nil {
-			return internalError(c, err)
+			return s.internalError(c, err)
 		}
 
 		statements = append(statements, st)
@@ -129,7 +129,7 @@ func (s *Server) getSigchain(c echo.Context) error {
 	s.logger.Infof("Loading sigchain: %s", kid)
 	sc, md, err := s.sigchain(c, kid)
 	if err != nil {
-		return internalError(c, err)
+		return s.internalError(c, err)
 	}
 	if sc.Length() == 0 {
 		return ErrNotFound(c, errors.Errorf("sigchain not found"))
@@ -163,7 +163,7 @@ func (s *Server) getSigchainStatement(c echo.Context) error {
 		return ErrNotFound(c, errors.Errorf("statement not found"))
 	}
 	if err != nil {
-		return internalError(c, err)
+		return s.internalError(c, err)
 	}
 	if !doc.CreatedAt.IsZero() {
 		c.Response().Header().Set("CreatedAt", doc.CreatedAt.Format(http.TimeFormat))
@@ -187,7 +187,7 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 
 	b, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
-		return internalError(c, err)
+		return s.internalError(c, err)
 	}
 	st, err := s.statementFromBytes(ctx, b)
 	if err != nil {
@@ -208,7 +208,7 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 
 	exists, err := s.fi.Exists(ctx, path)
 	if err != nil {
-		return internalError(c, err)
+		return s.internalError(c, err)
 	}
 	if exists {
 		return ErrConflict(c, errors.Errorf("statement already exists"))
@@ -220,7 +220,7 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 
 	sc, _, err := s.sigchain(c, st.KID)
 	if err != nil {
-		return internalError(c, err)
+		return s.internalError(c, err)
 	}
 
 	if sc.Length() >= 128 {
@@ -235,14 +235,14 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 
 	s.logger.Infof("Statement, set %s", path)
 	if err := s.fi.Create(ctx, path, b); err != nil {
-		return internalError(c, err)
+		return s.internalError(c, err)
 	}
 	if err := s.fi.ChangeAdd(ctx, sigchainChanges, path); err != nil {
-		return internalError(c, err)
+		return s.internalError(c, err)
 	}
 
 	if err := s.tasks.CreateTask(ctx, "POST", "/task/check/"+st.KID.String(), s.internalAuth); err != nil {
-		return internalError(c, err)
+		return s.internalError(c, err)
 	}
 
 	var resp struct{}
