@@ -57,7 +57,7 @@ func (s *service) wormholeInit(ctx context.Context, req *WormholeInput, wh *worm
 		recipient = rid
 	}
 
-	found, err := wh.FindOffer(ctx, sender, recipient)
+	found, err := wh.FindOffer(ctx, recipient, sender)
 	if err != nil {
 		return err
 	}
