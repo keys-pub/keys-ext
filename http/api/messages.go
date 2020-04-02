@@ -6,9 +6,6 @@ type Message struct {
 	ID   string `json:"id"`
 }
 
-// MessageResponse ...
-type MessageResponse struct{}
-
 // MessagesResponse is the response from messages.
 type MessagesResponse struct {
 	Messages []*Message          `json:"messages"`
