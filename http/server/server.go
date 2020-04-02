@@ -97,7 +97,7 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	e.POST("/cron/expired", s.cronExpired)
 
 	// Messages
-	e.PUT("/msgs/:kid/:rid", s.putMessage)
+	e.POST("/msgs/:kid/:rid", s.postMessage)
 	e.GET("/msgs/:kid/:rid", s.listMessages)
 
 	// Disco

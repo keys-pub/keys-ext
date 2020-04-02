@@ -125,20 +125,20 @@ func TestSigchains(t *testing.T) {
 	require.Equal(t, expectedSigchain2, body)
 
 	// GET /sigchains
-	req, err = http.NewRequest("GET", "/sigchains", nil)
-	require.NoError(t, err)
-	code, _, body = srv.Serve(req)
-	require.Equal(t, http.StatusOK, code)
-	expectedSigs := `{"statements":[{".sig":"j5FZVQKWrnclXHHHIVX7JZ0letgR22cGl7ItlAUHqEsW+kCCMZvDBGEunVJScjVphrqGrPb7oCuMZouGv7GwCQ==","data":"dGVzdGluZw==","kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","seq":1,"ts":1234567890001}],"version":"1234567890003"}`
-	require.Equal(t, expectedSigs, body)
+	// req, err = http.NewRequest("GET", "/sigchains", nil)
+	// require.NoError(t, err)
+	// code, _, body = srv.Serve(req)
+	// require.Equal(t, http.StatusOK, code)
+	// expectedSigs := `{"statements":[{".sig":"j5FZVQKWrnclXHHHIVX7JZ0letgR22cGl7ItlAUHqEsW+kCCMZvDBGEunVJScjVphrqGrPb7oCuMZouGv7GwCQ==","data":"dGVzdGluZw==","kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","seq":1,"ts":1234567890001}],"version":"1234567890003"}`
+	// require.Equal(t, expectedSigs, body)
 
 	// GET /sigchains?include=md&limit=1
-	req, err = http.NewRequest("GET", "/sigchains?include=md&limit=1", nil)
-	require.NoError(t, err)
-	code, _, body = srv.Serve(req)
-	require.Equal(t, http.StatusOK, code)
-	expectedSigsWithMetadata := `{"md":{"/kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077/1":{"createdAt":"2009-02-13T23:31:30.002Z","updatedAt":"2009-02-13T23:31:30.002Z"}},"statements":[{".sig":"j5FZVQKWrnclXHHHIVX7JZ0letgR22cGl7ItlAUHqEsW+kCCMZvDBGEunVJScjVphrqGrPb7oCuMZouGv7GwCQ==","data":"dGVzdGluZw==","kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","seq":1,"ts":1234567890001}],"version":"1234567890003"}`
-	require.Equal(t, expectedSigsWithMetadata, body)
+	// req, err = http.NewRequest("GET", "/sigchains?include=md&limit=1", nil)
+	// require.NoError(t, err)
+	// code, _, body = srv.Serve(req)
+	// require.Equal(t, http.StatusOK, code)
+	// expectedSigsWithMetadata := `{"md":{"/kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077/1":{"createdAt":"2009-02-13T23:31:30.002Z","updatedAt":"2009-02-13T23:31:30.002Z"}},"statements":[{".sig":"j5FZVQKWrnclXHHHIVX7JZ0letgR22cGl7ItlAUHqEsW+kCCMZvDBGEunVJScjVphrqGrPb7oCuMZouGv7GwCQ==","data":"dGVzdGluZw==","kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","seq":1,"ts":1234567890001}],"version":"1234567890003"}`
+	// require.Equal(t, expectedSigsWithMetadata, body)
 
 	// GET /:kid
 	req, err = http.NewRequest("GET", keys.Path(alice.ID()), nil)

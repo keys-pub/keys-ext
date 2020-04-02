@@ -24,9 +24,10 @@ func discoKey(kid keys.ID, rid keys.ID, typ string) string {
 }
 
 func (s *Server) putDisco(c echo.Context) error {
+	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	kid, status, err := authorize(c, s.URL, s.nowFn(), s.mc)
+	kid, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.mc)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}
@@ -94,16 +95,16 @@ func (s *Server) getDisco(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	kid, status, err := authorize(c, s.URL, s.nowFn(), s.mc)
+	rid, status, err := authorize(c, s.URL, "rid", s.nowFn(), s.mc)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}
 
-	recipient := c.Param("rid")
-	if recipient == "" {
-		return ErrBadRequest(c, errors.Errorf("no recipient id specified"))
+	sender := c.Param("kid")
+	if sender == "" {
+		return ErrBadRequest(c, errors.Errorf("no kid specified"))
 	}
-	rid, err := keys.ParseID(recipient)
+	kid, err := keys.ParseID(sender)
 	if err != nil {
 		return ErrBadRequest(c, err)
 	}
@@ -124,6 +125,7 @@ func (s *Server) getDisco(c echo.Context) error {
 	if out == "" {
 		return ErrNotFound(c, nil)
 	}
+	// Delete after get
 	if err := s.mc.Delete(ctx, key); err != nil {
 		return s.internalError(c, err)
 	}
@@ -134,7 +136,7 @@ func (s *Server) deleteDisco(c echo.Context) error {
 	ctx := c.Request().Context()
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	kid, status, err := authorize(c, s.URL, s.nowFn(), s.mc)
+	kid, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.mc)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}

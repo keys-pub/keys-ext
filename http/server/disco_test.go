@@ -29,14 +29,14 @@ func TestDisco(t *testing.T) {
 	require.Equal(t, http.StatusOK, code)
 
 	// GET /disco/:kid/:rid/offer (charlie from alice)
-	req, err = api.NewRequest("GET", keys.Path("disco", charlie.ID(), alice.ID(), "offer"), nil, env.clock.Now(), charlie)
+	req, err = api.NewRequest("GET", keys.Path("disco", alice.ID(), charlie.ID(), "offer"), nil, env.clock.Now(), charlie)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, `hi`, body)
 
 	// GET (again)
-	req, err = api.NewRequest("GET", keys.Path("disco", charlie.ID(), alice.ID(), "offer"), nil, env.clock.Now(), charlie)
+	req, err = api.NewRequest("GET", keys.Path("disco", alice.ID(), charlie.ID(), "offer"), nil, env.clock.Now(), charlie)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)
@@ -63,15 +63,8 @@ func TestDisco(t *testing.T) {
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, `{}`, body)
 
-	// GET (alice, after delete)
-	req, err = api.NewRequest("GET", keys.Path("disco", alice.ID(), charlie.ID(), "offer"), nil, env.clock.Now(), alice)
-	require.NoError(t, err)
-	code, _, body = srv.Serve(req)
-	require.Equal(t, http.StatusNotFound, code)
-	require.Equal(t, `{"error":{"code":404,"message":"resource not found"}}`, body)
-
 	// GET (charlie, after delete)
-	req, err = api.NewRequest("GET", keys.Path("disco", charlie.ID(), alice.ID(), "offer"), nil, env.clock.Now(), charlie)
+	req, err = api.NewRequest("GET", keys.Path("disco", alice.ID(), charlie.ID(), "offer"), nil, env.clock.Now(), charlie)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)
@@ -86,7 +79,7 @@ func TestDisco(t *testing.T) {
 	time.Sleep(time.Millisecond)
 
 	// GET (after expire)
-	req, err = api.NewRequest("GET", keys.Path("disco", charlie.ID(), alice.ID(), "offer"), nil, env.clock.Now(), charlie)
+	req, err = api.NewRequest("GET", keys.Path("disco", alice.ID(), charlie.ID(), "offer"), nil, env.clock.Now(), charlie)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)

@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func authorize(c echo.Context, baseURL string, now time.Time, mc MemCache) (keys.ID, int, error) {
+func authorize(c echo.Context, baseURL string, param string, now time.Time, mc MemCache) (keys.ID, int, error) {
 	request := c.Request()
 	auth := request.Header.Get("Authorization")
 	if auth == "" {
@@ -25,14 +25,14 @@ func authorize(c echo.Context, baseURL string, now time.Time, mc MemCache) (keys
 	}
 	kidAuth := authRes.KID
 
-	if c.Param("kid") != "" {
-		kid, err := keys.ParseID(c.Param("kid"))
+	if c.Param(param) != "" {
+		kid, err := keys.ParseID(c.Param(param))
 		if err != nil {
 			return "", http.StatusBadRequest, err
 		}
 
 		if kid != kidAuth {
-			return "", http.StatusForbidden, errors.Errorf("invalid kid")
+			return "", http.StatusForbidden, errors.Errorf("invalid " + param)
 		}
 	}
 

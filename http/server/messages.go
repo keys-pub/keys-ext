@@ -19,10 +19,10 @@ type message struct {
 	Expire string `json:"exp,omitempty"`
 }
 
-func (s *Server) putMessage(c echo.Context) error {
+func (s *Server) postMessage(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	kid, status, err := authorize(c, s.URL, s.nowFn(), s.mc)
+	kid, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.mc)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}
@@ -110,7 +110,7 @@ func (s *Server) putMessage(c echo.Context) error {
 func (s *Server) listMessages(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	kid, status, err := authorize(c, s.URL, s.nowFn(), s.mc)
+	kid, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.mc)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}

@@ -21,7 +21,7 @@ func (s *Server) postInvite(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	kid, status, err := authorize(c, s.URL, s.nowFn(), s.mc)
+	kid, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.mc)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}
@@ -82,7 +82,7 @@ func (s *Server) getInvite(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	kid, status, err := authorize(c, s.URL, s.nowFn(), s.mc)
+	kid, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.mc)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}

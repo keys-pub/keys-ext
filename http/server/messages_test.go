@@ -34,16 +34,16 @@ func testMessages(t *testing.T, env *env) {
 	require.Equal(t, http.StatusNotFound, code)
 	require.Equal(t, `{"error":{"code":404,"message":"messages not found"}}`, body)
 
-	// PUT /msgs/:kid/:rid (no body)
-	req, err = api.NewRequest("PUT", keys.Path("msgs", alice.ID(), charlie.ID()), nil, clock.Now(), alice)
+	// POST /msgs/:kid/:rid (no body)
+	req, err = api.NewRequest("POST", keys.Path("msgs", alice.ID(), charlie.ID()), nil, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusBadRequest, code)
 	expected := `{"error":{"code":400,"message":"missing body"}}`
 	require.Equal(t, expected, body)
 
-	// PUT /msgs/:kid/:rid
-	req, err = api.NewRequest("PUT", keys.Path("msgs", alice.ID(), charlie.ID()), bytes.NewReader([]byte("test1")), clock.Now(), alice)
+	// POST /msgs/:kid/:rid
+	req, err = api.NewRequest("POST", keys.Path("msgs", alice.ID(), charlie.ID()), bytes.NewReader([]byte("test1")), clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
@@ -52,8 +52,8 @@ func testMessages(t *testing.T, env *env) {
 	require.NoError(t, err)
 	require.NotEmpty(t, createResp.ID)
 
-	// POST /msgs/:kid/:rid (invalid method)
-	req, err = api.NewRequest("POST", keys.Path("msgs", alice.ID(), charlie.ID()), bytes.NewReader([]byte{}), clock.Now(), charlie)
+	// PUT /msgs/:kid/:rid (invalid method)
+	req, err = api.NewRequest("PUT", keys.Path("msgs", alice.ID(), charlie.ID()), bytes.NewReader([]byte{}), clock.Now(), charlie)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusMethodNotAllowed, code)
@@ -97,12 +97,12 @@ func testMessages(t *testing.T, env *env) {
 	require.Equal(t, 0, len(resp2.Messages))
 	require.Equal(t, charlieResp.Version, resp2.Version)
 
-	// PUT /msgs/:kid/:rid
-	req, err = api.NewRequest("PUT", keys.Path("msgs", alice.ID(), charlie.ID()), bytes.NewReader([]byte("test2")), clock.Now(), alice)
+	// POST /msgs/:kid/:rid
+	req, err = api.NewRequest("POST", keys.Path("msgs", alice.ID(), charlie.ID()), bytes.NewReader([]byte("test2")), clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, _ = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	req, err = api.NewRequest("PUT", keys.Path("msgs", alice.ID(), charlie.ID()), bytes.NewReader([]byte("test3")), clock.Now(), alice)
+	req, err = api.NewRequest("POST", keys.Path("msgs", alice.ID(), charlie.ID()), bytes.NewReader([]byte("test3")), clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, _ = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
@@ -145,8 +145,8 @@ func testMessages(t *testing.T, env *env) {
 	require.Equal(t, []byte("test3"), resp4.Messages[0].Data)
 	require.Equal(t, []byte("test2"), resp4.Messages[1].Data)
 
-	// PUT /msgs/:kid/:rid (self)
-	req, err = api.NewRequest("PUT", keys.Path("msgs", alice.ID(), alice.ID()), bytes.NewReader([]byte("hi")), clock.Now(), alice)
+	// POST /msgs/:kid/:rid (self)
+	req, err = api.NewRequest("POST", keys.Path("msgs", alice.ID(), alice.ID()), bytes.NewReader([]byte("hi")), clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
@@ -160,9 +160,9 @@ func testMessages(t *testing.T, env *env) {
 	code, _, _ = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
 
-	// PUT /msgs/:kid/:rid (message too large)
+	// POST /msgs/:kid/:rid (message too large)
 	large := bytes.Repeat([]byte{0x01}, 17*1024)
-	req, err = api.NewRequest("PUT", keys.Path("msgs", alice.ID(), charlie.ID()), bytes.NewReader(large), clock.Now(), alice)
+	req, err = api.NewRequest("POST", keys.Path("msgs", alice.ID(), charlie.ID()), bytes.NewReader(large), clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusBadRequest, code)
@@ -212,8 +212,8 @@ func TestMessagesAuth(t *testing.T) {
 	require.Equal(t, http.StatusForbidden, code)
 	require.Equal(t, `{"error":{"code":403,"message":"verify failed"}}`, body)
 
-	// PUT /msgs/:kid/:rid (invalid recipient)
-	req, err = api.NewRequest("PUT", keys.Path("msgs", bob.ID(), charlie.ID()), bytes.NewReader([]byte("hi")), clock.Now(), alice)
+	// POST /msgs/:kid/:rid (invalid recipient)
+	req, err = api.NewRequest("POST", keys.Path("msgs", bob.ID(), charlie.ID()), bytes.NewReader([]byte("hi")), clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
