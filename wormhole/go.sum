@@ -28,6 +28,8 @@ github.com/keys-pub/keys v0.0.0-20200326170554-f32fbcc6b18f h1:vCfUiujsOpTgP4lZy
 github.com/keys-pub/keys v0.0.0-20200326170554-f32fbcc6b18f/go.mod h1:k/6AQo72ji46Q03AX8C2jLUd4dmGM6djrEZY+LVr6Ww=
 github.com/keys-pub/keys v0.0.0-20200331185030-55a865de2063 h1:ehypcXX+X9YS/g4oYE/2TEN0wzQBfVe2ZtPlxG2KR3M=
 github.com/keys-pub/keys v0.0.0-20200331185030-55a865de2063/go.mod h1:k/6AQo72ji46Q03AX8C2jLUd4dmGM6djrEZY+LVr6Ww=
+github.com/keys-pub/keys v0.0.0-20200401235945-acb465cc8c62 h1:YICmIX2caP/5+1rkV4kG0fUqdB1XcSl/t1b7UElEwGU=
+github.com/keys-pub/keys v0.0.0-20200401235945-acb465cc8c62/go.mod h1:k/6AQo72ji46Q03AX8C2jLUd4dmGM6djrEZY+LVr6Ww=
 github.com/keys-pub/keysd v0.0.25 h1:k3OOmXGq2qUGizSRY2XHSEeD47eZs4FVWRK3sSKvPUU=
 github.com/keys-pub/keysd/http/api v0.0.0-20200326173323-d53753a929e2 h1:rmPp/+bGzxAqaSCFpNX2E5PLEK99pDeNYaoU13sdiPs=
 github.com/keys-pub/keysd/http/api v0.0.0-20200326173323-d53753a929e2/go.mod h1:pHF66DvsvhPLHnA1QSM/adRdq3JgAYEG532rWV269bs=
@@ -35,10 +37,14 @@ github.com/keys-pub/keysd/http/api v0.0.0-20200330224338-ac67d476f58e h1:i2zga0v
 github.com/keys-pub/keysd/http/api v0.0.0-20200330224338-ac67d476f58e/go.mod h1:pHF66DvsvhPLHnA1QSM/adRdq3JgAYEG532rWV269bs=
 github.com/keys-pub/keysd/http/client v0.0.0-20200331185811-e1a2e7fb11dd h1:X/8w7VaZqtBItV0oD+XzwkV2DCuFTSl+rbcdjIVQiLA=
 github.com/keys-pub/keysd/http/client v0.0.0-20200331185811-e1a2e7fb11dd/go.mod h1:zTq0OONFQNFWbTXuTZaVw1+QJsw9ZP8zdd1DtcuOoVo=
+github.com/keys-pub/keysd/http/client v0.0.0-20200402000617-3e6e964877f0 h1:zwwWcMGBvevP2Qdx1WUXutApEZyN7l3Fr1WzOuHJNIM=
+github.com/keys-pub/keysd/http/client v0.0.0-20200402000617-3e6e964877f0/go.mod h1:odI/4ypearrlWKYmcoK05KGO1VgOQ17rAWbch+P33Is=
 github.com/keys-pub/keysd/http/server v0.0.0-20200326173537-f15ed1afc333 h1:22/6C1TQV04GR2tqhVkbGFbiie1wtyKjkN+gOuHcgk8=
 github.com/keys-pub/keysd/http/server v0.0.0-20200326173537-f15ed1afc333/go.mod h1:ohk4jItPx6eCF51jttjy9LxhOBdP8u6ewwD2kK3Lnts=
 github.com/keys-pub/keysd/http/server v0.0.0-20200330224338-ac67d476f58e h1:lEijT1ubQk1WVeaTuxqAXFbAidhsN1MGvbLc+6NEMnA=
 github.com/keys-pub/keysd/http/server v0.0.0-20200330224338-ac67d476f58e/go.mod h1:ohk4jItPx6eCF51jttjy9LxhOBdP8u6ewwD2kK3Lnts=
+github.com/keys-pub/keysd/http/server v0.0.0-20200402000511-203002205fcc h1:I4599Q9B4h6kzVRkkcrQEYckn7N6Jx+pVUWdyfGlT3c=
+github.com/keys-pub/keysd/http/server v0.0.0-20200402000511-203002205fcc/go.mod h1:ssKJmCUjR8DKLZve9+yGodD+grtlmgwpJuj1xk14eNg=
 github.com/kr/pretty v0.1.0 h1:L/CwN0zerZDmRFUapSPitk6f+Q3+0za1rQkzVuMiMFI=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=

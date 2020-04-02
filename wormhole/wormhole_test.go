@@ -48,8 +48,8 @@ func TestNewWormhole(t *testing.T) {
 }
 
 func TestWormholeSameKey(t *testing.T) {
-	wormhole.SetLogger(wormhole.NewLogger(wormhole.DebugLevel))
-	sctp.SetLogger(sctp.NewLogger(sctp.DebugLevel))
+	// wormhole.SetLogger(wormhole.NewLogger(wormhole.DebugLevel))
+	// sctp.SetLogger(sctp.NewLogger(sctp.DebugLevel))
 
 	env := testEnv(t)
 	defer env.closeFn()

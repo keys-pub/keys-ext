@@ -99,13 +99,13 @@ func (w *Wormhole) Close() {
 			logger.Infof("Removing offer (if any)...")
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
-			_ = w.hcl.DeleteMessage(ctx, w.sender, w.recipient, "offer")
+			_ = w.hcl.DeleteMessage(ctx, w.sender, w.recipient, "wormhole", "offer")
 		}()
 		go func() {
 			logger.Infof("Removing answer (if any)...")
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
-			_ = w.hcl.DeleteMessage(ctx, w.sender, w.recipient, "answer")
+			_ = w.hcl.DeleteMessage(ctx, w.sender, w.recipient, "wormhole", "answer")
 		}()
 	}
 
@@ -503,7 +503,7 @@ func (w *Wormhole) writeSession(ctx context.Context, addr *sctp.Addr, sender key
 		return err
 	}
 	logger.Debugf("Writing session: %s (%s)", addr, typ)
-	if err := w.hcl.ExpiringMessage(ctx, sender, recipient, typ, b, expire); err != nil {
+	if err := w.hcl.SendMessage(ctx, sender, recipient, "wormhole", typ, b, expire); err != nil {
 		return err
 	}
 	return nil
@@ -531,12 +531,15 @@ func (w *Wormhole) readSession(ctx context.Context, sender keys.ID, recipient ke
 
 func (w *Wormhole) readOnce(ctx context.Context, sender keys.ID, recipient keys.ID, typ string) (*session, error) {
 	logger.Debugf("Read session...")
-	b, err := w.hcl.Message(ctx, sender, recipient, typ)
+	b, err := w.hcl.Message(ctx, sender, recipient, "wormhole", typ)
 	if err != nil {
 		return nil, err
 	}
 	if b == nil {
 		return nil, nil
+	}
+	if err := w.hcl.DeleteMessage(ctx, sender, recipient, "wormhole", typ); err != nil {
+		return nil, err
 	}
 	var sess session
 	if err := json.Unmarshal(b, &sess); err != nil {
