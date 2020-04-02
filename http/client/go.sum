@@ -89,6 +89,8 @@ github.com/keys-pub/keysd/http/server v0.0.0-20200402000511-203002205fcc h1:I459
 github.com/keys-pub/keysd/http/server v0.0.0-20200402000511-203002205fcc/go.mod h1:ssKJmCUjR8DKLZve9+yGodD+grtlmgwpJuj1xk14eNg=
 github.com/keys-pub/keysd/http/server v0.0.0-20200402183408-c83924fbc62e h1:hHYIhcvhg5rtfYqYj0MejW8e910kpO1q42NMdLy1tJw=
 github.com/keys-pub/keysd/http/server v0.0.0-20200402183408-c83924fbc62e/go.mod h1:bw8ynlIs2o65zwiYgIN7LT75V3412m34ISRmXmNhMm4=
+github.com/keys-pub/keysd/http/server v0.0.0-20200402191721-a864d6b0e313 h1:5n4zxmWrBllOGwzBex4vDTJV4U1ph0wKgIDzO4T3fXA=
+github.com/keys-pub/keysd/http/server v0.0.0-20200402191721-a864d6b0e313/go.mod h1:bw8ynlIs2o65zwiYgIN7LT75V3412m34ISRmXmNhMm4=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/kr/pretty v0.1.0 h1:L/CwN0zerZDmRFUapSPitk6f+Q3+0za1rQkzVuMiMFI=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=

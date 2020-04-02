@@ -34,12 +34,12 @@ func TestDisco(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get
-	out, err := bobClient.GetDisco(context.TODO(), bob.ID(), alice.ID(), Offer)
+	out, err := bobClient.GetDisco(context.TODO(), alice.ID(), bob.ID(), Offer)
 	require.NoError(t, err)
 	require.Equal(t, "hi", out)
 
 	// Get (again)
-	out, err = bobClient.GetDisco(context.TODO(), bob.ID(), alice.ID(), Offer)
+	out, err = bobClient.GetDisco(context.TODO(), alice.ID(), bob.ID(), Offer)
 	require.NoError(t, err)
 	require.Empty(t, out)
 
@@ -52,7 +52,7 @@ func TestDisco(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get (deleted)
-	out, err = bobClient.GetDisco(context.TODO(), bob.ID(), alice.ID(), Offer)
+	out, err = bobClient.GetDisco(context.TODO(), alice.ID(), bob.ID(), Offer)
 	require.NoError(t, err)
 	require.Empty(t, out)
 
@@ -62,7 +62,7 @@ func TestDisco(t *testing.T) {
 
 	// Get (expired)
 	time.Sleep(time.Millisecond)
-	out, err = bobClient.GetDisco(context.TODO(), bob.ID(), alice.ID(), Offer)
+	out, err = bobClient.GetDisco(context.TODO(), alice.ID(), bob.ID(), Offer)
 	require.NoError(t, err)
 	require.Empty(t, out)
 }

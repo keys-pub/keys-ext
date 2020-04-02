@@ -46,18 +46,18 @@ func (c *Client) PutDisco(ctx context.Context, sender keys.ID, recipient keys.ID
 }
 
 func (c *Client) GetDisco(ctx context.Context, sender keys.ID, recipient keys.ID, typ DiscoType) (string, error) {
-	senderKey, err := c.ks.EdX25519Key(sender)
+	recipientKey, err := c.ks.EdX25519Key(recipient)
 	if err != nil {
 		return "", err
 	}
-	recipientKey, err := keys.NewX25519PublicKeyFromID(recipient)
+	senderKey, err := keys.NewX25519PublicKeyFromID(sender)
 	if err != nil {
 		return "", err
 	}
 
 	path := keys.Path("disco", sender, recipient, string(typ))
 	vals := url.Values{}
-	doc, err := c.getDocument(ctx, path, vals, senderKey)
+	doc, err := c.getDocument(ctx, path, vals, recipientKey)
 	if err != nil {
 		return "", err
 	}
@@ -65,7 +65,7 @@ func (c *Client) GetDisco(ctx context.Context, sender keys.ID, recipient keys.ID
 		return "", nil
 	}
 
-	decrypted, err := keys.BoxOpen(doc.Data, recipientKey, senderKey.X25519Key())
+	decrypted, err := keys.BoxOpen(doc.Data, senderKey, recipientKey.X25519Key())
 	if err != nil {
 		return "", err
 	}

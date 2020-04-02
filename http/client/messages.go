@@ -44,7 +44,7 @@ func (c *Client) SendMessage(ctx context.Context, sender keys.ID, recipient keys
 	path := keys.Path("msgs", senderKey.ID(), recipient)
 	vals := url.Values{}
 	vals.Set("expire", expire.String())
-	doc, err := c.putDocument(ctx, path, vals, senderKey, bytes.NewReader(encrypted))
+	doc, err := c.postDocument(ctx, path, vals, senderKey, bytes.NewReader(encrypted))
 	if err != nil {
 		return nil, err
 	}
