@@ -237,7 +237,8 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 	if err := s.fi.Create(ctx, path, b); err != nil {
 		return s.internalError(c, err)
 	}
-	if err := s.fi.ChangeAdd(ctx, sigchainChanges, path); err != nil {
+	cid := fmt.Sprintf("%s-%d", st.KID, st.Seq)
+	if err := s.fi.ChangeAdd(ctx, sigchainChanges, cid, path); err != nil {
 		return s.internalError(c, err)
 	}
 

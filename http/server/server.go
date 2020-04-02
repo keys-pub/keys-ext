@@ -98,10 +98,13 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	e.POST("/cron/expired", s.cronExpired)
 
 	// Messages
-	e.PUT("/msgs/:kid/:rid/:channel/:id", s.putMessage)
-	e.DELETE("/msgs/:kid/:rid/:channel/:id", s.deleteMessage)
-	e.GET("/msgs/:kid/:rid/:channel/:id", s.getMessage)
-	e.GET("/msgs/:kid/:rid/:channel", s.listMessages)
+	e.PUT("/msgs/:kid/:rid", s.putMessage)
+	e.GET("/msgs/:kid/:rid", s.listMessages)
+
+	// Disco
+	e.PUT("/disco/:kid/:rid/:type", s.putDisco)
+	e.GET("/disco/:kid/:rid/:type", s.getDisco)
+	e.DELETE("/disco/:kid/:rid", s.deleteDisco)
 
 	// Invite
 	e.POST("/invite/:kid/:rid", s.postInvite)

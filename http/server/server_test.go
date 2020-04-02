@@ -106,6 +106,10 @@ type env struct {
 func newEnv(t *testing.T) *env {
 	clock := newClock()
 	fi := testFire(t, clock)
+	return newEnvWithFire(t, fi, clock)
+}
+
+func newEnvWithFire(t *testing.T, fi server.Fire, clock *clock) *env {
 	req := keys.NewMockRequestor()
 	pubSub := server.NewPubSub()
 	users := testUserStore(t, fi, req, clock)

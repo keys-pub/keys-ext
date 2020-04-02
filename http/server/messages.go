@@ -13,9 +13,11 @@ import (
 	"github.com/pkg/errors"
 )
 
-// TODO: Message expiry
-
-const msgChanges = "msg-changes"
+type message struct {
+	ID     string `json:"id"`
+	Data   []byte `json:"data"`
+	Expire string `json:"exp,omitempty"`
+}
 
 func (s *Server) putMessage(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
@@ -32,22 +34,6 @@ func (s *Server) putMessage(c echo.Context) error {
 	rid, err := keys.ParseID(recipient)
 	if err != nil {
 		return ErrBadRequest(c, err)
-	}
-
-	channel := c.Param("channel")
-	if channel == "" {
-		return ErrBadRequest(c, errors.Errorf("no channel"))
-	}
-	if len(channel) > 16 {
-		return ErrBadRequest(c, errors.Errorf("channel name too long"))
-	}
-
-	id := c.Param("id")
-	if id == "" {
-		return ErrBadRequest(c, errors.Errorf("no id"))
-	}
-	if len(id) > 64 {
-		return ErrBadRequest(c, errors.Errorf("id too long"))
 	}
 
 	expire := time.Hour * 24
@@ -79,22 +65,12 @@ func (s *Server) putMessage(c echo.Context) error {
 		return ErrBadRequest(c, errors.Errorf("message too large (greater than 16KiB)"))
 	}
 
-	return s.saveMessage(c, kid, rid, channel, id, b, expire)
-}
-
-type message struct {
-	ID     string `json:"id"`
-	Data   []byte `json:"data"`
-	Expire string `json:"exp,omitempty"`
-}
-
-func (s *Server) saveMessage(c echo.Context, kid keys.ID, rid keys.ID, channel string, id string, b []byte, expire time.Duration) error {
-	ctx := c.Request().Context()
-
 	exp := expire.String()
 	if expire == time.Duration(0) {
 		exp = ""
 	}
+
+	id := keys.Rand3262()
 
 	msg := message{
 		ID:     id,
@@ -106,38 +82,28 @@ func (s *Server) saveMessage(c echo.Context, kid keys.ID, rid keys.ID, channel s
 		return s.internalError(c, err)
 	}
 
-	path := keys.Path("messages", keys.Rand3262())
-	if err := s.fi.Set(ctx, path, mb); err != nil {
+	ctx := c.Request().Context()
+
+	path := keys.Path("msgs", id)
+	if err := s.fi.Create(ctx, path, mb); err != nil {
 		return s.internalError(c, err)
 	}
 
-	currpath := keys.Path("messages", fmt.Sprintf("%s-%s-%s-%s", kid, rid, channel, id))
-	s.logger.Infof("Save message %s", path)
-	if err := s.fi.Set(ctx, currpath, []byte(path)); err != nil {
+	spath := fmt.Sprintf("msgs-%s-%s", kid, rid)
+	if err := s.fi.ChangeAdd(ctx, spath, id, path); err != nil {
 		return s.internalError(c, err)
 	}
-	rpath := keys.Path("messages", fmt.Sprintf("%s-%s-%s-%s", rid, kid, channel, id))
+
 	if kid != rid {
-		s.logger.Infof("Save message (recipient) %s", rpath)
-		if err := s.fi.Set(ctx, rpath, []byte(path)); err != nil {
+		rpath := fmt.Sprintf("msgs-%s-%s", rid, kid)
+		if err := s.fi.ChangeAdd(ctx, rpath, id, path); err != nil {
 			return s.internalError(c, err)
 		}
 	}
 
-	changePath := fmt.Sprintf("%s-%s-%s-%s", msgChanges, kid, rid, channel)
-	s.logger.Infof("Add change %s %s", changePath, path)
-	if err := s.fi.ChangeAdd(ctx, changePath, path); err != nil {
-		return s.internalError(c, err)
+	resp := api.CreateMessageResponse{
+		ID: id,
 	}
-	if kid != rid {
-		rchangePath := fmt.Sprintf("%s-%s-%s-%s", msgChanges, rid, kid, channel)
-		s.logger.Infof("Add change (recipient) %s %s", rchangePath, path)
-		if err := s.fi.ChangeAdd(ctx, rchangePath, path); err != nil {
-			return s.internalError(c, err)
-		}
-	}
-
-	var resp struct{}
 	return JSON(c, http.StatusOK, resp)
 }
 
@@ -158,17 +124,9 @@ func (s *Server) listMessages(c echo.Context) error {
 		return ErrBadRequest(c, err)
 	}
 
-	channel := c.Param("channel")
-	if channel == "" {
-		return ErrBadRequest(c, errors.Errorf("no channel"))
-	}
-	if len(channel) > 16 {
-		return ErrBadRequest(c, errors.Errorf("channel name too long"))
-	}
+	path := fmt.Sprintf("msgs-%s-%s", kid, rid)
 
-	changePath := fmt.Sprintf("%s-%s-%s-%s", msgChanges, kid, rid, channel)
-
-	chgs, err := s.changes(c, changePath)
+	chgs, err := s.changes(c, path)
 	if err != nil {
 		return s.internalError(c, err)
 	}
@@ -243,116 +201,6 @@ func (s *Server) checkMessage(msg *message, doc *keys.Document) (bool, error) {
 		}
 	}
 	return true, nil
-}
-
-func (s *Server) deleteMessage(c echo.Context) error {
-	ctx := c.Request().Context()
-	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
-
-	kid, status, err := authorize(c, s.URL, s.nowFn(), s.mc)
-	if err != nil {
-		return ErrResponse(c, status, err.Error())
-	}
-
-	recipient := c.Param("rid")
-	if recipient == "" {
-		return ErrBadRequest(c, errors.Errorf("no recipient id specified"))
-	}
-	rid, err := keys.ParseID(recipient)
-	if err != nil {
-		return ErrBadRequest(c, err)
-	}
-
-	channel := c.Param("channel")
-	if channel == "" {
-		return ErrBadRequest(c, errors.Errorf("no channel"))
-	}
-	if len(channel) > 16 {
-		return ErrBadRequest(c, errors.Errorf("channel name too long"))
-	}
-
-	id := c.Param("id")
-	if id == "" {
-		return ErrBadRequest(c, errors.Errorf("no id"))
-	}
-	if len(id) > 64 {
-		return ErrBadRequest(c, errors.Errorf("id too long"))
-	}
-
-	path := keys.Path("messages", fmt.Sprintf("%s-%s-%s-%s", kid, rid, channel, id))
-	ok, err := s.fi.Delete(ctx, path)
-	if err != nil {
-		return s.internalError(c, err)
-	}
-	rpath := keys.Path("messages", fmt.Sprintf("%s-%s-%s-%s", rid, kid, channel, id))
-	rok, err := s.fi.Delete(ctx, rpath)
-	if err != nil {
-		return s.internalError(c, err)
-	}
-	if !ok && !rok {
-		return ErrNotFound(c, errors.Errorf("message not found"))
-	}
-
-	var resp struct{}
-	return JSON(c, http.StatusOK, resp)
-}
-
-func (s *Server) getMessage(c echo.Context) error {
-	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
-	ctx := c.Request().Context()
-
-	kid, status, err := authorize(c, s.URL, s.nowFn(), s.mc)
-	if err != nil {
-		return ErrResponse(c, status, err.Error())
-	}
-
-	recipient := c.Param("rid")
-	if recipient == "" {
-		return ErrBadRequest(c, errors.Errorf("no recipient id specified"))
-	}
-	rid, err := keys.ParseID(recipient)
-	if err != nil {
-		return ErrBadRequest(c, err)
-	}
-
-	channel := c.Param("channel")
-	if channel == "" {
-		return ErrBadRequest(c, errors.Errorf("no channel"))
-	}
-	if len(channel) > 16 {
-		return ErrBadRequest(c, errors.Errorf("channel name too long"))
-	}
-
-	id := c.Param("id")
-	if id == "" {
-		return ErrBadRequest(c, errors.Errorf("no id"))
-	}
-	if len(id) > 64 {
-		return ErrBadRequest(c, errors.Errorf("id too long"))
-	}
-
-	path := keys.Path("messages", fmt.Sprintf("%s-%s-%s-%s", kid, rid, channel, id))
-	docRef, err := s.fi.Get(ctx, path)
-	if err != nil {
-		return s.internalError(c, err)
-	}
-	if docRef == nil {
-		return ErrNotFound(c, errors.Errorf("message not found"))
-	}
-	doc, err := s.fi.Get(ctx, string(docRef.Data))
-	if err != nil {
-		return s.internalError(c, err)
-	}
-
-	msg, err := s.msgFromDoc(doc)
-	if err != nil {
-		return s.internalError(c, err)
-	}
-	if msg == nil {
-		return ErrNotFound(c, errors.Errorf("message not found"))
-	}
-
-	return c.Blob(http.StatusOK, echo.MIMEOctetStream, msg.Data)
 }
 
 // func truthy(s string) bool {
