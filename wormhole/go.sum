@@ -83,6 +83,10 @@ github.com/keys-pub/keys v0.0.0-20200401235945-acb465cc8c62 h1:YICmIX2caP/5+1rkV
 github.com/keys-pub/keys v0.0.0-20200401235945-acb465cc8c62/go.mod h1:k/6AQo72ji46Q03AX8C2jLUd4dmGM6djrEZY+LVr6Ww=
 github.com/keys-pub/keys v0.0.0-20200402182809-2e21a424687e h1:jwKKnW2E1mdmu+LL1cN5a6LOnq64RAB32cf53/O2khI=
 github.com/keys-pub/keys v0.0.0-20200402182809-2e21a424687e/go.mod h1:k/6AQo72ji46Q03AX8C2jLUd4dmGM6djrEZY+LVr6Ww=
+github.com/keys-pub/keys v0.0.0-20200404173304-79bb3678c299 h1:GSJLppwAFD0ltuo4kbaO+jYFJ+vXA+ml2JP6UukeSts=
+github.com/keys-pub/keys v0.0.0-20200404173304-79bb3678c299/go.mod h1:k/6AQo72ji46Q03AX8C2jLUd4dmGM6djrEZY+LVr6Ww=
+github.com/keys-pub/keys v0.0.0-20200404175525-c68f23ea44c3 h1:uq9QEyOWlcpx+OdsBRL99sfjl91FENBnUpBDv/jgodw=
+github.com/keys-pub/keys v0.0.0-20200404175525-c68f23ea44c3/go.mod h1:k/6AQo72ji46Q03AX8C2jLUd4dmGM6djrEZY+LVr6Ww=
 github.com/keys-pub/keysd v0.0.25 h1:k3OOmXGq2qUGizSRY2XHSEeD47eZs4FVWRK3sSKvPUU=
 github.com/keys-pub/keysd v0.0.26 h1:DjQlBzNv+SDiphQVxKJeme8m5qLp9FQv99La9eX9PYw=
 github.com/keys-pub/keysd/firestore v0.0.0-20200402001553-a48dd08bde65/go.mod h1:MkLooStrWRpUVXL3YXo3Exd5Zo5bMPXL94didRG38c4=

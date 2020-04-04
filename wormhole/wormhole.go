@@ -41,10 +41,10 @@ const (
 // keys.pub.
 type Wormhole struct {
 	sync.Mutex
-	rtc   *sctp.Client
-	hcl   *httpclient.Client
-	ks    *keys.Keystore
-	noise *noise.Noise
+	rtc    *sctp.Client
+	hcl    *httpclient.Client
+	ks     *keys.Keystore
+	cipher noise.Cipher
 
 	sender    keys.ID
 	recipient keys.ID
@@ -258,7 +258,7 @@ func (w *Wormhole) noiseHandshake(ctx context.Context, sender keys.ID, recipient
 
 	w.onStatus(NoiseHandshake)
 
-	if w.noise != nil {
+	if w.cipher != nil {
 		return errors.Errorf("wormhole already started")
 	}
 
@@ -277,7 +277,7 @@ func (w *Wormhole) noiseHandshake(ctx context.Context, sender keys.ID, recipient
 		return keys.NewErrNotFound(recipientPublicKey.String())
 	}
 
-	noise, err := noise.NewNoise(senderKey.X25519Key(), recipientPublicKey.X25519PublicKey(), initiator)
+	handshake, err := noise.NewHandshake(senderKey.X25519Key(), recipientPublicKey.X25519PublicKey(), initiator)
 	if err != nil {
 		return err
 	}
@@ -287,7 +287,7 @@ func (w *Wormhole) noiseHandshake(ctx context.Context, sender keys.ID, recipient
 
 	// TODO: Test noise handshake timeout
 	if initiator {
-		out, err := noise.HandshakeWrite(nil)
+		out, err := handshake.Write(nil)
 		if err != nil {
 			return err
 		}
@@ -299,7 +299,7 @@ func (w *Wormhole) noiseHandshake(ctx context.Context, sender keys.ID, recipient
 		if err != nil {
 			return err
 		}
-		if _, err := noise.HandshakeRead(buf[:n]); err != nil {
+		if _, err := handshake.Read(buf[:n]); err != nil {
 			return err
 		}
 	} else {
@@ -308,10 +308,10 @@ func (w *Wormhole) noiseHandshake(ctx context.Context, sender keys.ID, recipient
 		if err != nil {
 			return err
 		}
-		if _, err := noise.HandshakeRead(buf[:n]); err != nil {
+		if _, err := handshake.Read(buf[:n]); err != nil {
 			return err
 		}
-		out, err := noise.HandshakeWrite(nil)
+		out, err := handshake.Write(nil)
 		if err != nil {
 			return err
 		}
@@ -319,7 +319,11 @@ func (w *Wormhole) noiseHandshake(ctx context.Context, sender keys.ID, recipient
 			return err
 		}
 	}
-	w.noise = noise
+	cs, err := handshake.Cipher()
+	if err != nil {
+		return err
+	}
+	w.cipher = cs
 
 	logger.Infof("Wormhole connected.")
 	w.onStatus(Connected)
@@ -329,13 +333,13 @@ func (w *Wormhole) noiseHandshake(ctx context.Context, sender keys.ID, recipient
 
 // Write data.
 func (w *Wormhole) Write(ctx context.Context, b []byte) error {
-	if w.noise == nil {
+	if w.cipher == nil {
 		return errors.Errorf("no channel (noise)")
 	}
 	if len(b) > maxSize {
 		return errors.Errorf("write exceeds max size")
 	}
-	encrypted, err := w.noise.Encrypt(nil, nil, b)
+	encrypted, err := w.cipher.Encrypt(nil, nil, b)
 	if err != nil {
 		return err
 	}
@@ -350,7 +354,7 @@ func (w *Wormhole) Read(ctx context.Context) ([]byte, error) {
 	}
 
 	logger.Infof("Wormhole read (%d)", n)
-	decrypted, err := w.noise.Decrypt(nil, nil, w.buf[:n])
+	decrypted, err := w.cipher.Decrypt(nil, nil, w.buf[:n])
 	if err != nil {
 		return nil, err
 	}
