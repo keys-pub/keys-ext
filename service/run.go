@@ -29,6 +29,7 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/reflection"
 )
 
 type protoService struct {
@@ -227,6 +228,7 @@ func NewServiceFn(cfg *Config, build Build, lgi LogInterceptor) (ServeFn, CloseF
 		return nil, nil, serviceErr
 	}
 	service.Register(grpcServer)
+	reflection.Register(grpcServer)
 
 	logger.Infof("Listening for connections on port %d", cfg.Port())
 	lis, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", cfg.Port()))

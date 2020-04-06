@@ -35,7 +35,8 @@ func newAuth(cfg *Config, st keyring.Store) (*auth, error) {
 		"/service.Keys/AuthSetup",
 		"/service.Keys/AuthUnlock",
 		"/service.Keys/AuthLock",
-		"/service.Keys/RuntimeStatus")
+		"/service.Keys/RuntimeStatus",
+		"/grpc.reflection.v1alpha.ServerReflection/ServerReflectionInfo")
 
 	kr, err := keyring.NewKeyring(cfg.AppName(), st)
 	if err != nil {
