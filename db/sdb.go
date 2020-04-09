@@ -3,7 +3,6 @@ package db
 import (
 	"bytes"
 
-	"github.com/keys-pub/keys"
 	"github.com/minio/sio"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
@@ -12,7 +11,7 @@ import (
 
 type sdb struct {
 	db  *leveldb.DB
-	key keys.SecretKey
+	key SecretKey
 	cfg sio.Config
 }
 
@@ -33,7 +32,7 @@ func (i *siter) Value() []byte {
 	return decrypted
 }
 
-func newSDB(db *leveldb.DB, key keys.SecretKey) *sdb {
+func newSDB(db *leveldb.DB, key SecretKey) *sdb {
 	cfg := sio.Config{
 		Key:        key[:],
 		MinVersion: sio.Version20,

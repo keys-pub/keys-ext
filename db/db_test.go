@@ -21,7 +21,7 @@ func testDB(t *testing.T) (*DB, func()) {
 	db.SetTimeNow(newClock().Now)
 	path := testPath()
 	ctx := context.TODO()
-	key := keys.RandKey()
+	key := keys.Rand32()
 	err := db.OpenAtPath(ctx, path, key)
 	require.NoError(t, err)
 
@@ -300,7 +300,7 @@ func ExampleDB_OpenAtPath() {
 	db := NewDB()
 	defer db.Close()
 
-	key := keys.RandKey()
+	key := keys.Rand32()
 	ctx := context.TODO()
 	path := filepath.Join(os.TempDir(), "example-db-open.db")
 	if err := db.OpenAtPath(ctx, path, key); err != nil {
@@ -312,7 +312,7 @@ func ExampleDB_Create() {
 	db := NewDB()
 	defer db.Close()
 
-	key := keys.RandKey()
+	key := keys.Rand32()
 	ctx := context.TODO()
 	path := filepath.Join(os.TempDir(), "example-db-create.db")
 	if err := db.OpenAtPath(ctx, path, key); err != nil {
@@ -328,7 +328,7 @@ func ExampleDB_Get() {
 	db := NewDB()
 	defer db.Close()
 
-	key := keys.RandKey()
+	key := keys.Rand32()
 	ctx := context.TODO()
 	path := filepath.Join(os.TempDir(), "example-db-get.db")
 	if err := db.OpenAtPath(ctx, path, key); err != nil {
@@ -354,7 +354,7 @@ func ExampleDB_Set() {
 	db := NewDB()
 	defer db.Close()
 
-	key := keys.RandKey()
+	key := keys.Rand32()
 	ctx := context.TODO()
 	path := filepath.Join(os.TempDir(), "example-db-set.db")
 	if err := db.OpenAtPath(ctx, path, key); err != nil {
@@ -380,7 +380,7 @@ func ExampleDB_Documents() {
 	db := NewDB()
 	defer db.Close()
 
-	key := keys.RandKey()
+	key := keys.Rand32()
 	ctx := context.TODO()
 	path := filepath.Join(os.TempDir(), "example-db-documents.db")
 	if err := db.OpenAtPath(ctx, path, key); err != nil {

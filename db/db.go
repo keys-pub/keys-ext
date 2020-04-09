@@ -13,6 +13,8 @@ import (
 
 var _ keys.DocumentStore = &DB{}
 
+type SecretKey *[32]byte
+
 // DB is leveldb implementation of keys.DocumentStore.
 type DB struct {
 	rwmtx *sync.RWMutex
@@ -20,7 +22,7 @@ type DB struct {
 	fpath string
 	nowFn func() time.Time
 
-	key keys.SecretKey
+	key SecretKey
 }
 
 // NewDB creates a DB.
@@ -42,7 +44,7 @@ func (d *DB) Now() time.Time {
 }
 
 // OpenAtPath opens db located at path
-func (d *DB) OpenAtPath(ctx context.Context, path string, key keys.SecretKey) error {
+func (d *DB) OpenAtPath(ctx context.Context, path string, key SecretKey) error {
 	logger.Infof("LevelDB at %s", path)
 	d.fpath = path
 	db, err := leveldb.OpenFile(path, nil)
