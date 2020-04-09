@@ -90,20 +90,40 @@ func (s *Server) cronCheck(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
+	// TODO: Need to test this
+
+	// Check connection failures
+	fails, err := s.users.Status(ctx, keys.UserStatusConnFailure)
+	if err != nil {
+		return s.internalError(c, err)
+	}
+	if err := s.checkKeys(ctx, fails); err != nil {
+		return s.internalError(c, err)
+	}
+
+	// Check expired
 	kids, err := s.users.Expired(ctx, time.Hour*23)
 	if err != nil {
 		return s.internalError(c, err)
 	}
-
-	// logger.Infof(ctx, "Expired %s", kids)
-
-	for _, kid := range kids {
-		if err := s.tasks.CreateTask(ctx, "POST", "/task/check/"+kid.String(), s.internalAuth); err != nil {
-			return s.internalError(c, err)
-		}
+	if err := s.checkKeys(ctx, kids); err != nil {
+		return s.internalError(c, err)
 	}
 
 	return c.String(http.StatusOK, "")
+}
+
+func (s *Server) checkKeys(ctx context.Context, kids []keys.ID) error {
+	if len(kids) > 0 {
+		s.logger.Infof("Checking %d keys...", len(kids))
+	}
+
+	for _, kid := range kids {
+		if err := s.tasks.CreateTask(ctx, "POST", "/task/check/"+kid.String(), s.internalAuth); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (s *Server) taskExpired(c echo.Context) error {
