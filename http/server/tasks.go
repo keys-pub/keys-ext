@@ -83,11 +83,6 @@ func (s *Server) taskCheck(c echo.Context) error {
 	if _, err := s.users.Update(ctx, kid); err != nil {
 		return s.internalError(c, err)
 	}
-
-	// Delay check to keep things slow (to keep from rate limiting)
-	// TODO: Make this configurable.
-	time.Sleep(time.Second * 5)
-
 	return c.String(http.StatusOK, "")
 }
 
