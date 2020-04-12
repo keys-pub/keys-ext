@@ -92,6 +92,7 @@ func (c *Client) read(ctx context.Context, b []byte) (int, error) {
 	case r := <-readChan:
 		return r.N, r.Err
 	case <-ctx.Done():
+		// TODO: Close the stream so the read goroutine above ends?
 		return 0, ctx.Err()
 	}
 }
