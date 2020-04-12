@@ -50,5 +50,5 @@ func TestKeyImport(t *testing.T) {
 
 	// Import (error)
 	_, err = service.KeyImport(ctx, &KeyImportRequest{In: []byte{}})
-	require.EqualError(t, err, "failed to import key: failed to decrypt saltpack encoded key: failed to decrypt with a password: not enough bytes")
+	require.EqualError(t, err, "unknown key format")
 }
