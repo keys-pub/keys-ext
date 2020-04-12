@@ -159,10 +159,7 @@ func (a clientAuth) RequireTransportSecurity() bool {
 }
 
 func (s *service) isAuthSetupNeeded() (bool, error) {
-	kr, err := s.ks.Keyring()
-	if err != nil {
-		return false, err
-	}
+	kr := s.ks.Keyring()
 	authed, err := kr.Authed()
 	if err != nil {
 		return false, err
@@ -187,7 +184,7 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 
 	key := auth.Key()
 
-	if err := s.Open(ctx, keys.SecretKey(key)); err != nil {
+	if err := s.Open(ctx, key); err != nil {
 		return nil, err
 	}
 
@@ -217,7 +214,7 @@ func (s *service) AuthUnlock(ctx context.Context, req *AuthUnlockRequest) (*Auth
 
 	key := auth.Key()
 
-	if err := s.Open(ctx, keys.SecretKey(key)); err != nil {
+	if err := s.Open(ctx, key); err != nil {
 		return nil, err
 	}
 

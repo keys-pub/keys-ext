@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/secret"
 	"github.com/keys-pub/keysd/db"
 	"github.com/keys-pub/keysd/http/client"
 )
@@ -21,6 +22,7 @@ type service struct {
 	auth   *auth
 	db     *db.DB
 	ks     *keys.Keystore
+	ss     *secret.Store
 	remote *client.Client
 	scs    keys.SigchainStore
 	users  *keys.UserStore
@@ -38,6 +40,8 @@ type service struct {
 
 func newService(cfg *Config, build Build, auth *auth, req keys.Requestor, nowFn func() time.Time) (*service, error) {
 	ks := keys.NewKeystore(auth.keyring)
+	ss := secret.NewStore(auth.keyring)
+	ss.SetTimeNow(nowFn)
 	db := db.NewDB()
 	db.SetTimeNow(nowFn)
 	scs := keys.NewSigchainStore(db)
@@ -57,6 +61,7 @@ func newService(cfg *Config, build Build, auth *auth, req keys.Requestor, nowFn 
 		build:   build,
 		cfg:     cfg,
 		ks:      ks,
+		ss:      ss,
 		scs:     scs,
 		db:      db,
 		users:   users,
@@ -73,7 +78,7 @@ func (s *service) Now() time.Time {
 
 // Open the service.
 // If already open, will close and re-open.
-func (s *service) Open(ctx context.Context, key keys.SecretKey) error {
+func (s *service) Open(ctx context.Context, key *[32]byte) error {
 	s.openMtx.Lock()
 	defer s.openMtx.Unlock()
 	if s.open {
