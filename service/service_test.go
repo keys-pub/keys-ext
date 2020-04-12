@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/user"
 	"github.com/keys-pub/keysd/http/server"
 	"github.com/stretchr/testify/require"
 )
@@ -37,7 +38,7 @@ type testEnv struct {
 	clock *clock
 	fi    server.Fire
 	req   *keys.MockRequestor
-	users *keys.UserStore
+	users *user.Store
 }
 
 func newTestEnv(t *testing.T) *testEnv {
@@ -53,8 +54,8 @@ func newTestEnv(t *testing.T) *testEnv {
 	}
 }
 
-func testUserStore(t *testing.T, dst keys.DocumentStore, scs keys.SigchainStore, req *keys.MockRequestor, clock *clock) *keys.UserStore {
-	ust, err := keys.NewUserStore(dst, scs, req, clock.Now)
+func testUserStore(t *testing.T, dst keys.DocumentStore, scs keys.SigchainStore, req *keys.MockRequestor, clock *clock) *user.Store {
+	ust, err := user.NewStore(dst, scs, req, clock.Now)
 	require.NoError(t, err)
 	return ust
 }

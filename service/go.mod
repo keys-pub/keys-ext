@@ -7,12 +7,12 @@ require (
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/protobuf v1.3.5 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
-	github.com/keys-pub/keys v0.0.0-20200412182100-7057b00eeb5b
+	github.com/keys-pub/keys v0.0.0-20200412190229-71b7a426a7ab
 	github.com/keys-pub/keysd/db v0.0.0-20200409220624-9c9ed2a5be49
-	github.com/keys-pub/keysd/http/api v0.0.0-20200402183018-a85eceb453b1
-	github.com/keys-pub/keysd/http/client v0.0.0-20200402191904-495668794c2d
-	github.com/keys-pub/keysd/http/server v0.0.0-20200402191721-a864d6b0e313
-	github.com/keys-pub/keysd/wormhole v0.0.0-20200404175609-516ecb7ccd6f
+	github.com/keys-pub/keysd/http/api v0.0.0-20200412190331-0e28c0a8f66f
+	github.com/keys-pub/keysd/http/client v0.0.0-20200412190517-b37f5a8e82fa
+	github.com/keys-pub/keysd/http/server v0.0.0-20200412190405-409324eb28e6
+	github.com/keys-pub/keysd/wormhole v0.0.0-20200412190717-48e5c8f70002
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/mercari/go-grpc-interceptor v0.0.0-20180110035004-b8ad3827e82a
 	github.com/mitchellh/go-ps v1.0.0

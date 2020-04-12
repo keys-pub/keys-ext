@@ -9,6 +9,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/secret"
+	"github.com/keys-pub/keys/user"
 	"github.com/keys-pub/keysd/db"
 	"github.com/keys-pub/keysd/http/client"
 )
@@ -25,7 +26,7 @@ type service struct {
 	ss     *secret.Store
 	remote *client.Client
 	scs    keys.SigchainStore
-	users  *keys.UserStore
+	users  *user.Store
 	nowFn  func() time.Time
 
 	closeCh chan bool
@@ -45,7 +46,7 @@ func newService(cfg *Config, build Build, auth *auth, req keys.Requestor, nowFn 
 	db := db.NewDB()
 	db.SetTimeNow(nowFn)
 	scs := keys.NewSigchainStore(db)
-	users, err := keys.NewUserStore(db, scs, req, nowFn)
+	users, err := user.NewStore(db, scs, req, nowFn)
 	if err != nil {
 		return nil, err
 	}

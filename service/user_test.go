@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/user"
 	"github.com/stretchr/testify/require"
 )
 
@@ -97,7 +98,7 @@ func TestUserSign(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, resp.Name, "alice")
 
-	usr, err := keys.VerifyUser(resp.Message, alice.ID(), nil)
+	usr, err := user.Verify(resp.Message, alice.ID(), nil)
 	require.NoError(t, err)
 
 	require.Equal(t, "alice", usr.Name)

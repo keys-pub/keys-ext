@@ -6,6 +6,7 @@ import (
 	strings "strings"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/user"
 	"github.com/keys-pub/keysd/http/api"
 	"github.com/pkg/errors"
 )
@@ -80,7 +81,7 @@ func (s *service) UserService(ctx context.Context, req *UserServiceRequest) (*Us
 	if err != nil {
 		return nil, err
 	}
-	_, err = keys.NewUserForSigning(s.users, key.ID(), req.Service, "test")
+	_, err = user.NewUserForSigning(s.users, key.ID(), req.Service, "test")
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +101,7 @@ func (s *service) UserSign(ctx context.Context, req *UserSignRequest) (*UserSign
 		return nil, err
 	}
 
-	user, err := keys.NewUserForSigning(s.users, key.ID(), req.Service, req.Name)
+	user, err := user.NewUserForSigning(s.users, key.ID(), req.Service, req.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -142,26 +143,26 @@ func (s *service) UserAdd(ctx context.Context, req *UserAddRequest) (*UserAddRes
 	}, nil
 }
 
-func (s *service) sigchainUserAdd(ctx context.Context, key *keys.EdX25519Key, service, name, url string, localOnly bool) (*keys.UserResult, *keys.Statement, error) {
+func (s *service) sigchainUserAdd(ctx context.Context, key *keys.EdX25519Key, service, name, url string, localOnly bool) (*user.Result, *keys.Statement, error) {
 	sc, err := s.scs.Sigchain(key.ID())
 	if err != nil {
 		return nil, nil, err
 	}
 
-	user, err := keys.NewUser(s.users, key.ID(), service, name, url, sc.LastSeq()+1)
+	usr, err := user.NewUser(s.users, key.ID(), service, name, url, sc.LastSeq()+1)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to create user")
 	}
 
-	userResult, err := s.users.Check(ctx, user, key.ID())
+	userResult, err := s.users.Check(ctx, usr, key.ID())
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "failed to check user")
 	}
-	if userResult.Status != keys.UserStatusOK {
+	if userResult.Status != user.StatusOK {
 		return nil, nil, errors.Errorf("failed to check user: %s", userResult.Err)
 	}
 
-	st, err := keys.NewUserSigchainStatement(sc, user, key, s.Now())
+	st, err := user.NewUserSigchainStatement(sc, usr, key, s.Now())
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "failed to generate user statement")
 	}
@@ -195,34 +196,34 @@ func (u User) SigchainURL() string {
 	return fmt.Sprintf("https://keys.pub/sigchain/%s/%d", u.KID, u.Seq)
 }
 
-func userStatus(s keys.UserStatus) UserStatus {
+func userStatus(s user.Status) UserStatus {
 	switch s {
-	case keys.UserStatusUnknown:
+	case user.StatusUnknown:
 		return UserStatusUnknown
-	case keys.UserStatusOK:
+	case user.StatusOK:
 		return UserStatusOK
-	case keys.UserStatusResourceNotFound:
+	case user.StatusResourceNotFound:
 		return UserStatusResourceNotFound
-	case keys.UserStatusContentNotFound:
+	case user.StatusContentNotFound:
 		return UserStatusContentNotFound
-	case keys.UserStatusConnFailure:
+	case user.StatusConnFailure:
 		return UserStatusConnFailure
-	case keys.UserStatusFailure:
+	case user.StatusFailure:
 		return UserStatusFailure
 	default:
 		panic(errors.Errorf("Unknown user status %s", s))
 	}
 }
 
-func userSearchResultsToRPC(results []*keys.UserSearchResult) []*User {
+func userSearchResultsToRPC(results []*user.SearchResult) []*User {
 	users := make([]*User, 0, len(results))
 	for _, r := range results {
-		users = append(users, userResultToRPC(r.UserResult))
+		users = append(users, userResultToRPC(r.Result))
 	}
 	return users
 }
 
-func userResultToRPC(result *keys.UserResult) *User {
+func userResultToRPC(result *user.Result) *User {
 	if result == nil {
 		return nil
 	}
@@ -286,7 +287,7 @@ func (s *service) searchRemoteCheckUser(ctx context.Context, userID string) (*Us
 func (s *service) searchUsersLocal(ctx context.Context, query string, limit int) ([]*User, error) {
 	query = strings.TrimSpace(query)
 	logger.Infof("Search users local %q", query)
-	res, err := s.users.Search(ctx, &keys.UserSearchRequest{Query: query, Limit: limit})
+	res, err := s.users.Search(ctx, &user.SearchRequest{Query: query, Limit: limit})
 	if err != nil {
 		return nil, err
 	}
@@ -335,7 +336,7 @@ func (s *service) loadIdentity(ctx context.Context, identity string, searchRemot
 			}
 			return "", keys.NewErrNotFound(identity)
 		}
-		if res.Status != keys.UserStatusOK {
+		if res.Status != user.StatusOK {
 			return "", errors.Errorf("user %s has failed status %s", identity, res.Status)
 		}
 		return res.User.KID, nil

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/user"
 	"github.com/pkg/errors"
 )
 
@@ -44,7 +45,7 @@ func (s *service) Pull(ctx context.Context, req *PullRequest) (*PullResponse, er
 	return &PullResponse{KIDs: pulled}, nil
 }
 
-func (s *service) pull(ctx context.Context, kid keys.ID) (bool, *keys.UserResult, error) {
+func (s *service) pull(ctx context.Context, kid keys.ID) (bool, *user.Result, error) {
 	logger.Infof("Pull %s", kid)
 
 	if err := s.importID(kid); err != nil {
@@ -58,7 +59,7 @@ func (s *service) pull(ctx context.Context, kid keys.ID) (bool, *keys.UserResult
 	return ok, res, nil
 }
 
-func (s *service) update(ctx context.Context, kid keys.ID) (bool, *keys.UserResult, error) {
+func (s *service) update(ctx context.Context, kid keys.ID) (bool, *user.Result, error) {
 	logger.Infof("Update %s", kid)
 
 	resp, err := s.remote.Sigchain(ctx, kid)
