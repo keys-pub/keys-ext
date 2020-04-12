@@ -1,9 +1,12 @@
 package api
 
-import "github.com/keys-pub/keys"
+import (
+	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/user"
+)
 
-// UserFromResult returns User from keys.UserResult.
-func UserFromResult(result *keys.UserResult) *User {
+// UserFromResult returns User from user.Result.
+func UserFromResult(result *user.Result) *User {
 	if result == nil {
 		return nil
 	}
@@ -22,15 +25,15 @@ func UserFromResult(result *keys.UserResult) *User {
 
 // User ...
 type User struct {
-	ID         string          `json:"id,omitempty"`
-	Name       string          `json:"name,omitempty"`
-	KID        keys.ID         `json:"kid,omitempty"`
-	Seq        int             `json:"seq,omitempty"`
-	Service    string          `json:"service,omitempty"`
-	URL        string          `json:"url,omitempty"`
-	Status     keys.UserStatus `json:"status,omitempty"`
-	VerifiedAt keys.TimeMs     `json:"verifiedAt,omitempty"`
-	Err        string          `json:"err,omitempty"`
+	ID         string      `json:"id,omitempty"`
+	Name       string      `json:"name,omitempty"`
+	KID        keys.ID     `json:"kid,omitempty"`
+	Seq        int         `json:"seq,omitempty"`
+	Service    string      `json:"service,omitempty"`
+	URL        string      `json:"url,omitempty"`
+	Status     user.Status `json:"status,omitempty"`
+	VerifiedAt keys.TimeMs `json:"verifiedAt,omitempty"`
+	Err        string      `json:"err,omitempty"`
 }
 
 // UserResponse ...
