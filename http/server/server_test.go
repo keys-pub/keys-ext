@@ -11,6 +11,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/user"
 	"github.com/keys-pub/keysd/http/api"
 	"github.com/keys-pub/keysd/http/server"
 	"github.com/stretchr/testify/require"
@@ -88,8 +89,8 @@ func TestFireCreatedAt(t *testing.T) {
 	require.Equal(t, "2009-02-13T23:31:30.001Z", ftime)
 }
 
-func testUserStore(t *testing.T, ds keys.DocumentStore, req keys.Requestor, clock *clock) *keys.UserStore {
-	us, err := keys.NewUserStore(ds, keys.NewSigchainStore(ds), req, clock.Now)
+func testUserStore(t *testing.T, ds keys.DocumentStore, req keys.Requestor, clock *clock) *user.Store {
+	us, err := user.NewStore(ds, keys.NewSigchainStore(ds), req, clock.Now)
 	require.NoError(t, err)
 	return us
 }
@@ -98,7 +99,7 @@ type env struct {
 	clock    *clock
 	fi       server.Fire
 	pubSub   server.PubSub
-	users    *keys.UserStore
+	users    *user.Store
 	req      *keys.MockRequestor
 	logLevel server.LogLevel
 }
@@ -199,7 +200,7 @@ func (s *testPubSubServer) WebsocketDial(t *testing.T, path string, clock *clock
 	return conn
 }
 
-func userMock(t *testing.T, users *keys.UserStore, key *keys.EdX25519Key, name string, service string, mock *keys.MockRequestor) *keys.Statement {
+func userMock(t *testing.T, users *user.Store, key *keys.EdX25519Key, name string, service string, mock *keys.MockRequestor) *keys.Statement {
 	url := ""
 	switch service {
 	case "github":
@@ -211,9 +212,9 @@ func userMock(t *testing.T, users *keys.UserStore, key *keys.EdX25519Key, name s
 	}
 
 	sc := keys.NewSigchain(key.ID())
-	usr, err := keys.NewUser(users, key.ID(), service, name, url, sc.LastSeq()+1)
+	usr, err := user.NewUser(users, key.ID(), service, name, url, sc.LastSeq()+1)
 	require.NoError(t, err)
-	st, err := keys.NewUserSigchainStatement(sc, usr, key, users.Now())
+	st, err := user.NewUserSigchainStatement(sc, usr, key, users.Now())
 	require.NoError(t, err)
 
 	msg, err := usr.Sign(key)

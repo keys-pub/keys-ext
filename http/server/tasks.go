@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/user"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 )
@@ -93,7 +94,7 @@ func (s *Server) cronCheck(c echo.Context) error {
 	// TODO: Need to test this
 
 	// Check connection failures
-	fails, err := s.users.Status(ctx, keys.UserStatusConnFailure)
+	fails, err := s.users.Status(ctx, user.StatusConnFailure)
 	if err != nil {
 		return s.internalError(c, err)
 	}

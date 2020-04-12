@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/user"
 	"github.com/keys-pub/keysd/http/api"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
@@ -25,14 +26,14 @@ func (s *Server) getUserSearch(c echo.Context) error {
 		return ErrBadRequest(c, errors.Wrapf(err, "invalid limit"))
 	}
 
-	results, err := s.users.Search(ctx, &keys.UserSearchRequest{Query: q, Limit: limit})
+	results, err := s.users.Search(ctx, &user.SearchRequest{Query: q, Limit: limit})
 	if err != nil {
 		return s.internalError(c, err)
 	}
 
 	users := make([]*api.User, 0, len(results))
 	for _, res := range results {
-		users = append(users, api.UserFromResult(res.UserResult))
+		users = append(users, api.UserFromResult(res.Result))
 	}
 
 	resp := api.UserSearchResponse{

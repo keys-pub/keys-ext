@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/user"
 	"github.com/labstack/echo/v4"
 
 	"github.com/pkg/errors"
@@ -28,7 +29,7 @@ type Server struct {
 
 	accessFn AccessFn
 
-	users        *keys.UserStore
+	users        *user.Store
 	tasks        Tasks
 	internalAuth string
 }
@@ -40,7 +41,7 @@ type Fire interface {
 }
 
 // NewServer creates a Server.
-func NewServer(fi Fire, mc MemCache, users *keys.UserStore, logger Logger) *Server {
+func NewServer(fi Fire, mc MemCache, users *user.Store, logger Logger) *Server {
 	return &Server{
 		fi:     fi,
 		mc:     mc,
