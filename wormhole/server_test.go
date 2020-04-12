@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/user"
 	"github.com/keys-pub/keysd/http/server"
 	"github.com/keys-pub/keysd/wormhole"
 	"github.com/stretchr/testify/require"
@@ -36,7 +37,7 @@ type env struct {
 	httpServer *httptest.Server
 	srv        *server.Server
 	dst        keys.DocumentStore
-	users      *keys.UserStore
+	users      *user.Store
 	req        *keys.MockRequestor
 	closeFn    func()
 }
@@ -64,8 +65,8 @@ func testEnv(t *testing.T) *env {
 	return &env{clock, httpServer, svr, fi, users, req, func() { httpServer.Close() }}
 }
 
-func testUserStore(t *testing.T, ds keys.DocumentStore, req keys.Requestor, clock *clock) *keys.UserStore {
-	us, err := keys.NewUserStore(ds, keys.NewSigchainStore(ds), req, clock.Now)
+func testUserStore(t *testing.T, ds keys.DocumentStore, req keys.Requestor, clock *clock) *user.Store {
+	us, err := user.NewStore(ds, keys.NewSigchainStore(ds), req, clock.Now)
 	require.NoError(t, err)
 	return us
 }

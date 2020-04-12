@@ -87,6 +87,8 @@ github.com/keys-pub/keys v0.0.0-20200404173304-79bb3678c299 h1:GSJLppwAFD0ltuo4k
 github.com/keys-pub/keys v0.0.0-20200404173304-79bb3678c299/go.mod h1:k/6AQo72ji46Q03AX8C2jLUd4dmGM6djrEZY+LVr6Ww=
 github.com/keys-pub/keys v0.0.0-20200404175525-c68f23ea44c3 h1:uq9QEyOWlcpx+OdsBRL99sfjl91FENBnUpBDv/jgodw=
 github.com/keys-pub/keys v0.0.0-20200404175525-c68f23ea44c3/go.mod h1:k/6AQo72ji46Q03AX8C2jLUd4dmGM6djrEZY+LVr6Ww=
+github.com/keys-pub/keys v0.0.0-20200412190229-71b7a426a7ab h1:D7YOtUfZ34F99SW9mdZic8lG1LASUUGojHGtxfS6kds=
+github.com/keys-pub/keys v0.0.0-20200412190229-71b7a426a7ab/go.mod h1:LWDVrixSjx446s2aLIcJ6ML5ir4vX3kJ3mVvJYXI/Xc=
 github.com/keys-pub/keysd v0.0.25 h1:k3OOmXGq2qUGizSRY2XHSEeD47eZs4FVWRK3sSKvPUU=
 github.com/keys-pub/keysd v0.0.26 h1:DjQlBzNv+SDiphQVxKJeme8m5qLp9FQv99La9eX9PYw=
 github.com/keys-pub/keysd/firestore v0.0.0-20200402001553-a48dd08bde65/go.mod h1:MkLooStrWRpUVXL3YXo3Exd5Zo5bMPXL94didRG38c4=
@@ -97,6 +99,8 @@ github.com/keys-pub/keysd/http/api v0.0.0-20200330224338-ac67d476f58e h1:i2zga0v
 github.com/keys-pub/keysd/http/api v0.0.0-20200330224338-ac67d476f58e/go.mod h1:pHF66DvsvhPLHnA1QSM/adRdq3JgAYEG532rWV269bs=
 github.com/keys-pub/keysd/http/api v0.0.0-20200402183018-a85eceb453b1 h1:xbCjlJvv+LMR7fO7dTpAUWh0hI2V3nlRCnnOc+D7Vnw=
 github.com/keys-pub/keysd/http/api v0.0.0-20200402183018-a85eceb453b1/go.mod h1:pHF66DvsvhPLHnA1QSM/adRdq3JgAYEG532rWV269bs=
+github.com/keys-pub/keysd/http/api v0.0.0-20200412190331-0e28c0a8f66f h1:8AXm97Nd/iu1zV/V9JDmMk3T88oB6227oDH2Sy8oXvQ=
+github.com/keys-pub/keysd/http/api v0.0.0-20200412190331-0e28c0a8f66f/go.mod h1:OSIEb3BzTuKjFgNakbSWwoi6w2vnevE0iUkhXoivbOo=
 github.com/keys-pub/keysd/http/client v0.0.0-20200331185811-e1a2e7fb11dd h1:X/8w7VaZqtBItV0oD+XzwkV2DCuFTSl+rbcdjIVQiLA=
 github.com/keys-pub/keysd/http/client v0.0.0-20200331185811-e1a2e7fb11dd/go.mod h1:zTq0OONFQNFWbTXuTZaVw1+QJsw9ZP8zdd1DtcuOoVo=
 github.com/keys-pub/keysd/http/client v0.0.0-20200402000617-3e6e964877f0 h1:zwwWcMGBvevP2Qdx1WUXutApEZyN7l3Fr1WzOuHJNIM=
@@ -105,6 +109,8 @@ github.com/keys-pub/keysd/http/client v0.0.0-20200402183529-73f44d9cd947 h1:0LFW
 github.com/keys-pub/keysd/http/client v0.0.0-20200402183529-73f44d9cd947/go.mod h1:Q1LGDASd0pH8mkGfoxwnchO965OfnValOT7LtjABqoo=
 github.com/keys-pub/keysd/http/client v0.0.0-20200402191904-495668794c2d h1:k5BR4wKN9DWuK1iiTBmSA2P78u948QVArFLxRLT4vrI=
 github.com/keys-pub/keysd/http/client v0.0.0-20200402191904-495668794c2d/go.mod h1:+4V949SoJ6pux962mmwHZTrr0tzDs3iZvxAFfZkub+8=
+github.com/keys-pub/keysd/http/client v0.0.0-20200412190517-b37f5a8e82fa h1:EeU8d6cWbRKDtcckrcLTr1rRSpa9LVoJkSVMLkSV0hs=
+github.com/keys-pub/keysd/http/client v0.0.0-20200412190517-b37f5a8e82fa/go.mod h1:W/VJlbSQ3jUFLnGT8ZghLst43rUWTNXzqwSdncl16UA=
 github.com/keys-pub/keysd/http/server v0.0.0-20200326173537-f15ed1afc333 h1:22/6C1TQV04GR2tqhVkbGFbiie1wtyKjkN+gOuHcgk8=
 github.com/keys-pub/keysd/http/server v0.0.0-20200326173537-f15ed1afc333/go.mod h1:ohk4jItPx6eCF51jttjy9LxhOBdP8u6ewwD2kK3Lnts=
 github.com/keys-pub/keysd/http/server v0.0.0-20200330224338-ac67d476f58e h1:lEijT1ubQk1WVeaTuxqAXFbAidhsN1MGvbLc+6NEMnA=
@@ -115,6 +121,8 @@ github.com/keys-pub/keysd/http/server v0.0.0-20200402183408-c83924fbc62e h1:hHYI
 github.com/keys-pub/keysd/http/server v0.0.0-20200402183408-c83924fbc62e/go.mod h1:bw8ynlIs2o65zwiYgIN7LT75V3412m34ISRmXmNhMm4=
 github.com/keys-pub/keysd/http/server v0.0.0-20200402191721-a864d6b0e313 h1:5n4zxmWrBllOGwzBex4vDTJV4U1ph0wKgIDzO4T3fXA=
 github.com/keys-pub/keysd/http/server v0.0.0-20200402191721-a864d6b0e313/go.mod h1:bw8ynlIs2o65zwiYgIN7LT75V3412m34ISRmXmNhMm4=
+github.com/keys-pub/keysd/http/server v0.0.0-20200412190405-409324eb28e6 h1:vit+VKfILcnlGUHUXn4Lv7f4Gs7GC3PYfh/jlJaLAPs=
+github.com/keys-pub/keysd/http/server v0.0.0-20200412190405-409324eb28e6/go.mod h1:d1lBWjUZTA/qJBkLNisn7VHxHnfl7BUAFuT33s7xVRc=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/kr/pretty v0.1.0 h1:L/CwN0zerZDmRFUapSPitk6f+Q3+0za1rQkzVuMiMFI=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
@@ -186,6 +194,8 @@ golang.org/x/crypto v0.0.0-20200117160349-530e935923ad/go.mod h1:LzIPMQfyMNhhGPh
 golang.org/x/crypto v0.0.0-20200221231518-2aa609cf4a9d/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/crypto v0.0.0-20200323165209-0ec3e9974c59 h1:3zb4D3T4G8jdExgVU/95+vQXfpEPiMdCaZgmGVxjNHM=
 golang.org/x/crypto v0.0.0-20200323165209-0ec3e9974c59/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
+golang.org/x/crypto v0.0.0-20200406173513-056763e48d71 h1:DOmugCavvUtnUD114C1Wh+UgTgQZ4pMLzXxi1pSt+/Y=
+golang.org/x/crypto v0.0.0-20200406173513-056763e48d71/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/exp v0.0.0-20190121172915-509febef88a4/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
 golang.org/x/exp v0.0.0-20190306152737-a1d7652674e8/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
 golang.org/x/exp v0.0.0-20190510132918-efd6b22b2522/go.mod h1:ZjyILWgesfNpC6sMxTJOJm9Kp84zZh5NQWvqDGG3Qr8=
@@ -253,6 +263,8 @@ golang.org/x/sys v0.0.0-20200223170610-d5e6a3e2c0ae/go.mod h1:h1NjWce9XRLGQEsW7w
 golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200327173247-9dae0f8f5775 h1:TC0v2RSO1u2kn1ZugjrFXkRZAEaqMN/RW+OTZkBzmLE=
 golang.org/x/sys v0.0.0-20200327173247-9dae0f8f5775/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20200408040146-ea54a3c99b9b h1:h03Ur1RlPrGTjua4koYdpGl8W0eYo8p1uI9w7RPlkdk=
+golang.org/x/sys v0.0.0-20200408040146-ea54a3c99b9b/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.1-0.20180807135948-17ff2d5776d2/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.2 h1:tW2bmiBqwgJj/UpqtC8EpXEZVYOwU0yG4iWbprSVAcs=
