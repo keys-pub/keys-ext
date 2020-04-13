@@ -6,16 +6,16 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/docs"
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
 )
 
-var _ keys.DocumentStore = &DB{}
+var _ docs.DocumentStore = &DB{}
 
 type SecretKey *[32]byte
 
-// DB is leveldb implementation of keys.DocumentStore.
+// DB is leveldb implementation of docs.DocumentStore.
 type DB struct {
 	rwmtx *sync.RWMutex
 	sdb   *sdb
@@ -70,7 +70,7 @@ func (d *DB) Exists(ctx context.Context, path string) (bool, error) {
 	if d.sdb == nil {
 		return false, errors.Errorf("db not open")
 	}
-	path = keys.Path(path)
+	path = docs.Path(path)
 	return d.sdb.Has(path)
 }
 
@@ -81,7 +81,7 @@ func (d *DB) Create(ctx context.Context, path string, b []byte) error {
 	if d.sdb == nil {
 		return errors.Errorf("db not open")
 	}
-	path = keys.Path(path)
+	path = docs.Path(path)
 	if path == "/" {
 		return errors.Errorf("invalid path %s", path)
 	}
@@ -90,7 +90,7 @@ func (d *DB) Create(ctx context.Context, path string, b []byte) error {
 		return err
 	}
 	if exists {
-		return keys.NewErrPathExists(path)
+		return docs.NewErrPathExists(path)
 	}
 
 	now := d.Now()
@@ -105,7 +105,7 @@ func (d *DB) Set(ctx context.Context, path string, b []byte) error {
 	if d.sdb == nil {
 		return errors.Errorf("db not open")
 	}
-	path = keys.Path(path)
+	path = docs.Path(path)
 	if path == "/" {
 		return errors.Errorf("invalid path %s", path)
 	}
@@ -171,7 +171,7 @@ func (d *DB) setMetadata(path string, md *metadata) error {
 }
 
 func (d *DB) setCollection(path string, md *metadata) error {
-	cpath := "+" + keys.FirstPathComponent(path)
+	cpath := "+" + docs.FirstPathComponent(path)
 	logger.Debugf("Set collection %s %+v", cpath, md)
 	b, err := json.Marshal(md)
 	if err != nil {
@@ -181,8 +181,8 @@ func (d *DB) setCollection(path string, md *metadata) error {
 }
 
 // Get entry at path.
-func (d *DB) Get(ctx context.Context, path string) (*keys.Document, error) {
-	path = keys.Path(path)
+func (d *DB) Get(ctx context.Context, path string) (*docs.Document, error) {
+	path = docs.Path(path)
 	doc, err := d.get(ctx, path)
 	if err != nil {
 		return nil, err
@@ -194,8 +194,8 @@ func (d *DB) Get(ctx context.Context, path string) (*keys.Document, error) {
 }
 
 // GetAll paths.
-func (d *DB) GetAll(ctx context.Context, paths []string) ([]*keys.Document, error) {
-	docs := make([]*keys.Document, 0, len(paths))
+func (d *DB) GetAll(ctx context.Context, paths []string) ([]*docs.Document, error) {
+	out := make([]*docs.Document, 0, len(paths))
 	for _, p := range paths {
 		// TODO: Handle context Done()
 		doc, err := d.get(ctx, p)
@@ -205,17 +205,17 @@ func (d *DB) GetAll(ctx context.Context, paths []string) ([]*keys.Document, erro
 		if doc == nil {
 			continue
 		}
-		docs = append(docs, doc)
+		out = append(out, doc)
 	}
-	return docs, nil
+	return out, nil
 }
 
 // Collections ...
-func (d *DB) Collections(ctx context.Context, parent string) (keys.CollectionIterator, error) {
+func (d *DB) Collections(ctx context.Context, parent string) (docs.CollectionIterator, error) {
 	if d.sdb == nil {
 		return nil, errors.Errorf("db not open")
 	}
-	if keys.Path(parent) != "/" {
+	if docs.Path(parent) != "/" {
 		return nil, errors.Errorf("only root collections supported")
 	}
 
@@ -230,7 +230,7 @@ func (d *DB) Delete(ctx context.Context, path string) (bool, error) {
 	if d.sdb == nil {
 		return false, errors.Errorf("db not open")
 	}
-	path = keys.Path(path)
+	path = docs.Path(path)
 	ok, err := d.sdb.Has(path)
 	if err != nil {
 		return false, err
@@ -255,34 +255,34 @@ func (d *DB) DeleteAll(ctx context.Context, paths []string) error {
 	return nil
 }
 
-func (d *DB) document(path string, b []byte) (*keys.Document, error) {
+func (d *DB) document(path string, b []byte) (*docs.Document, error) {
 	md, err := d.getMetadata(path)
 	if err != nil {
 		return nil, err
 	}
-	doc := keys.NewDocument(path, b)
+	doc := docs.NewDocument(path, b)
 	doc.CreatedAt = md.CreateTime
 	doc.UpdatedAt = md.UpdateTime
 	return doc, nil
 }
 
 // Documents ...
-func (d *DB) Documents(ctx context.Context, parent string, opts *keys.DocumentsOpts) (keys.DocumentIterator, error) {
+func (d *DB) Documents(ctx context.Context, parent string, opts *docs.DocumentsOpts) (docs.DocumentIterator, error) {
 	d.rwmtx.RLock()
 	defer d.rwmtx.RUnlock()
 	if opts == nil {
-		opts = &keys.DocumentsOpts{}
+		opts = &docs.DocumentsOpts{}
 	}
 
 	if d.sdb == nil {
 		return nil, errors.Errorf("db not open")
 	}
 
-	path := keys.Path(parent)
+	path := docs.Path(parent)
 
 	var prefix string
 	if opts.Prefix != "" {
-		prefix = keys.Path(path, opts.Prefix)
+		prefix = docs.Path(path, opts.Prefix)
 	} else if path != "/" {
 		prefix = path + "/"
 	} else {
@@ -304,7 +304,7 @@ func (d *DB) Documents(ctx context.Context, parent string, opts *keys.DocumentsO
 	}, nil
 }
 
-func (d *DB) get(ctx context.Context, path string) (*keys.Document, error) {
+func (d *DB) get(ctx context.Context, path string) (*docs.Document, error) {
 	if d.sdb == nil {
 		return nil, errors.Errorf("db not open")
 	}
@@ -320,13 +320,13 @@ func (d *DB) get(ctx context.Context, path string) (*keys.Document, error) {
 }
 
 // Last returns last item with key prefix.
-func (d *DB) Last(ctx context.Context, prefix string) (*keys.Document, error) {
+func (d *DB) Last(ctx context.Context, prefix string) (*docs.Document, error) {
 	d.rwmtx.RLock()
 	defer d.rwmtx.RUnlock()
 	if d.sdb == nil {
 		return nil, errors.Errorf("db not open")
 	}
-	var doc *keys.Document
+	var doc *docs.Document
 	iter := d.sdb.NewIterator(prefix)
 	if ok := iter.Last(); ok {
 		path := string(iter.Value())
@@ -365,7 +365,7 @@ func (d *DB) countEntries(prefix string, contains string) (int, error) {
 		path := string(iter.Key())
 		if contains != "" {
 			value := iter.Value()
-			entry := keys.NewDocument(path, value)
+			entry := docs.NewDocument(path, value)
 			if entry.Contains(contains) {
 				total++
 			}

@@ -1,7 +1,7 @@
 package db
 
 import (
-	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/docs"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
 )
 
@@ -13,7 +13,7 @@ type docsIterator struct {
 	count int
 }
 
-func (i *docsIterator) Next() (*keys.Document, error) {
+func (i *docsIterator) Next() (*docs.Document, error) {
 	for i.iter.Next() {
 		// Remember that the contents of the returned slice should not be modified, and
 		// only valid until the next call to Next.
@@ -42,14 +42,14 @@ type colsIterator struct {
 	iter iterator.Iterator
 }
 
-func (i *colsIterator) Next() (*keys.Collection, error) {
+func (i *colsIterator) Next() (*docs.Collection, error) {
 	for i.iter.Next() {
 		// Remember that the contents of the returned slice should not be modified, and
 		// only valid until the next call to Next.
 		path := string(i.iter.Key())
 
 		logger.Debugf("Collection iterator path %s", path)
-		return &keys.Collection{Path: keys.Path(path[1:])}, nil
+		return &docs.Collection{Path: docs.Path(path[1:])}, nil
 	}
 	if err := i.iter.Error(); err != nil {
 		return nil, err
