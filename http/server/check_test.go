@@ -24,7 +24,9 @@ func TestUserResult(t *testing.T) {
 	st := userMock(t, env.users, alice, "alice", "github", env.req)
 
 	// PUT /sigchain/:id/:seq
-	req, err := http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/1", alice.ID()), bytes.NewReader(st.Bytes()))
+	b, err := st.Bytes()
+	require.NoError(t, err)
+	req, err := http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/1", alice.ID()), bytes.NewReader(b))
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)

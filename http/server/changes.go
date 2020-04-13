@@ -4,12 +4,13 @@ import (
 	"strconv"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/ds"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 )
 
 type changes struct {
-	docs          []*keys.Document
+	docs          []*ds.Document
 	version       int64
 	versionNext   int64
 	errBadRequest error
@@ -44,12 +45,12 @@ func (s *Server) changes(c echo.Context, path string) (*changes, error) {
 		pdir = "asc"
 	}
 
-	var dir keys.Direction
+	var dir ds.Direction
 	switch pdir {
 	case "asc":
-		dir = keys.Ascending
+		dir = ds.Ascending
 	case "desc":
-		dir = keys.Descending
+		dir = ds.Descending
 	default:
 		return &changes{errBadRequest: errors.Errorf("invalid dir")}, nil
 	}
@@ -65,11 +66,11 @@ func (s *Server) changes(c echo.Context, path string) (*changes, error) {
 	for _, a := range chngs {
 		paths = append(paths, a.Path)
 	}
-	docs, err := s.fi.GetAll(ctx, paths)
+	out, err := s.fi.GetAll(ctx, paths)
 	if err != nil {
 		return nil, err
 	}
-	s.logger.Debugf("Changes %s, got docs %d", path, len(docs))
+	s.logger.Debugf("Changes %s, got docs %d", path, len(out))
 
 	versionNext := keys.TimeMs(0)
 	if to.IsZero() {
@@ -81,7 +82,7 @@ func (s *Server) changes(c echo.Context, path string) (*changes, error) {
 	s.logger.Infof("Changes %s, version next: %d", path, versionNext)
 
 	return &changes{
-		docs:        docs,
+		docs:        out,
 		version:     int64(version),
 		versionNext: int64(versionNext),
 	}, nil

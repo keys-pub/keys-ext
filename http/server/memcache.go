@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/ds"
 )
 
 // MemCache defines interface for memcache.
@@ -63,7 +63,7 @@ func (m *memCache) Get(ctx context.Context, k string) (string, error) {
 }
 
 func (m *memCache) get(ctx context.Context, k string) (*mcEntry, error) {
-	e, ok := m.kv[keys.Path("memcache", k)]
+	e, ok := m.kv[ds.Path("memcache", k)]
 	if !ok {
 		return nil, nil
 	}
@@ -93,7 +93,7 @@ func (m *memCache) Expire(ctx context.Context, k string, dt time.Duration) error
 func (m *memCache) Delete(ctx context.Context, k string) error {
 	m.Lock()
 	defer m.Unlock()
-	delete(m.kv, keys.Path("memcache", k))
+	delete(m.kv, ds.Path("memcache", k))
 	return nil
 }
 
@@ -104,7 +104,7 @@ func (m *memCache) Set(ctx context.Context, k string, v string) error {
 }
 
 func (m *memCache) set(ctx context.Context, k string, e *mcEntry) error {
-	m.kv[keys.Path("memcache", k)] = e
+	m.kv[ds.Path("memcache", k)] = e
 	return nil
 }
 

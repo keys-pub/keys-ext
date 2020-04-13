@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/user"
 	"github.com/labstack/echo/v4"
 
@@ -36,8 +36,8 @@ type Server struct {
 
 // Fire defines interface for remote store (like Firestore).
 type Fire interface {
-	keys.DocumentStore
-	keys.Changes
+	ds.DocumentStore
+	ds.Changes
 }
 
 // NewServer creates a Server.

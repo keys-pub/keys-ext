@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/user"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
@@ -135,7 +136,7 @@ func (s *Server) taskExpired(c echo.Context) error {
 		return err
 	}
 
-	iter, err := s.fi.Documents(ctx, keys.Path("messages"), nil)
+	iter, err := s.fi.Documents(ctx, ds.Path("messages"), nil)
 	if err != nil {
 		return s.internalError(c, err)
 	}

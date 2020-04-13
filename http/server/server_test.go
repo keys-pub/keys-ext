@@ -11,6 +11,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/user"
 	"github.com/keys-pub/keysd/http/api"
 	"github.com/keys-pub/keysd/http/server"
@@ -67,7 +68,7 @@ type testServer struct {
 // }
 
 func testFire(t *testing.T, clock *clock) server.Fire {
-	fi := keys.NewMem()
+	fi := ds.NewMem()
 	fi.SetTimeNow(clock.Now)
 	return fi
 }
@@ -89,7 +90,7 @@ func TestFireCreatedAt(t *testing.T) {
 	require.Equal(t, "2009-02-13T23:31:30.001Z", ftime)
 }
 
-func testUserStore(t *testing.T, ds keys.DocumentStore, req keys.Requestor, clock *clock) *user.Store {
+func testUserStore(t *testing.T, ds ds.DocumentStore, req keys.Requestor, clock *clock) *user.Store {
 	us, err := user.NewStore(ds, keys.NewSigchainStore(ds), req, clock.Now)
 	require.NoError(t, err)
 	return us
@@ -251,7 +252,8 @@ func TestAccess(t *testing.T) {
 	require.NoError(t, err)
 	err = aliceSc.Add(aliceSt)
 	require.NoError(t, err)
-	aliceStBytes := aliceSt.Bytes()
+	aliceStBytes, err := aliceSt.Bytes()
+	require.NoError(t, err)
 	req, err := http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/1", alice.ID()), bytes.NewReader(aliceStBytes))
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
@@ -263,7 +265,8 @@ func TestAccess(t *testing.T) {
 	require.NoError(t, err)
 	err = aliceSc.Add(aliceSt2)
 	require.NoError(t, err)
-	aliceStBytes2 := aliceSt2.Bytes()
+	aliceStBytes2, err := aliceSt2.Bytes()
+	require.NoError(t, err)
 	req, err = http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/2", alice.ID()), bytes.NewReader(aliceStBytes2))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
@@ -278,7 +281,8 @@ func TestAccess(t *testing.T) {
 	require.NoError(t, err)
 	bobAddErr := bobSc.Add(bobSt)
 	require.NoError(t, bobAddErr)
-	bobStBytes := bobSt.Bytes()
+	bobStBytes, err := bobSt.Bytes()
+	require.NoError(t, err)
 	req, err = http.NewRequest("PUT", fmt.Sprintf("/%s/1", bob.ID()), bytes.NewReader(bobStBytes))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)

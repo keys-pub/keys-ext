@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/ds"
 	"github.com/stretchr/testify/require"
 )
 
@@ -43,7 +44,8 @@ func TestSigchains(t *testing.T) {
 	require.NoError(t, err)
 	err = sca.Add(sta)
 	require.NoError(t, err)
-	staBytes := sta.Bytes()
+	staBytes, err := sta.Bytes()
+	require.NoError(t, err)
 
 	// PUT /sigchain/:kid/:seq
 	req, err = http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/1", alice.ID()), bytes.NewReader(staBytes))
@@ -66,7 +68,9 @@ func TestSigchains(t *testing.T) {
 	require.NoError(t, err)
 
 	// PUT /sigchain/:kid/:seq (invalid, bob's statement)
-	req, err = http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/1", alice.ID()), bytes.NewReader([]byte(stb.Bytes())))
+	b, err := stb.Bytes()
+	require.NoError(t, err)
+	req, err = http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/1", alice.ID()), bytes.NewReader([]byte(b)))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusBadRequest, code)
@@ -110,7 +114,7 @@ func TestSigchains(t *testing.T) {
 	require.Equal(t, expectedSigchain, body)
 
 	// GET /sigchain/:kid (not found)
-	req, err = http.NewRequest("GET", keys.Path("sigchain", keys.RandID("kex")), nil)
+	req, err = http.NewRequest("GET", ds.Path("sigchain", keys.RandID("kex")), nil)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)
@@ -141,7 +145,7 @@ func TestSigchains(t *testing.T) {
 	// require.Equal(t, expectedSigsWithMetadata, body)
 
 	// GET /:kid
-	req, err = http.NewRequest("GET", keys.Path(alice.ID()), nil)
+	req, err = http.NewRequest("GET", ds.Path(alice.ID()), nil)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
@@ -167,14 +171,16 @@ func TestSigchains(t *testing.T) {
 	require.Equal(t, expectedSigned, body)
 
 	// PUT /:kid/:seq
-	req, err = http.NewRequest("PUT", fmt.Sprintf("/%s/2", alice.ID()), bytes.NewReader(sta2.Bytes()))
+	b, err = sta2.Bytes()
+	require.NoError(t, err)
+	req, err = http.NewRequest("PUT", fmt.Sprintf("/%s/2", alice.ID()), bytes.NewReader(b))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, "{}", body)
 
 	// PUT /invalidloc/:seq
-	req, err = http.NewRequest("PUT", keys.Path("invalidloc", 1), bytes.NewReader(sta2.Bytes()))
+	req, err = http.NewRequest("PUT", ds.Path("invalidloc", 1), bytes.NewReader(b))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusBadRequest, code)
@@ -188,7 +194,9 @@ func TestSigchains(t *testing.T) {
 	require.NoError(t, err)
 
 	// PUT /sigchain/:kid/:seq (too large)
-	req, err = http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/%d", alice.ID(), sta.Seq), bytes.NewReader(sta.Bytes()))
+	b, err = sta.Bytes()
+	require.NoError(t, err)
+	req, err = http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/%d", alice.ID(), sta.Seq), bytes.NewReader(b))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusBadRequest, code)
@@ -202,7 +210,7 @@ func TestSigchains(t *testing.T) {
 	require.Equal(t, `{"error":{"code":404,"message":"invalid ID: separator '1' at invalid position: pos=-1, len=3"}}`, body)
 
 	// GET /:kid/bar
-	req, err = http.NewRequest("GET", keys.Path(alice.ID(), "bar"), nil)
+	req, err = http.NewRequest("GET", ds.Path(alice.ID(), "bar"), nil)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)

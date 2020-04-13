@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keysd/http/api"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
@@ -16,7 +17,7 @@ import (
 
 func (s *Server) sigchain(c echo.Context, kid keys.ID) (*keys.Sigchain, map[string]api.Metadata, error) {
 	ctx := c.Request().Context()
-	iter, err := s.fi.Documents(ctx, SigchainResource.String(), &keys.DocumentsOpts{Prefix: kid.String()})
+	iter, err := s.fi.Documents(ctx, SigchainResource.String(), &ds.DocumentsOpts{Prefix: kid.String()})
 	defer iter.Release()
 	if err != nil {
 		return nil, nil, err
@@ -67,7 +68,7 @@ func (s *Server) getSigchain(c echo.Context) error {
 		KID:        kid,
 		Statements: sc.Statements(),
 	}
-	fields := keys.NewStringSetSplit(c.QueryParam("include"), ",")
+	fields := ds.NewStringSetSplit(c.QueryParam("include"), ",")
 	if fields.Contains("md") {
 		resp.Metadata = md
 	}
@@ -86,7 +87,7 @@ func (s *Server) getSigchainStatement(c echo.Context) error {
 	if err != nil {
 		return ErrNotFound(c, err)
 	}
-	path := keys.Path(SigchainResource, kid.WithSeq(i))
+	path := ds.Path(SigchainResource, kid.WithSeq(i))
 	st, doc, err := s.statement(ctx, path)
 	if st == nil {
 		return ErrNotFound(c, errors.Errorf("statement not found"))
@@ -133,7 +134,7 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 		return ErrBadRequest(c, errors.Errorf("invalid seq"))
 	}
 
-	path := keys.Path(SigchainResource, st.Key())
+	path := ds.Path(SigchainResource, st.Key())
 
 	exists, err := s.fi.Exists(ctx, path)
 	if err != nil {
@@ -175,7 +176,7 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 	return JSON(c, http.StatusOK, resp)
 }
 
-func (s *Server) statement(ctx context.Context, path string) (*keys.Statement, *keys.Document, error) {
+func (s *Server) statement(ctx context.Context, path string) (*keys.Statement, *ds.Document, error) {
 	e, err := s.fi.Get(ctx, path)
 	if err != nil {
 		return nil, nil, err
@@ -195,7 +196,10 @@ func (s *Server) statementFromBytes(ctx context.Context, b []byte) (*keys.Statem
 	if err != nil {
 		return nil, err
 	}
-	bout := st.Bytes()
+	bout, err := st.Bytes()
+	if err != nil {
+		return nil, err
+	}
 	if !bytes.Equal(b, bout) {
 		s.logger.Errorf("%s != %s", string(b), string(bout))
 		return nil, errors.Errorf("invalid statement bytes")

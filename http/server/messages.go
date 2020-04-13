@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keysd/http/api"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
@@ -84,7 +85,7 @@ func (s *Server) postMessage(c echo.Context) error {
 
 	ctx := c.Request().Context()
 
-	path := keys.Path("msgs", id)
+	path := ds.Path("msgs", id)
 	if err := s.fi.Create(ctx, path, mb); err != nil {
 		return s.internalError(c, err)
 	}
@@ -159,14 +160,14 @@ func (s *Server) listMessages(c echo.Context) error {
 		Messages: messages,
 		Version:  fmt.Sprintf("%d", chgs.versionNext),
 	}
-	fields := keys.NewStringSetSplit(c.QueryParam("include"), ",")
+	fields := ds.NewStringSetSplit(c.QueryParam("include"), ",")
 	if fields.Contains("md") {
 		resp.Metadata = md
 	}
 	return JSON(c, http.StatusOK, resp)
 }
 
-func (s *Server) msgFromDoc(doc *keys.Document) (*api.Message, error) {
+func (s *Server) msgFromDoc(doc *ds.Document) (*api.Message, error) {
 	if doc == nil {
 		return nil, nil
 	}
@@ -188,7 +189,7 @@ func (s *Server) msgFromDoc(doc *keys.Document) (*api.Message, error) {
 	}, nil
 }
 
-func (s *Server) checkMessage(msg *message, doc *keys.Document) (bool, error) {
+func (s *Server) checkMessage(msg *message, doc *ds.Document) (bool, error) {
 	if msg.Expire != "" {
 		expiry, err := time.ParseDuration(msg.Expire)
 		if err != nil {
