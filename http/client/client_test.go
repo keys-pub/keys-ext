@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/user"
 	"github.com/keys-pub/keysd/http/server"
 	"github.com/stretchr/testify/require"
@@ -35,7 +36,7 @@ type env struct {
 	clock      *clock
 	httpServer *httptest.Server
 	srv        *server.Server
-	dst        keys.DocumentStore
+	dst        ds.DocumentStore
 	users      *user.Store
 	req        *keys.MockRequestor
 	closeFn    func()
@@ -43,7 +44,7 @@ type env struct {
 
 func testEnv(t *testing.T, logger server.Logger) *env {
 	clock := newClock()
-	fi := keys.NewMem()
+	fi := ds.NewMem()
 	fi.SetTimeNow(clock.Now)
 	ns := server.NewMemTestCache(clock.Now)
 	req := keys.NewMockRequestor()
@@ -74,7 +75,7 @@ func testClient(t *testing.T, env *env, ks *keys.Keystore) *Client {
 	return client
 }
 
-func testUserStore(t *testing.T, ds keys.DocumentStore, req keys.Requestor, clock *clock) *user.Store {
+func testUserStore(t *testing.T, ds ds.DocumentStore, req keys.Requestor, clock *clock) *user.Store {
 	us, err := user.NewStore(ds, keys.NewSigchainStore(ds), req, clock.Now)
 	require.NoError(t, err)
 	return us

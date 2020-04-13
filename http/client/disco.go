@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/ds"
 	"github.com/pkg/errors"
 )
 
@@ -36,7 +37,7 @@ func (c *Client) PutDisco(ctx context.Context, sender keys.ID, recipient keys.ID
 
 	encrypted := keys.BoxSeal([]byte(data), recipientKey, senderKey.X25519Key())
 
-	path := keys.Path("disco", senderKey.ID(), recipient, string(typ))
+	path := ds.Path("disco", senderKey.ID(), recipient, string(typ))
 	vals := url.Values{}
 	vals.Set("expire", expire.String())
 	if _, err := c.putDocument(ctx, path, vals, senderKey, bytes.NewReader(encrypted)); err != nil {
@@ -55,7 +56,7 @@ func (c *Client) GetDisco(ctx context.Context, sender keys.ID, recipient keys.ID
 		return "", err
 	}
 
-	path := keys.Path("disco", sender, recipient, string(typ))
+	path := ds.Path("disco", sender, recipient, string(typ))
 	vals := url.Values{}
 	doc, err := c.getDocument(ctx, path, vals, recipientKey)
 	if err != nil {
@@ -82,7 +83,7 @@ func (c *Client) DeleteDisco(ctx context.Context, sender keys.ID, recipient keys
 		return keys.NewErrNotFound(sender.String())
 	}
 
-	path := keys.Path("disco", senderKey.ID(), recipient)
+	path := ds.Path("disco", senderKey.ID(), recipient)
 	vals := url.Values{}
 	if _, err := c.delete(ctx, path, vals, senderKey); err != nil {
 		return err

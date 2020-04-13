@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/saltpack"
 	"github.com/keys-pub/keysd/http/api"
 	"github.com/pkg/errors"
@@ -41,7 +42,7 @@ func (c *Client) SendMessage(ctx context.Context, sender keys.ID, recipient keys
 		return nil, err
 	}
 
-	path := keys.Path("msgs", senderKey.ID(), recipient)
+	path := ds.Path("msgs", senderKey.ID(), recipient)
 	vals := url.Values{}
 	vals.Set("expire", expire.String())
 	doc, err := c.postDocument(ctx, path, vals, senderKey, bytes.NewReader(encrypted))
@@ -60,7 +61,7 @@ type MessagesOpts struct {
 	// Version to list to/from
 	Version string
 	// Direction ascending or descending
-	Direction keys.Direction
+	Direction ds.Direction
 	// Limit by
 	Limit int
 }
@@ -73,7 +74,7 @@ func (c *Client) Messages(ctx context.Context, kid keys.ID, from keys.ID, opts *
 		return nil, "", err
 	}
 
-	path := keys.Path("msgs", key.ID(), from)
+	path := ds.Path("msgs", key.ID(), from)
 	if opts == nil {
 		opts = &MessagesOpts{}
 	}

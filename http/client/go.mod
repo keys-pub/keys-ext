@@ -4,9 +4,9 @@ go 1.12
 
 require (
 	github.com/gorilla/websocket v1.4.2
-	github.com/keys-pub/keys v0.0.0-20200412190229-71b7a426a7ab
+	github.com/keys-pub/keys v0.0.0-20200413002436-33c0c3d4ec1b
 	github.com/keys-pub/keysd/http/api v0.0.0-20200412190331-0e28c0a8f66f
-	github.com/keys-pub/keysd/http/server v0.0.0-20200412190405-409324eb28e6
+	github.com/keys-pub/keysd/http/server v0.0.0-20200413003542-7dbbe8346758
 	github.com/labstack/echo v3.3.10+incompatible // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.4.0

@@ -7,6 +7,7 @@ import (
 	"net/url"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keysd/http/api"
 )
 
@@ -15,7 +16,7 @@ func (c *Client) CreateInvite(ctx context.Context, sender keys.ID, recipient key
 	if err != nil {
 		return nil, err
 	}
-	path := keys.Path("invite", sender, recipient)
+	path := ds.Path("invite", sender, recipient)
 	vals := url.Values{}
 	doc, err := c.postDocument(ctx, path, vals, senderKey, nil)
 	if err != nil {

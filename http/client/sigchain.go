@@ -7,20 +7,27 @@ import (
 	"net/url"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keysd/http/api"
 	"github.com/pkg/errors"
 )
 
 // PutSigchainStatement ...
 func (c *Client) PutSigchainStatement(ctx context.Context, st *keys.Statement) error {
-	path := keys.Path(st.URL())
-	_, err := c.put(ctx, path, url.Values{}, nil, bytes.NewReader(st.Bytes()))
-	return err
+	path := ds.Path(st.URL())
+	b, err := st.Bytes()
+	if err != nil {
+		return err
+	}
+	if _, err = c.put(ctx, path, url.Values{}, nil, bytes.NewReader(b)); err != nil {
+		return err
+	}
+	return nil
 }
 
 // Sigchain for KID. If sigchain not found, a nil response is returned.
 func (c *Client) Sigchain(ctx context.Context, kid keys.ID) (*api.SigchainResponse, error) {
-	path := keys.Path("sigchain", kid)
+	path := ds.Path("sigchain", kid)
 
 	params := url.Values{}
 	params.Add("include", "md")
