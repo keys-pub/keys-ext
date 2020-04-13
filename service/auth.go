@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"os"
 	"sync"
 
 	"github.com/keys-pub/keys"
@@ -29,6 +30,11 @@ type auth struct {
 	whitelist *ds.StringSet
 }
 
+func keyringService(cfg *Config) string {
+	// If you change the service name, also change the db name.
+	return cfg.AppName() + ".app"
+}
+
 func newAuth(cfg *Config, st keyring.Store) (*auth, error) {
 	// We don't need auth for the following methods.
 	whitelist := ds.NewStringSet(
@@ -39,7 +45,8 @@ func newAuth(cfg *Config, st keyring.Store) (*auth, error) {
 		"/service.Keys/RuntimeStatus",
 		"/grpc.reflection.v1alpha.ServerReflection/ServerReflectionInfo")
 
-	kr, err := keyring.NewKeyring(cfg.AppName(), st)
+	service := keyringService(cfg)
+	kr, err := keyring.NewKeyring(service, st)
 	if err != nil {
 		return nil, err
 	}
@@ -170,6 +177,7 @@ func (s *service) isAuthSetupNeeded() (bool, error) {
 
 // AuthSetup (RPC) ...
 func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSetupResponse, error) {
+	logger.Infof("Auth setup...")
 	setupNeeded, err := s.isAuthSetupNeeded()
 	if err != nil {
 		return nil, err
@@ -181,6 +189,20 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 	token, auth, err := s.auth.unlock(req.Password, req.Client)
 	if err != nil {
 		return nil, err
+	}
+
+	// If setting up auth, and local database exists we should nuke it since the
+	// pre-existing key is different. The database will be rebuilt on Open.
+	path, err := s.cfg.AppPath(dbFilename, false)
+	if err != nil {
+		return nil, err
+	}
+	logger.Debugf("Checking for existing db...")
+	if _, err := os.Stat(path); err == nil {
+		logger.Debugf("Removing existing db: %s", path)
+		if err := os.RemoveAll(path); err != nil {
+			return nil, err
+		}
 	}
 
 	key := auth.Key()

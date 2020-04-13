@@ -77,6 +77,8 @@ func (s *service) Now() time.Time {
 	return s.nowFn()
 }
 
+const dbFilename = "keys.leveldb"
+
 // Open the service.
 // If already open, will close and re-open.
 func (s *service) Open(ctx context.Context, key *[32]byte) error {
@@ -87,7 +89,7 @@ func (s *service) Open(ctx context.Context, key *[32]byte) error {
 		s.close()
 	}
 	logger.Infof("Opening db...")
-	path, err := s.cfg.AppPath("keys-v2.leveldb", true)
+	path, err := s.cfg.AppPath(dbFilename, true)
 	if err != nil {
 		return err
 	}
@@ -97,6 +99,7 @@ func (s *service) Open(ctx context.Context, key *[32]byte) error {
 		isNew = true
 	}
 
+	// TODO: Check if key is wrong.
 	if err := s.db.OpenAtPath(ctx, path, key); err != nil {
 		return err
 	}
@@ -150,6 +153,7 @@ func (s *service) checkUpdate(ctx context.Context) error {
 	}
 	kids := make([]keys.ID, 0, len(pks))
 	for _, pk := range pks {
+		logger.Debugf("Getting user %s", pk.ID())
 		res, err := s.users.Get(ctx, pk.ID())
 		if err != nil {
 			return err
@@ -160,6 +164,7 @@ func (s *service) checkUpdate(ctx context.Context) error {
 	}
 
 	for _, kid := range kids {
+		logger.Debugf("Updating %s", kid)
 		if _, _, err := s.update(ctx, kid); err != nil {
 			return err
 		}

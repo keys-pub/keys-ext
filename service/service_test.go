@@ -247,3 +247,18 @@ func TestKeyringFS(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 0, len(keys.Keys))
 }
+
+func TestCheckUpdate(t *testing.T) {
+	env := newTestEnv(t)
+	service, closeFn := newTestService(t, env)
+	defer closeFn()
+
+	testAuthSetup(t, service)
+
+	testImportKey(t, service, alice)
+	testUserSetupGithub(t, env, service, alice, "alice")
+	testPush(t, service, alice)
+
+	err := service.checkUpdate(context.TODO())
+	require.NoError(t, err)
+}

@@ -11,11 +11,11 @@ import (
 )
 
 func certificateKey(cfg *Config, st keyring.Store, generate bool) (*keys.CertificateKey, error) {
-	private, err := st.Get(cfg.AppName(), ".cert-private")
+	private, err := st.Get(keyringService(cfg), ".cert-private")
 	if err != nil {
 		return nil, err
 	}
-	public, err := st.Get(cfg.AppName(), ".cert-public")
+	public, err := st.Get(keyringService(cfg), ".cert-public")
 	if err != nil {
 		return nil, err
 	}
