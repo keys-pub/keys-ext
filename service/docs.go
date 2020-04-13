@@ -6,6 +6,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/ds"
 	"github.com/pkg/errors"
 )
 
@@ -40,7 +41,7 @@ func (s *service) Collections(ctx context.Context, req *CollectionsRequest) (*Co
 // Documents (RPC) lists local document store.
 func (s *service) Documents(ctx context.Context, req *DocumentsRequest) (*DocumentsResponse, error) {
 	iter, err := s.db.Documents(ctx, req.Path,
-		&keys.DocumentsOpts{
+		&ds.DocumentsOpts{
 			Prefix: req.Prefix,
 			// Index:  int(req.Index),
 			// Limit:  int(req.Length),
@@ -48,7 +49,7 @@ func (s *service) Documents(ctx context.Context, req *DocumentsRequest) (*Docume
 	if err != nil {
 		return nil, err
 	}
-	docs := make([]*Document, 0, 100)
+	out := make([]*Document, 0, 100)
 	for {
 		doc, err := iter.Next()
 		if err != nil {
@@ -68,7 +69,7 @@ func (s *service) Documents(ctx context.Context, req *DocumentsRequest) (*Docume
 		} else {
 			val = string(doc.Data)
 		}
-		docs = append(docs, &Document{
+		out = append(out, &Document{
 			Path:      doc.Path,
 			Value:     val,
 			CreatedAt: int64(keys.TimeToMillis(doc.CreatedAt)),
@@ -77,7 +78,7 @@ func (s *service) Documents(ctx context.Context, req *DocumentsRequest) (*Docume
 	}
 	iter.Release()
 	return &DocumentsResponse{
-		Documents: docs,
+		Documents: out,
 	}, nil
 }
 

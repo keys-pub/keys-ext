@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/user"
 	"github.com/keys-pub/keysd/http/server"
 	"github.com/stretchr/testify/require"
@@ -29,7 +30,7 @@ func testConfig(t *testing.T, serverURL string, keyringType string) (*Config, Cl
 }
 
 func testFire(t *testing.T, clock *clock) server.Fire {
-	fi := keys.NewMem()
+	fi := ds.NewMem()
 	fi.SetTimeNow(clock.Now)
 	return fi
 }
@@ -54,7 +55,7 @@ func newTestEnv(t *testing.T) *testEnv {
 	}
 }
 
-func testUserStore(t *testing.T, dst keys.DocumentStore, scs keys.SigchainStore, req *keys.MockRequestor, clock *clock) *user.Store {
+func testUserStore(t *testing.T, dst ds.DocumentStore, scs keys.SigchainStore, req *keys.MockRequestor, clock *clock) *user.Store {
 	ust, err := user.NewStore(dst, scs, req, clock.Now)
 	require.NoError(t, err)
 	return ust
@@ -212,7 +213,7 @@ func newTestServerEnv(t *testing.T, env *testEnv) *serverEnv {
 // func spewService(t *testing.T, service *service) {
 // 	iter, iterErr := service.db.Documents(context.TODO(), "", nil)
 // 	require.NoError(t, iterErr)
-// 	spew, err := keys.Spew(iter, nil)
+// 	spew, err := ds.Spew(iter, nil)
 // 	require.NoError(t, err)
 // 	t.Logf(spew.String())
 // }

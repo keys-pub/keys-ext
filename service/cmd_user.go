@@ -224,8 +224,15 @@ func userCommands(client *Client) []cli.Command {
 						if err != nil {
 							return err
 						}
-						st := statementFromRPC(resp.Statement)
-						fmt.Printf("%s\n", string(st.Bytes()))
+						st, err := statementFromRPC(resp.Statement)
+						if err != nil {
+							return err
+						}
+						b, err := st.Bytes()
+						if err != nil {
+							return err
+						}
+						fmt.Printf("%s\n", string(b))
 						return nil
 					},
 				},

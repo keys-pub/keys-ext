@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/saltpack"
 	"github.com/keys-pub/keysd/http/client"
 	"github.com/pkg/errors"
@@ -180,7 +181,7 @@ func (s *service) message(ctx context.Context, path string) (*Message, error) {
 
 func (s *service) messages(ctx context.Context, key *keys.EdX25519Key, recipient keys.ID) ([]*Message, error) {
 	path := fmt.Sprintf("messages-%s-%s", key.ID(), recipient)
-	iter, iterErr := s.db.Documents(ctx, path, &keys.DocumentsOpts{PathOnly: true})
+	iter, iterErr := s.db.Documents(ctx, path, &ds.DocumentsOpts{PathOnly: true})
 	if iterErr != nil {
 		return nil, iterErr
 	}
@@ -211,7 +212,7 @@ func (s *service) messages(ctx context.Context, key *keys.EdX25519Key, recipient
 
 func (s *service) pullMessages(ctx context.Context, kid keys.ID, recipient keys.ID) error {
 	logger.Infof("Pull messages...")
-	versionPath := keys.Path("versions", fmt.Sprintf("messages-%s", kid))
+	versionPath := ds.Path("versions", fmt.Sprintf("messages-%s", kid))
 	e, err := s.db.Get(ctx, versionPath)
 	if err != nil {
 		return err
@@ -233,7 +234,7 @@ func (s *service) pullMessages(ctx context.Context, kid keys.ID, recipient keys.
 		ts := 9223372036854775807 - keys.TimeToMillis(msg.CreatedAt)
 		pathKey := fmt.Sprintf("messages-%s-%s", kid, recipient)
 		pathVal := fmt.Sprintf("%d-%s", ts, msg.ID)
-		path := keys.Path(pathKey, pathVal)
+		path := ds.Path(pathKey, pathVal)
 		if err := s.db.Set(ctx, path, msg.Data); err != nil {
 			return err
 		}

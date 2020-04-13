@@ -70,7 +70,15 @@ func (s *service) push(ctx context.Context, kid keys.ID) ([]string, error) {
 	urls := make([]string, 0, len(sts))
 	for i, st := range sts {
 		if i < len(rsts) {
-			if !bytes.Equal(st.Bytes(), rsts[i].Bytes()) {
+			b, err := st.Bytes()
+			if err != nil {
+				return nil, err
+			}
+			b2, err := rsts[i].Bytes()
+			if err != nil {
+				return nil, err
+			}
+			if !bytes.Equal(b, b2) {
 				return nil, errors.Errorf("remote and local sigchain statements differ")
 			}
 		} else {

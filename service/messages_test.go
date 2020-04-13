@@ -80,7 +80,7 @@ func TestMessages(t *testing.T) {
 	// cols, err := env.fi.Collections(ctx, "")
 	// // cols, err := aliceService.db.Collections(ctx, "")
 	// require.NoError(t, err)
-	// paths, err := keys.CollectionPaths(cols)
+	// paths, err := ds.CollectionPaths(cols)
 	// require.NoError(t, err)
 	// t.Logf("cols: %+v", paths)
 

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/user"
 	"github.com/pkg/errors"
 )
@@ -72,7 +73,11 @@ func (s *service) update(ctx context.Context, kid keys.ID) (bool, *user.Result, 
 	}
 	logger.Infof("Received sigchain %s, len=%d", kid, len(resp.Statements))
 	for _, st := range resp.Statements {
-		if err := s.db.Set(ctx, keys.Path("sigchain", st.Key()), st.Bytes()); err != nil {
+		b, err := st.Bytes()
+		if err != nil {
+			return false, nil, err
+		}
+		if err := s.db.Set(ctx, ds.Path("sigchain", st.Key()), b); err != nil {
 			return false, nil, err
 		}
 	}

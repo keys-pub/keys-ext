@@ -39,8 +39,15 @@ func sigchainCommands(client *Client) []cli.Command {
 							if err != nil {
 								return err
 							}
-							st := statementFromRPC(resp.Statement)
-							fmt.Println(string(st.Bytes()))
+							st, err := statementFromRPC(resp.Statement)
+							if err != nil {
+								return err
+							}
+							b, err := st.Bytes()
+							if err != nil {
+								return err
+							}
+							fmt.Println(string(b))
 							return nil
 						}
 
@@ -62,7 +69,11 @@ func sigchainCommands(client *Client) []cli.Command {
 							return err
 						}
 						for _, st := range sc.Statements() {
-							fmt.Println(string(st.Bytes()))
+							b, err := st.Bytes()
+							if err != nil {
+								return err
+							}
+							fmt.Println(string(b))
 						}
 						return nil
 					},
@@ -101,8 +112,15 @@ func sigchainCommands(client *Client) []cli.Command {
 								if err != nil {
 									return err
 								}
-								st := statementFromRPC(resp.Statement)
-								fmt.Printf("%s\n", string(st.Bytes()))
+								st, err := statementFromRPC(resp.Statement)
+								if err != nil {
+									return err
+								}
+								sb, err := st.Bytes()
+								if err != nil {
+									return err
+								}
+								fmt.Printf("%s\n", string(sb))
 								return nil
 							},
 						},
@@ -127,8 +145,15 @@ func sigchainCommands(client *Client) []cli.Command {
 								if err != nil {
 									return err
 								}
-								st := statementFromRPC(resp.Statement)
-								fmt.Printf("%s\n", string(st.Bytes()))
+								st, err := statementFromRPC(resp.Statement)
+								if err != nil {
+									return err
+								}
+								b, err := st.Bytes()
+								if err != nil {
+									return err
+								}
+								fmt.Printf("%s\n", string(b))
 								return nil
 							},
 						},

@@ -2,12 +2,12 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"sync"
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/secret"
 	"github.com/keys-pub/keys/user"
 	"github.com/keys-pub/keysd/db"
@@ -33,8 +33,8 @@ type service struct {
 	open    bool
 	openMtx sync.Mutex
 
-	watchLast *keys.WatchEvent
-	watchLn   keys.WatchLn
+	watchLast *ds.WatchEvent
+	watchLn   ds.WatchLn
 	watchWg   *sync.WaitGroup
 	watchMtx  sync.Mutex
 }
@@ -68,7 +68,7 @@ func newService(cfg *Config, build Build, auth *auth, req keys.Requestor, nowFn 
 		users:   users,
 		remote:  remote,
 		nowFn:   nowFn,
-		watchLn: func(e *keys.WatchEvent) {},
+		watchLn: func(e *ds.WatchEvent) {},
 	}, nil
 }
 
@@ -87,7 +87,7 @@ func (s *service) Open(ctx context.Context, key *[32]byte) error {
 		s.close()
 	}
 	logger.Infof("Opening db...")
-	path, err := s.cfg.AppPath(fmt.Sprintf("keys-v2.leveldb"), true)
+	path, err := s.cfg.AppPath("keys-v2.leveldb", true)
 	if err != nil {
 		return err
 	}

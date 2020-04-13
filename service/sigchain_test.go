@@ -21,8 +21,13 @@ func TestSigchain(t *testing.T) {
 	require.Equal(t, 1, len(sc.Statements()))
 	st := sc.Statements()[0]
 	rst := statementToRPC(st)
-	out := statementFromRPC(rst)
-	require.Equal(t, st.Bytes(), out.Bytes())
+	out, err := statementFromRPC(rst)
+	require.NoError(t, err)
+	b, err := st.Bytes()
+	require.NoError(t, err)
+	b2, err := out.Bytes()
+	require.NoError(t, err)
+	require.Equal(t, b, b2)
 
 	ctx := context.TODO()
 	resp, err := service.Sigchain(ctx, &SigchainRequest{

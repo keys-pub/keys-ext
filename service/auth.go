@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/keyring"
 	"github.com/pkg/errors"
@@ -25,12 +26,12 @@ type auth struct {
 	cfg       *Config
 	keyring   keyring.Keyring
 	tokens    map[string]string
-	whitelist *keys.StringSet
+	whitelist *ds.StringSet
 }
 
 func newAuth(cfg *Config, st keyring.Store) (*auth, error) {
 	// We don't need auth for the following methods.
-	whitelist := keys.NewStringSet(
+	whitelist := ds.NewStringSet(
 		"/service.Keys/AuthGenerate",
 		"/service.Keys/AuthSetup",
 		"/service.Keys/AuthUnlock",
