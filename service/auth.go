@@ -17,10 +17,7 @@ import (
 )
 
 // TODO: Some clients log grpc requests which for AuthSetup and AuthUnlock include a password.
-//       We need to ensure client logging doesn't do this, or use an alternate
-//       channel for auth? (Also redux state in frontend could keep password around.)
-//       Maybe a special password proto type that can't be logged and clears
-//       itself?
+//       We need to ensure client logging doesn't do this in the future accidentally.
 
 type auth struct {
 	sync.Mutex
@@ -31,8 +28,7 @@ type auth struct {
 }
 
 func keyringService(cfg *Config) string {
-	// If you change the service name, also change the db name.
-	return cfg.AppName() + ".app"
+	return cfg.AppName() + ".keyring"
 }
 
 func newAuth(cfg *Config, st keyring.Store) (*auth, error) {
