@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"cloud.google.com/go/firestore"
-	"github.com/keys-pub/keys/docs"
+	"github.com/keys-pub/keys/ds"
 	"github.com/pkg/errors"
 	"google.golang.org/api/iterator"
 )
@@ -16,7 +16,7 @@ type docsIterator struct {
 	pathOnly bool
 }
 
-func (i *docsIterator) Next() (*docs.Document, error) {
+func (i *docsIterator) Next() (*ds.Document, error) {
 	if i.iter == nil {
 		return nil, nil
 	}
@@ -33,10 +33,10 @@ func (i *docsIterator) Next() (*docs.Document, error) {
 		// TODO: Is there a more efficient way to do this in the query?
 		return nil, nil
 	}
-	kp := docs.Path(i.parent, k)
+	kp := ds.Path(i.parent, k)
 
 	if i.pathOnly {
-		out := docs.NewDocument(kp, nil)
+		out := ds.NewDocument(kp, nil)
 		out.CreatedAt = doc.CreateTime
 		out.UpdatedAt = doc.UpdateTime
 		return out, nil
@@ -47,7 +47,7 @@ func (i *docsIterator) Next() (*docs.Document, error) {
 	if !ok {
 		return nil, errors.Errorf("firestore value missing data")
 	}
-	out := docs.NewDocument(kp, b)
+	out := ds.NewDocument(kp, b)
 	out.CreatedAt = doc.CreateTime
 	out.UpdatedAt = doc.UpdateTime
 	return out, nil
@@ -63,7 +63,7 @@ type colsIterator struct {
 	iter *firestore.CollectionIterator
 }
 
-func (i *colsIterator) Next() (*docs.Collection, error) {
+func (i *colsIterator) Next() (*ds.Collection, error) {
 	col, err := i.iter.Next()
 	if err == iterator.Done {
 		return nil, nil
@@ -71,7 +71,7 @@ func (i *colsIterator) Next() (*docs.Collection, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &docs.Collection{Path: docs.Path(col.ID)}, nil
+	return &ds.Collection{Path: ds.Path(col.ID)}, nil
 }
 
 func (i *colsIterator) Release() {

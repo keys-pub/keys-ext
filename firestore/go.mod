@@ -7,7 +7,7 @@ require (
 	cloud.google.com/go v0.51.0 // indirect
 	cloud.google.com/go/firestore v1.1.0
 	github.com/danieljoos/wincred v1.0.3-0.20190627210546-1fd2f0dfbd6a // indirect
-	github.com/keys-pub/keys v0.0.0-20200413001153-1e185faf1bb0
+	github.com/keys-pub/keys v0.0.0-20200413002436-33c0c3d4ec1b
 	github.com/pkg/errors v0.9.1
 	github.com/rogpeppe/godef v1.1.2 // indirect
 	github.com/stretchr/objx v0.2.0 // indirect
