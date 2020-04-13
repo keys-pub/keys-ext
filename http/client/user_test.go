@@ -47,7 +47,7 @@ func TestUserSearch(t *testing.T) {
 	env := testEnv(t, logger)
 	defer env.closeFn()
 
-	ks := keys.NewMemKeystore()
+	ks := keys.NewMemKeyStore()
 	client := testClient(t, env, ks)
 
 	for i := 0; i < 10; i++ {
@@ -83,7 +83,7 @@ func TestUser(t *testing.T) {
 	env := testEnv(t, logger)
 	defer env.closeFn()
 
-	ks := keys.NewMemKeystore()
+	ks := keys.NewMemKeyStore()
 	client := testClient(t, env, ks)
 
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))

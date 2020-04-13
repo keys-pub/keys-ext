@@ -65,7 +65,7 @@ func testEnv(t *testing.T, logger server.Logger) *env {
 	return &env{clock, httpServer, svr, fi, users, req, func() { httpServer.Close() }}
 }
 
-func testClient(t *testing.T, env *env, ks *keys.Keystore) *Client {
+func testClient(t *testing.T, env *env, ks *keys.KeyStore) *Client {
 	client, err := NewClient(env.httpServer.URL, ks)
 	require.NoError(t, err)
 	require.NotNil(t, client.nowFn)

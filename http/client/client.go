@@ -24,12 +24,12 @@ import (
 type Client struct {
 	url        *url.URL
 	httpClient *http.Client
-	ks         *keys.Keystore
+	ks         *keys.KeyStore
 	nowFn      func() time.Time
 }
 
 // NewClient creates a Client for an HTTP API.
-func NewClient(urs string, ks *keys.Keystore) (*Client, error) {
+func NewClient(urs string, ks *keys.KeyStore) (*Client, error) {
 	urp, err := url.Parse(urs)
 	if err != nil {
 		return nil, err
