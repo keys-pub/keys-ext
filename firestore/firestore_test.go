@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/docs"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/api/option"
 )
@@ -76,16 +77,16 @@ func TestEmptyIterator(t *testing.T) {
 	iter.Release()
 }
 
-func testDocumentStore(t *testing.T, ds keys.DocumentStore) {
+func testDocumentStore(t *testing.T, ds docs.DocumentStore) {
 	ctx := context.TODO()
 
 	for i := 10; i <= 30; i = i + 10 {
-		p := keys.Path("test1", fmt.Sprintf("key%d", i))
+		p := docs.Path("test1", fmt.Sprintf("key%d", i))
 		err := ds.Create(ctx, p, []byte(fmt.Sprintf("value%d", i)))
 		require.NoError(t, err)
 	}
 	for i := 10; i <= 30; i = i + 10 {
-		p := keys.Path("test0", fmt.Sprintf("key%d", i))
+		p := docs.Path("test0", fmt.Sprintf("key%d", i))
 		err := ds.Create(ctx, p, []byte(fmt.Sprintf("value%d", i)))
 		require.NoError(t, err)
 	}
@@ -117,11 +118,11 @@ func testDocumentStore(t *testing.T, ds keys.DocumentStore) {
 	require.NotNil(t, doc)
 	require.Equal(t, "overwrite", string(doc.Data))
 
-	docs, err := ds.GetAll(ctx, []string{"/test0/key10", "/test0/key20"})
+	out, err := ds.GetAll(ctx, []string{"/test0/key10", "/test0/key20"})
 	require.NoError(t, err)
-	require.Equal(t, 2, len(docs))
-	require.Equal(t, "/test0/key10", docs[0].Path)
-	require.Equal(t, "/test0/key20", docs[1].Path)
+	require.Equal(t, 2, len(out))
+	require.Equal(t, "/test0/key10", out[0].Path)
+	require.Equal(t, "/test0/key20", out[1].Path)
 
 	ok, err = ds.Delete(ctx, "/test1/key10")
 	require.True(t, ok)
@@ -138,23 +139,24 @@ func testDocumentStore(t *testing.T, ds keys.DocumentStore) {
 /test0/key20 value20
 /test0/key30 value30
 `
+
 	var b bytes.Buffer
 	iter, err = ds.Documents(context.TODO(), "test0", nil)
 	require.NoError(t, err)
-	err = keys.SpewOut(iter, nil, &b)
+	err = docs.SpewOut(iter, nil, &b)
 	require.NoError(t, err)
 	require.Equal(t, expected, b.String())
 	iter.Release()
 
 	iter, err = ds.Documents(context.TODO(), "test0", nil)
 	require.NoError(t, err)
-	spew, err := keys.Spew(iter, nil)
+	spew, err := docs.Spew(iter, nil)
 	require.NoError(t, err)
 	require.Equal(t, b.String(), spew.String())
 	require.Equal(t, expected, spew.String())
 	iter.Release()
 
-	iter, err = ds.Documents(context.TODO(), "test0", &keys.DocumentsOpts{Prefix: "key1", PathOnly: true})
+	iter, err = ds.Documents(context.TODO(), "test0", &docs.DocumentsOpts{Prefix: "key1", PathOnly: true})
 	require.NoError(t, err)
 	doc, err = iter.Next()
 	require.NoError(t, err)
@@ -186,7 +188,7 @@ func testDocumentStore(t *testing.T, ds keys.DocumentStore) {
 	require.EqualError(t, err, "only root collections supported")
 }
 
-func testDocumentStorePath(t *testing.T, ds keys.DocumentStore) {
+func testDocumentStorePath(t *testing.T, ds docs.DocumentStore) {
 	ctx := context.TODO()
 
 	err := ds.Create(ctx, "test/1", []byte("value1"))
@@ -204,7 +206,7 @@ func testDocumentStorePath(t *testing.T, ds keys.DocumentStore) {
 	require.True(t, ok)
 }
 
-func testDocumentStoreListOptions(t *testing.T, ds keys.DocumentStore) {
+func testDocumentStoreListOptions(t *testing.T, ds docs.DocumentStore) {
 	ctx := context.TODO()
 
 	err := ds.Create(ctx, "/test/1", []byte("val1"))
@@ -215,23 +217,23 @@ func testDocumentStoreListOptions(t *testing.T, ds keys.DocumentStore) {
 	require.NoError(t, err)
 
 	for i := 1; i < 3; i++ {
-		err := ds.Create(ctx, keys.Path("a", fmt.Sprintf("e%d", i)), []byte("🤓"))
+		err := ds.Create(ctx, docs.Path("a", fmt.Sprintf("e%d", i)), []byte("🤓"))
 		require.NoError(t, err)
 	}
 	for i := 1; i < 3; i++ {
-		err := ds.Create(ctx, keys.Path("b", fmt.Sprintf("ea%d", i)), []byte("😎"))
+		err := ds.Create(ctx, docs.Path("b", fmt.Sprintf("ea%d", i)), []byte("😎"))
 		require.NoError(t, err)
 	}
 	for i := 1; i < 3; i++ {
-		err := ds.Create(ctx, keys.Path("b", fmt.Sprintf("eb%d", i)), []byte("😎"))
+		err := ds.Create(ctx, docs.Path("b", fmt.Sprintf("eb%d", i)), []byte("😎"))
 		require.NoError(t, err)
 	}
 	for i := 1; i < 3; i++ {
-		err := ds.Create(ctx, keys.Path("b", fmt.Sprintf("ec%d", i)), []byte("😎"))
+		err := ds.Create(ctx, docs.Path("b", fmt.Sprintf("ec%d", i)), []byte("😎"))
 		require.NoError(t, err)
 	}
 	for i := 1; i < 3; i++ {
-		err := ds.Create(ctx, keys.Path("c", fmt.Sprintf("e%d", i)), []byte("😎"))
+		err := ds.Create(ctx, docs.Path("c", fmt.Sprintf("e%d", i)), []byte("😎"))
 		require.NoError(t, err)
 	}
 
@@ -251,7 +253,7 @@ func testDocumentStoreListOptions(t *testing.T, ds keys.DocumentStore) {
 
 	iter, err = ds.Documents(context.TODO(), "test", nil)
 	require.NoError(t, err)
-	b, err := keys.Spew(iter, nil)
+	b, err := docs.Spew(iter, nil)
 	require.NoError(t, err)
 	expected := `/test/1 val1
 /test/2 val2
@@ -260,7 +262,7 @@ func testDocumentStoreListOptions(t *testing.T, ds keys.DocumentStore) {
 	require.Equal(t, expected, b.String())
 	iter.Release()
 
-	iter, err = ds.Documents(ctx, "b", &keys.DocumentsOpts{Prefix: "eb"})
+	iter, err = ds.Documents(ctx, "b", &docs.DocumentsOpts{Prefix: "eb"})
 	require.NoError(t, err)
 	paths = []string{}
 	for {
@@ -275,7 +277,7 @@ func testDocumentStoreListOptions(t *testing.T, ds keys.DocumentStore) {
 	require.Equal(t, []string{"/b/eb1", "/b/eb2"}, paths)
 }
 
-func testMetadata(t *testing.T, ds keys.DocumentStore) {
+func testMetadata(t *testing.T, ds docs.DocumentStore) {
 	ctx := context.TODO()
 
 	err := ds.Create(ctx, "/test/key1", []byte("value1"))
