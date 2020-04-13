@@ -43,7 +43,7 @@ type Wormhole struct {
 	sync.Mutex
 	rtc    *sctp.Client
 	hcl    *httpclient.Client
-	ks     *keys.Keystore
+	ks     *keys.KeyStore
 	cipher noise.Cipher
 
 	sender    keys.ID
@@ -61,7 +61,7 @@ const maxSize = 16 * 1024
 // NewWormhole creates a new Wormhole.
 // Server is offer/answer message server, only used to coordinate starting the
 // webrtc channel.
-func NewWormhole(server string, ks *keys.Keystore) (*Wormhole, error) {
+func NewWormhole(server string, ks *keys.KeyStore) (*Wormhole, error) {
 	rtc := sctp.NewClient()
 
 	if server == "" {

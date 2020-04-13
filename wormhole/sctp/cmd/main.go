@@ -129,7 +129,7 @@ type cmd struct {
 }
 
 func newCmd() (*cmd, error) {
-	ks := keys.NewMemKeystore()
+	ks := keys.NewMemKeyStore()
 
 	offerKey := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	answerKey := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))

@@ -29,13 +29,13 @@ func TestNewWormhole(t *testing.T) {
 	// Local
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
-	ksa := keys.NewMemKeystore()
+	ksa := keys.NewMemKeyStore()
 	err := ksa.SaveEdX25519Key(alice)
 	require.NoError(t, err)
 	err = ksa.SaveEdX25519PublicKey(bob.PublicKey())
 	require.NoError(t, err)
 
-	ksb := keys.NewMemKeystore()
+	ksb := keys.NewMemKeyStore()
 	err = ksb.SaveEdX25519Key(bob)
 	require.NoError(t, err)
 	err = ksb.SaveEdX25519PublicKey(alice.PublicKey())
@@ -55,14 +55,14 @@ func TestWormholeSameKey(t *testing.T) {
 	defer env.closeFn()
 
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
-	ksa := keys.NewMemKeystore()
+	ksa := keys.NewMemKeyStore()
 	err := ksa.SaveEdX25519Key(alice)
 	require.NoError(t, err)
 
 	testWormhole(t, env, true, alice, alice, ksa, ksa)
 }
 
-func testWormhole(t *testing.T, env *env, local bool, alice *keys.EdX25519Key, bob *keys.EdX25519Key, ksa *keys.Keystore, ksb *keys.Keystore) {
+func testWormhole(t *testing.T, env *env, local bool, alice *keys.EdX25519Key, bob *keys.EdX25519Key, ksa *keys.KeyStore, ksb *keys.KeyStore) {
 	ctx := context.TODO()
 
 	openWg := &sync.WaitGroup{}
@@ -193,7 +193,7 @@ func testWormholeCancel(t *testing.T, env *env, dt time.Duration) {
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
 
-	ksa := keys.NewMemKeystore()
+	ksa := keys.NewMemKeyStore()
 	err := ksa.SaveEdX25519Key(alice)
 	require.NoError(t, err)
 
@@ -222,11 +222,11 @@ func TestWormholeNoRecipient(t *testing.T) {
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
 
-	ksa := keys.NewMemKeystore()
+	ksa := keys.NewMemKeyStore()
 	err := ksa.SaveEdX25519Key(alice)
 	require.NoError(t, err)
 
-	ksb := keys.NewMemKeystore()
+	ksb := keys.NewMemKeyStore()
 	err = ksb.SaveEdX25519Key(bob)
 	require.NoError(t, err)
 

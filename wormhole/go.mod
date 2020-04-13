@@ -5,9 +5,9 @@ go 1.13
 require (
 	github.com/keybase/go-keychain v0.0.0-20200325143049-65d7292bc904 // indirect
 	github.com/keybase/saltpack v0.0.0-20200228190633-d75baa96bffb // indirect
-	github.com/keys-pub/keys v0.0.0-20200413002436-33c0c3d4ec1b
+	github.com/keys-pub/keys v0.0.0-20200413004324-63e8a0774692
 	github.com/keys-pub/keysd/http/api v0.0.0-20200412190331-0e28c0a8f66f
-	github.com/keys-pub/keysd/http/client v0.0.0-20200413003633-6f40aa13430f
+	github.com/keys-pub/keysd/http/client v0.0.0-20200413004457-9dcc3d959be4
 	github.com/keys-pub/keysd/http/server v0.0.0-20200413003542-7dbbe8346758
 	github.com/labstack/echo/v4 v4.1.16 // indirect
 	github.com/pion/logging v0.2.2
