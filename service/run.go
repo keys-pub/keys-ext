@@ -20,6 +20,7 @@ import (
 	"github.com/keys-pub/keys/keyring"
 	"github.com/keys-pub/keys/keyring/upgrade"
 	"github.com/keys-pub/keys/saltpack"
+	"github.com/keys-pub/keys/util"
 	"github.com/keys-pub/keysd/db"
 	"github.com/keys-pub/keysd/http/client"
 	"github.com/keys-pub/keysd/wormhole"
@@ -38,7 +39,7 @@ type protoService struct {
 }
 
 func newProtoService(cfg *Config, build Build, auth *auth) (*protoService, error) {
-	req := keys.NewHTTPRequestor()
+	req := util.NewHTTPRequestor()
 	srv, err := newService(cfg, build, auth, req, time.Now)
 	if err != nil {
 		return nil, err

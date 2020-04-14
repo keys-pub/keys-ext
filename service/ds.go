@@ -5,8 +5,8 @@ import (
 	"unicode/utf8"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/util"
 	"github.com/pkg/errors"
 )
 
@@ -72,8 +72,8 @@ func (s *service) Documents(ctx context.Context, req *DocumentsRequest) (*Docume
 		out = append(out, &Document{
 			Path:      doc.Path,
 			Value:     val,
-			CreatedAt: int64(keys.TimeToMillis(doc.CreatedAt)),
-			UpdatedAt: int64(keys.TimeToMillis(doc.UpdatedAt)),
+			CreatedAt: int64(util.TimeToMillis(doc.CreatedAt)),
+			UpdatedAt: int64(util.TimeToMillis(doc.UpdatedAt)),
 		})
 	}
 	iter.Release()

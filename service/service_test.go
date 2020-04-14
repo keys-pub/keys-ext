@@ -11,6 +11,7 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/user"
+	"github.com/keys-pub/keys/util"
 	"github.com/keys-pub/keysd/http/server"
 	"github.com/stretchr/testify/require"
 )
@@ -38,14 +39,14 @@ func testFire(t *testing.T, clock *clock) server.Fire {
 type testEnv struct {
 	clock *clock
 	fi    server.Fire
-	req   *keys.MockRequestor
+	req   *util.MockRequestor
 	users *user.Store
 }
 
 func newTestEnv(t *testing.T) *testEnv {
 	clock := newClock()
 	fi := testFire(t, clock)
-	req := keys.NewMockRequestor()
+	req := util.NewMockRequestor()
 	users := testUserStore(t, fi, keys.NewSigchainStore(fi), req, clock)
 	return &testEnv{
 		clock: clock,
@@ -55,7 +56,7 @@ func newTestEnv(t *testing.T) *testEnv {
 	}
 }
 
-func testUserStore(t *testing.T, dst ds.DocumentStore, scs keys.SigchainStore, req *keys.MockRequestor, clock *clock) *user.Store {
+func testUserStore(t *testing.T, dst ds.DocumentStore, scs keys.SigchainStore, req *util.MockRequestor, clock *clock) *user.Store {
 	ust, err := user.NewStore(dst, scs, req, clock.Now)
 	require.NoError(t, err)
 	return ust
@@ -171,7 +172,7 @@ type clock struct {
 }
 
 func newClock() *clock {
-	t := keys.TimeFromMillis(1234567890000)
+	t := util.TimeFromMillis(1234567890000)
 	return &clock{
 		t: t,
 	}

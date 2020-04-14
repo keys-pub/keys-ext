@@ -10,6 +10,7 @@ import (
 	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/secret"
 	"github.com/keys-pub/keys/user"
+	"github.com/keys-pub/keys/util"
 	"github.com/keys-pub/keysd/db"
 	"github.com/keys-pub/keysd/http/client"
 )
@@ -39,7 +40,7 @@ type service struct {
 	watchMtx  sync.Mutex
 }
 
-func newService(cfg *Config, build Build, auth *auth, req keys.Requestor, nowFn func() time.Time) (*service, error) {
+func newService(cfg *Config, build Build, auth *auth, req util.Requestor, nowFn func() time.Time) (*service, error) {
 	ks := keys.NewKeyStore(auth.keyring)
 	ss := secret.NewStore(auth.keyring)
 	ss.SetTimeNow(nowFn)

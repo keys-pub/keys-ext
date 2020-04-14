@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/util"
 	"github.com/pkg/errors"
 )
 
@@ -33,7 +34,7 @@ func (s *service) Sigchain(ctx context.Context, req *SigchainRequest) (*Sigchain
 }
 
 func statementFromRPC(st *Statement) (*keys.Statement, error) {
-	ts := keys.TimeFromMillis(keys.TimeMs(st.Timestamp))
+	ts := util.TimeFromMillis(int64(st.Timestamp))
 	kid, err := keys.ParseID(st.KID)
 	if err != nil {
 		return nil, err
@@ -62,7 +63,7 @@ func statementToRPC(st *keys.Statement) *Statement {
 		Seq:       int32(st.Seq),
 		Prev:      st.Prev,
 		Revoke:    int32(st.Revoke),
-		Timestamp: int64(keys.TimeToMillis(st.Timestamp)),
+		Timestamp: int64(util.TimeToMillis(st.Timestamp)),
 		Type:      st.Type,
 	}
 }
