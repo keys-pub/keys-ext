@@ -138,6 +138,8 @@ func secretTypeToRPC(t secret.Type) SecretType {
 		return ContactSecret
 	case secret.CardType:
 		return CardSecret
+	case secret.NoteType:
+		return NoteSecret
 	default:
 		return UnknownSecret
 	}
@@ -147,6 +149,12 @@ func secretTypeFromRPC(s SecretType) secret.Type {
 	switch s {
 	case PasswordSecret:
 		return secret.PasswordType
+	case ContactSecret:
+		return secret.ContactType
+	case CardSecret:
+		return secret.CardType
+	case NoteSecret:
+		return secret.NoteType
 	default:
 		return secret.UnknownType
 	}
@@ -156,17 +164,17 @@ func secretsSort(secrets []*Secret, sortField string, sortDirection SortDirectio
 	switch sortField {
 	case "id":
 		if sortDirection == SortDesc {
-			return secrets[i].ID < secrets[j].ID
+			return secrets[i].ID > secrets[j].ID
 		}
-		return secrets[i].ID > secrets[j].ID
+		return secrets[i].ID < secrets[j].ID
 	case "name":
 		if secrets[i].Name == secrets[j].Name {
 			return secretsSort(secrets, "id", sortDirection, i, j)
 		}
 		if sortDirection == SortDesc {
-			return secrets[i].Name < secrets[j].Name
+			return secrets[i].Name > secrets[j].Name
 		}
-		return secrets[i].Name > secrets[j].Name
+		return secrets[i].Name < secrets[j].Name
 	default:
 		return secretsSort(secrets, "name", sortDirection, i, j)
 	}
