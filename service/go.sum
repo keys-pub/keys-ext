@@ -122,11 +122,8 @@ github.com/keys-pub/keys v0.0.0-20200413002436-33c0c3d4ec1b h1:P9+8upxxJyZK95YnG
 github.com/keys-pub/keys v0.0.0-20200413002436-33c0c3d4ec1b/go.mod h1:LWDVrixSjx446s2aLIcJ6ML5ir4vX3kJ3mVvJYXI/Xc=
 github.com/keys-pub/keys v0.0.0-20200413004324-63e8a0774692 h1:S/I38MPrpBCZqvJboeF8O4YmrGr6c6I0MgTulpR/hgQ=
 github.com/keys-pub/keys v0.0.0-20200413004324-63e8a0774692/go.mod h1:LWDVrixSjx446s2aLIcJ6ML5ir4vX3kJ3mVvJYXI/Xc=
-github.com/keys-pub/keys v0.0.0-20200413200121-8d72012681ab h1:0aJvlAH/dmU9knEhnS/vVCDKDZT2/B5xM+PGNPOSxV8=
-github.com/keys-pub/keys v0.0.0-20200413200121-8d72012681ab/go.mod h1:K0JoWRBSAgH50/fJpI+6yPgYTj2TCOncJhSVixAa0Xo=
-github.com/keys-pub/keys v0.0.0-20200413203026-0294cdd7904d h1:MZDz8z/3oia6Od92Cz86fqUohKI8+3I0oDcKliRaJB8=
-github.com/keys-pub/keys v0.0.0-20200414031623-0dcb848f6aa3 h1:3iIf4uJpZA2qTCm4BBRtilRnfcnIkOtOkhqqGQ+1aNg=
-github.com/keys-pub/keys v0.0.0-20200414031623-0dcb848f6aa3/go.mod h1:K0JoWRBSAgH50/fJpI+6yPgYTj2TCOncJhSVixAa0Xo=
+github.com/keys-pub/keys v0.0.0-20200414155340-f3f1d54a3cd3 h1:WI46rpUrsc4m6Xf85IL027D6OvfJZMYNsQBxalwPBD4=
+github.com/keys-pub/keys v0.0.0-20200414155340-f3f1d54a3cd3/go.mod h1:K0JoWRBSAgH50/fJpI+6yPgYTj2TCOncJhSVixAa0Xo=
 github.com/keys-pub/keysd/db v0.0.0-20200413003215-f85e85366c95 h1:5QzUKnwvuLpei8sBfFjcPZQKJSoIhYzg/yZxVqbvxlE=
 github.com/keys-pub/keysd/db v0.0.0-20200413003215-f85e85366c95/go.mod h1:zbe7XU3mVmOrFy+aQWU7+Z9Vy03ctb65Vlr3055AZ5c=
 github.com/keys-pub/keysd/firestore v0.0.0-20200413003414-34e8a825f8fd h1:vhnKWyxGwLgb0bdFSYHGjJ+bgHwxieiLZh3Du+A0xbE=
