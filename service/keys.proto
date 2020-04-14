@@ -85,6 +85,7 @@ service Keys {
   rpc AuthLock(AuthLockRequest) returns (AuthLockResponse) {}
   rpc RuntimeStatus(RuntimeStatusRequest) returns (RuntimeStatusResponse) {}
   rpc Rand(RandRequest) returns (RandResponse) {}
+  rpc RandPassword(RandPasswordRequest) returns (RandPasswordResponse) {}
   // END NO AUTH
   
   rpc Collections(CollectionsRequest) returns (CollectionsResponse) {}
@@ -627,11 +628,18 @@ enum Encoding {
 }
 
 message RandRequest {
-  int32 length = 1;
+  int32 numBytes = 1;
   Encoding encoding = 2;
 }
 message RandResponse {
   string data = 1;
+}
+
+message RandPasswordRequest {
+  int32 length = 1;
+}
+message RandPasswordResponse {
+  string password = 1;
 }
 
 message PullRequest {

@@ -17,7 +17,7 @@ import (
 )
 
 func testConfig(t *testing.T, serverURL string, keyringType string) (*Config, CloseFn) {
-	appName := "KeysTest-" + keys.RandPassphrase(12)
+	appName := "KeysTest-" + keys.Rand3262()
 	cfg, err := NewConfig(appName)
 	require.NoError(t, err)
 	cfg.Set("server", serverURL)

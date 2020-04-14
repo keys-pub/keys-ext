@@ -80,7 +80,11 @@ func (s *service) Secrets(ctx context.Context, req *SecretsRequest) (*SecretsRes
 	out := make([]*Secret, 0, len(secrets))
 	for _, s := range secrets {
 		sec := secretToRPC(s)
-		if query == "" || (strings.Contains(sec.Name, query)) || strings.Contains(sec.URL, query) || strings.Contains(sec.Notes, query) {
+		if query == "" ||
+			strings.Contains(sec.Name, query) ||
+			strings.Contains(sec.Username, query) ||
+			strings.Contains(sec.URL, query) ||
+			strings.Contains(sec.Notes, query) {
 			out = append(out, sec)
 		}
 	}
