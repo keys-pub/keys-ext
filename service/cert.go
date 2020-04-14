@@ -22,20 +22,11 @@ func certificateKey(cfg *Config, st keyring.Store, generate bool) (*keys.Certifi
 	if private != nil && public != nil {
 		logger.Infof("Found certificate in keyring")
 
-		// Save public cert to filesystem too, if it doesn't exist.
-		certPath, err := cfg.certPath(false)
-		if err != nil {
-			return nil, err
+		// Save public cert (always)
+		if err := saveCertificate(cfg, string(public)); err != nil {
+			return nil, errors.Wrapf(err, "failed to save cert public key")
 		}
-		if _, err := os.Stat(certPath); err == nil {
-			logger.Infof("Certificate exists at %s", certPath)
-		} else if os.IsNotExist(err) {
-			if err := saveCertificate(cfg, string(public)); err != nil {
-				return nil, errors.Wrapf(err, "failed to save cert public key")
-			}
-		} else {
-			return nil, err
-		}
+
 		return keys.NewCertificateKey(string(private), string(public))
 	}
 	return generateCertificate(cfg, st)
