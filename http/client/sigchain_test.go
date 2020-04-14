@@ -38,7 +38,7 @@ func TestSigchain(t *testing.T) {
 	sc, err = scResp.Sigchain()
 	require.NoError(t, err)
 	require.Equal(t, 2, len(sc.Statements()))
-	// require.Equal(t, keys.TimeFromMillis(1234567890011), sc.Statements()[0].CreatedAt)
+	// require.Equal(t, util.TimeFromMillis(1234567890011), sc.Statements()[0].CreatedAt)
 
 	key := keys.GenerateEdX25519Key()
 	scResp2, err := client.Sigchain(context.TODO(), key.ID())

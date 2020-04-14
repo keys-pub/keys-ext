@@ -11,6 +11,7 @@ import (
 	"github.com/keys-pub/keysd/http/api"
 )
 
+// CreateInvite writes a sender recipient address (invite).
 func (c *Client) CreateInvite(ctx context.Context, sender keys.ID, recipient keys.ID) (*api.CreateInviteResponse, error) {
 	senderKey, err := c.ks.EdX25519Key(sender)
 	if err != nil {
@@ -32,6 +33,7 @@ func (c *Client) CreateInvite(ctx context.Context, sender keys.ID, recipient key
 	return &resp, nil
 }
 
+// Invite looks for an invite with code.
 func (c *Client) Invite(ctx context.Context, sender keys.ID, code string) (*api.InviteResponse, error) {
 	senderKey, err := c.ks.EdX25519Key(sender)
 	if err != nil {

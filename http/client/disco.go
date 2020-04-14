@@ -11,10 +11,13 @@ import (
 	"github.com/pkg/errors"
 )
 
+// DiscoType is the type of discovery address.
 type DiscoType string
 
 const (
-	Offer  DiscoType = "offer"
+	// Offer initiates.
+	Offer DiscoType = "offer"
+	// Answer listens.
 	Answer DiscoType = "answer"
 )
 
@@ -46,6 +49,7 @@ func (c *Client) PutDisco(ctx context.Context, sender keys.ID, recipient keys.ID
 	return nil
 }
 
+// GetDisco gets a discovery address.
 func (c *Client) GetDisco(ctx context.Context, sender keys.ID, recipient keys.ID, typ DiscoType) (string, error) {
 	recipientKey, err := c.ks.EdX25519Key(recipient)
 	if err != nil {
@@ -74,6 +78,7 @@ func (c *Client) GetDisco(ctx context.Context, sender keys.ID, recipient keys.ID
 	return string(decrypted), nil
 }
 
+// DeleteDisco removes discovery addresses.
 func (c *Client) DeleteDisco(ctx context.Context, sender keys.ID, recipient keys.ID) error {
 	senderKey, err := c.ks.EdX25519Key(sender)
 	if err != nil {

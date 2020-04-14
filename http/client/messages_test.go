@@ -8,6 +8,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/util"
 	"github.com/stretchr/testify/require"
 )
 
@@ -55,7 +56,7 @@ func TestMessages(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, b2, data2)
 	require.Equal(t, bob.ID(), pk2)
-	require.Equal(t, keys.TimeMs(1234567890004), keys.TimeToMillis(msgs[0].CreatedAt))
+	require.Equal(t, int64(1234567890004), util.TimeToMillis(msgs[0].CreatedAt))
 
 	// SendMessage #3
 	b3 := []byte("3pm")

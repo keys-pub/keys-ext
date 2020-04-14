@@ -119,6 +119,7 @@ func (c *Client) Messages(ctx context.Context, kid keys.ID, from keys.ID, opts *
 	return msgs, resp.Version, nil
 }
 
+// DecryptMessage decrypts a message from Messages.
 func (c *Client) DecryptMessage(key *keys.EdX25519Key, msg *Message) ([]byte, keys.ID, error) {
 	sp := saltpack.NewSaltpack(c.ks)
 	decrypted, pk, err := sp.SigncryptOpen(msg.Data)
