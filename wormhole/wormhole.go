@@ -28,13 +28,18 @@ var ErrNoiseHandshakeTimeout = errors.New("noise handshake timeout")
 // ErrClosed if we recieve closed message.
 var ErrClosed = errors.New("closed")
 
+// Status describes the status of the wormhole connection.
 type Status string
 
 const (
-	SCTPHandshake  Status = "sctp-handshake"
+	// SCTPHandshake is attempting to SCTP handshake.
+	SCTPHandshake Status = "sctp-handshake"
+	// NoiseHandshake is attempting to Noise handshake.
 	NoiseHandshake Status = "noise-handshake"
-	Connected      Status = "open"
-	Closed         Status = "closed"
+	// Connected ...
+	Connected Status = "open"
+	// Closed ...
+	Closed Status = "closed"
 )
 
 // Wormhole for connecting two participants using webrtc, noise and
@@ -119,10 +124,12 @@ func (w *Wormhole) SetTimeNow(nowFn func() time.Time) {
 	w.hcl.SetTimeNow(nowFn)
 }
 
+// OnStatus registers status listener.
 func (w *Wormhole) OnStatus(f func(Status)) {
 	w.onStatus = f
 }
 
+// Connect with an offer.
 func (w *Wormhole) Connect(ctx context.Context, sender keys.ID, recipient keys.ID, offer *sctp.Addr) error {
 	logger.Infof("Wormhole connect...")
 
@@ -191,6 +198,7 @@ func (w *Wormhole) FindInvite(ctx context.Context, code string) (*api.InviteResp
 	return invite, nil
 }
 
+// FindOffer looks for an offer from the discovery server.
 func (w *Wormhole) FindOffer(ctx context.Context, recipient keys.ID, sender keys.ID) (*sctp.Addr, error) {
 	addr, err := w.readOnce(ctx, recipient, sender, "offer")
 	if err != nil {
@@ -219,6 +227,7 @@ func (w *Wormhole) CreateLocalOffer(ctx context.Context, sender keys.ID, recipie
 	return w.rtc.Local()
 }
 
+// Listen to offer.
 func (w *Wormhole) Listen(ctx context.Context, sender keys.ID, recipient keys.ID, offer *sctp.Addr) error {
 	logger.Infof("Wormhole listen...")
 	var answer *sctp.Addr
