@@ -10,6 +10,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/util"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/api/option"
 )
@@ -36,7 +37,7 @@ type clock struct {
 }
 
 func newClock() *clock {
-	t := keys.TimeFromMillis(1234567890000)
+	t := util.TimeFromMillis(1234567890000)
 	return &clock{
 		t: t,
 	}
@@ -286,7 +287,7 @@ func testMetadata(t *testing.T, dst ds.DocumentStore) {
 	doc, err := dst.Get(ctx, "/test/key1")
 	require.NoError(t, err)
 	require.NotNil(t, doc)
-	createTime := keys.TimeToMillis(doc.CreatedAt)
+	createTime := util.TimeToMillis(doc.CreatedAt)
 	require.True(t, createTime > 0)
 
 	err = dst.Set(ctx, "/test/key1", []byte("value1b"))
@@ -295,8 +296,8 @@ func testMetadata(t *testing.T, dst ds.DocumentStore) {
 	doc, err = dst.Get(ctx, "/test/key1")
 	require.NoError(t, err)
 	require.NotNil(t, doc)
-	require.Equal(t, createTime, keys.TimeToMillis(doc.CreatedAt))
-	require.True(t, keys.TimeToMillis(doc.UpdatedAt) > createTime)
+	require.Equal(t, createTime, util.TimeToMillis(doc.CreatedAt))
+	require.True(t, util.TimeToMillis(doc.UpdatedAt) > createTime)
 }
 
 func TestSigchains(t *testing.T) {

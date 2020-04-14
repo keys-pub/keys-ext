@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
-	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/util"
 	"github.com/pkg/errors"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
@@ -58,13 +58,13 @@ func (f *Firestore) URI() string {
 // Create document.
 func (f *Firestore) Create(ctx context.Context, path string, b []byte) error {
 	fn := func() error { return f.create(ctx, path, b) }
-	return keys.RetryE(fn)
+	return util.RetryE(fn)
 }
 
 // Set document.
 func (f *Firestore) Set(ctx context.Context, path string, b []byte) error {
 	fn := func() error { return f.set(ctx, path, b) }
-	return keys.RetryE(fn)
+	return util.RetryE(fn)
 }
 
 func normalizePath(p string) string {
@@ -434,6 +434,7 @@ func (f *Firestore) delete(ctx context.Context, path string) (bool, error) {
 	return true, nil
 }
 
+// DeleteAll ...
 func (f *Firestore) DeleteAll(ctx context.Context, paths []string) error {
 	for _, p := range paths {
 		if _, err := f.delete(ctx, p); err != nil {
