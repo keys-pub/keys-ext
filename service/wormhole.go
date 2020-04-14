@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// ErrWormholeTimedOut is timed out.
 var ErrWormholeTimedOut = errors.New("wormhole timed out")
 
 func (s *service) wormholeInit(ctx context.Context, req *WormholeInput, wh *wormhole.Wormhole, srv Keys_WormholeServer) error {

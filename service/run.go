@@ -18,6 +18,7 @@ import (
 	ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/keyring"
+	"github.com/keys-pub/keys/keyring/upgrade"
 	"github.com/keys-pub/keys/saltpack"
 	"github.com/keys-pub/keysd/db"
 	"github.com/keys-pub/keysd/http/client"
@@ -129,6 +130,7 @@ func Run(build Build) {
 	wormhole.SetLogger(lg)
 	sctp.SetLogger(lg)
 	db.SetLogger(lg)
+	upgrade.SetLogger(lg)
 
 	if err := checkSupportedOS(); err != nil {
 		logFatal(err)
@@ -164,6 +166,8 @@ type ServeFn func() error
 
 // CloseFn closes the service.
 type CloseFn func()
+
+// TODO: Protect against incompatible downgrades
 
 func runService(cfg *Config, build Build, lgi LogInterceptor) error {
 	serveFn, closeFn, serveErr := NewServiceFn(cfg, build, lgi)

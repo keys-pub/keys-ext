@@ -50,10 +50,10 @@ func generateCertificate(cfg *Config, st keyring.Store) (*keys.CertificateKey, e
 	}
 
 	logger.Infof("Saving certificate to keyring...")
-	if err := st.Set(cfg.AppName(), ".cert-private", []byte(certKey.Private()), ""); err != nil {
+	if err := st.Set(keyringService(cfg), ".cert-private", []byte(certKey.Private()), ""); err != nil {
 		return nil, err
 	}
-	if err := st.Set(cfg.AppName(), ".cert-public", []byte(certKey.Public()), ""); err != nil {
+	if err := st.Set(keyringService(cfg), ".cert-public", []byte(certKey.Public()), ""); err != nil {
 		return nil, err
 	}
 
