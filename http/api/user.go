@@ -32,7 +32,7 @@ type User struct {
 	Service    string      `json:"service,omitempty"`
 	URL        string      `json:"url,omitempty"`
 	Status     user.Status `json:"status,omitempty"`
-	VerifiedAt keys.TimeMs `json:"verifiedAt,omitempty"`
+	VerifiedAt int64 `json:"verifiedAt,omitempty"`
 	Err        string      `json:"err,omitempty"`
 }
 

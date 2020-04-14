@@ -6,13 +6,14 @@ import (
 	"testing"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/util"
 	"github.com/stretchr/testify/require"
 )
 
 func TestAuth(t *testing.T) {
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 
-	tm := keys.TimeFromMillis(123456789000)
+	tm := util.TimeFromMillis(123456789000)
 	nonce := keys.Bytes32(bytes.Repeat([]byte{0x01}, 32))
 	urs := "https://keys.pub/message?version=123456789001"
 	auth, err := newAuth("POST", urs, tm, nonce, alice)

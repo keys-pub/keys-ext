@@ -12,6 +12,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/encoding"
+	"github.com/keys-pub/keys/util"
 	"github.com/pkg/errors"
 )
 
@@ -43,7 +44,7 @@ func newAuth(method string, urs string, tm time.Time, nonce *[32]byte, key *keys
 	q := ur.Query()
 	ns := encoding.MustEncode(nonce[:], encoding.Base62)
 	q.Set("nonce", ns)
-	ts := keys.TimeToMillis(tm)
+	ts := util.TimeToMillis(tm)
 	q.Set("ts", fmt.Sprintf("%d", ts))
 	ur.RawQuery = q.Encode()
 
@@ -87,6 +88,7 @@ type AuthResult struct {
 	Timestamp time.Time
 }
 
+// MemCache ...
 type MemCache interface {
 	// Get returns value at key.
 	Get(ctx context.Context, k string) (string, error)
@@ -96,7 +98,7 @@ type MemCache interface {
 	Expire(ctx context.Context, k string, dt time.Duration) error
 }
 
-// CheckAuthorization.
+// CheckAuthorization checks auth header.
 func CheckAuthorization(ctx context.Context, method string, urs string, auth string, mc MemCache, now time.Time) (*AuthResult, error) {
 	fields := strings.Split(auth, ":")
 	if len(fields) != 2 {
@@ -169,7 +171,7 @@ func CheckAuthorization(ctx context.Context, method string, urs string, auth str
 	if err != nil {
 		return nil, err
 	}
-	tm := keys.TimeFromMillis(keys.TimeMs(i))
+	tm := util.TimeFromMillis(int64(i))
 	td := now.Sub(tm)
 	if td < 0 {
 		td = td * -1
