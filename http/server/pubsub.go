@@ -13,11 +13,13 @@ import (
 	"github.com/pkg/errors"
 )
 
+// PubSub ...
 type PubSub interface {
 	Publish(ctx context.Context, name string, b []byte) error
 	Subscribe(ctx context.Context, name string, receiveFn func(b []byte)) error
 }
 
+// PubSubServer implements PubSub.
 type PubSubServer struct {
 	pubSub PubSub
 	mc     MemCache
@@ -27,6 +29,7 @@ type PubSubServer struct {
 	URL string
 }
 
+// NewPubSubServer creates a PubSubServer.
 func NewPubSubServer(pubSub PubSub, mc MemCache, logger Logger) *PubSubServer {
 	return &PubSubServer{
 		pubSub: pubSub,

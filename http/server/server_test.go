@@ -13,6 +13,7 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/user"
+	"github.com/keys-pub/keys/util"
 	"github.com/keys-pub/keysd/http/api"
 	"github.com/keys-pub/keysd/http/server"
 	"github.com/stretchr/testify/require"
@@ -31,8 +32,8 @@ func (c *clock) setTick(tick time.Duration) {
 	c.tick = tick
 }
 
-func newClockAt(ts keys.TimeMs) *clock {
-	t := keys.TimeFromMillis(ts)
+func newClockAt(ts int64) *clock {
+	t := util.TimeFromMillis(ts)
 	return &clock{
 		t:    t,
 		tick: time.Millisecond,
@@ -86,11 +87,11 @@ func TestFireCreatedAt(t *testing.T) {
 
 	ftime := doc.CreatedAt.Format(http.TimeFormat)
 	require.Equal(t, "Fri, 13 Feb 2009 23:31:30 GMT", ftime)
-	ftime = doc.CreatedAt.Format(keys.RFC3339Milli)
+	ftime = doc.CreatedAt.Format(util.RFC3339Milli)
 	require.Equal(t, "2009-02-13T23:31:30.001Z", ftime)
 }
 
-func testUserStore(t *testing.T, ds ds.DocumentStore, req keys.Requestor, clock *clock) *user.Store {
+func testUserStore(t *testing.T, ds ds.DocumentStore, req util.Requestor, clock *clock) *user.Store {
 	us, err := user.NewStore(ds, keys.NewSigchainStore(ds), req, clock.Now)
 	require.NoError(t, err)
 	return us
@@ -101,7 +102,7 @@ type env struct {
 	fi       server.Fire
 	pubSub   server.PubSub
 	users    *user.Store
-	req      *keys.MockRequestor
+	req      *util.MockRequestor
 	logLevel server.LogLevel
 }
 
@@ -112,7 +113,7 @@ func newEnv(t *testing.T) *env {
 }
 
 func newEnvWithFire(t *testing.T, fi server.Fire, clock *clock) *env {
-	req := keys.NewMockRequestor()
+	req := util.NewMockRequestor()
 	pubSub := server.NewPubSub()
 	users := testUserStore(t, fi, req, clock)
 	return &env{
@@ -201,7 +202,7 @@ func (s *testPubSubServer) WebsocketDial(t *testing.T, path string, clock *clock
 	return conn
 }
 
-func userMock(t *testing.T, users *user.Store, key *keys.EdX25519Key, name string, service string, mock *keys.MockRequestor) *keys.Statement {
+func userMock(t *testing.T, users *user.Store, key *keys.EdX25519Key, name string, service string, mock *util.MockRequestor) *keys.Statement {
 	url := ""
 	switch service {
 	case "github":

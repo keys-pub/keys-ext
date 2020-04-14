@@ -3,8 +3,8 @@ package server
 import (
 	"strconv"
 
-	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/util"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 )
@@ -20,13 +20,13 @@ func (s *Server) changes(c echo.Context, path string) (*changes, error) {
 	request := c.Request()
 	ctx := request.Context()
 
-	var version keys.TimeMs
+	var version int64
 	if f := c.QueryParam("version"); f != "" {
 		i, err := strconv.Atoi(f)
 		if err != nil {
 			return &changes{errBadRequest: errors.Wrapf(err, "invalid version")}, nil
 		}
-		version = keys.TimeMs(i)
+		version = int64(i)
 	}
 	plimit := c.QueryParam("limit")
 	if plimit == "" {
@@ -56,7 +56,7 @@ func (s *Server) changes(c echo.Context, path string) (*changes, error) {
 	}
 
 	s.logger.Infof("Changes %s", path)
-	chngs, to, err := s.fi.Changes(ctx, path, keys.TimeFromMillis(version), limit, dir)
+	chngs, to, err := s.fi.Changes(ctx, path, util.TimeFromMillis(version), limit, dir)
 	if err != nil {
 		return nil, err
 	}
@@ -72,11 +72,11 @@ func (s *Server) changes(c echo.Context, path string) (*changes, error) {
 	}
 	s.logger.Debugf("Changes %s, got docs %d", path, len(out))
 
-	versionNext := keys.TimeMs(0)
+	versionNext := int64(0)
 	if to.IsZero() {
 		versionNext = version
 	} else {
-		versionNext = keys.TimeToMillis(to)
+		versionNext = util.TimeToMillis(to)
 	}
 
 	s.logger.Infof("Changes %s, version next: %d", path, versionNext)
