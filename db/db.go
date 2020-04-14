@@ -13,6 +13,7 @@ import (
 
 var _ ds.DocumentStore = &DB{}
 
+// SecretKey for database.
 type SecretKey *[32]byte
 
 // DB is leveldb implementation of ds.DocumentStore.
