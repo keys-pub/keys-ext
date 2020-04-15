@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	strings "strings"
+	"time"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/user"
@@ -236,6 +237,7 @@ func userResultToRPC(result *user.Result) *User {
 		URL:        result.User.URL,
 		Status:     userStatus(result.Status),
 		VerifiedAt: int64(result.VerifiedAt),
+		Timestamp:  int64(result.Timestamp),
 		Err:        result.Err,
 	}
 }
@@ -261,6 +263,7 @@ func apiUserToRPC(user *api.User) *User {
 		URL:        user.URL,
 		Status:     userStatus(user.Status),
 		VerifiedAt: int64(user.VerifiedAt),
+		Timestamp:  int64(user.Timestamp),
 		Err:        user.Err,
 	}
 }
@@ -359,4 +362,36 @@ func (s *service) parseIdentities(ctx context.Context, recs []string) ([]keys.ID
 		ids = append(ids, id)
 	}
 	return ids, nil
+}
+
+const expire = time.Hour * 24
+
+func (s *service) updateIfNeeded(ctx context.Context, kid keys.ID) error {
+	logger.Debugf("Checking key %s", kid)
+	res, err := s.users.Get(ctx, kid)
+	if err != nil {
+		return err
+	}
+	if res == nil || res.Expired(s.Now(), expire) {
+		if _, _, err := s.update(ctx, kid); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *service) checkUpdate(ctx context.Context) error {
+	logger.Infof("Checking keys...")
+
+	// TODO: Only update keys where we've seen a sigchain?
+
+	pks, err := s.ks.EdX25519PublicKeys()
+	if err != nil {
+		return err
+	}
+	for _, pk := range pks {
+		if err := s.updateIfNeeded(ctx, pk.ID()); err != nil {
+		}
+	}
+	return nil
 }

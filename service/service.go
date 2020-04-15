@@ -143,36 +143,6 @@ func (s *service) tryCheckUpdate(ctx context.Context) {
 	}
 }
 
-func (s *service) checkUpdate(ctx context.Context) error {
-	logger.Infof("Checking keys...")
-
-	// TODO: Only update keys where we've seen a sigchain?
-
-	pks, err := s.ks.EdX25519PublicKeys()
-	if err != nil {
-		return err
-	}
-	kids := make([]keys.ID, 0, len(pks))
-	for _, pk := range pks {
-		logger.Debugf("Getting user %s", pk.ID())
-		res, err := s.users.Get(ctx, pk.ID())
-		if err != nil {
-			return err
-		}
-		if res == nil || res.Expired(s.Now(), time.Hour*24) {
-			kids = append(kids, pk.ID())
-		}
-	}
-
-	for _, kid := range kids {
-		logger.Debugf("Updating %s", kid)
-		if _, _, err := s.update(ctx, kid); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func (s *service) startCheck() {
 	ticker := time.NewTicker(time.Hour)
 	s.closeCh = make(chan bool)

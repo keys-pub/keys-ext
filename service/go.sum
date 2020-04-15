@@ -130,6 +130,8 @@ github.com/keys-pub/keys v0.0.0-20200414224338-a7049a9dc173 h1:RM/ruqTk2OFbV3PeL
 github.com/keys-pub/keys v0.0.0-20200414224338-a7049a9dc173/go.mod h1:K0JoWRBSAgH50/fJpI+6yPgYTj2TCOncJhSVixAa0Xo=
 github.com/keys-pub/keys v0.0.0-20200414232622-686194228d66 h1:E+XYd+hd95g6nfHyMfcQqQf/L0wCFphyohAP6XyKGOw=
 github.com/keys-pub/keys v0.0.0-20200414232622-686194228d66/go.mod h1:K0JoWRBSAgH50/fJpI+6yPgYTj2TCOncJhSVixAa0Xo=
+github.com/keys-pub/keys v0.0.0-20200414233210-cb1779dda6c1 h1:aK5w5kcJk8qp1d3rcZgDXdw2r786T/zNtQzJv2huTHs=
+github.com/keys-pub/keys v0.0.0-20200414233210-cb1779dda6c1/go.mod h1:K0JoWRBSAgH50/fJpI+6yPgYTj2TCOncJhSVixAa0Xo=
 github.com/keys-pub/keysd/db v0.0.0-20200413003215-f85e85366c95 h1:5QzUKnwvuLpei8sBfFjcPZQKJSoIhYzg/yZxVqbvxlE=
 github.com/keys-pub/keysd/db v0.0.0-20200413003215-f85e85366c95/go.mod h1:zbe7XU3mVmOrFy+aQWU7+Z9Vy03ctb65Vlr3055AZ5c=
 github.com/keys-pub/keysd/firestore v0.0.0-20200413003414-34e8a825f8fd h1:vhnKWyxGwLgb0bdFSYHGjJ+bgHwxieiLZh3Du+A0xbE=
@@ -139,6 +141,8 @@ github.com/keys-pub/keysd/http/api v0.0.0-20200412190331-0e28c0a8f66f h1:8AXm97N
 github.com/keys-pub/keysd/http/api v0.0.0-20200412190331-0e28c0a8f66f/go.mod h1:OSIEb3BzTuKjFgNakbSWwoi6w2vnevE0iUkhXoivbOo=
 github.com/keys-pub/keysd/http/api v0.0.0-20200414165929-c63be6975df3 h1:Vb6RaQXGMq9R1KucyvmuoC/6kPLjwIbV9dj15vDOQDo=
 github.com/keys-pub/keysd/http/api v0.0.0-20200414165929-c63be6975df3/go.mod h1:30ARp9AEs3uiAfEkpr+TDi/7Gq3Z+Ew9NEft/oyo0EQ=
+github.com/keys-pub/keysd/http/api v0.0.0-20200415010142-cfcd41d36dd1 h1:pl9lmt8CVZ+GOWwvI1FlZuVHRfCiLuOF3Z1wPCfUbns=
+github.com/keys-pub/keysd/http/api v0.0.0-20200415010142-cfcd41d36dd1/go.mod h1:30ARp9AEs3uiAfEkpr+TDi/7Gq3Z+Ew9NEft/oyo0EQ=
 github.com/keys-pub/keysd/http/client v0.0.0-20200413004457-9dcc3d959be4 h1:y8jMfd2rbWazPD7qVGo207hLWM0NfnmCmYz0j2gw7LE=
 github.com/keys-pub/keysd/http/client v0.0.0-20200413004457-9dcc3d959be4/go.mod h1:1PUtj08x8N9CGPWiW8E1awY3K/HfG0NQGFvlQlsomgI=
 github.com/keys-pub/keysd/http/client v0.0.0-20200414170516-1e0e72775735 h1:l2LEsbxR6WPE/pgTnxX4a2J/p3SMV6LhO4jLpLLJNvw=

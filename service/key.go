@@ -4,8 +4,11 @@ import (
 	"context"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/util"
 	"github.com/pkg/errors"
 )
+
+// TODO: Fix old keys with no CreatedAt?
 
 // Key (RPC) ...
 func (s *service) Key(ctx context.Context, req *KeyRequest) (*KeyResponse, error) {
@@ -16,6 +19,10 @@ func (s *service) Key(ctx context.Context, req *KeyRequest) (*KeyResponse, error
 
 	if req.Update {
 		if _, _, err := s.update(ctx, kid); err != nil {
+			return nil, err
+		}
+	} else {
+		if err := s.updateIfNeeded(ctx, kid); err != nil {
 			return nil, err
 		}
 	}
@@ -113,35 +120,63 @@ func (s *service) keyToRPC(ctx context.Context, key keys.Key) (*Key, error) {
 	if key == nil {
 		return nil, nil
 	}
-	result, err := s.users.Get(ctx, key.ID())
-	if err != nil {
+	typ := keyTypeToRPC(key.Type())
+	out := &Key{
+		ID:        key.ID().String(),
+		Type:      typ,
+		Saved:     true,
+		CreatedAt: util.TimeToMillis(key.CreatedAt()),
+	}
+
+	if err := s.fillKey(ctx, key.ID(), out); err != nil {
 		return nil, err
 	}
 
-	typ := keyTypeToRPC(key.Type())
-
-	return &Key{
-		ID:    key.ID().String(),
-		User:  userResultToRPC(result),
-		Type:  typ,
-		Saved: true,
-	}, nil
+	return out, nil
 }
 
 func (s *service) keyIDToRPC(ctx context.Context, kid keys.ID) (*Key, error) {
-	result, err := s.users.Get(ctx, kid)
+	key, err := s.ks.Key(kid)
 	if err != nil {
 		return nil, err
+	}
+	if key != nil {
+		return s.keyToRPC(ctx, key)
 	}
 
 	typ := keyTypeToRPC(kid.PublicKeyType())
 
-	return &Key{
+	out := &Key{
 		ID:    kid.String(),
-		User:  userResultToRPC(result),
 		Type:  typ,
 		Saved: false,
-	}, nil
+	}
+	if err := s.fillKey(ctx, kid, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *service) fillKey(ctx context.Context, kid keys.ID, key *Key) error {
+	result, err := s.users.Get(ctx, kid)
+	if err != nil {
+		return err
+	}
+	key.User = userResultToRPC(result)
+
+	// Sigchain info
+	sc, err := s.scs.Sigchain(kid)
+	if err != nil {
+		return err
+	}
+	if sc != nil {
+		key.SigchainLength = int32(sc.Length())
+		last := sc.Last()
+		if last != nil {
+			key.SigchainUpdatedAt = util.TimeToMillis(last.Timestamp)
+		}
+	}
+	return nil
 }
 
 // KeyRemove (RPC) removes a key.
@@ -234,7 +269,7 @@ func (s *service) parseKey(kid string, required bool) (keys.Key, error) {
 	return key, nil
 }
 
-// convertKey checks if the ID is a x25519 public key, finds the edx25519 public key
+// convertKey checks if the ID is a X25519 public key, finds the EdX25519 public key
 // equivalent if found, otherwise returns itself.
 func (s *service) convertX25519ID(kid keys.ID) (keys.ID, error) {
 	if kid == "" {
