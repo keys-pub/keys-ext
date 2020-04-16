@@ -33,13 +33,21 @@ func TestKeyImport(t *testing.T) {
 	require.Equal(t, key.ID().String(), keyResp.Key.ID)
 
 	// Check key
-	k, err := service.ks.EdX25519Key(key.ID())
+	out, err := service.ks.EdX25519Key(key.ID())
 	require.NoError(t, err)
-	require.NotNil(t, k)
+	require.NotNil(t, out)
+	require.Equal(t, out.ID(), key.ID())
 
 	sks, err := service.ks.EdX25519Keys()
 	require.NoError(t, err)
 	require.Equal(t, 1, len(sks))
+
+	// Import again
+	_, err = service.KeyImport(ctx, &KeyImportRequest{
+		In:       []byte(export),
+		Password: "testpassword",
+	})
+	require.EqualError(t, err, "keyring item already exists")
 
 	// Import (bob, ID)
 	importResp, err = service.KeyImport(ctx, &KeyImportRequest{

@@ -183,6 +183,10 @@ func (c *clock) Now() time.Time {
 	return c.t
 }
 
+func (c *clock) Add(dt time.Duration) {
+	c.t = c.t.Add(dt)
+}
+
 type serverEnv struct {
 	url     string
 	closeFn func()

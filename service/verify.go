@@ -34,7 +34,7 @@ func (s *service) Verify(ctx context.Context, req *VerifyRequest) (*VerifyRespon
 
 	var signer *Key
 	if kid != "" {
-		s, err := s.loadKey(ctx, kid)
+		s, err := s.verifyKey(ctx, kid)
 		if err != nil {
 			return nil, err
 		}
@@ -113,7 +113,7 @@ func (s *service) verifyStream(srv verifyStreamServer, armored bool) error {
 
 	var signer *Key
 	if kid != "" {
-		s, err := s.loadKey(srv.Context(), kid)
+		s, err := s.verifyKey(srv.Context(), kid)
 		if err != nil {
 			return err
 		}
@@ -231,7 +231,7 @@ func (s *service) verifyWriteInOut(ctx context.Context, in string, out string, a
 
 	var signer *Key
 	if kid != "" {
-		s, err := s.loadKey(ctx, kid)
+		s, err := s.verifyKey(ctx, kid)
 		if err != nil {
 			return nil, err
 		}

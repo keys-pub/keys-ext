@@ -42,7 +42,7 @@ func (s *service) wormholeInit(ctx context.Context, req *WormholeInput, wh *worm
 		if req.Sender == "" {
 			return errors.Errorf("no sender specified")
 		}
-		sid, err := s.parseIdentity(ctx, req.Sender)
+		sid, err := s.parseIdentity(ctx, req.Sender, true)
 		if err != nil {
 			return err
 		}
@@ -51,7 +51,7 @@ func (s *service) wormholeInit(ctx context.Context, req *WormholeInput, wh *worm
 		if req.Recipient == "" {
 			return errors.Errorf("no recipient specified")
 		}
-		rid, err := s.parseIdentity(ctx, req.Recipient)
+		rid, err := s.parseIdentity(ctx, req.Recipient, true)
 		if err != nil {
 			return err
 		}

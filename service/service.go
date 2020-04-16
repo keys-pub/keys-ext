@@ -110,10 +110,12 @@ func (s *service) Open(ctx context.Context, key *[32]byte) error {
 	// (or migrated) state. In the uninstalled state, we should try to update
 	// local db for any keys we have in our keyring.
 	if isNew {
-		s.tryCheckUpdate(ctx)
+		if err := s.updateAll(ctx); err != nil {
+			logger.Errorf("Failed to update keys on new database: %v", err)
+		}
 	}
 
-	s.startCheck()
+	s.startUpdateCheck()
 
 	return nil
 }
@@ -130,7 +132,7 @@ func (s *service) Close() {
 }
 
 func (s *service) close() {
-	s.stopCheck()
+	s.stopUpdateCheck()
 	s.watchReqClose()
 	logger.Infof("Closing db...")
 	s.db.Close()
@@ -143,7 +145,7 @@ func (s *service) tryCheckUpdate(ctx context.Context) {
 	}
 }
 
-func (s *service) startCheck() {
+func (s *service) startUpdateCheck() {
 	ticker := time.NewTicker(time.Hour)
 	s.closeCh = make(chan bool)
 	go func() {
@@ -160,7 +162,7 @@ func (s *service) startCheck() {
 	}()
 }
 
-func (s *service) stopCheck() {
+func (s *service) stopUpdateCheck() {
 	if s.closeCh != nil {
 		close(s.closeCh)
 		s.closeCh = nil

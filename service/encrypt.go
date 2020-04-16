@@ -23,7 +23,7 @@ func (s *service) newEncrypt(ctx context.Context, recipients []string, sender st
 		return nil, errors.Errorf("no recipients specified")
 	}
 
-	identities, err := s.parseIdentities(ctx, recipients)
+	identities, err := s.parseIdentities(ctx, recipients, true)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +34,7 @@ func (s *service) newEncrypt(ctx context.Context, recipients []string, sender st
 
 	var kid keys.ID
 	if sender != "" {
-		s, err := s.parseIdentity(ctx, sender)
+		s, err := s.parseIdentity(ctx, sender, true)
 		if err != nil {
 			return nil, err
 		}

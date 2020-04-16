@@ -8,8 +8,10 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/keys-pub/keys/saltpack"
+	"github.com/keys-pub/keys/util"
 	"github.com/stretchr/testify/require"
 )
 
@@ -205,4 +207,42 @@ func TestSignVerifyFile(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, filepath.Join(os.TempDir(), "test-1.txt"), ver.Out)
 	os.Remove(ver.Out)
+}
+
+func TestVerifyUnverified(t *testing.T) {
+	// SetLogger(NewLogger(DebugLevel))
+	// keys.SetLogger(NewLogger(DebugLevel))
+	env := newTestEnv(t)
+
+	aliceService, aliceCloseFn := newTestService(t, env)
+	defer aliceCloseFn()
+	testAuthSetup(t, aliceService)
+	testImportKey(t, aliceService, alice)
+	testUserSetupGithub(t, env, aliceService, alice, "alice")
+
+	bobService, bobCloseFn := newTestService(t, env)
+	defer bobCloseFn()
+	testAuthSetup(t, bobService)
+	testImportKey(t, bobService, bob)
+	testUserSetupGithub(t, env, bobService, bob, "bob")
+
+	testPull(t, aliceService, bob.ID())
+
+	env.clock.Add(time.Hour * 24)
+
+	// Set 500 error for bob@github
+	env.req.SetError("https://gist.github.com/bob/1", util.ErrHTTP{StatusCode: 500})
+
+	// Sign (bob)
+	signResp, err := bobService.Sign(context.TODO(), &SignRequest{
+		Signer: bob.ID().String(),
+		Data:   []byte("test"),
+	})
+	require.NoError(t, err)
+
+	// Verify (bob, error)
+	_, err = aliceService.Verify(context.TODO(), &VerifyRequest{
+		Data: signResp.Data,
+	})
+	require.EqualError(t, err, "user bob@github has failed status connection-fail")
 }

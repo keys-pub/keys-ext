@@ -8,8 +8,10 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/util"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/status"
 )
@@ -445,4 +447,47 @@ func TestEncryptDecryptFile(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, filepath.Join(os.TempDir(), "test-1.txt"), dec.Out)
 	os.Remove(dec.Out)
+}
+
+func TestEncryptUnverified(t *testing.T) {
+	// SetLogger(NewLogger(DebugLevel))
+	// keys.SetLogger(NewLogger(DebugLevel))
+	env := newTestEnv(t)
+
+	aliceService, aliceCloseFn := newTestService(t, env)
+	defer aliceCloseFn()
+	testAuthSetup(t, aliceService)
+	testImportKey(t, aliceService, alice)
+	testUserSetupGithub(t, env, aliceService, alice, "alice")
+
+	bobService, bobCloseFn := newTestService(t, env)
+	defer bobCloseFn()
+	testAuthSetup(t, bobService)
+	testImportKey(t, bobService, bob)
+	testUserSetupGithub(t, env, bobService, bob, "bob")
+
+	// Encrypt (not found)
+	_, err := aliceService.Encrypt(context.TODO(), &EncryptRequest{
+		Data:       []byte("hi"),
+		Sender:     "alice@github",
+		Recipients: []string{"bob@github"},
+		Mode:       EncryptV2,
+	})
+	require.EqualError(t, err, "not found bob@github")
+
+	testPull(t, aliceService, bob.ID())
+
+	env.clock.Add(time.Hour * 24)
+
+	// Set 500 error for bob@github
+	env.req.SetError("https://gist.github.com/bob/1", util.ErrHTTP{StatusCode: 500})
+
+	// Encrypt (bob, error)
+	_, err = aliceService.Encrypt(context.TODO(), &EncryptRequest{
+		Data:       []byte("hi"),
+		Sender:     "alice@github",
+		Recipients: []string{"bob@github"},
+		Mode:       EncryptV2,
+	})
+	require.EqualError(t, err, "user bob@github has failed status connection-fail")
 }

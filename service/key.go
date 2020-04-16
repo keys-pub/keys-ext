@@ -12,7 +12,7 @@ import (
 
 // Key (RPC) ...
 func (s *service) Key(ctx context.Context, req *KeyRequest) (*KeyResponse, error) {
-	kid, err := s.parseIdentity(context.TODO(), req.Identity)
+	kid, err := s.parseIdentity(context.TODO(), req.Identity, false)
 	if err != nil {
 		return nil, err
 	}
@@ -22,7 +22,7 @@ func (s *service) Key(ctx context.Context, req *KeyRequest) (*KeyResponse, error
 			return nil, err
 		}
 	} else {
-		if err := s.updateIfNeeded(ctx, kid); err != nil {
+		if err := s.checkUpdateIfNeeded(ctx, kid); err != nil {
 			return nil, err
 		}
 	}
@@ -53,13 +53,20 @@ func Emoji(key keys.Key) string {
 	}
 }
 
-func (s *service) loadKey(ctx context.Context, id keys.ID) (*Key, error) {
-	key, err := s.ks.Key(id)
+func (s *service) verifyKey(ctx context.Context, kid keys.ID) (*Key, error) {
+	if err := s.ensureVerified(ctx, kid); err != nil {
+		return nil, err
+	}
+	return s.loadKey(ctx, kid)
+}
+
+func (s *service) loadKey(ctx context.Context, kid keys.ID) (*Key, error) {
+	key, err := s.ks.Key(kid)
 	if err != nil {
 		return nil, err
 	}
 	if key == nil {
-		return s.keyIDToRPC(ctx, id)
+		return s.keyIDToRPC(ctx, kid)
 	}
 	return s.keyToRPC(ctx, key)
 }
@@ -122,10 +129,9 @@ func (s *service) keyToRPC(ctx context.Context, key keys.Key) (*Key, error) {
 	}
 	typ := keyTypeToRPC(key.Type())
 	out := &Key{
-		ID:        key.ID().String(),
-		Type:      typ,
-		Saved:     true,
-		CreatedAt: util.TimeToMillis(key.CreatedAt()),
+		ID:    key.ID().String(),
+		Type:  typ,
+		Saved: true,
 	}
 
 	if err := s.fillKey(ctx, key.ID(), out); err != nil {
@@ -158,11 +164,12 @@ func (s *service) keyIDToRPC(ctx context.Context, kid keys.ID) (*Key, error) {
 }
 
 func (s *service) fillKey(ctx context.Context, kid keys.ID, key *Key) error {
-	result, err := s.users.Get(ctx, kid)
+	res, err := s.users.Get(ctx, kid)
 	if err != nil {
 		return err
 	}
-	key.User = userResultToRPC(result)
+
+	key.User = userResultToRPC(res)
 
 	// Sigchain info
 	sc, err := s.scs.Sigchain(kid)
@@ -299,7 +306,7 @@ func (s *service) parseSigner(signer string, required bool) (*keys.EdX25519Key, 
 		}
 		return nil, nil
 	}
-	kid, err := s.parseIdentity(context.TODO(), signer)
+	kid, err := s.parseIdentity(context.TODO(), signer, false)
 	if err != nil {
 		return nil, err
 	}
@@ -361,7 +368,7 @@ func (s *service) parseSignKey(kid string, required bool) (*keys.EdX25519Key, er
 }
 
 func (s *service) parseIdentityForEdX25519Key(ctx context.Context, identity string) (*keys.EdX25519Key, error) {
-	kid, err := s.parseIdentity(ctx, identity)
+	kid, err := s.parseIdentity(ctx, identity, false)
 	if err != nil {
 		return nil, err
 	}
@@ -379,7 +386,7 @@ func (s *service) parseIdentityForEdX25519Key(ctx context.Context, identity stri
 }
 
 func (s *service) parseIdentityForEdX25519PublicKey(ctx context.Context, identity string) (*keys.EdX25519PublicKey, error) {
-	kid, err := s.parseIdentity(ctx, identity)
+	kid, err := s.parseIdentity(ctx, identity, false)
 	if err != nil {
 		return nil, err
 	}

@@ -307,18 +307,38 @@ func (s *service) searchUsersRemote(ctx context.Context, query string, limit int
 	return resp.Users, nil
 }
 
-func (s *service) parseIdentity(ctx context.Context, identity string) (keys.ID, error) {
-	return s.loadIdentity(ctx, identity, false)
+func (s *service) parseIdentity(ctx context.Context, identity string, verify bool) (keys.ID, error) {
+	return s.loadIdentity(ctx, identity, false, verify)
 }
 
 func (s *service) searchIdentity(ctx context.Context, identity string) (keys.ID, error) {
-	return s.loadIdentity(ctx, identity, true)
+	return s.loadIdentity(ctx, identity, true, true)
 }
 
-func (s *service) loadIdentity(ctx context.Context, identity string, searchRemote bool) (keys.ID, error) {
+func (s *service) loadIdentity(ctx context.Context, identity string, searchRemote bool, verify bool) (keys.ID, error) {
 	if identity == "" {
 		return "", errors.Errorf("no identity specified")
 	}
+
+	kid, err := s.findIdentity(ctx, identity, searchRemote)
+	if err != nil {
+		return "", err
+	}
+
+	if verify {
+		if err := s.ensureVerified(ctx, kid); err != nil {
+			return "", err
+		}
+	}
+
+	return kid, nil
+}
+
+func (s *service) findIdentity(ctx context.Context, identity string, searchRemote bool) (keys.ID, error) {
+	if identity == "" {
+		return "", errors.Errorf("no identity specified")
+	}
+
 	if strings.Contains(identity, "@") {
 		logger.Infof("Looking for user %q", identity)
 		res, err := s.users.User(ctx, identity)
@@ -339,9 +359,6 @@ func (s *service) loadIdentity(ctx context.Context, identity string, searchRemot
 			}
 			return "", keys.NewErrNotFound(identity)
 		}
-		if res.Status != user.StatusOK {
-			return "", errors.Errorf("user %s has failed status %s", identity, res.Status)
-		}
 		return res.User.KID, nil
 	}
 
@@ -352,10 +369,62 @@ func (s *service) loadIdentity(ctx context.Context, identity string, searchRemot
 	return id, nil
 }
 
-func (s *service) parseIdentities(ctx context.Context, recs []string) ([]keys.ID, error) {
+// userVerifiedExpire is how long a verify lasts.
+// TOOD: Make configurable
+const userVerifiedExpire = time.Hour * 24
+
+// userCheckExpire is how long we wait between checks.
+// TODO: Make configurable
+const userCheckExpire = time.Hour * 24
+
+// userCheckExpire is how long we wait between checks if not ok.
+// TODO: Make configurable
+const userCheckFailureExpire = time.Hour * 4
+
+func (s *service) ensureVerified(ctx context.Context, kid keys.ID) error {
+	res, err := s.users.Get(ctx, kid)
+	if err != nil {
+		return err
+	}
+	if res == nil {
+		return nil
+	}
+	return s.ensureVerifiedResult(ctx, res)
+}
+
+func (s *service) ensureVerifiedResult(ctx context.Context, res *user.Result) error {
+	if res == nil {
+		return nil
+	}
+
+	if res.Status != user.StatusOK && res.Status != user.StatusConnFailure {
+		return errors.Errorf("user %s has failed status %s", res.User.ID(), res.Status)
+	}
+
+	// Verified recently
+	if !res.IsVerifyExpired(s.Now(), userVerifiedExpire) {
+		return nil
+	}
+
+	// Our verify expired, re-check
+	logger.Infof("Checking user %v", res)
+	ok, resNew, err := s.update(ctx, res.User.KID)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return errors.Errorf("failed user update: not found")
+	}
+	if resNew.Status != user.StatusOK {
+		return errors.Errorf("user %s has failed status %s", resNew.User.ID(), resNew.Status)
+	}
+	return nil
+}
+
+func (s *service) parseIdentities(ctx context.Context, recs []string, check bool) ([]keys.ID, error) {
 	ids := make([]keys.ID, 0, len(recs))
 	for _, r := range recs {
-		id, err := s.parseIdentity(ctx, r)
+		id, err := s.parseIdentity(ctx, r, check)
 		if err != nil {
 			return nil, err
 		}
@@ -364,33 +433,51 @@ func (s *service) parseIdentities(ctx context.Context, recs []string) ([]keys.ID
 	return ids, nil
 }
 
-const expire = time.Hour * 24
-
-func (s *service) updateIfNeeded(ctx context.Context, kid keys.ID) error {
+func (s *service) checkUpdateIfNeeded(ctx context.Context, kid keys.ID) error {
 	logger.Debugf("Checking key %s", kid)
 	res, err := s.users.Get(ctx, kid)
 	if err != nil {
 		return err
 	}
-	if res == nil || res.Expired(s.Now(), expire) {
+	if res == nil {
+		return nil
+	}
+
+	// If not OK, check every "userCheckFailureExpire", otherwise check every "userCheckExpire"
+	now := s.Now()
+	if (res.Status != user.StatusOK && res.IsTimestampExpired(now, userCheckFailureExpire)) ||
+		res.IsTimestampExpired(now, userCheckExpire) {
 		if _, _, err := s.update(ctx, kid); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *service) checkUpdate(ctx context.Context) error {
+	logger.Infof("Checking keys...")
+	pks, err := s.ks.EdX25519PublicKeys()
+	if err != nil {
+		return err
+	}
+	for _, pk := range pks {
+		if err := s.checkUpdateIfNeeded(ctx, pk.ID()); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (s *service) checkUpdate(ctx context.Context) error {
-	logger.Infof("Checking keys...")
-
-	// TODO: Only update keys where we've seen a sigchain?
-
+func (s *service) updateAll(ctx context.Context) error {
+	logger.Infof("Updating keys...")
 	pks, err := s.ks.EdX25519PublicKeys()
 	if err != nil {
 		return err
 	}
 	for _, pk := range pks {
-		if err := s.updateIfNeeded(ctx, pk.ID()); err != nil {
+		if _, _, err := s.update(ctx, pk.ID()); err != nil {
+			return err
 		}
 	}
 	return nil
