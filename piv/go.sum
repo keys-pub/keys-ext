@@ -1,0 +1,4 @@
+github.com/go-piv/piv-go v1.1.0 h1:68W4PO+bsfqtG6hMVTLRbnYhyKSYDpIMQdtNrbq4Gfg=
+github.com/go-piv/piv-go v1.1.0/go.mod h1:ON2WvQncm7dIkCQ7kYJs+nc3V4jHGfrrJnSF8HKy7Gk=
+github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
+github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
