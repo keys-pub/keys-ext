@@ -434,7 +434,6 @@ func (s *service) parseIdentities(ctx context.Context, recs []string, check bool
 }
 
 func (s *service) checkUpdateIfNeeded(ctx context.Context, kid keys.ID) error {
-	logger.Debugf("Checking key %s", kid)
 	res, err := s.users.Get(ctx, kid)
 	if err != nil {
 		return err

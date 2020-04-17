@@ -71,6 +71,7 @@ func (s *service) update(ctx context.Context, kid keys.ID) (bool, *user.Result, 
 		logger.Infof("No sigchain for %s", kid)
 		return false, nil, nil
 	}
+	// TODO: Check that our existing statements haven't changed or disappeared
 	logger.Infof("Received sigchain %s, len=%d", kid, len(resp.Statements))
 	for _, st := range resp.Statements {
 		b, err := st.Bytes()
