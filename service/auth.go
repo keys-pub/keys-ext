@@ -9,7 +9,6 @@ import (
 	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/keyring"
-	"github.com/keys-pub/keys/keyring/upgrade"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -187,9 +186,6 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 	if err != nil {
 		return nil, err
 	}
-
-	// Try to do an upgrade.
-	upgrade.KeyringV1("Keys", keyringService(s.cfg), req.Password)
 
 	// If setting up auth, and local database exists we should nuke it since the
 	// pre-existing key is different. The database will be rebuilt on Open.

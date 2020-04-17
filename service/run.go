@@ -18,7 +18,6 @@ import (
 	ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/keyring"
-	"github.com/keys-pub/keys/keyring/upgrade"
 	"github.com/keys-pub/keys/saltpack"
 	"github.com/keys-pub/keys/util"
 	"github.com/keys-pub/keysd/db"
@@ -131,7 +130,6 @@ func Run(build Build) {
 	wormhole.SetLogger(lg)
 	sctp.SetLogger(lg)
 	db.SetLogger(lg)
-	upgrade.SetLogger(lg)
 
 	if err := checkSupportedOS(); err != nil {
 		logFatal(err)
