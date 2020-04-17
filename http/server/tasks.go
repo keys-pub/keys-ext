@@ -136,7 +136,7 @@ func (s *Server) taskExpired(c echo.Context) error {
 		return err
 	}
 
-	iter, err := s.fi.Documents(ctx, ds.Path("messages"), nil)
+	iter, err := s.fi.Documents(ctx, ds.Path("msgs"), nil)
 	if err != nil {
 		return s.internalError(c, err)
 	}

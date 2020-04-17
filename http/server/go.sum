@@ -102,7 +102,10 @@ github.com/keys-pub/keys v0.0.0-20200413002436-33c0c3d4ec1b h1:P9+8upxxJyZK95YnG
 github.com/keys-pub/keys v0.0.0-20200413002436-33c0c3d4ec1b/go.mod h1:LWDVrixSjx446s2aLIcJ6ML5ir4vX3kJ3mVvJYXI/Xc=
 github.com/keys-pub/keys v0.0.0-20200414165426-6b7f7009114b h1:k+BaDSxJSjl1xYe25SMQNvNo7/knETHmB5/Kw80nxJw=
 github.com/keys-pub/keys v0.0.0-20200414165426-6b7f7009114b/go.mod h1:K0JoWRBSAgH50/fJpI+6yPgYTj2TCOncJhSVixAa0Xo=
+github.com/keys-pub/keys v0.0.0-20200416235851-d987a99dbbb9 h1:FRG7jvqWDn61iRWYvLyeIU96Pkmk2g+EKTd+d/4Ynrg=
+github.com/keys-pub/keys v0.0.0-20200416235851-d987a99dbbb9/go.mod h1:K0JoWRBSAgH50/fJpI+6yPgYTj2TCOncJhSVixAa0Xo=
 github.com/keys-pub/keysd v0.0.28 h1:dypvv8k3RQi6uPqw9fXfjen/fNvCpVQJhZAolqqw560=
+github.com/keys-pub/keysd v0.0.33 h1:V2I/RCm+j530HnYm4OgvLiNhd1/NjwAb3BAuciBMBDM=
 github.com/keys-pub/keysd/firestore v0.0.0-20200402183018-a85eceb453b1 h1:jVyCCFuYqf0ItEhWIO26ppJzCpyy4++tVNxOJZuBnRM=
 github.com/keys-pub/keysd/firestore v0.0.0-20200402183018-a85eceb453b1/go.mod h1:eVgRwkC+HcgKTBv7JWenVZIVdSqPiwxAFyMgHAzH2Zs=
 github.com/keys-pub/keysd/firestore v0.0.0-20200413001332-6e3c6eb94d74 h1:KA3jaqKON2RWY0OeNddeIPHLcAqDHSrOG13c2uHe+cY=

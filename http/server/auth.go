@@ -10,18 +10,26 @@ import (
 	"github.com/pkg/errors"
 )
 
-func authorize(c echo.Context, baseURL string, param string, now time.Time, mc MemCache) (keys.ID, int, error) {
+func checkAuth(c echo.Context, baseURL string, now time.Time, mc MemCache) (*api.AuthResult, int, error) {
 	request := c.Request()
 	auth := request.Header.Get("Authorization")
 	if auth == "" {
-		return "", http.StatusUnauthorized, errors.Errorf("missing Authorization header")
+		return nil, http.StatusUnauthorized, errors.Errorf("missing Authorization header")
 	}
 
 	url := baseURL + c.Request().URL.String()
 
 	authRes, err := api.CheckAuthorization(request.Context(), request.Method, url, auth, mc, now)
 	if err != nil {
-		return "", http.StatusForbidden, err
+		return nil, http.StatusForbidden, err
+	}
+	return authRes, 0, nil
+}
+
+func authorize(c echo.Context, baseURL string, param string, now time.Time, mc MemCache) (keys.ID, int, error) {
+	authRes, status, err := checkAuth(c, baseURL, now, mc)
+	if err != nil {
+		return "", status, err
 	}
 	kidAuth := authRes.KID
 

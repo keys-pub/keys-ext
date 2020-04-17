@@ -163,6 +163,21 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 	if err := sc.VerifyStatement(st, prev); err != nil {
 		return ErrBadRequest(c, err)
 	}
+	if err := sc.Add(st); err != nil {
+		return ErrBadRequest(c, err)
+	}
+
+	// Check we don't have an existing user with a different key, which would cause duplicates in search.
+	// They should revoke the existing user before linking a new key.
+	// Since there is a delay in indexing this won't stop a malicious user from creating duplicates but
+	// it will limit them. If we find spaming this is a problem, we can get more strict.
+	existing, err := s.users.CheckForExisting(ctx, sc)
+	if err != nil {
+		return s.internalError(c, err)
+	}
+	if existing != "" {
+		return ErrBadRequest(c, errors.Errorf("user already exists with key %s, revoke or remove that before changing keys", existing))
+	}
 
 	s.logger.Infof("Statement, set %s", path)
 	if err := s.fi.Create(ctx, path, b); err != nil {

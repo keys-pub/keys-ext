@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/user"
 	"github.com/labstack/echo/v4"
@@ -32,6 +33,8 @@ type Server struct {
 	users        *user.Store
 	tasks        Tasks
 	internalAuth string
+
+	admins []keys.ID
 }
 
 // Fire defines interface for remote store (like Firestore).
@@ -58,6 +61,11 @@ func NewServer(fi Fire, mc MemCache, users *user.Store, logger Logger) *Server {
 // SetInternalAuth for authorizing internal requests, like tasks.
 func (s *Server) SetInternalAuth(internalAuth string) {
 	s.internalAuth = internalAuth
+}
+
+// SetAdmins sets authorized admins.
+func (s *Server) SetAdmins(admins []keys.ID) {
+	s.admins = admins
 }
 
 // SetTasks ...
@@ -114,6 +122,9 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	e.GET("/:kid", s.getSigchain)
 	e.GET("/:kid/:seq", s.getSigchainStatement)
 	e.PUT("/:kid/:seq", s.putSigchainStatement)
+
+	// Admin
+	// e.POST("/admin/checkall", s.adminCheckAll)
 }
 
 // SetNowFn sets clock Now function.
