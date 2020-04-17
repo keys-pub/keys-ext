@@ -16,6 +16,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+// TODO: Headers are not included in auth.
+
 // Auth describes auth for a HTTP request.
 type Auth struct {
 	KID     keys.ID
