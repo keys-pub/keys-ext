@@ -3,6 +3,7 @@ package server
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -33,10 +34,12 @@ func (s *Server) sigchain(c echo.Context, kid keys.ID) (*keys.Sigchain, map[stri
 		if doc == nil {
 			break
 		}
-		st, err := keys.StatementFromBytes(doc.Data)
-		if err != nil {
+
+		var st *keys.Statement
+		if err := json.Unmarshal(doc.Data, &st); err != nil {
 			return nil, nil, err
 		}
+
 		if err := sc.Add(st); err != nil {
 			return nil, nil, err
 		}
@@ -208,8 +211,8 @@ func (s *Server) statement(ctx context.Context, path string) (*keys.Statement, *
 }
 
 func (s *Server) statementFromBytes(ctx context.Context, b []byte) (*keys.Statement, error) {
-	st, err := keys.StatementFromBytes(b)
-	if err != nil {
+	var st *keys.Statement
+	if err := json.Unmarshal(b, &st); err != nil {
 		return nil, err
 	}
 	bout, err := st.Bytes()
