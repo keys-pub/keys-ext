@@ -90,6 +90,7 @@ func userCommands(client *Client) []cli.Command {
 							return err
 						}
 
+						// TODO: Reddit, etc
 						reader := bufio.NewReader(os.Stdin)
 						fmt.Println("What's the service? ")
 						fmt.Println("(g) Github")
