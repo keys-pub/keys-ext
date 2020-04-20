@@ -8,8 +8,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// TODO: Fix old keys with no CreatedAt?
-
 // Key (RPC) ...
 func (s *service) Key(ctx context.Context, req *KeyRequest) (*KeyResponse, error) {
 	kid, err := s.parseIdentity(context.TODO(), req.Identity, false)
@@ -22,7 +20,7 @@ func (s *service) Key(ctx context.Context, req *KeyRequest) (*KeyResponse, error
 			return nil, err
 		}
 	} else {
-		if err := s.checkUpdateIfNeeded(ctx, kid); err != nil {
+		if err := s.checkForKeyUpdate(ctx, kid, true); err != nil {
 			return nil, err
 		}
 	}

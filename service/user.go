@@ -433,12 +433,17 @@ func (s *service) parseIdentities(ctx context.Context, recs []string, check bool
 	return ids, nil
 }
 
-func (s *service) checkUpdateIfNeeded(ctx context.Context, kid keys.ID) error {
+func (s *service) checkForKeyUpdate(ctx context.Context, kid keys.ID, updateIfMissing bool) error {
 	res, err := s.users.Get(ctx, kid)
 	if err != nil {
 		return err
 	}
 	if res == nil {
+		if updateIfMissing {
+			if _, _, err := s.update(ctx, kid); err != nil {
+				return err
+			}
+		}
 		return nil
 	}
 
@@ -454,21 +459,23 @@ func (s *service) checkUpdateIfNeeded(ctx context.Context, kid keys.ID) error {
 	return nil
 }
 
-func (s *service) checkUpdate(ctx context.Context) error {
+// checkForKeyUpdates updates any keys we have in our keystore.
+// This currently only updates keys that have had a user.
+func (s *service) checkForKeyUpdates(ctx context.Context) error {
 	logger.Infof("Checking keys...")
 	pks, err := s.ks.EdX25519PublicKeys()
 	if err != nil {
 		return err
 	}
 	for _, pk := range pks {
-		if err := s.checkUpdateIfNeeded(ctx, pk.ID()); err != nil {
+		if err := s.checkForKeyUpdate(ctx, pk.ID(), false); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (s *service) updateAll(ctx context.Context) error {
+func (s *service) updateAllKeys(ctx context.Context) error {
 	logger.Infof("Updating keys...")
 	pks, err := s.ks.EdX25519PublicKeys()
 	if err != nil {

@@ -264,6 +264,6 @@ func TestCheckUpdate(t *testing.T) {
 	testUserSetupGithub(t, env, service, alice, "alice")
 	testPush(t, service, alice)
 
-	err := service.checkUpdate(context.TODO())
+	err := service.checkForKeyUpdates(context.TODO())
 	require.NoError(t, err)
 }
