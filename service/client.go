@@ -30,6 +30,9 @@ type Client struct {
 	connectFn ClientConnectFn
 }
 
+// VersionDev is default for dev environment.
+const VersionDev = "0.0.0-dev"
+
 // ClientConnectFn describes client connect.
 type ClientConnectFn func(cfg *Config, authToken string) (*grpc.ClientConn, error)
 
@@ -119,6 +122,7 @@ func RunClient(build Build) {
 		}
 	}
 
+	logger.Debugf("Running %v", os.Args)
 	client := NewClient()
 	defer client.Close()
 	runClient(build, os.Args, client, clientFatal)
@@ -217,7 +221,7 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 			return nil
 		}
 
-		if !c.GlobalBool("test") {
+		if !c.GlobalBool("test") && build.Version != VersionDev {
 			if err := autostart(cfg); err != nil {
 				errorFn(err)
 				return err
@@ -251,6 +255,10 @@ func connect(cfg *Config, client *Client, build Build, authToken string, reconne
 		return err
 	}
 	logger.Debugf("Service status %s", status.String())
+
+	if build.Version == VersionDev {
+		return nil
+	}
 
 	// Check service and client running from same directories.
 	exe, exeErr := executablePath()

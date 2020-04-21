@@ -6,7 +6,7 @@ import (
 
 // build flags passed from goreleaser
 var (
-	version = "0.0.0-dev"
+	version = service.VersionDev
 	commit  = "snapshot"
 	date    = ""
 )

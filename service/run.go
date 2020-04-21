@@ -131,6 +131,8 @@ func Run(build Build) {
 	sctp.SetLogger(lg)
 	db.SetLogger(lg)
 
+	logger.Debugf("Running %v", os.Args)
+
 	if err := checkSupportedOS(); err != nil {
 		logFatal(err)
 	}
@@ -182,7 +184,7 @@ func NewServiceFn(cfg *Config, build Build, lgi LogInterceptor) (ServeFn, CloseF
 	var opts []grpc.ServerOption
 
 	if IsPortInUse(cfg.Port()) {
-		return nil, nil, errors.Errorf("port %d in use", cfg.Port())
+		return nil, nil, errors.Errorf("port %d in use; is keysd already running?", cfg.Port())
 	}
 
 	st, err := newKeyringStore(cfg)
