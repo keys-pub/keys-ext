@@ -229,7 +229,7 @@ func (c *Client) Connect(ctx context.Context, peerAddr *Addr) error {
 	return nil
 }
 
-// Listen for connections from peer.
+// ListenForPeer for connections from peer.
 func (c *Client) ListenForPeer(ctx context.Context, peerAddr *Addr) error {
 	if c.conn == nil {
 		return errors.Errorf("no stun connection, run STUN()")
@@ -286,6 +286,7 @@ func (c *Client) readFromUDP() ([]byte, error) {
 	return buf, nil
 }
 
+// ParseAddr creates an Addr from a string.
 func ParseAddr(s string) (*Addr, error) {
 	spl := strings.SplitN(s, ":", 2)
 	if len(spl) != 2 {
@@ -311,6 +312,7 @@ func (a Addr) String() string {
 	return fmt.Sprintf("%s:%d", a.IP, a.Port)
 }
 
+// UDPAddr returns UDP address.
 func (a Addr) UDPAddr() (*net.UDPAddr, error) {
 	return net.ResolveUDPAddr("udp", a.String())
 

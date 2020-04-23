@@ -11,7 +11,7 @@ import (
 )
 
 func TestNewClient(t *testing.T) {
-	sctp.SetLogger(sctp.NewLogger(sctp.DebugLevel))
+	// sctp.SetLogger(sctp.NewLogger(sctp.DebugLevel))
 	// testClient(t, true)
 	testClient(t, false)
 }

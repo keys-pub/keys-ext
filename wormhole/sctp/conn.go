@@ -72,8 +72,10 @@ func (c *udpConn) SetWriteDeadline(t time.Time) error {
 var privateCIDRs = []string{
 	"10.0.0.0/8",
 	"172.16.0.0/12",
-	"192.168.0.0/16"}
+	"192.168.0.0/16",
+}
 
+// IsPrivateIP returns true if IP is in private range.
 func IsPrivateIP(ips string) bool {
 	ip := net.ParseIP(ips)
 	for _, cidr := range privateCIDRs {
