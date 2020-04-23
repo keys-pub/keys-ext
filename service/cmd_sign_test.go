@@ -29,21 +29,57 @@ func TestSignVerifyCommand(t *testing.T) {
 
 	build := Build{Version: VersionDev}
 
-	// Default
+	// Default (armored, detached) (file)
 	inPath := writeTestFile(t)
-	outPath := inPath + ".sig"
+	sigPath := inPath + ".sig"
 	defer os.Remove(inPath)
-	defer os.Remove(outPath)
+	defer os.Remove(sigPath)
 
-	cmd := append(os.Args[0:1], "-app", env.appName) // "-log-level=debug"
+	cmd := append(os.Args[0:1], "-app", env.appName) // , "-log-level=debug")
 
 	argsSign := append(cmd, "sign", "-s", alice.ID().String(), "-in", inPath)
 	runClient(build, argsSign, client, errorFn)
 	require.NoError(t, clientErr)
+	require.FileExists(t, sigPath)
+	sig, err := ioutil.ReadFile(sigPath)
+	require.NoError(t, err)
+	require.True(t, strings.HasPrefix(string(sig), "BEGIN SALTPACK DETACHED SIGNATURE."))
+
+	argsVerify := append(cmd, "verify", "-in", inPath)
+	runClient(build, argsVerify, client, errorFn)
+	require.NoError(t, clientErr)
+
+	// Binary, detached (file)
+	inPath = writeTestFile(t)
+	sigPath = inPath + ".sig"
+	defer os.Remove(inPath)
+	defer os.Remove(sigPath)
+
+	argsSign = append(cmd, "sign", "-m", "binary", "-s", alice.ID().String(), "-in", inPath)
+	runClient(build, argsSign, client, errorFn)
+	require.NoError(t, clientErr)
+	require.FileExists(t, sigPath)
+
+	argsVerify = append(cmd, "verify", "-m", "binary", "-in", inPath)
+	runClient(build, argsVerify, client, errorFn)
+	require.NoError(t, clientErr)
+
+	// Amrored, attached (file)
+	inPath = writeTestFile(t)
+	outPath := inPath + ".signed"
+	defer os.Remove(inPath)
+	defer os.Remove(sigPath)
+
+	argsSign = append(cmd, "sign", "-m", "armor,attached", "-s", alice.ID().String(), "-in", inPath)
+	runClient(build, argsSign, client, errorFn)
+	require.NoError(t, clientErr)
 	require.FileExists(t, outPath)
+	signed, err := ioutil.ReadFile(outPath)
+	require.NoError(t, err)
+	require.True(t, strings.HasPrefix(string(signed), "BEGIN SALTPACK SIGNED MESSAGE."))
 	os.Remove(inPath)
 
-	argsVerify := append(cmd, "verify", "-in", outPath)
+	argsVerify = append(cmd, "verify", "-m", "armor,attached", "-in", outPath)
 	runClient(build, argsVerify, client, errorFn)
 	require.NoError(t, clientErr)
 
@@ -51,68 +87,4 @@ func TestSignVerifyCommand(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, string(in), "test message")
 
-	// Armored
-	inPath = writeTestFile(t)
-	outPath = inPath + ".sig"
-	defer os.Remove(inPath)
-	defer os.Remove(outPath)
-
-	argsSign = append(cmd, "sign", "-a", "-s", alice.ID().String(), "-in", inPath)
-	runClient(build, argsSign, client, errorFn)
-	require.NoError(t, clientErr)
-	require.FileExists(t, outPath)
-	os.Remove(inPath)
-
-	out, err := ioutil.ReadFile(inPath + ".sig")
-	require.NoError(t, err)
-	require.True(t, strings.HasPrefix(string(out), "BEGIN SALTPACK SIGNED MESSAGE."))
-
-	argsVerify = append(cmd, "verify", "-a", "-in", outPath)
-	runClient(build, argsVerify, client, errorFn)
-	require.NoError(t, clientErr)
-
-	in, err = ioutil.ReadFile(inPath)
-	require.NoError(t, err)
-	require.Equal(t, string(in), "test message")
-
-	// Detached
-	inPath = writeTestFile(t)
-	sigPath := inPath + ".sig"
-	defer os.Remove(inPath)
-	defer os.Remove(sigPath)
-
-	argsSign = append(cmd, "sign", "-d", "-s", alice.ID().String(), "-in", inPath)
-	runClient(build, argsSign, client, errorFn)
-	require.NoError(t, clientErr)
-	require.FileExists(t, sigPath)
-
-	argsVerify = append(cmd, "verify", "-x", sigPath, "-in", inPath)
-	runClient(build, argsVerify, client, errorFn)
-	require.NoError(t, clientErr)
-
-	in, err = ioutil.ReadFile(inPath)
-	require.NoError(t, err)
-	require.Equal(t, string(in), "test message")
-
-	// Armored/Detached
-	inPath = writeTestFile(t)
-	sigPath = inPath + ".sig"
-	defer os.Remove(inPath)
-	defer os.Remove(sigPath)
-
-	argsSign = append(cmd, "sign", "-d", "-a", "-s", alice.ID().String(), "-in", inPath)
-	runClient(build, argsSign, client, errorFn)
-	require.NoError(t, clientErr)
-	require.FileExists(t, sigPath)
-	out, err = ioutil.ReadFile(inPath + ".sig")
-	require.NoError(t, err)
-	require.True(t, strings.HasPrefix(string(out), "BEGIN SALTPACK DETACHED SIGNATURE."))
-
-	argsVerify = append(cmd, "verify", "-a", "-x", sigPath, "-in", inPath)
-	runClient(build, argsVerify, client, errorFn)
-	require.NoError(t, clientErr)
-
-	in, err = ioutil.ReadFile(inPath)
-	require.NoError(t, err)
-	require.Equal(t, string(in), "test message")
 }

@@ -159,7 +159,7 @@ func testSignStream(t *testing.T, env *testEnv, service *service, plaintext []by
 	require.Equal(t, plaintext, bufOut.Bytes())
 }
 
-func TestSignVerifyFile(t *testing.T) {
+func TestSignVerifyAttachedFile(t *testing.T) {
 	env := newTestEnv(t)
 
 	aliceService, aliceCloseFn := newTestService(t, env)
@@ -174,7 +174,7 @@ func TestSignVerifyFile(t *testing.T) {
 
 	b := []byte("test message")
 	inPath := keys.RandTempPath("")
-	outPath := inPath + ".sig"
+	outPath := inPath + ".signed"
 	verifiedPath := inPath + ".ver"
 
 	defer os.Remove(inPath)

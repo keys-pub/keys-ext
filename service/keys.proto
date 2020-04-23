@@ -127,7 +127,7 @@ message SignResponse {
 message SignFileInput {
   // In is input file path. 
   string in = 1;
-  // Out is output file path.
+  // Out file path (or sig if detached).
   string out = 2;
 
   string signer = 5;

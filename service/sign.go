@@ -53,7 +53,11 @@ func (s *service) SignFile(srv Keys_SignFileServer) error {
 	}
 	out := req.Out
 	if out == "" {
-		out = in + ".sig"
+		if req.Detached {
+			out = in + ".sig"
+		} else {
+			out = in + ".signed"
+		}
 	}
 
 	key, err := s.parseSigner(req.Signer, true)

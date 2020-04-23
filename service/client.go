@@ -239,8 +239,8 @@ func connect(cfg *Config, client *Client, build Build, authToken string, reconne
 	if err != nil {
 		return err
 	}
-	logger.Debugf("Service status %s", status.String())
 
+	// TODO: Does this check happen during auth?
 	if cfg.AppName() != status.AppName {
 		return errServiceRuntime{Reason: fmt.Sprintf("service and client have different app names %s != %s", cfg.AppName(), status.AppName)}
 	}

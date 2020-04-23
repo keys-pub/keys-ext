@@ -86,8 +86,8 @@ func (s *service) VerifyFile(srv Keys_VerifyFileServer) error {
 	}
 	out := req.Out
 	if out == "" {
-		if strings.HasSuffix(in, ".sig") {
-			out = strings.TrimSuffix(in, ".sig")
+		if strings.HasSuffix(in, ".signed") {
+			out = strings.TrimSuffix(in, ".signed")
 		}
 		out, err = nextPath(out)
 		if err != nil {
@@ -248,15 +248,16 @@ func (s *service) readFromStream(ctx context.Context, streamReader io.Reader, si
 
 		n, err := streamReader.Read(buf)
 		if n != 0 {
-			if err := sendFn(buf[:n], nil); err != nil {
+			if err := sendFn(buf[:n], sendSigner); err != nil {
 				return err
 			}
+			// Only send signer on first send
+			sendSigner = nil
 		}
 		if err != nil {
 			if err == io.EOF {
-				// Send signer on last response.
 				// Send empty bytes denotes EOF
-				if err := sendFn([]byte{}, sendSigner); err != nil {
+				if err := sendFn([]byte{}, nil); err != nil {
 					return err
 				}
 				break

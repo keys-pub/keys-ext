@@ -14,47 +14,34 @@ import (
 	"github.com/urfave/cli"
 )
 
-func checkSigner(signer *Key, expected string) error {
-	if signer == nil {
-		return nil
-	}
-
-	if strings.Contains(expected, "@") {
-		if signer.User == nil {
-			return errors.Errorf("invalid signer, expected %s, was %s", expected, signer.ID)
-		}
-		if signer.User.ID != expected {
-			return errors.Errorf("invalid signer, expected %s, was %s", expected, signer.User.ID)
-		}
-		return nil
-	}
-
-	if signer.ID != expected {
-		return errors.Errorf("invalid signer, expected %s, was %s", expected, signer.ID)
-	}
-
-	return nil
-}
+// TODO: do we report verified signer only on first or every response, what if a later signed chunk is invalid?
 
 func verifyCommands(client *Client) []cli.Command {
 	return []cli.Command{
 		cli.Command{
-			Name:      "verify",
-			Usage:     "Verify a signed message",
-			ArgsUsage: "message",
+			Name:  "verify",
+			Usage: "Verify",
 			Flags: []cli.Flag{
 				cli.StringFlag{Name: "signer, s", Usage: "expected signer"},
-				cli.BoolFlag{Name: "armor, a"},
+				cli.StringFlag{Name: "mode, m", Value: "", Usage: "mode: armor, binary, attached, detached"},
 				cli.StringFlag{Name: "sig, x", Usage: "signature file (if detached)"},
 				cli.StringFlag{Name: "in, i", Usage: "file to read"},
-				cli.StringFlag{Name: "out, o", Usage: "file to write (defaults to {in} without .sig)"},
+				cli.StringFlag{Name: "out, o", Usage: "file to write (if attached), defaults to {in} without .signed"},
 			},
 			Action: func(c *cli.Context) error {
 				logger.Debugf("Verify (cmd)")
+
+				// TODO: Error if out path already exists
+
+				mode, err := parseMode(c.String("mode"), c.String("sig") != "")
+				if err != nil {
+					return err
+				}
+
 				signerCheck := c.String("signer")
 
 				if c.String("in") != "" {
-					verified, _, err := verifyFileForCLI(c, client)
+					verified, _, err := verifyFileForCLI(c, client, mode)
 					if err != nil {
 						return err
 					}
@@ -73,7 +60,10 @@ func verifyCommands(client *Client) []cli.Command {
 
 				sigFile := c.String("sig")
 				if sigFile != "" {
-					verified, err := verifyDetachedStream(client, c.Bool("armor"), reader, sigFile)
+					if !mode.isDetached(stdIn) {
+						return errors.Errorf("sig is only for detached mode")
+					}
+					verified, err := verifyDetachedStream(client, mode.isArmored(stdIn, false), reader, sigFile)
 					if err != nil {
 						return err
 					}
@@ -87,8 +77,13 @@ func verifyCommands(client *Client) []cli.Command {
 					return nil
 				}
 
-				logger.Debugf("Verify stream (cmd) armored=%t", c.Bool("armor"))
-				verifyClient, err := NewVerifyStreamClient(context.TODO(), client.ProtoClient(), c.Bool("armor"))
+				if mode.isDetached(stdIn) {
+					return errors.Errorf("detached mode without sig")
+				}
+
+				armored := mode.isArmored(stdIn, false)
+				logger.Debugf("Verify stream (cmd) armored=%t, detatched=false", armored)
+				verifyClient, err := NewVerifyStreamClient(context.TODO(), client.ProtoClient(), armored)
 				if err != nil {
 					return err
 				}
@@ -152,17 +147,24 @@ func verifyCommands(client *Client) []cli.Command {
 	}
 }
 
-func verifyFileForCLI(c *cli.Context, client *Client) (*Key, string, error) {
+func verifyFileForCLI(c *cli.Context, client *Client, mode signMode) (*Key, string, error) {
 	sigFile := c.String("sig")
-	if sigFile != "" {
-		signer, err := verifyDetachedFile(client, c.Bool("armor"), c.String("in"), sigFile)
+	in := c.String("in")
+	detached := mode.isDetached(fileIn)
+
+	if detached {
+		if sigFile == "" {
+			sigFile = in + ".sig"
+		}
+		signer, err := verifyDetachedFile(client, mode.isArmored(fileIn, detached), in, sigFile)
 		return signer, "", err
 	}
-	return verifyFile(client, c.Bool("armor"), c.String("in"), c.String("out"))
+
+	return verifyFile(client, mode.isArmored(fileIn, detached), in, c.String("out"))
 }
 
 func verifyFile(client *Client, armored bool, in string, out string) (*Key, string, error) {
-	logger.Debugf("Verify file (cmd) in=%s, out=%s, armored=%t", in, out, armored)
+	logger.Debugf("Verify file (cmd) in=%s, out=%s, armored=%t, detached=false", in, out, armored)
 	if in == "" {
 		return nil, "", errors.Errorf("in not specified")
 	}
@@ -208,7 +210,7 @@ func verifyDetachedFile(client *Client, armored bool, in string, sigFile string)
 		return nil, err
 	}
 
-	sig, err := ioutil.ReadFile(sigFile)
+	sig, err := ioutil.ReadFile(sigFile) // #nosec
 	if err != nil {
 		return nil, err
 	}
@@ -236,7 +238,7 @@ func verifyDetachedFile(client *Client, armored bool, in string, sigFile string)
 
 func verifyDetachedStream(client *Client, armored bool, reader io.Reader, sigFile string) (*Key, error) {
 	logger.Debugf("Verify detached stream (cmd) sig=%s, armored=%t", sigFile, armored)
-	sig, err := ioutil.ReadFile(sigFile)
+	sig, err := ioutil.ReadFile(sigFile) // #nosec
 	if err != nil {
 		return nil, err
 	}
@@ -286,4 +288,26 @@ func verifyDetachedStream(client *Client, armored bool, reader io.Reader, sigFil
 	}
 
 	return resp.Signer, nil
+}
+
+func checkSigner(signer *Key, expected string) error {
+	if signer == nil {
+		return nil
+	}
+
+	if strings.Contains(expected, "@") {
+		if signer.User == nil {
+			return errors.Errorf("invalid signer, expected %s, was %s", expected, signer.ID)
+		}
+		if signer.User.ID != expected {
+			return errors.Errorf("invalid signer, expected %s, was %s", expected, signer.User.ID)
+		}
+		return nil
+	}
+
+	if signer.ID != expected {
+		return errors.Errorf("invalid signer, expected %s, was %s", expected, signer.ID)
+	}
+
+	return nil
 }
