@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
-	strings "strings"
+	"strings"
 	"time"
 
 	"github.com/keys-pub/keys"

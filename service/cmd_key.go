@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	strings "strings"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"

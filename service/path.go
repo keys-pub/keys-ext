@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
-	strings "strings"
+	"strings"
 
 	"github.com/pkg/errors"
 )

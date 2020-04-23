@@ -1,80 +1,34 @@
 package service
 
 import (
+	"bufio"
 	"context"
 	"io"
 	"os"
 	"path/filepath"
-	strings "strings"
-	"sync"
 
-	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
-
-func checkSigner(signer *Key, expected string) error {
-	if signer == nil {
-		return nil
-	}
-
-	if strings.Contains(expected, "@") {
-		if signer.User == nil {
-			return errors.Errorf("invalid signer, expected %s, was %s", expected, signer.ID)
-		}
-		if signer.User.ID != expected {
-			return errors.Errorf("invalid signer, expected %s, was %s", expected, signer.User.ID)
-		}
-		return nil
-	}
-
-	if signer.ID != expected {
-		return errors.Errorf("invalid signer, expected %s, was %s", expected, signer.ID)
-	}
-
-	return nil
-}
 
 func signCommands(client *Client) []cli.Command {
 	return []cli.Command{
 		cli.Command{
-			Name:      "sign",
-			Usage:     "Create a signed message",
-			ArgsUsage: "stdin or -in",
+			Name:  "sign",
+			Usage: "Create a signed message",
 			Flags: []cli.Flag{
 				cli.StringFlag{Name: "signer, s", Usage: "signer"},
 				cli.BoolFlag{Name: "armor, a", Usage: "armored string output"},
 				cli.BoolFlag{Name: "detached, d", Usage: "only output signature bytes"},
 				cli.StringFlag{Name: "in, i", Usage: "file to read"},
-				cli.StringFlag{Name: "out, o", Usage: "file to write"},
-				cli.BoolFlag{Name: "stdin", Usage: "read from stdin"},
-				cli.BoolFlag{Name: "stdout", Usage: "write to stdout"},
+				cli.StringFlag{Name: "out, o", Usage: "file to write (defaults to {in}.sig)"},
 			},
 			Action: func(c *cli.Context) error {
-				if c.String("in") != "" && c.Bool("stdin") {
-					return errors.Errorf("specify -in or -stdin, but not both")
-				}
-				if c.String("in") == "" && !c.Bool("stdin") {
-					return errors.Errorf("specify -in or -stdin")
-				}
-				if c.String("out") != "" && c.Bool("stdout") {
-					return errors.Errorf("specify -out or -stdout, but not both")
-				}
-				if c.String("out") == "" && !c.Bool("stdout") {
-					return errors.Errorf("specify -out or -stdout")
-				}
-
-				if c.String("in") != "" && c.String("out") != "" {
+				if c.String("in") != "" {
 					return signFileForCLI(c, client)
 				}
 
-				reader, readerErr := readerFromArgs(c.String("in"))
-				if readerErr != nil {
-					return readerErr
-				}
-				writer, writerErr := writerFromArgs(c.String("out"))
-				if writerErr != nil {
-					return writerErr
-				}
+				reader := bufio.NewReader(os.Stdin)
+				writer := os.Stdout
 
 				client, streamErr := client.ProtoClient().SignStream(context.TODO())
 				if streamErr != nil {
@@ -125,124 +79,11 @@ func signCommands(client *Client) []cli.Command {
 				}
 			},
 		},
-		cli.Command{
-			Name:      "verify",
-			Usage:     "Verify a signed message",
-			ArgsUsage: "message",
-			Flags: []cli.Flag{
-				cli.StringFlag{Name: "signer, s", Usage: "expected signer"},
-				cli.BoolFlag{Name: "armor, a"},
-				cli.StringFlag{Name: "in, i", Usage: "file to read"},
-				cli.StringFlag{Name: "out, o", Usage: "file to write"},
-				cli.BoolFlag{Name: "stdin", Usage: "read from stdin"},
-				cli.BoolFlag{Name: "stdout", Usage: "write to stdout"},
-			},
-			Action: func(c *cli.Context) error {
-				if c.String("in") != "" && c.Bool("stdin") {
-					return errors.Errorf("specify -in or -stdin, but not both")
-				}
-				if c.String("in") == "" && !c.Bool("stdin") {
-					return errors.Errorf("specify -in or -stdin")
-				}
-				if c.String("out") != "" && c.Bool("stdout") {
-					return errors.Errorf("specify -out or -stdout, but not both")
-				}
-				if c.String("out") == "" && !c.Bool("stdout") {
-					return errors.Errorf("specify -out or -stdout")
-				}
-
-				signer := c.String("signer")
-
-				if c.String("in") != "" && c.String("out") != "" {
-					verified, err := verifyFileForCLI(c, client)
-					if err != nil {
-						return err
-					}
-					if signer != "" {
-						if err := checkSigner(verified.Signer, signer); err != nil {
-							return err
-						}
-					} else if verified.Signer != nil {
-						fmtKey(os.Stdout, verified.Signer, "verified ")
-					}
-					return nil
-				}
-
-				reader, readerErr := readerFromArgs(c.String("in"))
-				if readerErr != nil {
-					return readerErr
-				}
-				writer, writerErr := writerFromArgs(c.String("out"))
-				if writerErr != nil {
-					return writerErr
-				}
-
-				client, clientErr := NewVerifyStreamClient(context.TODO(), client.ProtoClient(), c.Bool("armor"))
-				if clientErr != nil {
-					return clientErr
-				}
-				var outErr error
-				go func() {
-					_, inErr := readFrom(reader, 1024*1024, func(b []byte) error {
-						if len(b) > 0 {
-							if err := client.Send(&VerifyInput{Data: b}); err != nil {
-								return err
-							}
-						} else {
-							if err := client.CloseSend(); err != nil {
-								return err
-							}
-						}
-						return nil
-					})
-					if inErr != nil {
-						outErr = inErr
-					}
-				}()
-
-				wg := sync.WaitGroup{}
-				wg.Add(1)
-				go func() {
-					for {
-						resp, recvErr := client.Recv()
-						if recvErr != nil {
-							if recvErr == io.EOF {
-								break
-							}
-							outErr = recvErr
-							break
-						}
-						if signer != "" {
-							if err := checkSigner(resp.Signer, signer); err != nil {
-								outErr = err
-								break
-							}
-						} else if resp.Signer != nil {
-							fmtKey(os.Stdout, resp.Signer, "verified ")
-						}
-
-						if len(resp.Data) == 0 {
-							break
-						}
-
-						_, writeErr := writer.Write(resp.Data)
-						if writeErr != nil {
-							outErr = writeErr
-							break
-						}
-					}
-					wg.Done()
-				}()
-				wg.Wait()
-
-				return outErr
-			},
-		},
 	}
 }
 
 func signFileForCLI(c *cli.Context, client *Client) error {
-	return signFile(client, c.String("signer"), c.Bool("armored"), c.Bool("detached"), c.String("in"), c.String("out"))
+	return signFile(client, c.String("signer"), c.Bool("armor"), c.Bool("detached"), c.String("in"), c.String("out"))
 }
 
 func signFile(client *Client, signer string, armored bool, detached bool, in string, out string) error {
@@ -250,9 +91,11 @@ func signFile(client *Client, signer string, armored bool, detached bool, in str
 	if err != nil {
 		return err
 	}
-	out, err = filepath.Abs(out)
-	if err != nil {
-		return err
+	if out != "" {
+		out, err = filepath.Abs(out)
+		if err != nil {
+			return err
+		}
 	}
 
 	signClient, err := client.ProtoClient().SignFile(context.TODO())
@@ -282,50 +125,4 @@ func signFile(client *Client, signer string, armored bool, detached bool, in str
 	// }
 
 	return nil
-}
-
-func verifyFileForCLI(c *cli.Context, client *Client) (*VerifyFileOutput, error) {
-	return verifyFile(client, c.Bool("armored"), c.String("in"), c.String("out"))
-}
-
-func verifyFile(client *Client, armored bool, in string, out string) (*VerifyFileOutput, error) {
-	if in == "" {
-		return nil, errors.Errorf("in not specified")
-	}
-	in, err := filepath.Abs(in)
-	if err != nil {
-		return nil, err
-	}
-	if out != "" {
-		out, err = filepath.Abs(out)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	verifyClient, err := client.ProtoClient().VerifyFile(context.TODO())
-	if err != nil {
-		return nil, err
-	}
-
-	if err := verifyClient.Send(&VerifyFileInput{
-		Armored: armored,
-		In:      in,
-		Out:     out,
-	}); err != nil {
-		return nil, err
-	}
-
-	resp, recvErr := verifyClient.Recv()
-	if recvErr != nil {
-		// if recvErr == io.EOF {
-		// 	break
-		// }
-		return nil, recvErr
-	}
-	// if err := encryptClient.CloseSend(); err != nil {
-	// 	return err
-	// }
-
-	return resp, nil
 }

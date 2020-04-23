@@ -56,6 +56,13 @@ func TestKeyImport(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, bob.ID().String(), importResp.KID)
 
+	// Import (charlie, ID with whitespace)
+	importResp, err = service.KeyImport(ctx, &KeyImportRequest{
+		In: []byte(charlie.ID().String() + "\n  "),
+	})
+	require.NoError(t, err)
+	require.Equal(t, charlie.ID().String(), importResp.KID)
+
 	// Import (error)
 	_, err = service.KeyImport(ctx, &KeyImportRequest{In: []byte{}})
 	require.EqualError(t, err, "unknown key format")

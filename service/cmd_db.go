@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
-	strings "strings"
+	"strings"
 	"text/tabwriter"
 
 	"github.com/pkg/errors"

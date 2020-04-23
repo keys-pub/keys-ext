@@ -221,11 +221,13 @@ func (s *service) EncryptFile(srv Keys_EncryptFileServer) error {
 	if err != nil {
 		return err
 	}
-	if req.In == "" {
+	in := req.In
+	if in == "" {
 		return errors.Errorf("in not specified")
 	}
-	if req.Out == "" {
-		return errors.Errorf("out not specified")
+	out := req.Out
+	if out == "" {
+		out = in + ".enc"
 	}
 
 	enc, err := s.newEncrypt(srv.Context(), req.Recipients, req.Sender, req.Mode)
@@ -233,7 +235,7 @@ func (s *service) EncryptFile(srv Keys_EncryptFileServer) error {
 		return err
 	}
 
-	if err := s.encryptWriteInOut(srv.Context(), req.In, req.Out, enc, req.Armored); err != nil {
+	if err := s.encryptWriteInOut(srv.Context(), in, out, enc, req.Armored); err != nil {
 		return err
 	}
 

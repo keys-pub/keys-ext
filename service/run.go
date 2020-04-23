@@ -81,7 +81,6 @@ func resetKeyringAndExit(cfg *Config) {
 func Run(build Build) {
 	appName := flag.String("app", "Keys", "app name")
 	logPath := flag.String("log-path", "", "log path")
-	port := flag.Int("port", 0, "set port")
 	version := flag.Bool("version", false, "print version")
 	resetKeyring := flag.Bool("reset-keyring", false, "reset keyring")
 	force := flag.Bool("force", false, "force it")
@@ -138,14 +137,6 @@ func Run(build Build) {
 	}
 	if runtime.GOOS == "darwin" {
 		if err := checkCodesigned(); err != nil {
-			logFatal(err)
-		}
-	}
-
-	if *port > 0 {
-		logger.Infof("Setting port %d", *port)
-		cfg.SetInt("port", *port)
-		if err := cfg.Save(); err != nil {
 			logFatal(err)
 		}
 	}

@@ -145,23 +145,7 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 			Value: "Keys",
 			Usage: "app name",
 		},
-		cli.BoolFlag{
-			Name:   "test",
-			Hidden: true,
-		},
 	}
-
-	// app.Action = func(c *cli.Context) error {
-	// 	if c.NArg() > 0 {
-	// 		cli.ShowAppHelpAndExit(c, 1)
-	// 	}
-	// 	resp, err := client.ProtoClient().Keys(context.TODO(), &KeysRequest{})
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	fmtKeys(resp.Keys)
-	// 	return nil
-	// }
 
 	logger := logrus.StandardLogger()
 	formatter := &logrus.TextFormatter{
@@ -176,6 +160,7 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 	cmds = append(cmds, startCommands()...)
 	cmds = append(cmds, authCommands(client)...)
 	cmds = append(cmds, signCommands(client)...)
+	cmds = append(cmds, verifyCommands(client)...)
 	cmds = append(cmds, sigchainCommands(client)...)
 	cmds = append(cmds, encryptCommands(client)...)
 	cmds = append(cmds, pullCommands(client)...)
@@ -221,7 +206,7 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 			return nil
 		}
 
-		if !c.GlobalBool("test") && build.Version != VersionDev {
+		if build.Version != VersionDev {
 			if err := autostart(cfg); err != nil {
 				errorFn(err)
 				return err
@@ -255,6 +240,10 @@ func connect(cfg *Config, client *Client, build Build, authToken string, reconne
 		return err
 	}
 	logger.Debugf("Service status %s", status.String())
+
+	if cfg.AppName() != status.AppName {
+		return errServiceRuntime{Reason: fmt.Sprintf("service and client have different app names %s != %s", cfg.AppName(), status.AppName)}
+	}
 
 	if build.Version == VersionDev {
 		return nil

@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	strings "strings"
+	"strings"
 	"text/tabwriter"
 
 	"github.com/urfave/cli"

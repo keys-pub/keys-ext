@@ -5,7 +5,7 @@ import (
 	"context"
 	"io"
 	"os"
-	strings "strings"
+	"strings"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/saltpack"
@@ -44,19 +44,50 @@ func (s *service) Verify(ctx context.Context, req *VerifyRequest) (*VerifyRespon
 	return &VerifyResponse{Data: verified, Signer: signer}, nil
 }
 
+// VerifyDetached (RPC) ...
+func (s *service) VerifyDetached(ctx context.Context, req *VerifyDetachedRequest) (*VerifyDetachedResponse, error) {
+	sp := saltpack.NewSaltpack(s.ks)
+	var kid keys.ID
+	if req.Armored {
+		k, err := sp.VerifyArmoredDetached(string(req.Sig), req.Data)
+		if err != nil {
+			return nil, err
+		}
+		kid = k
+	} else {
+		k, err := sp.VerifyDetached(req.Sig, req.Data)
+		if err != nil {
+			return nil, err
+		}
+		kid = k
+	}
+
+	var signer *Key
+	if kid != "" {
+		s, err := s.verifyKey(ctx, kid)
+		if err != nil {
+			return nil, err
+		}
+		signer = s
+	}
+
+	return &VerifyDetachedResponse{Signer: signer}, nil
+}
+
 // VerifyFile (RPC) ...
 func (s *service) VerifyFile(srv Keys_VerifyFileServer) error {
 	req, err := srv.Recv()
 	if err != nil {
 		return err
 	}
-	if req.In == "" {
+	in := req.In
+	if in == "" {
 		return errors.Errorf("in not specified")
 	}
 	out := req.Out
 	if out == "" {
-		if strings.HasSuffix(req.In, ".sig") {
-			out = strings.TrimSuffix(req.In, ".sig")
+		if strings.HasSuffix(in, ".sig") {
+			out = strings.TrimSuffix(in, ".sig")
 		}
 		out, err = nextPath(out)
 		if err != nil {
@@ -64,12 +95,12 @@ func (s *service) VerifyFile(srv Keys_VerifyFileServer) error {
 		}
 	}
 
-	signer, err := s.verifyWriteInOut(srv.Context(), req.In, out, req.Armored)
+	signer, err := s.verifyWriteInOut(srv.Context(), in, out, req.Armored)
 	if err != nil {
 		return err
 	}
 
-	if err := srv.Send(&VerifyFileOutput{
+	if err := srv.SendAndClose(&VerifyFileOutput{
 		Signer: signer,
 		Out:    out,
 	}); err != nil {
@@ -77,6 +108,28 @@ func (s *service) VerifyFile(srv Keys_VerifyFileServer) error {
 	}
 
 	return nil
+}
+
+// VerifyDetachedFile (RPC) ...
+func (s *service) VerifyDetachedFile(srv Keys_VerifyDetachedFileServer) error {
+	req, err := srv.Recv()
+	if err != nil {
+		return err
+	}
+	in := req.In
+	if in == "" {
+		return errors.Errorf("in not specified")
+	}
+
+	signer, err := s.verifyDetachedIn(srv.Context(), req.Sig, in, req.Armored)
+	if err != nil {
+		return err
+	}
+
+	resp := &VerifyDetachedResponse{
+		Signer: signer,
+	}
+	return srv.SendAndClose(resp)
 }
 
 // VerifyStream (RPC) ...
@@ -129,6 +182,45 @@ func (s *service) verifyStream(srv verifyStreamServer, armored bool) error {
 	return s.readFromStream(srv.Context(), streamReader, signer, sendFn)
 }
 
+// VerifyDetachedStream (RPC) ...
+func (s *service) VerifyDetachedStream(srv Keys_VerifyDetachedStreamServer) error {
+	ctx := srv.Context()
+
+	first, err := srv.Recv()
+	if err != nil {
+		return err
+	}
+
+	recvFn := func() ([]byte, error) {
+		req, recvErr := srv.Recv()
+		if recvErr != nil {
+			return nil, recvErr
+		}
+		return req.Data, nil
+	}
+
+	reader := newStreamReader(srv.Context(), recvFn)
+	if err := reader.write(first.Data); err != nil {
+		return err
+	}
+	kid, err := s.verifyDetachedReader(ctx, first.Sig, reader, first.Armored)
+	if err != nil {
+		return err
+	}
+	var signer *Key
+	if kid != "" {
+		s, err := s.verifyKey(ctx, kid)
+		if err != nil {
+			return err
+		}
+		signer = s
+	}
+	resp := &VerifyDetachedResponse{
+		Signer: signer,
+	}
+	return srv.SendAndClose(resp)
+}
+
 // VerifyStreamClient ...
 type VerifyStreamClient interface {
 	Send(*VerifyInput) error
@@ -156,23 +248,21 @@ func (s *service) readFromStream(ctx context.Context, streamReader io.Reader, si
 
 		n, err := streamReader.Read(buf)
 		if n != 0 {
-			if err := sendFn(buf[:n], sendSigner); err != nil {
+			if err := sendFn(buf[:n], nil); err != nil {
 				return err
 			}
-			// Only send signer on first send
-			sendSigner = nil
 		}
 		if err != nil {
 			if err == io.EOF {
+				// Send signer on last response.
 				// Send empty bytes denotes EOF
-				if err := sendFn([]byte{}, nil); err != nil {
+				if err := sendFn([]byte{}, sendSigner); err != nil {
 					return err
 				}
 				break
 			}
 			return err
 		}
-
 	}
 
 	return nil
@@ -186,7 +276,17 @@ func (s *service) verifyReader(ctx context.Context, reader io.Reader, armored bo
 	return sp.NewVerifyStream(reader)
 }
 
+func (s *service) verifyDetachedReader(ctx context.Context, sig []byte, reader io.Reader, armored bool) (keys.ID, error) {
+	sp := saltpack.NewSaltpack(s.ks)
+	if armored {
+		return sp.VerifyArmoredDetachedReader(string(sig), reader)
+	}
+	return sp.VerifyDetachedReader(sig, reader)
+}
+
 func (s *service) verifyWriteInOut(ctx context.Context, in string, out string, armored bool) (*Key, error) {
+	logger.Infof("Verify %s to %s", in, out)
+
 	inFile, err := os.Open(in) // #nosec
 	if err != nil {
 		return nil, err
@@ -200,6 +300,7 @@ func (s *service) verifyWriteInOut(ctx context.Context, in string, out string, a
 	if err != nil {
 		return nil, err
 	}
+
 	outTmp := out + ".tmp"
 	outFile, err := os.Create(outTmp)
 	if err != nil {
@@ -229,6 +330,37 @@ func (s *service) verifyWriteInOut(ctx context.Context, in string, out string, a
 		return nil, err
 	}
 
+	var signer *Key
+	if kid != "" {
+		s, err := s.verifyKey(ctx, kid)
+		if err != nil {
+			return nil, err
+		}
+		signer = s
+	}
+
+	return signer, nil
+}
+
+func (s *service) verifyDetachedIn(ctx context.Context, sig []byte, in string, armored bool) (*Key, error) {
+	logger.Infof("Verify (detached) %s", in)
+
+	inFile, err := os.Open(in) // #nosec
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_ = inFile.Close()
+	}()
+	reader := bufio.NewReader(inFile)
+
+	kid, err := s.verifyDetachedReader(ctx, sig, reader, armored)
+	if err != nil {
+		return nil, err
+	}
+	if err := inFile.Close(); err != nil {
+		return nil, err
+	}
 	var signer *Key
 	if kid != "" {
 		s, err := s.verifyKey(ctx, kid)

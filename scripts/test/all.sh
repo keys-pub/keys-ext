@@ -7,6 +7,13 @@ cd $dir
 
 keys stop || true
 
+function cleanup {
+    echo "Cleaning up..."
+    keys -app Test uninstall
+    keysd -app Test -reset-keyring -force
+}
+trap cleanup EXIT
+
 echo "auth"
 eval $(keys -app Test auth -password "testpassword123")
 
@@ -15,5 +22,4 @@ export KEYS="keys -app Test"
 ./sign.sh
 ./import.sh
 
-keys -app Test uninstall
-keysd -app Test -reset-keyring -force
+# TODO: Add to CI

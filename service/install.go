@@ -6,7 +6,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"runtime"
-	strings "strings"
+	"strings"
 
 	"github.com/pkg/errors"
 )

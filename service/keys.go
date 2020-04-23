@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"sort"
-	strings "strings"
+	"strings"
 
 	"github.com/keys-pub/keys"
 	"github.com/pkg/errors"

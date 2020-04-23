@@ -4,7 +4,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
-	strings "strings"
+	"strings"
 	"time"
 
 	"github.com/mitchellh/go-ps"

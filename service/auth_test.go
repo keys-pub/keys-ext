@@ -9,7 +9,7 @@ import (
 )
 
 func TestAuth(t *testing.T) {
-	cfg, closeFn := testConfig(t, "", "mem")
+	cfg, closeFn := testConfig(t, "KeysTest", "", "mem")
 	defer closeFn()
 	st, err := newKeyringStore(cfg)
 	require.NoError(t, err)
@@ -48,7 +48,7 @@ func TestAuth(t *testing.T) {
 }
 
 func TestAuthorize(t *testing.T) {
-	cfg, closeFn := testConfig(t, "", "mem")
+	cfg, closeFn := testConfig(t, "KeysTest", "", "mem")
 	defer closeFn()
 	st, err := newKeyringStore(cfg)
 	require.NoError(t, err)

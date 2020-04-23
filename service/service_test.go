@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"net/http/httptest"
 	"os"
 	"testing"
@@ -16,8 +17,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func testConfig(t *testing.T, serverURL string, keyringType string) (*Config, CloseFn) {
-	appName := "KeysTest-" + keys.Rand3262()
+func testConfig(t *testing.T, appName string, serverURL string, keyringType string) (*Config, CloseFn) {
+	require.NotEmpty(t, appName)
 	cfg, err := NewConfig(appName)
 	require.NoError(t, err)
 	cfg.Set("server", serverURL)
@@ -30,6 +31,13 @@ func testConfig(t *testing.T, serverURL string, keyringType string) (*Config, Cl
 	return cfg, closeFn
 }
 
+func writeTestFile(t *testing.T) string {
+	inPath := keys.RandTempPath(".txt")
+	writeErr := ioutil.WriteFile(inPath, []byte("test message"), 0644)
+	require.NoError(t, writeErr)
+	return inPath
+}
+
 func testFire(t *testing.T, clock *clock) server.Fire {
 	fi := ds.NewMem()
 	fi.SetTimeNow(clock.Now)
@@ -37,22 +45,25 @@ func testFire(t *testing.T, clock *clock) server.Fire {
 }
 
 type testEnv struct {
-	clock *clock
-	fi    server.Fire
-	req   *util.MockRequestor
-	users *user.Store
+	clock   *clock
+	appName string
+	fi      server.Fire
+	req     *util.MockRequestor
+	users   *user.Store
 }
 
 func newTestEnv(t *testing.T) *testEnv {
 	clock := newClock()
+	appName := "KeysTest-" + keys.Rand3262()
 	fi := testFire(t, clock)
 	req := util.NewMockRequestor()
 	users := testUserStore(t, fi, keys.NewSigchainStore(fi), req, clock)
 	return &testEnv{
-		clock: clock,
-		fi:    fi,
-		req:   req,
-		users: users,
+		clock:   clock,
+		appName: appName,
+		fi:      fi,
+		req:     req,
+		users:   users,
 	}
 }
 
@@ -68,7 +79,7 @@ func newTestService(t *testing.T, env *testEnv) (*service, CloseFn) {
 
 func newTestServiceWithOpts(t *testing.T, env *testEnv, keyringType string) (*service, CloseFn) {
 	serverEnv := newTestServerEnv(t, env)
-	cfg, closeCfg := testConfig(t, serverEnv.url, keyringType)
+	cfg, closeCfg := testConfig(t, env.appName, serverEnv.url, keyringType)
 	st, err := newKeyringStore(cfg)
 	require.NoError(t, err)
 	auth, err := newAuth(cfg, st)

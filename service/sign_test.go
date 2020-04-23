@@ -6,10 +6,10 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"testing"
 	"time"
 
+	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/saltpack"
 	"github.com/keys-pub/keys/util"
 	"github.com/stretchr/testify/require"
@@ -53,15 +53,15 @@ func TestSignStream(t *testing.T) {
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
 
-	testSignStream(t, service, bytes.Repeat([]byte{0x31}, 5), alice.ID().String())
-	testSignStream(t, service, bytes.Repeat([]byte{0x31}, (1024*1024)+5), alice.ID().String())
+	testSignStream(t, env, service, bytes.Repeat([]byte{0x31}, 5), alice.ID().String())
+	testSignStream(t, env, service, bytes.Repeat([]byte{0x31}, (1024*1024)+5), alice.ID().String())
 	// TODO: Test timeout if data stops streaming
 }
 
-func testSignStream(t *testing.T, service *service, plaintext []byte, signer string) {
+func testSignStream(t *testing.T, env *testEnv, service *service, plaintext []byte, signer string) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
-	cl, clientCloseFn := newTestRPCClient(t, service)
+	cl, clientCloseFn := newTestRPCClient(t, service, env)
 	defer clientCloseFn()
 
 	streamClient, streamErr := cl.ProtoClient().SignStream(ctx)
@@ -173,7 +173,7 @@ func TestSignVerifyFile(t *testing.T) {
 	testImportKey(t, bobService, bob)
 
 	b := []byte("test message")
-	inPath := filepath.Join(os.TempDir(), "test.txt")
+	inPath := keys.RandTempPath("")
 	outPath := inPath + ".sig"
 	verifiedPath := inPath + ".ver"
 
@@ -184,29 +184,29 @@ func TestSignVerifyFile(t *testing.T) {
 	writeErr := ioutil.WriteFile(inPath, b, 0644)
 	require.NoError(t, writeErr)
 
-	aliceClient, aliceClientCloseFn := newTestRPCClient(t, aliceService)
+	aliceClient, aliceClientCloseFn := newTestRPCClient(t, aliceService, env)
 	defer aliceClientCloseFn()
 
 	err := signFile(aliceClient, alice.ID().String(), true, false, inPath, outPath)
 	require.NoError(t, err)
 
-	bobClient, bobClientCloseFn := newTestRPCClient(t, bobService)
+	bobClient, bobClientCloseFn := newTestRPCClient(t, bobService, env)
 	defer bobClientCloseFn()
 
-	ver, err := verifyFile(bobClient, true, outPath, verifiedPath)
+	signer, _, err := verifyFile(bobClient, true, outPath, verifiedPath)
 	require.NoError(t, err)
-	require.NotNil(t, ver.Signer)
-	require.Equal(t, alice.ID().String(), ver.Signer.ID)
+	require.NotNil(t, signer)
+	require.Equal(t, alice.ID().String(), signer.ID)
 
 	bout, err := ioutil.ReadFile(verifiedPath)
 	require.NoError(t, err)
 	require.Equal(t, b, bout)
 	os.Remove(verifiedPath)
 
-	ver, err = verifyFile(bobClient, true, outPath, "")
+	signer, out, err := verifyFile(bobClient, true, outPath, "")
 	require.NoError(t, err)
-	require.Equal(t, filepath.Join(os.TempDir(), "test-1.txt"), ver.Out)
-	os.Remove(ver.Out)
+	require.Equal(t, inPath+"-1", out)
+	os.Remove(out)
 }
 
 func TestVerifyUnverified(t *testing.T) {

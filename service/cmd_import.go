@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 
 	"github.com/keys-pub/keys"
-	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
 
@@ -20,17 +19,9 @@ func importCommands(client *Client) []cli.Command {
 			Usage: "Import a key",
 			Flags: []cli.Flag{
 				cli.StringFlag{Name: "in, i", Usage: "file to read"},
-				cli.BoolFlag{Name: "stdin", Usage: "read from stdin"},
 				cli.StringFlag{Name: "password, p", Usage: "password"},
 			},
 			Action: func(c *cli.Context) error {
-				if c.String("in") != "" && c.Bool("stdin") {
-					return errors.Errorf("specify -in or -stdin, but not both")
-				}
-				if c.String("in") == "" && !c.Bool("stdin") {
-					return errors.Errorf("specify -in or -stdin")
-				}
-
 				var b []byte
 				if c.String("in") != "" {
 					path, err := filepath.Abs(c.String("in"))
@@ -42,9 +33,7 @@ func importCommands(client *Client) []cli.Command {
 						return err
 					}
 					b = in
-				}
-
-				if c.Bool("stdin") {
+				} else {
 					in, err := ioutil.ReadAll(bufio.NewReader(os.Stdin))
 					if err != nil {
 						return err
@@ -52,7 +41,7 @@ func importCommands(client *Client) []cli.Command {
 					b = in
 				}
 
-				typ := keys.DetectDataType(b)
+				b, typ := keys.DetectDataType(b)
 				if typ == keys.IDType {
 					req := &KeyImportRequest{
 						In: b,

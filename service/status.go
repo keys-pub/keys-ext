@@ -18,6 +18,7 @@ func (s *service) RuntimeStatus(ctx context.Context, req *RuntimeStatusRequest) 
 	}
 	resp := RuntimeStatusResponse{
 		Version:         s.build.Version,
+		AppName:         s.cfg.AppName(),
 		Exe:             exe,
 		AuthSetupNeeded: !authed,
 	}

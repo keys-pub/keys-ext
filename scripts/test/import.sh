@@ -2,7 +2,7 @@
 
 set -e -u -o pipefail # Fail on error
 
-outfile=`mktemp /tmp/XXXXXXXXXXX`
+keyfile=`mktemp /tmp/XXXXXXXXXXX`
 
 keycmd=${KEYS:-"keys"}
 echo "cmd: $keycmd"
@@ -12,15 +12,21 @@ kid=`$keycmd generate`
 echo "gen $kid"
 
 echo "export $kid"
-$keycmd export -kid $kid -password testpassword123 > "$outfile"
+$keycmd export -kid $kid -password testpassword123 > "$keyfile"
+echo "remove $kid"
+$keycmd remove "$kid"
+
 echo "import (in)"
-$keycmd import -in "$outfile" -password testpassword123
+$keycmd import -in "$keyfile" -password testpassword123
+echo "remove $kid"
+$keycmd remove "$kid"
 
 echo "import (stdin)"
-cat "$outfile" | $keycmd import -stdin -password testpassword123
+cat "$keyfile" | $keycmd import -password testpassword123
+echo "remove $kid"
+$keycmd remove "$kid"
 
-echo "import (kid)"
-echo "$kid" | $keycmd import -stdin
-
+echo "import (stdin, kid)"
+echo "$kid" | $keycmd import
 echo "remove $kid"
 $keycmd remove "$kid"

@@ -5,7 +5,7 @@ import (
 	"context"
 	"io"
 	"os"
-	strings "strings"
+	"strings"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/saltpack"

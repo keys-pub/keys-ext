@@ -3,6 +3,8 @@ package service
 import (
 	"bytes"
 	"context"
+
+	"github.com/pkg/errors"
 )
 
 type streamReader struct {
@@ -19,16 +21,26 @@ func newStreamReader(ctx context.Context, recvFn func() ([]byte, error)) *stream
 	}
 }
 
+func (r *streamReader) write(b []byte) error {
+	if len(b) == 0 {
+		return nil
+	}
+	n, err := r.buf.Write(b)
+	if err != nil {
+		return err
+	}
+	if n != len(b) {
+		return errors.Errorf("failed to write all bytes %d != %d", n, len(b))
+	}
+	return nil
+}
+
 func (r *streamReader) recv() error {
 	b, recvErr := r.recvFn()
 	if recvErr != nil {
 		return recvErr
 	}
-	_, writeErr := r.buf.Write(b)
-	if writeErr != nil {
-		return writeErr
-	}
-	return nil
+	return r.write(b)
 }
 
 func (r *streamReader) Read(p []byte) (n int, err error) {

@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strconv"
-	strings "strings"
+	"strings"
 
 	"github.com/pkg/errors"
 )
