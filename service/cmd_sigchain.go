@@ -32,7 +32,7 @@ func sigchainCommands(client *Client) []cli.Command {
 						}
 						seq := c.Int("seq")
 						if seq != 0 {
-							resp, err := client.ProtoClient().Statement(context.TODO(), &StatementRequest{
+							resp, err := client.KeysClient().Statement(context.TODO(), &StatementRequest{
 								KID: kida,
 								Seq: int32(seq),
 							})
@@ -51,7 +51,7 @@ func sigchainCommands(client *Client) []cli.Command {
 							return nil
 						}
 
-						resp, err := client.ProtoClient().Sigchain(context.TODO(), &SigchainRequest{
+						resp, err := client.KeysClient().Sigchain(context.TODO(), &SigchainRequest{
 							KID: kida,
 						})
 						if err != nil {
@@ -104,7 +104,7 @@ func sigchainCommands(client *Client) []cli.Command {
 									return errors.Errorf("sigchain data restricted to 16KB")
 								}
 
-								resp, err := client.ProtoClient().StatementCreate(context.TODO(), &StatementCreateRequest{
+								resp, err := client.KeysClient().StatementCreate(context.TODO(), &StatementCreateRequest{
 									KID:   c.String("kid"),
 									Data:  b,
 									Local: c.Bool("local"),
@@ -137,7 +137,7 @@ func sigchainCommands(client *Client) []cli.Command {
 								if err != nil {
 									return err
 								}
-								resp, err := client.ProtoClient().StatementRevoke(context.TODO(), &StatementRevokeRequest{
+								resp, err := client.KeysClient().StatementRevoke(context.TODO(), &StatementRevokeRequest{
 									KID:   kid,
 									Seq:   int32(c.Int("seq")),
 									Local: c.Bool("local"),

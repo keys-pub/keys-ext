@@ -48,7 +48,7 @@ func encryptCommands(client *Client) []cli.Command {
 				reader := bufio.NewReader(os.Stdin)
 				writer := os.Stdout
 
-				encryptClient, err := client.ProtoClient().EncryptStream(context.TODO())
+				encryptClient, err := client.KeysClient().EncryptStream(context.TODO())
 				if err != nil {
 					return err
 				}
@@ -125,7 +125,7 @@ func encryptCommands(client *Client) []cli.Command {
 				reader := bufio.NewReader(os.Stdin)
 				writer := os.Stdout
 
-				decryptClient, err := NewDecryptStreamClient(context.TODO(), client.ProtoClient(), c.Bool("armor"), mode)
+				decryptClient, err := NewDecryptStreamClient(context.TODO(), client.KeysClient(), c.Bool("armor"), mode)
 				if err != nil {
 					return err
 				}
@@ -204,7 +204,7 @@ func encryptFile(client *Client, recipients []string, sender string, armored boo
 		}
 	}
 
-	encryptClient, err := client.ProtoClient().EncryptFile(context.TODO())
+	encryptClient, err := client.KeysClient().EncryptFile(context.TODO())
 	if err != nil {
 		return err
 	}
@@ -257,7 +257,7 @@ func decryptFile(client *Client, armored bool, mode EncryptMode, in string, out 
 		}
 	}
 
-	decryptClient, err := client.ProtoClient().DecryptFile(context.TODO())
+	decryptClient, err := client.KeysClient().DecryptFile(context.TODO())
 	if err != nil {
 		return nil, err
 	}

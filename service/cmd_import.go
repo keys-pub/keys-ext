@@ -46,7 +46,7 @@ func importCommands(client *Client) []cli.Command {
 					req := &KeyImportRequest{
 						In: b,
 					}
-					resp, err := client.ProtoClient().KeyImport(context.TODO(), req)
+					resp, err := client.KeysClient().KeyImport(context.TODO(), req)
 					if err != nil {
 						return err
 					}
@@ -67,7 +67,7 @@ func importCommands(client *Client) []cli.Command {
 					In:       b,
 					Password: password,
 				}
-				resp, err := client.ProtoClient().KeyImport(context.TODO(), req)
+				resp, err := client.KeysClient().KeyImport(context.TODO(), req)
 				if err != nil {
 					return err
 				}

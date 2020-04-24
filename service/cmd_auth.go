@@ -28,7 +28,7 @@ func authCommands(client *Client) []cli.Command {
 					}
 				}
 
-				status, err := client.ProtoClient().RuntimeStatus(context.TODO(), &RuntimeStatusRequest{})
+				status, err := client.KeysClient().RuntimeStatus(context.TODO(), &RuntimeStatusRequest{})
 				if err != nil {
 					return err
 				}
@@ -54,7 +54,7 @@ func authCommands(client *Client) []cli.Command {
 						password = p
 					}
 
-					setupResp, err := client.ProtoClient().AuthSetup(context.TODO(), &AuthSetupRequest{
+					setupResp, err := client.KeysClient().AuthSetup(context.TODO(), &AuthSetupRequest{
 						Password: password,
 					})
 					if err != nil {
@@ -72,7 +72,7 @@ func authCommands(client *Client) []cli.Command {
 					}
 
 					logger.Infof("Auth unlock...")
-					unlock, unlockErr := client.ProtoClient().AuthUnlock(context.TODO(), &AuthUnlockRequest{
+					unlock, unlockErr := client.KeysClient().AuthUnlock(context.TODO(), &AuthUnlockRequest{
 						Password: password,
 						Client:   clientName,
 					})
@@ -105,7 +105,7 @@ func authCommands(client *Client) []cli.Command {
 			Usage: "Lock",
 			Flags: []cli.Flag{},
 			Action: func(c *cli.Context) error {
-				_, lockErr := client.ProtoClient().AuthLock(context.TODO(), &AuthLockRequest{})
+				_, lockErr := client.KeysClient().AuthLock(context.TODO(), &AuthLockRequest{})
 				if lockErr != nil {
 					return lockErr
 				}

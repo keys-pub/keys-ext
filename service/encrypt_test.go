@@ -231,7 +231,7 @@ func testEncryptStream(t *testing.T, env *testEnv, service *service, plaintext [
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 
-	streamClient, streamErr := client.ProtoClient().EncryptStream(ctx)
+	streamClient, streamErr := client.KeysClient().EncryptStream(ctx)
 	require.NoError(t, streamErr)
 
 	chunkSize := 1024 * 1024
@@ -297,15 +297,15 @@ func testDecryptStream(t *testing.T, env *testEnv, service *service, b []byte, m
 	switch mode {
 	case SigncryptV1:
 		if armored {
-			streamClient, clientErr = client.ProtoClient().SigncryptOpenArmoredStream(ctx)
+			streamClient, clientErr = client.KeysClient().SigncryptOpenArmoredStream(ctx)
 		} else {
-			streamClient, clientErr = client.ProtoClient().SigncryptOpenStream(ctx)
+			streamClient, clientErr = client.KeysClient().SigncryptOpenStream(ctx)
 		}
 	case EncryptV2:
 		if armored {
-			streamClient, clientErr = client.ProtoClient().DecryptArmoredStream(ctx)
+			streamClient, clientErr = client.KeysClient().DecryptArmoredStream(ctx)
 		} else {
-			streamClient, clientErr = client.ProtoClient().DecryptStream(ctx)
+			streamClient, clientErr = client.KeysClient().DecryptStream(ctx)
 		}
 	default:
 		t.Fatal("invalid mode")

@@ -70,7 +70,7 @@ func verifyCommands(client *Client) []cli.Command {
 
 				armored := mode.isArmored(stdIn, false)
 				logger.Debugf("Verify stream (cmd) armored=%t, detatched=false", armored)
-				verifyClient, err := NewVerifyStreamClient(context.TODO(), client.ProtoClient(), armored)
+				verifyClient, err := NewVerifyStreamClient(context.TODO(), client.KeysClient(), armored)
 				if err != nil {
 					return err
 				}
@@ -164,7 +164,7 @@ func verifyFile(client *Client, armored bool, in string, out string, signer stri
 		}
 	}
 
-	verifyClient, err := client.ProtoClient().VerifyFile(context.TODO())
+	verifyClient, err := client.KeysClient().VerifyFile(context.TODO())
 	if err != nil {
 		return "", err
 	}
@@ -214,7 +214,7 @@ func verifyDetachedFile(client *Client, armored bool, in string, sigFile string,
 		return err
 	}
 
-	verifyClient, err := client.ProtoClient().VerifyDetachedFile(context.TODO())
+	verifyClient, err := client.KeysClient().VerifyDetachedFile(context.TODO())
 	if err != nil {
 		return err
 	}
@@ -246,7 +246,7 @@ func verifyDetachedStream(client *Client, armored bool, reader io.Reader, sigFil
 		return err
 	}
 
-	verifyClient, err := client.ProtoClient().VerifyDetachedStream(context.TODO())
+	verifyClient, err := client.KeysClient().VerifyDetachedStream(context.TODO())
 	if err != nil {
 		return err
 	}

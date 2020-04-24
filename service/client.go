@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keysd/fido2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
@@ -24,10 +25,11 @@ import (
 // Client defines the RPC client.
 type Client struct {
 	sync.Mutex
-	client    KeysClient
-	conn      *grpc.ClientConn
-	cfg       *Config
-	connectFn ClientConnectFn
+	keysClient  KeysClient
+	fido2Client fido2.AuthenticatorsClient
+	conn        *grpc.ClientConn
+	cfg         *Config
+	connectFn   ClientConnectFn
 }
 
 // VersionDev is default for dev environment.
@@ -60,7 +62,8 @@ func (c *Client) Connect(cfg *Config, authToken string) error {
 		return err
 	}
 	c.conn = conn
-	c.client = NewKeysClient(conn)
+	c.keysClient = NewKeysClient(conn)
+	c.fido2Client = fido2.NewAuthenticatorsClient(conn)
 	return nil
 }
 
@@ -87,9 +90,14 @@ func connectLocal(cfg *Config, authToken string) (*grpc.ClientConn, error) {
 	return grpc.Dial(addr, opts...)
 }
 
-// ProtoClient returns RPC client.
-func (c *Client) ProtoClient() KeysClient {
-	return c.client
+// KeysClient returns Keys RPC client.
+func (c *Client) KeysClient() KeysClient {
+	return c.keysClient
+}
+
+// FIDO2Client returns FIDO2 Authenticators RPC client.
+func (c *Client) FIDO2Client() fido2.AuthenticatorsClient {
+	return c.fido2Client
 }
 
 // Close ...
@@ -99,7 +107,8 @@ func (c *Client) Close() error {
 		err = c.conn.Close()
 		c.conn = nil
 	}
-	c.client = nil
+	c.keysClient = nil
+	c.fido2Client = nil
 	return err
 }
 
@@ -173,6 +182,7 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 	cmds = append(cmds, configCommands(client)...)
 	cmds = append(cmds, logCommands(client)...)
 	cmds = append(cmds, wormholeCommands(client)...)
+	cmds = append(cmds, fido2Commands(client)...)
 	sort.Slice(cmds, func(i, j int) bool {
 		return cmds[i].Name < cmds[j].Name
 	})
@@ -235,7 +245,7 @@ func connect(cfg *Config, client *Client, build Build, authToken string, reconne
 	}
 
 	logger.Debugf("Service status...")
-	status, err := client.ProtoClient().RuntimeStatus(context.TODO(), &RuntimeStatusRequest{})
+	status, err := client.KeysClient().RuntimeStatus(context.TODO(), &RuntimeStatusRequest{})
 	if err != nil {
 		return err
 	}

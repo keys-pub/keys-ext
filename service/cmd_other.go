@@ -21,7 +21,7 @@ func otherCommands(client *Client) []cli.Command {
 				if err != nil {
 					return err
 				}
-				rand, err := client.ProtoClient().Rand(context.TODO(), &RandRequest{
+				rand, err := client.KeysClient().Rand(context.TODO(), &RandRequest{
 					NumBytes: int32(c.Int("n")),
 					Encoding: enc,
 				})

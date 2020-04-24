@@ -27,7 +27,7 @@ func keyCommands(client *Client) []cli.Command {
 					}
 					types = append(types, typ)
 				}
-				resp, err := client.ProtoClient().Keys(context.TODO(), &KeysRequest{Types: types})
+				resp, err := client.KeysClient().Keys(context.TODO(), &KeysRequest{Types: types})
 				if err != nil {
 					return err
 				}
@@ -40,7 +40,7 @@ func keyCommands(client *Client) []cli.Command {
 			Usage: "Keyring",
 			Flags: []cli.Flag{},
 			Action: func(c *cli.Context) error {
-				resp, err := client.ProtoClient().Items(context.TODO(), &ItemsRequest{})
+				resp, err := client.KeysClient().Items(context.TODO(), &ItemsRequest{})
 				if err != nil {
 					return err
 				}
@@ -57,7 +57,7 @@ func keyCommands(client *Client) []cli.Command {
 				if identity == "" {
 					return errors.Errorf("specify kid or user")
 				}
-				resp, err := client.ProtoClient().Key(context.TODO(), &KeyRequest{
+				resp, err := client.KeysClient().Key(context.TODO(), &KeyRequest{
 					Identity: identity,
 				})
 				if err != nil {
@@ -96,7 +96,7 @@ func keyCommands(client *Client) []cli.Command {
 				req := &KeyGenerateRequest{
 					Type: typ,
 				}
-				resp, err := client.ProtoClient().KeyGenerate(context.TODO(), req)
+				resp, err := client.KeysClient().KeyGenerate(context.TODO(), req)
 				if err != nil {
 					return err
 				}
@@ -115,7 +115,7 @@ func keyCommands(client *Client) []cli.Command {
 				if err != nil {
 					return err
 				}
-				if _, err := client.ProtoClient().KeyRemove(context.TODO(), &KeyRemoveRequest{
+				if _, err := client.KeysClient().KeyRemove(context.TODO(), &KeyRemoveRequest{
 					KID: kid,
 				}); err != nil {
 					return err

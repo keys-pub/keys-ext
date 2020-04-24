@@ -21,6 +21,7 @@ import (
 	"github.com/keys-pub/keys/saltpack"
 	"github.com/keys-pub/keys/util"
 	"github.com/keys-pub/keysd/db"
+	"github.com/keys-pub/keysd/fido2"
 	"github.com/keys-pub/keysd/http/client"
 	"github.com/keys-pub/keysd/wormhole"
 	"github.com/keys-pub/keysd/wormhole/sctp"
@@ -49,6 +50,7 @@ func newProtoService(cfg *Config, build Build, auth *auth) (*protoService, error
 
 func (s *protoService) Register(grpcServer *grpc.Server) {
 	RegisterKeysServer(grpcServer, s)
+	fido2.RegisterAuthenticatorsServer(grpcServer, fido2.NewAuthenticatorsServer())
 }
 
 func setupLogging(cfg *Config, logPath string) (Logger, LogInterceptor) {

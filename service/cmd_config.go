@@ -23,7 +23,7 @@ func configCommands(client *Client) []cli.Command {
 						}
 						key := c.Args().Get(0)
 						value := c.Args().Get(1)
-						// _, err := client.ProtoClient().ConfigSet(context.TODO(), &ConfigSetRequest{
+						// _, err := client.KeysClient().ConfigSet(context.TODO(), &ConfigSetRequest{
 						// 	Key:   key,
 						// 	Value: value,
 						// })
@@ -59,7 +59,7 @@ func configCommands(client *Client) []cli.Command {
 				},
 			},
 			Action: func(c *cli.Context) error {
-				// configResp, configErr := client.ProtoClient().Config(context.TODO(), &ConfigRequest{})
+				// configResp, configErr := client.KeysClient().Config(context.TODO(), &ConfigRequest{})
 				// if configErr != nil {
 				// 	return configErr
 				// }

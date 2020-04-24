@@ -74,6 +74,12 @@ github.com/golang/protobuf v1.3.3/go.mod h1:vzj43D7+SQXF/4pzW/hwtAqwc6iTitCiVSaW
 github.com/golang/protobuf v1.3.4/go.mod h1:vzj43D7+SQXF/4pzW/hwtAqwc6iTitCiVSaWz5lYuqw=
 github.com/golang/protobuf v1.3.5 h1:F768QJ1E9tib+q5Sc8MkdJi1RxLTbRcTf8LJV56aRls=
 github.com/golang/protobuf v1.3.5/go.mod h1:6O5/vntMXwX2lRkT1hjjk0nAC1IDOTvTlVgjlRvqsdk=
+github.com/golang/protobuf v1.4.0-rc.1/go.mod h1:ceaxUfeHdC40wWswd/P6IGgMaK3YpKi5j83Wpe3EHw8=
+github.com/golang/protobuf v1.4.0-rc.1.0.20200221234624-67d41d38c208/go.mod h1:xKAWHe0F5eneWXFV3EuXVDTCmh+JuBKY0li0aMyXATA=
+github.com/golang/protobuf v1.4.0-rc.2/go.mod h1:LlEzMj4AhA7rCAGe4KMBDvJI+AwstrUpVNzEA03Pprs=
+github.com/golang/protobuf v1.4.0-rc.4.0.20200313231945-b860323f09d0/go.mod h1:WU3c8KckQ9AFe+yFwt9sWVRKCVIyN9cPHBJSNnbL67w=
+github.com/golang/protobuf v1.4.0 h1:oOuy+ugB+P/kBdUnG5QaMXSIyJ1q38wWSojYCb3z5VQ=
+github.com/golang/protobuf v1.4.0/go.mod h1:jodUvKwWbYaEsadDk5Fwe5c77LiNKVO9IDvqG2KuDX0=
 github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db/go.mod h1:/XxbfmMg8lxefKM7IXC3fBNl/7bRcc72aCRzEWrmP2Q=
 github.com/golang/snappy v0.0.1 h1:Qgr9rKW7uDUkrbSmQeiDsGa8SjGyCOGtuasMWwvp2P4=
 github.com/golang/snappy v0.0.1/go.mod h1:/XxbfmMg8lxefKM7IXC3fBNl/7bRcc72aCRzEWrmP2Q=
@@ -84,6 +90,7 @@ github.com/google/go-cmp v0.2.0/go.mod h1:oXzfMopK8JAjlY9xF4vHSVASa0yLyX7SntLO5a
 github.com/google/go-cmp v0.3.0/go.mod h1:8QqcDgzrUqlUb/G2PQTWiueGozuR1884gddMywk6iLU=
 github.com/google/go-cmp v0.3.1 h1:Xye71clBPdm5HgqGwUkwhbynsUJZhDbS20FvLhQ2izg=
 github.com/google/go-cmp v0.3.1/go.mod h1:8QqcDgzrUqlUb/G2PQTWiueGozuR1884gddMywk6iLU=
+github.com/google/go-cmp v0.4.0/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
 github.com/google/martian v2.1.0+incompatible h1:/CP5g8u/VJHijgedC/Legn3BAbAaWPgecwXBIDzw5no=
 github.com/google/martian v2.1.0+incompatible/go.mod h1:9I4somxYTbIHy5NJKHRl3wXiIaQGbYVAs8BPL6v8lEs=
 github.com/google/pprof v0.0.0-20181206194817-3ea8567a2e57/go.mod h1:zfwlbNMJ+OItoe0UupaVj+oy1omPYYDuagoSzA8v9mc=
@@ -116,6 +123,8 @@ github.com/keybase/saltpack v0.0.0-20190828020936-3f47e8e2e6ec h1:ejQ18jEAjyiFen
 github.com/keybase/saltpack v0.0.0-20190828020936-3f47e8e2e6ec/go.mod h1:loEJH62iafRcA8ZYlUEq9WgJh/Z9BHdHHfAmxzacQng=
 github.com/keybase/saltpack v0.0.0-20200228190633-d75baa96bffb h1:+AxJjayBs1yJrAddiOyvj7EjuN7ag1gl9QFszNTQX2M=
 github.com/keybase/saltpack v0.0.0-20200228190633-d75baa96bffb/go.mod h1:loEJH62iafRcA8ZYlUEq9WgJh/Z9BHdHHfAmxzacQng=
+github.com/keys-pub/go-libfido2 v0.0.0-20200423021134-ec5cf6208cfc h1:IsKKRZ/cjI097saZEEEQw1M69jJqYebIWsvjbXWaLFA=
+github.com/keys-pub/go-libfido2 v0.0.0-20200423021134-ec5cf6208cfc/go.mod h1:fTqaHBgT+hk2QptbKZ2KpGtzDXbLLKntOW/hUD0iXR8=
 github.com/keys-pub/keys v0.0.0-20200412190229-71b7a426a7ab h1:D7YOtUfZ34F99SW9mdZic8lG1LASUUGojHGtxfS6kds=
 github.com/keys-pub/keys v0.0.0-20200412190229-71b7a426a7ab/go.mod h1:LWDVrixSjx446s2aLIcJ6ML5ir4vX3kJ3mVvJYXI/Xc=
 github.com/keys-pub/keys v0.0.0-20200413002436-33c0c3d4ec1b h1:P9+8upxxJyZK95YnG3ONgDceGGJ/e25uabBVeeJslBo=
@@ -143,8 +152,11 @@ github.com/keys-pub/keys v0.0.0-20200423031320-c01b0c96d717 h1:GHhQivZjfz+jZxJd1
 github.com/keys-pub/keys v0.0.0-20200423031320-c01b0c96d717/go.mod h1:K0JoWRBSAgH50/fJpI+6yPgYTj2TCOncJhSVixAa0Xo=
 github.com/keys-pub/keys v0.0.0-20200423195135-6b5d508024d0 h1:abpA+LQ/R2+8HN00IxXkC7RZrRwionBdwuSWG7WZyQw=
 github.com/keys-pub/keys v0.0.0-20200423195135-6b5d508024d0/go.mod h1:K0JoWRBSAgH50/fJpI+6yPgYTj2TCOncJhSVixAa0Xo=
+github.com/keys-pub/keysd v0.0.36 h1:LJ4icoup2ihQg9gSGCxtoYKem5jzPigf9VB777fuFTc=
 github.com/keys-pub/keysd/db v0.0.0-20200413003215-f85e85366c95 h1:5QzUKnwvuLpei8sBfFjcPZQKJSoIhYzg/yZxVqbvxlE=
 github.com/keys-pub/keysd/db v0.0.0-20200413003215-f85e85366c95/go.mod h1:zbe7XU3mVmOrFy+aQWU7+Z9Vy03ctb65Vlr3055AZ5c=
+github.com/keys-pub/keysd/fido2 v0.0.0-20200424173049-a8841c3805aa h1:wz/2Gnsq64zxQAJp9R0KOsD2Q2CUcr0x9j0aYIS7lMA=
+github.com/keys-pub/keysd/fido2 v0.0.0-20200424173049-a8841c3805aa/go.mod h1:MJF3AZyVhMkw03fwLTej0TlYQTv9uldoH4usFKrMOrI=
 github.com/keys-pub/keysd/firestore v0.0.0-20200413003414-34e8a825f8fd h1:vhnKWyxGwLgb0bdFSYHGjJ+bgHwxieiLZh3Du+A0xbE=
 github.com/keys-pub/keysd/firestore v0.0.0-20200413003414-34e8a825f8fd/go.mod h1:9veij84OYGkGSNE7oI6FasAsDuFMm0wtjDoaQ//doIg=
 github.com/keys-pub/keysd/firestore v0.0.0-20200414165918-c4b40ad4f02d h1:+04LDJiJLkFjCVSiNchSQTdw3syqRHJnT/AEXTQOtCw=
@@ -431,6 +443,14 @@ google.golang.org/grpc v1.26.0/go.mod h1:qbnxyOmOxrQa7FizSgH+ReBfzJrCY1pSN7KXBS8
 google.golang.org/grpc v1.27.0/go.mod h1:qbnxyOmOxrQa7FizSgH+ReBfzJrCY1pSN7KXBS8abTk=
 google.golang.org/grpc v1.28.0 h1:bO/TA4OxCOummhSf10siHuG7vJOiwh7SpRpFZDkOgl4=
 google.golang.org/grpc v1.28.0/go.mod h1:rpkK4SK4GF4Ach/+MFLZUBavHOvF2JJB5uozKKal+60=
+google.golang.org/grpc v1.29.1 h1:EC2SB8S04d2r73uptxphDSUG+kTKVgjRPF+N3xpxRB4=
+google.golang.org/grpc v1.29.1/go.mod h1:itym6AZVZYACWQqET3MqgPpjcuV5QH3BxFS3IjizoKk=
+google.golang.org/protobuf v0.0.0-20200109180630-ec00e32a8dfd/go.mod h1:DFci5gLYBciE7Vtevhsrf46CRTquxDuWsQurQQe4oz8=
+google.golang.org/protobuf v0.0.0-20200221191635-4d8936d0db64/go.mod h1:kwYJMbMJ01Woi6D6+Kah6886xMZcty6N08ah7+eCXa0=
+google.golang.org/protobuf v0.0.0-20200228230310-ab0ca4ff8a60/go.mod h1:cfTl7dwQJ+fmap5saPgwCLgHXTUD7jkjRqWcaiX5VyM=
+google.golang.org/protobuf v1.20.1-0.20200309200217-e05f789c0967/go.mod h1:A+miEFZTKqfCUM6K7xSMQL9OKL/b6hQv+e19PK+JZNE=
+google.golang.org/protobuf v1.21.0 h1:qdOKuR/EIArgaWNjetjgTzgVTAZ+S/WXVrq9HW9zimw=
+google.golang.org/protobuf v1.21.0/go.mod h1:47Nbq4nVaFHyn7ilMalzfO3qCViNmqZ2kzikPIcrTAo=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 h1:YR8cESwS4TdDjEe65xsg0ogRM/Nc3DYOhEAlW+xobZo=

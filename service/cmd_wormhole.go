@@ -23,7 +23,7 @@ func wormholeCommands(client *Client) []cli.Command {
 				cli.StringFlag{Name: "invite", Usage: "invite code"},
 			},
 			Action: func(c *cli.Context) error {
-				client, err := client.ProtoClient().Wormhole(context.TODO())
+				client, err := client.KeysClient().Wormhole(context.TODO())
 				if err != nil {
 					return err
 				}

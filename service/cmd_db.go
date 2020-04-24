@@ -31,7 +31,7 @@ func dbCommands(client *Client) []cli.Command {
 						req := &CollectionsRequest{
 							Path: path,
 						}
-						resp, err := client.ProtoClient().Collections(context.TODO(), req)
+						resp, err := client.KeysClient().Collections(context.TODO(), req)
 						if err != nil {
 							return err
 						}
@@ -51,7 +51,7 @@ func dbCommands(client *Client) []cli.Command {
 						path := strings.TrimSpace(c.Args().First())
 
 						if path == "" {
-							resp, err := client.ProtoClient().Collections(context.TODO(), &CollectionsRequest{})
+							resp, err := client.KeysClient().Collections(context.TODO(), &CollectionsRequest{})
 							if err != nil {
 								return err
 							}
@@ -62,7 +62,7 @@ func dbCommands(client *Client) []cli.Command {
 						req := &DocumentsRequest{
 							Path: path,
 						}
-						resp, err := client.ProtoClient().Documents(context.TODO(), req)
+						resp, err := client.KeysClient().Documents(context.TODO(), req)
 						if err != nil {
 							return err
 						}

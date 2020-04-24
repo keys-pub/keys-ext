@@ -36,7 +36,7 @@ func exportCommands(client *Client) []cli.Command {
 					Password: password,
 					Type:     SaltpackExportType,
 				}
-				resp, err := client.ProtoClient().KeyExport(context.TODO(), req)
+				resp, err := client.KeysClient().KeyExport(context.TODO(), req)
 				if err != nil {
 					return err
 				}

@@ -44,7 +44,7 @@ func signStdin(c *cli.Context, client *Client, mode signMode) error {
 	writer := os.Stdout
 	detached := mode.isDetached(stdIn)
 
-	signClient, streamErr := client.ProtoClient().SignStream(context.TODO())
+	signClient, streamErr := client.KeysClient().SignStream(context.TODO())
 	if streamErr != nil {
 		return streamErr
 	}
@@ -110,7 +110,7 @@ func signFile(client *Client, signer string, armored bool, detached bool, in str
 		}
 	}
 
-	signClient, err := client.ProtoClient().SignFile(context.TODO())
+	signClient, err := client.KeysClient().SignFile(context.TODO())
 	if err != nil {
 		return err
 	}
