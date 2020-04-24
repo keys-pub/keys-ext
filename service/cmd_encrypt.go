@@ -151,6 +151,7 @@ func encryptCommands(client *Client) []cli.Command {
 				wgOpen := sync.WaitGroup{}
 				wgOpen.Add(1)
 				go func() {
+					showSender := true
 					for {
 						resp, recvErr := decryptClient.Recv()
 						if recvErr != nil {
@@ -160,8 +161,9 @@ func encryptCommands(client *Client) []cli.Command {
 							openErr = recvErr
 							break
 						}
-						if resp.Sender != nil {
+						if showSender && resp.Sender != nil {
 							fmtKey(os.Stdout, resp.Sender, "verified ")
+							showSender = false
 						}
 						if len(resp.Data) == 0 {
 							break
