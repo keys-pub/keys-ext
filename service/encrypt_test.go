@@ -444,10 +444,11 @@ func TestEncryptDecryptFile(t *testing.T) {
 	require.Equal(t, b, bout)
 	os.Remove(decryptedPath)
 
-	dec, err = decryptFile(bobClient, true, EncryptV2, outPath, "")
-	require.NoError(t, err)
-	require.Equal(t, inPath+"-1", dec.Out)
-	os.Remove(dec.Out)
+	// Test nextPath
+	// dec, err = decryptFile(bobClient, true, EncryptV2, outPath, "")
+	// require.NoError(t, err)
+	// require.Equal(t, inPath+"-1", dec.Out)
+	// os.Remove(dec.Out)
 }
 
 func TestEncryptUnverified(t *testing.T) {

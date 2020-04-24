@@ -201,10 +201,11 @@ func TestSignVerifyAttachedFile(t *testing.T) {
 	require.Equal(t, b, bout)
 	os.Remove(verifiedPath)
 
-	out, err := verifyFile(bobClient, true, outPath, "", alice.ID().String())
-	require.NoError(t, err)
-	require.Equal(t, inPath+"-1", out)
-	os.Remove(out)
+	// Test nextPath
+	// out, err := verifyFile(bobClient, true, outPath, "", alice.ID().String())
+	// require.NoError(t, err)
+	// require.Equal(t, inPath+"-1", out)
+	// os.Remove(out)
 }
 
 func TestVerifyUnverified(t *testing.T) {
