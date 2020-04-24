@@ -8,7 +8,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
 	github.com/keys-pub/keys v0.0.0-20200423195135-6b5d508024d0
 	github.com/keys-pub/keysd/db v0.0.0-20200413003215-f85e85366c95
-	github.com/keys-pub/keysd/fido2 v0.0.0-20200424173049-a8841c3805aa
+	github.com/keys-pub/keysd/fido2 v0.0.0-20200424180941-933e211184d6
 	github.com/keys-pub/keysd/http/api v0.0.0-20200415010142-cfcd41d36dd1
 	github.com/keys-pub/keysd/http/client v0.0.0-20200414170516-1e0e72775735
 	github.com/keys-pub/keysd/http/server v0.0.0-20200419021946-2d1a17136bd0
@@ -30,7 +30,7 @@ require (
 
 // replace github.com/keys-pub/keysd/db => ../db
 
-replace github.com/keys-pub/keysd/fido2 => ../fido2
+// replace github.com/keys-pub/keysd/fido2 => ../fido2
 
 // replace github.com/keys-pub/keysd/http/api => ../http/api
 

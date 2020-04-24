@@ -157,6 +157,8 @@ github.com/keys-pub/keysd/db v0.0.0-20200413003215-f85e85366c95 h1:5QzUKnwvuLpei
 github.com/keys-pub/keysd/db v0.0.0-20200413003215-f85e85366c95/go.mod h1:zbe7XU3mVmOrFy+aQWU7+Z9Vy03ctb65Vlr3055AZ5c=
 github.com/keys-pub/keysd/fido2 v0.0.0-20200424173049-a8841c3805aa h1:wz/2Gnsq64zxQAJp9R0KOsD2Q2CUcr0x9j0aYIS7lMA=
 github.com/keys-pub/keysd/fido2 v0.0.0-20200424173049-a8841c3805aa/go.mod h1:MJF3AZyVhMkw03fwLTej0TlYQTv9uldoH4usFKrMOrI=
+github.com/keys-pub/keysd/fido2 v0.0.0-20200424180941-933e211184d6 h1:IGwCR0d/GCmRDHyTLijFbiMFVWNrVZ8XA3PIbVFuXLw=
+github.com/keys-pub/keysd/fido2 v0.0.0-20200424180941-933e211184d6/go.mod h1:RqJunZv/SShEXeTpcs8V/6Ea7iUneGL3YvBWZjtK2jc=
 github.com/keys-pub/keysd/firestore v0.0.0-20200413003414-34e8a825f8fd h1:vhnKWyxGwLgb0bdFSYHGjJ+bgHwxieiLZh3Du+A0xbE=
 github.com/keys-pub/keysd/firestore v0.0.0-20200413003414-34e8a825f8fd/go.mod h1:9veij84OYGkGSNE7oI6FasAsDuFMm0wtjDoaQ//doIg=
 github.com/keys-pub/keysd/firestore v0.0.0-20200414165918-c4b40ad4f02d h1:+04LDJiJLkFjCVSiNchSQTdw3syqRHJnT/AEXTQOtCw=
