@@ -193,17 +193,15 @@ func TestSignVerifyAttachedFile(t *testing.T) {
 	bobClient, bobClientCloseFn := newTestRPCClient(t, bobService, env)
 	defer bobClientCloseFn()
 
-	signer, _, err := verifyFile(bobClient, true, outPath, verifiedPath)
+	_, err = verifyFile(bobClient, true, outPath, verifiedPath, alice.ID().String())
 	require.NoError(t, err)
-	require.NotNil(t, signer)
-	require.Equal(t, alice.ID().String(), signer.ID)
 
 	bout, err := ioutil.ReadFile(verifiedPath)
 	require.NoError(t, err)
 	require.Equal(t, b, bout)
 	os.Remove(verifiedPath)
 
-	signer, out, err := verifyFile(bobClient, true, outPath, "")
+	out, err := verifyFile(bobClient, true, outPath, "", alice.ID().String())
 	require.NoError(t, err)
 	require.Equal(t, inPath+"-1", out)
 	os.Remove(out)

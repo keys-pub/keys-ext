@@ -238,7 +238,6 @@ func NewVerifyStreamClient(ctx context.Context, cl KeysClient, armored bool) (Ve
 
 func (s *service) readFromStream(ctx context.Context, streamReader io.Reader, signer *Key, sendFn func(b []byte, signer *Key) error) error {
 	buf := make([]byte, 1024*1024)
-	sendSigner := signer
 	for {
 		select {
 		case <-ctx.Done():
@@ -248,16 +247,14 @@ func (s *service) readFromStream(ctx context.Context, streamReader io.Reader, si
 
 		n, err := streamReader.Read(buf)
 		if n != 0 {
-			if err := sendFn(buf[:n], sendSigner); err != nil {
+			if err := sendFn(buf[:n], signer); err != nil {
 				return err
 			}
-			// Only send signer on first send
-			sendSigner = nil
 		}
 		if err != nil {
 			if err == io.EOF {
 				// Send empty bytes denotes EOF
-				if err := sendFn([]byte{}, nil); err != nil {
+				if err := sendFn([]byte{}, signer); err != nil {
 					return err
 				}
 				break

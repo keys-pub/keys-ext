@@ -38,19 +38,14 @@ func verifyCommands(client *Client) []cli.Command {
 					return err
 				}
 
-				signerCheck := c.String("signer")
+				signer := c.String("signer")
+				if signer == "" {
+					return errors.Errorf("specify -s (-signer) to verify")
+				}
 
 				if c.String("in") != "" {
-					verified, _, err := verifyFileForCLI(c, client, mode)
-					if err != nil {
+					if _, err := verifyFileForCLI(c, client, mode, signer); err != nil {
 						return err
-					}
-					if signerCheck != "" {
-						if err := checkSigner(verified, signerCheck); err != nil {
-							return err
-						}
-					} else if verified != nil {
-						fmtKey(os.Stdout, verified, "verified ")
 					}
 					return nil
 				}
@@ -63,16 +58,8 @@ func verifyCommands(client *Client) []cli.Command {
 					if !mode.isDetached(stdIn) {
 						return errors.Errorf("sig is only for detached mode")
 					}
-					verified, err := verifyDetachedStream(client, mode.isArmored(stdIn, false), reader, sigFile)
-					if err != nil {
+					if err := verifyDetachedStream(client, mode.isArmored(stdIn, false), reader, sigFile, signer); err != nil {
 						return err
-					}
-					if signerCheck != "" {
-						if err := checkSigner(verified, signerCheck); err != nil {
-							return err
-						}
-					} else if verified != nil {
-						fmtKey(os.Stdout, verified, "verified ")
 					}
 					return nil
 				}
@@ -118,13 +105,9 @@ func verifyCommands(client *Client) []cli.Command {
 							outErr = recvErr
 							break
 						}
-						if signerCheck != "" {
-							if err := checkSigner(resp.Signer, signerCheck); err != nil {
-								outErr = err
-								break
-							}
-						} else if resp.Signer != nil {
-							fmtKey(os.Stdout, resp.Signer, "verified ")
+						if err := checkSigner(resp.Signer, signer); err != nil {
+							outErr = err
+							break
 						}
 
 						if len(resp.Data) == 0 {
@@ -147,7 +130,7 @@ func verifyCommands(client *Client) []cli.Command {
 	}
 }
 
-func verifyFileForCLI(c *cli.Context, client *Client, mode signMode) (*Key, string, error) {
+func verifyFileForCLI(c *cli.Context, client *Client, mode signMode, signer string) (string, error) {
 	sigFile := c.String("sig")
 	in := c.String("in")
 	detached := mode.isDetached(fileIn)
@@ -156,32 +139,34 @@ func verifyFileForCLI(c *cli.Context, client *Client, mode signMode) (*Key, stri
 		if sigFile == "" {
 			sigFile = in + ".sig"
 		}
-		signer, err := verifyDetachedFile(client, mode.isArmored(fileIn, detached), in, sigFile)
-		return signer, "", err
+		if err := verifyDetachedFile(client, mode.isArmored(fileIn, detached), in, sigFile, signer); err != nil {
+			return "", err
+		}
+		return "", nil
 	}
 
-	return verifyFile(client, mode.isArmored(fileIn, detached), in, c.String("out"))
+	return verifyFile(client, mode.isArmored(fileIn, detached), in, c.String("out"), signer)
 }
 
-func verifyFile(client *Client, armored bool, in string, out string) (*Key, string, error) {
+func verifyFile(client *Client, armored bool, in string, out string, signer string) (string, error) {
 	logger.Debugf("Verify file (cmd) in=%s, out=%s, armored=%t, detached=false", in, out, armored)
 	if in == "" {
-		return nil, "", errors.Errorf("in not specified")
+		return "", errors.Errorf("in not specified")
 	}
 	in, err := filepath.Abs(in)
 	if err != nil {
-		return nil, "", err
+		return "", err
 	}
 	if out != "" {
 		out, err = filepath.Abs(out)
 		if err != nil {
-			return nil, "", err
+			return "", err
 		}
 	}
 
 	verifyClient, err := client.ProtoClient().VerifyFile(context.TODO())
 	if err != nil {
-		return nil, "", err
+		return "", err
 	}
 
 	if err := verifyClient.Send(&VerifyFileInput{
@@ -189,35 +174,39 @@ func verifyFile(client *Client, armored bool, in string, out string) (*Key, stri
 		In:      in,
 		Out:     out,
 	}); err != nil {
-		return nil, "", err
+		return "", err
 	}
 
 	resp, recvErr := verifyClient.CloseAndRecv()
 	if recvErr != nil {
-		return nil, "", recvErr
+		return "", recvErr
 	}
 
-	return resp.Signer, resp.Out, nil
+	if err := checkSigner(resp.Signer, signer); err != nil {
+		return "", err
+	}
+
+	return resp.Out, nil
 }
 
-func verifyDetachedFile(client *Client, armored bool, in string, sigFile string) (*Key, error) {
+func verifyDetachedFile(client *Client, armored bool, in string, sigFile string, signer string) error {
 	logger.Debugf("Verify detached file (cmd) in=%s, sig=%s, armored=%t", in, sigFile, armored)
 	if in == "" {
-		return nil, errors.Errorf("in not specified")
+		return errors.Errorf("in not specified")
 	}
 	in, err := filepath.Abs(in)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	sig, err := ioutil.ReadFile(sigFile) // #nosec
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	verifyClient, err := client.ProtoClient().VerifyDetachedFile(context.TODO())
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if err := verifyClient.Send(&VerifyDetachedFileInput{
@@ -225,27 +214,31 @@ func verifyDetachedFile(client *Client, armored bool, in string, sigFile string)
 		In:      in,
 		Sig:     sig,
 	}); err != nil {
-		return nil, err
+		return err
 	}
 
 	resp, recvErr := verifyClient.CloseAndRecv()
 	if recvErr != nil {
-		return nil, recvErr
+		return recvErr
 	}
 
-	return resp.Signer, nil
+	if err := checkSigner(resp.Signer, signer); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func verifyDetachedStream(client *Client, armored bool, reader io.Reader, sigFile string) (*Key, error) {
+func verifyDetachedStream(client *Client, armored bool, reader io.Reader, sigFile string, signer string) error {
 	logger.Debugf("Verify detached stream (cmd) sig=%s, armored=%t", sigFile, armored)
 	sig, err := ioutil.ReadFile(sigFile) // #nosec
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	verifyClient, err := client.ProtoClient().VerifyDetachedStream(context.TODO())
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	sentSig := false
@@ -280,14 +273,19 @@ func verifyDetachedStream(client *Client, armored bool, reader io.Reader, sigFil
 		return nil
 	})
 	if inErr != nil {
-		return nil, inErr
+		return inErr
 	}
 
 	if resp == nil {
-		return nil, errors.Errorf("no response")
+		return errors.Errorf("no response")
 	}
 
-	return resp.Signer, nil
+	// TODO: Send expected signer in request
+	if err := checkSigner(resp.Signer, signer); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func checkSigner(signer *Key, expected string) error {
