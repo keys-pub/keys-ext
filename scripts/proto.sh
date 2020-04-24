@@ -2,11 +2,7 @@
 
 set -e -u -o pipefail # Fail on error
 
-dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-cd "$dir"
-cd ../service
-
-keysapp="$dir/../../app"
+cd "$1"
 
 inc1="-I=`go list -f '{{ .Dir }}' -m github.com/golang/protobuf`"
 inc2="-I=`go list -f '{{ .Dir }}' -m github.com/gogo/protobuf`"
@@ -28,28 +24,20 @@ fi
 echo "protoc $protoc_include --gogo_out=plugins=grpc:. *.proto"
 protoc $protoc_include --gogo_out=plugins=grpc:. *.proto
 
-if [ -d "$keysapp" ]; then
-    cp keys.proto "$keysapp/src/main/rpc/keys.proto"
-
-    # tstypes
-    if [ ! -x "$(command -v protoc-gen-tstypes)" ]; then
-        echo "Installing github.com/tmc/grpcutil/protoc-gen-tstypes"
-        go install github.com/tmc/grpcutil/protoc-gen-tstypes
-    fi
-    protoc $protoc_include --tstypes_out=. --tstypes_opt=declare_namespace=false keys.proto
-    cp service.keys.d.ts "$keysapp/src/main/rpc/types.ts"
-    cp service.keys.d.ts "$keysapp/src/renderer/rpc/types.ts"
-    rm service.keys.d.ts
-
-    # tsipc
-    if [ ! -x "$(command -v protoc-gen-tsipc)" ]; then
-        echo "Installing github.com/gabriel/grpcutil/protoc-gen-tsipc"
-        go install github.com/gabriel/grpcutil/protoc-gen-tsipc
-    fi
-    echo "protoc $protoc_include --tsipc_out=. keys.proto"    
-    protoc $protoc_include --tsipc_out=. keys.proto
-    mv keys.ts "$keysapp/src/renderer/rpc/rpc.ts"
+# tstypes
+if [ ! -x "$(command -v protoc-gen-tstypes)" ]; then
+    echo "Installing github.com/tmc/grpcutil/protoc-gen-tstypes"
+    go install github.com/tmc/grpcutil/protoc-gen-tstypes
 fi
+protoc $protoc_include --tstypes_out=. --tstypes_opt=declare_namespace=false *.proto
+
+# tsipc
+if [ ! -x "$(command -v protoc-gen-tsipc)" ]; then
+    echo "Installing github.com/gabriel/grpcutil/protoc-gen-tsipc"
+    go install github.com/gabriel/grpcutil/protoc-gen-tsipc
+fi
+echo "protoc $protoc_include --tsipc_out=. *.proto"    
+protoc $protoc_include --tsipc_out=. *.proto
 
 # CLI
 # go get github.com/gabriel/grpcutil/protoc-gen-gocli
