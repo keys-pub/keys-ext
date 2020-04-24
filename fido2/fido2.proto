@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package service;
+package fido2;
 
 // Proto field names should be snake_case, but some plugins don't convert to 
 // camel like they should, so we use camelCase here.
@@ -27,8 +27,8 @@ service Authenticators {
 
 message DeviceInfo {
     string path = 1;
-	int32 productId = 2 [(gogoproto.customname) = "productID"];
-	int32 vendorId = 3 [(gogoproto.customname) = "vendorID"];
+	int32 productId = 2 [(gogoproto.customname) = "ProductID"];
+	int32 vendorId = 3 [(gogoproto.customname) = "VendorID"];
 	string manufacturer = 4;
     string product = 5;
 }
@@ -57,5 +57,5 @@ message Credential {
 
 message DetectDevicesRequest {}
 message DetectDevicesResponse {
-    repeated DeviceInfo detected = 1;
+    repeated DeviceInfo devices = 1;
 }
