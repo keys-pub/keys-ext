@@ -103,10 +103,13 @@ func (s *service) DecryptFile(srv Keys_DecryptFileServer) error {
 		if strings.HasSuffix(req.In, ".enc") {
 			out = strings.TrimSuffix(req.In, ".enc")
 		}
-		out, err = nextPath(out)
-		if err != nil {
-			return err
-		}
+	}
+	exists, err := fileExists(out)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return errors.Errorf("file already exists %s", out)
 	}
 
 	sender, err := s.decryptWriteInOut(srv.Context(), req.In, out, req.Mode, req.Armored)

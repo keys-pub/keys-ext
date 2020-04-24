@@ -19,7 +19,7 @@ func fileExists(p string) (bool, error) {
 	}
 }
 
-func nextPath(p string) (string, error) {
+func nextPathIfExists(p string) (string, error) {
 	for i := 0; i < 1000; i++ {
 		out := incPath(p, i)
 		exists, err := fileExists(out)

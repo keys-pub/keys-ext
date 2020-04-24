@@ -89,10 +89,13 @@ func (s *service) VerifyFile(srv Keys_VerifyFileServer) error {
 		if strings.HasSuffix(in, ".signed") {
 			out = strings.TrimSuffix(in, ".signed")
 		}
-		out, err = nextPath(out)
-		if err != nil {
-			return err
-		}
+	}
+	exists, err := fileExists(out)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return errors.Errorf("file already exists %s", out)
 	}
 
 	signer, err := s.verifyWriteInOut(srv.Context(), in, out, req.Armored)
@@ -100,12 +103,19 @@ func (s *service) VerifyFile(srv Keys_VerifyFileServer) error {
 		return err
 	}
 
-	if err := srv.SendAndClose(&VerifyFileOutput{
+	if err := srv.Send(&VerifyFileOutput{
 		Signer: signer,
 		Out:    out,
 	}); err != nil {
 		return err
 	}
+
+	// if err := srv.SendAndClose(&VerifyFileOutput{
+	// 	Signer: signer,
+	// 	Out:    out,
+	// }); err != nil {
+	// 	return err
+	// }
 
 	return nil
 }

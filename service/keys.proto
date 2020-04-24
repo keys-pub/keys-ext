@@ -34,7 +34,7 @@ service Keys {
   rpc SignStream(stream SignInput) returns (stream SignOutput) {}
 
   rpc Verify(VerifyRequest) returns (VerifyResponse) {}
-  rpc VerifyFile(stream VerifyFileInput) returns (VerifyFileOutput) {}
+  rpc VerifyFile(stream VerifyFileInput) returns (stream VerifyFileOutput) {}
   rpc VerifyStream(stream VerifyInput) returns (stream VerifyOutput) {}  
   rpc VerifyArmoredStream(stream VerifyInput) returns (stream VerifyOutput) {}  
   rpc VerifyDetached(VerifyDetachedRequest) returns (VerifyDetachedResponse) {}
@@ -189,10 +189,7 @@ message VerifyFileInput {
 }
 message VerifyFileOutput {
   Key signer = 1;
-  string out = 2;
-  // If streaming.
-  // int32 bytes = 3;
-  // int32 total = 4;
+  string out = 2;  
 }
 
 message VerifyDetachedFileInput {

@@ -177,10 +177,20 @@ func verifyFile(client *Client, armored bool, in string, out string, signer stri
 		return "", err
 	}
 
-	resp, recvErr := verifyClient.CloseAndRecv()
+	// resp, recvErr := verifyClient.CloseAndRecv()
+	// if recvErr != nil {
+	// 	return "", recvErr
+	// }
+	resp, recvErr := verifyClient.Recv()
 	if recvErr != nil {
+		// if recvErr == io.EOF {
+		// 	break
+		// }
 		return "", recvErr
 	}
+	// if err := encryptClient.CloseSend(); err != nil {
+	// 	return err
+	// }
 
 	if err := checkSigner(resp.Signer, signer); err != nil {
 		return "", err

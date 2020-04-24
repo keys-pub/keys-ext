@@ -18,7 +18,7 @@ func TestIncPath(t *testing.T) {
 func TestNextPath(t *testing.T) {
 	p := filepath.Join(os.TempDir(), "next.txt")
 
-	out, err := nextPath(p)
+	out, err := nextPathIfExists(p)
 	require.NoError(t, err)
 	require.Equal(t, p, out)
 
@@ -26,7 +26,7 @@ func TestNextPath(t *testing.T) {
 	require.NoError(t, err)
 	defer os.Remove(p)
 
-	out, err = nextPath(p)
+	out, err = nextPathIfExists(p)
 	require.NoError(t, err)
 	require.Equal(t, filepath.Join(os.TempDir(), "next-1.txt"), out)
 
@@ -34,7 +34,7 @@ func TestNextPath(t *testing.T) {
 	require.NoError(t, err)
 	defer os.Remove(out)
 
-	out, err = nextPath(p)
+	out, err = nextPathIfExists(p)
 	require.NoError(t, err)
 	require.Equal(t, filepath.Join(os.TempDir(), "next-2.txt"), out)
 }
