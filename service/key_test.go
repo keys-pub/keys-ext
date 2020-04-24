@@ -16,7 +16,7 @@ func TestKey(t *testing.T) {
 	// db.SetLogger(NewLogger(DebugLevel))
 
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env)
+	service, closeFn := newTestService(t, env, "")
 	defer closeFn()
 	ctx := context.TODO()
 
@@ -44,7 +44,7 @@ func TestKey(t *testing.T) {
 
 func TestFmtKey(t *testing.T) {
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env)
+	service, closeFn := newTestService(t, env, "")
 	defer closeFn()
 	ctx := context.TODO()
 
@@ -68,7 +68,7 @@ func TestFmtKey(t *testing.T) {
 
 func TestKeyGenerate(t *testing.T) {
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env)
+	service, closeFn := newTestService(t, env, "")
 	defer closeFn()
 	ctx := context.TODO()
 	testAuthSetup(t, service)
@@ -86,7 +86,7 @@ func TestKeyGenerate(t *testing.T) {
 func TestKeyRemove(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env)
+	service, closeFn := newTestService(t, env, "")
 	defer closeFn()
 	ctx := context.TODO()
 	testAuthSetup(t, service)

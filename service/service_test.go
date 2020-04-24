@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base32"
 	"fmt"
 	"io/ioutil"
 	"net/http/httptest"
@@ -18,7 +20,9 @@ import (
 )
 
 func testConfig(t *testing.T, appName string, serverURL string, keyringType string) (*Config, CloseFn) {
-	require.NotEmpty(t, appName)
+	if appName == "" {
+		appName = "KeysTest-" + randName()
+	}
 	cfg, err := NewConfig(appName)
 	require.NoError(t, err)
 	cfg.Set("server", serverURL)
@@ -29,6 +33,14 @@ func testConfig(t *testing.T, appName string, serverURL string, keyringType stri
 		require.NoError(t, removeErr)
 	}
 	return cfg, closeFn
+}
+
+func randName() string {
+	buf := make([]byte, 8)
+	if _, err := rand.Read(buf); err != nil {
+		panic(err)
+	}
+	return base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(buf)
 }
 
 func writeTestFile(t *testing.T) string {
@@ -45,25 +57,22 @@ func testFire(t *testing.T, clock *clock) server.Fire {
 }
 
 type testEnv struct {
-	clock   *clock
-	appName string
-	fi      server.Fire
-	req     *util.MockRequestor
-	users   *user.Store
+	clock *clock
+	fi    server.Fire
+	req   *util.MockRequestor
+	users *user.Store
 }
 
 func newTestEnv(t *testing.T) *testEnv {
 	clock := newClock()
-	appName := "KeysTest-" + keys.Rand3262()
 	fi := testFire(t, clock)
 	req := util.NewMockRequestor()
 	users := testUserStore(t, fi, keys.NewSigchainStore(fi), req, clock)
 	return &testEnv{
-		clock:   clock,
-		appName: appName,
-		fi:      fi,
-		req:     req,
-		users:   users,
+		clock: clock,
+		fi:    fi,
+		req:   req,
+		users: users,
 	}
 }
 
@@ -73,13 +82,13 @@ func testUserStore(t *testing.T, dst ds.DocumentStore, scs keys.SigchainStore, r
 	return ust
 }
 
-func newTestService(t *testing.T, env *testEnv) (*service, CloseFn) {
-	return newTestServiceWithOpts(t, env, "mem")
+func newTestService(t *testing.T, env *testEnv, appName string) (*service, CloseFn) {
+	return newTestServiceWithOpts(t, env, appName, "mem")
 }
 
-func newTestServiceWithOpts(t *testing.T, env *testEnv, keyringType string) (*service, CloseFn) {
+func newTestServiceWithOpts(t *testing.T, env *testEnv, appName string, keyringType string) (*service, CloseFn) {
 	serverEnv := newTestServerEnv(t, env)
-	cfg, closeCfg := testConfig(t, env.appName, serverEnv.url, keyringType)
+	cfg, closeCfg := testConfig(t, appName, serverEnv.url, keyringType)
 	st, err := newKeyringStore(cfg)
 	require.NoError(t, err)
 	auth, err := newAuth(cfg, st)
@@ -236,7 +245,7 @@ func newTestServerEnv(t *testing.T, env *testEnv) *serverEnv {
 
 func TestRuntimeStatus(t *testing.T) {
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env)
+	service, closeFn := newTestService(t, env, "")
 	defer closeFn()
 
 	resp, err := service.RuntimeStatus(context.TODO(), &RuntimeStatusRequest{})
@@ -250,7 +259,7 @@ func TestKeyringFS(t *testing.T) {
 	// keyring.SetLogger(NewLogger(DebugLevel))
 
 	env := newTestEnv(t)
-	service, closeFn := newTestServiceWithOpts(t, env, "fs")
+	service, closeFn := newTestServiceWithOpts(t, env, "", "fs")
 	defer closeFn()
 
 	testAuthSetup(t, service)
@@ -266,7 +275,7 @@ func TestKeyringFS(t *testing.T) {
 
 func TestCheckUpdate(t *testing.T) {
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env)
+	service, closeFn := newTestService(t, env, "")
 	defer closeFn()
 
 	testAuthSetup(t, service)

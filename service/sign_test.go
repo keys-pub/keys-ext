@@ -17,7 +17,7 @@ import (
 
 func TestSignVerify(t *testing.T) {
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env)
+	service, closeFn := newTestService(t, env, "")
 	defer closeFn()
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
@@ -48,7 +48,7 @@ func TestSignVerify(t *testing.T) {
 
 func TestSignStream(t *testing.T) {
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env)
+	service, closeFn := newTestService(t, env, "")
 	defer closeFn()
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
@@ -61,7 +61,7 @@ func TestSignStream(t *testing.T) {
 func testSignStream(t *testing.T, env *testEnv, service *service, plaintext []byte, signer string) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
-	cl, clientCloseFn := newTestRPCClient(t, service, env)
+	cl, clientCloseFn := newTestRPCClient(t, service, env, "")
 	defer clientCloseFn()
 
 	streamClient, streamErr := cl.ProtoClient().SignStream(ctx)
@@ -162,12 +162,12 @@ func testSignStream(t *testing.T, env *testEnv, service *service, plaintext []by
 func TestSignVerifyAttachedFile(t *testing.T) {
 	env := newTestEnv(t)
 
-	aliceService, aliceCloseFn := newTestService(t, env)
+	aliceService, aliceCloseFn := newTestService(t, env, "")
 	defer aliceCloseFn()
 	testAuthSetup(t, aliceService)
 	testImportKey(t, aliceService, alice)
 
-	bobService, bobCloseFn := newTestService(t, env)
+	bobService, bobCloseFn := newTestService(t, env, "")
 	defer bobCloseFn()
 	testAuthSetup(t, bobService)
 	testImportKey(t, bobService, bob)
@@ -184,13 +184,13 @@ func TestSignVerifyAttachedFile(t *testing.T) {
 	writeErr := ioutil.WriteFile(inPath, b, 0644)
 	require.NoError(t, writeErr)
 
-	aliceClient, aliceClientCloseFn := newTestRPCClient(t, aliceService, env)
+	aliceClient, aliceClientCloseFn := newTestRPCClient(t, aliceService, env, "")
 	defer aliceClientCloseFn()
 
 	err := signFile(aliceClient, alice.ID().String(), true, false, inPath, outPath)
 	require.NoError(t, err)
 
-	bobClient, bobClientCloseFn := newTestRPCClient(t, bobService, env)
+	bobClient, bobClientCloseFn := newTestRPCClient(t, bobService, env, "")
 	defer bobClientCloseFn()
 
 	_, err = verifyFile(bobClient, true, outPath, verifiedPath, alice.ID().String())
@@ -213,13 +213,13 @@ func TestVerifyUnverified(t *testing.T) {
 	// keys.SetLogger(NewLogger(DebugLevel))
 	env := newTestEnv(t)
 
-	aliceService, aliceCloseFn := newTestService(t, env)
+	aliceService, aliceCloseFn := newTestService(t, env, "")
 	defer aliceCloseFn()
 	testAuthSetup(t, aliceService)
 	testImportKey(t, aliceService, alice)
 	testUserSetupGithub(t, env, aliceService, alice, "alice")
 
-	bobService, bobCloseFn := newTestService(t, env)
+	bobService, bobCloseFn := newTestService(t, env, "")
 	defer bobCloseFn()
 	testAuthSetup(t, bobService)
 	testImportKey(t, bobService, bob)

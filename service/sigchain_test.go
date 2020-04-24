@@ -10,7 +10,7 @@ import (
 func TestSigchain(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env)
+	service, closeFn := newTestService(t, env, "")
 	defer closeFn()
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)

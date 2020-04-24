@@ -98,7 +98,7 @@ func TestGenerateToken(t *testing.T) {
 
 func TestAuthLock(t *testing.T) {
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env)
+	service, closeFn := newTestService(t, env, "")
 	defer closeFn()
 	ctx := context.TODO()
 
@@ -123,7 +123,7 @@ func TestAuthLock(t *testing.T) {
 
 func TestAuthSetup(t *testing.T) {
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env)
+	service, closeFn := newTestService(t, env, "")
 	defer closeFn()
 	ctx := context.TODO()
 

@@ -15,7 +15,7 @@ func TestMessages(t *testing.T) {
 
 	env := newTestEnv(t)
 
-	aliceService, aliceCloseFn := newTestService(t, env)
+	aliceService, aliceCloseFn := newTestService(t, env, "")
 	defer aliceCloseFn()
 	testAuthSetup(t, aliceService)
 	ctx := context.TODO()
@@ -24,7 +24,7 @@ func TestMessages(t *testing.T) {
 	testPush(t, aliceService, alice)
 
 	// Bob service
-	bobService, bobCloseFn := newTestService(t, env)
+	bobService, bobCloseFn := newTestService(t, env, "")
 	defer bobCloseFn()
 	testAuthSetup(t, bobService)
 	testImportKey(t, bobService, bob)

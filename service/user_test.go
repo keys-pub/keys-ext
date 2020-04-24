@@ -12,7 +12,7 @@ import (
 
 func TestUserSearch(t *testing.T) {
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env)
+	service, closeFn := newTestService(t, env, "")
 	defer closeFn()
 	ctx := context.TODO()
 
@@ -40,7 +40,7 @@ func TestUserSearch(t *testing.T) {
 
 func TestUser(t *testing.T) {
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env)
+	service, closeFn := newTestService(t, env, "")
 	defer closeFn()
 	ctx := context.TODO()
 	testAuthSetup(t, service)
@@ -64,7 +64,7 @@ func TestUser(t *testing.T) {
 
 func TestUserService(t *testing.T) {
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env)
+	service, closeFn := newTestService(t, env, "")
 	defer closeFn()
 	ctx := context.TODO()
 	testAuthSetup(t, service)
@@ -84,7 +84,7 @@ func TestUserService(t *testing.T) {
 
 func TestUserSign(t *testing.T) {
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env)
+	service, closeFn := newTestService(t, env, "")
 	defer closeFn()
 	ctx := context.TODO()
 	testAuthSetup(t, service)
@@ -110,7 +110,7 @@ func TestUserAdd(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
 	// keys.SetLogger(NewLogger(DebugLevel))
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env)
+	service, closeFn := newTestService(t, env, "")
 	defer closeFn()
 	ctx := context.TODO()
 	testAuthSetup(t, service)
@@ -155,7 +155,7 @@ func TestUserAdd(t *testing.T) {
 
 func TestSearchUsers(t *testing.T) {
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env)
+	service, closeFn := newTestService(t, env, "")
 	defer closeFn()
 	ctx := context.TODO()
 	testAuthSetup(t, service)

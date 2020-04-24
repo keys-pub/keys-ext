@@ -11,7 +11,7 @@ import (
 func TestKeyImport(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env)
+	service, closeFn := newTestService(t, env, "")
 	defer closeFn()
 	ctx := context.TODO()
 	testAuthSetup(t, service)

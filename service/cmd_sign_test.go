@@ -13,11 +13,11 @@ func TestSignVerifyCommand(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
 
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env)
-	defer closeFn()
-
-	client, closeClFn := newTestRPCClient(t, service, env)
+	appName := "KeysTest-" + randName()
+	service, closeFn := newTestService(t, env, appName)
+	client, closeClFn := newTestRPCClient(t, service, env, appName)
 	defer closeClFn()
+	defer closeFn()
 
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
@@ -35,7 +35,7 @@ func TestSignVerifyCommand(t *testing.T) {
 	defer os.Remove(inPath)
 	defer os.Remove(sigPath)
 
-	cmd := append(os.Args[0:1], "-app", env.appName) // , "-log-level=debug")
+	cmd := append(os.Args[0:1], "-app", appName) // , "-log-level=debug")
 
 	argsSign := append(cmd, "sign", "-s", alice.ID().String(), "-in", inPath)
 	runClient(build, argsSign, client, errorFn)
