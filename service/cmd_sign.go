@@ -195,6 +195,8 @@ func parseMode(s string, sig bool) (signMode, error) {
 		return mode, nil
 	}
 
+	// TODO: Error on conflicting options
+
 	strs := strings.Split(s, ",")
 	for _, str := range strs {
 		switch str {
