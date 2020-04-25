@@ -4,10 +4,12 @@ set -e -u -o pipefail # Fail on error
 
 cd "$1"
 
-inc1="-I=`go list -f '{{ .Dir }}' -m github.com/golang/protobuf`"
-inc2="-I=`go list -f '{{ .Dir }}' -m github.com/gogo/protobuf`"
+go="-I=`go list -f '{{ .Dir }}' -m github.com/golang/protobuf`"
+gogo="-I=`go list -f '{{ .Dir }}' -m github.com/gogo/protobuf`"
+#fido2="-I=`realpath ../fido2`"
 
-protoc_include="-I ./ $inc1 $inc2"
+protoc_include="-I ./ $go $gogo"
+#protoc_include="-I ./ $go $gogo $fido2"
 
 if [ ! -x "$(command -v protoc-gen-go)" ]; then
     echo "Installing github.com/golang/protobuf/protoc-gen-go"
@@ -29,7 +31,7 @@ if [ ! -x "$(command -v protoc-gen-tstypes)" ]; then
     echo "Installing github.com/tmc/grpcutil/protoc-gen-tstypes"
     go install github.com/tmc/grpcutil/protoc-gen-tstypes
 fi
-protoc $protoc_include --tstypes_out=. --tstypes_opt=declare_namespace=false *.proto
+protoc $protoc_include --tstypes_out=. --tstypes_opt=declare_namespace=false,outpattern="{{.BaseName}}.d.ts" *.proto
 
 # tsipc
 if [ ! -x "$(command -v protoc-gen-tsipc)" ]; then
