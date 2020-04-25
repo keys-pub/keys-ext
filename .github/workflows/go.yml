@@ -29,6 +29,8 @@ jobs:
       - name: Install dependencies (windows)
         if: matrix.os == 'windows-latest'
         run: |
+          Set-ExecutionPolicy RemoteSigned -scope CurrentUser
+          Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
           scoop bucket add keys.pub https://github.com/keys-pub/scoop-bucket
           scoop install libfido2
       - name: Install Go
