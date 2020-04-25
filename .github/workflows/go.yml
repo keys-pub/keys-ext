@@ -21,6 +21,13 @@ jobs:
         uses: actions/setup-go@v1
         with:
           go-version: ${{ matrix.go-version }}
+      - name: Lint with flake8
+        if: matrix.os == "ubuntu-latest"
+        run: |
+          sudo apt install software-properties-common
+          sudo apt-add-repository ppa:yubico/stable
+          sudo apt update
+          sudo apt install libfido2-dev
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Test (db)
