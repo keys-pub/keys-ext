@@ -30,8 +30,11 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           echo "::add-path::${{ github.workspace }}"
-          echo $PATH
-          ls -al
+          echo $Env:Path
+          cwd
+          ls
+          scoop bucket add keys.pub https://github.com/keys-pub/scoop-bucket
+          scoop install libfido2
       - name: Install Go
         uses: actions/setup-go@v1
         with:
