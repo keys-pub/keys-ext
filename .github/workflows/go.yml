@@ -29,8 +29,6 @@ jobs:
       - name: Install dependencies (windows)
         if: matrix.os == 'windows-latest'
         run: |
-          echo "::add-path::${{ github.workspace }}"
-          echo $Env:Path
           scoop bucket add keys.pub https://github.com/keys-pub/scoop-bucket
           scoop install libfido2
       - name: Install Go
