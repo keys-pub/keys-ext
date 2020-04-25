@@ -31,7 +31,7 @@ jobs:
         run: |
           echo "::add-path::${{ github.workspace }}"
           echo $Env:Path
-          cwd
+          pwd
           ls
           scoop bucket add keys.pub https://github.com/keys-pub/scoop-bucket
           scoop install libfido2
