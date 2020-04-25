@@ -26,6 +26,10 @@ jobs:
       - name: Install dependencies (macos)
         if: matrix.os == 'macos-latest'
         run: brew install libfido2
+      - name: Install dependencies (windows)
+        run: |
+          echo "::add-path::${{ github.workspace }}"
+          echo $PATH
       - name: Install Go
         uses: actions/setup-go@v1
         with:
