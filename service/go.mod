@@ -8,7 +8,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
 	github.com/keys-pub/keys v0.0.0-20200423195135-6b5d508024d0
 	github.com/keys-pub/keysd/db v0.0.0-20200413003215-f85e85366c95
-	github.com/keys-pub/keysd/fido2 v0.0.0-20200424180941-933e211184d6
+	github.com/keys-pub/keysd/fido2 v0.0.0-20200425222705-334f0c7b66f7
 	github.com/keys-pub/keysd/http/api v0.0.0-20200415010142-cfcd41d36dd1
 	github.com/keys-pub/keysd/http/client v0.0.0-20200414170516-1e0e72775735
 	github.com/keys-pub/keysd/http/server v0.0.0-20200419021946-2d1a17136bd0
@@ -22,7 +22,6 @@ require (
 	github.com/stretchr/testify v1.5.1
 	github.com/urfave/cli v1.22.3
 	golang.org/x/crypto v0.0.0-20200406173513-056763e48d71
-	google.golang.org/genproto v0.0.0-20200319113533-08878b785e9c // indirect
 	google.golang.org/grpc v1.29.1
 )
 
