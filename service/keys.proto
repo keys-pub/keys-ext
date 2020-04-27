@@ -732,10 +732,15 @@ enum UserStatus {
 
   USER_UNKNOWN = 0 [(gogoproto.enumvalue_customname) = "UserStatusUnknown"];
   USER_OK = 1 [(gogoproto.enumvalue_customname) = "UserStatusOK"];
-  USER_RESOURCE_NOT_FOUND = 2 [(gogoproto.enumvalue_customname) = "UserStatusResourceNotFound"];
-  USER_CONTENT_NOT_FOUND = 3 [(gogoproto.enumvalue_customname) = "UserStatusContentNotFound"];
-  USER_CONN_FAILURE = 4 [(gogoproto.enumvalue_customname) = "UserStatusConnFailure"];
-  USER_FAILURE = 5 [(gogoproto.enumvalue_customname) = "UserStatusFailure"];
+  
+  USER_RESOURCE_NOT_FOUND = 20 [(gogoproto.enumvalue_customname) = "UserStatusResourceNotFound"];
+  
+  USER_CONTENT_NOT_FOUND = 30 [(gogoproto.enumvalue_customname) = "UserStatusContentNotFound"];
+  USER_CONTENT_INVALID = 31 [(gogoproto.enumvalue_customname) = "UserStatusContentInvalid"];
+  
+  USER_CONN_FAILURE = 40 [(gogoproto.enumvalue_customname) = "UserStatusConnFailure"];
+  
+  USER_FAILURE = 50 [(gogoproto.enumvalue_customname) = "UserStatusFailure"];
 }
 
 message User {  

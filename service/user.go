@@ -199,8 +199,6 @@ func (u User) SigchainURL() string {
 
 func userStatus(s user.Status) UserStatus {
 	switch s {
-	case user.StatusUnknown:
-		return UserStatusUnknown
 	case user.StatusOK:
 		return UserStatusOK
 	case user.StatusResourceNotFound:
@@ -209,10 +207,12 @@ func userStatus(s user.Status) UserStatus {
 		return UserStatusContentNotFound
 	case user.StatusConnFailure:
 		return UserStatusConnFailure
+	case user.StatusContentInvalid:
+		return UserStatusContentInvalid
 	case user.StatusFailure:
 		return UserStatusFailure
 	default:
-		panic(errors.Errorf("Unknown user status %s", s))
+		return UserStatusUnknown
 	}
 }
 
