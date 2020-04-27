@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *Server) adminCheckAll(c echo.Context) error {
+func (s *Server) adminCheck(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
 	request := c.Request()
@@ -22,12 +22,22 @@ func (s *Server) adminCheckAll(c echo.Context) error {
 		return ErrForbidden(c, errors.Errorf("not authorized"))
 	}
 
-	kids, err := s.users.KIDs(ctx)
-	if err != nil {
-		return s.internalError(c, err)
-	}
+	if c.Param("kid") == "all" {
+		kids, err := s.users.KIDs(ctx)
+		if err != nil {
+			return s.internalError(c, err)
+		}
 
-	for _, kid := range kids {
+		for _, kid := range kids {
+			if err := s.tasks.CreateTask(ctx, "POST", "/task/check/"+kid.String(), s.internalAuth); err != nil {
+				return s.internalError(c, err)
+			}
+		}
+	} else {
+		kid, err := keys.ParseID(c.Param("kid"))
+		if err != nil {
+			return ErrNotFound(c, errors.Errorf("kid not found"))
+		}
 		if err := s.tasks.CreateTask(ctx, "POST", "/task/check/"+kid.String(), s.internalAuth); err != nil {
 			return s.internalError(c, err)
 		}

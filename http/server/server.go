@@ -124,7 +124,7 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	e.PUT("/:kid/:seq", s.putSigchainStatement)
 
 	// Admin
-	// e.POST("/admin/checkall", s.adminCheckAll)
+	e.POST("/admin/check/:kid", s.adminCheck)
 }
 
 // SetNowFn sets clock Now function.

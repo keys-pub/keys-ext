@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestUserResult(t *testing.T) {
+func TestCheck(t *testing.T) {
 	// SetContextLogger(NewContextLogger(DebugLevel))
 
 	env := newEnv(t)
