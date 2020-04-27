@@ -131,6 +131,8 @@ github.com/keys-pub/go-libfido2 v0.0.0-20200426183310-e453219aa3c8 h1:63gt1+AjnH
 github.com/keys-pub/go-libfido2 v0.0.0-20200426183310-e453219aa3c8/go.mod h1:fTqaHBgT+hk2QptbKZ2KpGtzDXbLLKntOW/hUD0iXR8=
 github.com/keys-pub/go-libfido2 v0.0.0-20200427035032-3e225c0ecafc h1:KVD8kw82lU0mQTukLFKmQRTBNcrAPEod6xooTzDpiKA=
 github.com/keys-pub/go-libfido2 v0.0.0-20200427035032-3e225c0ecafc/go.mod h1:fTqaHBgT+hk2QptbKZ2KpGtzDXbLLKntOW/hUD0iXR8=
+github.com/keys-pub/go-libfido2 v0.0.0-20200427215944-18592ad89b9d h1:xDOACYC0W9SHJO1cxQSQLjh2i9idG1Bph4AoY4XQUwE=
+github.com/keys-pub/go-libfido2 v0.0.0-20200427215944-18592ad89b9d/go.mod h1:P0V19qHwJNY0htZwZDe9Ilvs/nokGhdFX7faKFyZ6+U=
 github.com/keys-pub/keys v0.0.0-20200412190229-71b7a426a7ab h1:D7YOtUfZ34F99SW9mdZic8lG1LASUUGojHGtxfS6kds=
 github.com/keys-pub/keys v0.0.0-20200412190229-71b7a426a7ab/go.mod h1:LWDVrixSjx446s2aLIcJ6ML5ir4vX3kJ3mVvJYXI/Xc=
 github.com/keys-pub/keys v0.0.0-20200413002436-33c0c3d4ec1b h1:P9+8upxxJyZK95YnG3ONgDceGGJ/e25uabBVeeJslBo=
@@ -172,6 +174,8 @@ github.com/keys-pub/keysd/fido2 v0.0.0-20200426184731-707482381542 h1:5RSEzQ5hdt
 github.com/keys-pub/keysd/fido2 v0.0.0-20200426184731-707482381542/go.mod h1:3SiQs28b/ak24hlA8O3x8YDnLNxPwJr2HKg2UCUS6GY=
 github.com/keys-pub/keysd/fido2 v0.0.0-20200427035443-641310d59016 h1:qyAU7+iHvfhFN1yCzt8C6xHVvormwUqPankuJX/0Ilo=
 github.com/keys-pub/keysd/fido2 v0.0.0-20200427035443-641310d59016/go.mod h1:Zv1gPZrRHmPAbWt7RCfEGmR4k1Vdp7UicWqhO4D7uN0=
+github.com/keys-pub/keysd/fido2 v0.0.0-20200427220403-902714bb307e h1:zTB06Dr2NZh25ONzojScyyoDkvjsLShg0X5DwJbADg8=
+github.com/keys-pub/keysd/fido2 v0.0.0-20200427220403-902714bb307e/go.mod h1:mVqeZwNYUJ/g9uffwEr496Px+tBxY6RopLQCMRRlW54=
 github.com/keys-pub/keysd/firestore v0.0.0-20200413003414-34e8a825f8fd h1:vhnKWyxGwLgb0bdFSYHGjJ+bgHwxieiLZh3Du+A0xbE=
 github.com/keys-pub/keysd/firestore v0.0.0-20200413003414-34e8a825f8fd/go.mod h1:9veij84OYGkGSNE7oI6FasAsDuFMm0wtjDoaQ//doIg=
 github.com/keys-pub/keysd/firestore v0.0.0-20200414165918-c4b40ad4f02d h1:+04LDJiJLkFjCVSiNchSQTdw3syqRHJnT/AEXTQOtCw=
@@ -372,6 +376,7 @@ golang.org/x/sync v0.0.0-20190227155943-e225da77a7e6/go.mod h1:RxMgew5VJxzue5/jJ
 golang.org/x/sync v0.0.0-20190423024810-112230192c58/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e h1:vcxGaoTs7kV8m5Np9uUNQin4BrLOthgV7252N8V+FwY=
 golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
+golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sys v0.0.0-20180830151530-49385e6e1522/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20180909124046-d0be0721c37e/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
