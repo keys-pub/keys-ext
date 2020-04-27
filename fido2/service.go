@@ -2,6 +2,7 @@ package fido2
 
 import (
 	"context"
+	"sort"
 
 	"github.com/keys-pub/go-libfido2"
 )
@@ -18,11 +19,16 @@ func (s *service) Devices(ctx context.Context, req *DevicesRequest) (*DevicesRes
 	if err != nil {
 		return nil, err
 	}
+	sort.Slice(devices, func(i, j int) bool {
+		return devices[i].Product < devices[j].Product
+	})
 	return &DevicesResponse{
 		Devices: devicesToRPC(devices),
 	}, nil
 }
 
+// findDevice returns a device from a name.
+// You need to call Device.Close() when done.
 func findDevice(name string) (*libfido2.Device, error) {
 	device, err := libfido2.NewDevice(name)
 	if err != nil {
@@ -36,6 +42,7 @@ func (s *service) DeviceInfo(ctx context.Context, req *DeviceInfoRequest) (*Devi
 	if err != nil {
 		return nil, err
 	}
+	defer device.Close()
 
 	info, err := device.Info()
 	if err != nil {
@@ -52,6 +59,8 @@ func (s *service) MakeCredential(ctx context.Context, req *MakeCredentialRequest
 	if err != nil {
 		return nil, err
 	}
+	defer device.Close()
+
 	typ, err := credTypeFromRPC(req.Type)
 	if err != nil {
 		return nil, err
@@ -94,6 +103,7 @@ func (s *service) SetPIN(ctx context.Context, req *SetPINRequest) (*SetPINRespon
 	if err != nil {
 		return nil, err
 	}
+	defer device.Close()
 
 	if err := device.SetPIN(req.PIN, req.OldPIN); err != nil {
 		return nil, err
@@ -107,6 +117,7 @@ func (s *service) Reset(ctx context.Context, req *ResetRequest) (*ResetResponse,
 	if err != nil {
 		return nil, err
 	}
+	defer device.Close()
 
 	if err := device.Reset(); err != nil {
 		return nil, err
@@ -120,6 +131,7 @@ func (s *service) RetryCount(ctx context.Context, req *RetryCountRequest) (*Retr
 	if err != nil {
 		return nil, err
 	}
+	defer device.Close()
 
 	count, err := device.RetryCount()
 	if err != nil {
@@ -136,6 +148,8 @@ func (s *service) Assertion(ctx context.Context, req *AssertionRequest) (*Assert
 	if err != nil {
 		return nil, err
 	}
+	defer device.Close()
+
 	extensions, err := extensionsFromRPC(req.Extensions)
 	if err != nil {
 		return nil, err
@@ -164,6 +178,7 @@ func (s *service) CredentialsInfo(ctx context.Context, req *CredentialsInfoReque
 	if err != nil {
 		return nil, err
 	}
+	defer device.Close()
 
 	info, err := device.CredentialsInfo(req.PIN)
 	if err != nil {
@@ -180,6 +195,7 @@ func (s *service) Credentials(ctx context.Context, req *CredentialsRequest) (*Cr
 	if err != nil {
 		return nil, err
 	}
+	defer device.Close()
 
 	credentials, err := device.Credentials(req.RPID, req.PIN)
 	if err != nil {
@@ -196,6 +212,7 @@ func (s *service) RelyingParties(ctx context.Context, req *RelyingPartiesRequest
 	if err != nil {
 		return nil, err
 	}
+	defer device.Close()
 
 	rps, err := device.RelyingParties(req.PIN)
 	if err != nil {
