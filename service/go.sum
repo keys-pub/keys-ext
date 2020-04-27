@@ -127,6 +127,10 @@ github.com/keys-pub/go-libfido2 v0.0.0-20200423021134-ec5cf6208cfc h1:IsKKRZ/cjI
 github.com/keys-pub/go-libfido2 v0.0.0-20200423021134-ec5cf6208cfc/go.mod h1:fTqaHBgT+hk2QptbKZ2KpGtzDXbLLKntOW/hUD0iXR8=
 github.com/keys-pub/go-libfido2 v0.0.0-20200425222209-cff61ff56fc6 h1:ljrPkpzxZdP+06cs5vcK0kbG+rZJKR3SaPpIp83rHBo=
 github.com/keys-pub/go-libfido2 v0.0.0-20200425222209-cff61ff56fc6/go.mod h1:fTqaHBgT+hk2QptbKZ2KpGtzDXbLLKntOW/hUD0iXR8=
+github.com/keys-pub/go-libfido2 v0.0.0-20200426183310-e453219aa3c8 h1:63gt1+AjnHrRFekKOyU6SImnzSNOnK8poeraGNFbfgo=
+github.com/keys-pub/go-libfido2 v0.0.0-20200426183310-e453219aa3c8/go.mod h1:fTqaHBgT+hk2QptbKZ2KpGtzDXbLLKntOW/hUD0iXR8=
+github.com/keys-pub/go-libfido2 v0.0.0-20200427035032-3e225c0ecafc h1:KVD8kw82lU0mQTukLFKmQRTBNcrAPEod6xooTzDpiKA=
+github.com/keys-pub/go-libfido2 v0.0.0-20200427035032-3e225c0ecafc/go.mod h1:fTqaHBgT+hk2QptbKZ2KpGtzDXbLLKntOW/hUD0iXR8=
 github.com/keys-pub/keys v0.0.0-20200412190229-71b7a426a7ab h1:D7YOtUfZ34F99SW9mdZic8lG1LASUUGojHGtxfS6kds=
 github.com/keys-pub/keys v0.0.0-20200412190229-71b7a426a7ab/go.mod h1:LWDVrixSjx446s2aLIcJ6ML5ir4vX3kJ3mVvJYXI/Xc=
 github.com/keys-pub/keys v0.0.0-20200413002436-33c0c3d4ec1b h1:P9+8upxxJyZK95YnG3ONgDceGGJ/e25uabBVeeJslBo=
@@ -155,6 +159,7 @@ github.com/keys-pub/keys v0.0.0-20200423031320-c01b0c96d717/go.mod h1:K0JoWRBSAg
 github.com/keys-pub/keys v0.0.0-20200423195135-6b5d508024d0 h1:abpA+LQ/R2+8HN00IxXkC7RZrRwionBdwuSWG7WZyQw=
 github.com/keys-pub/keys v0.0.0-20200423195135-6b5d508024d0/go.mod h1:K0JoWRBSAgH50/fJpI+6yPgYTj2TCOncJhSVixAa0Xo=
 github.com/keys-pub/keysd v0.0.36 h1:LJ4icoup2ihQg9gSGCxtoYKem5jzPigf9VB777fuFTc=
+github.com/keys-pub/keysd v0.0.37-0.20200426184731-707482381542 h1:vKMSbOUlwy38UkH3u27LFwgh4c6McA0RJkh3bKBOjlw=
 github.com/keys-pub/keysd/db v0.0.0-20200413003215-f85e85366c95 h1:5QzUKnwvuLpei8sBfFjcPZQKJSoIhYzg/yZxVqbvxlE=
 github.com/keys-pub/keysd/db v0.0.0-20200413003215-f85e85366c95/go.mod h1:zbe7XU3mVmOrFy+aQWU7+Z9Vy03ctb65Vlr3055AZ5c=
 github.com/keys-pub/keysd/fido2 v0.0.0-20200424173049-a8841c3805aa h1:wz/2Gnsq64zxQAJp9R0KOsD2Q2CUcr0x9j0aYIS7lMA=
@@ -163,6 +168,10 @@ github.com/keys-pub/keysd/fido2 v0.0.0-20200424180941-933e211184d6 h1:IGwCR0d/GC
 github.com/keys-pub/keysd/fido2 v0.0.0-20200424180941-933e211184d6/go.mod h1:RqJunZv/SShEXeTpcs8V/6Ea7iUneGL3YvBWZjtK2jc=
 github.com/keys-pub/keysd/fido2 v0.0.0-20200425222705-334f0c7b66f7 h1:BJyDOabMLeAo0wxglH7ir3mOqtxlXDj0ZkjRrykjKtQ=
 github.com/keys-pub/keysd/fido2 v0.0.0-20200425222705-334f0c7b66f7/go.mod h1:O2JfXO3sjgIDaKdAz6LBr9pO6DoTX5gBFSGausmsIMw=
+github.com/keys-pub/keysd/fido2 v0.0.0-20200426184731-707482381542 h1:5RSEzQ5hdtcB/OYhwuhXGLha4/RYDwKBvq3MUKsmml8=
+github.com/keys-pub/keysd/fido2 v0.0.0-20200426184731-707482381542/go.mod h1:3SiQs28b/ak24hlA8O3x8YDnLNxPwJr2HKg2UCUS6GY=
+github.com/keys-pub/keysd/fido2 v0.0.0-20200427035443-641310d59016 h1:qyAU7+iHvfhFN1yCzt8C6xHVvormwUqPankuJX/0Ilo=
+github.com/keys-pub/keysd/fido2 v0.0.0-20200427035443-641310d59016/go.mod h1:Zv1gPZrRHmPAbWt7RCfEGmR4k1Vdp7UicWqhO4D7uN0=
 github.com/keys-pub/keysd/firestore v0.0.0-20200413003414-34e8a825f8fd h1:vhnKWyxGwLgb0bdFSYHGjJ+bgHwxieiLZh3Du+A0xbE=
 github.com/keys-pub/keysd/firestore v0.0.0-20200413003414-34e8a825f8fd/go.mod h1:9veij84OYGkGSNE7oI6FasAsDuFMm0wtjDoaQ//doIg=
 github.com/keys-pub/keysd/firestore v0.0.0-20200414165918-c4b40ad4f02d h1:+04LDJiJLkFjCVSiNchSQTdw3syqRHJnT/AEXTQOtCw=
@@ -255,6 +264,8 @@ github.com/shurcooL/sanitized_anchor_name v1.0.0 h1:PdmoCO6wvbs+7yrJyMORt4/BmY5I
 github.com/shurcooL/sanitized_anchor_name v1.0.0/go.mod h1:1NzhyTcUVG4SuEtjjoZeVRXNmyL/1OwPU0+IJeTBvfc=
 github.com/sirupsen/logrus v1.4.2 h1:SPIRibHv4MatM3XXNO2BJeFLZwZ2LvZgfQ5+UNI2im4=
 github.com/sirupsen/logrus v1.4.2/go.mod h1:tLMulIdttU9McNUspp0xgXVQah82FyeX6MwdIuYE2rE=
+github.com/sirupsen/logrus v1.5.0 h1:1N5EYkVAPEywqZRJd7cwnRtCb6xJx7NH3T3WUTF980Q=
+github.com/sirupsen/logrus v1.5.0/go.mod h1:+F7Ogzej0PZc/94MaYx/nvG9jOFMD2osvC3s+Squfpo=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.1.1/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.2.0 h1:Hbg2NidpLE8veEBkEZTL3CvlkUIVzuU9jDplZO54c48=
@@ -271,6 +282,8 @@ github.com/tyler-smith/go-bip39 v1.0.2 h1:+t3w+KwLXO6154GNJY+qUtIxLTmFjfUmpguQT1
 github.com/tyler-smith/go-bip39 v1.0.2/go.mod h1:sJ5fKU0s6JVwZjjcUEX2zFOnvq0ASQ2K9Zr6cf67kNs=
 github.com/urfave/cli v1.22.3 h1:FpNT6zq26xNpHZy08emi755QwzLPs6Pukqjlc7RfOMU=
 github.com/urfave/cli v1.22.3/go.mod h1:Gos4lmkARVdJ6EkW0WaNv/tZAAMe9V7XWyB60NtXRu0=
+github.com/urfave/cli v1.22.4 h1:u7tSpNPPswAFymm8IehJhy4uJMlUuU/GmqSkvJ1InXA=
+github.com/urfave/cli v1.22.4/go.mod h1:Gos4lmkARVdJ6EkW0WaNv/tZAAMe9V7XWyB60NtXRu0=
 github.com/valyala/bytebufferpool v1.0.0 h1:GqA5TC/0021Y/b9FG4Oi9Mr3q7XYx6KllzawFIhcdPw=
 github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyCJ6HpOuEn7z0Csc=
 github.com/valyala/fasttemplate v1.0.1/go.mod h1:UQGH1tvbgY+Nz5t2n7tXsz52dQxojPUpymEIMZ47gx8=
