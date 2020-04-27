@@ -96,6 +96,8 @@ service Keys {
   rpc DocumentDelete(DocumentDeleteRequest) returns (DocumentDeleteResponse) {}
 
   // Experimental
+  rpc AdminSignURL(AdminSignURLRequest) returns (AdminSignURLResponse) {}
+
   rpc MessagePrepare(MessagePrepareRequest) returns (MessagePrepareResponse) {}
   rpc MessageCreate(MessageCreateRequest) returns (MessageCreateResponse) {}
   rpc Messages(MessagesRequest) returns (MessagesResponse) {}
@@ -912,4 +914,16 @@ message MessagesRequest {
 
 message MessagesResponse {
   repeated Message messages = 1;
+}
+
+message AdminSignURLRequest {
+  string signer = 1;
+  string method = 2;
+  string url = 3 [(gogoproto.customname) = "URL"];
+}
+
+message AdminSignURLResponse {
+  string auth = 1;
+  string url = 2 [(gogoproto.customname) = "URL"];
+  string curl = 3  [(gogoproto.customname) = "CURL"];
 }
