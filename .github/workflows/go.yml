@@ -25,7 +25,9 @@ jobs:
           sudo apt install libfido2-dev
       - name: Install dependencies (macos)
         if: matrix.os == 'macos-latest'
-        run: brew install libfido2
+        run: |
+          brew tap keys-pub/tap
+          brew install keys-pub/tap/libfido2
       - name: Install dependencies (windows)
         if: matrix.os == 'windows-latest'
         run: |
@@ -42,6 +44,8 @@ jobs:
         uses: actions/checkout@v2
       - name: Test (db)
         run: cd db; go test -v ./...
+      - name: Test (fido2)
+        run: cd fido2; go test -v ./...
       - name: Test (http/api)
         run: cd http/api; go test -v ./...
       - name: Test (http/client)
