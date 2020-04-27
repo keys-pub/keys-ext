@@ -22,7 +22,7 @@ option (gogoproto.goproto_enum_stringer_all) = true;
 // option (gogoproto.populate_all) = true;
 
 service Authenticators {  
-    rpc DeviceLocations(DeviceLocationsRequest) returns (DeviceLocationsResponse) {}
+    rpc Devices(DevicesRequest) returns (DevicesResponse) {}
     rpc DeviceInfo(DeviceInfoRequest) returns (DeviceInfoResponse) {}
     rpc MakeCredential(MakeCredentialRequest) returns (MakeCredentialResponse) {}
     rpc SetPIN(SetPINRequest) returns (SetPINResponse) {}
@@ -40,7 +40,7 @@ message RPCError {
 	string details = 3;
 }
 
-message DeviceLocation {
+message Device {
     string path = 1;
 	int32 productId = 2 [(gogoproto.customname) = "ProductID"];
 	int32 vendorId = 3 [(gogoproto.customname) = "VendorID"];
@@ -50,51 +50,23 @@ message DeviceLocation {
 
 message Option {
     string name = 1;
-    OptionValue value = 2;
-}
-
-enum OptionValue {
-  option (gogoproto.goproto_enum_prefix) = false;
-  option (gogoproto.enum_customname) = "OptionValue";
-  
-  DEFAULT = 0 [(gogoproto.enumvalue_customname) = "Default"];
-  TRUE = 1 [(gogoproto.enumvalue_customname) = "True"];
-  FALSE = -1 [(gogoproto.enumvalue_customname) = "False"];
+    string value = 2;
 }
 
 message DeviceInfo {
     repeated string versions = 1;
     repeated string extensions = 2;
-    string aaguid = 3;
+    bytes aaguid = 3 [(gogoproto.customname) = "AAGUID"];
 	repeated Option options = 4;
 }
 
-enum DeviceType {
-  option (gogoproto.goproto_enum_prefix) = false;
-  option (gogoproto.enum_customname) = "DeviceType";
-  
-  UNKNOWN_DEVICE = 0 [(gogoproto.enumvalue_customname) = "UnknownDevice"];
-  U2F = 1;
-  FIDO2 = 2;  
-}
-
-enum CredentialType {
-  option (gogoproto.goproto_enum_prefix) = false;
-  option (gogoproto.enum_customname) = "CredentialType";
-  
-  UNKNOWN_CREDENTIAL = 0  [(gogoproto.enumvalue_customname) = "UnknownCredential"];
-  ES256 = 1 [(gogoproto.enumvalue_customname) = "ES256"];
-  EDDSA = 2 [(gogoproto.enumvalue_customname) = "EDDSA"];
-  RS256 = 3 [(gogoproto.enumvalue_customname) = "RS256"];
-}
-
 message RelyingParty {
-    string id = 1;
+    string id = 1 [(gogoproto.customname) = "ID"];
     string name = 2;
 }
 
 message User {
-    string id = 1;
+    bytes id = 1 [(gogoproto.customname) = "ID"];
     string name = 2;
     string displayName = 3;
     string icon = 4;
@@ -104,7 +76,7 @@ message Attestation {
 	bytes clientDataHash = 1;
 	bytes authData = 2;
 	bytes credId = 3 [(gogoproto.customname) = "CredID"];
-	CredentialType credType = 4;
+	string credType = 4;
 	bytes pubKey = 5;
 	bytes cert = 6;
 	bytes sig = 7;
@@ -113,114 +85,108 @@ message Attestation {
 
 message Credential {
 	bytes id = 1 [(gogoproto.customname) = "ID"];
-	CredentialType type = 2;
+	string type = 2;
 	User user = 3;
-}
-
-enum Extension {
-  option (gogoproto.goproto_enum_prefix) = false;
-  option (gogoproto.enum_customname) = "Extension";
-  
-  UNKNOWN_Extension = 0  [(gogoproto.enumvalue_customname) = "UnknownExtension"];
-  HMAC_SECRET = 1 [(gogoproto.enumvalue_customname) = "HMACSecret"];
-  CRED_PROTECT = 2 [(gogoproto.enumvalue_customname) = "CredProtect"];
 }
 
 message Assertion {
 	bytes authData = 1;	
 	bytes sig = 2;
-    bytes hmacSecret = 3;
+    bytes hmacSecret = 3 [(gogoproto.customname) = "HMACSecret"];
 }
 
 message CredentialsInfo {
-	int32 rkExisting = 1;
-    int32 rkRemaining = 2;
+	int32 rkExisting = 1 [(gogoproto.customname) = "RKExisting"];
+    int32 rkRemaining = 2 [(gogoproto.customname) = "RKRemaining"];
 }
 
-message DeviceLocationsRequest {}
-message DeviceLocationsResponse {
-    repeated DeviceLocation locations = 1;    
+message DevicesRequest {}
+message DevicesResponse {
+    repeated Device devices = 1;    
 }
 
 message DeviceInfoRequest{
-    string path = 1;
+    string device = 1;
 }
 message DeviceInfoResponse {
     DeviceInfo info = 1;
 }
 
 message MakeCredentialRequest {
-    string path = 1;
+    string device = 1;
     bytes clientDataHash = 2;
-    RelyingParty rp = 3;
+    RelyingParty rp = 3 [(gogoproto.customname) = "RP"];
     User user = 4;
-    CredentialType type = 5;
-    string pin = 6;
+    string type = 5;
+    string pin = 6 [(gogoproto.customname) = "PIN"];
     
     // Optional
 
-    repeated Extension extensions = 100;
-    Option RK = 101;
-    Option UV = 102;
+    repeated string extensions = 100;
+    string rk = 101 [(gogoproto.customname) = "RK"];
+    string uv = 102 [(gogoproto.customname) = "UV"];
 }
 message MakeCredentialResponse {
     Attestation attestation = 1;
 }
 
 message SetPINRequest {
-    string path = 1;
-    string pin = 2;
-    string oldPin = 3;
+    string device = 1;
+    string pin = 2 [(gogoproto.customname) = "PIN"];
+    string oldPin = 3 [(gogoproto.customname) = "OldPIN"];
 } 
 message SetPINResponse {}
 
 message ResetRequest{
-    string path = 1;
+    string device = 1;
 } 
 message ResetResponse {}
 
 message RetryCountRequest {
-    string path = 1;
+    string device = 1;
 }
 message RetryCountResponse {
     int32 count = 1;
 }
 
 message AssertionRequest {
-    string path = 1;
-    string rpID = 2;
+    string device = 1;
+    string rpId = 2 [(gogoproto.customname) = "RPID"];
     bytes clientDataHash = 3;
-    bytes credID = 4;
-    string pin = 5;
+    bytes credId = 4 [(gogoproto.customname) = "CredID"];
+    string pin = 5 [(gogoproto.customname) = "PIN"];
 
     // Optional
 
-    repeated Extension extensions = 100;
-    Option UV = 101;
-    Option UP = 102;
-    bytes HMACSalt = 103;
+    repeated string extensions = 100;
+    string uv = 101 [(gogoproto.customname) = "UV"];
+    string up = 102 [(gogoproto.customname) = "UP"];
+    bytes hmacSalt = 103 [(gogoproto.customname) = "HMACSalt"];
 }
 message AssertionResponse {
     Assertion assertion = 1;
 }
 
 message CredentialsInfoRequest {
-    string path = 1;
+    string device = 1;
+    string pin = 2 [(gogoproto.customname) = "PIN"];
 }
 message CredentialsInfoResponse {
     CredentialsInfo info = 1;
 }
 
 message CredentialsRequest {
-    string path = 1;
-    string rpID = 2;
-    string pin = 3;
+    string device = 1;
+    string rpId = 2 [(gogoproto.customname) = "RPID"];
+    string pin = 3 [(gogoproto.customname) = "PIN"];
 }
-message CredentialsResponse {}
+message CredentialsResponse {
+    repeated Credential credentials = 1;
+}
 
 message RelyingPartiesRequest {
-    string path = 1;
-    string pin = 2;
+    string device = 1;
+    string pin = 2 [(gogoproto.customname) = "PIN"];
 }
 message RelyingPartiesResponse {
     repeated RelyingParty parties = 1;

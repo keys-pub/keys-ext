@@ -1,7 +1,6 @@
 # fido2
 
-gRPC Service for go-libfido2.
-Uses github.com/keys-pub/go-libfido2.
+gRPC wrapper for [go-libfido2](https://github.com/keys-pub/go-libfido2).
 
 ## Dependencies
 

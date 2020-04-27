@@ -29,121 +29,6 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-type OptionValue int32
-
-const (
-	Default OptionValue = 0
-	True    OptionValue = 1
-	False   OptionValue = -1
-)
-
-var OptionValue_name = map[int32]string{
-	0:  "DEFAULT",
-	1:  "TRUE",
-	-1: "FALSE",
-}
-
-var OptionValue_value = map[string]int32{
-	"DEFAULT": 0,
-	"TRUE":    1,
-	"FALSE":   -1,
-}
-
-func (x OptionValue) String() string {
-	return proto.EnumName(OptionValue_name, int32(x))
-}
-
-func (OptionValue) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_05bb79244b7f5be6, []int{0}
-}
-
-type DeviceType int32
-
-const (
-	UnknownDevice DeviceType = 0
-	U2F           DeviceType = 1
-	FIDO2         DeviceType = 2
-)
-
-var DeviceType_name = map[int32]string{
-	0: "UNKNOWN_DEVICE",
-	1: "U2F",
-	2: "FIDO2",
-}
-
-var DeviceType_value = map[string]int32{
-	"UNKNOWN_DEVICE": 0,
-	"U2F":            1,
-	"FIDO2":          2,
-}
-
-func (x DeviceType) String() string {
-	return proto.EnumName(DeviceType_name, int32(x))
-}
-
-func (DeviceType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_05bb79244b7f5be6, []int{1}
-}
-
-type CredentialType int32
-
-const (
-	UnknownCredential CredentialType = 0
-	ES256             CredentialType = 1
-	EDDSA             CredentialType = 2
-	RS256             CredentialType = 3
-)
-
-var CredentialType_name = map[int32]string{
-	0: "UNKNOWN_CREDENTIAL",
-	1: "ES256",
-	2: "EDDSA",
-	3: "RS256",
-}
-
-var CredentialType_value = map[string]int32{
-	"UNKNOWN_CREDENTIAL": 0,
-	"ES256":              1,
-	"EDDSA":              2,
-	"RS256":              3,
-}
-
-func (x CredentialType) String() string {
-	return proto.EnumName(CredentialType_name, int32(x))
-}
-
-func (CredentialType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_05bb79244b7f5be6, []int{2}
-}
-
-type Extension int32
-
-const (
-	UnknownExtension Extension = 0
-	HMACSecret       Extension = 1
-	CredProtect      Extension = 2
-)
-
-var Extension_name = map[int32]string{
-	0: "UNKNOWN_Extension",
-	1: "HMAC_SECRET",
-	2: "CRED_PROTECT",
-}
-
-var Extension_value = map[string]int32{
-	"UNKNOWN_Extension": 0,
-	"HMAC_SECRET":       1,
-	"CRED_PROTECT":      2,
-}
-
-func (x Extension) String() string {
-	return proto.EnumName(Extension_name, int32(x))
-}
-
-func (Extension) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_05bb79244b7f5be6, []int{3}
-}
-
 type RPCError struct {
 	Code                 int32    `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
 	Message              string   `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
@@ -186,7 +71,7 @@ func (m *RPCError) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_RPCError proto.InternalMessageInfo
 
-type DeviceLocation struct {
+type Device struct {
 	Path                 string   `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
 	ProductID            int32    `protobuf:"varint,2,opt,name=productId,proto3" json:"productId,omitempty"`
 	VendorID             int32    `protobuf:"varint,3,opt,name=vendorId,proto3" json:"vendorId,omitempty"`
@@ -197,18 +82,18 @@ type DeviceLocation struct {
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *DeviceLocation) Reset()         { *m = DeviceLocation{} }
-func (m *DeviceLocation) String() string { return proto.CompactTextString(m) }
-func (*DeviceLocation) ProtoMessage()    {}
-func (*DeviceLocation) Descriptor() ([]byte, []int) {
+func (m *Device) Reset()         { *m = Device{} }
+func (m *Device) String() string { return proto.CompactTextString(m) }
+func (*Device) ProtoMessage()    {}
+func (*Device) Descriptor() ([]byte, []int) {
 	return fileDescriptor_05bb79244b7f5be6, []int{1}
 }
-func (m *DeviceLocation) XXX_Unmarshal(b []byte) error {
+func (m *Device) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *DeviceLocation) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *Device) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_DeviceLocation.Marshal(b, m, deterministic)
+		return xxx_messageInfo_Device.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -218,24 +103,24 @@ func (m *DeviceLocation) XXX_Marshal(b []byte, deterministic bool) ([]byte, erro
 		return b[:n], nil
 	}
 }
-func (m *DeviceLocation) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DeviceLocation.Merge(m, src)
+func (m *Device) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Device.Merge(m, src)
 }
-func (m *DeviceLocation) XXX_Size() int {
+func (m *Device) XXX_Size() int {
 	return m.Size()
 }
-func (m *DeviceLocation) XXX_DiscardUnknown() {
-	xxx_messageInfo_DeviceLocation.DiscardUnknown(m)
+func (m *Device) XXX_DiscardUnknown() {
+	xxx_messageInfo_Device.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_DeviceLocation proto.InternalMessageInfo
+var xxx_messageInfo_Device proto.InternalMessageInfo
 
 type Option struct {
-	Name                 string      `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Value                OptionValue `protobuf:"varint,2,opt,name=value,proto3,enum=fido2.OptionValue" json:"value,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
-	XXX_unrecognized     []byte      `json:"-"`
-	XXX_sizecache        int32       `json:"-"`
+	Name                 string   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Value                string   `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *Option) Reset()         { *m = Option{} }
@@ -274,7 +159,7 @@ var xxx_messageInfo_Option proto.InternalMessageInfo
 type DeviceInfo struct {
 	Versions             []string  `protobuf:"bytes,1,rep,name=versions,proto3" json:"versions,omitempty"`
 	Extensions           []string  `protobuf:"bytes,2,rep,name=extensions,proto3" json:"extensions,omitempty"`
-	Aaguid               string    `protobuf:"bytes,3,opt,name=aaguid,proto3" json:"aaguid,omitempty"`
+	AAGUID               []byte    `protobuf:"bytes,3,opt,name=aaguid,proto3" json:"aaguid,omitempty"`
 	Options              []*Option `protobuf:"bytes,4,rep,name=options,proto3" json:"options,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}  `json:"-"`
 	XXX_unrecognized     []byte    `json:"-"`
@@ -315,7 +200,7 @@ func (m *DeviceInfo) XXX_DiscardUnknown() {
 var xxx_messageInfo_DeviceInfo proto.InternalMessageInfo
 
 type RelyingParty struct {
-	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ID                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name                 string   `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -356,7 +241,7 @@ func (m *RelyingParty) XXX_DiscardUnknown() {
 var xxx_messageInfo_RelyingParty proto.InternalMessageInfo
 
 type User struct {
-	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ID                   []byte   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name                 string   `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	DisplayName          string   `protobuf:"bytes,3,opt,name=displayName,proto3" json:"displayName,omitempty"`
 	Icon                 string   `protobuf:"bytes,4,opt,name=icon,proto3" json:"icon,omitempty"`
@@ -399,17 +284,17 @@ func (m *User) XXX_DiscardUnknown() {
 var xxx_messageInfo_User proto.InternalMessageInfo
 
 type Attestation struct {
-	ClientDataHash       []byte         `protobuf:"bytes,1,opt,name=clientDataHash,proto3" json:"clientDataHash,omitempty"`
-	AuthData             []byte         `protobuf:"bytes,2,opt,name=authData,proto3" json:"authData,omitempty"`
-	CredID               []byte         `protobuf:"bytes,3,opt,name=credId,proto3" json:"credId,omitempty"`
-	CredType             CredentialType `protobuf:"varint,4,opt,name=credType,proto3,enum=fido2.CredentialType" json:"credType,omitempty"`
-	PubKey               []byte         `protobuf:"bytes,5,opt,name=pubKey,proto3" json:"pubKey,omitempty"`
-	Cert                 []byte         `protobuf:"bytes,6,opt,name=cert,proto3" json:"cert,omitempty"`
-	Sig                  []byte         `protobuf:"bytes,7,opt,name=sig,proto3" json:"sig,omitempty"`
-	Format               string         `protobuf:"bytes,8,opt,name=format,proto3" json:"format,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
-	XXX_unrecognized     []byte         `json:"-"`
-	XXX_sizecache        int32          `json:"-"`
+	ClientDataHash       []byte   `protobuf:"bytes,1,opt,name=clientDataHash,proto3" json:"clientDataHash,omitempty"`
+	AuthData             []byte   `protobuf:"bytes,2,opt,name=authData,proto3" json:"authData,omitempty"`
+	CredID               []byte   `protobuf:"bytes,3,opt,name=credId,proto3" json:"credId,omitempty"`
+	CredType             string   `protobuf:"bytes,4,opt,name=credType,proto3" json:"credType,omitempty"`
+	PubKey               []byte   `protobuf:"bytes,5,opt,name=pubKey,proto3" json:"pubKey,omitempty"`
+	Cert                 []byte   `protobuf:"bytes,6,opt,name=cert,proto3" json:"cert,omitempty"`
+	Sig                  []byte   `protobuf:"bytes,7,opt,name=sig,proto3" json:"sig,omitempty"`
+	Format               string   `protobuf:"bytes,8,opt,name=format,proto3" json:"format,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *Attestation) Reset()         { *m = Attestation{} }
@@ -446,12 +331,12 @@ func (m *Attestation) XXX_DiscardUnknown() {
 var xxx_messageInfo_Attestation proto.InternalMessageInfo
 
 type Credential struct {
-	ID                   []byte         `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Type                 CredentialType `protobuf:"varint,2,opt,name=type,proto3,enum=fido2.CredentialType" json:"type,omitempty"`
-	User                 *User          `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
-	XXX_unrecognized     []byte         `json:"-"`
-	XXX_sizecache        int32          `json:"-"`
+	ID                   []byte   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Type                 string   `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
+	User                 *User    `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *Credential) Reset()         { *m = Credential{} }
@@ -490,7 +375,7 @@ var xxx_messageInfo_Credential proto.InternalMessageInfo
 type Assertion struct {
 	AuthData             []byte   `protobuf:"bytes,1,opt,name=authData,proto3" json:"authData,omitempty"`
 	Sig                  []byte   `protobuf:"bytes,2,opt,name=sig,proto3" json:"sig,omitempty"`
-	HmacSecret           []byte   `protobuf:"bytes,3,opt,name=hmacSecret,proto3" json:"hmacSecret,omitempty"`
+	HMACSecret           []byte   `protobuf:"bytes,3,opt,name=hmacSecret,proto3" json:"hmacSecret,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -530,8 +415,8 @@ func (m *Assertion) XXX_DiscardUnknown() {
 var xxx_messageInfo_Assertion proto.InternalMessageInfo
 
 type CredentialsInfo struct {
-	RkExisting           int32    `protobuf:"varint,1,opt,name=rkExisting,proto3" json:"rkExisting,omitempty"`
-	RkRemaining          int32    `protobuf:"varint,2,opt,name=rkRemaining,proto3" json:"rkRemaining,omitempty"`
+	RKExisting           int32    `protobuf:"varint,1,opt,name=rkExisting,proto3" json:"rkExisting,omitempty"`
+	RKRemaining          int32    `protobuf:"varint,2,opt,name=rkRemaining,proto3" json:"rkRemaining,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -570,24 +455,24 @@ func (m *CredentialsInfo) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_CredentialsInfo proto.InternalMessageInfo
 
-type DeviceLocationsRequest struct {
+type DevicesRequest struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *DeviceLocationsRequest) Reset()         { *m = DeviceLocationsRequest{} }
-func (m *DeviceLocationsRequest) String() string { return proto.CompactTextString(m) }
-func (*DeviceLocationsRequest) ProtoMessage()    {}
-func (*DeviceLocationsRequest) Descriptor() ([]byte, []int) {
+func (m *DevicesRequest) Reset()         { *m = DevicesRequest{} }
+func (m *DevicesRequest) String() string { return proto.CompactTextString(m) }
+func (*DevicesRequest) ProtoMessage()    {}
+func (*DevicesRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_05bb79244b7f5be6, []int{10}
 }
-func (m *DeviceLocationsRequest) XXX_Unmarshal(b []byte) error {
+func (m *DevicesRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *DeviceLocationsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *DevicesRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_DeviceLocationsRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_DevicesRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -597,37 +482,37 @@ func (m *DeviceLocationsRequest) XXX_Marshal(b []byte, deterministic bool) ([]by
 		return b[:n], nil
 	}
 }
-func (m *DeviceLocationsRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DeviceLocationsRequest.Merge(m, src)
+func (m *DevicesRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DevicesRequest.Merge(m, src)
 }
-func (m *DeviceLocationsRequest) XXX_Size() int {
+func (m *DevicesRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *DeviceLocationsRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_DeviceLocationsRequest.DiscardUnknown(m)
+func (m *DevicesRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DevicesRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_DeviceLocationsRequest proto.InternalMessageInfo
+var xxx_messageInfo_DevicesRequest proto.InternalMessageInfo
 
-type DeviceLocationsResponse struct {
-	Locations            []*DeviceLocation `protobuf:"bytes,1,rep,name=locations,proto3" json:"locations,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
-	XXX_unrecognized     []byte            `json:"-"`
-	XXX_sizecache        int32             `json:"-"`
+type DevicesResponse struct {
+	Devices              []*Device `protobuf:"bytes,1,rep,name=devices,proto3" json:"devices,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}  `json:"-"`
+	XXX_unrecognized     []byte    `json:"-"`
+	XXX_sizecache        int32     `json:"-"`
 }
 
-func (m *DeviceLocationsResponse) Reset()         { *m = DeviceLocationsResponse{} }
-func (m *DeviceLocationsResponse) String() string { return proto.CompactTextString(m) }
-func (*DeviceLocationsResponse) ProtoMessage()    {}
-func (*DeviceLocationsResponse) Descriptor() ([]byte, []int) {
+func (m *DevicesResponse) Reset()         { *m = DevicesResponse{} }
+func (m *DevicesResponse) String() string { return proto.CompactTextString(m) }
+func (*DevicesResponse) ProtoMessage()    {}
+func (*DevicesResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_05bb79244b7f5be6, []int{11}
 }
-func (m *DeviceLocationsResponse) XXX_Unmarshal(b []byte) error {
+func (m *DevicesResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *DeviceLocationsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *DevicesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_DeviceLocationsResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_DevicesResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -637,20 +522,20 @@ func (m *DeviceLocationsResponse) XXX_Marshal(b []byte, deterministic bool) ([]b
 		return b[:n], nil
 	}
 }
-func (m *DeviceLocationsResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DeviceLocationsResponse.Merge(m, src)
+func (m *DevicesResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DevicesResponse.Merge(m, src)
 }
-func (m *DeviceLocationsResponse) XXX_Size() int {
+func (m *DevicesResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *DeviceLocationsResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_DeviceLocationsResponse.DiscardUnknown(m)
+func (m *DevicesResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_DevicesResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_DeviceLocationsResponse proto.InternalMessageInfo
+var xxx_messageInfo_DevicesResponse proto.InternalMessageInfo
 
 type DeviceInfoRequest struct {
-	Path                 string   `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+	Device               string   `protobuf:"bytes,1,opt,name=device,proto3" json:"device,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -730,18 +615,18 @@ func (m *DeviceInfoResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_DeviceInfoResponse proto.InternalMessageInfo
 
 type MakeCredentialRequest struct {
-	Path                 string         `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
-	ClientDataHash       []byte         `protobuf:"bytes,2,opt,name=clientDataHash,proto3" json:"clientDataHash,omitempty"`
-	Rp                   *RelyingParty  `protobuf:"bytes,3,opt,name=rp,proto3" json:"rp,omitempty"`
-	User                 *User          `protobuf:"bytes,4,opt,name=user,proto3" json:"user,omitempty"`
-	Type                 CredentialType `protobuf:"varint,5,opt,name=type,proto3,enum=fido2.CredentialType" json:"type,omitempty"`
-	Pin                  string         `protobuf:"bytes,6,opt,name=pin,proto3" json:"pin,omitempty"`
-	Extensions           []Extension    `protobuf:"varint,100,rep,packed,name=extensions,proto3,enum=fido2.Extension" json:"extensions,omitempty"`
-	RK                   *Option        `protobuf:"bytes,101,opt,name=RK,proto3" json:"RK,omitempty"`
-	UV                   *Option        `protobuf:"bytes,102,opt,name=UV,proto3" json:"UV,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
-	XXX_unrecognized     []byte         `json:"-"`
-	XXX_sizecache        int32          `json:"-"`
+	Device               string        `protobuf:"bytes,1,opt,name=device,proto3" json:"device,omitempty"`
+	ClientDataHash       []byte        `protobuf:"bytes,2,opt,name=clientDataHash,proto3" json:"clientDataHash,omitempty"`
+	RP                   *RelyingParty `protobuf:"bytes,3,opt,name=rp,proto3" json:"rp,omitempty"`
+	User                 *User         `protobuf:"bytes,4,opt,name=user,proto3" json:"user,omitempty"`
+	Type                 string        `protobuf:"bytes,5,opt,name=type,proto3" json:"type,omitempty"`
+	PIN                  string        `protobuf:"bytes,6,opt,name=pin,proto3" json:"pin,omitempty"`
+	Extensions           []string      `protobuf:"bytes,100,rep,name=extensions,proto3" json:"extensions,omitempty"`
+	RK                   string        `protobuf:"bytes,101,opt,name=rk,proto3" json:"rk,omitempty"`
+	UV                   string        `protobuf:"bytes,102,opt,name=uv,proto3" json:"uv,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
 }
 
 func (m *MakeCredentialRequest) Reset()         { *m = MakeCredentialRequest{} }
@@ -818,9 +703,9 @@ func (m *MakeCredentialResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MakeCredentialResponse proto.InternalMessageInfo
 
 type SetPINRequest struct {
-	Path                 string   `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
-	Pin                  string   `protobuf:"bytes,2,opt,name=pin,proto3" json:"pin,omitempty"`
-	OldPin               string   `protobuf:"bytes,3,opt,name=oldPin,proto3" json:"oldPin,omitempty"`
+	Device               string   `protobuf:"bytes,1,opt,name=device,proto3" json:"device,omitempty"`
+	PIN                  string   `protobuf:"bytes,2,opt,name=pin,proto3" json:"pin,omitempty"`
+	OldPIN               string   `protobuf:"bytes,3,opt,name=oldPin,proto3" json:"oldPin,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -899,7 +784,7 @@ func (m *SetPINResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_SetPINResponse proto.InternalMessageInfo
 
 type ResetRequest struct {
-	Path                 string   `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+	Device               string   `protobuf:"bytes,1,opt,name=device,proto3" json:"device,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -978,7 +863,7 @@ func (m *ResetResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_ResetResponse proto.InternalMessageInfo
 
 type RetryCountRequest struct {
-	Path                 string   `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+	Device               string   `protobuf:"bytes,1,opt,name=device,proto3" json:"device,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -1058,18 +943,18 @@ func (m *RetryCountResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_RetryCountResponse proto.InternalMessageInfo
 
 type AssertionRequest struct {
-	Path                 string      `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
-	RpID                 string      `protobuf:"bytes,2,opt,name=rpID,proto3" json:"rpID,omitempty"`
-	ClientDataHash       []byte      `protobuf:"bytes,3,opt,name=clientDataHash,proto3" json:"clientDataHash,omitempty"`
-	CredID               []byte      `protobuf:"bytes,4,opt,name=credID,proto3" json:"credID,omitempty"`
-	Pin                  string      `protobuf:"bytes,5,opt,name=pin,proto3" json:"pin,omitempty"`
-	Extensions           []Extension `protobuf:"varint,100,rep,packed,name=extensions,proto3,enum=fido2.Extension" json:"extensions,omitempty"`
-	UV                   *Option     `protobuf:"bytes,101,opt,name=UV,proto3" json:"UV,omitempty"`
-	UP                   *Option     `protobuf:"bytes,102,opt,name=UP,proto3" json:"UP,omitempty"`
-	HMACSalt             []byte      `protobuf:"bytes,103,opt,name=HMACSalt,proto3" json:"HMACSalt,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
-	XXX_unrecognized     []byte      `json:"-"`
-	XXX_sizecache        int32       `json:"-"`
+	Device               string   `protobuf:"bytes,1,opt,name=device,proto3" json:"device,omitempty"`
+	RPID                 string   `protobuf:"bytes,2,opt,name=rpId,proto3" json:"rpId,omitempty"`
+	ClientDataHash       []byte   `protobuf:"bytes,3,opt,name=clientDataHash,proto3" json:"clientDataHash,omitempty"`
+	CredID               []byte   `protobuf:"bytes,4,opt,name=credId,proto3" json:"credId,omitempty"`
+	PIN                  string   `protobuf:"bytes,5,opt,name=pin,proto3" json:"pin,omitempty"`
+	Extensions           []string `protobuf:"bytes,100,rep,name=extensions,proto3" json:"extensions,omitempty"`
+	UV                   string   `protobuf:"bytes,101,opt,name=uv,proto3" json:"uv,omitempty"`
+	UP                   string   `protobuf:"bytes,102,opt,name=up,proto3" json:"up,omitempty"`
+	HMACSalt             []byte   `protobuf:"bytes,103,opt,name=hmacSalt,proto3" json:"hmacSalt,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *AssertionRequest) Reset()         { *m = AssertionRequest{} }
@@ -1146,7 +1031,8 @@ func (m *AssertionResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_AssertionResponse proto.InternalMessageInfo
 
 type CredentialsInfoRequest struct {
-	Path                 string   `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+	Device               string   `protobuf:"bytes,1,opt,name=device,proto3" json:"device,omitempty"`
+	PIN                  string   `protobuf:"bytes,2,opt,name=pin,proto3" json:"pin,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -1226,9 +1112,9 @@ func (m *CredentialsInfoResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_CredentialsInfoResponse proto.InternalMessageInfo
 
 type CredentialsRequest struct {
-	Path                 string   `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
-	RpID                 string   `protobuf:"bytes,2,opt,name=rpID,proto3" json:"rpID,omitempty"`
-	Pin                  string   `protobuf:"bytes,3,opt,name=pin,proto3" json:"pin,omitempty"`
+	Device               string   `protobuf:"bytes,1,opt,name=device,proto3" json:"device,omitempty"`
+	RPID                 string   `protobuf:"bytes,2,opt,name=rpId,proto3" json:"rpId,omitempty"`
+	PIN                  string   `protobuf:"bytes,3,opt,name=pin,proto3" json:"pin,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -1268,9 +1154,10 @@ func (m *CredentialsRequest) XXX_DiscardUnknown() {
 var xxx_messageInfo_CredentialsRequest proto.InternalMessageInfo
 
 type CredentialsResponse struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Credentials          []*Credential `protobuf:"bytes,1,rep,name=credentials,proto3" json:"credentials,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
 }
 
 func (m *CredentialsResponse) Reset()         { *m = CredentialsResponse{} }
@@ -1307,8 +1194,8 @@ func (m *CredentialsResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_CredentialsResponse proto.InternalMessageInfo
 
 type RelyingPartiesRequest struct {
-	Path                 string   `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
-	Pin                  string   `protobuf:"bytes,2,opt,name=pin,proto3" json:"pin,omitempty"`
+	Device               string   `protobuf:"bytes,1,opt,name=device,proto3" json:"device,omitempty"`
+	PIN                  string   `protobuf:"bytes,2,opt,name=pin,proto3" json:"pin,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -1388,12 +1275,8 @@ func (m *RelyingPartiesResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_RelyingPartiesResponse proto.InternalMessageInfo
 
 func init() {
-	proto.RegisterEnum("fido2.OptionValue", OptionValue_name, OptionValue_value)
-	proto.RegisterEnum("fido2.DeviceType", DeviceType_name, DeviceType_value)
-	proto.RegisterEnum("fido2.CredentialType", CredentialType_name, CredentialType_value)
-	proto.RegisterEnum("fido2.Extension", Extension_name, Extension_value)
 	proto.RegisterType((*RPCError)(nil), "fido2.RPCError")
-	proto.RegisterType((*DeviceLocation)(nil), "fido2.DeviceLocation")
+	proto.RegisterType((*Device)(nil), "fido2.Device")
 	proto.RegisterType((*Option)(nil), "fido2.Option")
 	proto.RegisterType((*DeviceInfo)(nil), "fido2.DeviceInfo")
 	proto.RegisterType((*RelyingParty)(nil), "fido2.RelyingParty")
@@ -1402,8 +1285,8 @@ func init() {
 	proto.RegisterType((*Credential)(nil), "fido2.Credential")
 	proto.RegisterType((*Assertion)(nil), "fido2.Assertion")
 	proto.RegisterType((*CredentialsInfo)(nil), "fido2.CredentialsInfo")
-	proto.RegisterType((*DeviceLocationsRequest)(nil), "fido2.DeviceLocationsRequest")
-	proto.RegisterType((*DeviceLocationsResponse)(nil), "fido2.DeviceLocationsResponse")
+	proto.RegisterType((*DevicesRequest)(nil), "fido2.DevicesRequest")
+	proto.RegisterType((*DevicesResponse)(nil), "fido2.DevicesResponse")
 	proto.RegisterType((*DeviceInfoRequest)(nil), "fido2.DeviceInfoRequest")
 	proto.RegisterType((*DeviceInfoResponse)(nil), "fido2.DeviceInfoResponse")
 	proto.RegisterType((*MakeCredentialRequest)(nil), "fido2.MakeCredentialRequest")
@@ -1427,107 +1310,91 @@ func init() {
 func init() { proto.RegisterFile("fido2.proto", fileDescriptor_05bb79244b7f5be6) }
 
 var fileDescriptor_05bb79244b7f5be6 = []byte{
-	// 1593 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x57, 0xcd, 0x72, 0x1b, 0xc5,
-	0x16, 0xd6, 0x8c, 0x7e, 0x6c, 0x1d, 0xc9, 0xf2, 0xa8, 0x63, 0x2b, 0x93, 0xa9, 0x58, 0xd6, 0x9d,
-	0x5b, 0xb9, 0xf1, 0x75, 0x6e, 0x72, 0x41, 0x09, 0xb0, 0xa0, 0xa8, 0x42, 0xd6, 0xc8, 0x44, 0x65,
-	0x47, 0x56, 0xb5, 0x24, 0x53, 0x14, 0x8b, 0x30, 0x91, 0xda, 0xf2, 0x94, 0xe5, 0x19, 0x31, 0x33,
-	0x0a, 0xf1, 0x1b, 0x80, 0x36, 0x6c, 0x61, 0xa1, 0x15, 0xbc, 0x04, 0x3c, 0x00, 0x95, 0x25, 0x4b,
-	0x36, 0xb8, 0x88, 0x56, 0x2c, 0x79, 0x02, 0xa0, 0xba, 0xa7, 0xe7, 0x47, 0x3f, 0x36, 0xa4, 0xd0,
-	0xaa, 0xcf, 0xf9, 0xce, 0x9c, 0x3e, 0x7d, 0x7e, 0xbe, 0x6e, 0x41, 0xe6, 0xc4, 0xe8, 0x59, 0xe5,
-	0x07, 0x43, 0xdb, 0x72, 0x2d, 0x94, 0x64, 0x82, 0xb2, 0xd1, 0xb7, 0xfa, 0x16, 0xd3, 0xfc, 0x9f,
-	0xae, 0x3c, 0x50, 0xc5, 0xb0, 0x8a, 0x9b, 0xd5, 0x9a, 0x6d, 0x5b, 0x36, 0x42, 0x90, 0xe8, 0x5a,
-	0x3d, 0x22, 0x0b, 0x25, 0x61, 0x27, 0x89, 0xd9, 0x1a, 0xc9, 0xb0, 0x72, 0x4e, 0x1c, 0x47, 0xef,
-	0x13, 0x59, 0x2c, 0x09, 0x3b, 0x69, 0xec, 0x8b, 0x14, 0xe9, 0x11, 0x57, 0x37, 0x06, 0x8e, 0x1c,
-	0xf7, 0x10, 0x2e, 0xaa, 0xdf, 0x09, 0x90, 0xd3, 0xc8, 0x73, 0xa3, 0x4b, 0x0e, 0xad, 0xae, 0xee,
-	0x1a, 0x96, 0x49, 0x5d, 0x0f, 0x75, 0xf7, 0x94, 0xb9, 0x4e, 0x63, 0xb6, 0x46, 0xf7, 0x20, 0x3d,
-	0xb4, 0xad, 0xde, 0xa8, 0xeb, 0xd6, 0x7b, 0xcc, 0x79, 0x72, 0x6f, 0x6d, 0x7a, 0xb9, 0x9d, 0x6e,
-	0x72, 0xa5, 0x86, 0x43, 0x1c, 0xed, 0xc0, 0xea, 0x73, 0x62, 0xf6, 0x2c, 0xbb, 0xde, 0x63, 0xdb,
-	0x25, 0xf7, 0xb2, 0xd3, 0xcb, 0xed, 0xd5, 0x63, 0x4f, 0xa7, 0xe1, 0x00, 0x45, 0x2a, 0x64, 0xcf,
-	0x75, 0x73, 0x74, 0xa2, 0x77, 0xdd, 0x91, 0x4d, 0x6c, 0x39, 0xc1, 0xb6, 0x9c, 0xd1, 0xd1, 0xd8,
-	0xb9, 0x6b, 0x39, 0xe9, 0xc5, 0xce, 0x45, 0x75, 0x1f, 0x52, 0x47, 0x43, 0x3f, 0x64, 0x53, 0x3f,
-	0x27, 0x7e, 0xc8, 0x74, 0x8d, 0x76, 0x20, 0xf9, 0x5c, 0x1f, 0x8c, 0xbc, 0x5c, 0xe4, 0xca, 0xe8,
-	0x81, 0x97, 0x67, 0xef, 0x8b, 0x63, 0x8a, 0x60, 0xcf, 0x40, 0xfd, 0x42, 0x00, 0xf0, 0x72, 0x50,
-	0x37, 0x4f, 0x2c, 0xa4, 0xd0, 0xf0, 0x6d, 0xc7, 0xb0, 0x4c, 0x47, 0x16, 0x4a, 0xf1, 0x9d, 0x34,
-	0x0e, 0x64, 0x54, 0x04, 0x20, 0x2f, 0x5c, 0x62, 0x7a, 0xa8, 0xc8, 0xd0, 0x88, 0x06, 0x15, 0x20,
-	0xa5, 0xeb, 0xfd, 0x91, 0xd1, 0xe3, 0x79, 0xe6, 0x12, 0xba, 0x0b, 0x2b, 0x16, 0xdb, 0xd8, 0x91,
-	0x13, 0xa5, 0xf8, 0x4e, 0xa6, 0xbc, 0x36, 0x13, 0x0e, 0xf6, 0x51, 0xb5, 0x0c, 0x59, 0x4c, 0x06,
-	0x17, 0x86, 0xd9, 0x6f, 0xea, 0xb6, 0x7b, 0x81, 0x72, 0x20, 0x1a, 0x3d, 0x7e, 0x2e, 0xd1, 0xe8,
-	0x05, 0x27, 0x15, 0xc3, 0x93, 0xaa, 0x9f, 0x40, 0xa2, 0xe3, 0x10, 0xfb, 0xef, 0xd8, 0xa2, 0x12,
-	0x64, 0x7a, 0x86, 0x33, 0x1c, 0xe8, 0x17, 0x0d, 0x0a, 0x79, 0x51, 0x46, 0x55, 0xf4, 0x2b, 0xa3,
-	0x6b, 0x99, 0xbc, 0x16, 0x6c, 0xad, 0xfe, 0x2e, 0x40, 0xa6, 0xe2, 0xba, 0xc4, 0x71, 0xbd, 0x16,
-	0xf9, 0x0f, 0xe4, 0xba, 0x03, 0x83, 0x98, 0xae, 0xa6, 0xbb, 0xfa, 0x63, 0xdd, 0xf1, 0x9a, 0x25,
-	0x8b, 0xe7, 0xb4, 0x34, 0x95, 0xfa, 0xc8, 0x3d, 0xa5, 0x32, 0x8b, 0x22, 0x8b, 0x03, 0x19, 0xa9,
-	0x90, 0xea, 0xda, 0xa4, 0xc7, 0x7b, 0x24, 0xbb, 0x07, 0xd3, 0xcb, 0xed, 0x54, 0x95, 0x6a, 0x34,
-	0xcc, 0x11, 0xf4, 0x26, 0xac, 0xd2, 0x55, 0xfb, 0x62, 0x48, 0x58, 0x3c, 0xb9, 0xf2, 0x26, 0xcf,
-	0x1b, 0x35, 0x24, 0xa6, 0x6b, 0xe8, 0x03, 0x0a, 0xe2, 0xc0, 0x8c, 0x56, 0x60, 0x38, 0x7a, 0x76,
-	0x40, 0x2e, 0x58, 0xb7, 0x64, 0x31, 0x97, 0xd8, 0xc0, 0x10, 0xdb, 0x95, 0x53, 0x4c, 0xcb, 0xd6,
-	0x48, 0x82, 0xb8, 0x63, 0xf4, 0xe5, 0x15, 0xa6, 0xa2, 0x4b, 0xfa, 0xf5, 0x89, 0x65, 0x9f, 0xeb,
-	0xae, 0xbc, 0xea, 0xd5, 0xcf, 0x93, 0xd4, 0x21, 0x40, 0xb8, 0x23, 0x2a, 0x04, 0x89, 0xce, 0xee,
-	0xa5, 0xa6, 0x97, 0xdb, 0x62, 0x5d, 0x63, 0x09, 0xff, 0x2f, 0x24, 0x5c, 0x1a, 0xaa, 0x78, 0x5d,
-	0xa8, 0xcc, 0x04, 0x6d, 0x43, 0x62, 0xe4, 0x10, 0x9b, 0x9d, 0x3d, 0x53, 0xce, 0x70, 0x53, 0x5a,
-	0x46, 0xcc, 0x00, 0xf5, 0x23, 0x48, 0x57, 0x1c, 0x87, 0xd8, 0x2c, 0xdf, 0xd1, 0x3c, 0x0a, 0x73,
-	0x79, 0xe4, 0x87, 0x10, 0xc3, 0x43, 0x14, 0x01, 0x4e, 0xcf, 0xf5, 0x6e, 0x8b, 0x74, 0x6d, 0xe2,
-	0x7a, 0xd9, 0xc5, 0x11, 0x8d, 0xda, 0x82, 0xf5, 0x30, 0x26, 0x87, 0xf5, 0x7c, 0x11, 0xc0, 0x3e,
-	0xab, 0xbd, 0x30, 0x1c, 0xd7, 0x30, 0xfb, 0x9c, 0x54, 0x22, 0x1a, 0xda, 0x36, 0xf6, 0x19, 0x26,
-	0xe7, 0xba, 0x61, 0x52, 0x03, 0xc6, 0x00, 0x38, 0xaa, 0x52, 0x65, 0x28, 0xcc, 0xf2, 0x88, 0x83,
-	0xc9, 0xa7, 0x23, 0xe2, 0xb8, 0x6a, 0x03, 0x6e, 0x2e, 0x20, 0xce, 0xd0, 0x32, 0x1d, 0x82, 0x1e,
-	0x42, 0x7a, 0xe0, 0x2b, 0xd9, 0xac, 0x65, 0x82, 0xac, 0xcd, 0x7e, 0x82, 0x43, 0x3b, 0xf5, 0x2e,
-	0xe4, 0xc3, 0x69, 0xe5, 0x9b, 0x2c, 0x23, 0x2d, 0xf5, 0x5d, 0x40, 0x51, 0x43, 0xbe, 0xe7, 0x1d,
-	0x48, 0x18, 0xe6, 0x89, 0xc5, 0x2c, 0x33, 0xe5, 0xfc, 0xcc, 0x76, 0xcc, 0x90, 0xc1, 0xea, 0x0f,
-	0x22, 0x6c, 0x3e, 0xd1, 0xcf, 0x48, 0x98, 0xa9, 0x6b, 0xb6, 0x5a, 0x32, 0x10, 0xe2, 0xd2, 0x81,
-	0xf8, 0x37, 0x88, 0xf6, 0x90, 0x17, 0xfd, 0x06, 0xdf, 0x3a, 0x3a, 0xef, 0x58, 0xb4, 0x87, 0x41,
-	0x6f, 0x24, 0xae, 0xe8, 0x8d, 0xa0, 0xcf, 0x92, 0x7f, 0xdd, 0x67, 0x12, 0xc4, 0x87, 0x86, 0xc9,
-	0xba, 0x3e, 0x8d, 0xe9, 0x12, 0xbd, 0x31, 0x43, 0x61, 0xbd, 0x52, 0x7c, 0x27, 0x57, 0x96, 0xb8,
-	0x8b, 0x9a, 0x0f, 0xcc, 0x90, 0xda, 0x16, 0x88, 0xf8, 0x40, 0x26, 0x2c, 0x9a, 0x39, 0xde, 0x12,
-	0xf1, 0x01, 0x85, 0x3b, 0xc7, 0xf2, 0xc9, 0x52, 0xb8, 0x73, 0xac, 0x36, 0xa0, 0x30, 0x9f, 0x47,
-	0x5e, 0x89, 0x47, 0x90, 0xd1, 0x43, 0x52, 0xe1, 0x05, 0xf1, 0x79, 0x3a, 0x42, 0x37, 0x38, 0x6a,
-	0xa6, 0x3e, 0x81, 0xb5, 0x16, 0x71, 0x9b, 0xf5, 0xc6, 0x75, 0xf5, 0xe0, 0xc7, 0x16, 0xc3, 0x63,
-	0x17, 0x20, 0x65, 0x0d, 0x7a, 0x4d, 0xc3, 0xf4, 0x99, 0xd9, 0x93, 0x54, 0x09, 0x72, 0xbe, 0x3b,
-	0x2f, 0x2c, 0x55, 0xa5, 0x14, 0xec, 0x10, 0xf7, 0xba, 0xd6, 0x5a, 0x87, 0x35, 0x6e, 0xc3, 0x3f,
-	0xba, 0x0b, 0x79, 0x4c, 0x5c, 0xfb, 0xa2, 0x6a, 0x8d, 0xcc, 0x6b, 0xbf, 0xdc, 0x05, 0x14, 0x35,
-	0xe4, 0xa9, 0xd8, 0x80, 0x64, 0x97, 0x2a, 0xf8, 0xe8, 0x79, 0x82, 0xfa, 0x95, 0x08, 0x52, 0x40,
-	0x02, 0xd7, 0x1d, 0x17, 0x41, 0xc2, 0x1e, 0xd6, 0x35, 0x9f, 0xe9, 0xe9, 0x7a, 0x49, 0x4b, 0xc6,
-	0x97, 0xb6, 0x64, 0x81, 0xf3, 0xb0, 0xc6, 0xfa, 0x2d, 0xcb, 0xb9, 0x57, 0xf3, 0x53, 0x98, 0xfc,
-	0x87, 0x9d, 0xd3, 0x39, 0xbe, 0xa2, 0x73, 0x3a, 0xc7, 0x0c, 0x6e, 0x5e, 0xd5, 0x39, 0x4d, 0xca,
-	0x7a, 0x8f, 0x9f, 0x54, 0xaa, 0x2d, 0x7d, 0xe0, 0xca, 0x7d, 0x8f, 0xf5, 0x7c, 0x59, 0xad, 0x42,
-	0x3e, 0x92, 0x19, 0x9e, 0xc5, 0x07, 0x90, 0xd6, 0x7d, 0x25, 0x6f, 0x27, 0x3f, 0xbe, 0xd0, 0x38,
-	0x34, 0x51, 0xff, 0x07, 0x85, 0x39, 0x22, 0xbc, 0xae, 0x72, 0x35, 0xb8, 0xb9, 0x60, 0xcd, 0x37,
-	0xde, 0x9d, 0xe1, 0x94, 0xc2, 0xc2, 0x40, 0x3a, 0x11, 0x62, 0x69, 0x00, 0x8a, 0x00, 0xaf, 0x5b,
-	0x55, 0x5e, 0x95, 0x78, 0x50, 0x15, 0x75, 0x13, 0x6e, 0xcc, 0xf8, 0xe3, 0x0d, 0xf9, 0x1e, 0x6c,
-	0x46, 0x88, 0xc5, 0x20, 0xce, 0x6b, 0x8d, 0x8b, 0xfa, 0x01, 0x14, 0xe6, 0x3f, 0xe7, 0x67, 0xbd,
-	0x0f, 0x2b, 0x43, 0x4f, 0xc5, 0x19, 0x7b, 0x29, 0x8f, 0xf9, 0x36, 0xbb, 0x16, 0x64, 0x22, 0x4f,
-	0x2e, 0xfa, 0x9a, 0xd3, 0x6a, 0xfb, 0x95, 0xce, 0x61, 0x5b, 0x8a, 0x29, 0x99, 0xf1, 0xa4, 0xb4,
-	0xa2, 0x91, 0x13, 0x7d, 0x34, 0x60, 0x71, 0xb5, 0x71, 0xa7, 0x26, 0x09, 0xca, 0xea, 0x78, 0x52,
-	0x4a, 0xb4, 0xed, 0x11, 0x41, 0x5b, 0x90, 0xdc, 0xaf, 0x1c, 0xb6, 0x6a, 0xd2, 0x1f, 0xfe, 0x4f,
-	0x50, 0xd2, 0xe3, 0x49, 0x29, 0xb9, 0xaf, 0x0f, 0x1c, 0xa2, 0xdc, 0xf8, 0xfc, 0x9b, 0x62, 0xec,
-	0xfb, 0x6f, 0x8b, 0xd1, 0x1d, 0x76, 0x3f, 0xf6, 0x1f, 0x73, 0xec, 0x39, 0x70, 0x07, 0x72, 0x9d,
-	0xc6, 0x41, 0xe3, 0xe8, 0xc3, 0xc6, 0x53, 0xad, 0x76, 0x5c, 0xaf, 0xd6, 0xa4, 0x98, 0x92, 0x1f,
-	0x4f, 0x4a, 0x6b, 0x1d, 0xf3, 0xcc, 0xb4, 0x3e, 0x33, 0x3d, 0x53, 0xb4, 0x02, 0xf1, 0x4e, 0x79,
-	0x5f, 0x12, 0x50, 0x1a, 0x92, 0xfb, 0x75, 0xed, 0xa8, 0x2c, 0x89, 0x0a, 0xe2, 0xde, 0x23, 0xee,
-	0x76, 0xbf, 0x16, 0x20, 0x37, 0xcb, 0xb3, 0xe8, 0x3e, 0x20, 0x7f, 0x87, 0x2a, 0xae, 0x69, 0xb5,
-	0x46, 0xbb, 0x5e, 0x39, 0x94, 0x62, 0xca, 0xe6, 0x78, 0x52, 0xca, 0xf3, 0x5d, 0x22, 0x6f, 0x87,
-	0x0d, 0x48, 0xd6, 0x5a, 0xe5, 0xb7, 0xde, 0x96, 0xf8, 0x49, 0x98, 0xc0, 0xb4, 0x9a, 0xd6, 0xaa,
-	0x48, 0x22, 0xd7, 0x52, 0x81, 0x6a, 0x31, 0xb3, 0x8d, 0x7b, 0x5a, 0x26, 0x28, 0x05, 0x1e, 0xd7,
-	0x5c, 0x20, 0xbb, 0x5f, 0x0a, 0x90, 0x0e, 0xc6, 0x10, 0xdd, 0x83, 0xbc, 0x1f, 0x56, 0xa0, 0x94,
-	0x62, 0xca, 0xc6, 0x78, 0x52, 0x92, 0x78, 0x54, 0xa1, 0xf1, 0x36, 0x64, 0xe8, 0x64, 0x3d, 0x6d,
-	0xd5, 0xaa, 0xb8, 0xd6, 0x96, 0x04, 0x25, 0x37, 0x9e, 0x94, 0x80, 0x0d, 0x1b, 0x7b, 0x32, 0xa0,
-	0x7f, 0x41, 0x96, 0x1e, 0xee, 0x69, 0x13, 0x1f, 0xb5, 0x6b, 0xd5, 0xb6, 0x24, 0x2a, 0xeb, 0xe3,
-	0x49, 0x29, 0x43, 0x23, 0x68, 0xda, 0x96, 0x4b, 0xba, 0xae, 0x92, 0xe7, 0x61, 0x85, 0x31, 0x94,
-	0x7f, 0x4e, 0x42, 0xae, 0x32, 0x72, 0x4f, 0x69, 0x90, 0x5d, 0xdd, 0xb5, 0x6c, 0x07, 0x61, 0x58,
-	0x9f, 0x7b, 0x0c, 0xa0, 0xad, 0xa5, 0x37, 0xbe, 0xdf, 0xaf, 0x4a, 0xf1, 0x2a, 0x98, 0x37, 0x7a,
-	0x0c, 0x55, 0x67, 0x9e, 0xef, 0xf2, 0xe2, 0x8d, 0xce, 0x3d, 0xdd, 0x5a, 0x82, 0x04, 0x4e, 0x8e,
-	0x20, 0x37, 0x7b, 0x4d, 0xa1, 0xdb, 0xdc, 0x7c, 0xe9, 0x2b, 0x40, 0xd9, 0xba, 0x02, 0x0d, 0x1c,
-	0xbe, 0x03, 0x29, 0xef, 0x62, 0x41, 0x1b, 0xdc, 0x74, 0xe6, 0xda, 0x52, 0x36, 0xe7, 0xb4, 0xc1,
-	0x87, 0x8f, 0x20, 0xc9, 0xee, 0x16, 0x14, 0x0e, 0x56, 0x78, 0x1b, 0x29, 0x1b, 0xb3, 0xca, 0x68,
-	0x12, 0xc2, 0x7b, 0x25, 0x48, 0xc2, 0xc2, 0x9d, 0x14, 0x24, 0x61, 0xf1, 0x12, 0x52, 0x63, 0xe8,
-	0xfd, 0xe8, 0xa3, 0xf3, 0xe6, 0x02, 0x75, 0x72, 0x17, 0xf2, 0x22, 0x10, 0x78, 0xc0, 0x8b, 0x6f,
-	0xcb, 0xad, 0x2b, 0xe8, 0x70, 0xae, 0xbe, 0x57, 0x70, 0xab, 0x1a, 0x43, 0xfb, 0x90, 0x89, 0x80,
-	0xe8, 0xd6, 0xe2, 0x07, 0xbe, 0x2f, 0x65, 0x19, 0x14, 0x2d, 0xf1, 0x2c, 0xa7, 0x05, 0x25, 0x5e,
-	0xca, 0x94, 0x41, 0x89, 0x97, 0x13, 0xa1, 0x1a, 0xdb, 0xbb, 0xfd, 0xf2, 0x55, 0x31, 0xf6, 0xd3,
-	0xab, 0xa2, 0xf0, 0xdb, 0xab, 0xa2, 0xf0, 0x72, 0x5a, 0x14, 0x7e, 0x9c, 0x16, 0x85, 0x5f, 0xa6,
-	0x45, 0xe1, 0xd7, 0x69, 0x51, 0x78, 0x96, 0x62, 0xff, 0xda, 0x1f, 0xfe, 0x19, 0x00, 0x00, 0xff,
-	0xff, 0x4e, 0x10, 0xd0, 0x27, 0xe1, 0x0f, 0x00, 0x00,
+	// 1332 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x57, 0xcb, 0x6e, 0x1b, 0x37,
+	0x17, 0xf6, 0x8c, 0x2e, 0xb6, 0x8e, 0xe4, 0x1b, 0x63, 0x2b, 0x13, 0x21, 0x91, 0x0c, 0x02, 0x7f,
+	0x7e, 0x23, 0x46, 0x5d, 0xd4, 0x09, 0x50, 0x20, 0xdd, 0xd4, 0xb2, 0xd2, 0x44, 0x31, 0x92, 0x08,
+	0x4c, 0x13, 0xa0, 0x4b, 0x46, 0x43, 0xc9, 0x03, 0xcb, 0x33, 0x53, 0x0e, 0xc7, 0x88, 0x1f, 0xa4,
+	0x6f, 0xd0, 0x4d, 0x97, 0x7d, 0x88, 0x02, 0x59, 0x76, 0xd9, 0x95, 0xd0, 0x68, 0xd3, 0x2e, 0xfb,
+	0x08, 0x05, 0x2f, 0x9a, 0x8b, 0x34, 0xae, 0x81, 0x64, 0x47, 0x7e, 0xe7, 0xf0, 0xf0, 0xf0, 0xe3,
+	0xc7, 0x6f, 0x24, 0xa8, 0x8f, 0x3c, 0x37, 0x38, 0x3a, 0x0c, 0x79, 0x20, 0x02, 0x54, 0x51, 0x93,
+	0xd6, 0xce, 0x38, 0x18, 0x07, 0x0a, 0xf9, 0x52, 0x8e, 0x74, 0x10, 0x13, 0x58, 0x23, 0x83, 0x93,
+	0x27, 0x9c, 0x07, 0x1c, 0x21, 0x28, 0x0f, 0x03, 0x97, 0x39, 0xd6, 0x9e, 0xb5, 0x5f, 0x21, 0x6a,
+	0x8c, 0x1c, 0x58, 0xbd, 0x60, 0x51, 0x44, 0xc7, 0xcc, 0xb1, 0xf7, 0xac, 0xfd, 0x1a, 0x99, 0x4f,
+	0x65, 0xc4, 0x65, 0x82, 0x7a, 0x93, 0xc8, 0x29, 0xe9, 0x88, 0x99, 0xe2, 0x5f, 0x2d, 0xa8, 0xf6,
+	0xd8, 0xa5, 0x37, 0x64, 0xb2, 0x64, 0x48, 0xc5, 0x99, 0x2a, 0x59, 0x23, 0x6a, 0x8c, 0x0e, 0xa0,
+	0x16, 0xf2, 0xc0, 0x8d, 0x87, 0xa2, 0xef, 0xaa, 0xa2, 0x95, 0xee, 0xfa, 0x6c, 0xda, 0xa9, 0x0d,
+	0x0c, 0xd8, 0x23, 0x69, 0x1c, 0xed, 0xc3, 0xda, 0x25, 0xf3, 0xdd, 0x80, 0xf7, 0x5d, 0xb5, 0x4d,
+	0xa5, 0xdb, 0x98, 0x4d, 0x3b, 0x6b, 0x6f, 0x35, 0xd6, 0x23, 0x49, 0x14, 0x61, 0x68, 0x5c, 0x50,
+	0x3f, 0x1e, 0xd1, 0xa1, 0x88, 0x39, 0xe3, 0x4e, 0x59, 0x6d, 0x99, 0xc3, 0x64, 0xcf, 0xa6, 0xb4,
+	0x53, 0xd1, 0x3d, 0x9b, 0x29, 0x3e, 0x82, 0xea, 0xab, 0x50, 0x78, 0x81, 0x2f, 0x5b, 0xf6, 0xe9,
+	0x05, 0x9b, 0xb7, 0x2c, 0xc7, 0x68, 0x07, 0x2a, 0x97, 0x74, 0x12, 0xcf, 0x39, 0xd0, 0x13, 0xfc,
+	0x93, 0x05, 0xa0, 0xcf, 0xd9, 0xf7, 0x47, 0x01, 0x6a, 0xc9, 0x56, 0x79, 0xe4, 0x05, 0x7e, 0xe4,
+	0x58, 0x7b, 0xa5, 0xfd, 0x1a, 0x49, 0xe6, 0xa8, 0x0d, 0xc0, 0xde, 0x0b, 0xe6, 0xeb, 0xa8, 0xad,
+	0xa2, 0x19, 0x04, 0x61, 0xa8, 0x52, 0x3a, 0x8e, 0x3d, 0x7d, 0xc8, 0x46, 0x17, 0x66, 0xd3, 0x4e,
+	0xf5, 0xf8, 0xf8, 0xe9, 0x9b, 0x7e, 0x8f, 0x98, 0x08, 0xfa, 0x3f, 0xac, 0x06, 0xaa, 0xc5, 0xc8,
+	0x29, 0xef, 0x95, 0xf6, 0xeb, 0x47, 0xeb, 0x87, 0xfa, 0x9a, 0x75, 0xe3, 0x64, 0x1e, 0xc5, 0x8f,
+	0xa1, 0x41, 0xd8, 0xe4, 0xca, 0xf3, 0xc7, 0x03, 0xca, 0xc5, 0x15, 0x6a, 0x82, 0xed, 0xb9, 0xfa,
+	0x3c, 0xdd, 0xea, 0x6c, 0xda, 0xb1, 0xfb, 0x3d, 0x62, 0x7b, 0x6e, 0x72, 0x52, 0x3b, 0x3d, 0x29,
+	0x3e, 0x83, 0xf2, 0x9b, 0x88, 0xf1, 0xcc, 0x9a, 0xc6, 0x4d, 0x6b, 0xd0, 0x1e, 0xd4, 0x5d, 0x2f,
+	0x0a, 0x27, 0xf4, 0xea, 0xa5, 0x0c, 0x69, 0x35, 0x64, 0x21, 0xb9, 0xca, 0x1b, 0x06, 0xbe, 0xb9,
+	0x13, 0x35, 0xc6, 0x7f, 0x59, 0x50, 0x3f, 0x16, 0x82, 0x45, 0x82, 0x2a, 0xde, 0xef, 0xc3, 0xc6,
+	0x70, 0xe2, 0x31, 0x5f, 0xf4, 0xa8, 0xa0, 0xcf, 0x68, 0xa4, 0x45, 0xd3, 0x20, 0x0b, 0xa8, 0xa4,
+	0x99, 0xc6, 0xe2, 0x4c, 0xce, 0x55, 0x17, 0x0d, 0x92, 0xcc, 0x25, 0x8d, 0x43, 0xce, 0xdc, 0x7e,
+	0x8e, 0xc6, 0x13, 0x89, 0xf4, 0x88, 0x89, 0xc8, 0xf5, 0x72, 0xf4, 0xfd, 0x55, 0xc8, 0x4c, 0x3f,
+	0xc9, 0x1c, 0x35, 0xa1, 0x1a, 0xc6, 0xef, 0x4e, 0xd9, 0x95, 0x92, 0x47, 0x83, 0x98, 0x99, 0x7a,
+	0x19, 0x8c, 0x0b, 0xa7, 0xaa, 0x50, 0x35, 0x46, 0x5b, 0x50, 0x8a, 0xbc, 0xb1, 0xb3, 0xaa, 0x20,
+	0x39, 0x94, 0xab, 0x47, 0x01, 0xbf, 0xa0, 0xc2, 0x59, 0x53, 0x75, 0xcd, 0x0c, 0xff, 0x00, 0x20,
+	0x7b, 0x60, 0xbe, 0xf0, 0xe8, 0xe4, 0xbf, 0x98, 0x15, 0xb2, 0x27, 0xc3, 0xac, 0x1c, 0xa3, 0x0e,
+	0x94, 0xe3, 0x88, 0x71, 0x75, 0x9a, 0xfa, 0x51, 0xdd, 0xdc, 0xb7, 0xbc, 0x20, 0xa2, 0x02, 0xd8,
+	0x83, 0xda, 0x71, 0x14, 0x31, 0xae, 0x18, 0xcc, 0x32, 0x63, 0x2d, 0x30, 0x63, 0xba, 0xb5, 0xd3,
+	0x6e, 0x0f, 0x01, 0xce, 0x2e, 0xe8, 0xf0, 0x35, 0x1b, 0x72, 0x26, 0x0c, 0x5f, 0x1b, 0xb3, 0x69,
+	0x07, 0x9e, 0xbd, 0x38, 0x3e, 0xd1, 0x28, 0xc9, 0x64, 0x60, 0x01, 0x9b, 0xe9, 0x29, 0x22, 0xa5,
+	0xf8, 0x43, 0x00, 0x7e, 0xfe, 0xe4, 0xbd, 0x17, 0x09, 0xcf, 0x1f, 0x6b, 0xdb, 0xd0, 0x25, 0xc8,
+	0xe9, 0x1c, 0x25, 0x99, 0x0c, 0xf4, 0x15, 0xd4, 0xf9, 0x39, 0x61, 0x17, 0xd4, 0xf3, 0xe5, 0x02,
+	0xfd, 0xf6, 0x37, 0x67, 0xd3, 0x4e, 0x9d, 0x9c, 0x26, 0x30, 0xc9, 0xe6, 0xe0, 0x2d, 0xd8, 0xd0,
+	0x4f, 0x2c, 0x22, 0xec, 0xc7, 0x98, 0x45, 0x02, 0x3f, 0x86, 0xcd, 0x04, 0x89, 0xc2, 0xc0, 0x8f,
+	0x98, 0x7c, 0x19, 0xae, 0x86, 0xd4, 0xc3, 0x4b, 0x5f, 0x86, 0x4e, 0x24, 0xf3, 0x28, 0x3e, 0x80,
+	0xed, 0xf4, 0xc1, 0x9a, 0x82, 0xf2, 0xda, 0x74, 0xdc, 0x3c, 0x79, 0x33, 0xc3, 0xdf, 0x00, 0xca,
+	0x26, 0x9b, 0xbd, 0xfe, 0x07, 0x65, 0xcf, 0x1f, 0x05, 0x2a, 0xb7, 0x7e, 0xb4, 0x9d, 0xdb, 0x48,
+	0x25, 0xaa, 0x30, 0xfe, 0xd9, 0x86, 0xdd, 0x17, 0xf4, 0x9c, 0xa5, 0x94, 0xdd, 0xb0, 0x5d, 0x81,
+	0xfe, 0xed, 0x42, 0xfd, 0x1f, 0x80, 0xcd, 0x43, 0xa3, 0x88, 0x5b, 0x66, 0xfb, 0xec, 0x73, 0xd7,
+	0xa2, 0x22, 0x03, 0x62, 0xf3, 0x30, 0x11, 0x50, 0xf9, 0x1a, 0x01, 0x25, 0xaa, 0xab, 0x64, 0x54,
+	0x77, 0x07, 0x4a, 0xa1, 0xe7, 0x2b, 0xb1, 0xd7, 0xba, 0xab, 0xb3, 0x69, 0xa7, 0x34, 0xe8, 0xbf,
+	0x24, 0x12, 0x5b, 0xf0, 0x31, 0x77, 0xc9, 0xc7, 0x9a, 0x60, 0xf3, 0x73, 0x87, 0xa5, 0x56, 0x43,
+	0x4e, 0x89, 0xcd, 0xcf, 0x25, 0x1e, 0x5f, 0x3a, 0xa3, 0x14, 0x7f, 0xf3, 0x96, 0xd8, 0xf1, 0x25,
+	0x7e, 0x09, 0xcd, 0x45, 0x96, 0x0c, 0xcf, 0x8f, 0xa0, 0x4e, 0x53, 0x77, 0x30, 0x74, 0x23, 0x73,
+	0x80, 0x8c, 0x6f, 0x90, 0x6c, 0x1a, 0x1e, 0xc1, 0xfa, 0x6b, 0x26, 0x64, 0xbb, 0x37, 0xb0, 0x6d,
+	0xce, 0x68, 0x17, 0x9c, 0x11, 0x43, 0x35, 0x98, 0xb8, 0x03, 0xcf, 0xd7, 0x4e, 0xa6, 0x4d, 0xe4,
+	0xd5, 0xc4, 0x95, 0x09, 0x26, 0x22, 0x65, 0x39, 0xdf, 0x47, 0xf7, 0x8b, 0xef, 0x4b, 0xd3, 0x8d,
+	0x98, 0xb8, 0x49, 0x55, 0x9b, 0xb0, 0x6e, 0xf2, 0xcc, 0xc2, 0x03, 0xd8, 0x26, 0x4c, 0xf0, 0xab,
+	0x93, 0x20, 0xf6, 0x6f, 0x5c, 0xfd, 0x00, 0x50, 0x36, 0xd9, 0x70, 0xb5, 0x03, 0x95, 0xa1, 0x04,
+	0xcc, 0x97, 0x5b, 0x4f, 0xf0, 0x2f, 0x36, 0x6c, 0x25, 0xe6, 0x70, 0x13, 0x1f, 0x77, 0xa1, 0xcc,
+	0x43, 0xf3, 0x3d, 0xae, 0x75, 0xd7, 0x66, 0xd3, 0x4e, 0x99, 0x0c, 0xfa, 0x3d, 0xa2, 0xd0, 0x02,
+	0x6d, 0x96, 0x0a, 0xb5, 0x99, 0xfa, 0x6f, 0xf9, 0x5a, 0xff, 0x35, 0xcc, 0x57, 0x3e, 0x4d, 0x5d,
+	0xf1, 0x65, 0x56, 0x5d, 0x5a, 0x45, 0x0a, 0x0f, 0x73, 0xea, 0x1a, 0x10, 0x3b, 0x0e, 0xe5, 0x8f,
+	0x07, 0x65, 0x60, 0x74, 0x22, 0x9c, 0xb1, 0x6a, 0x48, 0xfd, 0x78, 0x50, 0x06, 0x47, 0x27, 0x82,
+	0x24, 0x51, 0x7c, 0x02, 0xdb, 0x19, 0xaa, 0x0c, 0xad, 0x87, 0x50, 0xa3, 0x73, 0xd0, 0x08, 0x70,
+	0x6b, 0x2e, 0xc0, 0x24, 0x39, 0x4d, 0xc1, 0xa7, 0xd0, 0x5c, 0x70, 0xc8, 0x4f, 0x57, 0x21, 0x7e,
+	0x02, 0xb7, 0x97, 0x8a, 0x99, 0xbe, 0x1e, 0xe4, 0x2c, 0xa8, 0x69, 0x5a, 0x5a, 0xcc, 0xd6, 0x3e,
+	0xc4, 0x00, 0x65, 0x02, 0x9f, 0xa7, 0x02, 0xd3, 0x6d, 0xa9, 0xa0, 0xdb, 0xe7, 0x70, 0x2b, 0xb7,
+	0x8d, 0xe9, 0xf4, 0x21, 0xd4, 0x87, 0x29, 0x6c, 0xcc, 0x79, 0x7b, 0xa9, 0x61, 0x92, 0xcd, 0xc2,
+	0xcf, 0x61, 0x37, 0xe3, 0x67, 0x1e, 0x8b, 0x3e, 0x83, 0xc5, 0xa7, 0xd0, 0x5c, 0xac, 0x65, 0x5a,
+	0xfb, 0x02, 0x56, 0x43, 0x0d, 0x99, 0xb6, 0x8a, 0xbc, 0x94, 0xcc, 0x73, 0x8e, 0x7e, 0xab, 0xc0,
+	0xc6, 0x71, 0x2c, 0xce, 0x64, 0x93, 0x43, 0x2a, 0x02, 0x1e, 0xa1, 0xc7, 0xb0, 0x6a, 0x3e, 0x44,
+	0x68, 0x37, 0xf7, 0x19, 0x98, 0x37, 0xdc, 0x6a, 0x2e, 0xc2, 0xe6, 0xc9, 0xaf, 0xa0, 0x93, 0xdc,
+	0x2f, 0x47, 0x67, 0xf9, 0x2b, 0x62, 0x2a, 0xdc, 0x29, 0x88, 0x24, 0x45, 0x5e, 0xc1, 0x46, 0xde,
+	0x3c, 0xd1, 0x5d, 0x93, 0x5e, 0xf8, 0xe5, 0x69, 0xdd, 0xbb, 0x26, 0x9a, 0x14, 0xfc, 0x1a, 0xaa,
+	0xda, 0xd5, 0xd0, 0x8e, 0x49, 0xcd, 0x99, 0x69, 0x6b, 0x77, 0x01, 0x4d, 0x16, 0x3e, 0x82, 0x8a,
+	0x32, 0x35, 0x94, 0x92, 0x98, 0x5a, 0x61, 0x6b, 0x27, 0x0f, 0x66, 0x49, 0x48, 0xcd, 0x2c, 0x21,
+	0x61, 0xc9, 0x0c, 0x13, 0x12, 0x96, 0x9d, 0x0f, 0xaf, 0xa0, 0x6f, 0xb3, 0xbf, 0x80, 0x6e, 0x2f,
+	0x3d, 0x4f, 0x53, 0xc2, 0x59, 0x0e, 0x24, 0x15, 0xc8, 0xf2, 0x0f, 0x9b, 0x7b, 0xd7, 0xbc, 0x29,
+	0x53, 0xad, 0x7d, 0x5d, 0x38, 0xa9, 0xf9, 0x1d, 0xd4, 0x33, 0x41, 0x74, 0x67, 0x79, 0xc1, 0xbc,
+	0x56, 0xab, 0x28, 0x94, 0xbd, 0xe2, 0xbc, 0x7e, 0x93, 0x2b, 0x2e, 0x7c, 0x22, 0xc9, 0x15, 0x17,
+	0x8b, 0x1e, 0xaf, 0x74, 0xef, 0x7e, 0xf8, 0xd8, 0x5e, 0xf9, 0xe3, 0x63, 0xdb, 0xfa, 0xe7, 0x63,
+	0xdb, 0xfa, 0x30, 0x6b, 0x5b, 0xbf, 0xcf, 0xda, 0xd6, 0x9f, 0xb3, 0xb6, 0xf5, 0xf7, 0xac, 0x6d,
+	0xbd, 0xab, 0xaa, 0x3f, 0x85, 0x0f, 0xff, 0x0d, 0x00, 0x00, 0xff, 0xff, 0x06, 0xe0, 0x51, 0x76,
+	0x40, 0x0e, 0x00, 0x00,
 }
 
 func (this *RPCError) GoString() string {
@@ -1545,12 +1412,12 @@ func (this *RPCError) GoString() string {
 	s = append(s, "}")
 	return strings.Join(s, "")
 }
-func (this *DeviceLocation) GoString() string {
+func (this *Device) GoString() string {
 	if this == nil {
 		return "nil"
 	}
 	s := make([]string, 0, 9)
-	s = append(s, "&fido2.DeviceLocation{")
+	s = append(s, "&fido2.Device{")
 	s = append(s, "Path: "+fmt.Sprintf("%#v", this.Path)+",\n")
 	s = append(s, "ProductID: "+fmt.Sprintf("%#v", this.ProductID)+",\n")
 	s = append(s, "VendorID: "+fmt.Sprintf("%#v", this.VendorID)+",\n")
@@ -1584,7 +1451,7 @@ func (this *DeviceInfo) GoString() string {
 	s = append(s, "&fido2.DeviceInfo{")
 	s = append(s, "Versions: "+fmt.Sprintf("%#v", this.Versions)+",\n")
 	s = append(s, "Extensions: "+fmt.Sprintf("%#v", this.Extensions)+",\n")
-	s = append(s, "Aaguid: "+fmt.Sprintf("%#v", this.Aaguid)+",\n")
+	s = append(s, "AAGUID: "+fmt.Sprintf("%#v", this.AAGUID)+",\n")
 	if this.Options != nil {
 		s = append(s, "Options: "+fmt.Sprintf("%#v", this.Options)+",\n")
 	}
@@ -1600,7 +1467,7 @@ func (this *RelyingParty) GoString() string {
 	}
 	s := make([]string, 0, 6)
 	s = append(s, "&fido2.RelyingParty{")
-	s = append(s, "Id: "+fmt.Sprintf("%#v", this.Id)+",\n")
+	s = append(s, "ID: "+fmt.Sprintf("%#v", this.ID)+",\n")
 	s = append(s, "Name: "+fmt.Sprintf("%#v", this.Name)+",\n")
 	if this.XXX_unrecognized != nil {
 		s = append(s, "XXX_unrecognized:"+fmt.Sprintf("%#v", this.XXX_unrecognized)+",\n")
@@ -1614,7 +1481,7 @@ func (this *User) GoString() string {
 	}
 	s := make([]string, 0, 8)
 	s = append(s, "&fido2.User{")
-	s = append(s, "Id: "+fmt.Sprintf("%#v", this.Id)+",\n")
+	s = append(s, "ID: "+fmt.Sprintf("%#v", this.ID)+",\n")
 	s = append(s, "Name: "+fmt.Sprintf("%#v", this.Name)+",\n")
 	s = append(s, "DisplayName: "+fmt.Sprintf("%#v", this.DisplayName)+",\n")
 	s = append(s, "Icon: "+fmt.Sprintf("%#v", this.Icon)+",\n")
@@ -1669,7 +1536,7 @@ func (this *Assertion) GoString() string {
 	s = append(s, "&fido2.Assertion{")
 	s = append(s, "AuthData: "+fmt.Sprintf("%#v", this.AuthData)+",\n")
 	s = append(s, "Sig: "+fmt.Sprintf("%#v", this.Sig)+",\n")
-	s = append(s, "HmacSecret: "+fmt.Sprintf("%#v", this.HmacSecret)+",\n")
+	s = append(s, "HMACSecret: "+fmt.Sprintf("%#v", this.HMACSecret)+",\n")
 	if this.XXX_unrecognized != nil {
 		s = append(s, "XXX_unrecognized:"+fmt.Sprintf("%#v", this.XXX_unrecognized)+",\n")
 	}
@@ -1682,34 +1549,34 @@ func (this *CredentialsInfo) GoString() string {
 	}
 	s := make([]string, 0, 6)
 	s = append(s, "&fido2.CredentialsInfo{")
-	s = append(s, "RkExisting: "+fmt.Sprintf("%#v", this.RkExisting)+",\n")
-	s = append(s, "RkRemaining: "+fmt.Sprintf("%#v", this.RkRemaining)+",\n")
+	s = append(s, "RKExisting: "+fmt.Sprintf("%#v", this.RKExisting)+",\n")
+	s = append(s, "RKRemaining: "+fmt.Sprintf("%#v", this.RKRemaining)+",\n")
 	if this.XXX_unrecognized != nil {
 		s = append(s, "XXX_unrecognized:"+fmt.Sprintf("%#v", this.XXX_unrecognized)+",\n")
 	}
 	s = append(s, "}")
 	return strings.Join(s, "")
 }
-func (this *DeviceLocationsRequest) GoString() string {
+func (this *DevicesRequest) GoString() string {
 	if this == nil {
 		return "nil"
 	}
 	s := make([]string, 0, 4)
-	s = append(s, "&fido2.DeviceLocationsRequest{")
+	s = append(s, "&fido2.DevicesRequest{")
 	if this.XXX_unrecognized != nil {
 		s = append(s, "XXX_unrecognized:"+fmt.Sprintf("%#v", this.XXX_unrecognized)+",\n")
 	}
 	s = append(s, "}")
 	return strings.Join(s, "")
 }
-func (this *DeviceLocationsResponse) GoString() string {
+func (this *DevicesResponse) GoString() string {
 	if this == nil {
 		return "nil"
 	}
 	s := make([]string, 0, 5)
-	s = append(s, "&fido2.DeviceLocationsResponse{")
-	if this.Locations != nil {
-		s = append(s, "Locations: "+fmt.Sprintf("%#v", this.Locations)+",\n")
+	s = append(s, "&fido2.DevicesResponse{")
+	if this.Devices != nil {
+		s = append(s, "Devices: "+fmt.Sprintf("%#v", this.Devices)+",\n")
 	}
 	if this.XXX_unrecognized != nil {
 		s = append(s, "XXX_unrecognized:"+fmt.Sprintf("%#v", this.XXX_unrecognized)+",\n")
@@ -1723,7 +1590,7 @@ func (this *DeviceInfoRequest) GoString() string {
 	}
 	s := make([]string, 0, 5)
 	s = append(s, "&fido2.DeviceInfoRequest{")
-	s = append(s, "Path: "+fmt.Sprintf("%#v", this.Path)+",\n")
+	s = append(s, "Device: "+fmt.Sprintf("%#v", this.Device)+",\n")
 	if this.XXX_unrecognized != nil {
 		s = append(s, "XXX_unrecognized:"+fmt.Sprintf("%#v", this.XXX_unrecognized)+",\n")
 	}
@@ -1751,23 +1618,19 @@ func (this *MakeCredentialRequest) GoString() string {
 	}
 	s := make([]string, 0, 13)
 	s = append(s, "&fido2.MakeCredentialRequest{")
-	s = append(s, "Path: "+fmt.Sprintf("%#v", this.Path)+",\n")
+	s = append(s, "Device: "+fmt.Sprintf("%#v", this.Device)+",\n")
 	s = append(s, "ClientDataHash: "+fmt.Sprintf("%#v", this.ClientDataHash)+",\n")
-	if this.Rp != nil {
-		s = append(s, "Rp: "+fmt.Sprintf("%#v", this.Rp)+",\n")
+	if this.RP != nil {
+		s = append(s, "RP: "+fmt.Sprintf("%#v", this.RP)+",\n")
 	}
 	if this.User != nil {
 		s = append(s, "User: "+fmt.Sprintf("%#v", this.User)+",\n")
 	}
 	s = append(s, "Type: "+fmt.Sprintf("%#v", this.Type)+",\n")
-	s = append(s, "Pin: "+fmt.Sprintf("%#v", this.Pin)+",\n")
+	s = append(s, "PIN: "+fmt.Sprintf("%#v", this.PIN)+",\n")
 	s = append(s, "Extensions: "+fmt.Sprintf("%#v", this.Extensions)+",\n")
-	if this.RK != nil {
-		s = append(s, "RK: "+fmt.Sprintf("%#v", this.RK)+",\n")
-	}
-	if this.UV != nil {
-		s = append(s, "UV: "+fmt.Sprintf("%#v", this.UV)+",\n")
-	}
+	s = append(s, "RK: "+fmt.Sprintf("%#v", this.RK)+",\n")
+	s = append(s, "UV: "+fmt.Sprintf("%#v", this.UV)+",\n")
 	if this.XXX_unrecognized != nil {
 		s = append(s, "XXX_unrecognized:"+fmt.Sprintf("%#v", this.XXX_unrecognized)+",\n")
 	}
@@ -1795,9 +1658,9 @@ func (this *SetPINRequest) GoString() string {
 	}
 	s := make([]string, 0, 7)
 	s = append(s, "&fido2.SetPINRequest{")
-	s = append(s, "Path: "+fmt.Sprintf("%#v", this.Path)+",\n")
-	s = append(s, "Pin: "+fmt.Sprintf("%#v", this.Pin)+",\n")
-	s = append(s, "OldPin: "+fmt.Sprintf("%#v", this.OldPin)+",\n")
+	s = append(s, "Device: "+fmt.Sprintf("%#v", this.Device)+",\n")
+	s = append(s, "PIN: "+fmt.Sprintf("%#v", this.PIN)+",\n")
+	s = append(s, "OldPIN: "+fmt.Sprintf("%#v", this.OldPIN)+",\n")
 	if this.XXX_unrecognized != nil {
 		s = append(s, "XXX_unrecognized:"+fmt.Sprintf("%#v", this.XXX_unrecognized)+",\n")
 	}
@@ -1822,7 +1685,7 @@ func (this *ResetRequest) GoString() string {
 	}
 	s := make([]string, 0, 5)
 	s = append(s, "&fido2.ResetRequest{")
-	s = append(s, "Path: "+fmt.Sprintf("%#v", this.Path)+",\n")
+	s = append(s, "Device: "+fmt.Sprintf("%#v", this.Device)+",\n")
 	if this.XXX_unrecognized != nil {
 		s = append(s, "XXX_unrecognized:"+fmt.Sprintf("%#v", this.XXX_unrecognized)+",\n")
 	}
@@ -1847,7 +1710,7 @@ func (this *RetryCountRequest) GoString() string {
 	}
 	s := make([]string, 0, 5)
 	s = append(s, "&fido2.RetryCountRequest{")
-	s = append(s, "Path: "+fmt.Sprintf("%#v", this.Path)+",\n")
+	s = append(s, "Device: "+fmt.Sprintf("%#v", this.Device)+",\n")
 	if this.XXX_unrecognized != nil {
 		s = append(s, "XXX_unrecognized:"+fmt.Sprintf("%#v", this.XXX_unrecognized)+",\n")
 	}
@@ -1873,18 +1736,14 @@ func (this *AssertionRequest) GoString() string {
 	}
 	s := make([]string, 0, 13)
 	s = append(s, "&fido2.AssertionRequest{")
-	s = append(s, "Path: "+fmt.Sprintf("%#v", this.Path)+",\n")
-	s = append(s, "RpID: "+fmt.Sprintf("%#v", this.RpID)+",\n")
+	s = append(s, "Device: "+fmt.Sprintf("%#v", this.Device)+",\n")
+	s = append(s, "RPID: "+fmt.Sprintf("%#v", this.RPID)+",\n")
 	s = append(s, "ClientDataHash: "+fmt.Sprintf("%#v", this.ClientDataHash)+",\n")
 	s = append(s, "CredID: "+fmt.Sprintf("%#v", this.CredID)+",\n")
-	s = append(s, "Pin: "+fmt.Sprintf("%#v", this.Pin)+",\n")
+	s = append(s, "PIN: "+fmt.Sprintf("%#v", this.PIN)+",\n")
 	s = append(s, "Extensions: "+fmt.Sprintf("%#v", this.Extensions)+",\n")
-	if this.UV != nil {
-		s = append(s, "UV: "+fmt.Sprintf("%#v", this.UV)+",\n")
-	}
-	if this.UP != nil {
-		s = append(s, "UP: "+fmt.Sprintf("%#v", this.UP)+",\n")
-	}
+	s = append(s, "UV: "+fmt.Sprintf("%#v", this.UV)+",\n")
+	s = append(s, "UP: "+fmt.Sprintf("%#v", this.UP)+",\n")
 	s = append(s, "HMACSalt: "+fmt.Sprintf("%#v", this.HMACSalt)+",\n")
 	if this.XXX_unrecognized != nil {
 		s = append(s, "XXX_unrecognized:"+fmt.Sprintf("%#v", this.XXX_unrecognized)+",\n")
@@ -1911,9 +1770,10 @@ func (this *CredentialsInfoRequest) GoString() string {
 	if this == nil {
 		return "nil"
 	}
-	s := make([]string, 0, 5)
+	s := make([]string, 0, 6)
 	s = append(s, "&fido2.CredentialsInfoRequest{")
-	s = append(s, "Path: "+fmt.Sprintf("%#v", this.Path)+",\n")
+	s = append(s, "Device: "+fmt.Sprintf("%#v", this.Device)+",\n")
+	s = append(s, "PIN: "+fmt.Sprintf("%#v", this.PIN)+",\n")
 	if this.XXX_unrecognized != nil {
 		s = append(s, "XXX_unrecognized:"+fmt.Sprintf("%#v", this.XXX_unrecognized)+",\n")
 	}
@@ -1941,9 +1801,9 @@ func (this *CredentialsRequest) GoString() string {
 	}
 	s := make([]string, 0, 7)
 	s = append(s, "&fido2.CredentialsRequest{")
-	s = append(s, "Path: "+fmt.Sprintf("%#v", this.Path)+",\n")
-	s = append(s, "RpID: "+fmt.Sprintf("%#v", this.RpID)+",\n")
-	s = append(s, "Pin: "+fmt.Sprintf("%#v", this.Pin)+",\n")
+	s = append(s, "Device: "+fmt.Sprintf("%#v", this.Device)+",\n")
+	s = append(s, "RPID: "+fmt.Sprintf("%#v", this.RPID)+",\n")
+	s = append(s, "PIN: "+fmt.Sprintf("%#v", this.PIN)+",\n")
 	if this.XXX_unrecognized != nil {
 		s = append(s, "XXX_unrecognized:"+fmt.Sprintf("%#v", this.XXX_unrecognized)+",\n")
 	}
@@ -1954,8 +1814,11 @@ func (this *CredentialsResponse) GoString() string {
 	if this == nil {
 		return "nil"
 	}
-	s := make([]string, 0, 4)
+	s := make([]string, 0, 5)
 	s = append(s, "&fido2.CredentialsResponse{")
+	if this.Credentials != nil {
+		s = append(s, "Credentials: "+fmt.Sprintf("%#v", this.Credentials)+",\n")
+	}
 	if this.XXX_unrecognized != nil {
 		s = append(s, "XXX_unrecognized:"+fmt.Sprintf("%#v", this.XXX_unrecognized)+",\n")
 	}
@@ -1968,8 +1831,8 @@ func (this *RelyingPartiesRequest) GoString() string {
 	}
 	s := make([]string, 0, 6)
 	s = append(s, "&fido2.RelyingPartiesRequest{")
-	s = append(s, "Path: "+fmt.Sprintf("%#v", this.Path)+",\n")
-	s = append(s, "Pin: "+fmt.Sprintf("%#v", this.Pin)+",\n")
+	s = append(s, "Device: "+fmt.Sprintf("%#v", this.Device)+",\n")
+	s = append(s, "PIN: "+fmt.Sprintf("%#v", this.PIN)+",\n")
 	if this.XXX_unrecognized != nil {
 		s = append(s, "XXX_unrecognized:"+fmt.Sprintf("%#v", this.XXX_unrecognized)+",\n")
 	}
@@ -2012,7 +1875,7 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type AuthenticatorsClient interface {
-	DeviceLocations(ctx context.Context, in *DeviceLocationsRequest, opts ...grpc.CallOption) (*DeviceLocationsResponse, error)
+	Devices(ctx context.Context, in *DevicesRequest, opts ...grpc.CallOption) (*DevicesResponse, error)
 	DeviceInfo(ctx context.Context, in *DeviceInfoRequest, opts ...grpc.CallOption) (*DeviceInfoResponse, error)
 	MakeCredential(ctx context.Context, in *MakeCredentialRequest, opts ...grpc.CallOption) (*MakeCredentialResponse, error)
 	SetPIN(ctx context.Context, in *SetPINRequest, opts ...grpc.CallOption) (*SetPINResponse, error)
@@ -2032,9 +1895,9 @@ func NewAuthenticatorsClient(cc *grpc.ClientConn) AuthenticatorsClient {
 	return &authenticatorsClient{cc}
 }
 
-func (c *authenticatorsClient) DeviceLocations(ctx context.Context, in *DeviceLocationsRequest, opts ...grpc.CallOption) (*DeviceLocationsResponse, error) {
-	out := new(DeviceLocationsResponse)
-	err := c.cc.Invoke(ctx, "/fido2.Authenticators/DeviceLocations", in, out, opts...)
+func (c *authenticatorsClient) Devices(ctx context.Context, in *DevicesRequest, opts ...grpc.CallOption) (*DevicesResponse, error) {
+	out := new(DevicesResponse)
+	err := c.cc.Invoke(ctx, "/fido2.Authenticators/Devices", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -2124,7 +1987,7 @@ func (c *authenticatorsClient) RelyingParties(ctx context.Context, in *RelyingPa
 
 // AuthenticatorsServer is the server API for Authenticators service.
 type AuthenticatorsServer interface {
-	DeviceLocations(context.Context, *DeviceLocationsRequest) (*DeviceLocationsResponse, error)
+	Devices(context.Context, *DevicesRequest) (*DevicesResponse, error)
 	DeviceInfo(context.Context, *DeviceInfoRequest) (*DeviceInfoResponse, error)
 	MakeCredential(context.Context, *MakeCredentialRequest) (*MakeCredentialResponse, error)
 	SetPIN(context.Context, *SetPINRequest) (*SetPINResponse, error)
@@ -2140,8 +2003,8 @@ type AuthenticatorsServer interface {
 type UnimplementedAuthenticatorsServer struct {
 }
 
-func (*UnimplementedAuthenticatorsServer) DeviceLocations(ctx context.Context, req *DeviceLocationsRequest) (*DeviceLocationsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeviceLocations not implemented")
+func (*UnimplementedAuthenticatorsServer) Devices(ctx context.Context, req *DevicesRequest) (*DevicesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Devices not implemented")
 }
 func (*UnimplementedAuthenticatorsServer) DeviceInfo(ctx context.Context, req *DeviceInfoRequest) (*DeviceInfoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeviceInfo not implemented")
@@ -2175,20 +2038,20 @@ func RegisterAuthenticatorsServer(s *grpc.Server, srv AuthenticatorsServer) {
 	s.RegisterService(&_Authenticators_serviceDesc, srv)
 }
 
-func _Authenticators_DeviceLocations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeviceLocationsRequest)
+func _Authenticators_Devices_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DevicesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthenticatorsServer).DeviceLocations(ctx, in)
+		return srv.(AuthenticatorsServer).Devices(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/fido2.Authenticators/DeviceLocations",
+		FullMethod: "/fido2.Authenticators/Devices",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthenticatorsServer).DeviceLocations(ctx, req.(*DeviceLocationsRequest))
+		return srv.(AuthenticatorsServer).Devices(ctx, req.(*DevicesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2360,8 +2223,8 @@ var _Authenticators_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*AuthenticatorsServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "DeviceLocations",
-			Handler:    _Authenticators_DeviceLocations_Handler,
+			MethodName: "Devices",
+			Handler:    _Authenticators_Devices_Handler,
 		},
 		{
 			MethodName: "DeviceInfo",
@@ -2450,7 +2313,7 @@ func (m *RPCError) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *DeviceLocation) Marshal() (dAtA []byte, err error) {
+func (m *Device) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2460,12 +2323,12 @@ func (m *DeviceLocation) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *DeviceLocation) MarshalTo(dAtA []byte) (int, error) {
+func (m *Device) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *DeviceLocation) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *Device) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2532,10 +2395,12 @@ func (m *Option) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if m.Value != 0 {
-		i = encodeVarintFido2(dAtA, i, uint64(m.Value))
+	if len(m.Value) > 0 {
+		i -= len(m.Value)
+		copy(dAtA[i:], m.Value)
+		i = encodeVarintFido2(dAtA, i, uint64(len(m.Value)))
 		i--
-		dAtA[i] = 0x10
+		dAtA[i] = 0x12
 	}
 	if len(m.Name) > 0 {
 		i -= len(m.Name)
@@ -2585,10 +2450,10 @@ func (m *DeviceInfo) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			dAtA[i] = 0x22
 		}
 	}
-	if len(m.Aaguid) > 0 {
-		i -= len(m.Aaguid)
-		copy(dAtA[i:], m.Aaguid)
-		i = encodeVarintFido2(dAtA, i, uint64(len(m.Aaguid)))
+	if len(m.AAGUID) > 0 {
+		i -= len(m.AAGUID)
+		copy(dAtA[i:], m.AAGUID)
+		i = encodeVarintFido2(dAtA, i, uint64(len(m.AAGUID)))
 		i--
 		dAtA[i] = 0x1a
 	}
@@ -2644,10 +2509,10 @@ func (m *RelyingParty) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Id) > 0 {
-		i -= len(m.Id)
-		copy(dAtA[i:], m.Id)
-		i = encodeVarintFido2(dAtA, i, uint64(len(m.Id)))
+	if len(m.ID) > 0 {
+		i -= len(m.ID)
+		copy(dAtA[i:], m.ID)
+		i = encodeVarintFido2(dAtA, i, uint64(len(m.ID)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -2699,10 +2564,10 @@ func (m *User) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Id) > 0 {
-		i -= len(m.Id)
-		copy(dAtA[i:], m.Id)
-		i = encodeVarintFido2(dAtA, i, uint64(len(m.Id)))
+	if len(m.ID) > 0 {
+		i -= len(m.ID)
+		copy(dAtA[i:], m.ID)
+		i = encodeVarintFido2(dAtA, i, uint64(len(m.ID)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -2761,10 +2626,12 @@ func (m *Attestation) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x2a
 	}
-	if m.CredType != 0 {
-		i = encodeVarintFido2(dAtA, i, uint64(m.CredType))
+	if len(m.CredType) > 0 {
+		i -= len(m.CredType)
+		copy(dAtA[i:], m.CredType)
+		i = encodeVarintFido2(dAtA, i, uint64(len(m.CredType)))
 		i--
-		dAtA[i] = 0x20
+		dAtA[i] = 0x22
 	}
 	if len(m.CredID) > 0 {
 		i -= len(m.CredID)
@@ -2826,10 +2693,12 @@ func (m *Credential) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1a
 	}
-	if m.Type != 0 {
-		i = encodeVarintFido2(dAtA, i, uint64(m.Type))
+	if len(m.Type) > 0 {
+		i -= len(m.Type)
+		copy(dAtA[i:], m.Type)
+		i = encodeVarintFido2(dAtA, i, uint64(len(m.Type)))
 		i--
-		dAtA[i] = 0x10
+		dAtA[i] = 0x12
 	}
 	if len(m.ID) > 0 {
 		i -= len(m.ID)
@@ -2865,10 +2734,10 @@ func (m *Assertion) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if len(m.HmacSecret) > 0 {
-		i -= len(m.HmacSecret)
-		copy(dAtA[i:], m.HmacSecret)
-		i = encodeVarintFido2(dAtA, i, uint64(len(m.HmacSecret)))
+	if len(m.HMACSecret) > 0 {
+		i -= len(m.HMACSecret)
+		copy(dAtA[i:], m.HMACSecret)
+		i = encodeVarintFido2(dAtA, i, uint64(len(m.HMACSecret)))
 		i--
 		dAtA[i] = 0x1a
 	}
@@ -2913,20 +2782,20 @@ func (m *CredentialsInfo) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if m.RkRemaining != 0 {
-		i = encodeVarintFido2(dAtA, i, uint64(m.RkRemaining))
+	if m.RKRemaining != 0 {
+		i = encodeVarintFido2(dAtA, i, uint64(m.RKRemaining))
 		i--
 		dAtA[i] = 0x10
 	}
-	if m.RkExisting != 0 {
-		i = encodeVarintFido2(dAtA, i, uint64(m.RkExisting))
+	if m.RKExisting != 0 {
+		i = encodeVarintFido2(dAtA, i, uint64(m.RKExisting))
 		i--
 		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *DeviceLocationsRequest) Marshal() (dAtA []byte, err error) {
+func (m *DevicesRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2936,12 +2805,12 @@ func (m *DeviceLocationsRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *DeviceLocationsRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *DevicesRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *DeviceLocationsRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *DevicesRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2953,7 +2822,7 @@ func (m *DeviceLocationsRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	return len(dAtA) - i, nil
 }
 
-func (m *DeviceLocationsResponse) Marshal() (dAtA []byte, err error) {
+func (m *DevicesResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2963,12 +2832,12 @@ func (m *DeviceLocationsResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *DeviceLocationsResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *DevicesResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *DeviceLocationsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *DevicesResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2977,10 +2846,10 @@ func (m *DeviceLocationsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error)
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if len(m.Locations) > 0 {
-		for iNdEx := len(m.Locations) - 1; iNdEx >= 0; iNdEx-- {
+	if len(m.Devices) > 0 {
+		for iNdEx := len(m.Devices) - 1; iNdEx >= 0; iNdEx-- {
 			{
-				size, err := m.Locations[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				size, err := m.Devices[iNdEx].MarshalToSizedBuffer(dAtA[:i])
 				if err != nil {
 					return 0, err
 				}
@@ -3018,10 +2887,10 @@ func (m *DeviceInfoRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if len(m.Path) > 0 {
-		i -= len(m.Path)
-		copy(dAtA[i:], m.Path)
-		i = encodeVarintFido2(dAtA, i, uint64(len(m.Path)))
+	if len(m.Device) > 0 {
+		i -= len(m.Device)
+		copy(dAtA[i:], m.Device)
+		i = encodeVarintFido2(dAtA, i, uint64(len(m.Device)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -3091,65 +2960,48 @@ func (m *MakeCredentialRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if m.UV != nil {
-		{
-			size, err := m.UV.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintFido2(dAtA, i, uint64(size))
-		}
+	if len(m.UV) > 0 {
+		i -= len(m.UV)
+		copy(dAtA[i:], m.UV)
+		i = encodeVarintFido2(dAtA, i, uint64(len(m.UV)))
 		i--
 		dAtA[i] = 0x6
 		i--
 		dAtA[i] = 0xb2
 	}
-	if m.RK != nil {
-		{
-			size, err := m.RK.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintFido2(dAtA, i, uint64(size))
-		}
+	if len(m.RK) > 0 {
+		i -= len(m.RK)
+		copy(dAtA[i:], m.RK)
+		i = encodeVarintFido2(dAtA, i, uint64(len(m.RK)))
 		i--
 		dAtA[i] = 0x6
 		i--
 		dAtA[i] = 0xaa
 	}
 	if len(m.Extensions) > 0 {
-		dAtA6 := make([]byte, len(m.Extensions)*10)
-		var j5 int
-		for _, num := range m.Extensions {
-			for num >= 1<<7 {
-				dAtA6[j5] = uint8(uint64(num)&0x7f | 0x80)
-				num >>= 7
-				j5++
-			}
-			dAtA6[j5] = uint8(num)
-			j5++
+		for iNdEx := len(m.Extensions) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.Extensions[iNdEx])
+			copy(dAtA[i:], m.Extensions[iNdEx])
+			i = encodeVarintFido2(dAtA, i, uint64(len(m.Extensions[iNdEx])))
+			i--
+			dAtA[i] = 0x6
+			i--
+			dAtA[i] = 0xa2
 		}
-		i -= j5
-		copy(dAtA[i:], dAtA6[:j5])
-		i = encodeVarintFido2(dAtA, i, uint64(j5))
-		i--
-		dAtA[i] = 0x6
-		i--
-		dAtA[i] = 0xa2
 	}
-	if len(m.Pin) > 0 {
-		i -= len(m.Pin)
-		copy(dAtA[i:], m.Pin)
-		i = encodeVarintFido2(dAtA, i, uint64(len(m.Pin)))
+	if len(m.PIN) > 0 {
+		i -= len(m.PIN)
+		copy(dAtA[i:], m.PIN)
+		i = encodeVarintFido2(dAtA, i, uint64(len(m.PIN)))
 		i--
 		dAtA[i] = 0x32
 	}
-	if m.Type != 0 {
-		i = encodeVarintFido2(dAtA, i, uint64(m.Type))
+	if len(m.Type) > 0 {
+		i -= len(m.Type)
+		copy(dAtA[i:], m.Type)
+		i = encodeVarintFido2(dAtA, i, uint64(len(m.Type)))
 		i--
-		dAtA[i] = 0x28
+		dAtA[i] = 0x2a
 	}
 	if m.User != nil {
 		{
@@ -3163,9 +3015,9 @@ func (m *MakeCredentialRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x22
 	}
-	if m.Rp != nil {
+	if m.RP != nil {
 		{
-			size, err := m.Rp.MarshalToSizedBuffer(dAtA[:i])
+			size, err := m.RP.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -3182,10 +3034,10 @@ func (m *MakeCredentialRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Path) > 0 {
-		i -= len(m.Path)
-		copy(dAtA[i:], m.Path)
-		i = encodeVarintFido2(dAtA, i, uint64(len(m.Path)))
+	if len(m.Device) > 0 {
+		i -= len(m.Device)
+		copy(dAtA[i:], m.Device)
+		i = encodeVarintFido2(dAtA, i, uint64(len(m.Device)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -3255,24 +3107,24 @@ func (m *SetPINRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if len(m.OldPin) > 0 {
-		i -= len(m.OldPin)
-		copy(dAtA[i:], m.OldPin)
-		i = encodeVarintFido2(dAtA, i, uint64(len(m.OldPin)))
+	if len(m.OldPIN) > 0 {
+		i -= len(m.OldPIN)
+		copy(dAtA[i:], m.OldPIN)
+		i = encodeVarintFido2(dAtA, i, uint64(len(m.OldPIN)))
 		i--
 		dAtA[i] = 0x1a
 	}
-	if len(m.Pin) > 0 {
-		i -= len(m.Pin)
-		copy(dAtA[i:], m.Pin)
-		i = encodeVarintFido2(dAtA, i, uint64(len(m.Pin)))
+	if len(m.PIN) > 0 {
+		i -= len(m.PIN)
+		copy(dAtA[i:], m.PIN)
+		i = encodeVarintFido2(dAtA, i, uint64(len(m.PIN)))
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Path) > 0 {
-		i -= len(m.Path)
-		copy(dAtA[i:], m.Path)
-		i = encodeVarintFido2(dAtA, i, uint64(len(m.Path)))
+	if len(m.Device) > 0 {
+		i -= len(m.Device)
+		copy(dAtA[i:], m.Device)
+		i = encodeVarintFido2(dAtA, i, uint64(len(m.Device)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -3330,10 +3182,10 @@ func (m *ResetRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if len(m.Path) > 0 {
-		i -= len(m.Path)
-		copy(dAtA[i:], m.Path)
-		i = encodeVarintFido2(dAtA, i, uint64(len(m.Path)))
+	if len(m.Device) > 0 {
+		i -= len(m.Device)
+		copy(dAtA[i:], m.Device)
+		i = encodeVarintFido2(dAtA, i, uint64(len(m.Device)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -3391,10 +3243,10 @@ func (m *RetryCountRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if len(m.Path) > 0 {
-		i -= len(m.Path)
-		copy(dAtA[i:], m.Path)
-		i = encodeVarintFido2(dAtA, i, uint64(len(m.Path)))
+	if len(m.Device) > 0 {
+		i -= len(m.Device)
+		copy(dAtA[i:], m.Device)
+		i = encodeVarintFido2(dAtA, i, uint64(len(m.Device)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -3466,58 +3318,39 @@ func (m *AssertionRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0xba
 	}
-	if m.UP != nil {
-		{
-			size, err := m.UP.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintFido2(dAtA, i, uint64(size))
-		}
+	if len(m.UP) > 0 {
+		i -= len(m.UP)
+		copy(dAtA[i:], m.UP)
+		i = encodeVarintFido2(dAtA, i, uint64(len(m.UP)))
 		i--
 		dAtA[i] = 0x6
 		i--
 		dAtA[i] = 0xb2
 	}
-	if m.UV != nil {
-		{
-			size, err := m.UV.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintFido2(dAtA, i, uint64(size))
-		}
+	if len(m.UV) > 0 {
+		i -= len(m.UV)
+		copy(dAtA[i:], m.UV)
+		i = encodeVarintFido2(dAtA, i, uint64(len(m.UV)))
 		i--
 		dAtA[i] = 0x6
 		i--
 		dAtA[i] = 0xaa
 	}
 	if len(m.Extensions) > 0 {
-		dAtA13 := make([]byte, len(m.Extensions)*10)
-		var j12 int
-		for _, num := range m.Extensions {
-			for num >= 1<<7 {
-				dAtA13[j12] = uint8(uint64(num)&0x7f | 0x80)
-				num >>= 7
-				j12++
-			}
-			dAtA13[j12] = uint8(num)
-			j12++
+		for iNdEx := len(m.Extensions) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.Extensions[iNdEx])
+			copy(dAtA[i:], m.Extensions[iNdEx])
+			i = encodeVarintFido2(dAtA, i, uint64(len(m.Extensions[iNdEx])))
+			i--
+			dAtA[i] = 0x6
+			i--
+			dAtA[i] = 0xa2
 		}
-		i -= j12
-		copy(dAtA[i:], dAtA13[:j12])
-		i = encodeVarintFido2(dAtA, i, uint64(j12))
-		i--
-		dAtA[i] = 0x6
-		i--
-		dAtA[i] = 0xa2
 	}
-	if len(m.Pin) > 0 {
-		i -= len(m.Pin)
-		copy(dAtA[i:], m.Pin)
-		i = encodeVarintFido2(dAtA, i, uint64(len(m.Pin)))
+	if len(m.PIN) > 0 {
+		i -= len(m.PIN)
+		copy(dAtA[i:], m.PIN)
+		i = encodeVarintFido2(dAtA, i, uint64(len(m.PIN)))
 		i--
 		dAtA[i] = 0x2a
 	}
@@ -3535,17 +3368,17 @@ func (m *AssertionRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1a
 	}
-	if len(m.RpID) > 0 {
-		i -= len(m.RpID)
-		copy(dAtA[i:], m.RpID)
-		i = encodeVarintFido2(dAtA, i, uint64(len(m.RpID)))
+	if len(m.RPID) > 0 {
+		i -= len(m.RPID)
+		copy(dAtA[i:], m.RPID)
+		i = encodeVarintFido2(dAtA, i, uint64(len(m.RPID)))
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Path) > 0 {
-		i -= len(m.Path)
-		copy(dAtA[i:], m.Path)
-		i = encodeVarintFido2(dAtA, i, uint64(len(m.Path)))
+	if len(m.Device) > 0 {
+		i -= len(m.Device)
+		copy(dAtA[i:], m.Device)
+		i = encodeVarintFido2(dAtA, i, uint64(len(m.Device)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -3615,10 +3448,17 @@ func (m *CredentialsInfoRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if len(m.Path) > 0 {
-		i -= len(m.Path)
-		copy(dAtA[i:], m.Path)
-		i = encodeVarintFido2(dAtA, i, uint64(len(m.Path)))
+	if len(m.PIN) > 0 {
+		i -= len(m.PIN)
+		copy(dAtA[i:], m.PIN)
+		i = encodeVarintFido2(dAtA, i, uint64(len(m.PIN)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Device) > 0 {
+		i -= len(m.Device)
+		copy(dAtA[i:], m.Device)
+		i = encodeVarintFido2(dAtA, i, uint64(len(m.Device)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -3688,24 +3528,24 @@ func (m *CredentialsRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if len(m.Pin) > 0 {
-		i -= len(m.Pin)
-		copy(dAtA[i:], m.Pin)
-		i = encodeVarintFido2(dAtA, i, uint64(len(m.Pin)))
+	if len(m.PIN) > 0 {
+		i -= len(m.PIN)
+		copy(dAtA[i:], m.PIN)
+		i = encodeVarintFido2(dAtA, i, uint64(len(m.PIN)))
 		i--
 		dAtA[i] = 0x1a
 	}
-	if len(m.RpID) > 0 {
-		i -= len(m.RpID)
-		copy(dAtA[i:], m.RpID)
-		i = encodeVarintFido2(dAtA, i, uint64(len(m.RpID)))
+	if len(m.RPID) > 0 {
+		i -= len(m.RPID)
+		copy(dAtA[i:], m.RPID)
+		i = encodeVarintFido2(dAtA, i, uint64(len(m.RPID)))
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Path) > 0 {
-		i -= len(m.Path)
-		copy(dAtA[i:], m.Path)
-		i = encodeVarintFido2(dAtA, i, uint64(len(m.Path)))
+	if len(m.Device) > 0 {
+		i -= len(m.Device)
+		copy(dAtA[i:], m.Device)
+		i = encodeVarintFido2(dAtA, i, uint64(len(m.Device)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -3736,6 +3576,20 @@ func (m *CredentialsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
+	if len(m.Credentials) > 0 {
+		for iNdEx := len(m.Credentials) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Credentials[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintFido2(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
 	return len(dAtA) - i, nil
 }
 
@@ -3763,17 +3617,17 @@ func (m *RelyingPartiesRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if len(m.Pin) > 0 {
-		i -= len(m.Pin)
-		copy(dAtA[i:], m.Pin)
-		i = encodeVarintFido2(dAtA, i, uint64(len(m.Pin)))
+	if len(m.PIN) > 0 {
+		i -= len(m.PIN)
+		copy(dAtA[i:], m.PIN)
+		i = encodeVarintFido2(dAtA, i, uint64(len(m.PIN)))
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Path) > 0 {
-		i -= len(m.Path)
-		copy(dAtA[i:], m.Path)
-		i = encodeVarintFido2(dAtA, i, uint64(len(m.Path)))
+	if len(m.Device) > 0 {
+		i -= len(m.Device)
+		copy(dAtA[i:], m.Device)
+		i = encodeVarintFido2(dAtA, i, uint64(len(m.Device)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -3855,7 +3709,7 @@ func (m *RPCError) Size() (n int) {
 	return n
 }
 
-func (m *DeviceLocation) Size() (n int) {
+func (m *Device) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -3895,8 +3749,9 @@ func (m *Option) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovFido2(uint64(l))
 	}
-	if m.Value != 0 {
-		n += 1 + sovFido2(uint64(m.Value))
+	l = len(m.Value)
+	if l > 0 {
+		n += 1 + l + sovFido2(uint64(l))
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -3922,7 +3777,7 @@ func (m *DeviceInfo) Size() (n int) {
 			n += 1 + l + sovFido2(uint64(l))
 		}
 	}
-	l = len(m.Aaguid)
+	l = len(m.AAGUID)
 	if l > 0 {
 		n += 1 + l + sovFido2(uint64(l))
 	}
@@ -3944,7 +3799,7 @@ func (m *RelyingParty) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Id)
+	l = len(m.ID)
 	if l > 0 {
 		n += 1 + l + sovFido2(uint64(l))
 	}
@@ -3964,7 +3819,7 @@ func (m *User) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Id)
+	l = len(m.ID)
 	if l > 0 {
 		n += 1 + l + sovFido2(uint64(l))
 	}
@@ -4004,8 +3859,9 @@ func (m *Attestation) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovFido2(uint64(l))
 	}
-	if m.CredType != 0 {
-		n += 1 + sovFido2(uint64(m.CredType))
+	l = len(m.CredType)
+	if l > 0 {
+		n += 1 + l + sovFido2(uint64(l))
 	}
 	l = len(m.PubKey)
 	if l > 0 {
@@ -4039,8 +3895,9 @@ func (m *Credential) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovFido2(uint64(l))
 	}
-	if m.Type != 0 {
-		n += 1 + sovFido2(uint64(m.Type))
+	l = len(m.Type)
+	if l > 0 {
+		n += 1 + l + sovFido2(uint64(l))
 	}
 	if m.User != nil {
 		l = m.User.Size()
@@ -4066,7 +3923,7 @@ func (m *Assertion) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovFido2(uint64(l))
 	}
-	l = len(m.HmacSecret)
+	l = len(m.HMACSecret)
 	if l > 0 {
 		n += 1 + l + sovFido2(uint64(l))
 	}
@@ -4082,11 +3939,11 @@ func (m *CredentialsInfo) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.RkExisting != 0 {
-		n += 1 + sovFido2(uint64(m.RkExisting))
+	if m.RKExisting != 0 {
+		n += 1 + sovFido2(uint64(m.RKExisting))
 	}
-	if m.RkRemaining != 0 {
-		n += 1 + sovFido2(uint64(m.RkRemaining))
+	if m.RKRemaining != 0 {
+		n += 1 + sovFido2(uint64(m.RKRemaining))
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -4094,7 +3951,7 @@ func (m *CredentialsInfo) Size() (n int) {
 	return n
 }
 
-func (m *DeviceLocationsRequest) Size() (n int) {
+func (m *DevicesRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4106,14 +3963,14 @@ func (m *DeviceLocationsRequest) Size() (n int) {
 	return n
 }
 
-func (m *DeviceLocationsResponse) Size() (n int) {
+func (m *DevicesResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if len(m.Locations) > 0 {
-		for _, e := range m.Locations {
+	if len(m.Devices) > 0 {
+		for _, e := range m.Devices {
 			l = e.Size()
 			n += 1 + l + sovFido2(uint64(l))
 		}
@@ -4130,7 +3987,7 @@ func (m *DeviceInfoRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Path)
+	l = len(m.Device)
 	if l > 0 {
 		n += 1 + l + sovFido2(uint64(l))
 	}
@@ -4162,7 +4019,7 @@ func (m *MakeCredentialRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Path)
+	l = len(m.Device)
 	if l > 0 {
 		n += 1 + l + sovFido2(uint64(l))
 	}
@@ -4170,34 +4027,34 @@ func (m *MakeCredentialRequest) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovFido2(uint64(l))
 	}
-	if m.Rp != nil {
-		l = m.Rp.Size()
+	if m.RP != nil {
+		l = m.RP.Size()
 		n += 1 + l + sovFido2(uint64(l))
 	}
 	if m.User != nil {
 		l = m.User.Size()
 		n += 1 + l + sovFido2(uint64(l))
 	}
-	if m.Type != 0 {
-		n += 1 + sovFido2(uint64(m.Type))
+	l = len(m.Type)
+	if l > 0 {
+		n += 1 + l + sovFido2(uint64(l))
 	}
-	l = len(m.Pin)
+	l = len(m.PIN)
 	if l > 0 {
 		n += 1 + l + sovFido2(uint64(l))
 	}
 	if len(m.Extensions) > 0 {
-		l = 0
-		for _, e := range m.Extensions {
-			l += sovFido2(uint64(e))
+		for _, s := range m.Extensions {
+			l = len(s)
+			n += 2 + l + sovFido2(uint64(l))
 		}
-		n += 2 + sovFido2(uint64(l)) + l
 	}
-	if m.RK != nil {
-		l = m.RK.Size()
+	l = len(m.RK)
+	if l > 0 {
 		n += 2 + l + sovFido2(uint64(l))
 	}
-	if m.UV != nil {
-		l = m.UV.Size()
+	l = len(m.UV)
+	if l > 0 {
 		n += 2 + l + sovFido2(uint64(l))
 	}
 	if m.XXX_unrecognized != nil {
@@ -4228,15 +4085,15 @@ func (m *SetPINRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Path)
+	l = len(m.Device)
 	if l > 0 {
 		n += 1 + l + sovFido2(uint64(l))
 	}
-	l = len(m.Pin)
+	l = len(m.PIN)
 	if l > 0 {
 		n += 1 + l + sovFido2(uint64(l))
 	}
-	l = len(m.OldPin)
+	l = len(m.OldPIN)
 	if l > 0 {
 		n += 1 + l + sovFido2(uint64(l))
 	}
@@ -4264,7 +4121,7 @@ func (m *ResetRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Path)
+	l = len(m.Device)
 	if l > 0 {
 		n += 1 + l + sovFido2(uint64(l))
 	}
@@ -4292,7 +4149,7 @@ func (m *RetryCountRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Path)
+	l = len(m.Device)
 	if l > 0 {
 		n += 1 + l + sovFido2(uint64(l))
 	}
@@ -4323,11 +4180,11 @@ func (m *AssertionRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Path)
+	l = len(m.Device)
 	if l > 0 {
 		n += 1 + l + sovFido2(uint64(l))
 	}
-	l = len(m.RpID)
+	l = len(m.RPID)
 	if l > 0 {
 		n += 1 + l + sovFido2(uint64(l))
 	}
@@ -4339,23 +4196,22 @@ func (m *AssertionRequest) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovFido2(uint64(l))
 	}
-	l = len(m.Pin)
+	l = len(m.PIN)
 	if l > 0 {
 		n += 1 + l + sovFido2(uint64(l))
 	}
 	if len(m.Extensions) > 0 {
-		l = 0
-		for _, e := range m.Extensions {
-			l += sovFido2(uint64(e))
+		for _, s := range m.Extensions {
+			l = len(s)
+			n += 2 + l + sovFido2(uint64(l))
 		}
-		n += 2 + sovFido2(uint64(l)) + l
 	}
-	if m.UV != nil {
-		l = m.UV.Size()
+	l = len(m.UV)
+	if l > 0 {
 		n += 2 + l + sovFido2(uint64(l))
 	}
-	if m.UP != nil {
-		l = m.UP.Size()
+	l = len(m.UP)
+	if l > 0 {
 		n += 2 + l + sovFido2(uint64(l))
 	}
 	l = len(m.HMACSalt)
@@ -4390,7 +4246,11 @@ func (m *CredentialsInfoRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Path)
+	l = len(m.Device)
+	if l > 0 {
+		n += 1 + l + sovFido2(uint64(l))
+	}
+	l = len(m.PIN)
 	if l > 0 {
 		n += 1 + l + sovFido2(uint64(l))
 	}
@@ -4422,15 +4282,15 @@ func (m *CredentialsRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Path)
+	l = len(m.Device)
 	if l > 0 {
 		n += 1 + l + sovFido2(uint64(l))
 	}
-	l = len(m.RpID)
+	l = len(m.RPID)
 	if l > 0 {
 		n += 1 + l + sovFido2(uint64(l))
 	}
-	l = len(m.Pin)
+	l = len(m.PIN)
 	if l > 0 {
 		n += 1 + l + sovFido2(uint64(l))
 	}
@@ -4446,6 +4306,12 @@ func (m *CredentialsResponse) Size() (n int) {
 	}
 	var l int
 	_ = l
+	if len(m.Credentials) > 0 {
+		for _, e := range m.Credentials {
+			l = e.Size()
+			n += 1 + l + sovFido2(uint64(l))
+		}
+	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
 	}
@@ -4458,11 +4324,11 @@ func (m *RelyingPartiesRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Path)
+	l = len(m.Device)
 	if l > 0 {
 		n += 1 + l + sovFido2(uint64(l))
 	}
-	l = len(m.Pin)
+	l = len(m.PIN)
 	if l > 0 {
 		n += 1 + l + sovFido2(uint64(l))
 	}
@@ -4633,7 +4499,7 @@ func (m *RPCError) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *DeviceLocation) Unmarshal(dAtA []byte) error {
+func (m *Device) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4656,10 +4522,10 @@ func (m *DeviceLocation) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: DeviceLocation: wiretype end group for non-group")
+			return fmt.Errorf("proto: Device: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: DeviceLocation: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: Device: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -4883,10 +4749,10 @@ func (m *Option) Unmarshal(dAtA []byte) error {
 			m.Name = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
-			if wireType != 0 {
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Value", wireType)
 			}
-			m.Value = 0
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowFido2
@@ -4896,11 +4762,24 @@ func (m *Option) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Value |= OptionValue(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthFido2
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthFido2
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Value = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipFido2(dAtA[iNdEx:])
@@ -5021,9 +4900,9 @@ func (m *DeviceInfo) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Aaguid", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field AAGUID", wireType)
 			}
-			var stringLen uint64
+			var byteLen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowFido2
@@ -5033,23 +4912,25 @@ func (m *DeviceInfo) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
+			if byteLen < 0 {
 				return ErrInvalidLengthFido2
 			}
-			postIndex := iNdEx + intStringLen
+			postIndex := iNdEx + byteLen
 			if postIndex < 0 {
 				return ErrInvalidLengthFido2
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Aaguid = string(dAtA[iNdEx:postIndex])
+			m.AAGUID = append(m.AAGUID[:0], dAtA[iNdEx:postIndex]...)
+			if m.AAGUID == nil {
+				m.AAGUID = []byte{}
+			}
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
@@ -5141,7 +5022,7 @@ func (m *RelyingParty) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ID", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -5169,7 +5050,7 @@ func (m *RelyingParty) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Id = string(dAtA[iNdEx:postIndex])
+			m.ID = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -5259,9 +5140,9 @@ func (m *User) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ID", wireType)
 			}
-			var stringLen uint64
+			var byteLen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowFido2
@@ -5271,23 +5152,25 @@ func (m *User) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
+			if byteLen < 0 {
 				return ErrInvalidLengthFido2
 			}
-			postIndex := iNdEx + intStringLen
+			postIndex := iNdEx + byteLen
 			if postIndex < 0 {
 				return ErrInvalidLengthFido2
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Id = string(dAtA[iNdEx:postIndex])
+			m.ID = append(m.ID[:0], dAtA[iNdEx:postIndex]...)
+			if m.ID == nil {
+				m.ID = []byte{}
+			}
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -5542,10 +5425,10 @@ func (m *Attestation) Unmarshal(dAtA []byte) error {
 			}
 			iNdEx = postIndex
 		case 4:
-			if wireType != 0 {
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field CredType", wireType)
 			}
-			m.CredType = 0
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowFido2
@@ -5555,11 +5438,24 @@ func (m *Attestation) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.CredType |= CredentialType(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthFido2
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthFido2
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.CredType = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
 		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field PubKey", wireType)
@@ -5783,10 +5679,10 @@ func (m *Credential) Unmarshal(dAtA []byte) error {
 			}
 			iNdEx = postIndex
 		case 2:
-			if wireType != 0 {
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Type", wireType)
 			}
-			m.Type = 0
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowFido2
@@ -5796,11 +5692,24 @@ func (m *Credential) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Type |= CredentialType(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthFido2
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthFido2
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Type = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field User", wireType)
@@ -5961,7 +5870,7 @@ func (m *Assertion) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field HmacSecret", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field HMACSecret", wireType)
 			}
 			var byteLen int
 			for shift := uint(0); ; shift += 7 {
@@ -5988,9 +5897,9 @@ func (m *Assertion) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.HmacSecret = append(m.HmacSecret[:0], dAtA[iNdEx:postIndex]...)
-			if m.HmacSecret == nil {
-				m.HmacSecret = []byte{}
+			m.HMACSecret = append(m.HMACSecret[:0], dAtA[iNdEx:postIndex]...)
+			if m.HMACSecret == nil {
+				m.HMACSecret = []byte{}
 			}
 			iNdEx = postIndex
 		default:
@@ -6049,9 +5958,9 @@ func (m *CredentialsInfo) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field RkExisting", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field RKExisting", wireType)
 			}
-			m.RkExisting = 0
+			m.RKExisting = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowFido2
@@ -6061,16 +5970,16 @@ func (m *CredentialsInfo) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.RkExisting |= int32(b&0x7F) << shift
+				m.RKExisting |= int32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
 		case 2:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field RkRemaining", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field RKRemaining", wireType)
 			}
-			m.RkRemaining = 0
+			m.RKRemaining = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowFido2
@@ -6080,7 +5989,7 @@ func (m *CredentialsInfo) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.RkRemaining |= int32(b&0x7F) << shift
+				m.RKRemaining |= int32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -6110,7 +6019,7 @@ func (m *CredentialsInfo) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *DeviceLocationsRequest) Unmarshal(dAtA []byte) error {
+func (m *DevicesRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -6133,10 +6042,10 @@ func (m *DeviceLocationsRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: DeviceLocationsRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: DevicesRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: DeviceLocationsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: DevicesRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -6164,7 +6073,7 @@ func (m *DeviceLocationsRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *DeviceLocationsResponse) Unmarshal(dAtA []byte) error {
+func (m *DevicesResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -6187,15 +6096,15 @@ func (m *DeviceLocationsResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: DeviceLocationsResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: DevicesResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: DeviceLocationsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: DevicesResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Locations", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Devices", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -6222,8 +6131,8 @@ func (m *DeviceLocationsResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Locations = append(m.Locations, &DeviceLocation{})
-			if err := m.Locations[len(m.Locations)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			m.Devices = append(m.Devices, &Device{})
+			if err := m.Devices[len(m.Devices)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -6283,7 +6192,7 @@ func (m *DeviceInfoRequest) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Path", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Device", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -6311,7 +6220,7 @@ func (m *DeviceInfoRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Path = string(dAtA[iNdEx:postIndex])
+			m.Device = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -6459,7 +6368,7 @@ func (m *MakeCredentialRequest) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Path", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Device", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -6487,7 +6396,7 @@ func (m *MakeCredentialRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Path = string(dAtA[iNdEx:postIndex])
+			m.Device = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -6525,7 +6434,7 @@ func (m *MakeCredentialRequest) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Rp", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field RP", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -6552,10 +6461,10 @@ func (m *MakeCredentialRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.Rp == nil {
-				m.Rp = &RelyingParty{}
+			if m.RP == nil {
+				m.RP = &RelyingParty{}
 			}
-			if err := m.Rp.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.RP.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -6596,27 +6505,8 @@ func (m *MakeCredentialRequest) Unmarshal(dAtA []byte) error {
 			}
 			iNdEx = postIndex
 		case 5:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Type", wireType)
-			}
-			m.Type = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFido2
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Type |= CredentialType(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 6:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Pin", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Type", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -6644,82 +6534,13 @@ func (m *MakeCredentialRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Pin = string(dAtA[iNdEx:postIndex])
+			m.Type = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 100:
-			if wireType == 0 {
-				var v Extension
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return ErrIntOverflowFido2
-					}
-					if iNdEx >= l {
-						return io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					v |= Extension(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				m.Extensions = append(m.Extensions, v)
-			} else if wireType == 2 {
-				var packedLen int
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return ErrIntOverflowFido2
-					}
-					if iNdEx >= l {
-						return io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					packedLen |= int(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				if packedLen < 0 {
-					return ErrInvalidLengthFido2
-				}
-				postIndex := iNdEx + packedLen
-				if postIndex < 0 {
-					return ErrInvalidLengthFido2
-				}
-				if postIndex > l {
-					return io.ErrUnexpectedEOF
-				}
-				var elementCount int
-				if elementCount != 0 && len(m.Extensions) == 0 {
-					m.Extensions = make([]Extension, 0, elementCount)
-				}
-				for iNdEx < postIndex {
-					var v Extension
-					for shift := uint(0); ; shift += 7 {
-						if shift >= 64 {
-							return ErrIntOverflowFido2
-						}
-						if iNdEx >= l {
-							return io.ErrUnexpectedEOF
-						}
-						b := dAtA[iNdEx]
-						iNdEx++
-						v |= Extension(b&0x7F) << shift
-						if b < 0x80 {
-							break
-						}
-					}
-					m.Extensions = append(m.Extensions, v)
-				}
-			} else {
-				return fmt.Errorf("proto: wrong wireType = %d for field Extensions", wireType)
-			}
-		case 101:
+		case 6:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field RK", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field PIN", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowFido2
@@ -6729,33 +6550,93 @@ func (m *MakeCredentialRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthFido2
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthFido2
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.RK == nil {
-				m.RK = &Option{}
+			m.PIN = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 100:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Extensions", wireType)
 			}
-			if err := m.RK.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowFido2
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
 			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthFido2
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthFido2
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Extensions = append(m.Extensions, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		case 101:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RK", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowFido2
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthFido2
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthFido2
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RK = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 102:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UV", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowFido2
@@ -6765,27 +6646,23 @@ func (m *MakeCredentialRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthFido2
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthFido2
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.UV == nil {
-				m.UV = &Option{}
-			}
-			if err := m.UV.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.UV = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -6933,7 +6810,7 @@ func (m *SetPINRequest) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Path", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Device", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -6961,11 +6838,11 @@ func (m *SetPINRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Path = string(dAtA[iNdEx:postIndex])
+			m.Device = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Pin", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field PIN", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -6993,11 +6870,11 @@ func (m *SetPINRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Pin = string(dAtA[iNdEx:postIndex])
+			m.PIN = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OldPin", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field OldPIN", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -7025,7 +6902,7 @@ func (m *SetPINRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.OldPin = string(dAtA[iNdEx:postIndex])
+			m.OldPIN = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -7137,7 +7014,7 @@ func (m *ResetRequest) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Path", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Device", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -7165,7 +7042,7 @@ func (m *ResetRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Path = string(dAtA[iNdEx:postIndex])
+			m.Device = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -7277,7 +7154,7 @@ func (m *RetryCountRequest) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Path", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Device", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -7305,7 +7182,7 @@ func (m *RetryCountRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Path = string(dAtA[iNdEx:postIndex])
+			m.Device = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -7436,7 +7313,7 @@ func (m *AssertionRequest) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Path", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Device", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -7464,11 +7341,11 @@ func (m *AssertionRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Path = string(dAtA[iNdEx:postIndex])
+			m.Device = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field RpID", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field RPID", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -7496,7 +7373,7 @@ func (m *AssertionRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.RpID = string(dAtA[iNdEx:postIndex])
+			m.RPID = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
@@ -7568,7 +7445,7 @@ func (m *AssertionRequest) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 5:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Pin", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field PIN", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -7596,82 +7473,13 @@ func (m *AssertionRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Pin = string(dAtA[iNdEx:postIndex])
+			m.PIN = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 100:
-			if wireType == 0 {
-				var v Extension
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return ErrIntOverflowFido2
-					}
-					if iNdEx >= l {
-						return io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					v |= Extension(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				m.Extensions = append(m.Extensions, v)
-			} else if wireType == 2 {
-				var packedLen int
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return ErrIntOverflowFido2
-					}
-					if iNdEx >= l {
-						return io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					packedLen |= int(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				if packedLen < 0 {
-					return ErrInvalidLengthFido2
-				}
-				postIndex := iNdEx + packedLen
-				if postIndex < 0 {
-					return ErrInvalidLengthFido2
-				}
-				if postIndex > l {
-					return io.ErrUnexpectedEOF
-				}
-				var elementCount int
-				if elementCount != 0 && len(m.Extensions) == 0 {
-					m.Extensions = make([]Extension, 0, elementCount)
-				}
-				for iNdEx < postIndex {
-					var v Extension
-					for shift := uint(0); ; shift += 7 {
-						if shift >= 64 {
-							return ErrIntOverflowFido2
-						}
-						if iNdEx >= l {
-							return io.ErrUnexpectedEOF
-						}
-						b := dAtA[iNdEx]
-						iNdEx++
-						v |= Extension(b&0x7F) << shift
-						if b < 0x80 {
-							break
-						}
-					}
-					m.Extensions = append(m.Extensions, v)
-				}
-			} else {
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Extensions", wireType)
 			}
-		case 101:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UV", wireType)
-			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowFido2
@@ -7681,33 +7489,61 @@ func (m *AssertionRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthFido2
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthFido2
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.UV == nil {
-				m.UV = &Option{}
+			m.Extensions = append(m.Extensions, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		case 101:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UV", wireType)
 			}
-			if err := m.UV.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowFido2
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
 			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthFido2
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthFido2
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.UV = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 102:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UP", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowFido2
@@ -7717,27 +7553,23 @@ func (m *AssertionRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthFido2
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthFido2
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.UP == nil {
-				m.UP = &Option{}
-			}
-			if err := m.UP.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.UP = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 103:
 			if wireType != 2 {
@@ -7919,7 +7751,7 @@ func (m *CredentialsInfoRequest) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Path", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Device", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -7947,7 +7779,39 @@ func (m *CredentialsInfoRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Path = string(dAtA[iNdEx:postIndex])
+			m.Device = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PIN", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowFido2
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthFido2
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthFido2
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PIN = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -8095,7 +7959,7 @@ func (m *CredentialsRequest) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Path", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Device", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -8123,11 +7987,11 @@ func (m *CredentialsRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Path = string(dAtA[iNdEx:postIndex])
+			m.Device = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field RpID", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field RPID", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -8155,11 +8019,11 @@ func (m *CredentialsRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.RpID = string(dAtA[iNdEx:postIndex])
+			m.RPID = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Pin", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field PIN", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -8187,7 +8051,7 @@ func (m *CredentialsRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Pin = string(dAtA[iNdEx:postIndex])
+			m.PIN = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -8243,6 +8107,40 @@ func (m *CredentialsResponse) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: CredentialsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Credentials", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowFido2
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthFido2
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthFido2
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Credentials = append(m.Credentials, &Credential{})
+			if err := m.Credentials[len(m.Credentials)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipFido2(dAtA[iNdEx:])
@@ -8299,7 +8197,7 @@ func (m *RelyingPartiesRequest) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Path", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Device", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -8327,11 +8225,11 @@ func (m *RelyingPartiesRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Path = string(dAtA[iNdEx:postIndex])
+			m.Device = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Pin", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field PIN", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -8359,7 +8257,7 @@ func (m *RelyingPartiesRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Pin = string(dAtA[iNdEx:postIndex])
+			m.PIN = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

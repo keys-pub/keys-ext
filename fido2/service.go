@@ -2,10 +2,8 @@ package fido2
 
 import (
 	"context"
-	"log"
 
 	"github.com/keys-pub/go-libfido2"
-	"github.com/pkg/errors"
 )
 
 type service struct{}
@@ -15,62 +13,196 @@ func NewAuthenticatorsServer() AuthenticatorsServer {
 	return &service{}
 }
 
-func (s *service) DeviceLocations(ctx context.Context, req *DeviceLocationsRequest) (*DeviceLocationsResponse, error) {
-	detected, err := libfido2.DeviceLocations()
+func (s *service) Devices(ctx context.Context, req *DevicesRequest) (*DevicesResponse, error) {
+	devices, err := libfido2.DeviceLocations()
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	return &DeviceLocationsResponse{
-		Locations: deviceLocationsToRPC(detected),
+	return &DevicesResponse{
+		Devices: devicesToRPC(devices),
 	}, nil
 }
 
+func findDevice(name string) (*libfido2.Device, error) {
+	device, err := libfido2.NewDevice(name)
+	if err != nil {
+		return nil, err
+	}
+	return device, nil
+}
+
 func (s *service) DeviceInfo(ctx context.Context, req *DeviceInfoRequest) (*DeviceInfoResponse, error) {
-	return &DeviceInfoResponse{}, errors.Errorf("not implemented")
+	device, err := findDevice(req.Device)
+	if err != nil {
+		return nil, err
+	}
+
+	info, err := device.Info()
+	if err != nil {
+		return nil, err
+	}
+
+	return &DeviceInfoResponse{
+		Info: deviceInfoToRPC(info),
+	}, nil
 }
 
 func (s *service) MakeCredential(ctx context.Context, req *MakeCredentialRequest) (*MakeCredentialResponse, error) {
-	return &MakeCredentialResponse{}, errors.Errorf("not implemented")
+	device, err := findDevice(req.Device)
+	if err != nil {
+		return nil, err
+	}
+	typ, err := credTypeFromRPC(req.Type)
+	if err != nil {
+		return nil, err
+	}
+	extensions, err := extensionsFromRPC(req.Extensions)
+	if err != nil {
+		return nil, err
+	}
+	rk, err := optionValueFromRPC(req.RK)
+	if err != nil {
+		return nil, err
+	}
+	uv, err := optionValueFromRPC(req.UV)
+	if err != nil {
+		return nil, err
+	}
+
+	attestation, err := device.MakeCredential(
+		req.ClientDataHash,
+		rpFromRPC(req.RP),
+		userFromRPC(req.User),
+		typ,
+		req.PIN,
+		&libfido2.MakeCredentialOpts{
+			Extensions: extensions,
+			RK:         rk,
+			UV:         uv,
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &MakeCredentialResponse{
+		Attestation: attestationToRPC(attestation),
+	}, nil
 }
 
 func (s *service) SetPIN(ctx context.Context, req *SetPINRequest) (*SetPINResponse, error) {
-	return &SetPINResponse{}, errors.Errorf("not implemented")
+	device, err := findDevice(req.Device)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := device.SetPIN(req.PIN, req.OldPIN); err != nil {
+		return nil, err
+	}
+
+	return &SetPINResponse{}, nil
 }
 
 func (s *service) Reset(ctx context.Context, req *ResetRequest) (*ResetResponse, error) {
-	return &ResetResponse{}, errors.Errorf("not implemented")
+	device, err := findDevice(req.Device)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := device.Reset(); err != nil {
+		return nil, err
+	}
+
+	return &ResetResponse{}, nil
 }
 
 func (s *service) RetryCount(ctx context.Context, req *RetryCountRequest) (*RetryCountResponse, error) {
-	return &RetryCountResponse{}, errors.Errorf("not implemented")
+	device, err := findDevice(req.Device)
+	if err != nil {
+		return nil, err
+	}
+
+	count, err := device.RetryCount()
+	if err != nil {
+		return nil, err
+	}
+
+	return &RetryCountResponse{
+		Count: int32(count),
+	}, nil
 }
 
 func (s *service) Assertion(ctx context.Context, req *AssertionRequest) (*AssertionResponse, error) {
-	return &AssertionResponse{}, errors.Errorf("not implemented")
+	device, err := findDevice(req.Device)
+	if err != nil {
+		return nil, err
+	}
+	extensions, err := extensionsFromRPC(req.Extensions)
+	if err != nil {
+		return nil, err
+	}
+	uv, err := optionValueFromRPC(req.UV)
+	if err != nil {
+		return nil, err
+	}
+	up, err := optionValueFromRPC(req.UP)
+	if err != nil {
+		return nil, err
+	}
+
+	assertion, err := device.Assertion(req.RPID, req.ClientDataHash, req.CredID, req.PIN, &libfido2.AssertionOpts{Extensions: extensions, UV: uv, UP: up})
+	if err != nil {
+		return nil, err
+	}
+
+	return &AssertionResponse{
+		Assertion: assertionToRPC(assertion),
+	}, nil
 }
 
 func (s *service) CredentialsInfo(ctx context.Context, req *CredentialsInfoRequest) (*CredentialsInfoResponse, error) {
-	return &CredentialsInfoResponse{}, errors.Errorf("not implemented")
+	device, err := findDevice(req.Device)
+	if err != nil {
+		return nil, err
+	}
+
+	info, err := device.CredentialsInfo(req.PIN)
+	if err != nil {
+		return nil, err
+	}
+
+	return &CredentialsInfoResponse{
+		Info: credentialsInfoToRPC(info),
+	}, nil
 }
 
 func (s *service) Credentials(ctx context.Context, req *CredentialsRequest) (*CredentialsResponse, error) {
-	return &CredentialsResponse{}, errors.Errorf("not implemented")
+	device, err := findDevice(req.Device)
+	if err != nil {
+		return nil, err
+	}
+
+	credentials, err := device.Credentials(req.RPID, req.PIN)
+	if err != nil {
+		return nil, err
+	}
+
+	return &CredentialsResponse{
+		Credentials: credentialsToRPC(credentials),
+	}, nil
 }
 
 func (s *service) RelyingParties(ctx context.Context, req *RelyingPartiesRequest) (*RelyingPartiesResponse, error) {
-	return &RelyingPartiesResponse{}, errors.Errorf("not implemented")
-}
-
-func deviceLocationsToRPC(locs []*libfido2.DeviceLocation) []*DeviceLocation {
-	out := make([]*DeviceLocation, 0, len(locs))
-	for _, d := range locs {
-		out = append(out, &DeviceLocation{
-			Path:         d.Path,
-			ProductID:    int32(d.ProductID),
-			VendorID:     int32(d.VendorID),
-			Manufacturer: d.Manufacturer,
-			Product:      d.Product,
-		})
+	device, err := findDevice(req.Device)
+	if err != nil {
+		return nil, err
 	}
-	return out
+
+	rps, err := device.RelyingParties(req.PIN)
+	if err != nil {
+		return nil, err
+	}
+
+	return &RelyingPartiesResponse{
+		Parties: relyingPartiesToRPC(rps),
+	}, nil
 }

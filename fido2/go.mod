@@ -5,8 +5,9 @@ go 1.14
 require (
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/protobuf v1.4.0 // indirect
-	github.com/keys-pub/go-libfido2 v0.0.0-20200426183310-e453219aa3c8
+	github.com/keys-pub/go-libfido2 v0.0.0-20200427035032-3e225c0ecafc
 	github.com/pkg/errors v0.9.1
+	github.com/sirupsen/logrus v1.5.0
 	github.com/urfave/cli v1.22.4
 	golang.org/x/net v0.0.0-20200421231249-e086a090c8fd // indirect
 	golang.org/x/sys v0.0.0-20200420163511-1957bb5e6d1f // indirect
