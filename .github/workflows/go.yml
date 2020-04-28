@@ -56,6 +56,3 @@ jobs:
       - name: Test (service)
         if: matrix.os == 'macos-latest'
         run: cd service; go test -v ./...
-      - name: Test (wormhole)
-        if: matrix.os == 'ubuntu-latest'
-        run: cd wormhole; go test -v ./...
