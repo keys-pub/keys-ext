@@ -90,11 +90,11 @@ func userCommands(client *Client) []cli.Command {
 							return err
 						}
 
-						// TODO: Reddit, etc
 						reader := bufio.NewReader(os.Stdin)
 						fmt.Println("What's the service? ")
 						fmt.Println("(g) Github")
 						fmt.Println("(t) Twitter")
+						fmt.Println("(r) Reddit")
 						sservice, err := reader.ReadString('\n')
 						if err != nil {
 							return err
@@ -106,11 +106,12 @@ func userCommands(client *Client) []cli.Command {
 						case "g", "github":
 							service = "github"
 							question = "What's your Github username?"
-							// next = "In the next step, we'll create a signed message that you can post as a gist on your Github account."
 						case "t", "twitter":
 							service = "twitter"
 							question = "What's your Twitter handle?"
-							// next = "In the next step, we'll create a signed message that you can post as a tweet."
+						case "r", "reddit":
+							service = "reddit"
+							question = "What's your Reddit username?"
 						}
 
 						fmt.Println("")
@@ -141,6 +142,10 @@ func userCommands(client *Client) []cli.Command {
 							instructions = "Save the following signed message as a tweet on your Twitter account."
 							link = "https://twitter.com/intent/tweet"
 							urlq = "What's the location (URL) on twitter.com where the signed message tweet was saved?"
+						case "reddit":
+							instructions = "Save the following signed message as a post on /r/keyspubmsgs."
+							link = "https://old.reddit.com/r/keyspubmsgs/submit"
+							urlq = "What's the location (URL) on reddit.com/r/keyspubmsgs where the signed message was posted?"
 						}
 						fmt.Println("")
 						fmt.Println(instructions)
