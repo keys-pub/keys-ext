@@ -135,6 +135,7 @@ github.com/keys-pub/go-libfido2 v0.0.0-20200427215944-18592ad89b9d h1:xDOACYC0W9
 github.com/keys-pub/go-libfido2 v0.0.0-20200427215944-18592ad89b9d/go.mod h1:P0V19qHwJNY0htZwZDe9Ilvs/nokGhdFX7faKFyZ6+U=
 github.com/keys-pub/go-libfido2 v0.0.0-20200428181912-53b2470527d1 h1:nc1WncWfTKmTQNFNhqvL0fVItI6HE/hut/rrQIvUw1k=
 github.com/keys-pub/go-libfido2 v0.0.0-20200428181912-53b2470527d1/go.mod h1:P0V19qHwJNY0htZwZDe9Ilvs/nokGhdFX7faKFyZ6+U=
+github.com/keys-pub/go-libfido2 v0.0.0-20200429024018-c64b2b4e5b1c/go.mod h1:P0V19qHwJNY0htZwZDe9Ilvs/nokGhdFX7faKFyZ6+U=
 github.com/keys-pub/keys v0.0.0-20200412190229-71b7a426a7ab h1:D7YOtUfZ34F99SW9mdZic8lG1LASUUGojHGtxfS6kds=
 github.com/keys-pub/keys v0.0.0-20200412190229-71b7a426a7ab/go.mod h1:LWDVrixSjx446s2aLIcJ6ML5ir4vX3kJ3mVvJYXI/Xc=
 github.com/keys-pub/keys v0.0.0-20200413002436-33c0c3d4ec1b h1:P9+8upxxJyZK95YnG3ONgDceGGJ/e25uabBVeeJslBo=
@@ -179,6 +180,8 @@ github.com/keys-pub/keysd/fido2 v0.0.0-20200427035443-641310d59016 h1:qyAU7+iHvf
 github.com/keys-pub/keysd/fido2 v0.0.0-20200427035443-641310d59016/go.mod h1:Zv1gPZrRHmPAbWt7RCfEGmR4k1Vdp7UicWqhO4D7uN0=
 github.com/keys-pub/keysd/fido2 v0.0.0-20200427220403-902714bb307e h1:zTB06Dr2NZh25ONzojScyyoDkvjsLShg0X5DwJbADg8=
 github.com/keys-pub/keysd/fido2 v0.0.0-20200427220403-902714bb307e/go.mod h1:mVqeZwNYUJ/g9uffwEr496Px+tBxY6RopLQCMRRlW54=
+github.com/keys-pub/keysd/fido2 v0.0.0-20200429024946-ecdf142d9dad h1:xPqwOQ9aVf7sDeVBygYuGG+E46tvk7gncAMxfA2gi2k=
+github.com/keys-pub/keysd/fido2 v0.0.0-20200429024946-ecdf142d9dad/go.mod h1:MlSjttES+lEQpDYT/VS4kf4LHpC/b8s2tkEq5ZfOapM=
 github.com/keys-pub/keysd/firestore v0.0.0-20200413003414-34e8a825f8fd h1:vhnKWyxGwLgb0bdFSYHGjJ+bgHwxieiLZh3Du+A0xbE=
 github.com/keys-pub/keysd/firestore v0.0.0-20200413003414-34e8a825f8fd/go.mod h1:9veij84OYGkGSNE7oI6FasAsDuFMm0wtjDoaQ//doIg=
 github.com/keys-pub/keysd/firestore v0.0.0-20200414165918-c4b40ad4f02d h1:+04LDJiJLkFjCVSiNchSQTdw3syqRHJnT/AEXTQOtCw=
