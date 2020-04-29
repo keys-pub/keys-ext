@@ -28,3 +28,21 @@ func (s *service) AdminSignURL(ctx context.Context, req *AdminSignURLRequest) (*
 		CURL: curl,
 	}, nil
 }
+
+func (s *service) AdminCheck(ctx context.Context, req *AdminCheckRequest) (*AdminCheckResponse, error) {
+	admin, err := s.parseIdentityForEdX25519Key(ctx, req.Signer)
+	if err != nil {
+		return nil, err
+	}
+
+	kid, err := s.parseKID(req.KID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.remote.AdminCheck(ctx, kid, admin); err != nil {
+		return nil, err
+	}
+
+	return &AdminCheckResponse{}, nil
+}

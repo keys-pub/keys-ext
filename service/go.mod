@@ -6,12 +6,12 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/gogo/protobuf v1.3.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
-	github.com/keys-pub/keys v0.0.0-20200423195135-6b5d508024d0
+	github.com/keys-pub/keys v0.0.0-20200429174935-3fcbd4852368
 	github.com/keys-pub/keysd/db v0.0.0-20200413003215-f85e85366c95
 	github.com/keys-pub/keysd/fido2 v0.0.0-20200429024946-ecdf142d9dad
 	github.com/keys-pub/keysd/http/api v0.0.0-20200415010142-cfcd41d36dd1
-	github.com/keys-pub/keysd/http/client v0.0.0-20200414170516-1e0e72775735
-	github.com/keys-pub/keysd/http/server v0.0.0-20200419021946-2d1a17136bd0
+	github.com/keys-pub/keysd/http/client v0.0.0-20200429183701-a83c57ae1abb
+	github.com/keys-pub/keysd/http/server v0.0.0-20200429183701-a83c57ae1abb
 	github.com/keys-pub/keysd/wormhole v0.0.0-20200413004603-509fcacd8791
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/mercari/go-grpc-interceptor v0.0.0-20180110035004-b8ad3827e82a
