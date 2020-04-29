@@ -135,6 +135,7 @@ github.com/keys-pub/go-libfido2 v0.0.0-20200427215944-18592ad89b9d h1:xDOACYC0W9
 github.com/keys-pub/go-libfido2 v0.0.0-20200427215944-18592ad89b9d/go.mod h1:P0V19qHwJNY0htZwZDe9Ilvs/nokGhdFX7faKFyZ6+U=
 github.com/keys-pub/go-libfido2 v0.0.0-20200428181912-53b2470527d1 h1:nc1WncWfTKmTQNFNhqvL0fVItI6HE/hut/rrQIvUw1k=
 github.com/keys-pub/go-libfido2 v0.0.0-20200428181912-53b2470527d1/go.mod h1:P0V19qHwJNY0htZwZDe9Ilvs/nokGhdFX7faKFyZ6+U=
+github.com/keys-pub/go-libfido2 v0.0.0-20200429024018-c64b2b4e5b1c h1:/WBxgTXH5hm0LA1CICHmpmh1jr7ZNWT8J0Ki3orNU4Y=
 github.com/keys-pub/go-libfido2 v0.0.0-20200429024018-c64b2b4e5b1c/go.mod h1:P0V19qHwJNY0htZwZDe9Ilvs/nokGhdFX7faKFyZ6+U=
 github.com/keys-pub/keys v0.0.0-20200412190229-71b7a426a7ab h1:D7YOtUfZ34F99SW9mdZic8lG1LASUUGojHGtxfS6kds=
 github.com/keys-pub/keys v0.0.0-20200412190229-71b7a426a7ab/go.mod h1:LWDVrixSjx446s2aLIcJ6ML5ir4vX3kJ3mVvJYXI/Xc=

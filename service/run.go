@@ -34,18 +34,13 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
-type protoService struct {
-	*service
-}
-
-func newProtoService(cfg *Config, build Build, auth *auth) (*protoService, error) {
+func newProtoService(cfg *Config, build Build, auth *auth) (*service, error) {
 	req := util.NewHTTPRequestor()
 	srv, err := newService(cfg, build, auth, req, time.Now)
 	if err != nil {
 		return nil, err
 	}
-	p := &protoService{srv}
-	return p, nil
+	return srv, nil
 }
 
 func setupLogging(cfg *Config, logPath string) (Logger, LogInterceptor) {
@@ -233,6 +228,7 @@ func NewServiceFn(cfg *Config, build Build, lgi LogInterceptor) (ServeFn, CloseF
 	} else {
 		logger.Infof("Registering FIDO2 plugin...")
 		fido2.RegisterAuthenticatorsServer(grpcServer, server)
+		service.fido2 = true
 	}
 
 	logger.Infof("Listening for connections on port %d", cfg.Port())
