@@ -1,20 +1,23 @@
-package fido2
+package libfido2
 
 import (
 	"context"
 	"sort"
 
 	"github.com/keys-pub/go-libfido2"
+	"github.com/keys-pub/keysd/fido2"
 )
 
-type service struct{}
+// Server ...
+type Server struct{}
 
 // NewAuthenticatorsServer creates an AuthenticatorsServer.
-func NewAuthenticatorsServer() AuthenticatorsServer {
-	return &service{}
+func NewAuthenticatorsServer() fido2.AuthenticatorsServer {
+	return &Server{}
 }
 
-func (s *service) Devices(ctx context.Context, req *DevicesRequest) (*DevicesResponse, error) {
+// Devices ...
+func (s *Server) Devices(ctx context.Context, req *fido2.DevicesRequest) (*fido2.DevicesResponse, error) {
 	devices, err := libfido2.DeviceLocations()
 	if err != nil {
 		return nil, err
@@ -22,7 +25,7 @@ func (s *service) Devices(ctx context.Context, req *DevicesRequest) (*DevicesRes
 	sort.Slice(devices, func(i, j int) bool {
 		return devices[i].Product < devices[j].Product
 	})
-	return &DevicesResponse{
+	return &fido2.DevicesResponse{
 		Devices: devicesToRPC(devices),
 	}, nil
 }
@@ -37,7 +40,8 @@ func findDevice(name string) (*libfido2.Device, error) {
 	return device, nil
 }
 
-func (s *service) DeviceInfo(ctx context.Context, req *DeviceInfoRequest) (*DeviceInfoResponse, error) {
+// DeviceInfo ...
+func (s *Server) DeviceInfo(ctx context.Context, req *fido2.DeviceInfoRequest) (*fido2.DeviceInfoResponse, error) {
 	device, err := findDevice(req.Device)
 	if err != nil {
 		return nil, err
@@ -49,12 +53,13 @@ func (s *service) DeviceInfo(ctx context.Context, req *DeviceInfoRequest) (*Devi
 		return nil, err
 	}
 
-	return &DeviceInfoResponse{
+	return &fido2.DeviceInfoResponse{
 		Info: deviceInfoToRPC(info),
 	}, nil
 }
 
-func (s *service) MakeCredential(ctx context.Context, req *MakeCredentialRequest) (*MakeCredentialResponse, error) {
+// MakeCredential ...
+func (s *Server) MakeCredential(ctx context.Context, req *fido2.MakeCredentialRequest) (*fido2.MakeCredentialResponse, error) {
 	device, err := findDevice(req.Device)
 	if err != nil {
 		return nil, err
@@ -93,12 +98,13 @@ func (s *service) MakeCredential(ctx context.Context, req *MakeCredentialRequest
 	if err != nil {
 		return nil, err
 	}
-	return &MakeCredentialResponse{
+	return &fido2.MakeCredentialResponse{
 		Attestation: attestationToRPC(attestation),
 	}, nil
 }
 
-func (s *service) SetPIN(ctx context.Context, req *SetPINRequest) (*SetPINResponse, error) {
+// SetPIN ...
+func (s *Server) SetPIN(ctx context.Context, req *fido2.SetPINRequest) (*fido2.SetPINResponse, error) {
 	device, err := findDevice(req.Device)
 	if err != nil {
 		return nil, err
@@ -109,10 +115,11 @@ func (s *service) SetPIN(ctx context.Context, req *SetPINRequest) (*SetPINRespon
 		return nil, err
 	}
 
-	return &SetPINResponse{}, nil
+	return &fido2.SetPINResponse{}, nil
 }
 
-func (s *service) Reset(ctx context.Context, req *ResetRequest) (*ResetResponse, error) {
+// Reset ...
+func (s *Server) Reset(ctx context.Context, req *fido2.ResetRequest) (*fido2.ResetResponse, error) {
 	device, err := findDevice(req.Device)
 	if err != nil {
 		return nil, err
@@ -123,10 +130,11 @@ func (s *service) Reset(ctx context.Context, req *ResetRequest) (*ResetResponse,
 		return nil, err
 	}
 
-	return &ResetResponse{}, nil
+	return &fido2.ResetResponse{}, nil
 }
 
-func (s *service) RetryCount(ctx context.Context, req *RetryCountRequest) (*RetryCountResponse, error) {
+// RetryCount ...
+func (s *Server) RetryCount(ctx context.Context, req *fido2.RetryCountRequest) (*fido2.RetryCountResponse, error) {
 	device, err := findDevice(req.Device)
 	if err != nil {
 		return nil, err
@@ -138,12 +146,13 @@ func (s *service) RetryCount(ctx context.Context, req *RetryCountRequest) (*Retr
 		return nil, err
 	}
 
-	return &RetryCountResponse{
+	return &fido2.RetryCountResponse{
 		Count: int32(count),
 	}, nil
 }
 
-func (s *service) Assertion(ctx context.Context, req *AssertionRequest) (*AssertionResponse, error) {
+// Assertion ...
+func (s *Server) Assertion(ctx context.Context, req *fido2.AssertionRequest) (*fido2.AssertionResponse, error) {
 	device, err := findDevice(req.Device)
 	if err != nil {
 		return nil, err
@@ -168,12 +177,13 @@ func (s *service) Assertion(ctx context.Context, req *AssertionRequest) (*Assert
 		return nil, err
 	}
 
-	return &AssertionResponse{
+	return &fido2.AssertionResponse{
 		Assertion: assertionToRPC(assertion),
 	}, nil
 }
 
-func (s *service) CredentialsInfo(ctx context.Context, req *CredentialsInfoRequest) (*CredentialsInfoResponse, error) {
+// CredentialsInfo ...
+func (s *Server) CredentialsInfo(ctx context.Context, req *fido2.CredentialsInfoRequest) (*fido2.CredentialsInfoResponse, error) {
 	device, err := findDevice(req.Device)
 	if err != nil {
 		return nil, err
@@ -185,29 +195,48 @@ func (s *service) CredentialsInfo(ctx context.Context, req *CredentialsInfoReque
 		return nil, err
 	}
 
-	return &CredentialsInfoResponse{
+	return &fido2.CredentialsInfoResponse{
 		Info: credentialsInfoToRPC(info),
 	}, nil
 }
 
-func (s *service) Credentials(ctx context.Context, req *CredentialsRequest) (*CredentialsResponse, error) {
+// Credentials ...
+func (s *Server) Credentials(ctx context.Context, req *fido2.CredentialsRequest) (*fido2.CredentialsResponse, error) {
 	device, err := findDevice(req.Device)
 	if err != nil {
 		return nil, err
 	}
 	defer device.Close()
 
-	credentials, err := device.Credentials(req.RPID, req.PIN)
-	if err != nil {
-		return nil, err
+	out := []*fido2.Credential{}
+	if req.RPID == "" {
+		rps, err := device.RelyingParties(req.PIN)
+		if err != nil {
+			return nil, err
+		}
+		for _, rp := range rps {
+			credentials, err := device.Credentials(rp.ID, req.PIN)
+			if err != nil {
+				return nil, err
+			}
+			out = append(out, credentialsToRPC(relyingPartyToRPC(rp), credentials)...)
+		}
+	} else {
+		credentials, err := device.Credentials(req.RPID, req.PIN)
+		if err != nil {
+			return nil, err
+		}
+		rp := &fido2.RelyingParty{ID: req.RPID} // TODO: Name
+		out = credentialsToRPC(rp, credentials)
 	}
 
-	return &CredentialsResponse{
-		Credentials: credentialsToRPC(credentials),
+	return &fido2.CredentialsResponse{
+		Credentials: out,
 	}, nil
 }
 
-func (s *service) RelyingParties(ctx context.Context, req *RelyingPartiesRequest) (*RelyingPartiesResponse, error) {
+// RelyingParties ...
+func (s *Server) RelyingParties(ctx context.Context, req *fido2.RelyingPartiesRequest) (*fido2.RelyingPartiesResponse, error) {
 	device, err := findDevice(req.Device)
 	if err != nil {
 		return nil, err
@@ -219,7 +248,7 @@ func (s *service) RelyingParties(ctx context.Context, req *RelyingPartiesRequest
 		return nil, err
 	}
 
-	return &RelyingPartiesResponse{
+	return &fido2.RelyingPartiesResponse{
 		Parties: relyingPartiesToRPC(rps),
 	}, nil
 }

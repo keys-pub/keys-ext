@@ -29,7 +29,7 @@ require (
 
 // replace github.com/keys-pub/keysd/db => ../db
 
-// replace github.com/keys-pub/keysd/fido2 => ../fido2
+replace github.com/keys-pub/keysd/fido2 => ../fido2
 // replace github.com/keys-pub/go-libfido2 => ../../go-libfido2
 
 // replace github.com/keys-pub/keysd/http/api => ../http/api

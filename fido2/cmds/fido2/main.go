@@ -1,49 +1,37 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
 	"log"
 	"os"
-	"time"
 
 	"github.com/keys-pub/keysd/fido2"
-	"github.com/keys-pub/keysd/fido2/cmds"
-	"github.com/sirupsen/logrus"
-	"github.com/urfave/cli"
 )
 
 func main() {
-	app := cli.NewApp()
-	app.Name = "fido2"
-	app.Version = "1.4.0"
-	app.Usage = "Manage FIDO2 devices"
-
-	app.Flags = []cli.Flag{}
-
-	logger := logrus.StandardLogger()
-	formatter := &logrus.TextFormatter{
-		FullTimestamp:   true,
-		TimestampFormat: time.RFC3339Nano,
-	}
-	logger.SetFormatter(formatter)
-
-	server := fido2.NewAuthenticatorsServer()
-
-	cliCmds := []cli.Command{
-		cmds.Devices(server),
-		cmds.DeviceInfo(server),
-		cmds.MakeCredential(server),
-	}
-	// sort.Slice(cliCmds, func(i, j int) bool {
-	// 	return cliCmds[i].Name < cliCmds[j].Name
-	// })
-
-	app.Commands = cliCmds
-
-	app.Before = func(c *cli.Context) error {
-		return nil
+	if len(os.Args) < 2 {
+		log.Fatal("specify fido2 library")
 	}
 
-	if err := app.Run(os.Args); err != nil {
+	server, err := fido2.OpenPlugin(os.Args[1])
+	if err != nil {
 		log.Fatal(err)
 	}
+
+	req := &fido2.DevicesRequest{}
+	resp, err := server.Devices(context.TODO(), req)
+	if err != nil {
+		log.Fatal(err)
+	}
+	printResponse(resp)
+}
+
+func printResponse(i interface{}) {
+	b, err := json.MarshalIndent(i, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(b))
 }

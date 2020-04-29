@@ -1,14 +1,15 @@
-package fido2
+package libfido2
 
 import (
 	"github.com/keys-pub/go-libfido2"
+	"github.com/keys-pub/keysd/fido2"
 	"github.com/pkg/errors"
 )
 
-func devicesToRPC(ins []*libfido2.DeviceLocation) []*Device {
-	outs := make([]*Device, 0, len(ins))
+func devicesToRPC(ins []*libfido2.DeviceLocation) []*fido2.Device {
+	outs := make([]*fido2.Device, 0, len(ins))
 	for _, in := range ins {
-		outs = append(outs, &Device{
+		outs = append(outs, &fido2.Device{
 			Path:         in.Path,
 			ProductID:    int32(in.ProductID),
 			VendorID:     int32(in.VendorID),
@@ -19,8 +20,8 @@ func devicesToRPC(ins []*libfido2.DeviceLocation) []*Device {
 	return outs
 }
 
-func deviceInfoToRPC(in *libfido2.DeviceInfo) *DeviceInfo {
-	return &DeviceInfo{
+func deviceInfoToRPC(in *libfido2.DeviceInfo) *fido2.DeviceInfo {
+	return &fido2.DeviceInfo{
 		Versions:   in.Versions,
 		Extensions: in.Extensions,
 		AAGUID:     in.AAGUID,
@@ -28,10 +29,10 @@ func deviceInfoToRPC(in *libfido2.DeviceInfo) *DeviceInfo {
 	}
 }
 
-func optionsToRPC(ins []libfido2.Option) []*Option {
-	outs := make([]*Option, 0, len(ins))
+func optionsToRPC(ins []libfido2.Option) []*fido2.Option {
+	outs := make([]*fido2.Option, 0, len(ins))
 	for _, in := range ins {
-		outs = append(outs, &Option{
+		outs = append(outs, &fido2.Option{
 			Name:  in.Name,
 			Value: optionValueToRPC(in.Value),
 		})
@@ -39,14 +40,14 @@ func optionsToRPC(ins []libfido2.Option) []*Option {
 	return outs
 }
 
-func rpFromRPC(rp *RelyingParty) libfido2.RelyingParty {
+func rpFromRPC(rp *fido2.RelyingParty) libfido2.RelyingParty {
 	return libfido2.RelyingParty{
 		ID:   rp.ID,
 		Name: rp.Name,
 	}
 }
 
-func userFromRPC(user *User) libfido2.User {
+func userFromRPC(user *fido2.User) libfido2.User {
 	return libfido2.User{
 		ID:          user.ID,
 		Name:        user.Name,
@@ -55,8 +56,8 @@ func userFromRPC(user *User) libfido2.User {
 	}
 }
 
-func userToRPC(user libfido2.User) *User {
-	return &User{
+func userToRPC(user libfido2.User) *fido2.User {
+	return &fido2.User{
 		ID:          user.ID,
 		Name:        user.Name,
 		DisplayName: user.DisplayName,
@@ -66,11 +67,11 @@ func userToRPC(user libfido2.User) *User {
 
 func credTypeFromRPC(typ string) (libfido2.CredentialType, error) {
 	switch typ {
-	case "es256":
+	case "es256", "ES256":
 		return libfido2.ES256, nil
-	case "eddsa":
+	case "eddsa", "EDDSA":
 		return libfido2.EDDSA, nil
-	case "rs256":
+	case "rs256", "RS256":
 		return libfido2.RS256, nil
 	default:
 		return 0, errors.Errorf("unknown credential type %v", typ)
@@ -137,8 +138,8 @@ func extensionFromRPC(s string) (libfido2.Extension, error) {
 	}
 }
 
-func attestationToRPC(in *libfido2.Attestation) *Attestation {
-	return &Attestation{
+func attestationToRPC(in *libfido2.Attestation) *fido2.Attestation {
+	return &fido2.Attestation{
 		ClientDataHash: in.ClientDataHash,
 		AuthData:       in.AuthData,
 		CredID:         in.CredID,
@@ -150,47 +151,48 @@ func attestationToRPC(in *libfido2.Attestation) *Attestation {
 	}
 }
 
-func assertionToRPC(in *libfido2.Assertion) *Assertion {
-	return &Assertion{
+func assertionToRPC(in *libfido2.Assertion) *fido2.Assertion {
+	return &fido2.Assertion{
 		AuthData:   in.AuthData,
 		Sig:        in.Sig,
 		HMACSecret: in.HMACSecret,
 	}
 }
 
-func credentialsInfoToRPC(in *libfido2.CredentialsInfo) *CredentialsInfo {
-	return &CredentialsInfo{
+func credentialsInfoToRPC(in *libfido2.CredentialsInfo) *fido2.CredentialsInfo {
+	return &fido2.CredentialsInfo{
 		RKExisting:  int32(in.RKExisting),
 		RKRemaining: int32(in.RKRemaining),
 	}
 }
 
-func credentialsToRPC(ins []*libfido2.Credential) []*Credential {
-	outs := make([]*Credential, 0, len(ins))
+func credentialsToRPC(rp *fido2.RelyingParty, ins []*libfido2.Credential) []*fido2.Credential {
+	outs := make([]*fido2.Credential, 0, len(ins))
 	for _, in := range ins {
-		outs = append(outs, credentialToRPC(in))
+		outs = append(outs, credentialToRPC(rp, in))
 	}
 	return outs
 }
 
-func credentialToRPC(in *libfido2.Credential) *Credential {
-	return &Credential{
+func credentialToRPC(rp *fido2.RelyingParty, in *libfido2.Credential) *fido2.Credential {
+	return &fido2.Credential{
 		ID:   in.ID,
 		Type: credTypeToRPC(in.Type),
+		RP:   rp,
 		User: userToRPC(in.User),
 	}
 }
 
-func relyingPartiesToRPC(ins []*libfido2.RelyingParty) []*RelyingParty {
-	outs := make([]*RelyingParty, 0, len(ins))
+func relyingPartiesToRPC(ins []*libfido2.RelyingParty) []*fido2.RelyingParty {
+	outs := make([]*fido2.RelyingParty, 0, len(ins))
 	for _, in := range ins {
 		outs = append(outs, relyingPartyToRPC(in))
 	}
 	return outs
 }
 
-func relyingPartyToRPC(in *libfido2.RelyingParty) *RelyingParty {
-	return &RelyingParty{
+func relyingPartyToRPC(in *libfido2.RelyingParty) *fido2.RelyingParty {
+	return &fido2.RelyingParty{
 		ID:   in.ID,
 		Name: in.Name,
 	}
