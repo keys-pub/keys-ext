@@ -136,11 +136,11 @@ func userCommands(client *Client) []cli.Command {
 						case "github":
 							instructions = "Create a new gist on your Github account, and paste the signed message there."
 							link = "https://gist.github.com/new"
-							urlq = "What's the location (URL) on twitter.com where the signed message tweet was saved?"
+							urlq = "What's the location (URL) on github.com where the signed message was saved?"
 						case "twitter":
 							instructions = "Save the following signed message as a tweet on your Twitter account."
 							link = "https://twitter.com/intent/tweet"
-							urlq = "What's the location (URL) on github.com where the signed message was saved?"
+							urlq = "What's the location (URL) on twitter.com where the signed message tweet was saved?"
 						}
 						fmt.Println("")
 						fmt.Println(instructions)
