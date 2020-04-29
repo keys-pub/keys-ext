@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
+	"path/filepath"
 	"runtime"
 	"runtime/debug"
 	"strconv"
@@ -21,6 +22,7 @@ import (
 	"github.com/keys-pub/keys/saltpack"
 	"github.com/keys-pub/keys/util"
 	"github.com/keys-pub/keysd/db"
+	"github.com/keys-pub/keysd/fido2"
 	"github.com/keys-pub/keysd/http/client"
 	"github.com/keys-pub/keysd/wormhole"
 	"github.com/keys-pub/keysd/wormhole/sctp"
@@ -30,26 +32,15 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/reflection"
 )
 
-type protoService struct {
-	*service
-}
-
-func newProtoService(cfg *Config, build Build, auth *auth) (*protoService, error) {
+func newProtoService(cfg *Config, build Build, auth *auth) (*service, error) {
 	req := util.NewHTTPRequestor()
 	srv, err := newService(cfg, build, auth, req, time.Now)
 	if err != nil {
 		return nil, err
 	}
-	p := &protoService{srv}
-	return p, nil
-}
-
-func (s *protoService) Register(grpcServer *grpc.Server) {
-	RegisterKeysServer(grpcServer, s)
-	// fido2.RegisterAuthenticatorsServer(grpcServer, fido2.NewAuthenticatorsServer())
+	return srv, nil
 }
 
 func setupLogging(cfg *Config, logPath string) (Logger, LogInterceptor) {
@@ -221,12 +212,24 @@ func NewServiceFn(cfg *Config, build Build, lgi LogInterceptor) (ServeFn, CloseF
 	)
 	grpcServer := grpc.NewServer(opts...)
 
-	service, serviceErr := newProtoService(cfg, build, auth)
-	if serviceErr != nil {
-		return nil, nil, serviceErr
+	service, err := newProtoService(cfg, build, auth)
+	if err != nil {
+		return nil, nil, err
 	}
-	service.Register(grpcServer)
-	reflection.Register(grpcServer)
+
+	// Keys service
+	logger.Infof("Registering Keys service...")
+	RegisterKeysServer(grpcServer, service)
+
+	// FIDO2 service
+	server, err := fido2.OpenPlugin(filepath.Join(exeDir(), "fido2.so"))
+	if err != nil {
+		logger.Errorf("fido2 plugin is not available: %v", err)
+	} else {
+		logger.Infof("Registering FIDO2 plugin...")
+		fido2.RegisterAuthenticatorsServer(grpcServer, server)
+		service.fido2 = true
+	}
 
 	logger.Infof("Listening for connections on port %d", cfg.Port())
 	lis, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", cfg.Port()))

@@ -34,6 +34,8 @@ type service struct {
 	open    bool
 	openMtx sync.Mutex
 
+	fido2 bool
+
 	watchLast *ds.WatchEvent
 	watchLn   ds.WatchLn
 	watchWg   *sync.WaitGroup

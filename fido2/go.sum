@@ -43,7 +43,12 @@ github.com/keys-pub/go-libfido2 v0.0.0-20200427035032-3e225c0ecafc h1:KVD8kw82lU
 github.com/keys-pub/go-libfido2 v0.0.0-20200427035032-3e225c0ecafc/go.mod h1:fTqaHBgT+hk2QptbKZ2KpGtzDXbLLKntOW/hUD0iXR8=
 github.com/keys-pub/go-libfido2 v0.0.0-20200427215944-18592ad89b9d h1:xDOACYC0W9SHJO1cxQSQLjh2i9idG1Bph4AoY4XQUwE=
 github.com/keys-pub/go-libfido2 v0.0.0-20200427215944-18592ad89b9d/go.mod h1:P0V19qHwJNY0htZwZDe9Ilvs/nokGhdFX7faKFyZ6+U=
+github.com/keys-pub/go-libfido2 v0.0.0-20200428181912-53b2470527d1 h1:nc1WncWfTKmTQNFNhqvL0fVItI6HE/hut/rrQIvUw1k=
+github.com/keys-pub/go-libfido2 v0.0.0-20200428181912-53b2470527d1/go.mod h1:P0V19qHwJNY0htZwZDe9Ilvs/nokGhdFX7faKFyZ6+U=
+github.com/keys-pub/go-libfido2 v0.0.0-20200429024018-c64b2b4e5b1c h1:/WBxgTXH5hm0LA1CICHmpmh1jr7ZNWT8J0Ki3orNU4Y=
+github.com/keys-pub/go-libfido2 v0.0.0-20200429024018-c64b2b4e5b1c/go.mod h1:P0V19qHwJNY0htZwZDe9Ilvs/nokGhdFX7faKFyZ6+U=
 github.com/keys-pub/keysd v0.0.36 h1:LJ4icoup2ihQg9gSGCxtoYKem5jzPigf9VB777fuFTc=
+github.com/keys-pub/keysd v0.0.37 h1:Qx3Dhav0FMpJZGmSCbTcqHFMP6/q37arpdYBzbgseyA=
 github.com/kisielk/errcheck v1.2.0/go.mod h1:/BMXB+zMLi60iA8Vv6Ksmxu/1UDYcXs4uQLJ+jE2L00=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=

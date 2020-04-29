@@ -1,4 +1,4 @@
-package fido2_test
+package libfido2_test
 
 import (
 	context "context"
@@ -7,12 +7,13 @@ import (
 	"testing"
 
 	"github.com/keys-pub/keysd/fido2"
+	"github.com/keys-pub/keysd/fido2/libfido2"
 	"github.com/stretchr/testify/require"
 )
 
 func TestInfo(t *testing.T) {
 	ctx := context.TODO()
-	server := fido2.NewAuthenticatorsServer()
+	server := libfido2.NewAuthenticatorsServer()
 
 	resp, err := server.Devices(ctx, &fido2.DevicesRequest{})
 	require.NoError(t, err)
@@ -34,7 +35,7 @@ func ExampleAuthenticatorsServer_SetPIN() {
 	}
 
 	ctx := context.TODO()
-	server := fido2.NewAuthenticatorsServer()
+	server := libfido2.NewAuthenticatorsServer()
 
 	resp, err := server.Devices(ctx, &fido2.DevicesRequest{})
 	if err != nil {
