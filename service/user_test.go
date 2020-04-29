@@ -153,6 +153,52 @@ func TestUserAdd(t *testing.T) {
 	require.EqualError(t, err, fmt.Sprintf("not found %s", randID))
 }
 
+func TestUserAddReddit(t *testing.T) {
+	env := newTestEnv(t)
+	service, closeFn := newTestService(t, env, "")
+	defer closeFn()
+	testAuthSetup(t, service)
+
+	testImportKey(t, service, bob)
+
+	resp, err := service.UserSign(context.TODO(), &UserSignRequest{
+		KID:     bob.ID().String(),
+		Service: "reddit",
+		Name:    "bob",
+	})
+	require.NoError(t, err)
+
+	url := fmt.Sprintf("https://reddit.com/r/keyspubmsgs/comments/123/bob")
+	rmsg := mockRedditMessage("bob", resp.Message, "keyspubmsgs")
+	env.req.SetResponse(url+".json", []byte(rmsg))
+
+	// Bob, with funky URL input
+	_, err = service.UserAdd(context.TODO(), &UserAddRequest{
+		KID:     bob.ID().String(),
+		Service: "reddit",
+		Name:    "bob",
+		URL:     "https://old.reddit.com/r/keyspubmsgs/comments/123/bob/?testing=1",
+	})
+	require.NoError(t, err)
+
+	// "Bob" sign
+	resp, err = service.UserSign(context.TODO(), &UserSignRequest{
+		KID:     bob.ID().String(),
+		Service: "reddit",
+		Name:    "Bob",
+	})
+	require.EqualError(t, err, "user name should be lowercase")
+
+	// "Bob" add
+	_, err = service.UserAdd(context.TODO(), &UserAddRequest{
+		KID:     bob.ID().String(),
+		Service: "reddit",
+		Name:    "Bob",
+		URL:     "https://old.reddit.com/r/keyspubmsgs/comments/123/bob",
+	})
+	require.EqualError(t, err, "failed to create user: user name should be lowercase")
+}
+
 func TestSearchUsers(t *testing.T) {
 	env := newTestEnv(t)
 	service, closeFn := newTestService(t, env, "")

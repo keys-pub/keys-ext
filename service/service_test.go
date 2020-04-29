@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -157,6 +158,57 @@ func userSetupGithub(env *testEnv, service *service, key *keys.EdX25519Key, user
 func testUserSetupGithub(t *testing.T, env *testEnv, service *service, key *keys.EdX25519Key, username string) {
 	err := userSetupGithub(env, service, key, username)
 	require.NoError(t, err)
+}
+
+func userSetupReddit(env *testEnv, service *service, key *keys.EdX25519Key, username string) error {
+	resp, err := service.UserSign(context.TODO(), &UserSignRequest{
+		KID:     key.ID().String(),
+		Service: "reddit",
+		Name:    username,
+	})
+	if err != nil {
+		return err
+	}
+
+	url := fmt.Sprintf("https://reddit.com/r/keyspubmsgs/comments/123/%s", username)
+	rmsg := mockRedditMessage(username, resp.Message, "keyspubmsgs")
+	env.req.SetResponse(url+".json", []byte(rmsg))
+
+	_, err = service.UserAdd(context.TODO(), &UserAddRequest{
+		KID:     key.ID().String(),
+		Service: "reddit",
+		Name:    username,
+		URL:     url,
+	})
+	return err
+}
+
+func testUserSetupReddit(t *testing.T, env *testEnv, service *service, key *keys.EdX25519Key, username string) {
+	err := userSetupReddit(env, service, key, username)
+	require.NoError(t, err)
+}
+
+func mockRedditMessage(author string, msg string, subreddit string) string {
+	msg = strings.ReplaceAll(msg, "\n", " ")
+	return `[{   
+		"kind": "Listing",
+		"data": {
+			"children": [
+				{
+					"kind": "t3",
+					"data": {
+						"author": "` + author + `",
+						"selftext": "` + msg + `",
+						"subreddit": "` + subreddit + `"
+					}
+				}
+			]
+		}
+    }]`
+}
+
+func mockRedditURL(url string) string {
+	return url + ".json"
 }
 
 // func testRemoveKey(t *testing.T, service *service, key *keys.EdX25519Key) {
