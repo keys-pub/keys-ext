@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -15,7 +14,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Config ...
+// Config for app runtime.
+// Do not store anything sensitive in here, values are saved clear and can be
+// modified at will.
+// Config is not authenticated, use Settings instead.
 type Config struct {
 	appName string
 	values  map[string]string
@@ -26,6 +28,8 @@ const serverKey = "server"
 const portKey = "port"
 const logLevelKey = "logLevel"
 const keyringTypeKey = "keyring"
+
+// TODO: Deprecate keyring type? Use fs fallback if no system keyring available automatically.
 
 var configKeys = []string{serverKey, portKey, logLevelKey, keyringTypeKey}
 
@@ -298,22 +302,6 @@ func (c *Config) SetInt(key string, n int) {
 // Set value.
 func (c *Config) Set(key string, value string) {
 	c.values[key] = value
-}
-
-// Config (RPC) ...
-func (s *service) Config(ctx context.Context, req *ConfigRequest) (*ConfigResponse, error) {
-	return &ConfigResponse{
-		Config: s.cfg.values,
-	}, nil
-}
-
-// ConfigSet (RPC) ...
-func (s *service) ConfigSet(ctx context.Context, req *ConfigSetRequest) (*ConfigSetResponse, error) {
-	s.cfg.Set(req.Key, req.Value)
-	if err := s.cfg.Save(); err != nil {
-		return nil, err
-	}
-	return &ConfigSetResponse{}, nil
 }
 
 func truthy(s string) (bool, error) {
