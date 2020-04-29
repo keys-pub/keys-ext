@@ -32,9 +32,7 @@ echoerr "Building $bin from $pkg ($version $commit $date)"
 
 # Codesign
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    code_sign_identity="Developer ID Application: Gabriel Handford (U2622K69A6)"
-    echoerr "Signing: $code_sign_identity"
-    echoerr $(codesign --verbose --sign "$code_sign_identity" "$tmpdir/$bin" 2>&1)
+    sh codesign.sh "$tmpdir/$bin"
 else
     echoerr "No codesign for OSTYPE=$OSTYPE"
 fi
