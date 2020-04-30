@@ -19,8 +19,8 @@ builds:
         - ../scripts/codesign.sh {{ .Path }}
         - ../scripts/plugin.sh {{ dir .Path }} {{ .Version }} {{ .Date }} {{ .Path }}
   - id: keysd
-    binary: keysd
     main: ./keysd/main.go
+    binary: keysd
     env:
       - CGO_ENABLED=1
     goos:
@@ -32,6 +32,18 @@ builds:
     ignore:
       - goos: darwin
         goarch: 386
+    hooks:
+      post: ../scripts/codesign.sh {{ .Path }}
+  - id: fido2
+    main: ./fido2/plugin.go
+    binary: fido2.so
+    flags: -buildmode=plugin
+    env:
+      - CGO_ENABLED=1
+    goos:
+      - darwin
+    goarch:
+      - amd64
     hooks:
       post: ../scripts/codesign.sh {{ .Path }}
 archives:

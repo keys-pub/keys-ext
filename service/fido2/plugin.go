@@ -6,3 +6,6 @@ import (
 
 // AuthenticatorsServer exported for plugin.
 var AuthenticatorsServer = libfido2.Server{}
+
+// This is a plugin, so main isn't necessary, but we need it for goreleaser.
+func main() {}
