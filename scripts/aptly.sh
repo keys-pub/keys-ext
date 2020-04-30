@@ -22,7 +22,7 @@ echo "Version: $ver"
 
 # Sync from remote to local
 echo "Syncing remote apt repo..."
-if [ -d "$HOME/.aptly" ]; then 
+if [ -d "$HOME/.aptly/public/pool" ]; then 
   rm -rf /tmp/pool
   mv $HOME/.aptly/public/pool /tmp
   rm -rf $HOME/.aptly
