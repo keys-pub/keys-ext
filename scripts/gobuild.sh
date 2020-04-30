@@ -14,6 +14,7 @@ dest=${DEST:-"$HOME/go/bin"}
 debug=${DEBUG:-"0"}
 version=${VERSION:-"0.0.0-dev"}
 date=${DATE:-""}
+build_flags=${BUILD_FLAGS:-""}
 
 echoerr() { 
     if [ "$debug" = "1" ]; then
@@ -28,7 +29,7 @@ echo "Go version: `go version`"
 
 # Build
 echoerr "Building $bin from $pkg ($version $commit $date)"
-(cd "$pkg" && go build -ldflags "-X main.version=$version -X main.commit=$commit -X main.date=$date" . && mv $bin "$tmpdir")
+(cd "$pkg" && go build $build_flags -ldflags "-X main.version=$version -X main.commit=$commit -X main.date=$date" . && mv $bin "$tmpdir")
 
 # Codesign
 if [[ "$OSTYPE" == "darwin"* ]]; then

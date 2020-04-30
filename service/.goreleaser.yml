@@ -15,7 +15,9 @@ builds:
       - goos: darwin
         goarch: 386
     hooks:
-      post: ../scripts/codesign.sh dist/keys_darwin_amd64/keys
+      post:
+        - ../scripts/codesign.sh {{ .Path }}
+        - ../scripts/plugin.sh {{ dir .Path }} {{ .Version }} {{ .Date }} {{ .Path }}
   - id: keysd
     binary: keysd
     main: ./keysd/main.go
@@ -31,7 +33,7 @@ builds:
       - goos: darwin
         goarch: 386
     hooks:
-      post: ../scripts/codesign.sh dist/keysd_darwin_amd64/keysd
+      post: ../scripts/codesign.sh {{ .Path }}
 archives:
   - replacements:
       386: i386
