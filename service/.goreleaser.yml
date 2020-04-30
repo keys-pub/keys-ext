@@ -17,7 +17,6 @@ builds:
     hooks:
       post:
         - ../scripts/codesign.sh {{ .Path }}
-        - ../scripts/plugin.sh {{ dir .Path }} {{ .Version }} {{ .Date }} {{ .Path }}
   - id: keysd
     main: ./keysd/main.go
     binary: keysd
