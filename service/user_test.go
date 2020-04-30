@@ -187,7 +187,7 @@ func TestUserAddReddit(t *testing.T) {
 		Service: "reddit",
 		Name:    "Bob",
 	})
-	require.EqualError(t, err, "user name should be lowercase")
+	require.EqualError(t, err, "name should be lowercase")
 
 	// "Bob" add
 	_, err = service.UserAdd(context.TODO(), &UserAddRequest{
@@ -196,7 +196,7 @@ func TestUserAddReddit(t *testing.T) {
 		Name:    "Bob",
 		URL:     "https://old.reddit.com/r/keyspubmsgs/comments/123/bob",
 	})
-	require.EqualError(t, err, "failed to create user: user name should be lowercase")
+	require.EqualError(t, err, "failed to create user: name should be lowercase")
 }
 
 func TestSearchUsers(t *testing.T) {

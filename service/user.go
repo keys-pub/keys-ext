@@ -120,7 +120,7 @@ func (s *service) UserSign(ctx context.Context, req *UserSignRequest) (*UserSign
 // UserAdd (RPC) adds a signed user statement to the sigchain.
 func (s *service) UserAdd(ctx context.Context, req *UserAddRequest) (*UserAddResponse, error) {
 	if req.Name == "" {
-		return nil, errors.Errorf("no username specified")
+		return nil, errors.Errorf("no name specified")
 	}
 	if req.Service == "" {
 		return nil, errors.Errorf("no service specified")
