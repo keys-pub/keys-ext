@@ -41,8 +41,14 @@ func ExampleAuthenticatorsServer_SetPIN() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	if len(resp.Devices) < 1 {
+		log.Fatal("No devices")
+	}
+	if len(resp.Devices) != 1 {
+		log.Fatal("Too many devices")
+	}
 	path := resp.Devices[0].Path
+
 	_, err = server.SetPIN(ctx, &fido2.SetPINRequest{
 		Device: path,
 		PIN:    "123456",
@@ -51,4 +57,42 @@ func ExampleAuthenticatorsServer_SetPIN() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// Output:
+	//
+}
+
+func ExampleAuthenticatorsServer_Credentials() {
+	if os.Getenv("FIDO2_EXAMPLES") != "1" {
+		return
+	}
+
+	ctx := context.TODO()
+	server := libfido2.NewAuthenticatorsServer()
+
+	dresp, err := server.Devices(ctx, &fido2.DevicesRequest{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	if len(dresp.Devices) < 1 {
+		log.Fatal("No devices")
+	}
+	if len(dresp.Devices) != 1 {
+		log.Fatal("Too many devices")
+	}
+	path := dresp.Devices[0].Path
+
+	cresp, err := server.Credentials(ctx, &fido2.CredentialsRequest{
+		Device: path,
+		PIN:    "12345",
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, cred := range cresp.Credentials {
+		log.Printf("%+v\n", cred)
+	}
+
+	// Output:
+	//
 }

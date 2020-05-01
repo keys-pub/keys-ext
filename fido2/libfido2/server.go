@@ -6,6 +6,9 @@ import (
 
 	"github.com/keys-pub/go-libfido2"
 	"github.com/keys-pub/keysd/fido2"
+	"github.com/pkg/errors"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // Server ...
@@ -190,6 +193,10 @@ func (s *Server) CredentialsInfo(ctx context.Context, req *fido2.CredentialsInfo
 	}
 	defer device.Close()
 
+	if req.PIN == "" {
+		return nil, status.Error(codes.InvalidArgument, "pin required")
+	}
+
 	info, err := device.CredentialsInfo(req.PIN)
 	if err != nil {
 		return nil, err
@@ -208,11 +215,21 @@ func (s *Server) Credentials(ctx context.Context, req *fido2.CredentialsRequest)
 	}
 	defer device.Close()
 
+	if req.PIN == "" {
+		return nil, status.Error(codes.InvalidArgument, "pin required")
+	}
+
 	out := []*fido2.Credential{}
 	if req.RPID == "" {
 		rps, err := device.RelyingParties(req.PIN)
 		if err != nil {
-			return nil, err
+			if errors.Cause(err) == libfido2.ErrPinInvalid {
+				return nil, status.Error(codes.InvalidArgument, "pin invalid")
+			}
+			// TODO: Bug in libfido2 or SoloKey where if there are no credentials returns ErrRXNotCBOR.
+			if errors.Cause(err) != libfido2.ErrRXNotCBOR {
+				return nil, err
+			}
 		}
 		for _, rp := range rps {
 			credentials, err := device.Credentials(rp.ID, req.PIN)
@@ -242,6 +259,10 @@ func (s *Server) RelyingParties(ctx context.Context, req *fido2.RelyingPartiesRe
 		return nil, err
 	}
 	defer device.Close()
+
+	if req.PIN == "" {
+		return nil, status.Error(codes.InvalidArgument, "pin required")
+	}
 
 	rps, err := device.RelyingParties(req.PIN)
 	if err != nil {
