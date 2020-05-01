@@ -30,15 +30,56 @@ func fido2Commands(client *Client) []cli.Command {
 					},
 				},
 				cli.Command{
-					Name:      "device-info",
-					Usage:     "Device info",
-					Flags:     []cli.Flag{},
-					ArgsUsage: "<device path>",
+					Name:  "device-info",
+					Usage: "Device info",
+					Flags: []cli.Flag{
+						cli.StringFlag{Name: "device, d", Usage: "Device"},
+					},
 					Action: func(c *cli.Context) error {
 						req := fido2.DeviceInfoRequest{
-							Device: c.Args().First(),
+							Device: c.String("device"),
 						}
 						resp, err := client.FIDO2Client().DeviceInfo(context.TODO(), &req)
+						if err != nil {
+							return err
+						}
+						printResponse(resp)
+						return nil
+					},
+				},
+				cli.Command{
+					Name:  "credentials-info",
+					Usage: "Credentials info",
+					Flags: []cli.Flag{
+						cli.StringFlag{Name: "device, d", Usage: "Device"},
+						cli.StringFlag{Name: "pin", Usage: "PIN"},
+					},
+					Action: func(c *cli.Context) error {
+						req := fido2.CredentialsInfoRequest{
+							Device: c.String("device"),
+							PIN:    c.String("pin"),
+						}
+						resp, err := client.FIDO2Client().CredentialsInfo(context.TODO(), &req)
+						if err != nil {
+							return err
+						}
+						printResponse(resp)
+						return nil
+					},
+				},
+				cli.Command{
+					Name:  "credentials",
+					Usage: "Credentials",
+					Flags: []cli.Flag{
+						cli.StringFlag{Name: "device, d", Usage: "Device"},
+						cli.StringFlag{Name: "pin", Usage: "PIN"},
+					},
+					Action: func(c *cli.Context) error {
+						req := fido2.CredentialsRequest{
+							Device: c.String("device"),
+							PIN:    c.String("pin"),
+						}
+						resp, err := client.FIDO2Client().Credentials(context.TODO(), &req)
 						if err != nil {
 							return err
 						}
