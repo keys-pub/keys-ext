@@ -341,7 +341,7 @@ func clientFatal(err error) {
 	case codes.Unavailable:
 		fmt.Fprintf(os.Stderr, "Service is unavailable, run `keys start`.\n")
 	case codes.PermissionDenied:
-		fmt.Fprintf(os.Stderr, "Permission denied, run `keys auth`.\n")
+		fmt.Fprintf(os.Stderr, "Permission denied.\n")
 	case codes.Unauthenticated:
 		fmt.Fprintf(os.Stderr, "Authorization required, run `keys auth`.\n")
 	case codes.Unknown:

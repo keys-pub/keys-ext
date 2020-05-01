@@ -85,7 +85,7 @@ func (a *auth) unlock(password string, client string) (string, keyring.Auth, err
 	auth, err := a.verifyPassword(password)
 	if err != nil {
 		if err == keyring.ErrInvalidAuth {
-			return "", nil, status.Error(codes.PermissionDenied, "invalid password")
+			return "", nil, status.Error(codes.Unauthenticated, "invalid password")
 		}
 		return "", nil, errors.Wrapf(err, "failed to unlock")
 	}
@@ -126,7 +126,7 @@ func (a *auth) authorize(ctx context.Context, method string) error {
 	if md, ok := metadata.FromIncomingContext(ctx); ok {
 		if len(md["authorization"]) == 0 {
 			logger.Warningf("Auth token missing from request")
-			return status.Error(codes.PermissionDenied, "authorization missing")
+			return status.Error(codes.Unauthenticated, "authorization missing")
 		}
 		token := md["authorization"][0]
 		for _, t := range a.tokens {
@@ -136,9 +136,9 @@ func (a *auth) authorize(ctx context.Context, method string) error {
 		}
 
 		logger.Infof("Invalid auth token")
-		return status.Error(codes.PermissionDenied, "invalid token")
+		return status.Error(codes.Unauthenticated, "invalid token")
 	}
-	return status.Error(codes.PermissionDenied, "no authorization in context")
+	return status.Error(codes.Unauthenticated, "no authorization in context")
 }
 
 type clientAuth struct {

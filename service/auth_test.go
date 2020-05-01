@@ -42,7 +42,7 @@ func TestAuth(t *testing.T) {
 
 	// Unlock with invalid password
 	_, _, err = auth.unlock("invalidpassword", "test")
-	require.EqualError(t, err, "rpc error: code = PermissionDenied desc = invalid password")
+	require.EqualError(t, err, "rpc error: code = Unauthenticated desc = invalid password")
 	require.Empty(t, auth.tokens)
 	require.Empty(t, auth.tokens)
 }
@@ -58,19 +58,19 @@ func TestAuthorize(t *testing.T) {
 
 	ctx := metadata.NewIncomingContext(context.TODO(), metadata.MD{})
 	err = auth.authorize(ctx, "/service.Keys/SomeMethod")
-	require.EqualError(t, err, "rpc error: code = PermissionDenied desc = authorization missing")
+	require.EqualError(t, err, "rpc error: code = Unauthenticated desc = authorization missing")
 
 	ctx2 := metadata.NewIncomingContext(context.TODO(), metadata.MD{
 		"authorization": []string{""},
 	})
 	err = auth.authorize(ctx2, "/service.Keys/SomeMethod")
-	require.EqualError(t, err, "rpc error: code = PermissionDenied desc = invalid token")
+	require.EqualError(t, err, "rpc error: code = Unauthenticated desc = invalid token")
 
 	ctx3 := metadata.NewIncomingContext(context.TODO(), metadata.MD{
 		"authorization": []string{"badtoken"},
 	})
 	err = auth.authorize(ctx3, "/service.Keys/SomeMethod")
-	require.EqualError(t, err, "rpc error: code = PermissionDenied desc = invalid token")
+	require.EqualError(t, err, "rpc error: code = Unauthenticated desc = invalid token")
 
 	// Unlock
 	token, _, err := auth.unlock("password123", "test")
@@ -88,7 +88,7 @@ func TestAuthorize(t *testing.T) {
 		"authorization": []string{"badtoken"},
 	})
 	err = auth.authorize(ctx5, "/service.Keys/SomeMethod")
-	require.EqualError(t, err, "rpc error: code = PermissionDenied desc = invalid token")
+	require.EqualError(t, err, "rpc error: code = Unauthenticated desc = invalid token")
 }
 
 func TestGenerateToken(t *testing.T) {
