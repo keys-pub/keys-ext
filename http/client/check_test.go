@@ -12,7 +12,7 @@ import (
 func TestCheck(t *testing.T) {
 	env := testEnv(t, logger)
 	defer env.closeFn()
-	ks := keys.NewMemKeyStore()
+	ks := keys.NewMemStore()
 	client := testClient(t, env, ks)
 
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
