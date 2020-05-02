@@ -89,6 +89,9 @@ github.com/keys-pub/keys v0.0.0-20200413004324-63e8a0774692 h1:S/I38MPrpBCZqvJbo
 github.com/keys-pub/keys v0.0.0-20200413004324-63e8a0774692/go.mod h1:LWDVrixSjx446s2aLIcJ6ML5ir4vX3kJ3mVvJYXI/Xc=
 github.com/keys-pub/keys v0.0.0-20200414165426-6b7f7009114b h1:k+BaDSxJSjl1xYe25SMQNvNo7/knETHmB5/Kw80nxJw=
 github.com/keys-pub/keys v0.0.0-20200414165426-6b7f7009114b/go.mod h1:K0JoWRBSAgH50/fJpI+6yPgYTj2TCOncJhSVixAa0Xo=
+github.com/keys-pub/keys v0.0.0-20200430211548-6fb40415e189/go.mod h1:K0JoWRBSAgH50/fJpI+6yPgYTj2TCOncJhSVixAa0Xo=
+github.com/keys-pub/keys v0.0.0-20200502224822-2d9344445248 h1:e/wNA99rE02V/jNI7KLNyPO68M/sCjW/gFEeABLu+H8=
+github.com/keys-pub/keys v0.0.0-20200502224822-2d9344445248/go.mod h1:K0JoWRBSAgH50/fJpI+6yPgYTj2TCOncJhSVixAa0Xo=
 github.com/keys-pub/keysd/firestore v0.0.0-20200402001553-a48dd08bde65/go.mod h1:MkLooStrWRpUVXL3YXo3Exd5Zo5bMPXL94didRG38c4=
 github.com/keys-pub/keysd/firestore v0.0.0-20200402183018-a85eceb453b1/go.mod h1:eVgRwkC+HcgKTBv7JWenVZIVdSqPiwxAFyMgHAzH2Zs=
 github.com/keys-pub/keysd/firestore v0.0.0-20200413003414-34e8a825f8fd/go.mod h1:9veij84OYGkGSNE7oI6FasAsDuFMm0wtjDoaQ//doIg=
@@ -115,6 +118,8 @@ github.com/keys-pub/keysd/http/server v0.0.0-20200413003542-7dbbe8346758 h1:ql4v
 github.com/keys-pub/keysd/http/server v0.0.0-20200413003542-7dbbe8346758/go.mod h1:jnsGsKrHisxp9Fd8mPCvOD5yxzdPdIBf3/gRyWtINk4=
 github.com/keys-pub/keysd/http/server v0.0.0-20200414170216-f05db9c1b454 h1:d/C6LEHJ5Kmm22meQ0fcH4bBdMm25Z0i84hXHqs7KHk=
 github.com/keys-pub/keysd/http/server v0.0.0-20200414170216-f05db9c1b454/go.mod h1:iIC4vDGA1Bkn62wOelLmKWmZb48LFeqHoyvWJdOwaAY=
+github.com/keys-pub/keysd/http/server v0.0.0-20200501185525-9bcc9dde28dd h1:LEhxESt26O0IMwv7JBuEpRS+qMGLWQdrOl86WCSbnks=
+github.com/keys-pub/keysd/http/server v0.0.0-20200501185525-9bcc9dde28dd/go.mod h1:WYt1z49s3Mztkndo36YAN4n6WBSAX4LD+gr5g9RAMic=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/kr/pretty v0.1.0 h1:L/CwN0zerZDmRFUapSPitk6f+Q3+0za1rQkzVuMiMFI=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=

@@ -17,13 +17,13 @@ func TestInvite(t *testing.T) {
 	env := testEnv(t, logger)
 	defer env.closeFn()
 
-	ksa := keys.NewMemKeyStore()
+	ksa := keys.NewMemStore()
 	aliceClient := testClient(t, env, ksa)
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	err := ksa.SaveEdX25519Key(alice)
 	require.NoError(t, err)
 
-	ksb := keys.NewMemKeyStore()
+	ksb := keys.NewMemStore()
 	bobClient := testClient(t, env, ksb)
 	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
 	err = ksb.SaveEdX25519Key(bob)
