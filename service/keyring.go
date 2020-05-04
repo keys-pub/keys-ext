@@ -9,8 +9,10 @@ func newKeyringStore(cfg *Config) (keyring.Store, error) {
 	kt := cfg.Get(keyringTypeKey, "")
 	switch kt {
 	case "":
-		logger.Infof("Keyring (system)")
-		return keyring.System(), nil
+		logger.Infof("Keyring (default)")
+		kr := keyring.SystemOrFS()
+		logger.Infof("Keyring, using %s", kr.Name())
+		return kr, nil
 	case "fs":
 		logger.Infof("Keyring (fs)")
 		dir, err := cfg.AppPath("keyring", false)
