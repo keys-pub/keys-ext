@@ -20,7 +20,7 @@ func (s *service) Key(ctx context.Context, req *KeyRequest) (*KeyResponse, error
 			return nil, err
 		}
 	} else {
-		if err := s.checkForKeyUpdate(ctx, kid, true); err != nil {
+		if err := s.checkForKeyUpdate(ctx, kid, false); err != nil {
 			return nil, err
 		}
 	}
