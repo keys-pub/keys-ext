@@ -98,13 +98,16 @@ func Uninstall(cfg *Config) error {
 }
 
 func startFromApp(cfg *Config) error {
-	if !cfg.GetBool("disableSymlinkCheck") {
+	// TODO: Check/fix symlink if busted
+	if cfg.GetInt("disableSymlinkCheck", 0) < 2 {
 		if err := installSymlink(); err != nil {
 			logger.Warningf("Failed to install symlink: %s", err)
-		}
-		cfg.Set("disableSymlinkCheck", "1")
-		if err := cfg.Save(); err != nil {
-			return err
+		} else {
+			// Only install once
+			cfg.Set("disableSymlinkCheck", "2")
+			if err := cfg.Save(); err != nil {
+				return err
+			}
 		}
 	}
 	return restart(cfg)
@@ -113,17 +116,22 @@ func startFromApp(cfg *Config) error {
 func installSymlink() error {
 	logger.Infof("Install symlink")
 	if runtime.GOOS == "windows" {
-		return errors.Errorf("failed to install symlink: not implemented on windows")
+		return errors.Errorf("not implemented on windows")
 	}
 
 	binPath := defaultBinPath()
+
+	if strings.HasPrefix(binPath, "/Volumes/") {
+		return errors.Errorf("currently running from Volumes")
+	}
+
 	linkDir := "/usr/local/bin"
 	linkPath := filepath.Join(linkDir, "keys")
 
 	logger.Infof("Checking if %s exists", linkDir)
 	// Check if /usr/local/bin directory exists
 	if _, err := os.Stat(linkDir); os.IsNotExist(err) {
-		return errors.Errorf("failed to install symlink: %s does not exist", linkDir)
+		return errors.Errorf("%s does not exist", linkDir)
 	}
 
 	logger.Infof("Checking if %s exists", linkPath)
