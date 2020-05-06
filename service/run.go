@@ -55,12 +55,12 @@ func logFatal(err error) {
 func resetKeyringAndExit(cfg *Config) {
 	st, err := newKeyringStore(cfg)
 	if err != nil {
-		logFatal(errors.Wrapf(err, "failed to new keyring"))
+		logFatal(errors.Wrapf(err, "failed to init keyring store"))
 	}
 	service := keyringService(cfg)
-	kr, err := keyring.NewKeyring(service, st)
+	kr, err := keyring.New(service, st)
 	if err != nil {
-		logFatal(errors.Wrapf(err, "failed to new keyring"))
+		logFatal(errors.Wrapf(err, "failed to init keyring"))
 	}
 	if err := kr.Reset(); err != nil {
 		logFatal(errors.Wrapf(err, "failed to reset keyring"))

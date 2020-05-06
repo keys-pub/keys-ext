@@ -22,7 +22,7 @@ import (
 type auth struct {
 	sync.Mutex
 	cfg       *Config
-	keyring   keyring.Keyring
+	keyring   *keyring.Keyring
 	tokens    map[string]string
 	whitelist *ds.StringSet
 }
@@ -42,7 +42,7 @@ func newAuth(cfg *Config, st keyring.Store) (*auth, error) {
 	)
 
 	service := keyringService(cfg)
-	kr, err := keyring.NewKeyring(service, st)
+	kr, err := keyring.New(service, st)
 	if err != nil {
 		return nil, err
 	}
