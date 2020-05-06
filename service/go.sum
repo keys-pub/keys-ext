@@ -211,6 +211,8 @@ github.com/keys-pub/keysd/http/client v0.0.0-20200429183701-a83c57ae1abb h1:uZ3f
 github.com/keys-pub/keysd/http/client v0.0.0-20200429183701-a83c57ae1abb/go.mod h1:/X+24BdKFlfktGjQ9HgI0D+o1gnCcq6ukRAMPY4Nrnw=
 github.com/keys-pub/keysd/http/client v0.0.0-20200502225525-6683ec058775 h1:AcBnWfYsjf65Rw885CU1bliTQeoZCf9SLtnuZou2FTk=
 github.com/keys-pub/keysd/http/client v0.0.0-20200502225525-6683ec058775/go.mod h1:ceOBBWb2QFX4Z7k2BC5UB0GlJraASw77u3pSRHKasfw=
+github.com/keys-pub/keysd/http/client v0.0.0-20200506190359-b596a494cecb h1:jpFb0L66Ant0ZghJg+I8GjmTTJx2AiyEPvZsB+XSJHY=
+github.com/keys-pub/keysd/http/client v0.0.0-20200506190359-b596a494cecb/go.mod h1:nM/EEH0pGfju+LjZVU3Ehc3qEzUnoe+/qGIUyjA4sa0=
 github.com/keys-pub/keysd/http/server v0.0.0-20200413003542-7dbbe8346758 h1:ql4vv4jOX1F79GPpOlouMbFD0onkxrsfjBqBY9SKOpQ=
 github.com/keys-pub/keysd/http/server v0.0.0-20200413003542-7dbbe8346758/go.mod h1:jnsGsKrHisxp9Fd8mPCvOD5yxzdPdIBf3/gRyWtINk4=
 github.com/keys-pub/keysd/http/server v0.0.0-20200414170216-f05db9c1b454 h1:d/C6LEHJ5Kmm22meQ0fcH4bBdMm25Z0i84hXHqs7KHk=
@@ -227,6 +229,8 @@ github.com/keys-pub/keysd/wormhole v0.0.0-20200413004603-509fcacd8791 h1:34N4nyz
 github.com/keys-pub/keysd/wormhole v0.0.0-20200413004603-509fcacd8791/go.mod h1:t8EJcfpXQ0UAZAFOAKWsyrMvDJl+5b+HVjLMwJv4UEI=
 github.com/keys-pub/keysd/wormhole v0.0.0-20200502225752-4b0d1411f8c8 h1:wcqwb/U2iIevw+hH4tJsnnosQ2zCareXh1Kn1SmTGes=
 github.com/keys-pub/keysd/wormhole v0.0.0-20200502225752-4b0d1411f8c8/go.mod h1:+/csBsphCAozLvwSTPbih2nWiaYkSLpO6lAkPBFbB8c=
+github.com/keys-pub/keysd/wormhole v0.0.0-20200506190521-fcf6680d0bf4 h1:I4SBqODX4ToBelbr6JeBdnFFbQ4058r9WDkxdZLNlZA=
+github.com/keys-pub/keysd/wormhole v0.0.0-20200506190521-fcf6680d0bf4/go.mod h1:4h2dQiwtbkQKvV7Lyde8OhYEFkkeHBEnHpTBQfWrcNY=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=
 github.com/kisielk/errcheck v1.2.0/go.mod h1:/BMXB+zMLi60iA8Vv6Ksmxu/1UDYcXs4uQLJ+jE2L00=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
