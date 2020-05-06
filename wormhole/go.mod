@@ -7,7 +7,7 @@ require (
 	github.com/keybase/saltpack v0.0.0-20200228190633-d75baa96bffb // indirect
 	github.com/keys-pub/keys v0.0.0-20200506185058-697fd4757490
 	github.com/keys-pub/keysd/http/api v0.0.0-20200414165929-c63be6975df3
-	github.com/keys-pub/keysd/http/client v0.0.0-20200502225525-6683ec058775
+	github.com/keys-pub/keysd/http/client v0.0.0-20200506190359-b596a494cecb
 	github.com/keys-pub/keysd/http/server v0.0.0-20200502225525-6683ec058775
 	github.com/labstack/echo/v4 v4.1.16 // indirect
 	github.com/pion/logging v0.2.2

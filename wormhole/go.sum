@@ -141,6 +141,8 @@ github.com/keys-pub/keysd/http/client v0.0.0-20200414170516-1e0e72775735 h1:l2LE
 github.com/keys-pub/keysd/http/client v0.0.0-20200414170516-1e0e72775735/go.mod h1:/X+24BdKFlfktGjQ9HgI0D+o1gnCcq6ukRAMPY4Nrnw=
 github.com/keys-pub/keysd/http/client v0.0.0-20200502225525-6683ec058775 h1:AcBnWfYsjf65Rw885CU1bliTQeoZCf9SLtnuZou2FTk=
 github.com/keys-pub/keysd/http/client v0.0.0-20200502225525-6683ec058775/go.mod h1:ceOBBWb2QFX4Z7k2BC5UB0GlJraASw77u3pSRHKasfw=
+github.com/keys-pub/keysd/http/client v0.0.0-20200506190359-b596a494cecb h1:jpFb0L66Ant0ZghJg+I8GjmTTJx2AiyEPvZsB+XSJHY=
+github.com/keys-pub/keysd/http/client v0.0.0-20200506190359-b596a494cecb/go.mod h1:nM/EEH0pGfju+LjZVU3Ehc3qEzUnoe+/qGIUyjA4sa0=
 github.com/keys-pub/keysd/http/server v0.0.0-20200326173537-f15ed1afc333 h1:22/6C1TQV04GR2tqhVkbGFbiie1wtyKjkN+gOuHcgk8=
 github.com/keys-pub/keysd/http/server v0.0.0-20200326173537-f15ed1afc333/go.mod h1:ohk4jItPx6eCF51jttjy9LxhOBdP8u6ewwD2kK3Lnts=
 github.com/keys-pub/keysd/http/server v0.0.0-20200330224338-ac67d476f58e h1:lEijT1ubQk1WVeaTuxqAXFbAidhsN1MGvbLc+6NEMnA=
