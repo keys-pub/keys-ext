@@ -46,7 +46,8 @@ aptly repo add keys-release .
 aptly snapshot create keys-${ver} from repo keys-release
 # aptly publish switch -gpg-key=B1A671AD current keys-${ver}
 echo "Publish snapshot"
-aptly publish snapshot -distribution=current -gpg-key=B1A671AD keys-${ver}
+aptly publish snapshot -distribution=current -gpg-key=B1A671AD -gpg-provider=gpg2 keys-${ver}
 
 echo "Publishing to remote..."
-gsutil -m rsync -r $HOME/.aptly/public gs://aptly.keys.pub 
+gsutil -m rsync -r $HOME/.aptly/public gs://aptly.keys.pub
+
