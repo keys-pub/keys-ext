@@ -5,7 +5,7 @@ go 1.13
 require (
 	github.com/keybase/go-keychain v0.0.0-20200325143049-65d7292bc904 // indirect
 	github.com/keybase/saltpack v0.0.0-20200228190633-d75baa96bffb // indirect
-	github.com/keys-pub/keys v0.0.0-20200502224822-2d9344445248
+	github.com/keys-pub/keys v0.0.0-20200506185058-697fd4757490
 	github.com/keys-pub/keysd/http/api v0.0.0-20200414165929-c63be6975df3
 	github.com/keys-pub/keysd/http/client v0.0.0-20200502225525-6683ec058775
 	github.com/keys-pub/keysd/http/server v0.0.0-20200502225525-6683ec058775
