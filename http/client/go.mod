@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	github.com/gorilla/websocket v1.4.2
-	github.com/keys-pub/keys v0.0.0-20200502224822-2d9344445248
+	github.com/keys-pub/keys v0.0.0-20200506185058-697fd4757490
 	github.com/keys-pub/keysd/http/api v0.0.0-20200414165929-c63be6975df3
 	github.com/keys-pub/keysd/http/server v0.0.0-20200501185525-9bcc9dde28dd
 	github.com/labstack/echo v3.3.10+incompatible // indirect

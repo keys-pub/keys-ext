@@ -17,13 +17,13 @@ func TestDisco(t *testing.T) {
 	env := testEnv(t, logger)
 	defer env.closeFn()
 
-	ksa := keys.NewMemStore()
+	ksa := keys.NewMemStore(true)
 	aliceClient := testClient(t, env, ksa)
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	err := ksa.SaveEdX25519Key(alice)
 	require.NoError(t, err)
 
-	ksb := keys.NewMemStore()
+	ksb := keys.NewMemStore(true)
 	bobClient := testClient(t, env, ksb)
 	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
 	err = ksb.SaveEdX25519Key(bob)
