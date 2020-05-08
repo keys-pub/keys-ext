@@ -151,6 +151,48 @@ func TestUserAdd(t *testing.T) {
 		URL:     "https://gist.github.com/bob/1",
 	})
 	require.EqualError(t, err, fmt.Sprintf("not found %s", randID))
+
+	// Invalid scheme
+	_, err = service.UserAdd(ctx, &UserAddRequest{
+		KID:     alice.String(),
+		Service: "github",
+		Name:    "bob",
+		URL:     "file://gist.github.com/alice/1",
+	})
+	require.EqualError(t, err, "failed to create user: invalid scheme for url file://gist.github.com/alice/1")
+}
+
+func TestUserAddGithub(t *testing.T) {
+	env := newTestEnv(t)
+	service, closeFn := newTestService(t, env, "")
+	defer closeFn()
+	testAuthSetup(t, service)
+
+	testImportKey(t, service, bob)
+
+	resp, err := service.UserSign(context.TODO(), &UserSignRequest{
+		KID:     bob.ID().String(),
+		Service: "github",
+		Name:    "bob",
+	})
+	require.NoError(t, err)
+
+	url := fmt.Sprintf("https://gist.github.com/bob/1")
+	env.req.SetResponse(url, []byte(resp.Message))
+
+	// Bob
+	addResp, err := service.UserAdd(context.TODO(), &UserAddRequest{
+		KID:     bob.ID().String(),
+		Service: "github",
+		Name:    "Bob",
+		URL:     "https://gist.github.com/Bob/1",
+	})
+	require.NoError(t, err)
+
+	require.NotEmpty(t, addResp)
+	require.NotEmpty(t, addResp.User)
+	require.Equal(t, "bob", addResp.User.Name)
+	require.Equal(t, "https://gist.github.com/bob/1", addResp.User.URL)
 }
 
 func TestUserAddReddit(t *testing.T) {

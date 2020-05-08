@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/link"
 	"github.com/keys-pub/keys/user"
 	"github.com/keys-pub/keysd/http/api"
 	"github.com/pkg/errors"
@@ -144,13 +145,23 @@ func (s *service) UserAdd(ctx context.Context, req *UserAddRequest) (*UserAddRes
 	}, nil
 }
 
-func (s *service) sigchainUserAdd(ctx context.Context, key *keys.EdX25519Key, service, name, url string, localOnly bool) (*user.Result, *keys.Statement, error) {
+func (s *service) sigchainUserAdd(ctx context.Context, key *keys.EdX25519Key, service, name, urs string, localOnly bool) (*user.Result, *keys.Statement, error) {
 	sc, err := s.scs.Sigchain(key.ID())
 	if err != nil {
 		return nil, nil, err
 	}
 
-	usr, err := user.NewUser(s.users, key.ID(), service, name, url, sc.LastSeq()+1)
+	linkService, err := link.NewService(service)
+	if err != nil {
+		return nil, nil, err
+	}
+	name = linkService.NormalizeName(name)
+	urs, err = linkService.NormalizeURLString(name, urs)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	usr, err := user.New(s.users, key.ID(), service, name, urs, sc.LastSeq()+1)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to create user")
 	}
