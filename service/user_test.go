@@ -229,7 +229,14 @@ func TestUserAddReddit(t *testing.T) {
 		Service: "reddit",
 		Name:    "Bob",
 	})
-	require.EqualError(t, err, "name should be lowercase")
+	require.NoError(t, err)
+
+	// Revoke
+	_, err = service.StatementRevoke(context.TODO(), &StatementRevokeRequest{
+		Seq: 1,
+		KID: bob.ID().String(),
+	})
+	require.NoError(t, err)
 
 	// "Bob" add
 	_, err = service.UserAdd(context.TODO(), &UserAddRequest{
@@ -238,7 +245,7 @@ func TestUserAddReddit(t *testing.T) {
 		Name:    "Bob",
 		URL:     "https://old.reddit.com/r/keyspubmsgs/comments/123/bob",
 	})
-	require.EqualError(t, err, "failed to create user: name should be lowercase")
+	require.NoError(t, err)
 }
 
 func TestSearchUsers(t *testing.T) {
