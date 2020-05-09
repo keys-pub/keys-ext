@@ -19,7 +19,9 @@ import (
 	ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/keyring"
+	"github.com/keys-pub/keys/link"
 	"github.com/keys-pub/keys/saltpack"
+	"github.com/keys-pub/keys/user"
 	"github.com/keys-pub/keys/util"
 	"github.com/keys-pub/keysd/db"
 	"github.com/keys-pub/keysd/fido2"
@@ -115,6 +117,9 @@ func Run(build Build) {
 	lg, lgi := setupLogging(cfg, *logPath)
 	SetLogger(lg)
 	keys.SetLogger(lg)
+	user.SetLogger(lg)
+	util.SetLogger(lg)
+	link.SetLogger(lg)
 	saltpack.SetLogger(lg)
 	keyring.SetLogger(lg)
 	client.SetLogger(lg)
