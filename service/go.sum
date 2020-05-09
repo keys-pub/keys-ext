@@ -182,11 +182,15 @@ github.com/keys-pub/keys v0.0.0-20200509193022-4a98a649ad0c h1:jYNviRHSQh3zRLoiO
 github.com/keys-pub/keys v0.0.0-20200509193022-4a98a649ad0c/go.mod h1:K0JoWRBSAgH50/fJpI+6yPgYTj2TCOncJhSVixAa0Xo=
 github.com/keys-pub/keys v0.0.0-20200509193531-490441be9a52 h1:OIdd8UAFNwzfFRyUGEehPmkkPaRm4ztiN3UzZ9awp8M=
 github.com/keys-pub/keys v0.0.0-20200509193531-490441be9a52/go.mod h1:K0JoWRBSAgH50/fJpI+6yPgYTj2TCOncJhSVixAa0Xo=
+github.com/keys-pub/keys v0.0.0-20200509205851-32b5901065e1 h1:aDLAnrXlp6MuMY+cSfPmoOB6CIYJb5d8mCXN3Wk0dy4=
+github.com/keys-pub/keys v0.0.0-20200509205851-32b5901065e1/go.mod h1:K0JoWRBSAgH50/fJpI+6yPgYTj2TCOncJhSVixAa0Xo=
 github.com/keys-pub/keysd v0.0.36 h1:LJ4icoup2ihQg9gSGCxtoYKem5jzPigf9VB777fuFTc=
 github.com/keys-pub/keysd v0.0.37-0.20200426184731-707482381542 h1:vKMSbOUlwy38UkH3u27LFwgh4c6McA0RJkh3bKBOjlw=
 github.com/keys-pub/keysd v0.0.37 h1:Qx3Dhav0FMpJZGmSCbTcqHFMP6/q37arpdYBzbgseyA=
 github.com/keys-pub/keysd/db v0.0.0-20200413003215-f85e85366c95 h1:5QzUKnwvuLpei8sBfFjcPZQKJSoIhYzg/yZxVqbvxlE=
 github.com/keys-pub/keysd/db v0.0.0-20200413003215-f85e85366c95/go.mod h1:zbe7XU3mVmOrFy+aQWU7+Z9Vy03ctb65Vlr3055AZ5c=
+github.com/keys-pub/keysd/db v0.0.0-20200509211014-112763c9a62a h1:9VfsTWKP/LESHShjrfP2gOjxasm1ozNzXQBPUB6zncI=
+github.com/keys-pub/keysd/db v0.0.0-20200509211014-112763c9a62a/go.mod h1:S0Umz2X227gIi6TdAsZnvVmxS6vIEa8wsM+gMpE2cB0=
 github.com/keys-pub/keysd/fido2 v0.0.0-20200424173049-a8841c3805aa h1:wz/2Gnsq64zxQAJp9R0KOsD2Q2CUcr0x9j0aYIS7lMA=
 github.com/keys-pub/keysd/fido2 v0.0.0-20200424173049-a8841c3805aa/go.mod h1:MJF3AZyVhMkw03fwLTej0TlYQTv9uldoH4usFKrMOrI=
 github.com/keys-pub/keysd/fido2 v0.0.0-20200424180941-933e211184d6 h1:IGwCR0d/GCmRDHyTLijFbiMFVWNrVZ8XA3PIbVFuXLw=

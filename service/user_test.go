@@ -210,7 +210,7 @@ func TestUserAddReddit(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	url := fmt.Sprintf("https://reddit.com/r/keyspubmsgs/comments/123/bob")
+	url := fmt.Sprintf("https://www.reddit.com/r/keyspubmsgs/comments/123/bob")
 	rmsg := mockRedditMessage("bob", resp.Message, "keyspubmsgs")
 	env.req.SetResponse(url+".json", []byte(rmsg))
 
