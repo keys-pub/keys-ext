@@ -171,7 +171,7 @@ func (s *service) sigchainUserAdd(ctx context.Context, key *keys.EdX25519Key, se
 		return nil, nil, errors.Wrapf(err, "failed to check user")
 	}
 	if userResult.Status != user.StatusOK {
-		return nil, nil, errors.Errorf("failed to check user: %s", userResult.Err)
+		return nil, nil, errors.Errorf("user check failed: %s", userResult.Err)
 	}
 
 	st, err := user.NewUserSigchainStatement(sc, usr, key, s.Now())
