@@ -294,7 +294,7 @@ func (d *DB) Documents(ctx context.Context, parent string, opts *ds.DocumentsOpt
 		return nil, errors.Errorf("list root not supported")
 	}
 
-	logger.Debugf("Iterator prefix %s", prefix)
+	// logger.Debugf("Iterator prefix %s", prefix)
 	// TODO: Handle context Done()
 	iter := d.sdb.NewIterator(prefix)
 	return &docsIterator{

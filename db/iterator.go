@@ -18,7 +18,7 @@ func (i *docsIterator) Next() (*ds.Document, error) {
 		// Remember that the contents of the returned slice should not be modified, and
 		// only valid until the next call to Next.
 		path := string(i.iter.Key())
-		logger.Debugf("Document iterator path %s", path)
+		// logger.Debugf("Document iterator path %s", path)
 		i.count++
 		if i.index > i.count-1 {
 			continue
@@ -48,7 +48,7 @@ func (i *colsIterator) Next() (*ds.Collection, error) {
 		// only valid until the next call to Next.
 		path := string(i.iter.Key())
 
-		logger.Debugf("Collection iterator path %s", path)
+		// logger.Debugf("Collection iterator path %s", path)
 		return &ds.Collection{Path: ds.Path(path[1:])}, nil
 	}
 	if err := i.iter.Error(); err != nil {
