@@ -18,6 +18,7 @@ func ExampleClient_Sigchain() {
 		log.Fatal(err)
 	}
 
+	// Get the keys.Sigchain.
 	kid := keys.ID("kex1ydecaulsg5qty2axyy770cjdvqn3ef2qa85xw87p09ydlvs5lurq53x0p3")
 	resp, err := cl.Sigchain(context.TODO(), kid)
 	if err != nil {
@@ -27,21 +28,22 @@ func ExampleClient_Sigchain() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	fmt.Printf("%s", sc.Spew())
 
+	// Find the user.User in the keys.Sigchain.
 	usr, err := user.FindInSigchain(sc)
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	fmt.Printf("%+v\n", usr)
 
+	// Request the User URL and verify it.
 	result := user.RequestVerify(context.TODO(), util.NewHTTPRequestor(), usr, time.Now())
 	if result.Status != user.StatusOK {
 		log.Fatalf("User check failed: %+v", result)
 	}
 
+	// Check result status.
 	fmt.Printf("%s\n", result.Status)
 
 	// Output:
