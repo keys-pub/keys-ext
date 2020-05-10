@@ -166,10 +166,7 @@ func (s *service) sigchainUserAdd(ctx context.Context, key *keys.EdX25519Key, se
 		return nil, nil, errors.Wrap(err, "failed to create user")
 	}
 
-	userResult, err := s.users.Check(ctx, usr, key.ID())
-	if err != nil {
-		return nil, nil, errors.Wrapf(err, "failed to check user")
-	}
+	userResult := s.users.RequestVerify(ctx, usr)
 	if userResult.Status != user.StatusOK {
 		return nil, nil, errors.Errorf("user check failed: %s", userResult.Err)
 	}

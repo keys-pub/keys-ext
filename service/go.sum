@@ -184,6 +184,8 @@ github.com/keys-pub/keys v0.0.0-20200509193531-490441be9a52 h1:OIdd8UAFNwzfFRyUG
 github.com/keys-pub/keys v0.0.0-20200509193531-490441be9a52/go.mod h1:K0JoWRBSAgH50/fJpI+6yPgYTj2TCOncJhSVixAa0Xo=
 github.com/keys-pub/keys v0.0.0-20200509205851-32b5901065e1 h1:aDLAnrXlp6MuMY+cSfPmoOB6CIYJb5d8mCXN3Wk0dy4=
 github.com/keys-pub/keys v0.0.0-20200509205851-32b5901065e1/go.mod h1:K0JoWRBSAgH50/fJpI+6yPgYTj2TCOncJhSVixAa0Xo=
+github.com/keys-pub/keys v0.0.0-20200510160216-ad7bde5b0492 h1:0hQkPzIUTLR89kLbnPiKmO5xg8mPvQSJFp9Hc/5Jqew=
+github.com/keys-pub/keys v0.0.0-20200510160216-ad7bde5b0492/go.mod h1:K0JoWRBSAgH50/fJpI+6yPgYTj2TCOncJhSVixAa0Xo=
 github.com/keys-pub/keysd v0.0.36 h1:LJ4icoup2ihQg9gSGCxtoYKem5jzPigf9VB777fuFTc=
 github.com/keys-pub/keysd v0.0.37-0.20200426184731-707482381542 h1:vKMSbOUlwy38UkH3u27LFwgh4c6McA0RJkh3bKBOjlw=
 github.com/keys-pub/keysd v0.0.37 h1:Qx3Dhav0FMpJZGmSCbTcqHFMP6/q37arpdYBzbgseyA=
@@ -225,6 +227,8 @@ github.com/keys-pub/keysd/http/client v0.0.0-20200502225525-6683ec058775 h1:AcBn
 github.com/keys-pub/keysd/http/client v0.0.0-20200502225525-6683ec058775/go.mod h1:ceOBBWb2QFX4Z7k2BC5UB0GlJraASw77u3pSRHKasfw=
 github.com/keys-pub/keysd/http/client v0.0.0-20200506190359-b596a494cecb h1:jpFb0L66Ant0ZghJg+I8GjmTTJx2AiyEPvZsB+XSJHY=
 github.com/keys-pub/keysd/http/client v0.0.0-20200506190359-b596a494cecb/go.mod h1:nM/EEH0pGfju+LjZVU3Ehc3qEzUnoe+/qGIUyjA4sa0=
+github.com/keys-pub/keysd/http/client v0.0.0-20200510163101-274758b3bf6f h1:eiz5m/LzqL/kQWaSbuffnCfuP6MIcOjR+2WMPSqtPNk=
+github.com/keys-pub/keysd/http/client v0.0.0-20200510163101-274758b3bf6f/go.mod h1:mQSp0RRS2nZD7bvrQK+uVCaAyiVNBFerltdf0z2v/So=
 github.com/keys-pub/keysd/http/server v0.0.0-20200413003542-7dbbe8346758 h1:ql4vv4jOX1F79GPpOlouMbFD0onkxrsfjBqBY9SKOpQ=
 github.com/keys-pub/keysd/http/server v0.0.0-20200413003542-7dbbe8346758/go.mod h1:jnsGsKrHisxp9Fd8mPCvOD5yxzdPdIBf3/gRyWtINk4=
 github.com/keys-pub/keysd/http/server v0.0.0-20200414170216-f05db9c1b454 h1:d/C6LEHJ5Kmm22meQ0fcH4bBdMm25Z0i84hXHqs7KHk=
@@ -243,6 +247,8 @@ github.com/keys-pub/keysd/wormhole v0.0.0-20200502225752-4b0d1411f8c8 h1:wcqwb/U
 github.com/keys-pub/keysd/wormhole v0.0.0-20200502225752-4b0d1411f8c8/go.mod h1:+/csBsphCAozLvwSTPbih2nWiaYkSLpO6lAkPBFbB8c=
 github.com/keys-pub/keysd/wormhole v0.0.0-20200506190521-fcf6680d0bf4 h1:I4SBqODX4ToBelbr6JeBdnFFbQ4058r9WDkxdZLNlZA=
 github.com/keys-pub/keysd/wormhole v0.0.0-20200506190521-fcf6680d0bf4/go.mod h1:4h2dQiwtbkQKvV7Lyde8OhYEFkkeHBEnHpTBQfWrcNY=
+github.com/keys-pub/keysd/wormhole v0.0.0-20200510164227-42e0915ea6db h1:gcZeIyEd54RyrazCegacp/5leZOOpIDaWDPwHhJxQtE=
+github.com/keys-pub/keysd/wormhole v0.0.0-20200510164227-42e0915ea6db/go.mod h1:dtK6eCagsM+tULgc0ur6ewc6JTCjjTKoOJdxCDESYIE=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=
 github.com/kisielk/errcheck v1.2.0/go.mod h1:/BMXB+zMLi60iA8Vv6Ksmxu/1UDYcXs4uQLJ+jE2L00=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
