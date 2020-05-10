@@ -13,9 +13,7 @@ import (
 )
 
 func ExampleClient_Sigchain() {
-	ks := keys.NewMemStore(true)
-
-	cl, err := client.NewClient("https://keys.pub", ks)
+	cl, err := client.NewClient("https://keys.pub", nil)
 	if err != nil {
 		log.Fatal(err)
 	}
