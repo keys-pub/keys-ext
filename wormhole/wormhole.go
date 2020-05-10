@@ -74,7 +74,7 @@ func NewWormhole(server string, ks *keys.Store) (*Wormhole, error) {
 	}
 
 	logger.Infof("New wormhole (%s)", server)
-	hcl, err := httpclient.NewClient(server, ks)
+	hcl, err := httpclient.New(server, ks)
 	if err != nil {
 		return nil, err
 	}

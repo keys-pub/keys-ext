@@ -105,6 +105,8 @@ github.com/keys-pub/keys v0.0.0-20200502224822-2d9344445248 h1:e/wNA99rE02V/jNI7
 github.com/keys-pub/keys v0.0.0-20200502224822-2d9344445248/go.mod h1:K0JoWRBSAgH50/fJpI+6yPgYTj2TCOncJhSVixAa0Xo=
 github.com/keys-pub/keys v0.0.0-20200506185058-697fd4757490 h1:5jP8vQBLoa8kWSl8Bfi0T76oCcG/FfuA1V3B6T9k1eA=
 github.com/keys-pub/keys v0.0.0-20200506185058-697fd4757490/go.mod h1:K0JoWRBSAgH50/fJpI+6yPgYTj2TCOncJhSVixAa0Xo=
+github.com/keys-pub/keys v0.0.0-20200510160216-ad7bde5b0492 h1:0hQkPzIUTLR89kLbnPiKmO5xg8mPvQSJFp9Hc/5Jqew=
+github.com/keys-pub/keys v0.0.0-20200510160216-ad7bde5b0492/go.mod h1:K0JoWRBSAgH50/fJpI+6yPgYTj2TCOncJhSVixAa0Xo=
 github.com/keys-pub/keysd v0.0.25 h1:k3OOmXGq2qUGizSRY2XHSEeD47eZs4FVWRK3sSKvPUU=
 github.com/keys-pub/keysd v0.0.26 h1:DjQlBzNv+SDiphQVxKJeme8m5qLp9FQv99La9eX9PYw=
 github.com/keys-pub/keysd/firestore v0.0.0-20200402001553-a48dd08bde65/go.mod h1:MkLooStrWRpUVXL3YXo3Exd5Zo5bMPXL94didRG38c4=
@@ -143,6 +145,8 @@ github.com/keys-pub/keysd/http/client v0.0.0-20200502225525-6683ec058775 h1:AcBn
 github.com/keys-pub/keysd/http/client v0.0.0-20200502225525-6683ec058775/go.mod h1:ceOBBWb2QFX4Z7k2BC5UB0GlJraASw77u3pSRHKasfw=
 github.com/keys-pub/keysd/http/client v0.0.0-20200506190359-b596a494cecb h1:jpFb0L66Ant0ZghJg+I8GjmTTJx2AiyEPvZsB+XSJHY=
 github.com/keys-pub/keysd/http/client v0.0.0-20200506190359-b596a494cecb/go.mod h1:nM/EEH0pGfju+LjZVU3Ehc3qEzUnoe+/qGIUyjA4sa0=
+github.com/keys-pub/keysd/http/client v0.0.0-20200510163101-274758b3bf6f h1:eiz5m/LzqL/kQWaSbuffnCfuP6MIcOjR+2WMPSqtPNk=
+github.com/keys-pub/keysd/http/client v0.0.0-20200510163101-274758b3bf6f/go.mod h1:mQSp0RRS2nZD7bvrQK+uVCaAyiVNBFerltdf0z2v/So=
 github.com/keys-pub/keysd/http/server v0.0.0-20200326173537-f15ed1afc333 h1:22/6C1TQV04GR2tqhVkbGFbiie1wtyKjkN+gOuHcgk8=
 github.com/keys-pub/keysd/http/server v0.0.0-20200326173537-f15ed1afc333/go.mod h1:ohk4jItPx6eCF51jttjy9LxhOBdP8u6ewwD2kK3Lnts=
 github.com/keys-pub/keysd/http/server v0.0.0-20200330224338-ac67d476f58e h1:lEijT1ubQk1WVeaTuxqAXFbAidhsN1MGvbLc+6NEMnA=

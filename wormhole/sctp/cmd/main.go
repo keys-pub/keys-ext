@@ -141,7 +141,7 @@ func newCmd() (*cmd, error) {
 		return nil, err
 	}
 
-	hcl, err := httpclient.NewClient("https://keys.pub", ks)
+	hcl, err := httpclient.New("https://keys.pub", ks)
 	if err != nil {
 		return nil, err
 	}
