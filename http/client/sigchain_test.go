@@ -52,7 +52,6 @@ func TestSigchain(t *testing.T) {
 	psiErr3 := client.PutSigchainStatement(context.TODO(), st3)
 	require.NoError(t, psiErr3)
 
-	spew, err := sc.Spew()
-	require.NoError(t, err)
-	logger.Infof(spew.String())
+	spew := sc.Spew()
+	t.Logf(spew.String())
 }

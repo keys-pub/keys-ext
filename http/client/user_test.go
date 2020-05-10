@@ -23,7 +23,7 @@ func saveUser(t *testing.T, env *env, client *Client, key *keys.EdX25519Key, nam
 	}
 
 	sc := keys.NewSigchain(key.ID())
-	usr, err := user.NewUser(env.users, key.ID(), service, name, url, sc.LastSeq()+1)
+	usr, err := user.New(env.users, key.ID(), service, name, url, sc.LastSeq()+1)
 	require.NoError(t, err)
 	st, err := user.NewUserSigchainStatement(sc, usr, key, env.clock.Now())
 	require.NoError(t, err)
