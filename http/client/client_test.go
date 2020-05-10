@@ -71,7 +71,7 @@ func testEnv(t *testing.T, logger server.Logger) *env {
 }
 
 func testClient(t *testing.T, env *env, ks *keys.Store) *client.Client {
-	cl, err := client.NewClient(env.httpServer.URL, ks)
+	cl, err := client.New(env.httpServer.URL, ks)
 	require.NoError(t, err)
 	cl.SetHTTPClient(env.httpServer.Client())
 	cl.SetTimeNow(env.clock.Now)

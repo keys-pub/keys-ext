@@ -29,8 +29,8 @@ type Client struct {
 	nowFn      func() time.Time
 }
 
-// NewClient creates a Client for an HTTP API.
-func NewClient(urs string, ks *keys.Store) (*Client, error) {
+// New creates a Client for an HTTP API.
+func New(urs string, ks *keys.Store) (*Client, error) {
 	urp, err := url.Parse(urs)
 	if err != nil {
 		return nil, err

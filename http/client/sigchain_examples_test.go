@@ -13,7 +13,7 @@ import (
 )
 
 func ExampleClient_Sigchain() {
-	cl, err := client.NewClient("https://keys.pub", nil)
+	cl, err := client.New("https://keys.pub", nil)
 	if err != nil {
 		log.Fatal(err)
 	}
