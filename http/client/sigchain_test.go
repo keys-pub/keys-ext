@@ -1,4 +1,4 @@
-package client
+package client_test
 
 import (
 	"bytes"
@@ -10,7 +10,7 @@ import (
 )
 
 func TestSigchain(t *testing.T) {
-	env := testEnv(t, logger)
+	env := testEnv(t, nil)
 	defer env.closeFn()
 
 	ks := keys.NewMemStore(true)

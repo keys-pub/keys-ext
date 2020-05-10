@@ -49,6 +49,11 @@ func (c *Client) SetHTTPClient(httpClient *http.Client) {
 	c.httpClient = httpClient
 }
 
+// Now returns current time.
+func (c *Client) Now() time.Time {
+	return c.nowFn()
+}
+
 // TODO: are these timeouts too agressive?
 func defaultHTTPClient() *http.Client {
 	return &http.Client{

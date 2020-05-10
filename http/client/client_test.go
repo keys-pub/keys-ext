@@ -1,4 +1,4 @@
-package client
+package client_test
 
 import (
 	"net/http/httptest"
@@ -9,6 +9,7 @@ import (
 	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/user"
 	"github.com/keys-pub/keys/util"
+	"github.com/keys-pub/keysd/http/client"
 	"github.com/keys-pub/keysd/http/server"
 	"github.com/stretchr/testify/require"
 )
@@ -44,6 +45,9 @@ type env struct {
 }
 
 func testEnv(t *testing.T, logger server.Logger) *env {
+	if logger == nil {
+		logger = client.NewLogger(client.ErrLevel)
+	}
 	clock := newClock()
 	fi := ds.NewMem()
 	fi.SetTimeNow(clock.Now)
@@ -66,14 +70,12 @@ func testEnv(t *testing.T, logger server.Logger) *env {
 	return &env{clock, httpServer, svr, fi, users, req, func() { httpServer.Close() }}
 }
 
-func testClient(t *testing.T, env *env, ks *keys.Store) *Client {
-	client, err := NewClient(env.httpServer.URL, ks)
+func testClient(t *testing.T, env *env, ks *keys.Store) *client.Client {
+	cl, err := client.NewClient(env.httpServer.URL, ks)
 	require.NoError(t, err)
-	require.NotNil(t, client.nowFn)
-	require.NotNil(t, client.httpClient)
-	client.SetHTTPClient(env.httpServer.Client())
-	client.SetTimeNow(env.clock.Now)
-	return client
+	cl.SetHTTPClient(env.httpServer.Client())
+	cl.SetTimeNow(env.clock.Now)
+	return cl
 }
 
 func testUserStore(t *testing.T, ds ds.DocumentStore, req util.Requestor, clock *clock) *user.Store {

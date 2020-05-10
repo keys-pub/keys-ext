@@ -1,4 +1,4 @@
-package client
+package client_test
 
 import (
 	"bytes"
@@ -9,6 +9,7 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/util"
+	"github.com/keys-pub/keysd/http/client"
 	"github.com/stretchr/testify/require"
 )
 
@@ -17,7 +18,7 @@ func TestMessages(t *testing.T) {
 	// api.SetLogger(NewLogger(DebugLevel))
 	// server.SetContextLogger(NewContextLogger(DebugLevel))
 
-	env := testEnv(t, logger)
+	env := testEnv(t, nil)
 	defer env.closeFn()
 
 	ksa := keys.NewMemStore(true)
@@ -65,7 +66,7 @@ func TestMessages(t *testing.T) {
 	require.NotEmpty(t, resp.ID)
 
 	// Messages #2 (from version)
-	msgs, _, err = aliceClient.Messages(context.TODO(), alice.ID(), bob.ID(), &MessagesOpts{Version: version})
+	msgs, _, err = aliceClient.Messages(context.TODO(), alice.ID(), bob.ID(), &client.MessagesOpts{Version: version})
 	require.NoError(t, err)
 	require.Equal(t, 2, len(msgs))
 	data2, pk2, err = aliceClient.DecryptMessage(alice, msgs[0])
@@ -78,7 +79,7 @@ func TestMessages(t *testing.T) {
 	require.Equal(t, alice.ID(), pk3)
 
 	// Messages (desc)
-	msgs, _, err = aliceClient.Messages(context.TODO(), alice.ID(), bob.ID(), &MessagesOpts{Direction: ds.Descending})
+	msgs, _, err = aliceClient.Messages(context.TODO(), alice.ID(), bob.ID(), &client.MessagesOpts{Direction: ds.Descending})
 	require.NoError(t, err)
 	require.Equal(t, 3, len(msgs))
 	data1, _, err = aliceClient.DecryptMessage(alice, msgs[0])

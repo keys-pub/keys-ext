@@ -1,4 +1,4 @@
-package client
+package client_test
 
 import (
 	"bytes"
@@ -14,7 +14,7 @@ func TestInvite(t *testing.T) {
 	// api.SetLogger(NewLogger(DebugLevel))
 	// server.SetContextLogger(NewContextLogger(DebugLevel))
 
-	env := testEnv(t, logger)
+	env := testEnv(t, nil)
 	defer env.closeFn()
 
 	ksa := keys.NewMemStore(true)

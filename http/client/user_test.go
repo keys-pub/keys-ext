@@ -1,4 +1,4 @@
-package client
+package client_test
 
 import (
 	"bytes"
@@ -8,10 +8,11 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/user"
+	"github.com/keys-pub/keysd/http/client"
 	"github.com/stretchr/testify/require"
 )
 
-func saveUser(t *testing.T, env *env, client *Client, key *keys.EdX25519Key, name string, service string) *keys.Statement {
+func saveUser(t *testing.T, env *env, cl *client.Client, key *keys.EdX25519Key, name string, service string) *keys.Statement {
 	url := ""
 	switch service {
 	case "github":
@@ -32,10 +33,10 @@ func saveUser(t *testing.T, env *env, client *Client, key *keys.EdX25519Key, nam
 	require.NoError(t, err)
 	env.req.SetResponse(url, []byte(msg))
 
-	err = client.PutSigchainStatement(context.TODO(), st)
+	err = cl.PutSigchainStatement(context.TODO(), st)
 	require.NoError(t, err)
 
-	// err = client.Check(key)
+	// err = cl.Check(key)
 	// require.NoError(t, err)
 
 	return st
@@ -44,7 +45,7 @@ func saveUser(t *testing.T, env *env, client *Client, key *keys.EdX25519Key, nam
 func TestUserSearch(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
 	// keys.SetLogger(keys.NewLogger(keys.DebugLevel))
-	env := testEnv(t, logger)
+	env := testEnv(t, nil)
 	defer env.closeFn()
 
 	ks := keys.NewMemStore(true)
@@ -80,7 +81,7 @@ func TestUserSearch(t *testing.T) {
 func TestUser(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
 	// keys.SetLogger(keys.NewLogger(keys.DebugLevel))
-	env := testEnv(t, logger)
+	env := testEnv(t, nil)
 	defer env.closeFn()
 
 	ks := keys.NewMemStore(true)

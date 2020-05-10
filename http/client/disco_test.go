@@ -1,4 +1,4 @@
-package client
+package client_test
 
 import (
 	"bytes"
@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keysd/http/client"
 	"github.com/stretchr/testify/require"
 )
 
@@ -14,7 +15,7 @@ func TestDisco(t *testing.T) {
 	// api.SetLogger(NewLogger(DebugLevel))
 	// logger = NewLogger(DebugLevel)
 
-	env := testEnv(t, logger)
+	env := testEnv(t, nil)
 	defer env.closeFn()
 
 	ksa := keys.NewMemStore(true)
@@ -30,21 +31,21 @@ func TestDisco(t *testing.T) {
 	require.NoError(t, err)
 
 	// Put
-	err = aliceClient.PutDisco(context.TODO(), alice.ID(), bob.ID(), Offer, "hi", time.Minute)
+	err = aliceClient.PutDisco(context.TODO(), alice.ID(), bob.ID(), client.Offer, "hi", time.Minute)
 	require.NoError(t, err)
 
 	// Get
-	out, err := bobClient.GetDisco(context.TODO(), alice.ID(), bob.ID(), Offer)
+	out, err := bobClient.GetDisco(context.TODO(), alice.ID(), bob.ID(), client.Offer)
 	require.NoError(t, err)
 	require.Equal(t, "hi", out)
 
 	// Get (again)
-	out, err = bobClient.GetDisco(context.TODO(), alice.ID(), bob.ID(), Offer)
+	out, err = bobClient.GetDisco(context.TODO(), alice.ID(), bob.ID(), client.Offer)
 	require.NoError(t, err)
 	require.Empty(t, out)
 
 	// Put
-	err = aliceClient.PutDisco(context.TODO(), alice.ID(), bob.ID(), Offer, "hi2", time.Minute)
+	err = aliceClient.PutDisco(context.TODO(), alice.ID(), bob.ID(), client.Offer, "hi2", time.Minute)
 	require.NoError(t, err)
 
 	// Delete
@@ -52,17 +53,17 @@ func TestDisco(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get (deleted)
-	out, err = bobClient.GetDisco(context.TODO(), alice.ID(), bob.ID(), Offer)
+	out, err = bobClient.GetDisco(context.TODO(), alice.ID(), bob.ID(), client.Offer)
 	require.NoError(t, err)
 	require.Empty(t, out)
 
 	// Put
-	err = aliceClient.PutDisco(context.TODO(), alice.ID(), bob.ID(), Offer, "hi3", time.Millisecond)
+	err = aliceClient.PutDisco(context.TODO(), alice.ID(), bob.ID(), client.Offer, "hi3", time.Millisecond)
 	require.NoError(t, err)
 
 	// Get (expired)
 	time.Sleep(time.Millisecond)
-	out, err = bobClient.GetDisco(context.TODO(), alice.ID(), bob.ID(), Offer)
+	out, err = bobClient.GetDisco(context.TODO(), alice.ID(), bob.ID(), client.Offer)
 	require.NoError(t, err)
 	require.Empty(t, out)
 }
