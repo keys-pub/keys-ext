@@ -188,6 +188,10 @@ github.com/keys-pub/keys v0.0.0-20200510160216-ad7bde5b0492 h1:0hQkPzIUTLR89kLbn
 github.com/keys-pub/keys v0.0.0-20200510160216-ad7bde5b0492/go.mod h1:K0JoWRBSAgH50/fJpI+6yPgYTj2TCOncJhSVixAa0Xo=
 github.com/keys-pub/keys v0.0.0-20200511020212-fba8a2bf4023 h1:QySILcPAmhZr/q+r/s2islCtAWafc3iexLyKA98cjGc=
 github.com/keys-pub/keys v0.0.0-20200511020212-fba8a2bf4023/go.mod h1:4PO+deFg6ASenLyqv4bxiJnj7fxVz7HbvVhuFz+MI88=
+github.com/keys-pub/keys v0.0.0-20200511031948-9f244d9c45b4 h1:+6x+/VaavdHPhTqrDKkC9NX7+SqESQv37IDeTfOwXaY=
+github.com/keys-pub/keys v0.0.0-20200511031948-9f244d9c45b4/go.mod h1:4PO+deFg6ASenLyqv4bxiJnj7fxVz7HbvVhuFz+MI88=
+github.com/keys-pub/keys v0.0.0-20200511032151-dbf523670a5e h1:Vox6XUTh6Fmv2SqtTNKOapjnfDTz43hD2D6RrWfLGPY=
+github.com/keys-pub/keys v0.0.0-20200511032151-dbf523670a5e/go.mod h1:4PO+deFg6ASenLyqv4bxiJnj7fxVz7HbvVhuFz+MI88=
 github.com/keys-pub/keysd v0.0.36 h1:LJ4icoup2ihQg9gSGCxtoYKem5jzPigf9VB777fuFTc=
 github.com/keys-pub/keysd v0.0.37-0.20200426184731-707482381542 h1:vKMSbOUlwy38UkH3u27LFwgh4c6McA0RJkh3bKBOjlw=
 github.com/keys-pub/keysd v0.0.37 h1:Qx3Dhav0FMpJZGmSCbTcqHFMP6/q37arpdYBzbgseyA=
