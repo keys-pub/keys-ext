@@ -9,7 +9,11 @@ ts=`date +%s`
 date=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
 ver="0.0.0-dev-$ts"
 
-BUILD_ONLY=1 DEBUG=1 VERSION=$ver DATE=$date ./gobuild.sh keysd "$dir/../service/keysd" "darwin"
-BUILD_ONLY=1 DEBUG=1 VERSION=$ver DATE=$date ./gobuild.sh keys  "$dir/../service/keys" "darwin"
-BUILD_ONLY=1 DEBUG=1 VERSION=$ver DATE=$date BUILD_FLAGS="-buildmode=plugin" ./gobuild.sh fido2.so "$dir/../service/fido2" "darwin"
+os=`go env GOOS`
+
+BUILD_ONLY=1 DEBUG=1 VERSION=$ver DATE=$date ./gobuild.sh keysd "$dir/../service/keysd"
+BUILD_ONLY=1 DEBUG=1 VERSION=$ver DATE=$date ./gobuild.sh keys  "$dir/../service/keys"
+if [ ! "$os" = "windows" ]; then
+    BUILD_ONLY=1 DEBUG=1 VERSION=$ver DATE=$date BUILD_FLAGS="-buildmode=plugin" ./gobuild.sh fido2.so "$dir/../service/fido2"
+fi
 
