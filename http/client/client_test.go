@@ -55,7 +55,7 @@ func testEnv(t *testing.T, logger server.Logger) *env {
 	req := util.NewMockRequestor()
 	users := testUserStore(t, fi, req, clock)
 
-	svr := server.NewServer(fi, ns, users, logger)
+	svr := server.New(fi, ns, users, logger)
 	svr.SetNowFn(clock.Now)
 	tasks := server.NewTestTasks(svr)
 	svr.SetTasks(tasks)
