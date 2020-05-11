@@ -20,6 +20,7 @@ cd keysd
 
 cd service
 goreleaser
+goreleaser --config=.goreleaser.fido2.yml --rm-dist
 
 # Cleanup
 cd $dir
