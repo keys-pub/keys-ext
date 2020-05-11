@@ -19,7 +19,7 @@ import (
 // testDB returns DB for testing.
 // You should defer Close() the result.
 func testDB(t *testing.T) (*DB, func()) {
-	db := NewDB()
+	db := New()
 	db.SetTimeNow(newClock().Now)
 	path := testPath()
 	ctx := context.TODO()
@@ -299,7 +299,7 @@ func testMetadata(t *testing.T, dst ds.DocumentStore) {
 }
 
 func ExampleDB_OpenAtPath() {
-	db := NewDB()
+	db := New()
 	defer db.Close()
 
 	key := keys.Rand32()
@@ -311,7 +311,7 @@ func ExampleDB_OpenAtPath() {
 }
 
 func ExampleDB_Create() {
-	db := NewDB()
+	db := New()
 	defer db.Close()
 
 	key := keys.Rand32()
@@ -327,7 +327,7 @@ func ExampleDB_Create() {
 }
 
 func ExampleDB_Get() {
-	db := NewDB()
+	db := New()
 	defer db.Close()
 
 	key := keys.Rand32()
@@ -353,7 +353,7 @@ func ExampleDB_Get() {
 }
 
 func ExampleDB_Set() {
-	db := NewDB()
+	db := New()
 	defer db.Close()
 
 	key := keys.Rand32()
@@ -379,7 +379,7 @@ func ExampleDB_Set() {
 }
 
 func ExampleDB_Documents() {
-	db := NewDB()
+	db := New()
 	defer db.Close()
 
 	key := keys.Rand32()

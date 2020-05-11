@@ -26,8 +26,8 @@ type DB struct {
 	key SecretKey
 }
 
-// NewDB creates a DB.
-func NewDB() *DB {
+// New creates a DB.
+func New() *DB {
 	return &DB{
 		rwmtx: &sync.RWMutex{},
 		nowFn: time.Now,

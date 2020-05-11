@@ -5,7 +5,7 @@ This package provides a leveldb database encrypted with [github.com/minio/sio](h
 **Only values are encrypted.**
 
 ```go
-db := NewDB()
+db := New()
 defer db.Close()
 
 key := keys.RandKey()
