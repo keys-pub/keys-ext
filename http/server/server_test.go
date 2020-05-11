@@ -61,7 +61,7 @@ type testServer struct {
 
 // func testFirestore(t *testing.T) Fire {
 // 	opts := []option.ClientOption{option.WithCredentialsFile("credentials.json")}
-// 	fs, fsErr := firestore.NewFirestore("firestore://chilltest-3297b", opts...)
+// 	fs, fsErr := firestore.New("firestore://chilltest-3297b", opts...)
 // 	require.NoError(t, fsErr)
 // 	err := fs.Delete(context.TODO(), "/")
 // 	require.NoError(t, err)
@@ -128,7 +128,7 @@ func newEnvWithFire(t *testing.T, fi server.Fire, clock *clock) *env {
 
 func newTestServer(t *testing.T, env *env) *testServer {
 	mc := server.NewMemTestCache(env.clock.Now)
-	svr := server.NewServer(env.fi, mc, env.users, server.NewLogger(env.logLevel))
+	svr := server.New(env.fi, mc, env.users, server.NewLogger(env.logLevel))
 	tasks := server.NewTestTasks(svr)
 	svr.SetTasks(tasks)
 	svr.SetInternalAuth(keys.Rand3262())

@@ -43,8 +43,8 @@ type Fire interface {
 	ds.Changes
 }
 
-// NewServer creates a Server.
-func NewServer(fi Fire, mc MemCache, users *user.Store, logger Logger) *Server {
+// New creates a Server.
+func New(fi Fire, mc MemCache, users *user.Store, logger Logger) *Server {
 	return &Server{
 		fi:     fi,
 		mc:     mc,
