@@ -24,7 +24,6 @@ var _ ds.Changes = &Firestore{}
 type Firestore struct {
 	uri    string
 	client *firestore.Client
-	Test   bool
 }
 
 // New creates a Firestore
@@ -374,41 +373,8 @@ func (f *Firestore) Collections(ctx context.Context, parent string) (ds.Collecti
 	return &colsIterator{iter: iter}, nil
 }
 
-func (f *Firestore) deleteAll(ctx context.Context) error {
-	iter := f.client.Collections(ctx)
-	for {
-		col, err := iter.Next()
-		if err == iterator.Done {
-			break
-		}
-		if err != nil {
-			return err
-		}
-		docIter := col.DocumentRefs(ctx)
-		for {
-			doc, err := docIter.Next()
-			if err == iterator.Done {
-				break
-			}
-			if err != nil {
-				return err
-			}
-			if _, err := doc.Delete(ctx); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
 // Delete ...
 func (f *Firestore) Delete(ctx context.Context, path string) (bool, error) {
-	if f.Test && ds.Path(path) == "/" {
-		if err := f.deleteAll(ctx); err != nil {
-			return false, err
-		}
-		return true, nil
-	}
 	return f.delete(ctx, path)
 }
 

@@ -14,30 +14,32 @@ import (
 
 func TestFirestoreChanges(t *testing.T) {
 	// SetContextLogger(NewContextLogger(DebugLevel))
-	fs := testFirestore(t, true)
+	fs := testFirestore(t)
 	testChanges(t, fs, fs)
 }
 
 func testChanges(t *testing.T, dst ds.DocumentStore, changes ds.Changes) {
 	ctx := context.TODO()
 
+	collection := testCollection()
+	changesCollection := "changes-" + collection
 	paths := []string{}
 	length := 40
 
 	for i := 0; i < length; i++ {
 		id := fmt.Sprintf("%s-%06d", keys.Rand3262(), i)
-		path := ds.Path("test", id)
+		path := ds.Path(collection, id)
 		paths = append(paths, path)
 		err := dst.Create(ctx, path, []byte(fmt.Sprintf("value%d", i)))
 		require.NoError(t, err)
-		err = changes.ChangeAdd(ctx, "test-changes", id, path)
+		err = changes.ChangeAdd(ctx, changesCollection, id, path)
 		require.NoError(t, err)
 	}
 
 	sorted := stringsCopy(paths)
 	sort.Strings(sorted)
 
-	iter, err := dst.Documents(ctx, "test", &ds.DocumentsOpts{Index: 1, Limit: 2})
+	iter, err := dst.Documents(ctx, collection, &ds.DocumentsOpts{Index: 1, Limit: 2})
 	require.NoError(t, err)
 	doc, err := iter.Next()
 	require.NoError(t, err)
@@ -48,7 +50,7 @@ func testChanges(t *testing.T, dst ds.DocumentStore, changes ds.Changes) {
 	iter.Release()
 
 	// Changes (limit=10, asc)
-	recent, ts, err := changes.Changes(ctx, "test-changes", time.Time{}, 10, ds.Ascending)
+	recent, ts, err := changes.Changes(ctx, changesCollection, time.Time{}, 10, ds.Ascending)
 	require.NoError(t, err)
 	require.Equal(t, 10, len(recent))
 	recentPaths := []string{}
@@ -58,7 +60,7 @@ func testChanges(t *testing.T, dst ds.DocumentStore, changes ds.Changes) {
 	require.Equal(t, paths[0:10], recentPaths)
 
 	// Changes (ts, asc)
-	recent, ts, err = changes.Changes(ctx, "test-changes", ts, 10, ds.Ascending)
+	recent, ts, err = changes.Changes(ctx, changesCollection, ts, 10, ds.Ascending)
 	require.NoError(t, err)
 	require.False(t, ts.IsZero())
 	require.Equal(t, 10, len(recent))
@@ -70,7 +72,7 @@ func testChanges(t *testing.T, dst ds.DocumentStore, changes ds.Changes) {
 
 	// Changes (now)
 	now := time.Now()
-	recent, ts, err = changes.Changes(ctx, "test-changes", now, 100, ds.Ascending)
+	recent, ts, err = changes.Changes(ctx, changesCollection, now, 100, ds.Ascending)
 	require.NoError(t, err)
 	require.Equal(t, 0, len(recent))
 	require.Equal(t, now, ts)
@@ -79,7 +81,7 @@ func testChanges(t *testing.T, dst ds.DocumentStore, changes ds.Changes) {
 	revpaths := reverseCopy(paths)
 
 	// Changes (limit=10, desc)
-	recent, ts, err = changes.Changes(ctx, "test-changes", time.Time{}, 10, ds.Descending)
+	recent, ts, err = changes.Changes(ctx, changesCollection, time.Time{}, 10, ds.Descending)
 	require.NoError(t, err)
 	require.Equal(t, 10, len(recent))
 	require.False(t, ts.IsZero())
@@ -90,7 +92,7 @@ func testChanges(t *testing.T, dst ds.DocumentStore, changes ds.Changes) {
 	require.Equal(t, revpaths[0:10], recentPaths)
 
 	// Changes (limit=5, ts, desc)
-	recent, ts, err = changes.Changes(ctx, "test-changes", ts, 5, ds.Descending)
+	recent, ts, err = changes.Changes(ctx, changesCollection, ts, 5, ds.Descending)
 	require.NoError(t, err)
 	require.Equal(t, 5, len(recent))
 	require.False(t, ts.IsZero())
