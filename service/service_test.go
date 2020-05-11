@@ -266,7 +266,7 @@ type serverEnv struct {
 
 func newTestServerEnv(t *testing.T, env *testEnv) *serverEnv {
 	mc := server.NewMemTestCache(env.clock.Now)
-	srv := server.NewServer(env.fi, mc, env.users, logger)
+	srv := server.New(env.fi, mc, env.users, logger)
 	srv.SetNowFn(env.clock.Now)
 	tasks := server.NewTestTasks(srv)
 	srv.SetTasks(tasks)

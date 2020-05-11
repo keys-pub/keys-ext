@@ -47,7 +47,7 @@ func newService(cfg *Config, build Build, auth *auth, req util.Requestor, nowFn 
 	ks := keys.NewStore(auth.keyring)
 	ss := secret.NewStore(auth.keyring)
 	ss.SetTimeNow(nowFn)
-	db := db.NewDB()
+	db := db.New()
 	db.SetTimeNow(nowFn)
 	scs := keys.NewSigchainStore(db)
 	users, err := user.NewStore(db, scs, req, nowFn)
