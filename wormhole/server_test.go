@@ -52,7 +52,7 @@ func testEnv(t *testing.T) *env {
 	req := util.NewMockRequestor()
 	users := testUserStore(t, fi, req, clock)
 
-	svr := server.NewServer(fi, ns, users, wormhole.NewLogger(wormhole.ErrLevel))
+	svr := server.New(fi, ns, users, wormhole.NewLogger(wormhole.ErrLevel))
 	svr.SetNowFn(clock.Now)
 	tasks := server.NewTestTasks(svr)
 	svr.SetTasks(tasks)

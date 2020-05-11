@@ -8,7 +8,7 @@ require (
 	github.com/keys-pub/keys v0.0.0-20200510160216-ad7bde5b0492
 	github.com/keys-pub/keysd/http/api v0.0.0-20200414165929-c63be6975df3
 	github.com/keys-pub/keysd/http/client v0.0.0-20200510163101-274758b3bf6f
-	github.com/keys-pub/keysd/http/server v0.0.0-20200502225525-6683ec058775
+	github.com/keys-pub/keysd/http/server v0.0.0-20200511185813-99e69c14b2f4
 	github.com/labstack/echo/v4 v4.1.16 // indirect
 	github.com/pion/logging v0.2.2
 	github.com/pion/sctp v1.7.6

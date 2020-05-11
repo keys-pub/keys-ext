@@ -20,7 +20,7 @@ import (
 // TODO: Close, reconnect?
 // TODO: Messages could have been omitted by network, include previous message ID
 
-func TestNewWormhole(t *testing.T) {
+func TestNew(t *testing.T) {
 	// wormhole.SetLogger(wormhole.NewLogger(wormhole.DebugLevel))
 	// sctp.SetLogger(sctp.NewLogger(sctp.DebugLevel))
 
@@ -73,7 +73,7 @@ func testWormhole(t *testing.T, env *env, local bool, alice *keys.EdX25519Key, b
 	closeWg.Add(2)
 
 	server := env.httpServer.URL
-	wha, err := wormhole.NewWormhole(server, ksa)
+	wha, err := wormhole.New(server, ksa)
 	require.NoError(t, err)
 	defer wha.Close()
 	wha.SetTimeNow(env.clock.Now)
@@ -106,7 +106,7 @@ func testWormhole(t *testing.T, env *env, local bool, alice *keys.EdX25519Key, b
 		}
 	}()
 
-	whb, err := wormhole.NewWormhole(server, ksb)
+	whb, err := wormhole.New(server, ksb)
 	require.NoError(t, err)
 	defer whb.Close()
 	whb.SetTimeNow(env.clock.Now)
@@ -198,7 +198,7 @@ func testWormholeCancel(t *testing.T, env *env, dt time.Duration) {
 	err := ksa.SaveEdX25519Key(alice)
 	require.NoError(t, err)
 
-	wha, err := wormhole.NewWormhole(server, ksa)
+	wha, err := wormhole.New(server, ksa)
 	require.NoError(t, err)
 	defer wha.Close()
 	wha.SetTimeNow(env.clock.Now)
@@ -231,12 +231,12 @@ func TestWormholeNoRecipient(t *testing.T) {
 	err = ksb.SaveEdX25519Key(bob)
 	require.NoError(t, err)
 
-	wha, err := wormhole.NewWormhole(server, ksa)
+	wha, err := wormhole.New(server, ksa)
 	require.NoError(t, err)
 	defer wha.Close()
 	wha.SetTimeNow(env.clock.Now)
 
-	whb, err := wormhole.NewWormhole(server, ksb)
+	whb, err := wormhole.New(server, ksb)
 	require.NoError(t, err)
 	defer wha.Close()
 	whb.SetTimeNow(env.clock.Now)

@@ -63,10 +63,10 @@ type Wormhole struct {
 // The max content size may be less than this because of header bytes.
 const maxSize = 16 * 1024
 
-// NewWormhole creates a new Wormhole.
+// New creates a new Wormhole.
 // Server is offer/answer message server, only used to coordinate starting the
 // webrtc channel.
-func NewWormhole(server string, ks *keys.Store) (*Wormhole, error) {
+func New(server string, ks *keys.Store) (*Wormhole, error) {
 	rtc := sctp.NewClient()
 
 	if server == "" {
