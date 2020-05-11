@@ -27,8 +27,8 @@ type Firestore struct {
 	Test   bool
 }
 
-// NewFirestore creates a Firestore
-func NewFirestore(uri string, opts ...option.ClientOption) (*Firestore, error) {
+// New creates a Firestore
+func New(uri string, opts ...option.ClientOption) (*Firestore, error) {
 	u, err := url.Parse(uri)
 	if err != nil {
 		return nil, err

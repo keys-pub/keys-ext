@@ -21,7 +21,7 @@ var ctx = context.TODO()
 
 func testFirestore(t *testing.T, clear bool) *Firestore {
 	opts := []option.ClientOption{option.WithCredentialsFile("credentials.json")}
-	fs, err := NewFirestore(testURL, opts...)
+	fs, err := New(testURL, opts...)
 	require.NoError(t, err)
 	fs.Test = true
 	require.NoError(t, err)
@@ -323,10 +323,10 @@ func TestSigchains(t *testing.T) {
 	require.Equal(t, kids[0], sc.KID())
 }
 
-func ExampleNewFirestore() {
+func ExampleNew() {
 	url := "firestore://chilltest-3297b"
 	opts := []option.ClientOption{option.WithCredentialsFile("credentials.json")}
-	fs, err := NewFirestore(url, opts...)
+	fs, err := New(url, opts...)
 	if err != nil {
 		log.Fatal(err)
 	}
