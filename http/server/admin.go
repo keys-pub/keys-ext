@@ -29,7 +29,7 @@ func (s *Server) adminCheck(c echo.Context) error {
 		}
 
 		for _, kid := range kids {
-			if err := s.tasks.CreateTask(ctx, "POST", "/task/check/"+kid.String(), s.internalAuth); err != nil {
+			if err := s.checkKID(ctx, kid); err != nil {
 				return s.internalError(c, err)
 			}
 		}
@@ -38,7 +38,7 @@ func (s *Server) adminCheck(c echo.Context) error {
 		if err != nil {
 			return ErrNotFound(c, errors.Errorf("kid not found"))
 		}
-		if err := s.tasks.CreateTask(ctx, "POST", "/task/check/"+kid.String(), s.internalAuth); err != nil {
+		if err := s.checkKID(ctx, kid); err != nil {
 			return s.internalError(c, err)
 		}
 	}

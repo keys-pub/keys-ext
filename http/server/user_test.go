@@ -115,6 +115,6 @@ func TestUserDuplicate(t *testing.T) {
 	req, err = http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/1", alice2.ID()), bytes.NewReader(b2))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
-	require.Equal(t, http.StatusBadRequest, code)
-	require.Equal(t, `{"error":{"code":400,"message":"user already exists with key kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077, revoke or remove that before changing keys"}}`, body)
+	require.Equal(t, http.StatusConflict, code)
+	require.Equal(t, `{"error":{"code":409,"message":"user already exists with key kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077, if your removed or revoked the previous statement you may need to wait for search to update"}}`, body)
 }

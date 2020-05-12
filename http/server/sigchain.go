@@ -179,7 +179,10 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 		return s.internalError(c, err)
 	}
 	if existing != "" {
-		return ErrBadRequest(c, errors.Errorf("user already exists with key %s, revoke or remove that before changing keys", existing))
+		if err := s.checkKID(ctx, st.KID); err != nil {
+			return s.internalError(c, err)
+		}
+		return ErrResponse(c, http.StatusConflict, fmt.Sprintf("user already exists with key %s, if your removed or revoked the previous statement you may need to wait for search to update", existing))
 	}
 
 	s.logger.Infof("Statement, set %s", path)
