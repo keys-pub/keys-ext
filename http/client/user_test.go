@@ -48,8 +48,7 @@ func TestUserSearch(t *testing.T) {
 	env := testEnv(t, nil)
 	defer env.closeFn()
 
-	ks := keys.NewMemStore(true)
-	client := testClient(t, env, ks)
+	client := testClient(t, env)
 
 	for i := 0; i < 10; i++ {
 		key := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{byte(i)}, 32)))
@@ -84,8 +83,7 @@ func TestUser(t *testing.T) {
 	env := testEnv(t, nil)
 	defer env.closeFn()
 
-	ks := keys.NewMemStore(true)
-	client := testClient(t, env, ks)
+	client := testClient(t, env)
 
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	saveUser(t, env, client, alice, "alice", "github")

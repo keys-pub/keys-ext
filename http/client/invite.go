@@ -12,14 +12,10 @@ import (
 )
 
 // CreateInvite writes a sender recipient address (invite).
-func (c *Client) CreateInvite(ctx context.Context, sender keys.ID, recipient keys.ID) (*api.CreateInviteResponse, error) {
-	senderKey, err := c.ks.EdX25519Key(sender)
-	if err != nil {
-		return nil, err
-	}
-	path := ds.Path("invite", sender, recipient)
+func (c *Client) CreateInvite(ctx context.Context, sender *keys.EdX25519Key, recipient keys.ID) (*api.CreateInviteResponse, error) {
+	path := ds.Path("invite", sender.ID(), recipient)
 	vals := url.Values{}
-	doc, err := c.postDocument(ctx, path, vals, senderKey, nil)
+	doc, err := c.postDocument(ctx, path, vals, sender, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -34,14 +30,10 @@ func (c *Client) CreateInvite(ctx context.Context, sender keys.ID, recipient key
 }
 
 // Invite looks for an invite with code.
-func (c *Client) Invite(ctx context.Context, sender keys.ID, code string) (*api.InviteResponse, error) {
-	senderKey, err := c.ks.EdX25519Key(sender)
-	if err != nil {
-		return nil, err
-	}
+func (c *Client) Invite(ctx context.Context, sender *keys.EdX25519Key, code string) (*api.InviteResponse, error) {
 	path := fmt.Sprintf("/invite?code=%s", url.QueryEscape(code))
 	vals := url.Values{}
-	doc, err := c.getDocument(ctx, path, vals, senderKey)
+	doc, err := c.getDocument(ctx, path, vals, sender)
 	if err != nil {
 		return nil, err
 	}
