@@ -28,8 +28,6 @@ func (s *service) findSender(ctx context.Context, kid keys.ID) (*Key, error) {
 
 // Decrypt (RPC) data.
 func (s *service) Decrypt(ctx context.Context, req *DecryptRequest) (*DecryptResponse, error) {
-	sp := saltpack.NewSaltpack(s.ks)
-
 	mode := req.Mode
 	if mode == DefaultEncryptMode {
 		mode = EncryptV2
@@ -39,17 +37,17 @@ func (s *service) Decrypt(ctx context.Context, req *DecryptRequest) (*DecryptRes
 
 	var decrypted []byte
 	var kid keys.ID
-	var err error
+	var decryptErr error
 	switch mode {
 	case EncryptV2:
 		var sender *keys.X25519PublicKey
 		if req.Armored {
-			decrypted, sender, err = sp.DecryptArmored(string(req.Data))
+			decrypted, sender, decryptErr = saltpack.DecryptArmored(string(req.Data), s.ks)
 			if sender != nil {
 				kid = sender.ID()
 			}
 		} else {
-			decrypted, sender, err = sp.Decrypt(req.Data)
+			decrypted, sender, decryptErr = saltpack.Decrypt(req.Data, s.ks)
 			if sender != nil {
 				kid = sender.ID()
 			}
@@ -57,12 +55,12 @@ func (s *service) Decrypt(ctx context.Context, req *DecryptRequest) (*DecryptRes
 	case SigncryptV1:
 		var sender *keys.EdX25519PublicKey
 		if req.Armored {
-			decrypted, sender, err = sp.SigncryptArmoredOpen(string(req.Data))
+			decrypted, sender, decryptErr = saltpack.SigncryptArmoredOpen(string(req.Data), s.ks)
 			if sender != nil {
 				kid = sender.ID()
 			}
 		} else {
-			decrypted, sender, err = sp.SigncryptOpen(req.Data)
+			decrypted, sender, decryptErr = saltpack.SigncryptOpen(req.Data, s.ks)
 			if sender != nil {
 				kid = sender.ID()
 			}
@@ -71,11 +69,11 @@ func (s *service) Decrypt(ctx context.Context, req *DecryptRequest) (*DecryptRes
 		return nil, errors.Errorf("unsupported mode %s", mode)
 	}
 
-	if err != nil {
-		if err.Error() == "failed to read header bytes" {
+	if decryptErr != nil {
+		if decryptErr.Error() == "failed to read header bytes" {
 			return nil, errors.Errorf("invalid data")
 		}
-		return nil, err
+		return nil, decryptErr
 	}
 
 	senderKey, err := s.findSender(ctx, kid)
@@ -210,20 +208,19 @@ func (s *service) decryptStream(srv decryptStreamServer, mode EncryptMode, armor
 }
 
 func (s *service) decryptReader(ctx context.Context, reader io.Reader, mode EncryptMode, armored bool) (io.Reader, keys.ID, error) {
-	sp := saltpack.NewSaltpack(s.ks)
 	var out io.Reader
 	var kid keys.ID
-	var err error
+	var decryptErr error
 	switch mode {
 	case DefaultEncryptMode, EncryptV2:
 		var sender *keys.X25519PublicKey
 		if armored {
-			out, sender, err = sp.NewDecryptArmoredStream(reader)
+			out, sender, decryptErr = saltpack.NewDecryptArmoredStream(reader, s.ks)
 			if sender != nil {
 				kid = sender.ID()
 			}
 		} else {
-			out, sender, err = sp.NewDecryptStream(reader)
+			out, sender, decryptErr = saltpack.NewDecryptStream(reader, s.ks)
 			if sender != nil {
 				kid = sender.ID()
 			}
@@ -231,12 +228,12 @@ func (s *service) decryptReader(ctx context.Context, reader io.Reader, mode Encr
 	case SigncryptV1:
 		var sender *keys.EdX25519PublicKey
 		if armored {
-			out, sender, err = sp.NewSigncryptArmoredOpenStream(reader)
+			out, sender, decryptErr = saltpack.NewSigncryptArmoredOpenStream(reader, s.ks)
 			if sender != nil {
 				kid = sender.ID()
 			}
 		} else {
-			out, sender, err = sp.NewSigncryptOpenStream(reader)
+			out, sender, decryptErr = saltpack.NewSigncryptOpenStream(reader, s.ks)
 			if sender != nil {
 				kid = sender.ID()
 			}
@@ -245,7 +242,7 @@ func (s *service) decryptReader(ctx context.Context, reader io.Reader, mode Encr
 		return nil, "", errors.Errorf("unsupported mode %s", mode)
 	}
 
-	return out, kid, err
+	return out, kid, decryptErr
 }
 
 func (s *service) decryptWriteInOut(ctx context.Context, in string, out string, mode EncryptMode, armored bool) (*Key, error) {
