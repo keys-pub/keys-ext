@@ -489,14 +489,17 @@ enum ExportType {
   option (gogoproto.goproto_enum_prefix) = false;
   option (gogoproto.enum_customname) = "ExportType";
   
-  DEFAULT_EXPORT_TYPE = 0 [(gogoproto.enumvalue_customname) = "DefaultExportType"];
-  SALTPACK_EXPORT_TYPE = 1 [(gogoproto.enumvalue_customname) = "SaltpackExportType"];
+  DEFAULT_EXPORT_TYPE = 0 [(gogoproto.enumvalue_customname) = "DefaultExport"];
+  SALTPACK_EXPORT_TYPE = 1 [(gogoproto.enumvalue_customname) = "SaltpackExport"];
+  SSH_EXPORT_TYPE = 2 [(gogoproto.enumvalue_customname) = "SSHExport"];
 }
 
 message KeyExportRequest {
   string kid = 1 [(gogoproto.customname) = "KID"];
   string password = 2;
   ExportType type = 3;
+  bool public = 4;
+  bool noPassword = 5;
 }
 message KeyExportResponse {
   bytes export = 1;
