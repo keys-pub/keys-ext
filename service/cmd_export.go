@@ -16,7 +16,7 @@ func exportCommands(client *Client) []cli.Command {
 			Flags: []cli.Flag{
 				cli.StringFlag{Name: "kid, k", Usage: "kid"},
 				cli.StringFlag{Name: "type, t", Value: "default", Usage: "default, saltpack, ssh"},
-				cli.BoolFlag{Name: "public", Usage: "export public key part only"},
+				cli.BoolFlag{Name: "public", Usage: "export public part only"},
 				cli.StringFlag{Name: "password, p", Usage: "password"},
 				cli.BoolFlag{Name: "no-password", Usage: "export without password"},
 			},
