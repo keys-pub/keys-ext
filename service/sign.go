@@ -19,16 +19,15 @@ func (s *service) Sign(ctx context.Context, req *SignRequest) (*SignResponse, er
 		return nil, err
 	}
 
-	sp := saltpack.NewSaltpack(s.ks)
 	var signed []byte
 	if req.Armored {
-		s, err := sp.SignArmored(req.Data, key)
+		s, err := saltpack.SignArmored(req.Data, key)
 		if err != nil {
 			return nil, err
 		}
 		signed = []byte(s)
 	} else {
-		s, err := sp.Sign(req.Data, key)
+		s, err := saltpack.Sign(req.Data, key)
 		if err != nil {
 			return nil, err
 		}
@@ -164,21 +163,20 @@ func (s *service) SignStream(srv Keys_SignStreamServer) error {
 }
 
 func (s *service) signWriter(ctx context.Context, w io.Writer, key *keys.EdX25519Key, armored bool, detached bool) (io.WriteCloser, error) {
-	sp := saltpack.NewSaltpack(s.ks)
 	if armored {
 		if detached {
 			logger.Debugf("Signing mode: armored/detached")
-			return sp.NewSignArmoredDetachedStream(w, key)
+			return saltpack.NewSignArmoredDetachedStream(w, key)
 		}
 		logger.Debugf("Signing mode: armored")
-		return sp.NewSignArmoredStream(w, key)
+		return saltpack.NewSignArmoredStream(w, key)
 	}
 	if detached {
 		logger.Debugf("Signing mode: detached")
-		return sp.NewSignDetachedStream(w, key)
+		return saltpack.NewSignDetachedStream(w, key)
 	}
 	logger.Debugf("Signing mode: default")
-	return sp.NewSignStream(w, key)
+	return saltpack.NewSignStream(w, key)
 }
 
 func (s *service) signWriteInOut(ctx context.Context, in string, out string, key *keys.EdX25519Key, armored bool, detached bool) error {

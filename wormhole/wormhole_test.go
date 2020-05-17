@@ -31,15 +31,15 @@ func TestNew(t *testing.T) {
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
 	ksa := keys.NewMemStore(true)
-	err := ksa.SaveEdX25519Key(alice)
+	err := ksa.Save(alice)
 	require.NoError(t, err)
-	err = ksa.SaveEdX25519PublicKey(bob.PublicKey())
+	err = ksa.Save(bob.PublicKey())
 	require.NoError(t, err)
 
 	ksb := keys.NewMemStore(true)
-	err = ksb.SaveEdX25519Key(bob)
+	err = ksb.Save(bob)
 	require.NoError(t, err)
-	err = ksb.SaveEdX25519PublicKey(alice.PublicKey())
+	err = ksb.Save(alice.PublicKey())
 	require.NoError(t, err)
 
 	testWormhole(t, env, true, alice, bob, ksa, ksb)
@@ -57,7 +57,7 @@ func TestWormholeSameKey(t *testing.T) {
 
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	ksa := keys.NewMemStore(true)
-	err := ksa.SaveEdX25519Key(alice)
+	err := ksa.Save(alice)
 	require.NoError(t, err)
 
 	testWormhole(t, env, true, alice, alice, ksa, ksa)
@@ -195,7 +195,7 @@ func testWormholeCancel(t *testing.T, env *env, dt time.Duration) {
 	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
 
 	ksa := keys.NewMemStore(true)
-	err := ksa.SaveEdX25519Key(alice)
+	err := ksa.Save(alice)
 	require.NoError(t, err)
 
 	wha, err := wormhole.New(server, ksa)
@@ -224,11 +224,11 @@ func TestWormholeNoRecipient(t *testing.T) {
 	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
 
 	ksa := keys.NewMemStore(true)
-	err := ksa.SaveEdX25519Key(alice)
+	err := ksa.Save(alice)
 	require.NoError(t, err)
 
 	ksb := keys.NewMemStore(true)
-	err = ksb.SaveEdX25519Key(bob)
+	err = ksb.Save(bob)
 	require.NoError(t, err)
 
 	wha, err := wormhole.New(server, ksa)

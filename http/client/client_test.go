@@ -70,8 +70,8 @@ func testEnv(t *testing.T, logger server.Logger) *env {
 	return &env{clock, httpServer, svr, fi, users, req, func() { httpServer.Close() }}
 }
 
-func testClient(t *testing.T, env *env, ks *keys.Store) *client.Client {
-	cl, err := client.New(env.httpServer.URL, ks)
+func testClient(t *testing.T, env *env) *client.Client {
+	cl, err := client.New(env.httpServer.URL)
 	require.NoError(t, err)
 	cl.SetHTTPClient(env.httpServer.Client())
 	cl.SetTimeNow(env.clock.Now)

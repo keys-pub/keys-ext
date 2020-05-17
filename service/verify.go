@@ -15,17 +15,16 @@ import (
 
 // Verify (RPC) ...
 func (s *service) Verify(ctx context.Context, req *VerifyRequest) (*VerifyResponse, error) {
-	sp := saltpack.NewSaltpack(s.ks)
 	var verified []byte
 	var kid keys.ID
 	if req.Armored {
-		v, k, err := sp.VerifyArmored(string(req.Data))
+		v, k, err := saltpack.VerifyArmored(string(req.Data))
 		if err != nil {
 			return nil, err
 		}
 		verified, kid = v, k
 	} else {
-		v, k, err := sp.Verify(req.Data)
+		v, k, err := saltpack.Verify(req.Data)
 		if err != nil {
 			return nil, err
 		}
@@ -46,16 +45,15 @@ func (s *service) Verify(ctx context.Context, req *VerifyRequest) (*VerifyRespon
 
 // VerifyDetached (RPC) ...
 func (s *service) VerifyDetached(ctx context.Context, req *VerifyDetachedRequest) (*VerifyDetachedResponse, error) {
-	sp := saltpack.NewSaltpack(s.ks)
 	var kid keys.ID
 	if req.Armored {
-		k, err := sp.VerifyArmoredDetached(string(req.Sig), req.Data)
+		k, err := saltpack.VerifyArmoredDetached(string(req.Sig), req.Data)
 		if err != nil {
 			return nil, err
 		}
 		kid = k
 	} else {
-		k, err := sp.VerifyDetached(req.Sig, req.Data)
+		k, err := saltpack.VerifyDetached(req.Sig, req.Data)
 		if err != nil {
 			return nil, err
 		}
@@ -277,19 +275,17 @@ func (s *service) readFromStream(ctx context.Context, streamReader io.Reader, si
 }
 
 func (s *service) verifyReader(ctx context.Context, reader io.Reader, armored bool) (io.Reader, keys.ID, error) {
-	sp := saltpack.NewSaltpack(s.ks)
 	if armored {
-		return sp.NewVerifyArmoredStream(reader)
+		return saltpack.NewVerifyArmoredStream(reader)
 	}
-	return sp.NewVerifyStream(reader)
+	return saltpack.NewVerifyStream(reader)
 }
 
 func (s *service) verifyDetachedReader(ctx context.Context, sig []byte, reader io.Reader, armored bool) (keys.ID, error) {
-	sp := saltpack.NewSaltpack(s.ks)
 	if armored {
-		return sp.VerifyArmoredDetachedReader(string(sig), reader)
+		return saltpack.VerifyArmoredDetachedReader(string(sig), reader)
 	}
-	return sp.VerifyDetachedReader(sig, reader)
+	return saltpack.VerifyDetachedReader(sig, reader)
 }
 
 func (s *service) verifyWriteInOut(ctx context.Context, in string, out string, armored bool) (*Key, error) {

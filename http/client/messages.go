@@ -25,27 +25,19 @@ type Message struct {
 }
 
 // SendMessage posts an encrypted expiring message.
-func (c *Client) SendMessage(ctx context.Context, sender keys.ID, recipient keys.ID, b []byte, expire time.Duration) (*api.CreateMessageResponse, error) {
-	senderKey, err := c.ks.EdX25519Key(sender)
-	if err != nil {
-		return nil, err
-	}
-	if senderKey == nil {
-		return nil, keys.NewErrNotFound(sender.String())
-	}
+func (c *Client) SendMessage(ctx context.Context, sender *keys.EdX25519Key, recipient keys.ID, b []byte, expire time.Duration) (*api.CreateMessageResponse, error) {
 	if expire == time.Duration(0) {
 		return nil, errors.Errorf("no expire specified")
 	}
-	sp := saltpack.NewSaltpack(c.ks)
-	encrypted, err := sp.Signcrypt(b, senderKey, recipient, sender)
+	encrypted, err := saltpack.Signcrypt(b, sender, recipient, sender.ID())
 	if err != nil {
 		return nil, err
 	}
 
-	path := ds.Path("msgs", senderKey.ID(), recipient)
+	path := ds.Path("msgs", sender.ID(), recipient)
 	vals := url.Values{}
 	vals.Set("expire", expire.String())
-	doc, err := c.postDocument(ctx, path, vals, senderKey, bytes.NewReader(encrypted))
+	doc, err := c.postDocument(ctx, path, vals, sender, bytes.NewReader(encrypted))
 	if err != nil {
 		return nil, err
 	}
@@ -68,12 +60,7 @@ type MessagesOpts struct {
 
 // Messages returns encrypted messages.
 // To decrypt a message, use Client#DecryptMessage.
-func (c *Client) Messages(ctx context.Context, kid keys.ID, from keys.ID, opts *MessagesOpts) ([]*Message, string, error) {
-	key, err := c.ks.EdX25519Key(kid)
-	if err != nil {
-		return nil, "", err
-	}
-
+func (c *Client) Messages(ctx context.Context, key *keys.EdX25519Key, from keys.ID, opts *MessagesOpts) ([]*Message, string, error) {
 	path := ds.Path("msgs", key.ID(), from)
 	if opts == nil {
 		opts = &MessagesOpts{}
@@ -121,8 +108,7 @@ func (c *Client) Messages(ctx context.Context, kid keys.ID, from keys.ID, opts *
 
 // DecryptMessage decrypts a message from Messages.
 func (c *Client) DecryptMessage(key *keys.EdX25519Key, msg *Message) ([]byte, keys.ID, error) {
-	sp := saltpack.NewSaltpack(c.ks)
-	decrypted, pk, err := sp.SigncryptOpen(msg.Data)
+	decrypted, pk, err := saltpack.SigncryptOpen(msg.Data, saltpack.NewKeyStore(key))
 	if err != nil {
 		return nil, "", err
 	}
