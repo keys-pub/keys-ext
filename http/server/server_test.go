@@ -214,7 +214,7 @@ func userMock(t *testing.T, users *user.Store, key *keys.EdX25519Key, name strin
 	}
 
 	sc := keys.NewSigchain(key.ID())
-	usr, err := user.NewUser(users, key.ID(), service, name, url, sc.LastSeq()+1)
+	usr, err := user.New(users, key.ID(), service, name, url, sc.LastSeq()+1)
 	require.NoError(t, err)
 	st, err := user.NewUserSigchainStatement(sc, usr, key, users.Now())
 	require.NoError(t, err)

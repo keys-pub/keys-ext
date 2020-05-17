@@ -55,7 +55,6 @@ func (s *service) Encrypt(ctx context.Context, req *EncryptRequest) (*EncryptRes
 		return nil, err
 	}
 
-	sp := saltpack.NewSaltpack(s.ks)
 	var out []byte
 	switch enc.mode {
 	case EncryptV2:
@@ -64,13 +63,13 @@ func (s *service) Encrypt(ctx context.Context, req *EncryptRequest) (*EncryptRes
 			return nil, err
 		}
 		if req.Armored {
-			data, err := sp.EncryptArmored(req.Data, sbk, enc.recipients...)
+			data, err := saltpack.EncryptArmored(req.Data, sbk, enc.recipients...)
 			if err != nil {
 				return nil, err
 			}
 			out = []byte(data)
 		} else {
-			data, err := sp.Encrypt(req.Data, sbk, enc.recipients...)
+			data, err := saltpack.Encrypt(req.Data, sbk, enc.recipients...)
 			if err != nil {
 				return nil, err
 			}
@@ -88,13 +87,13 @@ func (s *service) Encrypt(ctx context.Context, req *EncryptRequest) (*EncryptRes
 			return nil, keys.NewErrNotFound(enc.sender.String())
 		}
 		if req.Armored {
-			data, err := sp.SigncryptArmored(req.Data, sk, enc.recipients...)
+			data, err := saltpack.SigncryptArmored(req.Data, sk, enc.recipients...)
 			if err != nil {
 				return nil, err
 			}
 			out = []byte(data)
 		} else {
-			data, err := sp.Signcrypt(req.Data, sk, enc.recipients...)
+			data, err := saltpack.Signcrypt(req.Data, sk, enc.recipients...)
 			if err != nil {
 				return nil, err
 			}
@@ -162,7 +161,6 @@ func (s *service) encryptWriteInOut(ctx context.Context, in string, out string, 
 func (s *service) encryptWriter(ctx context.Context, w io.Writer, enc *encrypt, armored bool) (io.WriteCloser, error) {
 	var stream io.WriteCloser
 
-	sp := saltpack.NewSaltpack(s.ks)
 	switch enc.mode {
 	case EncryptV2:
 		sbk, err := s.parseBoxKey(enc.sender)
@@ -171,13 +169,13 @@ func (s *service) encryptWriter(ctx context.Context, w io.Writer, enc *encrypt, 
 		}
 		logger.Infof("Encrypt stream for %s from %s", enc.recipients, enc.sender)
 		if armored {
-			s, err := sp.NewEncryptArmoredStream(w, sbk, enc.recipients...)
+			s, err := saltpack.NewEncryptArmoredStream(w, sbk, enc.recipients...)
 			if err != nil {
 				return nil, err
 			}
 			stream = s
 		} else {
-			s, err := sp.NewEncryptStream(w, sbk, enc.recipients...)
+			s, err := saltpack.NewEncryptStream(w, sbk, enc.recipients...)
 			if err != nil {
 				return nil, err
 			}
@@ -197,13 +195,13 @@ func (s *service) encryptWriter(ctx context.Context, w io.Writer, enc *encrypt, 
 		}
 		logger.Infof("Signcrypt stream for %s from %s", enc.recipients, enc.sender)
 		if armored {
-			s, err := sp.NewSigncryptArmoredStream(w, sk, enc.recipients...)
+			s, err := saltpack.NewSigncryptArmoredStream(w, sk, enc.recipients...)
 			if err != nil {
 				return nil, err
 			}
 			stream = s
 		} else {
-			s, err := sp.NewSigncryptStream(w, sk, enc.recipients...)
+			s, err := saltpack.NewSigncryptStream(w, sk, enc.recipients...)
 			if err != nil {
 				return nil, err
 			}

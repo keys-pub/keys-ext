@@ -15,7 +15,7 @@ func (s *service) KeyImport(ctx context.Context, req *KeyImportRequest) (*KeyImp
 		return nil, err
 	}
 
-	if err := s.ks.SaveKey(key); err != nil {
+	if err := s.ks.Save(key); err != nil {
 		return nil, err
 	}
 
@@ -39,5 +39,5 @@ func (s *service) importID(id keys.ID) error {
 	if item != nil {
 		return nil
 	}
-	return s.ks.SavePublicKey(id)
+	return s.ks.Save(id)
 }

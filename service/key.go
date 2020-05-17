@@ -223,13 +223,13 @@ func (s *service) KeyGenerate(ctx context.Context, req *KeyGenerateRequest) (*Ke
 	switch req.Type {
 	case EdX25519:
 		key := keys.GenerateEdX25519Key()
-		if err := s.ks.SaveEdX25519Key(key); err != nil {
+		if err := s.ks.Save(key); err != nil {
 			return nil, err
 		}
 		kid = key.ID()
 	case X25519:
 		key := keys.GenerateX25519Key()
-		if err := s.ks.SaveX25519Key(key); err != nil {
+		if err := s.ks.Save(key); err != nil {
 			return nil, err
 		}
 		kid = key.ID()

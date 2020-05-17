@@ -13,8 +13,7 @@ func TestSigchain(t *testing.T) {
 	env := testEnv(t, nil)
 	defer env.closeFn()
 
-	ks := keys.NewMemStore(true)
-	client := testClient(t, env, ks)
+	client := testClient(t, env)
 
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 
