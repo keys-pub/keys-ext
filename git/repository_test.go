@@ -30,13 +30,13 @@ func TestRepositoryAddDelete(t *testing.T) {
 	require.NoError(t, err)
 
 	// Repo1: Open
-	repo, err := git.NewRepository(url, host, path, ks, key, nil)
+	repo, err := git.NewRepository(url, host, path, key, nil)
 	require.NoError(t, err)
 	err = repo.Open()
 	require.NoError(t, err)
 
 	// Repo2: Open
-	repo2, err := git.NewRepository(url, host, path2, ks, key, nil)
+	repo2, err := git.NewRepository(url, host, path2, key, nil)
 	require.NoError(t, err)
 	err = repo2.Open()
 	require.NoError(t, err)
@@ -77,7 +77,7 @@ func TestRepositoryConflict(t *testing.T) {
 	path := keys.RandTempPath("")
 	t.Logf("Path: %s", path)
 	path2 := keys.RandTempPath("")
-	t.Logf("Path2: %s", path)
+	t.Logf("Path2: %s", path2)
 
 	privateKey, err := ioutil.ReadFile("id_ed25519")
 	require.NoError(t, err)
@@ -92,13 +92,13 @@ func TestRepositoryConflict(t *testing.T) {
 	require.NoError(t, err)
 
 	// Repo1: Open
-	repo, err := git.NewRepository(url, host, path, ks, key, nil)
+	repo, err := git.NewRepository(url, host, path, key, nil)
 	require.NoError(t, err)
 	err = repo.Open()
 	require.NoError(t, err)
 
 	// Repo2: Open
-	repo2, err := git.NewRepository(url, host, path2, ks, key, nil)
+	repo2, err := git.NewRepository(url, host, path2, key, nil)
 	require.NoError(t, err)
 	err = repo2.Open()
 	require.NoError(t, err)
@@ -131,5 +131,11 @@ func TestRepositoryConflict(t *testing.T) {
 	err = repo2.Add(item)
 	require.NoError(t, err)
 	err = repo2.Push()
+	require.EqualError(t, err, "failed to push: cannot push because a reference that you are trying to update on the remote contains commits that are not present locally.")
+
+	// Repo1: Delete, Push
+	err = repo.Delete(item.ID)
+	require.NoError(t, err)
+	err = repo.Push()
 	require.NoError(t, err)
 }

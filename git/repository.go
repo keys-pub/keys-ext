@@ -27,10 +27,9 @@ type Repository struct {
 	opts *RepositoryOpts
 
 	key        *keys.EdX25519Key
+	ks         *keys.Store
 	publicKey  string
 	privateKey string
-
-	ks *keys.Store
 
 	host string
 
@@ -43,7 +42,7 @@ type RepositoryOpts struct {
 }
 
 // NewRepository ...
-func NewRepository(urs string, host string, path string, ks *keys.Store, key *keys.EdX25519Key, opts *RepositoryOpts) (*Repository, error) {
+func NewRepository(urs string, host string, path string, key *keys.EdX25519Key, opts *RepositoryOpts) (*Repository, error) {
 	if opts == nil {
 		opts = &RepositoryOpts{}
 	}
@@ -59,6 +58,11 @@ func NewRepository(urs string, host string, path string, ks *keys.Store, key *ke
 	logger.Debugf("Git url: %s", urs)
 	logger.Debugf("Git public key: %s", publicKey)
 	logger.Debugf("Git user: %s", opts.GitUser)
+
+	ks := keys.NewMemStore(true)
+	if err := ks.SaveEdX25519Key(key); err != nil {
+		return nil, err
+	}
 
 	return &Repository{
 		path:       path,
@@ -238,38 +242,35 @@ func (r *Repository) Pull() error {
 
 	if isMergeAnalysis(analysis, git.MergeAnalysisFastForward) {
 		logger.Debugf("Fast forward")
-		// Fast-forward changes
-		// Get remote tree
-		logger.Debugf("Get remote tree")
-		remoteTree, err := r.repo.LookupTree(remoteBranchID)
+
+		target := remoteBranch.Target()
+
+		commit, err := r.repo.LookupCommit(target)
 		if err != nil {
 			return err
 		}
 
-		// Checkout
+		commitTree, err := commit.Tree()
+		if err != nil {
+			return err
+		}
+
 		logger.Debugf("Checkout tree")
-		if err := r.repo.CheckoutTree(remoteTree, &git.CheckoutOpts{Strategy: git.CheckoutSafe}); err != nil {
-			return err
-		}
-
-		branchRef, err := r.repo.References.Lookup("refs/heads/master")
+		err = r.repo.CheckoutTree(commitTree, &git.CheckoutOpts{Strategy: git.CheckoutSafe})
 		if err != nil {
 			return err
 		}
 
-		// Point branch to the object
 		logger.Debugf("Set target")
-		branchRef.SetTarget(remoteBranchID, "")
-		if _, err := head.SetTarget(remoteBranchID, ""); err != nil {
+		if _, err := head.SetTarget(target, ""); err != nil {
 			return err
 		}
+
 		return nil
 	}
 
 	if isMergeAnalysis(analysis, git.MergeAnalysisNormal) {
 		logger.Debugf("Normal")
-		// TODO: Better merging?
-		//       https://gist.github.com/danielfbm/37b0ca88b745503557b2b3f16865d8c3
 
 		// Just merge changes
 		if err := r.repo.Merge([]*git.AnnotatedCommit{annotatedCommit}, nil, nil); err != nil {
@@ -387,7 +388,7 @@ func (r *Repository) encryptItem(item *keyring.Item) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	sp := saltpack.New(r.ks)
+	sp := saltpack.New(nil)
 	encrypted, err := sp.Encrypt(b, r.key.X25519Key(), r.key.ID())
 	if err != nil {
 		return nil, err
