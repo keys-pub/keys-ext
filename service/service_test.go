@@ -108,20 +108,21 @@ func newTestServiceWithOpts(t *testing.T, env *testEnv, appName string, keyringT
 	return svc, closeFn
 }
 
+var authPassword = "testpassword"
+
 func testAuthSetup(t *testing.T, service *service) {
-	password := "testpassword"
 	_, err := service.AuthSetup(context.TODO(), &AuthSetupRequest{
-		Password: password,
+		Password: authPassword,
 	})
 	require.NoError(t, err)
 }
 
 func testImportKey(t *testing.T, service *service, key *keys.EdX25519Key) {
-	saltpack, err := keys.EncodeKeyToSaltpack(key, "testpassword")
+	saltpack, err := keys.EncodeKeyToSaltpack(key, authPassword)
 	require.NoError(t, err)
 	_, err = service.KeyImport(context.TODO(), &KeyImportRequest{
 		In:       []byte(saltpack),
-		Password: "testpassword",
+		Password: authPassword,
 	})
 	require.NoError(t, err)
 }
