@@ -9,11 +9,8 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/vmihailenco/msgpack/v4"
 
-	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/keyring"
-	"github.com/keys-pub/keys/saltpack"
 	git "github.com/libgit2/git2go/v30"
 	"github.com/pkg/errors"
 )
@@ -60,7 +57,7 @@ func NewRepository(urs string, host string, path string, key *keys.EdX25519Key, 
 	logger.Debugf("Git user: %s", opts.GitUser)
 
 	ks := keys.NewMemStore(true)
-	if err := ks.SaveEdX25519Key(key); err != nil {
+	if err := ks.Save(key); err != nil {
 		return nil, err
 	}
 
@@ -100,51 +97,12 @@ func (r *Repository) newRemoteCallbacks() git.RemoteCallbacks {
 	}
 }
 
-// List items.
-func (r *Repository) List() ([]*keyring.Item, error) {
-	logger.Debugf("List path: %s", r.path)
-	files, err := ioutil.ReadDir(r.path)
-	if err != nil {
-		return nil, err
-	}
-
-	items := make([]*keyring.Item, 0, len(files))
-	for _, file := range files {
-		if file.IsDir() {
-			continue
-		}
-		item, err := r.get(filepath.Join(r.path, file.Name()))
-		if err != nil {
-			return nil, err
-		}
-		items = append(items, item)
-	}
-
-	return items, nil
-}
-
-// Get item.
-func (r *Repository) Get(id string) (*keyring.Item, error) {
-	name := nameForID(id)
-	path := filepath.Join(r.path, name)
-	return r.get(path)
-}
-
-func (r *Repository) get(path string) (*keyring.Item, error) {
-	encrypted, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-
-	item, err := r.decryptItem(encrypted)
-	if err != nil {
-		return nil, err
-	}
-	return item, nil
-}
-
 // Open repository.
 func (r *Repository) Open() error {
+	if r.repo != nil {
+		return errors.Errorf("already open")
+	}
+
 	logger.Debugf("Open repo: %s", r.path)
 	if _, err := os.Stat(r.path); err == nil {
 		repo, err := git.OpenRepository(r.path)
@@ -187,8 +145,20 @@ func (r *Repository) Open() error {
 	return nil
 }
 
+// Close repo.
+func (r *Repository) Close() {
+	if r.repo != nil {
+		r.repo.Free()
+		r.repo = nil
+	}
+}
+
 // Pull changes.
 func (r *Repository) Pull() error {
+	if r.repo == nil {
+		return errors.Errorf("not open")
+	}
+
 	remote, err := r.repo.Remotes.Lookup("origin")
 	if err != nil {
 		return errors.Wrap(err, "failed to lookup origin")
@@ -355,6 +325,10 @@ func mergeAnalysisDescription(m git.MergeAnalysis) string {
 
 // Push changes.
 func (r *Repository) Push() error {
+	if r.repo == nil {
+		return errors.Errorf("not open")
+	}
+
 	remote, err := r.repo.Remotes.Lookup("origin")
 	if err != nil {
 		return errors.Wrap(err, "failed to lookup origin")
@@ -378,58 +352,21 @@ func (r *Repository) signature() *git.Signature {
 	}
 }
 
-func nameForID(id string) string {
-	b := keys.SHA256([]byte(id))
-	return encoding.MustEncode(b, encoding.Base62)
-}
-
-func (r *Repository) encryptItem(item *keyring.Item) ([]byte, error) {
-	b, err := msgpack.Marshal(item)
-	if err != nil {
-		return nil, err
-	}
-	sp := saltpack.New(nil)
-	encrypted, err := sp.Encrypt(b, r.key.X25519Key(), r.key.ID())
-	if err != nil {
-		return nil, err
-	}
-	return encrypted, nil
-}
-
-func (r *Repository) decryptItem(b []byte) (*keyring.Item, error) {
-	sp := saltpack.New(r.ks)
-	decrypted, sender, err := sp.Decrypt(b)
-	if err != nil {
-		return nil, err
-	}
-	if sender == nil {
-		return nil, errors.Errorf("no sender")
-	}
-	pk, err := r.ks.FindEdX25519PublicKey(sender.ID())
-	if err != nil {
-		return nil, err
-	}
-	if pk.ID() != r.key.ID() {
-		return nil, errors.Errorf("unknown sender %s", sender.ID())
-	}
-	var item keyring.Item
-	if err := msgpack.Unmarshal(decrypted, &item); err != nil {
-		return nil, err
-	}
-	return &item, nil
-}
-
 // Add ...
 func (r *Repository) Add(item *keyring.Item) error {
+	if r.repo == nil {
+		return errors.Errorf("not open")
+	}
+
 	idx, err := r.repo.Index()
 	if err != nil {
 		return err
 	}
 
-	name := nameForID(item.ID)
+	name := item.ID
 	path := filepath.Join(r.path, name)
 
-	encrypted, err := r.encryptItem(item)
+	encrypted, err := encryptItem(item, r.key)
 	if err != nil {
 		return err
 	}
@@ -460,7 +397,11 @@ func (r *Repository) Add(item *keyring.Item) error {
 
 // Delete ...
 func (r *Repository) Delete(id string) error {
-	name := nameForID(id)
+	if r.repo == nil {
+		return errors.Errorf("not open")
+	}
+
+	name := id
 	path := filepath.Join(r.path, name)
 
 	if err := os.Remove(path); err != nil {

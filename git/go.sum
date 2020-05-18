@@ -23,6 +23,8 @@ github.com/keys-pub/keys v0.0.0-20200511032151-dbf523670a5e h1:Vox6XUTh6Fmv2SqtT
 github.com/keys-pub/keys v0.0.0-20200511032151-dbf523670a5e/go.mod h1:4PO+deFg6ASenLyqv4bxiJnj7fxVz7HbvVhuFz+MI88=
 github.com/keys-pub/keys v0.0.0-20200516005029-ce563e12b494 h1:TRiQrT2+/qA0ZtnSHi61C4C86YN5NgLql4Z8LgeOKBA=
 github.com/keys-pub/keys v0.0.0-20200516005029-ce563e12b494/go.mod h1:MCyK8AjqihY//nKiRwf6rwVvXxFEm0mlL89gmt8s3/o=
+github.com/keys-pub/keys v0.0.0-20200517232941-a94d2050e2ae h1:bssrQCD1QfcxEqRHa1oycF1PWnXXzR7P7WhsKoFmWxc=
+github.com/keys-pub/keys v0.0.0-20200517232941-a94d2050e2ae/go.mod h1:MCyK8AjqihY//nKiRwf6rwVvXxFEm0mlL89gmt8s3/o=
 github.com/keys-pub/keysd v0.0.45 h1:cOWy0G8puPU+dBcweNXg0Gczc1ROYXvJs2exx1Ue598=
 github.com/keys-pub/wincred v1.0.4 h1:AQR+h0UmkKw5aeXq9pAoctBZUvPaCh2lo8bU22mcW/w=
 github.com/keys-pub/wincred v1.0.4/go.mod h1:hYYzs98abtg1kw7vFeqUQkxH+dWP75iFINYBTYalNlI=

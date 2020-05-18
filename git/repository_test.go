@@ -26,7 +26,7 @@ func TestRepositoryAddDelete(t *testing.T) {
 	host := "gitlab.com"
 
 	ks := keys.NewMemStore(true)
-	err = ks.SaveEdX25519Key(key)
+	err = ks.Save(key)
 	require.NoError(t, err)
 
 	// Repo1: Open
@@ -49,10 +49,20 @@ func TestRepositoryAddDelete(t *testing.T) {
 	err = repo.Push()
 	require.NoError(t, err)
 
+	// Repo3: Open (Repo1 path)
+	repo3, err := git.NewRepository(url, host, path, key, nil)
+	require.NoError(t, err)
+	err = repo3.Open()
+	require.NoError(t, err)
+	items, err := repo2.List()
+	require.NoError(t, err)
+	require.Equal(t, 1, len(items))
+	require.Equal(t, []byte("mypassword"), items[0].Data)
+
 	// Repo2: Pull, List
 	err = repo2.Pull()
 	require.NoError(t, err)
-	items, err := repo2.List()
+	items, err = repo2.List()
 	require.NoError(t, err)
 	require.Equal(t, 1, len(items))
 	require.Equal(t, []byte("mypassword"), items[0].Data)
@@ -86,10 +96,6 @@ func TestRepositoryConflict(t *testing.T) {
 
 	url := "git@gitlab.com:gabrielha/pass.git"
 	host := "gitlab.com"
-
-	ks := keys.NewMemStore(true)
-	err = ks.SaveEdX25519Key(key)
-	require.NoError(t, err)
 
 	// Repo1: Open
 	repo, err := git.NewRepository(url, host, path, key, nil)
