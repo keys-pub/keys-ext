@@ -2,15 +2,12 @@ package git
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/keys-pub/keys"
 
-	"github.com/keys-pub/keys/keyring"
 	git "github.com/libgit2/git2go/v30"
 	"github.com/pkg/errors"
 )
@@ -23,8 +20,6 @@ type Repository struct {
 	path string
 	opts *RepositoryOpts
 
-	key        *keys.EdX25519Key
-	ks         *keys.Store
 	publicKey  string
 	privateKey string
 
@@ -56,21 +51,19 @@ func NewRepository(urs string, host string, path string, key *keys.EdX25519Key, 
 	logger.Debugf("Git public key: %s", publicKey)
 	logger.Debugf("Git user: %s", opts.GitUser)
 
-	ks := keys.NewMemStore(true)
-	if err := ks.Save(key); err != nil {
-		return nil, err
-	}
-
 	return &Repository{
 		path:       path,
-		key:        key,
-		ks:         ks,
 		opts:       opts,
 		urs:        urs,
 		host:       host,
 		publicKey:  string(publicKey),
 		privateKey: string(privateKey),
 	}, nil
+}
+
+// Path to repo.
+func (r *Repository) Path() string {
+	return r.path
 }
 
 func (r *Repository) credentialsCallback(url string, usernameFromURL string, allowedTypes git.CredType) (*git.Cred, error) {
@@ -352,26 +345,13 @@ func (r *Repository) signature() *git.Signature {
 	}
 }
 
-// Add ...
-func (r *Repository) Add(item *keyring.Item) error {
+func (r *Repository) add(name string) error {
 	if r.repo == nil {
 		return errors.Errorf("not open")
 	}
 
 	idx, err := r.repo.Index()
 	if err != nil {
-		return err
-	}
-
-	name := item.ID
-	path := filepath.Join(r.path, name)
-
-	encrypted, err := encryptItem(item, r.key)
-	if err != nil {
-		return err
-	}
-
-	if err := ioutil.WriteFile(path, encrypted, 0600); err != nil {
 		return err
 	}
 
@@ -395,17 +375,9 @@ func (r *Repository) Add(item *keyring.Item) error {
 	return nil
 }
 
-// Delete ...
-func (r *Repository) Delete(id string) error {
+func (r *Repository) delete(name string) error {
 	if r.repo == nil {
 		return errors.Errorf("not open")
-	}
-
-	name := id
-	path := filepath.Join(r.path, name)
-
-	if err := os.Remove(path); err != nil {
-		return err
 	}
 
 	idx, err := r.repo.Index()
@@ -424,7 +396,7 @@ func (r *Repository) Delete(id string) error {
 		return err
 	}
 
-	logger.Debugf("Delete item %s", name)
+	logger.Debugf("Delete %s", name)
 	message := fmt.Sprintf("Delete %s\n", name)
 	if err := r.createCommit(treeID, message); err != nil {
 		return err

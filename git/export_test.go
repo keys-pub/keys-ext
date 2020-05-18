@@ -1,6 +1,7 @@
 package git_test
 
 import (
+	"bytes"
 	"io/ioutil"
 	"testing"
 	"time"
@@ -24,19 +25,34 @@ func TestExport(t *testing.T) {
 	url := "git@gitlab.com:gabrielha/pass.git"
 	host := "gitlab.com"
 
+	service := "GitTest-Export-" + keys.Rand3262()
+
+	salt := bytes.Repeat([]byte{0x01}, 16)
+	auth, err := keyring.NewPasswordAuth("testpassword", salt)
+	require.NoError(t, err)
+
 	// Repo
 	repo, err := git.NewRepository(url, host, path, key, nil)
 	require.NoError(t, err)
 	err = repo.Open()
 	require.NoError(t, err)
 
-	// Keyring
+	// Keyring #1 (mem)
 	kr := keyring.NewMem(true)
 	item := keyring.NewItem(keys.Rand3262(), []byte("testpassword"), "", time.Now())
 	err = kr.Create(item)
 	require.NoError(t, err)
 
-	changes, err := git.Export(kr, repo)
+	// Keyring #2 (git repo)
+	kr2, err := keyring.New(service, repo)
+	require.NoError(t, err)
+	err = kr2.Unlock(auth)
+	require.NoError(t, err)
+	err = repo.Push()
+	require.NoError(t, err)
+
+	// Export
+	changes, err := keyring.Export(kr, kr2)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(changes.Add))
 	require.Equal(t, item.ID, changes.Add[0].ID)
