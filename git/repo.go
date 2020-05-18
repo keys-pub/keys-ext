@@ -12,8 +12,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// TODO: Is an in memory implementation possible?
-
 // Repository ...
 type Repository struct {
 	urs  string
@@ -34,12 +32,17 @@ type RepositoryOpts struct {
 }
 
 // NewRepository ...
-func NewRepository(urs string, host string, path string, key *keys.EdX25519Key, opts *RepositoryOpts) (*Repository, error) {
+func NewRepository(urs string, path string, key *keys.EdX25519Key, opts *RepositoryOpts) (*Repository, error) {
 	if opts == nil {
 		opts = &RepositoryOpts{}
 	}
 	if opts.GitUser == "" {
 		opts.GitUser = "git"
+	}
+
+	host, err := ParseHost(urs)
+	if err != nil {
+		return nil, err
 	}
 
 	privateKey, err := key.EncodeToSSH(nil)
@@ -79,6 +82,7 @@ func (r *Repository) newRemoteCallbacks() git.RemoteCallbacks {
 		CredentialsCallback: r.credentialsCallback,
 		CertificateCheckCallback: func(cert *git.Certificate, valid bool, hostname string) git.ErrorCode {
 			logger.Debugf("Certificate check %t %s", valid, hostname)
+			// TODO: Check
 			// if !valid {
 			// 	return git.ErrCertificate
 			// }
@@ -117,24 +121,6 @@ func (r *Repository) Open() error {
 	}
 
 	logger.Debugf("Repo: %s", r.repo.Path())
-
-	// if remote == nil {
-	// remote, err := r.repo.Remotes.Create("origin", r.repo.Path())
-	// if err != nil {
-	// 	return errors.Wrap(err, "failed to create origin")
-	// }
-	// r.remote = remote
-	// }
-	// if err := r.remote.ConnectFetch(&rcb, nil, nil); err != nil {
-	// 	return errors.Wrapf(err, "failed to connect/fetch")
-	// }
-
-	// heads, err := r.remote.Ls()
-	// if err != nil {
-	// 	return errors.Wrapf(err, "failed to ls remote")
-	// }
-	// logger.Debugf("Heads: %v", heads)
-
 	return nil
 }
 
@@ -198,13 +184,13 @@ func (r *Repository) Pull() error {
 	logger.Debugf("Git merge analysis: %s", mergeAnalysisDescription(analysis))
 
 	if isMergeAnalysis(analysis, git.MergeAnalysisUpToDate) {
-		logger.Debugf("Up to date")
+		logger.Debugf("Merge analysis: Up to date")
 		// Up to date
 		return nil
 	}
 
 	if isMergeAnalysis(analysis, git.MergeAnalysisFastForward) {
-		logger.Debugf("Fast forward")
+		logger.Debugf("Merge analysis: Fast forward")
 
 		target := remoteBranch.Target()
 
@@ -233,24 +219,32 @@ func (r *Repository) Pull() error {
 	}
 
 	if isMergeAnalysis(analysis, git.MergeAnalysisNormal) {
-		logger.Debugf("Normal")
+		logger.Debugf("Merge analysis: Normal")
 
-		// Just merge changes
-		if err := r.repo.Merge([]*git.AnnotatedCommit{annotatedCommit}, nil, nil); err != nil {
+		checkoutOpts := &git.CheckoutOpts{
+			Strategy: git.CheckoutSafe | git.CheckoutRecreateMissing | git.CheckoutAllowConflicts | git.CheckoutUseOurs,
+		}
+
+		if err := r.repo.Merge([]*git.AnnotatedCommit{annotatedCommit}, nil, checkoutOpts); err != nil {
 			return err
 		}
 		// Check for conflicts
-		index, err := r.repo.Index()
+		idx, err := r.repo.Index()
 		if err != nil {
 			return err
 		}
 
-		if index.HasConflicts() {
-			return errors.New("git conflicts")
+		if idx.HasConflicts() {
+			if err := idx.AddAll([]string{}, git.IndexAddDefault, nil); err != nil {
+				return err
+			}
+			if err := idx.Write(); err != nil {
+				return err
+			}
 		}
 
 		// Get Write Tree
-		treeID, err := index.WriteTree()
+		treeID, err := idx.WriteTree()
 		if err != nil {
 			return err
 		}
@@ -271,7 +265,8 @@ func (r *Repository) Pull() error {
 		}
 
 		sig := r.signature()
-		commitID, err := r.repo.CreateCommit("HEAD", sig, sig, "", tree, localCommit, remoteCommit)
+		message := "Merge"
+		commitID, err := r.repo.CreateCommit("HEAD", sig, sig, message, tree, localCommit, remoteCommit)
 		if err != nil {
 			return err
 		}
@@ -352,24 +347,24 @@ func (r *Repository) add(name string) error {
 
 	idx, err := r.repo.Index()
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to get index")
 	}
 
 	if err := idx.AddByPath(name); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to add by path")
 	}
 	if err := idx.Write(); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to write add")
 	}
 	treeID, err := idx.WriteTree()
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to write tree")
 	}
 
 	logger.Debugf("Add %s", name)
 	message := fmt.Sprintf("Add %s\n", name)
 	if err := r.createCommit(treeID, message); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to create commit")
 	}
 
 	return nil
@@ -405,25 +400,42 @@ func (r *Repository) delete(name string) error {
 }
 
 func (r *Repository) createCommit(treeID *git.Oid, message string) error {
-	sig := r.signature()
-
+	unborn := false
 	currentBranch, err := r.repo.Head()
 	if err != nil {
-		return err
-	}
-	currentTip, err := r.repo.LookupCommit(currentBranch.Target())
-	if err != nil {
-		return err
+		if ErrIsCode(err, ErrUnbornBranch) {
+			// No commits yet
+			unborn = true
+		} else {
+			return errors.Wrapf(err, "failed to get head")
+		}
 	}
 
 	tree, err := r.repo.LookupTree(treeID)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to lookup tree")
 	}
-	commitID, err := r.repo.CreateCommit("HEAD", sig, sig, message, tree, currentTip)
-	if err != nil {
-		return err
+
+	sig := r.signature()
+	if unborn {
+		// If unborn then create commit with no parent, this happens on a bare
+		// repository.
+		commitID, err := r.repo.CreateCommit("HEAD", sig, sig, message, tree)
+		if err != nil {
+			return err
+		}
+		logger.Debugf("Commit (first) %s", commitID)
+	} else {
+		currentTip, err := r.repo.LookupCommit(currentBranch.Target())
+		if err != nil {
+			return errors.Wrapf(err, "failed to lookup commit")
+		}
+
+		commitID, err := r.repo.CreateCommit("HEAD", sig, sig, message, tree, currentTip)
+		if err != nil {
+			return err
+		}
+		logger.Debugf("Commit %s", commitID)
 	}
-	logger.Debugf("Commit %s", commitID)
 	return nil
 }

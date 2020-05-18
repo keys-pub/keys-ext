@@ -23,7 +23,6 @@ func TestExport(t *testing.T) {
 	require.NoError(t, err)
 
 	url := "git@gitlab.com:gabrielha/pass.git"
-	host := "gitlab.com"
 
 	service := "GitTest-Export-" + keys.Rand3262()
 
@@ -32,7 +31,7 @@ func TestExport(t *testing.T) {
 	require.NoError(t, err)
 
 	// Repo
-	repo, err := git.NewRepository(url, host, path, key, nil)
+	repo, err := git.NewRepository(url, path, key, nil)
 	require.NoError(t, err)
 	err = repo.Open()
 	require.NoError(t, err)

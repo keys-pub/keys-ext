@@ -50,7 +50,7 @@ func (r *Repository) Set(service string, id string, data []byte, typ string) err
 	name := filepath.Join(service, id)
 	if err := r.add(name); err != nil {
 		// TODO: How do we resolve invalid state?
-		return err
+		return errors.Wrapf(err, "failed to add to repo")
 	}
 
 	return nil
