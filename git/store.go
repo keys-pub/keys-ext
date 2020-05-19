@@ -34,7 +34,7 @@ func (r *Repository) Get(service string, id string) ([]byte, error) {
 }
 
 // Set bytes.
-func (r *Repository) Set(service string, id string, data []byte, typ string) error {
+func (r *Repository) Set(service string, id string, data []byte) error {
 	if id == "" {
 		return errors.Errorf("no id specified")
 	}
