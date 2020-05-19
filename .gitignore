@@ -2,3 +2,4 @@ credentials.json
 dist/
 keys
 keysd
+id_ed25519
