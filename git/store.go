@@ -109,11 +109,6 @@ func (r *Repository) IDs(service string, opts *keyring.IDsOpts) ([]string, error
 	return ids, nil
 }
 
-// List items.
-func (r *Repository) List(service string, key keyring.SecretKey, opts *keyring.ListOpts) ([]*keyring.Item, error) {
-	return keyring.List(r, service, key, opts)
-}
-
 // Exists ...
 func (r *Repository) Exists(service string, id string) (bool, error) {
 	path := filepath.Join(r.Path(), service, id)

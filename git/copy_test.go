@@ -12,7 +12,7 @@ import (
 )
 
 func TestCopy(t *testing.T) {
-	git.SetLogger(git.NewLogger(git.DebugLevel))
+	// git.SetLogger(git.NewLogger(git.DebugLevel))
 	var err error
 
 	service := "GitTest-Export-" + keys.Rand3262()
