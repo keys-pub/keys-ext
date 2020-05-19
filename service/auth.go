@@ -39,6 +39,8 @@ func newAuth(cfg *Config, st keyring.Store) (*auth, error) {
 		"/service.Keys/AuthUnlock",
 		"/service.Keys/AuthLock",
 		"/service.Keys/RuntimeStatus",
+		"/service.Keys/Rand",
+		"/service.Keys/RandPassword",
 	)
 
 	service := keyringService(cfg)

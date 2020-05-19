@@ -11,9 +11,9 @@ func otherCommands(client *Client) []cli.Command {
 	return []cli.Command{
 		cli.Command{
 			Name:  "rand",
-			Usage: "Random bytes",
+			Usage: "Generate randomness",
 			Flags: []cli.Flag{
-				cli.IntFlag{Name: "n", Usage: "number of bytes", Value: 32},
+				cli.IntFlag{Name: "num-bytes, n", Usage: "number of bytes", Value: 32},
 				cli.StringFlag{Name: "encoding, enc, e", Usage: "encoding (base64, base62, base58, base32, base16, bip39, saltpack)", Value: "base62"},
 			},
 			Action: func(c *cli.Context) error {
@@ -22,7 +22,7 @@ func otherCommands(client *Client) []cli.Command {
 					return err
 				}
 				rand, err := client.KeysClient().Rand(context.TODO(), &RandRequest{
-					NumBytes: int32(c.Int("n")),
+					NumBytes: int32(c.Int("num-bytes")),
 					Encoding: enc,
 				})
 				if err != nil {
@@ -30,6 +30,41 @@ func otherCommands(client *Client) []cli.Command {
 				}
 				fmt.Println(string(rand.Data))
 				return nil
+			},
+			Subcommands: []cli.Command{
+				cli.Command{
+					Name:  "password",
+					Usage: "Generate random password",
+					Flags: []cli.Flag{
+						cli.IntFlag{Name: "length, l", Usage: "length of password", Value: 12},
+					},
+					Action: func(c *cli.Context) error {
+						rand, err := client.KeysClient().RandPassword(context.TODO(), &RandPasswordRequest{
+							Length: int32(c.Int("length")),
+						})
+						if err != nil {
+							return err
+						}
+						fmt.Println(rand.Password)
+						return nil
+					},
+				},
+				cli.Command{
+					Name:  "passphrase",
+					Usage: "Generate random passphrase",
+					Flags: []cli.Flag{},
+					Action: func(c *cli.Context) error {
+						rand, err := client.KeysClient().Rand(context.TODO(), &RandRequest{
+							NumBytes: 16,
+							Encoding: BIP39,
+						})
+						if err != nil {
+							return err
+						}
+						fmt.Println(string(rand.Data))
+						return nil
+					},
+				},
 			},
 		},
 	}
