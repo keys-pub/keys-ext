@@ -14,6 +14,10 @@ import (
 // Server ...
 type Server struct{}
 
+// func init() {
+// 	SetLogger(NewLogger(InfoLevel))
+// }
+
 // NewAuthenticatorsServer creates an AuthenticatorsServer.
 func NewAuthenticatorsServer() fido2.AuthenticatorsServer {
 	return &Server{}
@@ -271,5 +275,79 @@ func (s *Server) RelyingParties(ctx context.Context, req *fido2.RelyingPartiesRe
 
 	return &fido2.RelyingPartiesResponse{
 		Parties: relyingPartiesToRPC(rps),
+	}, nil
+}
+
+// GenerateHMACSecret ...
+func (s *Server) GenerateHMACSecret(ctx context.Context, req *fido2.GenerateHMACSecretRequest) (*fido2.GenerateHMACSecretResponse, error) {
+	device, err := findDevice(req.Device)
+	if err != nil {
+		return nil, err
+	}
+	defer device.Close()
+
+	cdh := libfido2.RandBytes(32)
+
+	opts := &libfido2.MakeCredentialOpts{
+		Extensions: []libfido2.Extension{libfido2.HMACSecretExtension},
+	}
+	switch req.RK {
+	case fido2.Default:
+		opts.RK = libfido2.Default
+	case fido2.True:
+		opts.RK = libfido2.True
+	case fido2.False:
+		opts.RK = libfido2.False
+	}
+
+	attest, err := device.MakeCredential(
+		cdh,
+		libfido2.RelyingParty{
+			ID:   req.RPID,
+			Name: "-",
+		},
+		libfido2.User{
+			ID:   []byte("-"),
+			Name: "-",
+		},
+		libfido2.ES256, // Algorithm
+		req.PIN,
+		opts,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &fido2.GenerateHMACSecretResponse{
+		ClientDataHash: attest.ClientDataHash,
+		CredentialID:   attest.CredID,
+	}, nil
+}
+
+// HMACSecret ...
+func (s *Server) HMACSecret(ctx context.Context, req *fido2.HMACSecretRequest) (*fido2.HMACSecretResponse, error) {
+	device, err := findDevice(req.Device)
+	if err != nil {
+		return nil, err
+	}
+	defer device.Close()
+
+	assertion, err := device.Assertion(
+		req.RPID,
+		req.ClientDataHash,
+		req.CredentialID,
+		req.PIN,
+		&libfido2.AssertionOpts{
+			Extensions: []libfido2.Extension{libfido2.HMACSecretExtension},
+			UP:         libfido2.True,
+			HMACSalt:   req.Salt,
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &fido2.HMACSecretResponse{
+		HMACSecret: assertion.HMACSecret,
 	}, nil
 }
