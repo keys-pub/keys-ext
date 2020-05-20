@@ -6,50 +6,20 @@ import (
 	"unicode/utf8"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/keyring"
 	"github.com/pkg/errors"
 )
 
-func certificateKey(cfg *Config, st keyring.Store, generate bool) (*keys.CertificateKey, error) {
-	private, err := st.Get(keyringService(cfg), ".cert-private")
-	if err != nil {
-		return nil, err
-	}
-	public, err := st.Get(keyringService(cfg), ".cert-public")
-	if err != nil {
-		return nil, err
-	}
-	if private != nil && public != nil {
-		logger.Infof("Found certificate in keyring")
-
-		// Save public cert (always)
-		if err := saveCertificate(cfg, string(public)); err != nil {
-			return nil, errors.Wrapf(err, "failed to save cert public key")
-		}
-
-		return keys.NewCertificateKey(string(private), string(public))
-	}
-	return generateCertificate(cfg, st)
-}
-
-// generateCertificate generates a certificate key.
-func generateCertificate(cfg *Config, st keyring.Store) (*keys.CertificateKey, error) {
+// GenerateCertificate generates a certificate key and saves it to the support dir.
+func GenerateCertificate(cfg *Config, save bool) (*keys.CertificateKey, error) {
 	logger.Infof("Generating certificate...")
 	certKey, err := keys.GenerateCertificateKey("localhost", true, nil)
 	if err != nil {
 		return nil, err
 	}
-
-	logger.Infof("Saving certificate to keyring...")
-	if err := st.Set(keyringService(cfg), ".cert-private", []byte(certKey.Private()), ""); err != nil {
-		return nil, err
-	}
-	if err := st.Set(keyringService(cfg), ".cert-public", []byte(certKey.Public()), ""); err != nil {
-		return nil, err
-	}
-
-	if err := saveCertificate(cfg, certKey.Public()); err != nil {
-		return nil, errors.Wrapf(err, "failed to save cert public key")
+	if save {
+		if err := saveCertificate(cfg, certKey.Public()); err != nil {
+			return nil, errors.Wrapf(err, "failed to save cert public key")
+		}
 	}
 	return certKey, nil
 }
@@ -84,14 +54,17 @@ func loadCertificate(cfg *Config) (string, error) {
 	return string(b), nil
 }
 
-// deleteCertificate removes saved certificate.
-func deleteCertificate(cfg *Config) error {
+// DeleteCertificate removes saved certificate.
+func DeleteCertificate(cfg *Config) error {
 	certPath, err := cfg.certPath(false)
 	if err != nil {
 		return err
 	}
-	if _, err := os.Stat(certPath); os.IsNotExist(err) {
+	if _, err := os.Stat(certPath); err == nil {
+		return os.Remove(certPath)
+	} else if os.IsNotExist(err) {
 		return nil
+	} else {
+		return err
 	}
-	return os.Remove(certPath)
 }

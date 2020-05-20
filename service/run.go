@@ -159,7 +159,17 @@ type CloseFn func()
 // TODO: Protect against incompatible downgrades
 
 func runService(cfg *Config, build Build, lgi LogInterceptor) error {
-	serveFn, closeFn, serveErr := NewServiceFn(cfg, build, lgi)
+	if IsPortInUse(cfg.Port()) {
+		return errors.Errorf("port %d in use; is keysd already running?", cfg.Port())
+	}
+
+	cert, err := GenerateCertificate(cfg, true)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = DeleteCertificate(cfg) }()
+
+	serveFn, closeFn, serveErr := NewServiceFn(cfg, build, cert, lgi)
 	if serveErr != nil {
 		return serveErr
 	}
@@ -168,19 +178,10 @@ func runService(cfg *Config, build Build, lgi LogInterceptor) error {
 }
 
 // NewServiceFn ...
-func NewServiceFn(cfg *Config, build Build, lgi LogInterceptor) (ServeFn, CloseFn, error) {
+func NewServiceFn(cfg *Config, build Build, cert *keys.CertificateKey, lgi LogInterceptor) (ServeFn, CloseFn, error) {
 	var opts []grpc.ServerOption
 
-	if IsPortInUse(cfg.Port()) {
-		return nil, nil, errors.Errorf("port %d in use; is keysd already running?", cfg.Port())
-	}
-
 	st, err := newKeyringStore(cfg)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	cert, err := certificateKey(cfg, st, true)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -26,7 +26,9 @@ func TestServiceFn(t *testing.T) {
 		Date:    date,
 	}
 	lgi := service.NewLogrusInterceptor(logrus.StandardLogger())
-	serveFn, closeFn, serviceErr := service.NewServiceFn(cfg, build, lgi)
+	cert, err := service.GenerateCertificate(cfg, false)
+	require.NoError(t, err)
+	serveFn, closeFn, serviceErr := service.NewServiceFn(cfg, build, cert, lgi)
 	require.NoError(t, serviceErr)
 
 	t.Logf("testing")
