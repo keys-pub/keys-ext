@@ -12,7 +12,7 @@ func (s *service) RuntimeStatus(ctx context.Context, req *RuntimeStatusRequest) 
 		logger.Errorf("Failed to get current executable path: %s", exeErr)
 	}
 	kr := s.ks.Keyring()
-	authed, authedErr := kr.Authed()
+	isSetup, authedErr := kr.IsSetup()
 	if authedErr != nil {
 		return nil, authedErr
 	}
@@ -20,7 +20,7 @@ func (s *service) RuntimeStatus(ctx context.Context, req *RuntimeStatusRequest) 
 		Version:         s.build.Version,
 		AppName:         s.cfg.AppName(),
 		Exe:             exe,
-		AuthSetupNeeded: !authed,
+		AuthSetupNeeded: !isSetup,
 		FIDO2:           s.fido2,
 	}
 	logger.Infof("Runtime status, %s", resp.String())

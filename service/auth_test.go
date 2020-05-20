@@ -19,17 +19,17 @@ func TestAuth(t *testing.T) {
 	kr := auth.keyring
 
 	// Setup needed
-	authed, err := kr.Authed()
+	isSetup, err := kr.IsSetup()
 	require.NoError(t, err)
-	require.False(t, authed)
+	require.False(t, isSetup)
 
-	// Unlock (setup)
-	_, _, err = auth.unlock("password123", "test")
+	// Setup
+	_, _, err = auth.setup("password123", "test")
 	require.NoError(t, err)
 
-	authed2, err := kr.Authed()
+	isSetup, err = kr.IsSetup()
 	require.NoError(t, err)
-	require.True(t, authed2)
+	require.True(t, isSetup)
 
 	token, _, err := auth.unlock("password123", "test")
 	require.NoError(t, err)
@@ -45,6 +45,12 @@ func TestAuth(t *testing.T) {
 	require.EqualError(t, err, "rpc error: code = Unauthenticated desc = invalid password")
 	require.Empty(t, auth.tokens)
 	require.Empty(t, auth.tokens)
+
+	// Unlock
+	token, _, err = auth.unlock("password123", "test")
+	require.NoError(t, err)
+	require.NotEmpty(t, auth.tokens)
+	require.NotEmpty(t, token)
 }
 
 func TestAuthorize(t *testing.T) {

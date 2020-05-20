@@ -67,30 +67,34 @@ func (a *auth) lock() error {
 	return nil
 }
 
-func (a *auth) verifyPassword(password string) (keyring.Auth, error) {
-	salt, err := a.keyring.Salt()
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to load salt")
-	}
-	auth, err := keyring.NewPasswordAuth(password, salt)
-	if err != nil {
-		return nil, err
-	}
-	if err := a.keyring.Unlock(auth); err != nil {
-		return nil, err
-	}
-	return auth, nil
+func (a *auth) setup(password string, client string) (string, keyring.Auth, error) {
+	return a.check(password, client, true)
 }
 
 func (a *auth) unlock(password string, client string) (string, keyring.Auth, error) {
-	logger.Infof("Unlock")
-	auth, err := a.verifyPassword(password)
+	return a.check(password, client, false)
+}
+
+func (a *auth) check(password string, client string, setup bool) (string, keyring.Auth, error) {
+	var auth keyring.Auth
+	var err error
+	var id string
+
+	if setup {
+		logger.Infof("Setup...")
+		id, auth, err = a.keyring.SetupWithPassword(password)
+	} else {
+		logger.Infof("Unlock...")
+		id, auth, err = a.keyring.UnlockWithPassword(password)
+	}
+
 	if err != nil {
 		if err == keyring.ErrInvalidAuth {
 			return "", nil, status.Error(codes.Unauthenticated, "invalid password")
 		}
 		return "", nil, errors.Wrapf(err, "failed to unlock")
 	}
+	logger.Debugf("Unlock used %s", id)
 
 	token := generateToken()
 	a.tokens[client] = token
@@ -166,11 +170,11 @@ func (a clientAuth) RequireTransportSecurity() bool {
 
 func (s *service) isAuthSetupNeeded() (bool, error) {
 	kr := s.ks.Keyring()
-	authed, err := kr.Authed()
+	isSetup, err := kr.IsSetup()
 	if err != nil {
 		return false, err
 	}
-	return !authed, nil
+	return !isSetup, nil
 }
 
 // AuthSetup (RPC) ...
@@ -184,7 +188,7 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 		return nil, errors.Errorf("auth already setup")
 	}
 
-	token, auth, err := s.auth.unlock(req.Password, req.Client)
+	token, auth, err := s.auth.setup(req.Password, req.Client)
 	if err != nil {
 		return nil, err
 	}
@@ -203,6 +207,7 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 		}
 	}
 
+	// TODO: Use derived key from auth
 	key := auth.Key()
 
 	if err := s.Open(ctx, key); err != nil {

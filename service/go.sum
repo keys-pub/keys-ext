@@ -38,6 +38,8 @@ github.com/danieljoos/wincred v1.0.2 h1:zf4bhty2iLuwgjgpraD2E9UbvO+fe54XXGJbOwe2
 github.com/danieljoos/wincred v1.0.2/go.mod h1:SnuYRW9lp1oJrZX/dXJqr0cPK5gYXqx3EJbmjhLdK9U=
 github.com/danieljoos/wincred v1.0.3-0.20190627210546-1fd2f0dfbd6a h1:76u4hHG3lajlrKSSdtWq0KYKRYFd2OSjTSaKe+FYjLI=
 github.com/danieljoos/wincred v1.0.3-0.20190627210546-1fd2f0dfbd6a/go.mod h1:SnuYRW9lp1oJrZX/dXJqr0cPK5gYXqx3EJbmjhLdK9U=
+github.com/danieljoos/wincred v1.1.0 h1:3RNcEpBg4IhIChZdFRSdlQt1QjCp1sMAPIrOnm7Yf8g=
+github.com/danieljoos/wincred v1.1.0/go.mod h1:XYlo+eRTsVA9aHGp7NGjFkPla4m+DCL7hqDjlFjiygg=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -198,9 +200,12 @@ github.com/keys-pub/keys v0.0.0-20200511032151-dbf523670a5e h1:Vox6XUTh6Fmv2SqtT
 github.com/keys-pub/keys v0.0.0-20200511032151-dbf523670a5e/go.mod h1:4PO+deFg6ASenLyqv4bxiJnj7fxVz7HbvVhuFz+MI88=
 github.com/keys-pub/keys v0.0.0-20200517225925-b4d826f558e6 h1:YO6RlcqTelGElI/QznhGY9cYWgWFE/EbHtRAf5miSjk=
 github.com/keys-pub/keys v0.0.0-20200517225925-b4d826f558e6/go.mod h1:MCyK8AjqihY//nKiRwf6rwVvXxFEm0mlL89gmt8s3/o=
+github.com/keys-pub/keys v0.0.0-20200519005436-e3845e4fcd35 h1:Z6JQ/lfYr5a/gdNDCP5VGiSaz5jUAqaidIZWjMbJsBk=
+github.com/keys-pub/keys v0.0.0-20200519005436-e3845e4fcd35/go.mod h1:nOaBR3puTwpgR5cN6rQyZvNh8TFYRRmksXuk6ASe3HQ=
 github.com/keys-pub/keysd v0.0.36 h1:LJ4icoup2ihQg9gSGCxtoYKem5jzPigf9VB777fuFTc=
 github.com/keys-pub/keysd v0.0.37-0.20200426184731-707482381542 h1:vKMSbOUlwy38UkH3u27LFwgh4c6McA0RJkh3bKBOjlw=
 github.com/keys-pub/keysd v0.0.37 h1:Qx3Dhav0FMpJZGmSCbTcqHFMP6/q37arpdYBzbgseyA=
+github.com/keys-pub/keysd v0.0.46-0.20200519170150-bcfbfb48237b h1:AC1fZGwrEJmbb5RzqWg5v8MmfGTfFlC2k2kQokDcz9w=
 github.com/keys-pub/keysd/db v0.0.0-20200413003215-f85e85366c95 h1:5QzUKnwvuLpei8sBfFjcPZQKJSoIhYzg/yZxVqbvxlE=
 github.com/keys-pub/keysd/db v0.0.0-20200413003215-f85e85366c95/go.mod h1:zbe7XU3mVmOrFy+aQWU7+Z9Vy03ctb65Vlr3055AZ5c=
 github.com/keys-pub/keysd/db v0.0.0-20200509211014-112763c9a62a h1:9VfsTWKP/LESHShjrfP2gOjxasm1ozNzXQBPUB6zncI=
@@ -226,6 +231,8 @@ github.com/keys-pub/keysd/firestore v0.0.0-20200413003414-34e8a825f8fd/go.mod h1
 github.com/keys-pub/keysd/firestore v0.0.0-20200414165918-c4b40ad4f02d h1:+04LDJiJLkFjCVSiNchSQTdw3syqRHJnT/AEXTQOtCw=
 github.com/keys-pub/keysd/firestore v0.0.0-20200414165918-c4b40ad4f02d/go.mod h1:uHZ1qZy+KH3/l5aYqt5eigLB5LnbukClDpPtcXL0nr4=
 github.com/keys-pub/keysd/firestore v0.0.0-20200511185617-3242def70139/go.mod h1:uHZ1qZy+KH3/l5aYqt5eigLB5LnbukClDpPtcXL0nr4=
+github.com/keys-pub/keysd/git v0.0.0-20200519170150-bcfbfb48237b h1:J1ge1w3Z/I/KsKepIPFm8XhSaqJCXuK/xcY9zdn3fVA=
+github.com/keys-pub/keysd/git v0.0.0-20200519170150-bcfbfb48237b/go.mod h1:Z2IcVL1J/CUOA4oLc+mq5/GPg0jAZR3tmAI693Hn1Ko=
 github.com/keys-pub/keysd/http/api v0.0.0-20200412190331-0e28c0a8f66f h1:8AXm97Nd/iu1zV/V9JDmMk3T88oB6227oDH2Sy8oXvQ=
 github.com/keys-pub/keysd/http/api v0.0.0-20200412190331-0e28c0a8f66f/go.mod h1:OSIEb3BzTuKjFgNakbSWwoi6w2vnevE0iUkhXoivbOo=
 github.com/keys-pub/keysd/http/api v0.0.0-20200414165929-c63be6975df3 h1:Vb6RaQXGMq9R1KucyvmuoC/6kPLjwIbV9dj15vDOQDo=
@@ -276,6 +283,8 @@ github.com/keys-pub/keysd/wormhole v0.0.0-20200511190019-2de537e92279 h1:xF+z41H
 github.com/keys-pub/keysd/wormhole v0.0.0-20200511190019-2de537e92279/go.mod h1:tJwJ7YIEn4SLYtnpTlUHr0qVm9wVEfMG5fY46dU4Wzg=
 github.com/keys-pub/keysd/wormhole v0.0.0-20200517230256-862f60e2266a h1:8Lqof/dIvQzsx4d50fiE5iE/jwfkGh6vC3uSSOWEnys=
 github.com/keys-pub/keysd/wormhole v0.0.0-20200517230256-862f60e2266a/go.mod h1:rp5mDDsIzM2lFlwxNTKGC3SbcGB65KzdlqAQPdRgkKY=
+github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f h1:LLsdI2XManLH0JonKqB6OYmHdHk/WwJByDbHI3hCEcs=
+github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f/go.mod h1:YRHMiVbZqh7u8xRm77CvwJNAZdDlNXwWvQ4DK0N9mYg=
 github.com/keys-pub/wincred v1.0.4 h1:AQR+h0UmkKw5aeXq9pAoctBZUvPaCh2lo8bU22mcW/w=
 github.com/keys-pub/wincred v1.0.4/go.mod h1:hYYzs98abtg1kw7vFeqUQkxH+dWP75iFINYBTYalNlI=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=
@@ -300,6 +309,8 @@ github.com/labstack/echo/v4 v4.1.16 h1:8swiwjE5Jkai3RPfZoahp8kjVCRNq+y7Q0hPji2Kz
 github.com/labstack/echo/v4 v4.1.16/go.mod h1:awO+5TzAjvL8XpibdsfXxPgHr+orhtXZJZIQCVjogKI=
 github.com/labstack/gommon v0.3.0 h1:JEeO0bvc78PKdyHxloTKiF8BD5iGrH8T6MSeGvSgob0=
 github.com/labstack/gommon v0.3.0/go.mod h1:MULnywXg0yavhxWKc+lOruYdAhDwPK9wf0OL7NoOu+k=
+github.com/libgit2/git2go/v30 v30.0.3 h1:v+KRMhx85kHS0JzkPft7Wnt3+VUrYQrD/SQ77usTO/w=
+github.com/libgit2/git2go/v30 v30.0.3/go.mod h1:YReiQ7xhMoyAL4ISYFLZt+OGqn6xtLqvTC1xJ9oAH7Y=
 github.com/mattn/go-colorable v0.1.2/go.mod h1:U0ppj6V5qS13XJ6of8GYAs25YV2eR4EVcfRqFIhoBtE=
 github.com/mattn/go-colorable v0.1.4 h1:snbPLB8fVfU9iwbbo30TPtbLRzwWu6aJS6Xh4eaaviA=
 github.com/mattn/go-colorable v0.1.4/go.mod h1:U0ppj6V5qS13XJ6of8GYAs25YV2eR4EVcfRqFIhoBtE=

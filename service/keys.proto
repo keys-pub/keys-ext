@@ -81,7 +81,7 @@ service Keys {
   rpc Preferences(PreferencesRequest) returns (PreferencesResponse) {}
   rpc PreferenceSet(PreferenceSetRequest) returns (PreferenceSetResponse) {}
   
-  // These requests do not need auth, since they are used to set or check auth.
+  // These requests do not need auth.
   // BEGIN NO AUTH
   rpc AuthSetup(AuthSetupRequest) returns (AuthSetupResponse) {}
   rpc AuthUnlock(AuthUnlockRequest) returns (AuthUnlockResponse) {}
@@ -89,6 +89,7 @@ service Keys {
   rpc RuntimeStatus(RuntimeStatusRequest) returns (RuntimeStatusResponse) {}
   rpc Rand(RandRequest) returns (RandResponse) {}
   rpc RandPassword(RandPasswordRequest) returns (RandPasswordResponse) {}
+  rpc GitSetup(GitSetupRequest) returns (GitSetupResponse) {}
   // END NO AUTH
   
   rpc Collections(CollectionsRequest) returns (CollectionsResponse) {}
@@ -955,3 +956,10 @@ message AdminCheckRequest {
 message AdminCheckResponse {
 }
 
+message GitSetupRequest {
+  string url = 1 [(gogoproto.customname) = "URL"];
+  string key = 2;
+}
+
+message GitSetupResponse {
+}
