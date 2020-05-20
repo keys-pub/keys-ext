@@ -29,6 +29,8 @@ github.com/google/go-cmp v0.2.0/go.mod h1:oXzfMopK8JAjlY9xF4vHSVASa0yLyX7SntLO5a
 github.com/google/go-cmp v0.3.0/go.mod h1:8QqcDgzrUqlUb/G2PQTWiueGozuR1884gddMywk6iLU=
 github.com/google/go-cmp v0.3.1/go.mod h1:8QqcDgzrUqlUb/G2PQTWiueGozuR1884gddMywk6iLU=
 github.com/google/go-cmp v0.4.0/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
+github.com/google/uuid v1.1.1 h1:Gkbcsh/GbpXz7lPftLA3P6TYMwjCLYm83jiFQZF/3gY=
+github.com/google/uuid v1.1.1/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/keys-pub/go-libfido2 v0.0.0-20200423021134-ec5cf6208cfc h1:IsKKRZ/cjI097saZEEEQw1M69jJqYebIWsvjbXWaLFA=
 github.com/keys-pub/go-libfido2 v0.0.0-20200423021134-ec5cf6208cfc/go.mod h1:fTqaHBgT+hk2QptbKZ2KpGtzDXbLLKntOW/hUD0iXR8=
 github.com/keys-pub/go-libfido2 v0.0.0-20200425010100-b0520061860c h1:zrxj17BDCCAgIFG5MiYdDh4oYAll+UGe03za4gK4Wjk=
@@ -49,6 +51,8 @@ github.com/keys-pub/go-libfido2 v0.0.0-20200429024018-c64b2b4e5b1c h1:/WBxgTXH5h
 github.com/keys-pub/go-libfido2 v0.0.0-20200429024018-c64b2b4e5b1c/go.mod h1:P0V19qHwJNY0htZwZDe9Ilvs/nokGhdFX7faKFyZ6+U=
 github.com/keys-pub/go-libfido2 v0.0.0-20200501185237-7bb4174863e5 h1:87iYufhrV/J29FuNKmnJ2LfmLNXJgO6OfKV0sHSV2WI=
 github.com/keys-pub/go-libfido2 v0.0.0-20200501185237-7bb4174863e5/go.mod h1:P0V19qHwJNY0htZwZDe9Ilvs/nokGhdFX7faKFyZ6+U=
+github.com/keys-pub/go-libfido2 v0.0.0-20200520212756-2e0d0dba98a5 h1:pY6czhszHeTbuDF3LN/NhVpCV18+Q2FiVUy9DcE8zZY=
+github.com/keys-pub/go-libfido2 v0.0.0-20200520212756-2e0d0dba98a5/go.mod h1:P0V19qHwJNY0htZwZDe9Ilvs/nokGhdFX7faKFyZ6+U=
 github.com/keys-pub/keysd v0.0.36 h1:LJ4icoup2ihQg9gSGCxtoYKem5jzPigf9VB777fuFTc=
 github.com/keys-pub/keysd v0.0.37 h1:Qx3Dhav0FMpJZGmSCbTcqHFMP6/q37arpdYBzbgseyA=
 github.com/keys-pub/keysd v0.0.38 h1:O8TrVqjfDjssVtFZ0ETN+M7GY0geaaWbh1pISS1N5LA=
@@ -66,6 +70,7 @@ github.com/shurcooL/sanitized_anchor_name v1.0.0 h1:PdmoCO6wvbs+7yrJyMORt4/BmY5I
 github.com/shurcooL/sanitized_anchor_name v1.0.0/go.mod h1:1NzhyTcUVG4SuEtjjoZeVRXNmyL/1OwPU0+IJeTBvfc=
 github.com/sirupsen/logrus v1.5.0 h1:1N5EYkVAPEywqZRJd7cwnRtCb6xJx7NH3T3WUTF980Q=
 github.com/sirupsen/logrus v1.5.0/go.mod h1:+F7Ogzej0PZc/94MaYx/nvG9jOFMD2osvC3s+Squfpo=
+github.com/stretchr/objx v0.1.0 h1:4G4v2dO3VZwixGIRoQ5Lfboy6nUhCyYzaqnIAPPhYs4=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 github.com/stretchr/testify v1.5.1 h1:nOGnQDM7FYENwehXlg/kFVnos3rEvtKTjRvOWSzb6H4=

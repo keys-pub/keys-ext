@@ -26,6 +26,7 @@ func TestInfo(t *testing.T) {
 		})
 		require.NoError(t, err)
 		t.Logf("Info: %+v", infoResp.Info)
+		require.NotEmpty(t, infoResp.Info.AAGUID)
 	}
 }
 
