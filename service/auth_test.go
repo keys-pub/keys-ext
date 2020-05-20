@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-func TestAuth(t *testing.T) {
+func TestAuthWithPassword(t *testing.T) {
 	cfg, closeFn := testConfig(t, "KeysTest", "", "mem")
 	defer closeFn()
 	st, err := newKeyringStore(cfg)
@@ -24,14 +24,14 @@ func TestAuth(t *testing.T) {
 	require.False(t, isSetup)
 
 	// Setup
-	_, _, err = auth.setup("password123", "test")
+	_, _, err = auth.setupWithPassword("password123", "test")
 	require.NoError(t, err)
 
 	isSetup, err = kr.IsSetup()
 	require.NoError(t, err)
 	require.True(t, isSetup)
 
-	token, _, err := auth.unlock("password123", "test")
+	token, _, err := auth.unlockWithPassword("password123", "test")
 	require.NoError(t, err)
 	require.NotEmpty(t, auth.tokens)
 	require.NotEmpty(t, token)
@@ -41,13 +41,13 @@ func TestAuth(t *testing.T) {
 	require.NoError(t, err)
 
 	// Unlock with invalid password
-	_, _, err = auth.unlock("invalidpassword", "test")
+	_, _, err = auth.unlockWithPassword("invalidpassword", "test")
 	require.EqualError(t, err, "rpc error: code = Unauthenticated desc = invalid password")
 	require.Empty(t, auth.tokens)
 	require.Empty(t, auth.tokens)
 
 	// Unlock
-	token, _, err = auth.unlock("password123", "test")
+	token, _, err = auth.unlockWithPassword("password123", "test")
 	require.NoError(t, err)
 	require.NotEmpty(t, auth.tokens)
 	require.NotEmpty(t, token)
@@ -79,7 +79,7 @@ func TestAuthorize(t *testing.T) {
 	require.EqualError(t, err, "rpc error: code = Unauthenticated desc = invalid token")
 
 	// Unlock
-	token, _, err := auth.unlock("password123", "test")
+	token, _, err := auth.unlockWithPassword("password123", "test")
 	require.NoError(t, err)
 	require.NotEmpty(t, auth.tokens)
 	require.NotEmpty(t, token)
@@ -110,7 +110,8 @@ func TestAuthLock(t *testing.T) {
 
 	password := "password123"
 	_, err := service.AuthSetup(ctx, &AuthSetupRequest{
-		Password: password,
+		Secret: password,
+		Type:   PasswordAuth,
 	})
 	require.NoError(t, err)
 
@@ -133,7 +134,7 @@ func TestAuthSetup(t *testing.T) {
 	defer closeFn()
 	ctx := context.TODO()
 
-	setupResp, err := service.AuthSetup(ctx, &AuthSetupRequest{Password: "password123"})
+	setupResp, err := service.AuthSetup(ctx, &AuthSetupRequest{Secret: "password123", Type: PasswordAuth})
 	require.NoError(t, err)
 	require.NotEmpty(t, setupResp.AuthToken)
 }

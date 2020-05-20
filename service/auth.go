@@ -67,15 +67,19 @@ func (a *auth) lock() error {
 	return nil
 }
 
-func (a *auth) setup(password string, client string) (string, keyring.Auth, error) {
+func (a *auth) setupWithPassword(password string, client string) (string, keyring.Auth, error) {
 	return a.check(password, client, true)
 }
 
-func (a *auth) unlock(password string, client string) (string, keyring.Auth, error) {
+func (a *auth) unlockWithPassword(password string, client string) (string, keyring.Auth, error) {
 	return a.check(password, client, false)
 }
 
 func (a *auth) check(password string, client string, setup bool) (string, keyring.Auth, error) {
+	if password == "" {
+		return "", nil, errors.Errorf("empty password")
+	}
+
 	var auth keyring.Auth
 	var err error
 	var id string
@@ -188,9 +192,19 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 		return nil, errors.Errorf("auth already setup")
 	}
 
-	token, auth, err := s.auth.setup(req.Password, req.Client)
-	if err != nil {
-		return nil, err
+	var token string
+	var auth keyring.Auth
+	var authErr error
+	switch req.Type {
+	case PasswordAuth:
+		token, auth, authErr = s.auth.setupWithPassword(req.Secret, req.Client)
+	case FIDO2HMACSecretAuth:
+		// TODO:
+	default:
+		return nil, errors.Errorf("unrecognized auth type")
+	}
+	if authErr != nil {
+		return nil, authErr
 	}
 
 	// If setting up auth, and local database exists we should nuke it since the
@@ -221,10 +235,6 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 
 // AuthUnlock (RPC) ...
 func (s *service) AuthUnlock(ctx context.Context, req *AuthUnlockRequest) (*AuthUnlockResponse, error) {
-	if req.Password == "" {
-		return nil, errors.Errorf("no password specified")
-	}
-
 	setupNeeded, err := s.isAuthSetupNeeded()
 	if err != nil {
 		return nil, err
@@ -233,9 +243,19 @@ func (s *service) AuthUnlock(ctx context.Context, req *AuthUnlockRequest) (*Auth
 		return nil, errors.Errorf("auth setup needed")
 	}
 
-	token, auth, err := s.auth.unlock(req.Password, req.Client)
-	if err != nil {
-		return nil, err
+	var token string
+	var auth keyring.Auth
+	var authErr error
+	switch req.Type {
+	case PasswordAuth:
+		token, auth, authErr = s.auth.unlockWithPassword(req.Secret, req.Client)
+	case FIDO2HMACSecretAuth:
+		// TODO:
+	default:
+		return nil, errors.Errorf("unrecognized auth type")
+	}
+	if authErr != nil {
+		return nil, authErr
 	}
 
 	key := auth.Key()

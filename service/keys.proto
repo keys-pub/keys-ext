@@ -411,9 +411,23 @@ message RuntimeStatusResponse {
   bool fido2 = 6 [(gogoproto.customname) = "FIDO2"];
 }
 
+enum AuthType {
+  option (gogoproto.goproto_enum_prefix) = false;
+  option (gogoproto.enum_customname) = "AuthType";
+  
+  UNKNOWN_AUTH = 0 [(gogoproto.enumvalue_customname) = "UnknownAuth"];
+  // PasswordAuth using argon2id.
+  PASSWORD_AUTH = 1 [(gogoproto.enumvalue_customname) = "PasswordAuth"];
+  // FIDO2HMACSecretAuth using FIDO2 hmac-secret extension
+  FIDO2_HMAC_SECRET_AUTH = 10 [(gogoproto.enumvalue_customname) = "FIDO2HMACSecretAuth"];
+}
+
+
 message AuthSetupRequest {
-  // Password used to encrypt key backup.
-  string password = 1;
+  // Secret for auth depending on auth type, e.g. password, pin, etc
+  string secret = 1;
+  // Type for auth.
+  AuthType type = 2;
   // Client name.
   string client = 6;
 }
@@ -422,10 +436,12 @@ message AuthSetupResponse {
 }
 
 message AuthUnlockRequest {
-  // Password.
-  string password = 1;
+  // Secret for auth depending on auth type, e.g. password, pin, etc
+  string secret = 1;
+  // Type for auth.
+  AuthType type = 2;
   // Client name.
-  string client = 2;
+  string client = 6;
 }
 message AuthUnlockResponse {
   // AuthToken to use for requests.

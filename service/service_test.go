@@ -112,7 +112,8 @@ var authPassword = "testpassword"
 
 func testAuthSetup(t *testing.T, service *service) {
 	_, err := service.AuthSetup(context.TODO(), &AuthSetupRequest{
-		Password: authPassword,
+		Secret: authPassword,
+		Type:   PasswordAuth,
 	})
 	require.NoError(t, err)
 }
