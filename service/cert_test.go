@@ -19,13 +19,13 @@ func TestCertificate(t *testing.T) {
 	require.NoError(t, err)
 	err = saveCertificate(cfg, certKey.Public())
 	require.NoError(t, err)
-	defer func() { _ = deleteCertificate(cfg) }()
+	defer func() { _ = DeleteCertificate(cfg) }()
 
 	cert, err = loadCertificate(cfg)
 	require.NoError(t, err)
 	require.NotEmpty(t, cert)
 
-	err = deleteCertificate(cfg)
+	err = DeleteCertificate(cfg)
 	require.NoError(t, err)
 
 	cert, err = loadCertificate(cfg)
