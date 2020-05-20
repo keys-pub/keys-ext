@@ -180,7 +180,7 @@ func NewServiceFn(cfg *Config, build Build, lgi LogInterceptor) (ServeFn, CloseF
 		return nil, nil, err
 	}
 
-	cert, err := certificateKey(cfg, st, true)
+	cert, err := generateCertificate(cfg)
 	if err != nil {
 		return nil, nil, err
 	}

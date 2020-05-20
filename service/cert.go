@@ -6,48 +6,16 @@ import (
 	"unicode/utf8"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/keyring"
 	"github.com/pkg/errors"
 )
 
-func certificateKey(cfg *Config, st keyring.Store, generate bool) (*keys.CertificateKey, error) {
-	private, err := st.Get(keyringService(cfg), ".cert-private")
-	if err != nil {
-		return nil, err
-	}
-	public, err := st.Get(keyringService(cfg), ".cert-public")
-	if err != nil {
-		return nil, err
-	}
-	if private != nil && public != nil {
-		logger.Infof("Found certificate in keyring")
-
-		// Save public cert (always)
-		if err := saveCertificate(cfg, string(public)); err != nil {
-			return nil, errors.Wrapf(err, "failed to save cert public key")
-		}
-
-		return keys.NewCertificateKey(string(private), string(public))
-	}
-	return generateCertificate(cfg, st)
-}
-
 // generateCertificate generates a certificate key.
-func generateCertificate(cfg *Config, st keyring.Store) (*keys.CertificateKey, error) {
+func generateCertificate(cfg *Config) (*keys.CertificateKey, error) {
 	logger.Infof("Generating certificate...")
 	certKey, err := keys.GenerateCertificateKey("localhost", true, nil)
 	if err != nil {
 		return nil, err
 	}
-
-	logger.Infof("Saving certificate to keyring...")
-	if err := st.Set(keyringService(cfg), ".cert-private", []byte(certKey.Private()), ""); err != nil {
-		return nil, err
-	}
-	if err := st.Set(keyringService(cfg), ".cert-public", []byte(certKey.Public()), ""); err != nil {
-		return nil, err
-	}
-
 	if err := saveCertificate(cfg, certKey.Public()); err != nil {
 		return nil, errors.Wrapf(err, "failed to save cert public key")
 	}
