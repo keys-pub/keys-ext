@@ -163,13 +163,13 @@ func runService(cfg *Config, build Build, lgi LogInterceptor) error {
 		return errors.Errorf("port %d in use; is keysd already running?", cfg.Port())
 	}
 
-	cert, err := generateCertificate(cfg)
+	cert, err := GenerateCertificate(cfg, true)
 	if err != nil {
 		return err
 	}
-	defer func() { _ = deleteCertificate(cfg) }()
+	defer func() { _ = DeleteCertificate(cfg) }()
 
-	serveFn, closeFn, serveErr := newServiceFn(cfg, build, cert, lgi)
+	serveFn, closeFn, serveErr := NewServiceFn(cfg, build, cert, lgi)
 	if serveErr != nil {
 		return serveErr
 	}
@@ -177,7 +177,8 @@ func runService(cfg *Config, build Build, lgi LogInterceptor) error {
 	return serveFn()
 }
 
-func newServiceFn(cfg *Config, build Build, cert *keys.CertificateKey, lgi LogInterceptor) (ServeFn, CloseFn, error) {
+// NewServiceFn ...
+func NewServiceFn(cfg *Config, build Build, cert *keys.CertificateKey, lgi LogInterceptor) (ServeFn, CloseFn, error) {
 	var opts []grpc.ServerOption
 
 	st, err := newKeyringStore(cfg)

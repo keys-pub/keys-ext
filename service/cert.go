@@ -9,15 +9,17 @@ import (
 	"github.com/pkg/errors"
 )
 
-// generateCertificate generates a certificate key.
-func generateCertificate(cfg *Config) (*keys.CertificateKey, error) {
+// GenerateCertificate generates a certificate key and saves it to the support dir.
+func GenerateCertificate(cfg *Config, save bool) (*keys.CertificateKey, error) {
 	logger.Infof("Generating certificate...")
 	certKey, err := keys.GenerateCertificateKey("localhost", true, nil)
 	if err != nil {
 		return nil, err
 	}
-	if err := saveCertificate(cfg, certKey.Public()); err != nil {
-		return nil, errors.Wrapf(err, "failed to save cert public key")
+	if save {
+		if err := saveCertificate(cfg, certKey.Public()); err != nil {
+			return nil, errors.Wrapf(err, "failed to save cert public key")
+		}
 	}
 	return certKey, nil
 }
@@ -52,8 +54,8 @@ func loadCertificate(cfg *Config) (string, error) {
 	return string(b), nil
 }
 
-// deleteCertificate removes saved certificate.
-func deleteCertificate(cfg *Config) error {
+// DeleteCertificate removes saved certificate.
+func DeleteCertificate(cfg *Config) error {
 	certPath, err := cfg.certPath(false)
 	if err != nil {
 		return err
