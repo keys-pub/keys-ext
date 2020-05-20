@@ -58,8 +58,11 @@ func deleteCertificate(cfg *Config) error {
 	if err != nil {
 		return err
 	}
-	if _, err := os.Stat(certPath); os.IsNotExist(err) {
+	if _, err := os.Stat(certPath); err == nil {
+		return os.Remove(certPath)
+	} else if os.IsNotExist(err) {
 		return nil
+	} else {
+		return err
 	}
-	return os.Remove(certPath)
 }
