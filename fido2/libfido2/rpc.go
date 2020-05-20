@@ -1,6 +1,7 @@
 package libfido2
 
 import (
+	"github.com/google/uuid"
 	"github.com/keys-pub/go-libfido2"
 	"github.com/keys-pub/keysd/fido2"
 	"github.com/pkg/errors"
@@ -20,11 +21,19 @@ func devicesToRPC(ins []*libfido2.DeviceLocation) []*fido2.Device {
 	return outs
 }
 
+func bytesToUUIDString(b []byte) string {
+	uid, err := uuid.FromBytes(b)
+	if err == nil {
+		return uid.String()
+	}
+	return ""
+}
+
 func deviceInfoToRPC(in *libfido2.DeviceInfo) *fido2.DeviceInfo {
 	return &fido2.DeviceInfo{
 		Versions:   in.Versions,
 		Extensions: in.Extensions,
-		AAGUID:     in.AAGUID,
+		AAGUID:     bytesToUUIDString(in.AAGUID),
 		Options:    optionsToRPC(in.Options),
 	}
 }
@@ -91,14 +100,14 @@ func credTypeToRPC(typ libfido2.CredentialType) string {
 	}
 }
 
-func optionValueToRPC(in libfido2.OptionValue) string {
+func optionValueToRPC(in libfido2.OptionValue) fido2.OptionValue {
 	switch in {
 	case libfido2.True:
-		return "true"
+		return fido2.True
 	case libfido2.False:
-		return "false"
+		return fido2.False
 	default:
-		return ""
+		return fido2.Default
 	}
 }
 
@@ -130,9 +139,9 @@ func extensionsFromRPC(ins []string) ([]libfido2.Extension, error) {
 func extensionFromRPC(s string) (libfido2.Extension, error) {
 	switch s {
 	case "hmac-secret":
-		return libfido2.HMACSecret, nil
+		return libfido2.HMACSecretExtension, nil
 	case "credProtect":
-		return libfido2.CredProtect, nil
+		return libfido2.CredProtectExtension, nil
 	default:
 		return "", errors.Errorf("invalid extension %s", s)
 	}

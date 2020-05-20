@@ -32,6 +32,9 @@ service Authenticators {
     rpc CredentialsInfo(CredentialsInfoRequest) returns (CredentialsInfoResponse) {}
     rpc Credentials(CredentialsRequest) returns (CredentialsResponse) {}
     rpc RelyingParties(RelyingPartiesRequest) returns (RelyingPartiesResponse) {}
+    
+    rpc GenerateHMACSecret(GenerateHMACSecretRequest) returns (GenerateHMACSecretResponse) {}
+    rpc HMACSecret(HMACSecretRequest) returns (HMACSecretResponse) {}
 }
 
 message RPCError {
@@ -50,13 +53,13 @@ message Device {
 
 message Option {
     string name = 1;
-    string value = 2;
+    OptionValue value = 2;
 }
 
 message DeviceInfo {
     repeated string versions = 1;
     repeated string extensions = 2;
-    bytes aaguid = 3 [(gogoproto.customname) = "AAGUID"];
+    string aaguid = 3 [(gogoproto.customname) = "AAGUID"];
 	repeated Option options = 4;
 }
 
@@ -195,29 +198,63 @@ message RelyingPartiesResponse {
 
 
 enum DeviceType {
-  option (gogoproto.goproto_enum_prefix) = false;
-  option (gogoproto.enum_customname) = "DeviceType";
+    option (gogoproto.goproto_enum_prefix) = false;
+    option (gogoproto.enum_customname) = "DeviceType";
   
-  UNKNOWN_DEVICE = 0 [(gogoproto.enumvalue_customname) = "UnknownDevice"];
-  U2F = 1;
-  FIDO2 = 2;  
+    UNKNOWN_DEVICE = 0 [(gogoproto.enumvalue_customname) = "UnknownDevice"];
+    U2F = 1;
+    FIDO2 = 2;  
 }
 
 enum CredentialType {
-  option (gogoproto.goproto_enum_prefix) = false;
-  option (gogoproto.enum_customname) = "CredentialType";
+    option (gogoproto.goproto_enum_prefix) = false;
+    option (gogoproto.enum_customname) = "CredentialType";
   
-  UNKNOWN_CREDENTIAL = 0  [(gogoproto.enumvalue_customname) = "UnknownCredential"];
-  ES256 = 1 [(gogoproto.enumvalue_customname) = "ES256"];
-  EDDSA = 2 [(gogoproto.enumvalue_customname) = "EDDSA"];
-  RS256 = 3 [(gogoproto.enumvalue_customname) = "RS256"];
+    UNKNOWN_CREDENTIAL = 0  [(gogoproto.enumvalue_customname) = "UnknownCredential"];
+    ES256 = 1 [(gogoproto.enumvalue_customname) = "ES256"];
+    EDDSA = 2 [(gogoproto.enumvalue_customname) = "EDDSA"];
+    RS256 = 3 [(gogoproto.enumvalue_customname) = "RS256"];
 }
 
 enum Extension {
   option (gogoproto.goproto_enum_prefix) = false;
   option (gogoproto.enum_customname) = "Extension";
   
-  UNKNOWN_Extension = 0  [(gogoproto.enumvalue_customname) = "UnknownExtension"];
+  UNKNOWN_EXTENSION = 0 [(gogoproto.enumvalue_customname) = "UnknownExtension"];
   HMAC_SECRET = 1 [(gogoproto.enumvalue_customname) = "HMACSecret"];
   CRED_PROTECT = 2 [(gogoproto.enumvalue_customname) = "CredProtect"];
+}
+
+enum OptionValue {
+    option (gogoproto.goproto_enum_prefix) = false;
+    option (gogoproto.enum_customname) = "OptionValue";
+  
+    DEFAULT_OPTION = 0 [(gogoproto.enumvalue_customname) = "Default"];
+    TRUE = 1 [(gogoproto.enumvalue_customname) = "True"];
+    FALSE = 2 [(gogoproto.enumvalue_customname) = "False"];
+}
+
+message GenerateHMACSecretRequest {
+    string device = 1;
+    string pin = 2 [(gogoproto.customname) = "PIN"];
+        
+    string rpId = 10 [(gogoproto.customname) = "RPID"];
+    OptionValue rk = 20 [(gogoproto.customname) = "RK"];
+}
+message GenerateHMACSecretResponse {    
+    bytes clientDataHash = 1;
+    bytes credentialId = 2 [(gogoproto.customname) = "CredentialID"];
+}
+
+message HMACSecretRequest {
+    string device = 1;
+    string pin = 2 [(gogoproto.customname) = "PIN"];
+    
+    string rpId = 10 [(gogoproto.customname) = "RPID"];
+    bytes clientDataHash = 11;
+    bytes credentialId = 12 [(gogoproto.customname) = "CredentialID"];
+    bytes salt = 13;    
+}
+message HMACSecretResponse {
+    bytes hmacSecret = 1 [(gogoproto.customname) = "HMACSecret"];
 }
