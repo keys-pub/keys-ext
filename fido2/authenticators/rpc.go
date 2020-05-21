@@ -1,4 +1,4 @@
-package libfido2
+package authenticators
 
 import (
 	"github.com/google/uuid"
@@ -74,7 +74,7 @@ func userToRPC(user libfido2.User) *fido2.User {
 	}
 }
 
-func credTypeFromRPC(typ string) (libfido2.CredentialType, error) {
+func credentialTypeFromString(typ string) (libfido2.CredentialType, error) {
 	switch typ {
 	case "es256", "ES256":
 		return libfido2.ES256, nil
@@ -87,7 +87,7 @@ func credTypeFromRPC(typ string) (libfido2.CredentialType, error) {
 	}
 }
 
-func credTypeToRPC(typ libfido2.CredentialType) string {
+func credentialTypeToString(typ libfido2.CredentialType) string {
 	switch typ {
 	case libfido2.ES256:
 		return "es256"
@@ -111,7 +111,7 @@ func optionValueToRPC(in libfido2.OptionValue) fido2.OptionValue {
 	}
 }
 
-func optionValueFromRPC(in string) (libfido2.OptionValue, error) {
+func optionValueFromString(in string) (libfido2.OptionValue, error) {
 	switch in {
 	case "true":
 		return libfido2.True, nil
@@ -124,10 +124,10 @@ func optionValueFromRPC(in string) (libfido2.OptionValue, error) {
 	}
 }
 
-func extensionsFromRPC(ins []string) ([]libfido2.Extension, error) {
+func extensionsFromStrings(ins []string) ([]libfido2.Extension, error) {
 	outs := []libfido2.Extension{}
 	for _, in := range ins {
-		ext, err := extensionFromRPC(in)
+		ext, err := extensionFromString(in)
 		if err != nil {
 			return nil, err
 		}
@@ -136,7 +136,7 @@ func extensionsFromRPC(ins []string) ([]libfido2.Extension, error) {
 	return outs, nil
 }
 
-func extensionFromRPC(s string) (libfido2.Extension, error) {
+func extensionFromString(s string) (libfido2.Extension, error) {
 	switch s {
 	case "hmac-secret":
 		return libfido2.HMACSecretExtension, nil
@@ -151,8 +151,8 @@ func attestationToRPC(in *libfido2.Attestation) *fido2.Attestation {
 	return &fido2.Attestation{
 		ClientDataHash: in.ClientDataHash,
 		AuthData:       in.AuthData,
-		CredID:         in.CredID,
-		CredType:       credTypeToRPC(in.CredType),
+		CredentialID:   in.CredentialID,
+		CredentialType: credentialTypeToString(in.CredentialType),
 		PubKey:         in.PubKey,
 		Cert:           in.Cert,
 		Sig:            in.Sig,
@@ -186,7 +186,7 @@ func credentialsToRPC(rp *fido2.RelyingParty, ins []*libfido2.Credential) []*fid
 func credentialToRPC(rp *fido2.RelyingParty, in *libfido2.Credential) *fido2.Credential {
 	return &fido2.Credential{
 		ID:   in.ID,
-		Type: credTypeToRPC(in.Type),
+		Type: credentialTypeToString(in.Type),
 		RP:   rp,
 		User: userToRPC(in.User),
 	}

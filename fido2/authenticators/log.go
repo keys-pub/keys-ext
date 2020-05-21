@@ -1,4 +1,4 @@
-package libfido2
+package authenticators
 
 import (
 	"context"

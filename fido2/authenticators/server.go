@@ -1,4 +1,4 @@
-package libfido2
+package authenticators
 
 import (
 	"context"
@@ -73,19 +73,19 @@ func (s *Server) MakeCredential(ctx context.Context, req *fido2.MakeCredentialRe
 	}
 	defer device.Close()
 
-	typ, err := credTypeFromRPC(req.Type)
+	typ, err := credentialTypeFromString(req.Type)
 	if err != nil {
 		return nil, err
 	}
-	extensions, err := extensionsFromRPC(req.Extensions)
+	extensions, err := extensionsFromStrings(req.Extensions)
 	if err != nil {
 		return nil, err
 	}
-	rk, err := optionValueFromRPC(req.RK)
+	rk, err := optionValueFromString(req.RK)
 	if err != nil {
 		return nil, err
 	}
-	uv, err := optionValueFromRPC(req.UV)
+	uv, err := optionValueFromString(req.UV)
 	if err != nil {
 		return nil, err
 	}
@@ -166,20 +166,20 @@ func (s *Server) Assertion(ctx context.Context, req *fido2.AssertionRequest) (*f
 	}
 	defer device.Close()
 
-	extensions, err := extensionsFromRPC(req.Extensions)
+	extensions, err := extensionsFromStrings(req.Extensions)
 	if err != nil {
 		return nil, err
 	}
-	uv, err := optionValueFromRPC(req.UV)
+	uv, err := optionValueFromString(req.UV)
 	if err != nil {
 		return nil, err
 	}
-	up, err := optionValueFromRPC(req.UP)
+	up, err := optionValueFromString(req.UP)
 	if err != nil {
 		return nil, err
 	}
 
-	assertion, err := device.Assertion(req.RPID, req.ClientDataHash, req.CredID, req.PIN, &libfido2.AssertionOpts{Extensions: extensions, UV: uv, UP: up})
+	assertion, err := device.Assertion(req.RPID, req.ClientDataHash, req.CredentialID, req.PIN, &libfido2.AssertionOpts{Extensions: extensions, UV: uv, UP: up})
 	if err != nil {
 		return nil, err
 	}
@@ -286,7 +286,10 @@ func (s *Server) GenerateHMACSecret(ctx context.Context, req *fido2.GenerateHMAC
 	}
 	defer device.Close()
 
-	cdh := libfido2.RandBytes(32)
+	cdh := req.ClientDataHash
+	if len(cdh) != 32 {
+		return nil, errors.Errorf("")
+	}
 
 	opts := &libfido2.MakeCredentialOpts{
 		Extensions: []libfido2.Extension{libfido2.HMACSecretExtension},
@@ -319,8 +322,7 @@ func (s *Server) GenerateHMACSecret(ctx context.Context, req *fido2.GenerateHMAC
 	}
 
 	return &fido2.GenerateHMACSecretResponse{
-		ClientDataHash: attest.ClientDataHash,
-		CredentialID:   attest.CredID,
+		CredentialID: attest.CredentialID,
 	}, nil
 }
 
