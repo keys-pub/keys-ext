@@ -29,7 +29,7 @@ func (s *service) KeyExport(ctx context.Context, req *KeyExportRequest) (*KeyExp
 	}
 
 	if req.Password != "" {
-		if _, _, err := s.auth.keyring.UnlockWithPassword(req.Password); err != nil {
+		if _, _, err := s.auth.keyring.UnlockWithPassword(req.Password, false); err != nil {
 			if err == keyring.ErrInvalidAuth {
 				return nil, errors.Errorf("invalid password")
 			}

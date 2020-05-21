@@ -17,6 +17,7 @@ func TestAuthWithPassword(t *testing.T) {
 	require.NoError(t, err)
 	defer func() { _ = auth.keyring.Reset() }()
 	kr := auth.keyring
+	ctx := context.TODO()
 
 	// Setup needed
 	isSetup, err := kr.IsSetup()
@@ -24,14 +25,14 @@ func TestAuthWithPassword(t *testing.T) {
 	require.False(t, isSetup)
 
 	// Setup
-	_, _, err = auth.setupWithPassword("password123", "test")
+	_, _, err = auth.unlock(ctx, "password123", PasswordAuth, "test", true)
 	require.NoError(t, err)
 
 	isSetup, err = kr.IsSetup()
 	require.NoError(t, err)
 	require.True(t, isSetup)
 
-	token, _, err := auth.unlockWithPassword("password123", "test")
+	token, _, err := auth.unlock(ctx, "password123", PasswordAuth, "test", false)
 	require.NoError(t, err)
 	require.NotEmpty(t, auth.tokens)
 	require.NotEmpty(t, token)
@@ -41,13 +42,13 @@ func TestAuthWithPassword(t *testing.T) {
 	require.NoError(t, err)
 
 	// Unlock with invalid password
-	_, _, err = auth.unlockWithPassword("invalidpassword", "test")
+	_, _, err = auth.unlock(ctx, "invalidpassword", PasswordAuth, "test", false)
 	require.EqualError(t, err, "rpc error: code = Unauthenticated desc = invalid password")
 	require.Empty(t, auth.tokens)
 	require.Empty(t, auth.tokens)
 
 	// Unlock
-	token, _, err = auth.unlockWithPassword("password123", "test")
+	token, _, err = auth.unlock(ctx, "password123", PasswordAuth, "test", false)
 	require.NoError(t, err)
 	require.NotEmpty(t, auth.tokens)
 	require.NotEmpty(t, token)
@@ -79,7 +80,7 @@ func TestAuthorize(t *testing.T) {
 	require.EqualError(t, err, "rpc error: code = Unauthenticated desc = invalid token")
 
 	// Unlock
-	token, _, err := auth.unlockWithPassword("password123", "test")
+	token, _, err := auth.unlock(ctx, "password123", PasswordAuth, "test", false)
 	require.NoError(t, err)
 	require.NotEmpty(t, auth.tokens)
 	require.NotEmpty(t, token)

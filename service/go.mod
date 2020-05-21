@@ -6,6 +6,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/gogo/protobuf v1.3.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
+	github.com/keys-pub/go-libfido2 v0.0.0-20200521221830-4b7c8a09afd6
 	github.com/keys-pub/keys v0.0.0-20200519005436-e3845e4fcd35
 	github.com/keys-pub/keysd/db v0.0.0-20200511180349-f7a683035492
 	github.com/keys-pub/keysd/fido2 v0.0.0-20200429024946-ecdf142d9dad
@@ -22,6 +23,7 @@ require (
 	github.com/sirupsen/logrus v1.5.0
 	github.com/stretchr/testify v1.5.1
 	github.com/urfave/cli v1.22.4
+	github.com/vmihailenco/msgpack/v4 v4.3.11
 	golang.org/x/crypto v0.0.0-20200406173513-056763e48d71
 	google.golang.org/grpc v1.29.1
 )
@@ -31,6 +33,7 @@ replace github.com/keys-pub/keys => ../../keys
 // replace github.com/keys-pub/keysd/db => ../db
 
 replace github.com/keys-pub/keysd/fido2 => ../fido2
+
 // replace github.com/keys-pub/go-libfido2 => ../../go-libfido2
 
 replace github.com/keys-pub/keysd/git => ../git

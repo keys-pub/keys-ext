@@ -104,8 +104,6 @@ service Keys {
   rpc MessagePrepare(MessagePrepareRequest) returns (MessagePrepareResponse) {}
   rpc MessageCreate(MessageCreateRequest) returns (MessageCreateResponse) {}
   rpc Messages(MessagesRequest) returns (MessagesResponse) {}
-
-  rpc Watch(WatchRequest) returns (stream WatchEvent) {}
 }
 
 message RPCError {

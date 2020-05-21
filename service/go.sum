@@ -96,6 +96,7 @@ github.com/google/go-cmp v0.2.0/go.mod h1:oXzfMopK8JAjlY9xF4vHSVASa0yLyX7SntLO5a
 github.com/google/go-cmp v0.3.0/go.mod h1:8QqcDgzrUqlUb/G2PQTWiueGozuR1884gddMywk6iLU=
 github.com/google/go-cmp v0.3.1 h1:Xye71clBPdm5HgqGwUkwhbynsUJZhDbS20FvLhQ2izg=
 github.com/google/go-cmp v0.3.1/go.mod h1:8QqcDgzrUqlUb/G2PQTWiueGozuR1884gddMywk6iLU=
+github.com/google/go-cmp v0.4.0 h1:xsAVV57WRhGj6kEIi8ReJzQlHHqcBYCElAvkovg3B/4=
 github.com/google/go-cmp v0.4.0/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
 github.com/google/martian v2.1.0+incompatible h1:/CP5g8u/VJHijgedC/Legn3BAbAaWPgecwXBIDzw5no=
 github.com/google/martian v2.1.0+incompatible/go.mod h1:9I4somxYTbIHy5NJKHRl3wXiIaQGbYVAs8BPL6v8lEs=
@@ -147,7 +148,12 @@ github.com/keys-pub/go-libfido2 v0.0.0-20200429024018-c64b2b4e5b1c h1:/WBxgTXH5h
 github.com/keys-pub/go-libfido2 v0.0.0-20200429024018-c64b2b4e5b1c/go.mod h1:P0V19qHwJNY0htZwZDe9Ilvs/nokGhdFX7faKFyZ6+U=
 github.com/keys-pub/go-libfido2 v0.0.0-20200501185237-7bb4174863e5 h1:87iYufhrV/J29FuNKmnJ2LfmLNXJgO6OfKV0sHSV2WI=
 github.com/keys-pub/go-libfido2 v0.0.0-20200501185237-7bb4174863e5/go.mod h1:P0V19qHwJNY0htZwZDe9Ilvs/nokGhdFX7faKFyZ6+U=
+github.com/keys-pub/go-libfido2 v0.0.0-20200520212756-2e0d0dba98a5 h1:pY6czhszHeTbuDF3LN/NhVpCV18+Q2FiVUy9DcE8zZY=
 github.com/keys-pub/go-libfido2 v0.0.0-20200520212756-2e0d0dba98a5/go.mod h1:P0V19qHwJNY0htZwZDe9Ilvs/nokGhdFX7faKFyZ6+U=
+github.com/keys-pub/go-libfido2 v0.0.0-20200521193324-391d63153ca4 h1:k/mAqhVXVJre86BUQ50P0j9FhVTOubGYdfsiTcH0E6c=
+github.com/keys-pub/go-libfido2 v0.0.0-20200521193324-391d63153ca4/go.mod h1:P0V19qHwJNY0htZwZDe9Ilvs/nokGhdFX7faKFyZ6+U=
+github.com/keys-pub/go-libfido2 v0.0.0-20200521221830-4b7c8a09afd6 h1:O6vl1wQNA9Nrcpg0+cs1SD6gY9gNms53Suq6Kuj8uxM=
+github.com/keys-pub/go-libfido2 v0.0.0-20200521221830-4b7c8a09afd6/go.mod h1:P0V19qHwJNY0htZwZDe9Ilvs/nokGhdFX7faKFyZ6+U=
 github.com/keys-pub/keys v0.0.0-20200412190229-71b7a426a7ab h1:D7YOtUfZ34F99SW9mdZic8lG1LASUUGojHGtxfS6kds=
 github.com/keys-pub/keys v0.0.0-20200412190229-71b7a426a7ab/go.mod h1:LWDVrixSjx446s2aLIcJ6ML5ir4vX3kJ3mVvJYXI/Xc=
 github.com/keys-pub/keys v0.0.0-20200413002436-33c0c3d4ec1b h1:P9+8upxxJyZK95YnG3ONgDceGGJ/e25uabBVeeJslBo=

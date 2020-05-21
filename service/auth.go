@@ -9,6 +9,7 @@ import (
 	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/keyring"
+	"github.com/keys-pub/keysd/fido2"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -25,10 +26,8 @@ type auth struct {
 	keyring   *keyring.Keyring
 	tokens    map[string]string
 	whitelist *ds.StringSet
-}
 
-func keyringService(cfg *Config) string {
-	return cfg.AppName() + ".keyring"
+	authenticators fido2.AuthenticatorsServer
 }
 
 func newAuth(cfg *Config, st keyring.Store) (*auth, error) {
@@ -43,7 +42,7 @@ func newAuth(cfg *Config, st keyring.Store) (*auth, error) {
 		"/service.Keys/RandPassword",
 	)
 
-	service := keyringService(cfg)
+	service := cfg.KeyringService(st.Name())
 	kr, err := keyring.New(service, st)
 	if err != nil {
 		return nil, err
@@ -67,44 +66,41 @@ func (a *auth) lock() error {
 	return nil
 }
 
-func (a *auth) setupWithPassword(password string, client string) (string, keyring.Auth, error) {
-	return a.check(password, client, true)
-}
-
-func (a *auth) unlockWithPassword(password string, client string) (string, keyring.Auth, error) {
-	return a.check(password, client, false)
-}
-
-func (a *auth) check(password string, client string, setup bool) (string, keyring.Auth, error) {
-	if password == "" {
-		return "", nil, errors.Errorf("empty password")
-	}
-
-	var auth keyring.Auth
-	var err error
-	var id string
-
-	if setup {
-		logger.Infof("Setup...")
-		id, auth, err = a.keyring.SetupWithPassword(password)
-	} else {
-		logger.Infof("Unlock...")
-		id, auth, err = a.keyring.UnlockWithPassword(password)
-	}
-
-	if err != nil {
-		if err == keyring.ErrInvalidAuth {
-			return "", nil, status.Error(codes.Unauthenticated, "invalid password")
+func (a *auth) unlock(ctx context.Context, secret string, typ AuthType, client string, setup bool) (string, keyring.Auth, error) {
+	switch typ {
+	case PasswordAuth:
+		logger.Infof("Unlock (password, setup=%t)", setup)
+		id, auth, err := a.keyring.UnlockWithPassword(secret, setup)
+		if err != nil {
+			return "", nil, authErr(err, "failed to unlock")
 		}
-		return "", nil, errors.Wrapf(err, "failed to unlock")
+		logger.Debugf("Unlock (password) auth id %s", id)
+		a.registerToken(client)
+		return id, auth, nil
+	case FIDO2HMACSecretAuth:
+		logger.Infof("Unlock (hmac-secret, setup=%t)", setup)
+		id, auth, err := a.unlockWithFIDO2HMACSecret(ctx, secret, setup)
+		if err != nil {
+			return "", nil, authErr(err, "failed to unlock")
+		}
+		logger.Debugf("Unlock (hmac-secret) auth id %s", id)
+		a.registerToken(client)
+		return id, auth, nil
+	default:
+		return "", nil, errors.Errorf("unsupported auth type")
 	}
-	logger.Debugf("Unlock used %s", id)
+}
 
+func (a *auth) registerToken(client string) {
 	token := generateToken()
 	a.tokens[client] = token
-	logger.Infof("Unlocked")
+}
 
-	return token, auth, nil
+func authErr(err error, wrap string) error {
+	if errors.Cause(err) == keyring.ErrInvalidAuth {
+		return status.Error(codes.Unauthenticated, "invalid auth")
+	}
+	return errors.Wrapf(err, wrap)
 }
 
 func generateToken() string {
@@ -192,19 +188,9 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 		return nil, errors.Errorf("auth already setup")
 	}
 
-	var token string
-	var auth keyring.Auth
-	var authErr error
-	switch req.Type {
-	case PasswordAuth:
-		token, auth, authErr = s.auth.setupWithPassword(req.Secret, req.Client)
-	case FIDO2HMACSecretAuth:
-		// TODO:
-	default:
-		return nil, errors.Errorf("unrecognized auth type")
-	}
-	if authErr != nil {
-		return nil, authErr
+	token, auth, err := s.auth.unlock(ctx, req.Secret, req.Type, req.Client, true)
+	if err != nil {
+		return nil, err
 	}
 
 	// If setting up auth, and local database exists we should nuke it since the
@@ -221,7 +207,7 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 		}
 	}
 
-	// TODO: Use derived key from auth
+	// TODO: Use a derived key instead of the actual key itself
 	key := auth.Key()
 
 	if err := s.Open(ctx, key); err != nil {
@@ -243,19 +229,9 @@ func (s *service) AuthUnlock(ctx context.Context, req *AuthUnlockRequest) (*Auth
 		return nil, errors.Errorf("auth setup needed")
 	}
 
-	var token string
-	var auth keyring.Auth
-	var authErr error
-	switch req.Type {
-	case PasswordAuth:
-		token, auth, authErr = s.auth.unlockWithPassword(req.Secret, req.Client)
-	case FIDO2HMACSecretAuth:
-		// TODO:
-	default:
-		return nil, errors.Errorf("unrecognized auth type")
-	}
-	if authErr != nil {
-		return nil, authErr
+	token, auth, err := s.auth.unlock(ctx, req.Secret, req.Type, req.Client, false)
+	if err != nil {
+		return nil, err
 	}
 
 	key := auth.Key()

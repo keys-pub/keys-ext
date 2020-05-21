@@ -1,11 +1,11 @@
 package main
 
 import (
-	"github.com/keys-pub/keysd/fido2/libfido2"
+	"github.com/keys-pub/keysd/fido2/authenticators"
 )
 
 // AuthenticatorsServer exported for plugin.
-var AuthenticatorsServer = libfido2.Server{}
+var AuthenticatorsServer = authenticators.Server{}
 
 // This is a plugin, so main isn't necessary, but we need it for goreleaser.
 func main() {}

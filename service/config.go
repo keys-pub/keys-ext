@@ -76,6 +76,15 @@ func (c Config) AppName() string {
 	return c.appName
 }
 
+// KeyringService for store name.
+// Name should be from keyring.Store#Name().
+func (c Config) KeyringService(name string) string {
+	if name == "git" {
+		return c.AppName()
+	}
+	return c.AppName() + ".keyring"
+}
+
 // AppDir is where app related files are persisted.
 func (c Config) AppDir() string {
 	p, err := c.AppPath("", false)

@@ -21,7 +21,7 @@ func (s *service) RuntimeStatus(ctx context.Context, req *RuntimeStatusRequest) 
 		AppName:         s.cfg.AppName(),
 		Exe:             exe,
 		AuthSetupNeeded: !isSetup,
-		FIDO2:           s.fido2,
+		FIDO2:           s.auth.authenticators != nil,
 	}
 	logger.Infof("Runtime status, %s", resp.String())
 	return &resp, nil

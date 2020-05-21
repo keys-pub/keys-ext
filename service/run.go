@@ -59,7 +59,7 @@ func resetKeyringAndExit(cfg *Config) {
 	if err != nil {
 		logFatal(errors.Wrapf(err, "failed to init keyring store"))
 	}
-	service := keyringService(cfg)
+	service := cfg.KeyringService(st.Name())
 	kr, err := keyring.New(service, st)
 	if err != nil {
 		logFatal(errors.Wrapf(err, "failed to init keyring"))
@@ -227,14 +227,14 @@ func NewServiceFn(cfg *Config, build Build, cert *keys.CertificateKey, lgi LogIn
 	logger.Infof("Registering Keys service...")
 	RegisterKeysServer(grpcServer, service)
 
-	// FIDO2 service
-	server, err := fido2.OpenPlugin(filepath.Join(exeDir(), "fido2.so"))
+	// FIDO2
+	fido2Plugin, err := fido2.OpenPlugin(filepath.Join(exeDir(), "fido2.so"))
 	if err != nil {
 		logger.Errorf("fido2 plugin is not available: %v", err)
 	} else {
 		logger.Infof("Registering FIDO2 plugin...")
-		fido2.RegisterAuthenticatorsServer(grpcServer, server)
-		service.fido2 = true
+		fido2.RegisterAuthenticatorsServer(grpcServer, fido2Plugin)
+		auth.authenticators = fido2Plugin
 	}
 
 	logger.Infof("Listening for connections on port %d", cfg.Port())
