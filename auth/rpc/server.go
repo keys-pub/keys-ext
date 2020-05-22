@@ -14,8 +14,8 @@ import (
 // Server ...
 type Server struct{}
 
-// NewAuthenticatorsServer creates an AuthenticatorsServer.
-func NewAuthenticatorsServer() fido2.AuthsServer {
+// NewAuthServer creates an AuthServer.
+func NewAuthServer() fido2.AuthServer {
 	return &Server{}
 }
 

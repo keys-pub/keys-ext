@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// OpenPlugin returns AuthsServer from shared library.
+// OpenPlugin returns AuthServer from shared library.
 func OpenPlugin(path string) (AuthServer, error) {
 	plug, err := plugin.Open(path)
 	if err != nil {

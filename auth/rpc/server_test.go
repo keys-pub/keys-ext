@@ -13,7 +13,7 @@ import (
 
 func TestInfo(t *testing.T) {
 	ctx := context.TODO()
-	server := rpc.NewAuthenticatorsServer()
+	server := rpc.NewAuthServer()
 
 	resp, err := server.Devices(ctx, &fido2.DevicesRequest{})
 	require.NoError(t, err)
@@ -30,13 +30,13 @@ func TestInfo(t *testing.T) {
 	}
 }
 
-func ExampleAuthenticatorsServer_SetPIN() {
+func ExampleAuthServer_SetPIN() {
 	if os.Getenv("FIDO2_EXAMPLES") != "1" {
 		return
 	}
 
 	ctx := context.TODO()
-	server := rpc.NewAuthenticatorsServer()
+	server := rpc.NewAuthServer()
 
 	resp, err := server.Devices(ctx, &fido2.DevicesRequest{})
 	if err != nil {
@@ -63,13 +63,13 @@ func ExampleAuthenticatorsServer_SetPIN() {
 	//
 }
 
-func ExampleAuthenticatorsServer_Credentials() {
+func ExampleAuthServer_Credentials() {
 	if os.Getenv("FIDO2_EXAMPLES") != "1" {
 		return
 	}
 
 	ctx := context.TODO()
-	server := rpc.NewAuthenticatorsServer()
+	server := rpc.NewAuthServer()
 
 	dresp, err := server.Devices(ctx, &fido2.DevicesRequest{})
 	if err != nil {
