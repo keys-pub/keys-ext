@@ -14,10 +14,6 @@ import (
 // Server ...
 type Server struct{}
 
-// func init() {
-// 	SetLogger(NewLogger(InfoLevel))
-// }
-
 // NewAuthenticatorsServer creates an AuthenticatorsServer.
 func NewAuthenticatorsServer() fido2.AuthenticatorsServer {
 	return &Server{}
