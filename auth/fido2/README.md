@@ -1,6 +1,6 @@
 # fido2
 
-gRPC wrapper for [go-libfido2](https://github.com/keys-pub/go-libfido2).
+gRPC definitions for [go-libfido2](https://github.com/keys-pub/go-libfido2).
 
 ## Dependencies
 
