@@ -1,0 +1,11 @@
+package main
+
+import (
+	"github.com/keys-pub/keysd/auth/rpc"
+)
+
+// AuthServer exported for plugin.
+var AuthServer = rpc.Server{}
+
+// This is a plugin, so main isn't necessary, but we need it for goreleaser.
+func main() {}
