@@ -28,6 +28,10 @@ type authDevice struct {
 // findDevice returns supported device.
 // If creds is specified we try to find the device matching the auth credentials (aaguid).
 func (a *auth) findDevice(ctx context.Context, creds []*authCredential) (*authDevice, error) {
+	if a.authenticators == nil {
+		return nil, errors.Errorf("fido2 plugin not available")
+	}
+
 	devicesResp, err := a.authenticators.Devices(ctx, &fido2.DevicesRequest{})
 	if err != nil {
 		return nil, err
@@ -61,7 +65,7 @@ func (a *auth) findDevice(ctx context.Context, creds []*authCredential) (*authDe
 func (a *auth) loadCredentials() ([]*authCredential, error) {
 	st := a.keyring.Store()
 	service := a.cfg.KeyringService(st.Name())
-	ids, err := st.IDs(service, &keyring.IDsOpts{Prefix: "#cred-", ShowReserved: true})
+	ids, err := st.IDs(service, keyring.WithReservedPrefix("#cred-"))
 	if err != nil {
 		return nil, err
 	}
@@ -156,25 +160,28 @@ func (a *auth) hmacSecret(ctx context.Context, pin string, setup bool) ([]byte, 
 	return secretResp.HMACSecret, nil
 }
 
-func (a *auth) unlockWithFIDO2HMACSecret(ctx context.Context, secret string, setup bool) (string, keyring.Auth, error) {
+func (a *auth) unlockHMACSecret(ctx context.Context, pin string, setup bool) (keyring.Auth, error) {
+	key, err := a.hmacSecret(ctx, pin, setup)
+	if err != nil {
+		return nil, err
+	}
+	if len(key) != 32 {
+		return nil, errors.Errorf("invalid key length from hmac-secret")
+	}
 
-	key := keys.Rand32()
-
-	auth := keyring.NewKeyAuth(key)
+	auth := keyring.NewKeyAuth(keys.Bytes32(key))
 
 	if setup {
-		id, err := a.keyring.Setup(auth)
-		if err != nil {
-			return "", nil, err
+		if _, err := a.keyring.Setup(auth); err != nil {
+			return nil, err
 		}
-		return id, auth, nil
+		return auth, nil
 	}
 
-	id, err := a.keyring.Unlock(auth)
-	if err != nil {
-		return "", nil, err
+	if _, err := a.keyring.Unlock(auth); err != nil {
+		return nil, err
 	}
-	return id, auth, nil
+	return auth, nil
 }
 
 func matchCred(creds []*authCredential, aaguid string) *authCredential {

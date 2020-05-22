@@ -25,33 +25,33 @@ func TestAuthWithPassword(t *testing.T) {
 	require.False(t, isSetup)
 
 	// Setup
-	_, _, err = auth.unlock(ctx, "password123", PasswordAuth, "test", true)
+	_, err = auth.unlock(ctx, "password123", PasswordAuth, "test", true)
 	require.NoError(t, err)
 
 	isSetup, err = kr.IsSetup()
 	require.NoError(t, err)
 	require.True(t, isSetup)
 
-	token, _, err := auth.unlock(ctx, "password123", PasswordAuth, "test", false)
+	authResult, err := auth.unlock(ctx, "password123", PasswordAuth, "test", false)
 	require.NoError(t, err)
 	require.NotEmpty(t, auth.tokens)
-	require.NotEmpty(t, token)
+	require.NotEmpty(t, authResult.token)
 
 	// Lock
 	err = auth.lock()
 	require.NoError(t, err)
 
 	// Unlock with invalid password
-	_, _, err = auth.unlock(ctx, "invalidpassword", PasswordAuth, "test", false)
+	_, err = auth.unlock(ctx, "invalidpassword", PasswordAuth, "test", false)
 	require.EqualError(t, err, "rpc error: code = Unauthenticated desc = invalid password")
 	require.Empty(t, auth.tokens)
 	require.Empty(t, auth.tokens)
 
 	// Unlock
-	token, _, err = auth.unlock(ctx, "password123", PasswordAuth, "test", false)
+	authResult, err = auth.unlock(ctx, "password123", PasswordAuth, "test", false)
 	require.NoError(t, err)
 	require.NotEmpty(t, auth.tokens)
-	require.NotEmpty(t, token)
+	require.NotEmpty(t, authResult.token)
 }
 
 func TestAuthorize(t *testing.T) {
@@ -80,13 +80,13 @@ func TestAuthorize(t *testing.T) {
 	require.EqualError(t, err, "rpc error: code = Unauthenticated desc = invalid token")
 
 	// Unlock
-	token, _, err := auth.unlock(ctx, "password123", PasswordAuth, "test", false)
+	authResult, err := auth.unlock(ctx, "password123", PasswordAuth, "test", true)
 	require.NoError(t, err)
 	require.NotEmpty(t, auth.tokens)
-	require.NotEmpty(t, token)
+	require.NotEmpty(t, authResult.token)
 
 	ctx4 := metadata.NewIncomingContext(context.TODO(), metadata.MD{
-		"authorization": []string{token},
+		"authorization": []string{authResult.token},
 	})
 	err = auth.authorize(ctx4, "/service.Keys/SomeMethod")
 	require.NoError(t, err)

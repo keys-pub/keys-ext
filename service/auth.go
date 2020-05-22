@@ -33,7 +33,6 @@ type auth struct {
 func newAuth(cfg *Config, st keyring.Store) (*auth, error) {
 	// We don't need auth for the following methods.
 	whitelist := ds.NewStringSet(
-		"/service.Keys/AuthGenerate",
 		"/service.Keys/AuthSetup",
 		"/service.Keys/AuthUnlock",
 		"/service.Keys/AuthLock",
@@ -66,39 +65,46 @@ func (a *auth) lock() error {
 	return nil
 }
 
-func (a *auth) unlock(ctx context.Context, secret string, typ AuthType, client string, setup bool) (string, keyring.Auth, error) {
+type authResult struct {
+	auth  keyring.Auth
+	token string
+}
+
+func (a *auth) unlock(ctx context.Context, secret string, typ AuthType, client string, setup bool) (*authResult, error) {
+	logger.Infof("Unlock (%s, setup=%t)", typ, setup)
+	var auth keyring.Auth
+	var err error
 	switch typ {
 	case PasswordAuth:
-		logger.Infof("Unlock (password, setup=%t)", setup)
-		id, auth, err := a.keyring.UnlockWithPassword(secret, setup)
-		if err != nil {
-			return "", nil, authErr(err, "failed to unlock")
-		}
-		logger.Debugf("Unlock (password) auth id %s", id)
-		a.registerToken(client)
-		return id, auth, nil
+		auth, err = a.keyring.UnlockWithPassword(secret, setup)
 	case FIDO2HMACSecretAuth:
-		logger.Infof("Unlock (hmac-secret, setup=%t)", setup)
-		id, auth, err := a.unlockWithFIDO2HMACSecret(ctx, secret, setup)
-		if err != nil {
-			return "", nil, authErr(err, "failed to unlock")
-		}
-		logger.Debugf("Unlock (hmac-secret) auth id %s", id)
-		a.registerToken(client)
-		return id, auth, nil
+		auth, err = a.unlockHMACSecret(ctx, secret, setup)
 	default:
-		return "", nil, errors.Errorf("unsupported auth type")
+		return nil, errors.Errorf("unsupported auth type")
 	}
+	if err != nil {
+		return nil, authErr(err, typ, "failed to unlock")
+	}
+	logger.Infof("Unlocked (%s)", typ)
+	token := a.registerToken(client)
+	return &authResult{auth: auth, token: token}, nil
 }
 
-func (a *auth) registerToken(client string) {
+func (a *auth) registerToken(client string) string {
 	token := generateToken()
 	a.tokens[client] = token
+	return token
 }
 
-func authErr(err error, wrap string) error {
+func authErr(err error, typ AuthType, wrap string) error {
 	if errors.Cause(err) == keyring.ErrInvalidAuth {
-		return status.Error(codes.Unauthenticated, "invalid auth")
+		switch typ {
+		case PasswordAuth:
+			return status.Error(codes.Unauthenticated, "invalid password")
+		default:
+			return status.Error(codes.Unauthenticated, "invalid auth")
+		}
+
 	}
 	return errors.Wrapf(err, wrap)
 }
@@ -188,7 +194,7 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 		return nil, errors.Errorf("auth already setup")
 	}
 
-	token, auth, err := s.auth.unlock(ctx, req.Secret, req.Type, req.Client, true)
+	authResult, err := s.auth.unlock(ctx, req.Secret, req.Type, req.Client, true)
 	if err != nil {
 		return nil, err
 	}
@@ -208,14 +214,13 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 	}
 
 	// TODO: Use a derived key instead of the actual key itself
-	key := auth.Key()
-
+	key := authResult.auth.Key()
 	if err := s.Open(ctx, key); err != nil {
 		return nil, err
 	}
 
 	return &AuthSetupResponse{
-		AuthToken: token,
+		AuthToken: authResult.token,
 	}, nil
 }
 
@@ -229,19 +234,19 @@ func (s *service) AuthUnlock(ctx context.Context, req *AuthUnlockRequest) (*Auth
 		return nil, errors.Errorf("auth setup needed")
 	}
 
-	token, auth, err := s.auth.unlock(ctx, req.Secret, req.Type, req.Client, false)
+	authResult, err := s.auth.unlock(ctx, req.Secret, req.Type, req.Client, false)
 	if err != nil {
 		return nil, err
 	}
 
-	key := auth.Key()
+	key := authResult.auth.Key()
 
 	if err := s.Open(ctx, key); err != nil {
 		return nil, err
 	}
 
 	return &AuthUnlockResponse{
-		AuthToken: token,
+		AuthToken: authResult.token,
 	}, nil
 }
 

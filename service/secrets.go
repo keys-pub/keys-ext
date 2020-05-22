@@ -72,7 +72,7 @@ func (s *service) Secrets(ctx context.Context, req *SecretsRequest) (*SecretsRes
 	}
 	sortDirection := req.SortDirection
 
-	secrets, err := s.ss.List(nil)
+	secrets, err := s.ss.List()
 	if err != nil {
 		return nil, err
 	}

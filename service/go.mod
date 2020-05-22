@@ -7,10 +7,10 @@ require (
 	github.com/gogo/protobuf v1.3.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
 	github.com/keys-pub/go-libfido2 v0.0.0-20200521221830-4b7c8a09afd6
-	github.com/keys-pub/keys v0.0.0-20200519005436-e3845e4fcd35
+	github.com/keys-pub/keys v0.0.0-20200522044752-3deea969cb8e
 	github.com/keys-pub/keysd/db v0.0.0-20200511180349-f7a683035492
-	github.com/keys-pub/keysd/fido2 v0.0.0-20200429024946-ecdf142d9dad
-	github.com/keys-pub/keysd/git v0.0.0-20200519170150-bcfbfb48237b
+	github.com/keys-pub/keysd/fido2 v0.0.0-20200522051246-0ece4f02505c
+	github.com/keys-pub/keysd/git v0.0.0-20200522051246-0ece4f02505c
 	github.com/keys-pub/keysd/http/api v0.0.0-20200415010142-cfcd41d36dd1
 	github.com/keys-pub/keysd/http/client v0.0.0-20200517230154-d4ab6096765d
 	github.com/keys-pub/keysd/http/server v0.0.0-20200517230030-c2db50fa6b8b
@@ -28,15 +28,15 @@ require (
 	google.golang.org/grpc v1.29.1
 )
 
-replace github.com/keys-pub/keys => ../../keys
+// replace github.com/keys-pub/keys => ../../keys
 
 // replace github.com/keys-pub/keysd/db => ../db
 
-replace github.com/keys-pub/keysd/fido2 => ../fido2
+// replace github.com/keys-pub/keysd/fido2 => ../fido2
 
 // replace github.com/keys-pub/go-libfido2 => ../../go-libfido2
 
-replace github.com/keys-pub/keysd/git => ../git
+// replace github.com/keys-pub/keysd/git => ../git
 
 // replace github.com/keys-pub/keysd/http/api => ../http/api
 
