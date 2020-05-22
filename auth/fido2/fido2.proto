@@ -21,7 +21,7 @@ option (gogoproto.goproto_enum_stringer_all) = true;
 // option (gogoproto.verbose_equal_all) = true;
 // option (gogoproto.populate_all) = true;
 
-service Auths {  
+service Auth {  
     rpc Devices(DevicesRequest) returns (DevicesResponse) {}
     rpc DeviceInfo(DeviceInfoRequest) returns (DeviceInfoResponse) {}
     rpc MakeCredential(MakeCredentialRequest) returns (MakeCredentialResponse) {}
