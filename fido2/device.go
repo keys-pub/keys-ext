@@ -1,15 +1,13 @@
 package fido2
 
-import "github.com/keys-pub/go-libfido2"
+// Extension (FIDO2).
+type Extension string
 
-// Extension alias for libfido2.Extension.
-type Extension = libfido2.Extension
+// HMACSecretExtension (should match libfido2.HMACSecretExtension).
+const HMACSecretExtension Extension = "hmac-secret"
 
-// HMACSecretExtension alias for libfido2.HMACSecretExtension.
-const HMACSecretExtension Extension = libfido2.HMACSecretExtension
-
-// CredProtectExtension alias for libfido2.CredProtectExtension.
-const CredProtectExtension Extension = libfido2.CredProtectExtension
+// CredProtectExtension (should match libfido2.CredProtectExtension).
+const CredProtectExtension Extension = "credProtect"
 
 // HasExtension returns true if device has extension.
 func (d *DeviceInfo) HasExtension(ext Extension) bool {
