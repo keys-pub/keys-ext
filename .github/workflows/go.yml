@@ -23,6 +23,7 @@ jobs:
           sudo apt-add-repository ppa:yubico/stable
           sudo apt update
           sudo apt install libfido2-dev
+          sudo apt install libgit2-dev
       - name: Install dependencies (macos)
         if: matrix.os == 'macos-latest'
         run: |
