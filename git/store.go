@@ -82,11 +82,9 @@ func (r *Repository) Delete(service string, id string) (bool, error) {
 }
 
 // IDs ...
-func (r *Repository) IDs(service string, opts *keyring.IDsOpts) ([]string, error) {
-	if opts == nil {
-		opts = &keyring.IDsOpts{}
-	}
-	prefix, showHidden, showReserved := opts.Prefix, opts.ShowHidden, opts.ShowReserved
+func (r *Repository) IDs(service string, opts ...keyring.IDsOption) ([]string, error) {
+	options := keyring.NewIDsOptions(opts...)
+	prefix, showHidden, showReserved := options.Prefix, options.Hidden, options.Reserved
 
 	path := filepath.Join(r.Path(), service)
 	if _, err := os.Stat(path); err == nil {
