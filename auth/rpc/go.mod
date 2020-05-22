@@ -5,7 +5,7 @@ go 1.14
 require (
 	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/google/uuid v1.1.1
-	github.com/keys-pub/go-libfido2 v1.4.1-0.20200522191908-864232a8fc63
+	github.com/keys-pub/go-libfido2 v1.4.1-0.20200522215841-590249e0b34c
 	github.com/keys-pub/keysd/auth/fido2 v0.0.0-20200522212452-58bc469ec3ad
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.5.1
