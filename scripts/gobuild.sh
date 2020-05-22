@@ -9,7 +9,6 @@ tmpdir=`mktemp -d 2>/dev/null || mktemp -d -t 'mytmpdir'`
 
 bin=$1
 pkg=$2
-build_only=${BUILD_ONLY:-""}
 dest=${DEST:-"$HOME/go/bin"}
 debug=${DEBUG:-"0"}
 version=${VERSION:-"0.0.0-dev"}
@@ -43,7 +42,3 @@ mkdir -p "$dest"
 echoerr "Installing at $dest/$bin"
 mv "$tmpdir/$bin" "$dest/$bin"
 
-if [ ! "$build_only" = "1" ]; then
-    cd "$dest"
-    ./$bin "$@"
-fi
