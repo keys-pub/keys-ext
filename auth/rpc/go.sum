@@ -26,6 +26,8 @@ github.com/keys-pub/keysd/auth/fido2 v0.0.0-20200522202857-738099e14111 h1:UQJPH
 github.com/keys-pub/keysd/auth/fido2 v0.0.0-20200522202857-738099e14111/go.mod h1:q3IfI+y1chz0a4RAbnENej/p6cutDf4hOEZe4CeSzbs=
 github.com/keys-pub/keysd/auth/fido2 v0.0.0-20200522203915-55b951069853 h1:/Gla4oR264fkJX479begXg0OOoy6p6saDGcrNynlSuo=
 github.com/keys-pub/keysd/auth/fido2 v0.0.0-20200522203915-55b951069853/go.mod h1:q3IfI+y1chz0a4RAbnENej/p6cutDf4hOEZe4CeSzbs=
+github.com/keys-pub/keysd/auth/fido2 v0.0.0-20200522204048-aa537b99eec1 h1:rwSXU6Ir93P3zBqnBTi1jDm8OYXbIONVdzyG1Zv3E3I=
+github.com/keys-pub/keysd/auth/fido2 v0.0.0-20200522204048-aa537b99eec1/go.mod h1:q3IfI+y1chz0a4RAbnENej/p6cutDf4hOEZe4CeSzbs=
 github.com/kisielk/errcheck v1.2.0/go.mod h1:/BMXB+zMLi60iA8Vv6Ksmxu/1UDYcXs4uQLJ+jE2L00=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=

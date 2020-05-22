@@ -5,7 +5,7 @@ go 1.14
 require (
 	github.com/google/uuid v1.1.1
 	github.com/keys-pub/go-libfido2 v1.4.1-0.20200522191908-864232a8fc63
-	github.com/keys-pub/keysd/auth/fido2 v0.0.0-20200522203915-55b951069853
+	github.com/keys-pub/keysd/auth/fido2 v0.0.0-20200522204048-aa537b99eec1
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.5.1
 	google.golang.org/grpc v1.29.1
