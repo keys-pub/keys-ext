@@ -54,8 +54,10 @@ func authCommands(client *Client) []cli.Command {
 						password = p
 					}
 
+					// TODO: Hardware key support
+
 					setupResp, err := client.KeysClient().AuthSetup(context.TODO(), &AuthSetupRequest{
-						Password: password,
+						Secret: password,
 					})
 					if err != nil {
 						return err
@@ -73,8 +75,8 @@ func authCommands(client *Client) []cli.Command {
 
 					logger.Infof("Auth unlock...")
 					unlock, unlockErr := client.KeysClient().AuthUnlock(context.TODO(), &AuthUnlockRequest{
-						Password: password,
-						Client:   clientName,
+						Secret: password,
+						Client: clientName,
 					})
 					if unlockErr != nil {
 						return unlockErr

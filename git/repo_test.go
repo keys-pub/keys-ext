@@ -39,7 +39,7 @@ func TestRepositoryAddDelete(t *testing.T) {
 	require.NoError(t, err)
 	kr1, err := keyring.New(service, repo1)
 	require.NoError(t, err)
-	err = kr1.Unlock(auth)
+	_, err = kr1.Setup(auth)
 	require.NoError(t, err)
 	err = repo1.Push()
 	require.NoError(t, err)
@@ -52,9 +52,9 @@ func TestRepositoryAddDelete(t *testing.T) {
 	require.NoError(t, err)
 	kr2, err := keyring.New(service, repo2)
 	require.NoError(t, err)
-	err = kr2.Unlock(keyring.NewKeyAuth(keys.Rand32()))
+	_, err = kr2.Unlock(keyring.NewKeyAuth(keys.Rand32()))
 	require.EqualError(t, err, "invalid keyring auth")
-	err = kr2.Unlock(auth)
+	_, err = kr2.Unlock(auth)
 	require.NoError(t, err)
 
 	// Repo1: Create, Push
@@ -72,9 +72,9 @@ func TestRepositoryAddDelete(t *testing.T) {
 	require.NoError(t, err)
 	kr3, err := keyring.New(service, repo3)
 	require.NoError(t, err)
-	err = kr3.Unlock(auth)
+	_, err = kr3.Unlock(auth)
 	require.NoError(t, err)
-	items, err := kr3.List(nil)
+	items, err := kr3.List()
 	require.NoError(t, err)
 	require.Equal(t, 1, len(items))
 	require.Equal(t, []byte("mypassword"), items[0].Data)
@@ -82,7 +82,7 @@ func TestRepositoryAddDelete(t *testing.T) {
 	// Repo2: Pull, List
 	err = repo2.Pull()
 	require.NoError(t, err)
-	items, err = kr2.List(nil)
+	items, err = kr2.List()
 	require.NoError(t, err)
 	require.Equal(t, 1, len(items))
 	require.Equal(t, []byte("mypassword"), items[0].Data)
@@ -97,7 +97,7 @@ func TestRepositoryAddDelete(t *testing.T) {
 	// Repo1: Pull, List
 	err = repo1.Pull()
 	require.NoError(t, err)
-	items, err = kr1.List(nil)
+	items, err = kr1.List()
 	require.NoError(t, err)
 	require.Equal(t, 0, len(items))
 }
@@ -129,7 +129,7 @@ func TestConflictResolve(t *testing.T) {
 	require.NoError(t, err)
 	kr1, err := keyring.New(service, repo1)
 	require.NoError(t, err)
-	err = kr1.Unlock(auth)
+	_, err = kr1.Setup(auth)
 	require.NoError(t, err)
 	err = repo1.Push()
 	require.NoError(t, err)
@@ -142,7 +142,7 @@ func TestConflictResolve(t *testing.T) {
 	require.NoError(t, err)
 	kr2, err := keyring.New(service, repo2)
 	require.NoError(t, err)
-	err = kr2.Unlock(auth)
+	_, err = kr2.Unlock(auth)
 	require.NoError(t, err)
 
 	// Repo1: Create, Push

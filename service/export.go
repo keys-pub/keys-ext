@@ -28,8 +28,9 @@ func (s *service) KeyExport(ctx context.Context, req *KeyExportRequest) (*KeyExp
 		return nil, keys.NewErrNotFound(id.String())
 	}
 
+	// TODO: What if we don't have any password auth?
 	if req.Password != "" {
-		if _, err := s.auth.verifyPassword(req.Password); err != nil {
+		if _, err := s.auth.keyring.UnlockWithPassword(req.Password, false); err != nil {
 			if err == keyring.ErrInvalidAuth {
 				return nil, errors.Errorf("invalid password")
 			}

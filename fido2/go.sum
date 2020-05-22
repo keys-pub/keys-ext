@@ -53,9 +53,16 @@ github.com/keys-pub/go-libfido2 v0.0.0-20200501185237-7bb4174863e5 h1:87iYufhrV/
 github.com/keys-pub/go-libfido2 v0.0.0-20200501185237-7bb4174863e5/go.mod h1:P0V19qHwJNY0htZwZDe9Ilvs/nokGhdFX7faKFyZ6+U=
 github.com/keys-pub/go-libfido2 v0.0.0-20200520212756-2e0d0dba98a5 h1:pY6czhszHeTbuDF3LN/NhVpCV18+Q2FiVUy9DcE8zZY=
 github.com/keys-pub/go-libfido2 v0.0.0-20200520212756-2e0d0dba98a5/go.mod h1:P0V19qHwJNY0htZwZDe9Ilvs/nokGhdFX7faKFyZ6+U=
+github.com/keys-pub/go-libfido2 v0.0.0-20200521185839-f7fd00412483 h1:XHLd25Se3R4OTJPoWuQ7eV5NRlh56qgGzqdAE2PE3pk=
+github.com/keys-pub/go-libfido2 v0.0.0-20200521185839-f7fd00412483/go.mod h1:P0V19qHwJNY0htZwZDe9Ilvs/nokGhdFX7faKFyZ6+U=
+github.com/keys-pub/go-libfido2 v0.0.0-20200521193324-391d63153ca4 h1:k/mAqhVXVJre86BUQ50P0j9FhVTOubGYdfsiTcH0E6c=
+github.com/keys-pub/go-libfido2 v0.0.0-20200521193324-391d63153ca4/go.mod h1:P0V19qHwJNY0htZwZDe9Ilvs/nokGhdFX7faKFyZ6+U=
+github.com/keys-pub/go-libfido2 v0.0.0-20200521221830-4b7c8a09afd6 h1:O6vl1wQNA9Nrcpg0+cs1SD6gY9gNms53Suq6Kuj8uxM=
+github.com/keys-pub/go-libfido2 v0.0.0-20200521221830-4b7c8a09afd6/go.mod h1:P0V19qHwJNY0htZwZDe9Ilvs/nokGhdFX7faKFyZ6+U=
 github.com/keys-pub/keysd v0.0.36 h1:LJ4icoup2ihQg9gSGCxtoYKem5jzPigf9VB777fuFTc=
 github.com/keys-pub/keysd v0.0.37 h1:Qx3Dhav0FMpJZGmSCbTcqHFMP6/q37arpdYBzbgseyA=
 github.com/keys-pub/keysd v0.0.38 h1:O8TrVqjfDjssVtFZ0ETN+M7GY0geaaWbh1pISS1N5LA=
+github.com/keys-pub/keysd v0.0.45 h1:cOWy0G8puPU+dBcweNXg0Gczc1ROYXvJs2exx1Ue598=
 github.com/kisielk/errcheck v1.2.0/go.mod h1:/BMXB+zMLi60iA8Vv6Ksmxu/1UDYcXs4uQLJ+jE2L00=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=

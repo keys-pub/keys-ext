@@ -9,6 +9,7 @@ import (
 	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/keyring"
+	"github.com/keys-pub/keysd/fido2"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -25,16 +26,13 @@ type auth struct {
 	keyring   *keyring.Keyring
 	tokens    map[string]string
 	whitelist *ds.StringSet
-}
 
-func keyringService(cfg *Config) string {
-	return cfg.AppName() + ".keyring"
+	authenticators fido2.AuthenticatorsServer
 }
 
 func newAuth(cfg *Config, st keyring.Store) (*auth, error) {
 	// We don't need auth for the following methods.
 	whitelist := ds.NewStringSet(
-		"/service.Keys/AuthGenerate",
 		"/service.Keys/AuthSetup",
 		"/service.Keys/AuthUnlock",
 		"/service.Keys/AuthLock",
@@ -43,7 +41,7 @@ func newAuth(cfg *Config, st keyring.Store) (*auth, error) {
 		"/service.Keys/RandPassword",
 	)
 
-	service := keyringService(cfg)
+	service := cfg.KeyringService(st.Name())
 	kr, err := keyring.New(service, st)
 	if err != nil {
 		return nil, err
@@ -67,36 +65,48 @@ func (a *auth) lock() error {
 	return nil
 }
 
-func (a *auth) verifyPassword(password string) (keyring.Auth, error) {
-	salt, err := a.keyring.Salt()
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to load salt")
-	}
-	auth, err := keyring.NewPasswordAuth(password, salt)
-	if err != nil {
-		return nil, err
-	}
-	if err := a.keyring.Unlock(auth); err != nil {
-		return nil, err
-	}
-	return auth, nil
+type authResult struct {
+	auth  keyring.Auth
+	token string
 }
 
-func (a *auth) unlock(password string, client string) (string, keyring.Auth, error) {
-	logger.Infof("Unlock")
-	auth, err := a.verifyPassword(password)
-	if err != nil {
-		if err == keyring.ErrInvalidAuth {
-			return "", nil, status.Error(codes.Unauthenticated, "invalid password")
-		}
-		return "", nil, errors.Wrapf(err, "failed to unlock")
+func (a *auth) unlock(ctx context.Context, secret string, typ AuthType, client string, setup bool) (*authResult, error) {
+	logger.Infof("Unlock (%s, setup=%t)", typ, setup)
+	var auth keyring.Auth
+	var err error
+	switch typ {
+	case PasswordAuth:
+		auth, err = a.keyring.UnlockWithPassword(secret, setup)
+	case FIDO2HMACSecretAuth:
+		auth, err = a.unlockHMACSecret(ctx, secret, setup)
+	default:
+		return nil, errors.Errorf("unsupported auth type")
 	}
+	if err != nil {
+		return nil, authErr(err, typ, "failed to unlock")
+	}
+	logger.Infof("Unlocked (%s)", typ)
+	token := a.registerToken(client)
+	return &authResult{auth: auth, token: token}, nil
+}
 
+func (a *auth) registerToken(client string) string {
 	token := generateToken()
 	a.tokens[client] = token
-	logger.Infof("Unlocked")
+	return token
+}
 
-	return token, auth, nil
+func authErr(err error, typ AuthType, wrap string) error {
+	if errors.Cause(err) == keyring.ErrInvalidAuth {
+		switch typ {
+		case PasswordAuth:
+			return status.Error(codes.Unauthenticated, "invalid password")
+		default:
+			return status.Error(codes.Unauthenticated, "invalid auth")
+		}
+
+	}
+	return errors.Wrapf(err, wrap)
 }
 
 func generateToken() string {
@@ -166,11 +176,11 @@ func (a clientAuth) RequireTransportSecurity() bool {
 
 func (s *service) isAuthSetupNeeded() (bool, error) {
 	kr := s.ks.Keyring()
-	authed, err := kr.Authed()
+	isSetup, err := kr.IsSetup()
 	if err != nil {
 		return false, err
 	}
-	return !authed, nil
+	return !isSetup, nil
 }
 
 // AuthSetup (RPC) ...
@@ -184,7 +194,7 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 		return nil, errors.Errorf("auth already setup")
 	}
 
-	token, auth, err := s.auth.unlock(req.Password, req.Client)
+	authResult, err := s.auth.unlock(ctx, req.Secret, req.Type, req.Client, true)
 	if err != nil {
 		return nil, err
 	}
@@ -203,23 +213,19 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 		}
 	}
 
-	key := auth.Key()
-
+	// TODO: Use a derived key instead of the actual key itself
+	key := authResult.auth.Key()
 	if err := s.Open(ctx, key); err != nil {
 		return nil, err
 	}
 
 	return &AuthSetupResponse{
-		AuthToken: token,
+		AuthToken: authResult.token,
 	}, nil
 }
 
 // AuthUnlock (RPC) ...
 func (s *service) AuthUnlock(ctx context.Context, req *AuthUnlockRequest) (*AuthUnlockResponse, error) {
-	if req.Password == "" {
-		return nil, errors.Errorf("no password specified")
-	}
-
 	setupNeeded, err := s.isAuthSetupNeeded()
 	if err != nil {
 		return nil, err
@@ -228,19 +234,19 @@ func (s *service) AuthUnlock(ctx context.Context, req *AuthUnlockRequest) (*Auth
 		return nil, errors.Errorf("auth setup needed")
 	}
 
-	token, auth, err := s.auth.unlock(req.Password, req.Client)
+	authResult, err := s.auth.unlock(ctx, req.Secret, req.Type, req.Client, false)
 	if err != nil {
 		return nil, err
 	}
 
-	key := auth.Key()
+	key := authResult.auth.Key()
 
 	if err := s.Open(ctx, key); err != nil {
 		return nil, err
 	}
 
 	return &AuthUnlockResponse{
-		AuthToken: token,
+		AuthToken: authResult.token,
 	}, nil
 }
 

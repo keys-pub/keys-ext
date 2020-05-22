@@ -32,7 +32,7 @@ func (s *service) Items(ctx context.Context, req *ItemsRequest) (*ItemsResponse,
 	}
 
 	kr := s.ks.Keyring()
-	items, err := kr.List(nil)
+	items, err := kr.List()
 	if err != nil {
 		return nil, err
 	}

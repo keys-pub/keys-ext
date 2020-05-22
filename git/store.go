@@ -27,10 +27,13 @@ func (r *Repository) Get(service string, id string) ([]byte, error) {
 	}
 
 	path := filepath.Join(r.Path(), service, id)
-	if _, err := os.Stat(path); os.IsNotExist(err) {
+	if _, err := os.Stat(path); err == nil {
+		return ioutil.ReadFile(path) // #nosec
+	} else if os.IsNotExist(err) {
 		return nil, nil
+	} else {
+		return nil, err
 	}
-	return ioutil.ReadFile(path) // #nosec
 }
 
 // Set bytes.
@@ -60,53 +63,56 @@ func (r *Repository) Set(service string, id string, data []byte) error {
 func (r *Repository) Delete(service string, id string) (bool, error) {
 	name := filepath.Join(service, id)
 	path := filepath.Join(r.Path(), service, id)
-	if _, err := os.Stat(path); os.IsNotExist(err) {
+	if _, err := os.Stat(path); err == nil {
+		if err := os.Remove(path); err != nil {
+			return false, err
+		}
+
+		if err := r.delete(name); err != nil {
+			// TODO: How do we resolve invalid state?
+			// TODO: Move file into tmp and the remove if successful from git rm
+			return false, err
+		}
+		return true, nil
+	} else if os.IsNotExist(err) {
 		return false, nil
-	}
-	if err := os.Remove(path); err != nil {
+	} else {
 		return false, err
 	}
-
-	if err := r.delete(name); err != nil {
-		// TODO: How do we resolve invalid state?
-		return false, err
-	}
-
-	return true, nil
 }
 
 // IDs ...
-func (r *Repository) IDs(service string, opts *keyring.IDsOpts) ([]string, error) {
-	if opts == nil {
-		opts = &keyring.IDsOpts{}
-	}
-	prefix, showHidden, showReserved := opts.Prefix, opts.ShowHidden, opts.ShowReserved
+func (r *Repository) IDs(service string, opts ...keyring.IDsOption) ([]string, error) {
+	options := keyring.NewIDsOptions(opts...)
+	prefix, showHidden, showReserved := options.Prefix, options.Hidden, options.Reserved
 
 	path := filepath.Join(r.Path(), service)
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return []string{}, nil
-	}
+	if _, err := os.Stat(path); err == nil {
+		files, err := ioutil.ReadDir(path)
+		if err != nil {
+			return nil, err
+		}
 
-	files, err := ioutil.ReadDir(path)
-	if err != nil {
+		ids := make([]string, 0, len(files))
+		for _, f := range files {
+			id := f.Name()
+			if !showReserved && strings.HasPrefix(id, keyring.ReservedPrefix) {
+				continue
+			}
+			if !showHidden && strings.HasPrefix(id, keyring.HiddenPrefix) {
+				continue
+			}
+			if prefix != "" && !strings.HasPrefix(id, prefix) {
+				continue
+			}
+			ids = append(ids, id)
+		}
+		return ids, nil
+	} else if os.IsNotExist(err) {
+		return []string{}, nil
+	} else {
 		return nil, err
 	}
-
-	ids := make([]string, 0, len(files))
-	for _, f := range files {
-		id := f.Name()
-		if !showReserved && strings.HasPrefix(id, keyring.ReservedPrefix) {
-			continue
-		}
-		if !showHidden && strings.HasPrefix(id, keyring.HiddenPrefix) {
-			continue
-		}
-		if prefix != "" && !strings.HasPrefix(id, prefix) {
-			continue
-		}
-		ids = append(ids, id)
-	}
-	return ids, nil
 }
 
 // Exists ...

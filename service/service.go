@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/secret"
 	"github.com/keys-pub/keys/user"
 	"github.com/keys-pub/keys/util"
@@ -33,13 +32,6 @@ type service struct {
 	closeCh chan bool
 	open    bool
 	openMtx sync.Mutex
-
-	fido2 bool
-
-	watchLast *ds.WatchEvent
-	watchLn   ds.WatchLn
-	watchWg   *sync.WaitGroup
-	watchMtx  sync.Mutex
 }
 
 func newService(cfg *Config, build Build, auth *auth, req util.Requestor, nowFn func() time.Time) (*service, error) {
@@ -62,17 +54,16 @@ func newService(cfg *Config, build Build, auth *auth, req util.Requestor, nowFn 
 	remote.SetTimeNow(nowFn)
 
 	return &service{
-		auth:    auth,
-		build:   build,
-		cfg:     cfg,
-		ks:      ks,
-		ss:      ss,
-		scs:     scs,
-		db:      db,
-		users:   users,
-		remote:  remote,
-		nowFn:   nowFn,
-		watchLn: func(e *ds.WatchEvent) {},
+		auth:   auth,
+		build:  build,
+		cfg:    cfg,
+		ks:     ks,
+		ss:     ss,
+		scs:    scs,
+		db:     db,
+		users:  users,
+		remote: remote,
+		nowFn:  nowFn,
 	}, nil
 }
 
@@ -136,7 +127,6 @@ func (s *service) Close() {
 
 func (s *service) close() {
 	s.stopUpdateCheck()
-	s.watchReqClose()
 	logger.Infof("Closing db...")
 	s.db.Close()
 	s.open = false

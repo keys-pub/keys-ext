@@ -2,6 +2,7 @@ package git_test
 
 import (
 	"io/ioutil"
+	"strings"
 	"testing"
 	"time"
 
@@ -24,7 +25,7 @@ func TestCopy(t *testing.T) {
 
 	// Keyring #1 (mem)
 	kr := keyring.NewMem(false)
-	err = kr.UnlockWithPassword("testkeyringpassword")
+	_, err = kr.UnlockWithPassword("testkeyringpassword", true)
 	require.NoError(t, err)
 
 	item := keyring.NewItem(keys.Rand3262(), []byte("testpassword"), "", time.Now())
@@ -43,7 +44,8 @@ func TestCopy(t *testing.T) {
 	// Copy #1 to #2
 	ids, err := keyring.Copy(kr, kr2)
 	require.NoError(t, err)
-	require.Equal(t, []string{"#auth", "#salt", item.ID}, ids)
+	require.True(t, strings.HasPrefix(ids[0], "#auth-"))
+	require.Equal(t, []string{"#salt", item.ID}, ids[1:])
 
 	err = repo2.Push()
 	require.NoError(t, err)
@@ -56,7 +58,7 @@ func TestCopy(t *testing.T) {
 	require.NoError(t, err)
 	kr3, err := keyring.New(service, repo3)
 	require.NoError(t, err)
-	err = kr3.UnlockWithPassword("testkeyringpassword")
+	_, err = kr3.UnlockWithPassword("testkeyringpassword", false)
 	require.NoError(t, err)
 	out, err := kr3.Get(item.ID)
 	require.NoError(t, err)
