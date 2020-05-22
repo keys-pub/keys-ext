@@ -23,8 +23,8 @@ import (
 	"github.com/keys-pub/keys/saltpack"
 	"github.com/keys-pub/keys/user"
 	"github.com/keys-pub/keys/util"
+	"github.com/keys-pub/keysd/auth/fido2"
 	"github.com/keys-pub/keysd/db"
-	"github.com/keys-pub/keysd/fido2"
 	"github.com/keys-pub/keysd/http/client"
 	"github.com/keys-pub/keysd/wormhole"
 	"github.com/keys-pub/keysd/wormhole/sctp"
@@ -233,8 +233,8 @@ func NewServiceFn(cfg *Config, build Build, cert *keys.CertificateKey, lgi LogIn
 		logger.Errorf("fido2 plugin is not available: %v", err)
 	} else {
 		logger.Infof("Registering FIDO2 plugin...")
-		fido2.RegisterAuthenticatorsServer(grpcServer, fido2Plugin)
-		auth.authenticators = fido2Plugin
+		fido2.RegisterAuthServer(grpcServer, fido2Plugin)
+		auth.auths = fido2Plugin
 	}
 
 	logger.Infof("Listening for connections on port %d", cfg.Port())

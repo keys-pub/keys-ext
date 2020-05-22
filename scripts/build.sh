@@ -14,6 +14,6 @@ os=`go env GOOS`
 DEBUG=1 VERSION=$ver DATE=$date ./gobuild.sh keysd "$dir/../service/keysd"
 DEBUG=1 VERSION=$ver DATE=$date ./gobuild.sh keys  "$dir/../service/keys"
 if [ ! "$os" = "windows" ]; then
-    BUILD_ONLY=1 DEBUG=1 VERSION=$ver DATE=$date BUILD_FLAGS="-buildmode=plugin" ./gobuild.sh fido2.so "$dir/../service/fido2"
+    BUILD_ONLY=1 DEBUG=1 VERSION=$ver DATE=$date BUILD_FLAGS="-buildmode=plugin -o fido2.so" ./gobuild.sh fido2.so "$dir/../auth/plugin"
 fi
 

@@ -1,5 +1,5 @@
 # Building
 
 ```shell
-go build -buildmode=plugin plugin.go
+go build -buildmode=plugin -o fido2.so plugin.go
 ```

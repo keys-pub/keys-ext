@@ -9,7 +9,7 @@ import (
 	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/keyring"
-	"github.com/keys-pub/keysd/fido2"
+	"github.com/keys-pub/keysd/auth/fido2"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -27,7 +27,7 @@ type auth struct {
 	tokens    map[string]string
 	whitelist *ds.StringSet
 
-	authenticators fido2.AuthenticatorsServer
+	auths fido2.AuthServer
 }
 
 func newAuth(cfg *Config, st keyring.Store) (*auth, error) {

@@ -77,6 +77,7 @@ github.com/golang/protobuf v1.3.1/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5y
 github.com/golang/protobuf v1.3.2 h1:6nsPYzhq5kReh6QImI3k5qWzO4PEbvbIW2cwSfR/6xs=
 github.com/golang/protobuf v1.3.2/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
 github.com/golang/protobuf v1.3.3/go.mod h1:vzj43D7+SQXF/4pzW/hwtAqwc6iTitCiVSaWz5lYuqw=
+github.com/golang/protobuf v1.3.4 h1:87PNWwrRvUSnqS4dlcBU/ftvOIBep4sYuBLlh6rX2wk=
 github.com/golang/protobuf v1.3.4/go.mod h1:vzj43D7+SQXF/4pzW/hwtAqwc6iTitCiVSaWz5lYuqw=
 github.com/golang/protobuf v1.4.0-rc.1/go.mod h1:ceaxUfeHdC40wWswd/P6IGgMaK3YpKi5j83Wpe3EHw8=
 github.com/golang/protobuf v1.4.0-rc.1.0.20200221234624-67d41d38c208/go.mod h1:xKAWHe0F5eneWXFV3EuXVDTCmh+JuBKY0li0aMyXATA=
@@ -102,8 +103,6 @@ github.com/google/pprof v0.0.0-20181206194817-3ea8567a2e57/go.mod h1:zfwlbNMJ+OI
 github.com/google/pprof v0.0.0-20190515194954-54271f7e092f/go.mod h1:zfwlbNMJ+OItoe0UupaVj+oy1omPYYDuagoSzA8v9mc=
 github.com/google/pprof v0.0.0-20191218002539-d4f498aebedc/go.mod h1:ZgVRPoUq/hfqzAqh7sHMqb3I9Rq5C59dIz2SbBwJ4eM=
 github.com/google/renameio v0.1.0/go.mod h1:KWCgfxg9yswjAJkECMjeO8J8rahYeXnNhOm40UhjYkI=
-github.com/google/uuid v1.1.1 h1:Gkbcsh/GbpXz7lPftLA3P6TYMwjCLYm83jiFQZF/3gY=
-github.com/google/uuid v1.1.1/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/googleapis/gax-go/v2 v2.0.4/go.mod h1:0Wqv26UfaUD9n4G6kQubkQ+KchISgw+vpHVxEJEs9eg=
 github.com/googleapis/gax-go/v2 v2.0.5 h1:sjZBwGj9Jlw33ImPtvFviGYvseOtDM7hkSKB7+Tv3SM=
 github.com/googleapis/gax-go/v2 v2.0.5/go.mod h1:DWXyrwAJ9X0FpwwEdw+IPEYBICEFu5mhpdKc/us6bOk=
@@ -130,19 +129,16 @@ github.com/keybase/saltpack v0.0.0-20190828020936-3f47e8e2e6ec h1:ejQ18jEAjyiFen
 github.com/keybase/saltpack v0.0.0-20190828020936-3f47e8e2e6ec/go.mod h1:loEJH62iafRcA8ZYlUEq9WgJh/Z9BHdHHfAmxzacQng=
 github.com/keybase/saltpack v0.0.0-20200228190633-d75baa96bffb h1:+AxJjayBs1yJrAddiOyvj7EjuN7ag1gl9QFszNTQX2M=
 github.com/keybase/saltpack v0.0.0-20200228190633-d75baa96bffb/go.mod h1:loEJH62iafRcA8ZYlUEq9WgJh/Z9BHdHHfAmxzacQng=
-github.com/keys-pub/go-libfido2 v0.0.0-20200521221830-4b7c8a09afd6 h1:O6vl1wQNA9Nrcpg0+cs1SD6gY9gNms53Suq6Kuj8uxM=
-github.com/keys-pub/go-libfido2 v0.0.0-20200521221830-4b7c8a09afd6/go.mod h1:P0V19qHwJNY0htZwZDe9Ilvs/nokGhdFX7faKFyZ6+U=
 github.com/keys-pub/keys v0.0.0-20200414165426-6b7f7009114b h1:k+BaDSxJSjl1xYe25SMQNvNo7/knETHmB5/Kw80nxJw=
 github.com/keys-pub/keys v0.0.0-20200414165426-6b7f7009114b/go.mod h1:K0JoWRBSAgH50/fJpI+6yPgYTj2TCOncJhSVixAa0Xo=
 github.com/keys-pub/keys v0.0.0-20200517225925-b4d826f558e6 h1:YO6RlcqTelGElI/QznhGY9cYWgWFE/EbHtRAf5miSjk=
 github.com/keys-pub/keys v0.0.0-20200517225925-b4d826f558e6/go.mod h1:MCyK8AjqihY//nKiRwf6rwVvXxFEm0mlL89gmt8s3/o=
 github.com/keys-pub/keys v0.0.0-20200522044752-3deea969cb8e h1:a07gJu2e83SVObT26BboHitKVWeSg1xN/gRyvEFEL5c=
 github.com/keys-pub/keys v0.0.0-20200522044752-3deea969cb8e/go.mod h1:nOaBR3puTwpgR5cN6rQyZvNh8TFYRRmksXuk6ASe3HQ=
+github.com/keys-pub/keysd/auth/fido2 v0.0.0-20200522204048-aa537b99eec1 h1:rwSXU6Ir93P3zBqnBTi1jDm8OYXbIONVdzyG1Zv3E3I=
+github.com/keys-pub/keysd/auth/fido2 v0.0.0-20200522204048-aa537b99eec1/go.mod h1:q3IfI+y1chz0a4RAbnENej/p6cutDf4hOEZe4CeSzbs=
 github.com/keys-pub/keysd/db v0.0.0-20200511180349-f7a683035492 h1:Klpw3fdp85sPJt9B+QXzygPL1I0ug7rKAOkxp0osHk4=
 github.com/keys-pub/keysd/db v0.0.0-20200511180349-f7a683035492/go.mod h1:S0Umz2X227gIi6TdAsZnvVmxS6vIEa8wsM+gMpE2cB0=
-github.com/keys-pub/keysd/fido2 v0.0.0-20200522060547-a2a1183387ed/go.mod h1:JSTwjRAP+EKA02bZBwFG1GWJLE/77nnnX9CUKT0EYZM=
-github.com/keys-pub/keysd/fido2 v0.0.0-20200522164945-e9eeca948f03 h1:misPnB3cN3Y2dAGErANvBKzgzY4/Ain4uCb0DCj+Bgw=
-github.com/keys-pub/keysd/fido2 v0.0.0-20200522164945-e9eeca948f03/go.mod h1:JSTwjRAP+EKA02bZBwFG1GWJLE/77nnnX9CUKT0EYZM=
 github.com/keys-pub/keysd/firestore v0.0.0-20200511185617-3242def70139 h1:fSp/YF6gPETrjBftcnwdzdmCWG/B7OXlt8e6BBQLp4I=
 github.com/keys-pub/keysd/firestore v0.0.0-20200511185617-3242def70139/go.mod h1:uHZ1qZy+KH3/l5aYqt5eigLB5LnbukClDpPtcXL0nr4=
 github.com/keys-pub/keysd/git v0.0.0-20200522051246-0ece4f02505c h1:uxH3R/J0HepfJMNrbL2RCp2bLGuztADNGJ5EgimNc4I=
@@ -424,6 +420,7 @@ google.golang.org/genproto v0.0.0-20190801165951-fa694d86fc64/go.mod h1:DMBHOl98
 google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55/go.mod h1:DMBHOl98Agz4BDEuKkezgsaosCRResVns1a3J2ZsMNc=
 google.golang.org/genproto v0.0.0-20190911173649-1774047e7e51/go.mod h1:IbNlFCBrqXvoKpeg0TB2l7cyZUmoaFKYIwrEpbDKLA8=
 google.golang.org/genproto v0.0.0-20191108220845-16a3f7862a1a/go.mod h1:n3cpQtvxv34hfy77yVDNjmbRyujviMdxYliBSkLhpCc=
+google.golang.org/genproto v0.0.0-20191230161307-f3c370f40bfb h1:ADPHZzpzM4tk4V4S5cnCrr5SwzvlrPRmqqCuJDB8UTs=
 google.golang.org/genproto v0.0.0-20191230161307-f3c370f40bfb/go.mod h1:n3cpQtvxv34hfy77yVDNjmbRyujviMdxYliBSkLhpCc=
 google.golang.org/genproto v0.0.0-20200424135956-bca184e23272 h1:yKqICwsk6cvaHc7nFgdKRJU45wKUGve28MXBkX8nCTg=
 google.golang.org/genproto v0.0.0-20200424135956-bca184e23272/go.mod h1:55QSHmfGQM9UVYDPBsyGGes0y52j32PQ3BqQfXhyH3c=

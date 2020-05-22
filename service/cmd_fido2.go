@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/keys-pub/keysd/fido2"
+	"github.com/keys-pub/keysd/auth/fido2"
 	"github.com/urfave/cli"
 )
 

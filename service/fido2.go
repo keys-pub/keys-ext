@@ -7,7 +7,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/keyring"
-	"github.com/keys-pub/keysd/fido2"
+	"github.com/keys-pub/keysd/auth/fido2"
 	"github.com/pkg/errors"
 	"github.com/vmihailenco/msgpack/v4"
 )
@@ -28,11 +28,11 @@ type authDevice struct {
 // findDevice returns supported device.
 // If creds is specified we try to find the device matching the auth credentials (aaguid).
 func (a *auth) findDevice(ctx context.Context, creds []*authCredential) (*authDevice, error) {
-	if a.authenticators == nil {
+	if a.auths == nil {
 		return nil, errors.Errorf("fido2 plugin not available")
 	}
 
-	devicesResp, err := a.authenticators.Devices(ctx, &fido2.DevicesRequest{})
+	devicesResp, err := a.auths.Devices(ctx, &fido2.DevicesRequest{})
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func (a *auth) findDevice(ctx context.Context, creds []*authCredential) (*authDe
 	// TODO: We return first device found, but we might want the user to choose instead.
 
 	for _, device := range devicesResp.Devices {
-		infoResp, err := a.authenticators.DeviceInfo(ctx, &fido2.DeviceInfoRequest{Device: device.Path})
+		infoResp, err := a.auths.DeviceInfo(ctx, &fido2.DeviceInfoRequest{Device: device.Path})
 		if err != nil {
 			return nil, err
 		}
@@ -109,7 +109,7 @@ func (a *auth) hmacSecret(ctx context.Context, pin string, setup bool) ([]byte, 
 			return nil, err
 		}
 
-		resp, err := a.authenticators.GenerateHMACSecret(ctx, &fido2.GenerateHMACSecretRequest{
+		resp, err := a.auths.GenerateHMACSecret(ctx, &fido2.GenerateHMACSecretRequest{
 			Device:         authDevice.Device.Path,
 			PIN:            pin,
 			ClientDataHash: cdh[:],
@@ -145,7 +145,7 @@ func (a *auth) hmacSecret(ctx context.Context, pin string, setup bool) ([]byte, 
 		authDevice = found
 	}
 
-	secretResp, err := a.authenticators.HMACSecret(ctx, &fido2.HMACSecretRequest{
+	secretResp, err := a.auths.HMACSecret(ctx, &fido2.HMACSecretRequest{
 		Device:         authDevice.Device.Path,
 		PIN:            pin,
 		ClientDataHash: cdh[:],

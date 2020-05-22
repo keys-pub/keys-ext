@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys/ds"
-	"github.com/keys-pub/keysd/fido2"
+	"github.com/keys-pub/keysd/auth/fido2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
@@ -26,7 +26,7 @@ import (
 type Client struct {
 	sync.Mutex
 	keysClient  KeysClient
-	fido2Client fido2.AuthenticatorsClient
+	fido2Client fido2.AuthClient
 	conn        *grpc.ClientConn
 	cfg         *Config
 	connectFn   ClientConnectFn
@@ -63,7 +63,7 @@ func (c *Client) Connect(cfg *Config, authToken string) error {
 	}
 	c.conn = conn
 	c.keysClient = NewKeysClient(conn)
-	c.fido2Client = fido2.NewAuthenticatorsClient(conn)
+	c.fido2Client = fido2.NewAuthClient(conn)
 	return nil
 }
 
@@ -96,7 +96,7 @@ func (c *Client) KeysClient() KeysClient {
 }
 
 // FIDO2Client returns FIDO2 Authenticators RPC client.
-func (c *Client) FIDO2Client() fido2.AuthenticatorsClient {
+func (c *Client) FIDO2Client() fido2.AuthClient {
 	return c.fido2Client
 }
 
