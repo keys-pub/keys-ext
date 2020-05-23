@@ -58,8 +58,8 @@ func authCommands(client *Client) []cli.Command {
 
 					setupResp, err := client.KeysClient().AuthSetup(context.TODO(), &AuthSetupRequest{
 						Secret: password,
-						Client: "cli",
 						Type:   PasswordAuth,
+						Client: clientName,
 					})
 					if err != nil {
 						return err
