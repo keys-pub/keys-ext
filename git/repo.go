@@ -8,7 +8,7 @@ import (
 
 	"github.com/keys-pub/keys"
 
-	git "github.com/libgit2/git2go/v30"
+	git "github.com/keys-pub/git2go"
 	"github.com/pkg/errors"
 )
 

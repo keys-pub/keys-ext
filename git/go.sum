@@ -19,7 +19,8 @@ github.com/keybase/go-keychain v0.0.0-20191220220820-f65a47cbe0b1 h1:Lk38J60jgB0
 github.com/keybase/go-keychain v0.0.0-20191220220820-f65a47cbe0b1/go.mod h1:JJNrCn9otv/2QP4D7SMJBgaleKpOf66PnW6F5WGNRIc=
 github.com/keybase/saltpack v0.0.0-20190828020936-3f47e8e2e6ec h1:ejQ18jEAjyiFen49m7h8x46kzC3heD/HbUiOPzBLVWg=
 github.com/keybase/saltpack v0.0.0-20190828020936-3f47e8e2e6ec/go.mod h1:loEJH62iafRcA8ZYlUEq9WgJh/Z9BHdHHfAmxzacQng=
-github.com/keys-pub/keys v0.0.0-20200519005436-e3845e4fcd35/go.mod h1:nOaBR3puTwpgR5cN6rQyZvNh8TFYRRmksXuk6ASe3HQ=
+github.com/keys-pub/git2go v0.0.0-20200522234529-906f368ffa84 h1:F6zIE00SRs6Mov/FIDZ3C/s0zFigxODGTlVtwdY90SM=
+github.com/keys-pub/git2go v0.0.0-20200522234529-906f368ffa84/go.mod h1:WPf2iGu2UGAneeigFBaheu0hQem5Uu8rgT8AeT7oghs=
 github.com/keys-pub/keys v0.0.0-20200522044752-3deea969cb8e h1:a07gJu2e83SVObT26BboHitKVWeSg1xN/gRyvEFEL5c=
 github.com/keys-pub/keys v0.0.0-20200522044752-3deea969cb8e/go.mod h1:nOaBR3puTwpgR5cN6rQyZvNh8TFYRRmksXuk6ASe3HQ=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f h1:LLsdI2XManLH0JonKqB6OYmHdHk/WwJByDbHI3hCEcs=
@@ -29,8 +30,6 @@ github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORN
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0 h1:45sCR5RtlFHMR4UwH9sdQ5TC8v0qDQCHnXt+kaKSTVE=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
-github.com/libgit2/git2go/v30 v30.0.3 h1:v+KRMhx85kHS0JzkPft7Wnt3+VUrYQrD/SQ77usTO/w=
-github.com/libgit2/git2go/v30 v30.0.3/go.mod h1:YReiQ7xhMoyAL4ISYFLZt+OGqn6xtLqvTC1xJ9oAH7Y=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
