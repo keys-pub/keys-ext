@@ -114,6 +114,7 @@ func testAuthSetup(t *testing.T, service *service) {
 	_, err := service.AuthSetup(context.TODO(), &AuthSetupRequest{
 		Secret: authPassword,
 		Type:   PasswordAuth,
+		Client: "test",
 	})
 	require.NoError(t, err)
 }
@@ -237,6 +238,8 @@ func testPull(t *testing.T, service *service, kid keys.ID) {
 // func testUnlock(t *testing.T, service *service) {
 // 	_, err := service.AuthUnlock(context.TODO(), &AuthUnlockRequest{
 // 		Password: keys.RandPassphrase(12),
+// 		Type: PasswordAuth,
+//      Client: "test",
 // 	})
 // 	require.NoError(t, err)
 // }

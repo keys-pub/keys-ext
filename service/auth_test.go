@@ -113,6 +113,7 @@ func TestAuthLock(t *testing.T) {
 	_, err := service.AuthSetup(ctx, &AuthSetupRequest{
 		Secret: password,
 		Type:   PasswordAuth,
+		Client: "test",
 	})
 	require.NoError(t, err)
 
@@ -135,7 +136,7 @@ func TestAuthSetup(t *testing.T) {
 	defer closeFn()
 	ctx := context.TODO()
 
-	setupResp, err := service.AuthSetup(ctx, &AuthSetupRequest{Secret: "password123", Type: PasswordAuth})
+	setupResp, err := service.AuthSetup(ctx, &AuthSetupRequest{Secret: "password123", Type: PasswordAuth, Client: "test"})
 	require.NoError(t, err)
 	require.NotEmpty(t, setupResp.AuthToken)
 }
