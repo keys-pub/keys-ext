@@ -45,16 +45,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Test (db)
-        run: cd db; go test -v ./...
-      - name: Test (fido2)
+        run: (cd db && go test -v ./...)
+      - name: Test (auth)
         if: matrix.os == 'macos-latest'
-        run: cd fido2; go test -v ./...
+        run: |
+          (cd auth/rpc && go test -v ./...)
+          (cd auth/fido2 && go test -v ./...)
       - name: Test (http/api)
-        run: cd http/api; go test -v ./...
+        run: (cd http/api && go test -v ./...)
       - name: Test (http/client)
-        run: cd http/client; go test -v ./...
+        run: (cd http/client && go test -v ./...)
       - name: Test (http/server)
-        run: cd http/server; go test -v ./...
+        run: (cd http/server && go test -v ./...)
       - name: Test (service)
         if: matrix.os == 'macos-latest'
-        run: cd service; go test -v ./...
+        run: (cd service && go test -v ./...)
