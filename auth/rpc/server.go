@@ -284,7 +284,26 @@ func (s *Server) GenerateHMACSecret(ctx context.Context, req *fido2.GenerateHMAC
 
 	cdh := req.ClientDataHash
 	if len(cdh) != 32 {
-		return nil, errors.Errorf("")
+		return nil, errors.Errorf("invalid client data hash length")
+	}
+	if req.RP == nil {
+		return nil, errors.Errorf("no rp specified")
+	}
+	if req.RP.ID == "" {
+		return nil, errors.Errorf("empty rp id")
+	}
+	if req.RP.Name == "" {
+		return nil, errors.Errorf("empty rp name")
+	}
+
+	if req.User == nil {
+		return nil, errors.Errorf("no user specified")
+	}
+	if len(req.User.ID) == 0 {
+		return nil, errors.Errorf("empty user id")
+	}
+	if req.User.Name == "" {
+		return nil, errors.Errorf("empty user name")
 	}
 
 	opts := &libfido2.MakeCredentialOpts{
@@ -301,14 +320,8 @@ func (s *Server) GenerateHMACSecret(ctx context.Context, req *fido2.GenerateHMAC
 
 	attest, err := device.MakeCredential(
 		cdh,
-		libfido2.RelyingParty{
-			ID:   req.RPID,
-			Name: "-",
-		},
-		libfido2.User{
-			ID:   []byte("-"),
-			Name: "-",
-		},
+		rpFromRPC(req.RP),
+		userFromRPC(req.User),
 		libfido2.ES256, // Algorithm
 		req.PIN,
 		opts,
