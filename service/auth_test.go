@@ -25,14 +25,14 @@ func TestAuthWithPassword(t *testing.T) {
 	require.False(t, isSetup)
 
 	// Setup
-	_, err = auth.unlock(ctx, "password123", PasswordAuth, "test", true)
+	err = auth.setup(ctx, "password123", PasswordAuth)
 	require.NoError(t, err)
 
 	isSetup, err = kr.IsSetup()
 	require.NoError(t, err)
 	require.True(t, isSetup)
 
-	authResult, err := auth.unlock(ctx, "password123", PasswordAuth, "test", false)
+	authResult, err := auth.unlock(ctx, "password123", PasswordAuth, "test")
 	require.NoError(t, err)
 	require.NotEmpty(t, auth.tokens)
 	require.NotEmpty(t, authResult.token)
@@ -42,13 +42,13 @@ func TestAuthWithPassword(t *testing.T) {
 	require.NoError(t, err)
 
 	// Unlock with invalid password
-	_, err = auth.unlock(ctx, "invalidpassword", PasswordAuth, "test", false)
+	_, err = auth.unlock(ctx, "invalidpassword", PasswordAuth, "test")
 	require.EqualError(t, err, "rpc error: code = Unauthenticated desc = invalid password")
 	require.Empty(t, auth.tokens)
 	require.Empty(t, auth.tokens)
 
 	// Unlock
-	authResult, err = auth.unlock(ctx, "password123", PasswordAuth, "test", false)
+	authResult, err = auth.unlock(ctx, "password123", PasswordAuth, "test")
 	require.NoError(t, err)
 	require.NotEmpty(t, auth.tokens)
 	require.NotEmpty(t, authResult.token)
@@ -80,7 +80,9 @@ func TestAuthorize(t *testing.T) {
 	require.EqualError(t, err, "rpc error: code = Unauthenticated desc = invalid token")
 
 	// Unlock
-	authResult, err := auth.unlock(ctx, "password123", PasswordAuth, "test", true)
+	err = auth.setup(ctx, "password123", PasswordAuth)
+	require.NoError(t, err)
+	authResult, err := auth.unlock(ctx, "password123", PasswordAuth, "test")
 	require.NoError(t, err)
 	require.NotEmpty(t, auth.tokens)
 	require.NotEmpty(t, authResult.token)
@@ -109,8 +111,14 @@ func TestAuthLock(t *testing.T) {
 	defer closeFn()
 	ctx := context.TODO()
 
+	var err error
 	password := "password123"
-	_, err := service.AuthSetup(ctx, &AuthSetupRequest{
+	_, err = service.AuthSetup(ctx, &AuthSetupRequest{
+		Secret: password,
+		Type:   PasswordAuth,
+	})
+	require.NoError(t, err)
+	_, err = service.AuthUnlock(ctx, &AuthUnlockRequest{
 		Secret: password,
 		Type:   PasswordAuth,
 		Client: "test",
@@ -136,7 +144,6 @@ func TestAuthSetup(t *testing.T) {
 	defer closeFn()
 	ctx := context.TODO()
 
-	setupResp, err := service.AuthSetup(ctx, &AuthSetupRequest{Secret: "password123", Type: PasswordAuth, Client: "test"})
+	_, err := service.AuthSetup(ctx, &AuthSetupRequest{Secret: "password123", Type: PasswordAuth})
 	require.NoError(t, err)
-	require.NotEmpty(t, setupResp.AuthToken)
 }
