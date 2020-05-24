@@ -70,15 +70,32 @@ type authResult struct {
 	token string
 }
 
-func (a *auth) unlock(ctx context.Context, secret string, typ AuthType, client string, setup bool) (*authResult, error) {
-	logger.Infof("Unlock (%s, setup=%t)", typ, setup)
+func (a *auth) setup(ctx context.Context, secret string, typ AuthType) error {
+	logger.Infof("Setup (%s)", typ)
+	var err error
+	switch typ {
+	case PasswordAuth:
+		_, err = a.keyring.UnlockWithPassword(secret, true)
+	case FIDO2HMACSecretAuth:
+		err = a.setupHMACSecret(ctx, secret)
+	default:
+		return errors.Errorf("unsupported auth type")
+	}
+	if err != nil {
+		return authErr(err, typ, "failed to setup")
+	}
+	return nil
+}
+
+func (a *auth) unlock(ctx context.Context, secret string, typ AuthType, client string) (*authResult, error) {
+	logger.Infof("Unlock (%s)", typ)
 	var auth keyring.Auth
 	var err error
 	switch typ {
 	case PasswordAuth:
-		auth, err = a.keyring.UnlockWithPassword(secret, setup)
+		auth, err = a.keyring.UnlockWithPassword(secret, false)
 	case FIDO2HMACSecretAuth:
-		auth, err = a.unlockHMACSecret(ctx, secret, setup)
+		auth, err = a.unlockHMACSecret(ctx, secret)
 	default:
 		return nil, errors.Errorf("unsupported auth type")
 	}
@@ -194,8 +211,7 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 		return nil, errors.Errorf("auth already setup")
 	}
 
-	authResult, err := s.auth.unlock(ctx, req.Secret, req.Type, req.Client, true)
-	if err != nil {
+	if err := s.auth.setup(ctx, req.Secret, req.Type); err != nil {
 		return nil, err
 	}
 
@@ -213,15 +229,7 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 		}
 	}
 
-	// TODO: Use a derived key instead of the actual key itself
-	key := authResult.auth.Key()
-	if err := s.Open(ctx, key); err != nil {
-		return nil, err
-	}
-
-	return &AuthSetupResponse{
-		AuthToken: authResult.token,
-	}, nil
+	return &AuthSetupResponse{}, nil
 }
 
 // AuthUnlock (RPC) ...
@@ -234,13 +242,13 @@ func (s *service) AuthUnlock(ctx context.Context, req *AuthUnlockRequest) (*Auth
 		return nil, errors.Errorf("auth setup needed")
 	}
 
-	authResult, err := s.auth.unlock(ctx, req.Secret, req.Type, req.Client, false)
+	authResult, err := s.auth.unlock(ctx, req.Secret, req.Type, req.Client)
 	if err != nil {
 		return nil, err
 	}
 
+	// TODO: Use a derived key instead of the actual key itself?
 	key := authResult.auth.Key()
-
 	if err := s.Open(ctx, key); err != nil {
 		return nil, err
 	}

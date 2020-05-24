@@ -114,6 +114,11 @@ func testAuthSetup(t *testing.T, service *service) {
 	_, err := service.AuthSetup(context.TODO(), &AuthSetupRequest{
 		Secret: authPassword,
 		Type:   PasswordAuth,
+	})
+	require.NoError(t, err)
+	_, err = service.AuthUnlock(context.TODO(), &AuthUnlockRequest{
+		Secret: authPassword,
+		Type:   PasswordAuth,
 		Client: "test",
 	})
 	require.NoError(t, err)

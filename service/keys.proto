@@ -425,13 +425,9 @@ message AuthSetupRequest {
   // Secret for auth depending on auth type, e.g. password, pin, etc
   string secret = 1;
   // Type for auth.
-  AuthType type = 2;
-  // Client name.
-  string client = 6;
+  AuthType type = 2;  
 }
-message AuthSetupResponse {
-  string authToken = 1;
-}
+message AuthSetupResponse {}
 
 message AuthUnlockRequest {
   // Secret for auth depending on auth type, e.g. password, pin, etc
