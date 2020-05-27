@@ -8,11 +8,10 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/ds"
-	"github.com/keys-pub/keys/util"
+	"github.com/keys-pub/keys/tsutil"
 	"github.com/stretchr/testify/require"
 )
 
@@ -20,7 +19,7 @@ import (
 // You should defer Close() the result.
 func testDB(t *testing.T) (*DB, func()) {
 	db := New()
-	db.SetTimeNow(newClock().Now)
+	db.SetTimeNow(tsutil.NewClock().Now)
 	path := testPath()
 	ctx := context.TODO()
 	key := keys.Rand32()
@@ -35,22 +34,6 @@ func testDB(t *testing.T) (*DB, func()) {
 
 func testPath() string {
 	return filepath.Join(os.TempDir(), fmt.Sprintf("db-test-%s.leveldb", keys.Rand3262()))
-}
-
-type clock struct {
-	t time.Time
-}
-
-func newClock() *clock {
-	t := util.TimeFromMillis(1234567890000)
-	return &clock{
-		t: t,
-	}
-}
-
-func (c *clock) Now() time.Time {
-	c.t = c.t.Add(time.Millisecond)
-	return c.t
 }
 
 func TestDB(t *testing.T) {
@@ -286,7 +269,7 @@ func testMetadata(t *testing.T, dst ds.DocumentStore) {
 	doc, err := dst.Get(ctx, "/test/key1")
 	require.NoError(t, err)
 	require.NotNil(t, doc)
-	require.Equal(t, int64(1234567890001), util.TimeToMillis(doc.CreatedAt))
+	require.Equal(t, int64(1234567890001), tsutil.Millis(doc.CreatedAt))
 
 	err = dst.Set(ctx, "/test/key1", []byte("value1b"))
 	require.NoError(t, err)
@@ -294,8 +277,8 @@ func testMetadata(t *testing.T, dst ds.DocumentStore) {
 	doc, err = dst.Get(ctx, "/test/key1")
 	require.NoError(t, err)
 	require.NotNil(t, doc)
-	require.Equal(t, int64(1234567890001), util.TimeToMillis(doc.CreatedAt))
-	require.Equal(t, int64(1234567890002), util.TimeToMillis(doc.UpdatedAt))
+	require.Equal(t, int64(1234567890001), tsutil.Millis(doc.CreatedAt))
+	require.Equal(t, int64(1234567890002), tsutil.Millis(doc.UpdatedAt))
 }
 
 func ExampleDB_OpenAtPath() {

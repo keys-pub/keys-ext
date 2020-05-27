@@ -11,7 +11,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/ds"
-	"github.com/keys-pub/keys/util"
+	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keysd/http/api"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
@@ -101,11 +101,11 @@ func (s *Server) getSigchainStatement(c echo.Context) error {
 	}
 	if !doc.CreatedAt.IsZero() {
 		c.Response().Header().Set("CreatedAt", doc.CreatedAt.Format(http.TimeFormat))
-		c.Response().Header().Set("CreatedAt-RFC3339M", doc.CreatedAt.Format(util.RFC3339Milli))
+		c.Response().Header().Set("CreatedAt-RFC3339M", doc.CreatedAt.Format(tsutil.RFC3339Milli))
 	}
 	if !doc.UpdatedAt.IsZero() {
 		c.Response().Header().Set("Last-Modified", doc.UpdatedAt.Format(http.TimeFormat))
-		c.Response().Header().Set("Last-Modified-RFC3339M", doc.UpdatedAt.Format(util.RFC3339Milli))
+		c.Response().Header().Set("Last-Modified-RFC3339M", doc.UpdatedAt.Format(tsutil.RFC3339Milli))
 	}
 
 	return JSON(c, http.StatusOK, st)

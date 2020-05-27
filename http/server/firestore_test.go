@@ -3,6 +3,7 @@ package server_test
 import (
 	"testing"
 
+	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keysd/firestore"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/api/option"
@@ -22,7 +23,7 @@ func TestMessagesFirestore(t *testing.T) {
 	firestore.SetContextLogger(firestore.NewContextLogger(firestore.DebugLevel))
 	fs := testFirestore(t)
 
-	clock := newClock()
+	clock := tsutil.NewClock()
 	env := newEnvWithFire(t, fs, clock)
 	// env.logLevel = server.DebugLevel
 

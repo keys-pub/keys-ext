@@ -10,7 +10,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/ds"
-	"github.com/keys-pub/keys/util"
+	"github.com/keys-pub/keys/tsutil"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/api/option"
 )
@@ -28,22 +28,6 @@ func testFirestore(t *testing.T) *Firestore {
 	fs, err := New(testURL, opts...)
 	require.NoError(t, err)
 	return fs
-}
-
-type clock struct {
-	t time.Time
-}
-
-func newClock() *clock {
-	t := util.TimeFromMillis(1234567890000)
-	return &clock{
-		t: t,
-	}
-}
-
-func (c *clock) Now() time.Time {
-	c.t = c.t.Add(time.Millisecond)
-	return c.t
 }
 
 func TestFirestore(t *testing.T) {
@@ -278,7 +262,7 @@ func testMetadata(t *testing.T, dst ds.DocumentStore) {
 	doc, err := dst.Get(ctx, ds.Path(collection, "key1"))
 	require.NoError(t, err)
 	require.NotNil(t, doc)
-	createTime := util.TimeToMillis(doc.CreatedAt)
+	createTime := tsutil.Millis(doc.CreatedAt)
 	require.True(t, createTime > 0)
 
 	err = dst.Set(ctx, ds.Path(collection, "key1"), []byte("value1b"))
@@ -287,12 +271,12 @@ func testMetadata(t *testing.T, dst ds.DocumentStore) {
 	doc, err = dst.Get(ctx, ds.Path(collection, "key1"))
 	require.NoError(t, err)
 	require.NotNil(t, doc)
-	require.Equal(t, createTime, util.TimeToMillis(doc.CreatedAt))
-	require.True(t, util.TimeToMillis(doc.UpdatedAt) > createTime)
+	require.Equal(t, createTime, tsutil.Millis(doc.CreatedAt))
+	require.True(t, tsutil.Millis(doc.UpdatedAt) > createTime)
 }
 
 func TestSigchains(t *testing.T) {
-	clock := newClock()
+	clock := tsutil.NewClock()
 	fs := testFirestore(t)
 	scs := keys.NewSigchainStore(fs)
 
@@ -316,7 +300,7 @@ func TestSigchains(t *testing.T) {
 
 func ExampleNew() {
 	url := "firestore://chilltest-3297b"
-	collection := "test-" + time.Now().Format(time.RFC3339)
+	collection := "test"
 
 	opts := []option.ClientOption{option.WithCredentialsFile("credentials.json")}
 	fs, err := New(url, opts...)
@@ -346,7 +330,7 @@ func ExampleNew() {
 	fmt.Printf("%s\n", entry.Path)
 	fmt.Printf("%s\n", entry.Data)
 	// Output:
-	// /test/1
+	// /test/key1
 	// value1
 }
 
@@ -359,7 +343,7 @@ func TestDeleteAll(t *testing.T) {
 	err = fs.Set(context.TODO(), ds.Path(collection, "key2"), []byte("val2"))
 	require.NoError(t, err)
 
-	err = fs.DeleteAll(context.TODO(), []string{ds.Path(collection, "key1"), "/test/key2", "/test/key3"})
+	err = fs.DeleteAll(context.TODO(), []string{ds.Path(collection, "key1"), ds.Path(collection, "key2"), ds.Path(collection, "key3")})
 	require.NoError(t, err)
 
 	doc, err := fs.Get(context.TODO(), ds.Path(collection, "key1"))

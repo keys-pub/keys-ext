@@ -16,7 +16,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/ds"
-	"github.com/keys-pub/keys/util"
+	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keysd/http/api"
 	"github.com/pkg/errors"
 )
@@ -159,7 +159,7 @@ func (c *Client) document(path string, resp *http.Response) (*ds.Document, error
 	createdHeader := resp.Header.Get("CreatedAt-RFC3339M")
 	createdAt := time.Time{}
 	if createdHeader != "" {
-		tm, err := time.Parse(util.RFC3339Milli, createdHeader)
+		tm, err := time.Parse(tsutil.RFC3339Milli, createdHeader)
 		if err != nil {
 			return nil, err
 		}
@@ -169,7 +169,7 @@ func (c *Client) document(path string, resp *http.Response) (*ds.Document, error
 	updatedHeader := resp.Header.Get("Last-Modified-RFC3339M")
 	updatedAt := time.Time{}
 	if updatedHeader != "" {
-		tm, err := time.Parse(util.RFC3339Milli, updatedHeader)
+		tm, err := time.Parse(tsutil.RFC3339Milli, updatedHeader)
 		if err != nil {
 			return nil, err
 		}
