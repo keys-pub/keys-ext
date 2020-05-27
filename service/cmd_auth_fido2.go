@@ -15,7 +15,7 @@ func fido2AuthSetup(ctx context.Context, client *Client, clientName string, pin 
 		pin = p
 	}
 
-	fmt.Fprintln(os.Stderr, "Creating credential, you may need to authorize on your device...")
+	fmt.Fprintln(os.Stderr, "Let's create a credential, you may need to interact with the key...")
 	if _, err := client.KeysClient().AuthSetup(ctx, &AuthSetupRequest{
 		Secret: pin,
 		Type:   FIDO2HMACSecretAuth,
@@ -23,7 +23,7 @@ func fido2AuthSetup(ctx context.Context, client *Client, clientName string, pin 
 		return "", err
 	}
 
-	fmt.Fprintln(os.Stderr, "Getting credential, you may need to authorize on your device (again)...")
+	fmt.Fprintln(os.Stderr, "Getting the credential, you may need to interact with the key...")
 	unlockResp, err := client.KeysClient().AuthUnlock(ctx, &AuthUnlockRequest{
 		Secret: pin,
 		Type:   FIDO2HMACSecretAuth,
@@ -45,7 +45,7 @@ func fido2AuthUnlock(ctx context.Context, client *Client, clientName string, pin
 		pin = p
 	}
 
-	fmt.Fprintln(os.Stderr, "Getting credential, you may need to authorize on your device...")
+	fmt.Fprintln(os.Stderr, "Getting the credential, you may need to interact with the key...")
 	unlock, err := client.KeysClient().AuthUnlock(context.TODO(), &AuthUnlockRequest{
 		Secret: pin,
 		Type:   FIDO2HMACSecretAuth,
@@ -59,9 +59,9 @@ func fido2AuthUnlock(ctx context.Context, client *Client, clientName string, pin
 
 func fido2AuthProvision(ctx context.Context, client *Client, clientName string, pin string, setup bool) error {
 	if setup {
-		fmt.Fprintln(os.Stderr, "Let's create a credential on your device, you may need to interact with the key...")
+		fmt.Fprintln(os.Stderr, "Let's create a credential, you may need to interact with the key...")
 	} else {
-		fmt.Fprintln(os.Stderr, "Getting the credential from your device, you may need to interact with the key (again)...")
+		fmt.Fprintln(os.Stderr, "Getting the credential, you may need to interact with the key (again)...")
 	}
 	if _, err := client.KeysClient().AuthProvision(ctx, &AuthProvisionRequest{
 		Secret: pin,
