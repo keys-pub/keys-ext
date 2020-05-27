@@ -11,7 +11,7 @@ type authType string
 
 const (
 	passwordAuth        authType = "password"
-	fido2HMACSecretAuth authType = "fido2-hmac-secret"
+	fido2HMACSecretAuth authType = "fido2-hmac-secret" // #nosec
 )
 
 const authInfoPrefix = "#auinfo-"
