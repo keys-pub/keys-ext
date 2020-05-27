@@ -7,50 +7,17 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/request"
+	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keys/user"
-	"github.com/keys-pub/keys/util"
 	"github.com/keys-pub/keysd/http/api"
 	"github.com/keys-pub/keysd/http/server"
 	"github.com/stretchr/testify/require"
 )
-
-type clock struct {
-	t    time.Time
-	tick time.Duration
-}
-
-func newClock() *clock {
-	return newClockAt(1234567890000)
-}
-
-func (c *clock) setTick(tick time.Duration) {
-	c.tick = tick
-}
-
-func newClockAt(ts int64) *clock {
-	t := util.TimeFromMillis(ts)
-	return &clock{
-		t:    t,
-		tick: time.Millisecond,
-	}
-}
-
-// func newClockAtNow() *clock {
-// 	return &clock{
-// 		t:    time.Now(),
-// 		tick: time.Millisecond,
-// 	}
-// }
-
-func (c *clock) Now() time.Time {
-	c.t = c.t.Add(c.tick)
-	return c.t
-}
 
 type testServer struct {
 	Server  *server.Server
@@ -68,14 +35,14 @@ type testServer struct {
 // 	return fs
 // }
 
-func testFire(t *testing.T, clock *clock) server.Fire {
+func testFire(t *testing.T, clock *tsutil.Clock) server.Fire {
 	fi := ds.NewMem()
 	fi.SetTimeNow(clock.Now)
 	return fi
 }
 
 func TestFireCreatedAt(t *testing.T) {
-	clock := newClock()
+	clock := tsutil.NewClock()
 	fi := testFire(t, clock)
 
 	err := fi.Set(context.TODO(), "/test/a", []byte{0x01})
@@ -87,33 +54,33 @@ func TestFireCreatedAt(t *testing.T) {
 
 	ftime := doc.CreatedAt.Format(http.TimeFormat)
 	require.Equal(t, "Fri, 13 Feb 2009 23:31:30 GMT", ftime)
-	ftime = doc.CreatedAt.Format(util.RFC3339Milli)
+	ftime = doc.CreatedAt.Format(tsutil.RFC3339Milli)
 	require.Equal(t, "2009-02-13T23:31:30.001Z", ftime)
 }
 
-func testUserStore(t *testing.T, ds ds.DocumentStore, req util.Requestor, clock *clock) *user.Store {
+func testUserStore(t *testing.T, ds ds.DocumentStore, req request.Requestor, clock *tsutil.Clock) *user.Store {
 	us, err := user.NewStore(ds, keys.NewSigchainStore(ds), req, clock.Now)
 	require.NoError(t, err)
 	return us
 }
 
 type env struct {
-	clock    *clock
+	clock    *tsutil.Clock
 	fi       server.Fire
 	pubSub   server.PubSub
 	users    *user.Store
-	req      *util.MockRequestor
+	req      *request.MockRequestor
 	logLevel server.LogLevel
 }
 
 func newEnv(t *testing.T) *env {
-	clock := newClock()
+	clock := tsutil.NewClock()
 	fi := testFire(t, clock)
 	return newEnvWithFire(t, fi, clock)
 }
 
-func newEnvWithFire(t *testing.T, fi server.Fire, clock *clock) *env {
-	req := util.NewMockRequestor()
+func newEnvWithFire(t *testing.T, fi server.Fire, clock *tsutil.Clock) *env {
+	req := request.NewMockRequestor()
 	pubSub := server.NewPubSub()
 	users := testUserStore(t, fi, req, clock)
 	return &env{
@@ -182,7 +149,7 @@ func (s *testPubSubServer) Start() (close func()) {
 	}
 }
 
-func (s *testPubSubServer) WebsocketDial(t *testing.T, path string, clock *clock, key *keys.EdX25519Key) *websocket.Conn {
+func (s *testPubSubServer) WebsocketDial(t *testing.T, path string, clock *tsutil.Clock, key *keys.EdX25519Key) *websocket.Conn {
 	var wsAddr string
 	header := http.Header{}
 
@@ -202,7 +169,7 @@ func (s *testPubSubServer) WebsocketDial(t *testing.T, path string, clock *clock
 	return conn
 }
 
-func userMock(t *testing.T, users *user.Store, key *keys.EdX25519Key, name string, service string, mock *util.MockRequestor) *keys.Statement {
+func userMock(t *testing.T, users *user.Store, key *keys.EdX25519Key, name string, service string, mock *request.MockRequestor) *keys.Statement {
 	url := ""
 	switch service {
 	case "github":

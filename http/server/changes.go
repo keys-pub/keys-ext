@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/keys-pub/keys/ds"
-	"github.com/keys-pub/keys/util"
+	"github.com/keys-pub/keys/tsutil"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 )
@@ -56,7 +56,7 @@ func (s *Server) changes(c echo.Context, path string) (*changes, error) {
 	}
 
 	s.logger.Infof("Changes %s", path)
-	chngs, to, err := s.fi.Changes(ctx, path, util.TimeFromMillis(version), limit, dir)
+	chngs, to, err := s.fi.Changes(ctx, path, tsutil.ParseMillis(version), limit, dir)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func (s *Server) changes(c echo.Context, path string) (*changes, error) {
 	if to.IsZero() {
 		versionNext = version
 	} else {
-		versionNext = util.TimeToMillis(to)
+		versionNext = tsutil.Millis(to)
 	}
 
 	s.logger.Infof("Changes %s, version next: %d", path, versionNext)

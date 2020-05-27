@@ -6,12 +6,13 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keysd/http/server"
 	"github.com/stretchr/testify/require"
 )
 
 func TestMemTestCache(t *testing.T) {
-	clock := newClock()
+	clock := tsutil.NewClock()
 	mc := server.NewMemTestCache(clock.Now)
 
 	n1 := keys.Rand3262()
@@ -37,8 +38,8 @@ func TestMemTestCache(t *testing.T) {
 
 func TestMemTestCacheExpiration(t *testing.T) {
 	// SetLog(newLog(DebugLevel))
-	clock := newClock()
-	clock.setTick(time.Second)
+	clock := tsutil.NewClock()
+	clock.SetTick(time.Second)
 	mc := server.NewMemTestCache(clock.Now)
 
 	n1 := keys.Rand3262()
