@@ -8,7 +8,7 @@ import (
 )
 
 func (a *auth) setupPassword(password string) error {
-	salt, err := a.keyring.Salt()
+	salt, err := a.kr.Salt()
 	if err != nil {
 		return err
 	}
@@ -16,7 +16,7 @@ func (a *auth) setupPassword(password string) error {
 	if err != nil {
 		return err
 	}
-	if _, err := a.keyring.Setup(auth); err != nil {
+	if _, err := a.kr.Setup(auth); err != nil {
 		return err
 	}
 
@@ -33,7 +33,7 @@ func (a *auth) setupPassword(password string) error {
 }
 
 func (a *auth) unlockPassword(password string) error {
-	salt, err := a.keyring.Salt()
+	salt, err := a.kr.Salt()
 	if err != nil {
 		return err
 	}
@@ -41,14 +41,14 @@ func (a *auth) unlockPassword(password string) error {
 	if err != nil {
 		return err
 	}
-	if _, err := a.keyring.Unlock(auth); err != nil {
+	if _, err := a.kr.Unlock(auth); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (a *auth) provisionPassword(ctx context.Context, password string) (string, error) {
-	salt, err := a.keyring.Salt()
+	salt, err := a.kr.Salt()
 	if err != nil {
 		return "", err
 	}
@@ -56,7 +56,7 @@ func (a *auth) provisionPassword(ctx context.Context, password string) (string, 
 	if err != nil {
 		return "", err
 	}
-	id, err := a.keyring.Provision(auth)
+	id, err := a.kr.Provision(auth)
 	if err != nil {
 		return "", err
 	}

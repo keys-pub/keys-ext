@@ -36,8 +36,8 @@ type service struct {
 
 func newService(cfg *Config, build Build, auth *auth, req util.Requestor, nowFn func() time.Time) (*service, error) {
 	logger.Debugf("New service: %s", cfg.AppName())
-	ks := keys.NewStore(auth.keyring)
-	ss := secret.NewStore(auth.keyring)
+	ks := keys.NewStore(auth.kr)
+	ss := secret.NewStore(auth.kr)
 	ss.SetTimeNow(nowFn)
 	db := db.New()
 	db.SetTimeNow(nowFn)

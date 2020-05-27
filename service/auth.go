@@ -22,11 +22,11 @@ import (
 type auth struct {
 	sync.Mutex
 	cfg       *Config
-	keyring   *keyring.Keyring
+	kr        *keyring.Keyring
 	tokens    map[string]string
 	whitelist *ds.StringSet
 
-	auths fido2.AuthServer
+	fido2 fido2.AuthServer
 }
 
 func newAuth(cfg *Config, st keyring.Store) (*auth, error) {
@@ -48,7 +48,7 @@ func newAuth(cfg *Config, st keyring.Store) (*auth, error) {
 
 	return &auth{
 		cfg:       cfg,
-		keyring:   kr,
+		kr:        kr,
 		tokens:    map[string]string{},
 		whitelist: whitelist,
 	}, nil
@@ -57,7 +57,7 @@ func newAuth(cfg *Config, st keyring.Store) (*auth, error) {
 func (a *auth) lock() error {
 	// TODO: Lock after running for a certain amount of time (maybe a few hours?)
 	logger.Infof("Locking")
-	if err := a.keyring.Lock(); err != nil {
+	if err := a.kr.Lock(); err != nil {
 		return err
 	}
 	a.tokens = map[string]string{}

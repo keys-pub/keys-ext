@@ -28,7 +28,7 @@ type authInfo struct {
 }
 
 func (a *auth) loadInfos() ([]*authInfo, error) {
-	st := a.keyring.Store()
+	st := a.kr.Store()
 	service := a.cfg.KeyringService(st.Name())
 	ids, err := st.IDs(service, keyring.WithReservedPrefix(authInfoPrefix))
 	if err != nil {
@@ -55,7 +55,7 @@ func (a *auth) loadInfos() ([]*authInfo, error) {
 }
 
 func (a *auth) loadInfo(id string) (*authInfo, error) {
-	st := a.keyring.Store()
+	st := a.kr.Store()
 	service := a.cfg.KeyringService(st.Name())
 	logger.Debugf("Looking up auth info %v", id)
 
@@ -75,7 +75,7 @@ func (a *auth) loadInfo(id string) (*authInfo, error) {
 
 func (a *auth) saveInfo(info *authInfo) error {
 	logger.Debugf("Saving auth info %s", info.ID)
-	st := a.keyring.Store()
+	st := a.kr.Store()
 	service := a.cfg.KeyringService(st.Name())
 	krid := authInfoPrefix + info.ID
 	b, err := msgpack.Marshal(info)
@@ -90,7 +90,7 @@ func (a *auth) saveInfo(info *authInfo) error {
 
 func (a *auth) deleteInfo(id string) (bool, error) {
 	logger.Debugf("Deleting auth info %s", id)
-	st := a.keyring.Store()
+	st := a.kr.Store()
 	service := a.cfg.KeyringService(st.Name())
 	krid := authInfoPrefix + id
 	return st.Delete(service, krid)

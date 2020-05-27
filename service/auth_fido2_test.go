@@ -34,7 +34,7 @@ func TestHMACSecretAuth(t *testing.T) {
 
 	fido2Plugin, err := fido2.OpenPlugin(filepath.Join(goBin(t), "fido2.so"))
 	require.NoError(t, err)
-	auth.auths = fido2Plugin
+	auth.fido2 = fido2Plugin
 
 	t.Logf("Setup")
 	err = auth.setup(context.TODO(), pin, FIDO2HMACSecretAuth)

@@ -21,11 +21,11 @@ type authDevice struct {
 // findDevice returns supported device.
 // If infos is specified we try to find the device matching the auth credentials (aaguid).
 func (a *auth) findDevice(ctx context.Context, infos []*authInfo) (*authDevice, error) {
-	if a.auths == nil {
+	if a.fido2 == nil {
 		return nil, errors.Errorf("fido2 plugin not available")
 	}
 
-	devicesResp, err := a.auths.Devices(ctx, &fido2.DevicesRequest{})
+	devicesResp, err := a.fido2.Devices(ctx, &fido2.DevicesRequest{})
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +36,7 @@ func (a *auth) findDevice(ctx context.Context, infos []*authInfo) (*authDevice, 
 	// TODO: We return first device found, but we might want the user to choose instead.
 
 	for _, device := range devicesResp.Devices {
-		infoResp, err := a.auths.DeviceInfo(ctx, &fido2.DeviceInfoRequest{Device: device.Path})
+		infoResp, err := a.fido2.DeviceInfo(ctx, &fido2.DeviceInfoRequest{Device: device.Path})
 		if err != nil {
 			return nil, err
 		}
@@ -73,7 +73,7 @@ func (a *auth) setupHMACSecret(ctx context.Context, pin string) (string, error) 
 	// TODO: Default to using resident key?
 
 	logger.Debugf("Generating hmac-secret...")
-	resp, err := a.auths.GenerateHMACSecret(ctx, &fido2.GenerateHMACSecretRequest{
+	resp, err := a.fido2.GenerateHMACSecret(ctx, &fido2.GenerateHMACSecretRequest{
 		Device:         authDevice.Device.Path,
 		PIN:            pin,
 		ClientDataHash: cdh[:],
@@ -140,7 +140,7 @@ func (a *auth) hmacSecret(ctx context.Context, pin string) ([]byte, string, erro
 	}
 
 	logger.Debugf("Getting hmac-secret...")
-	secretResp, err := a.auths.HMACSecret(ctx, &fido2.HMACSecretRequest{
+	secretResp, err := a.fido2.HMACSecret(ctx, &fido2.HMACSecretRequest{
 		Device:         authDevice.Device.Path,
 		PIN:            pin,
 		ClientDataHash: cdh[:],
@@ -171,16 +171,16 @@ func (a *auth) unlockHMACSecret(ctx context.Context, pin string) error {
 	// usually requires user presence so we split up these blocking calls into
 	// two requests. The first request doesn't give us the auth, so we do the
 	// keyring setup of first unlock instead of during setup.
-	status, err := a.keyring.Status()
+	status, err := a.kr.Status()
 	if err != nil {
 		return err
 	}
 	if status == keyring.Setup {
-		if _, err := a.keyring.Setup(auth); err != nil {
+		if _, err := a.kr.Setup(auth); err != nil {
 			return err
 		}
 	} else {
-		if _, err := a.keyring.Unlock(auth); err != nil {
+		if _, err := a.kr.Unlock(auth); err != nil {
 			return err
 		}
 	}
@@ -196,7 +196,7 @@ func (a *auth) provisionHMACSecret(ctx context.Context, pin string) (string, err
 		return "", errors.Errorf("invalid key length for hmac secret")
 	}
 	auth := keyring.NewAuth(credID, keys.Bytes32(key))
-	id, err := a.keyring.Provision(auth)
+	id, err := a.kr.Provision(auth)
 	if err != nil {
 		return "", err
 	}

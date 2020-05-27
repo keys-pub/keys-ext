@@ -100,7 +100,7 @@ func newTestServiceWithOpts(t *testing.T, env *testEnv, appName string, keyringT
 	closeFn := func() {
 		serverEnv.closeFn()
 		svc.Close()
-		err := auth.keyring.Reset()
+		err := auth.kr.Reset()
 		require.NoError(t, err)
 		closeCfg()
 	}

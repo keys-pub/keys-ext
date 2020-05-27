@@ -234,7 +234,7 @@ func NewServiceFn(cfg *Config, build Build, cert *keys.CertificateKey, lgi LogIn
 	} else {
 		logger.Infof("Registering FIDO2 plugin...")
 		fido2.RegisterAuthServer(grpcServer, fido2Plugin)
-		auth.auths = fido2Plugin
+		auth.fido2 = fido2Plugin
 	}
 
 	logger.Infof("Listening for connections on port %d", cfg.Port())

@@ -16,12 +16,11 @@ func TestAuthWithPassword(t *testing.T) {
 	require.NoError(t, err)
 	auth, err := newAuth(cfg, st)
 	require.NoError(t, err)
-	defer func() { _ = auth.keyring.Reset() }()
-	kr := auth.keyring
+	defer func() { _ = auth.kr.Reset() }()
 	ctx := context.TODO()
 
 	// Setup needed
-	status, err := kr.Status()
+	status, err := auth.kr.Status()
 	require.NoError(t, err)
 	require.Equal(t, keyring.Setup, status)
 
@@ -29,7 +28,7 @@ func TestAuthWithPassword(t *testing.T) {
 	err = auth.setup(ctx, "password123", PasswordAuth)
 	require.NoError(t, err)
 
-	status, err = kr.Status()
+	status, err = auth.kr.Status()
 	require.NoError(t, err)
 	require.Equal(t, keyring.Unlocked, status)
 
@@ -62,7 +61,7 @@ func TestAuthorize(t *testing.T) {
 	require.NoError(t, err)
 	auth, err := newAuth(cfg, st)
 	require.NoError(t, err)
-	defer func() { _ = auth.keyring.Reset() }()
+	defer func() { _ = auth.kr.Reset() }()
 
 	ctx := metadata.NewIncomingContext(context.TODO(), metadata.MD{})
 	err = auth.authorize(ctx, "/service.Keys/SomeMethod")

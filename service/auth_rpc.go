@@ -57,7 +57,7 @@ func (s *service) AuthUnlock(ctx context.Context, req *AuthUnlockRequest) (*Auth
 	}
 
 	// TODO: Use a derived key instead of the actual key itself
-	key := s.auth.keyring.MasterKey()
+	key := s.auth.kr.MasterKey()
 	if err := s.Open(ctx, key); err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func (s *service) AuthProvision(ctx context.Context, req *AuthProvisionRequest) 
 
 // AuthDeprovision (RPC) ...
 func (s *service) AuthDeprovision(ctx context.Context, req *AuthDeprovisionRequest) (*AuthDeprovisionResponse, error) {
-	ok, err := s.auth.keyring.Deprovision(req.ID)
+	ok, err := s.auth.kr.Deprovision(req.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +100,7 @@ func (s *service) AuthDeprovision(ctx context.Context, req *AuthDeprovisionReque
 
 // AuthProvisions (RPC) ...
 func (s *service) AuthProvisions(ctx context.Context, req *AuthProvisionsRequest) (*AuthProvisionsResponse, error) {
-	ids, err := s.auth.keyring.Provisions()
+	ids, err := s.auth.kr.Provisions()
 	if err != nil {
 		return nil, err
 	}
