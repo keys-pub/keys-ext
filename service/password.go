@@ -10,7 +10,7 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-func readPassword(prompt string) (string, error) {
+func readPassword(prompt string, allowEmpty bool) (string, error) {
 	if !terminal.IsTerminal(int(syscall.Stdin)) {
 		return "", errors.Errorf("failed to read password from terminal: not a terminal or terminal not supported, use -password option")
 	}
@@ -49,7 +49,7 @@ func readPassword(prompt string) (string, error) {
 		return "", err
 	}
 
-	if len(p) == 0 {
+	if len(p) == 0 && !allowEmpty {
 		return "", errors.Errorf("empty password")
 	}
 
@@ -58,11 +58,11 @@ func readPassword(prompt string) (string, error) {
 }
 
 func readVerifyPassword(prompt string) (string, error) {
-	password, err := readPassword(prompt)
+	password, err := readPassword(prompt, false)
 	if err != nil {
 		return "", err
 	}
-	password2, err := readPassword("Re-enter the password:")
+	password2, err := readPassword("Re-enter the password:", false)
 	if err != nil {
 		return "", err
 	}

@@ -3,6 +3,7 @@ package service
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -160,4 +161,12 @@ func argString(c *cli.Context, name string, optional bool) (string, error) {
 	}
 
 	return "", errors.Errorf("no %s specified", name)
+}
+
+func printResponse(i interface{}) {
+	b, err := json.MarshalIndent(i, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(b))
 }

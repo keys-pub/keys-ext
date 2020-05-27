@@ -140,6 +140,8 @@ github.com/keys-pub/keys v0.0.0-20200523234830-e6bfdfbf1dde h1:P9jwA7w8YmSESgUV6
 github.com/keys-pub/keys v0.0.0-20200523234830-e6bfdfbf1dde/go.mod h1:nOaBR3puTwpgR5cN6rQyZvNh8TFYRRmksXuk6ASe3HQ=
 github.com/keys-pub/keys v0.0.0-20200527022006-a219369870f2 h1:j6/rV/RIcWdqwyD6TnTese6FFQr32ygXSePkj4/XnVo=
 github.com/keys-pub/keys v0.0.0-20200527022006-a219369870f2/go.mod h1:nOaBR3puTwpgR5cN6rQyZvNh8TFYRRmksXuk6ASe3HQ=
+github.com/keys-pub/keys v0.0.0-20200527164138-87050ceba02e h1:nLiz9h4th0b0qK6aUNxcAHsLSfNByYXzwsiwJlD6AnU=
+github.com/keys-pub/keys v0.0.0-20200527164138-87050ceba02e/go.mod h1:nOaBR3puTwpgR5cN6rQyZvNh8TFYRRmksXuk6ASe3HQ=
 github.com/keys-pub/keysd/auth/fido2 v0.0.0-20200524000041-6d7e23f9bca0 h1:q/0KRicnWLk6jyxCQM+bm9C+r+IRFYNAxEs1UTJLJ9Q=
 github.com/keys-pub/keysd/auth/fido2 v0.0.0-20200524000041-6d7e23f9bca0/go.mod h1:VeiOp+slfnecI02nZ0zoZbMPK18HoPfg40uCvt2npiM=
 github.com/keys-pub/keysd/db v0.0.0-20200522210637-42d998d4c90e h1:2+wxVQgcWH+HmiTbx2Bivi6bpX87XRR/rQOKz2c49mk=
@@ -158,6 +160,7 @@ github.com/keys-pub/keysd/http/server v0.0.0-20200522210637-42d998d4c90e h1:l/zD
 github.com/keys-pub/keysd/http/server v0.0.0-20200522210637-42d998d4c90e/go.mod h1:GA20qZ8sZvK//rBB+k1B5XNsjdJ7+SB9y6tIxPpWDUk=
 github.com/keys-pub/keysd/wormhole v0.0.0-20200522210637-42d998d4c90e h1:3pNedcbbHVaheWO8oS+Zyvyy+drfoKO82tlWwWHIUKw=
 github.com/keys-pub/keysd/wormhole v0.0.0-20200522210637-42d998d4c90e/go.mod h1:rp5mDDsIzM2lFlwxNTKGC3SbcGB65KzdlqAQPdRgkKY=
+github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f h1:LLsdI2XManLH0JonKqB6OYmHdHk/WwJByDbHI3hCEcs=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f/go.mod h1:YRHMiVbZqh7u8xRm77CvwJNAZdDlNXwWvQ4DK0N9mYg=
 github.com/keys-pub/wincred v1.0.4/go.mod h1:hYYzs98abtg1kw7vFeqUQkxH+dWP75iFINYBTYalNlI=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=
@@ -378,6 +381,7 @@ google.golang.org/appengine v1.4.0/go.mod h1:xpcJRLb0r/rnEns0DIKYYv+WjYCduHsrkT7
 google.golang.org/appengine v1.5.0/go.mod h1:xpcJRLb0r/rnEns0DIKYYv+WjYCduHsrkT7/EB5XEv4=
 google.golang.org/appengine v1.6.1/go.mod h1:i06prIuMbXzDqacNJfV5OdTW448YApPu5ww/cMBSeb0=
 google.golang.org/appengine v1.6.5/go.mod h1:8WjMMxjGQR8xUklV/ARdw2HLXBOI7O7uCIDZVag1xfc=
+google.golang.org/appengine v1.6.6 h1:lMO5rYAqUxkmaj76jAkRUvt5JZgFymx/+Q5Mzfivuhc=
 google.golang.org/appengine v1.6.6/go.mod h1:8WjMMxjGQR8xUklV/ARdw2HLXBOI7O7uCIDZVag1xfc=
 google.golang.org/genproto v0.0.0-20180817151627-c66870c02cf8/go.mod h1:JiN7NxoALGmiZfu7CAH4rXhgtRTLTxftemlI0sWmxmc=
 google.golang.org/genproto v0.0.0-20190307195333-5fe7a883aa19/go.mod h1:VzzqZJRnGkLBvHegQrXjBqPurQTc5/KpmUdxsrq26oE=

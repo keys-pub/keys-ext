@@ -49,7 +49,7 @@ func authCommands(client *Client) []cli.Command {
 					return errors.Errorf("no client name")
 				}
 
-				authType, secretRequired, err := chooseAuth("How do you want to authorize?", c.String("type"))
+				authType, err := chooseAuth("How do you want to authorize?", c.String("type"))
 				if err != nil {
 					return err
 				}
@@ -62,7 +62,7 @@ func authCommands(client *Client) []cli.Command {
 					case PasswordAuth:
 						authToken, authErr = passwordAuthSetup(context.TODO(), client, clientName, c.String("password"))
 					case FIDO2HMACSecretAuth:
-						authToken, authErr = fido2AuthSetup(context.TODO(), client, clientName, c.String("pin"), secretRequired)
+						authToken, authErr = fido2AuthSetup(context.TODO(), client, clientName, c.String("pin"))
 					}
 				} else {
 					logger.Infof("Auth unlock...")
@@ -70,7 +70,7 @@ func authCommands(client *Client) []cli.Command {
 					case PasswordAuth:
 						authToken, authErr = passwordAuthUnlock(context.TODO(), client, clientName, c.String("password"))
 					case FIDO2HMACSecretAuth:
-						authToken, authErr = fido2AuthUnlock(context.TODO(), client, clientName, c.String("pin"), secretRequired)
+						authToken, authErr = fido2AuthUnlock(context.TODO(), client, clientName, c.String("pin"))
 					}
 				}
 				if authErr != nil {
@@ -136,7 +136,7 @@ func authProvisionCommand(client *Client) cli.Command {
 				return errors.Errorf("no client name")
 			}
 
-			authType, secretRequired, err := chooseAuth("How do you want to provision?", c.String("type"))
+			authType, err := chooseAuth("How do you want to provision?", c.String("type"))
 			if err != nil {
 				return err
 			}
@@ -149,8 +149,8 @@ func authProvisionCommand(client *Client) cli.Command {
 				}
 			case FIDO2HMACSecretAuth:
 				pin := c.String("pin")
-				if secretRequired && len(pin) == 0 {
-					p, err := readPassword("Enter your PIN:")
+				if len(pin) == 0 {
+					p, err := readPassword("Enter your PIN:", true)
 					if err != nil {
 						return err
 					}
@@ -172,7 +172,7 @@ func authProvisionCommand(client *Client) cli.Command {
 	}
 }
 
-func chooseAuth(title string, arg string) (AuthType, bool, error) {
+func chooseAuth(title string, arg string) (AuthType, error) {
 	if arg != "" {
 		return authTypeFromString(arg)
 	}
@@ -182,31 +182,28 @@ func chooseAuth(title string, arg string) (AuthType, bool, error) {
 		fmt.Fprintln(os.Stderr, title)
 		fmt.Fprintln(os.Stderr, "(p)  Password")
 		fmt.Fprintln(os.Stderr, "(f)  FIDO2 hmac-secret")
-		fmt.Fprintln(os.Stderr, "(fn) FIDO2 hmac-secret (no pin)")
 		input, err := reader.ReadString('\n')
 		if err != nil {
-			return UnknownAuth, false, err
+			return UnknownAuth, err
 		}
 
-		authType, secretRequired, err := authTypeFromString(input)
+		authType, err := authTypeFromString(input)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())
 		} else {
-			return authType, secretRequired, nil
+			return authType, nil
 		}
 	}
 }
 
-func authTypeFromString(s string) (AuthType, bool, error) {
+func authTypeFromString(s string) (AuthType, error) {
 	switch strings.TrimSpace(strings.ToLower(s)) {
 	case "p", "password":
-		return PasswordAuth, true, nil
+		return PasswordAuth, nil
 	case "f", "fido2-hmac-secret":
-		return FIDO2HMACSecretAuth, true, nil
-	case "fn", "fido2-hmac-secret-no-pin":
-		return FIDO2HMACSecretAuth, false, nil
+		return FIDO2HMACSecretAuth, nil
 	default:
-		return UnknownAuth, false, errors.Errorf("unknown auth type: %s", s)
+		return UnknownAuth, errors.Errorf("unknown auth type: %s", s)
 	}
 }
 
@@ -222,9 +219,7 @@ func authProvisionsCommand(client *Client) cli.Command {
 				return err
 			}
 
-			for _, id := range resp.IDs {
-				fmt.Println(id)
-			}
+			printResponse(resp.Provisions)
 
 			return nil
 		},

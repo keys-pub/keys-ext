@@ -69,9 +69,9 @@ func (a *auth) setup(ctx context.Context, secret string, typ AuthType) error {
 	var err error
 	switch typ {
 	case PasswordAuth:
-		err = a.keyring.UnlockWithPassword(secret, true)
+		err = a.setupPassword(secret)
 	case FIDO2HMACSecretAuth:
-		_, err = a.generateHMACSecret(ctx, secret)
+		_, err = a.setupHMACSecret(ctx, secret)
 	default:
 		return errors.Errorf("unsupported auth type")
 	}
@@ -86,7 +86,7 @@ func (a *auth) unlock(ctx context.Context, secret string, typ AuthType, client s
 	var err error
 	switch typ {
 	case PasswordAuth:
-		err = a.keyring.UnlockWithPassword(secret, false)
+		err = a.unlockPassword(secret)
 	case FIDO2HMACSecretAuth:
 		err = a.unlockHMACSecret(ctx, secret)
 	default:
@@ -107,46 +107,12 @@ func (a *auth) provision(ctx context.Context, secret string, typ AuthType, setup
 		return a.provisionPassword(ctx, secret)
 	case FIDO2HMACSecretAuth:
 		if setup {
-			return a.generateHMACSecret(ctx, secret)
+			return a.setupHMACSecret(ctx, secret)
 		}
 		return a.provisionHMACSecret(ctx, secret)
 	default:
 		return "", errors.Errorf("unknown auth type")
 	}
-}
-
-func (a *auth) provisionPassword(ctx context.Context, password string) (string, error) {
-	salt, err := a.keyring.Salt()
-	if err != nil {
-		return "", err
-	}
-	auth, err := keyring.NewPasswordAuth(password, salt)
-	if err != nil {
-		return "", err
-	}
-	id, err := a.keyring.Provision(auth)
-	if err != nil {
-		return "", err
-	}
-	logger.Infof("Provision with auth id: %s", id)
-	return string(id), nil
-}
-
-func (a *auth) provisionHMACSecret(ctx context.Context, pin string) (string, error) {
-	key, credID, err := a.hmacSecret(ctx, pin)
-	if err != nil {
-		return "", err
-	}
-	if len(key) != 32 {
-		return "", errors.Errorf("invalid key length for hmac secret")
-	}
-	auth := keyring.NewAuth(credID, keys.Bytes32(key))
-	id, err := a.keyring.Provision(auth)
-	if err != nil {
-		return "", err
-	}
-	logger.Infof("Provision with auth id: %s", id)
-	return string(id), nil
 }
 
 func (a *auth) registerToken(client string) string {

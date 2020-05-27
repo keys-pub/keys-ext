@@ -37,7 +37,7 @@ func passwordAuthSetup(ctx context.Context, client *Client, clientName string, p
 
 func passwordAuthUnlock(ctx context.Context, client *Client, clientName string, password string) (string, error) {
 	if len(password) == 0 {
-		p, err := readPassword("Enter your password:")
+		p, err := readPassword("Enter your password:", false)
 		if err != nil {
 			return "", err
 		}

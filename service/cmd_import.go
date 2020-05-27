@@ -56,7 +56,7 @@ func importCommands(client *Client) []cli.Command {
 
 				password := c.String("password")
 				if len(password) == 0 {
-					p, err := readPassword("Enter the password:")
+					p, err := readPassword("Enter the password:", false)
 					if err != nil {
 						return err
 					}

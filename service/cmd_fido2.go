@@ -2,8 +2,6 @@ package service
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 
 	"github.com/keys-pub/keysd/auth/fido2"
 	"github.com/urfave/cli"
@@ -90,12 +88,4 @@ func fido2Commands(client *Client) []cli.Command {
 			},
 		},
 	}
-}
-
-func printResponse(i interface{}) {
-	b, err := json.MarshalIndent(i, "", "  ")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(string(b))
 }

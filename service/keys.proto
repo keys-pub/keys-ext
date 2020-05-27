@@ -432,9 +432,9 @@ enum AuthType {
   
   UNKNOWN_AUTH = 0 [(gogoproto.enumvalue_customname) = "UnknownAuth"];
   // PasswordAuth using argon2id.
-  PASSWORD_AUTH = 1 [(gogoproto.enumvalue_customname) = "PasswordAuth"];
-  // FIDO2HMACSecretAuth using FIDO2 hmac-secret extension
-  FIDO2_HMAC_SECRET_AUTH = 10 [(gogoproto.enumvalue_customname) = "FIDO2HMACSecretAuth"];
+  PASSWORD_AUTH = 10 [(gogoproto.enumvalue_customname) = "PasswordAuth"];
+  // FIDO2HMACSecretAuth using FIDO2 hmac-secret extension.
+  FIDO2_HMAC_SECRET_AUTH = 20 [(gogoproto.enumvalue_customname) = "FIDO2HMACSecretAuth"];
 }
 
 message AuthSetupRequest {
@@ -475,9 +475,19 @@ message AuthDeprovisionRequest {
 }
 message AuthDeprovisionResponse {}
 
+message AuthProvision {
+  string id = 1 [(gogoproto.customname) = "ID"];
+  AuthType type = 2;
+
+  // For FIDO2
+  // AAGUID is a device "identifier" (only unique across batches for privacy reasons).
+  string aaguid = 100 [(gogoproto.customname) = "AAGUID"];
+  bool noPin = 101;
+}
+
 message AuthProvisionsRequest {}
 message AuthProvisionsResponse {
-  repeated string ids = 1 [(gogoproto.customname) = "IDs"];
+  repeated AuthProvision provisions = 1;
 }
 
 message AuthLockRequest {}

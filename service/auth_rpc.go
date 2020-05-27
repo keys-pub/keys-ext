@@ -104,8 +104,29 @@ func (s *service) AuthProvisions(ctx context.Context, req *AuthProvisionsRequest
 	if err != nil {
 		return nil, err
 	}
+
+	provisions := make([]*AuthProvision, 0, len(ids))
+	for _, id := range ids {
+		if id == "v1.auth" {
+			provisions = append(provisions, &AuthProvision{ID: id, Type: PasswordAuth})
+			continue
+		}
+
+		info, err := s.auth.loadInfo(id)
+		if err != nil {
+			return nil, err
+		}
+		provision := &AuthProvision{ID: id}
+		if info != nil {
+			provision.Type = authTypeToRPC(info.Type)
+			provision.AAGUID = info.AAGUID
+			provision.NoPin = info.NoPin
+		}
+		provisions = append(provisions, provision)
+	}
+
 	return &AuthProvisionsResponse{
-		IDs: ids,
+		Provisions: provisions,
 	}, nil
 }
 

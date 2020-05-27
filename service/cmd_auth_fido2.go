@@ -6,9 +6,9 @@ import (
 	"os"
 )
 
-func fido2AuthSetup(ctx context.Context, client *Client, clientName string, pin string, pinRequired bool) (string, error) {
-	if pinRequired && len(pin) == 0 {
-		p, err := readPassword("Enter your PIN:")
+func fido2AuthSetup(ctx context.Context, client *Client, clientName string, pin string) (string, error) {
+	if len(pin) == 0 {
+		p, err := readPassword("Enter your PIN:", true)
 		if err != nil {
 			return "", err
 		}
@@ -36,9 +36,9 @@ func fido2AuthSetup(ctx context.Context, client *Client, clientName string, pin 
 	return unlockResp.AuthToken, nil
 }
 
-func fido2AuthUnlock(ctx context.Context, client *Client, clientName string, pin string, pinRequired bool) (string, error) {
-	if pinRequired && len(pin) == 0 {
-		p, err := readPassword("Enter your PIN:")
+func fido2AuthUnlock(ctx context.Context, client *Client, clientName string, pin string) (string, error) {
+	if len(pin) == 0 {
+		p, err := readPassword("Enter your PIN:", true)
 		if err != nil {
 			return "", err
 		}

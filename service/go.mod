@@ -9,7 +9,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
 	github.com/keybase/go-keychain v0.0.0-20200502122510-cda31fe0c86d // indirect
 	github.com/keybase/saltpack v0.0.0-20200430135328-e19b1910c0c5 // indirect
-	github.com/keys-pub/keys v0.0.0-20200527022006-a219369870f2
+	github.com/keys-pub/keys v0.0.0-20200527164138-87050ceba02e
 	github.com/keys-pub/keysd/auth/fido2 v0.0.0-20200524000041-6d7e23f9bca0
 	github.com/keys-pub/keysd/db v0.0.0-20200522210637-42d998d4c90e
 	github.com/keys-pub/keysd/git v0.0.0-20200523201022-17afba0cb421

@@ -3,6 +3,7 @@ package service
 import (
 	"bytes"
 	"context"
+	"time"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/encoding"
@@ -54,7 +55,7 @@ func (a *auth) findDevice(ctx context.Context, infos []*authInfo) (*authDevice, 
 	return nil, errors.Errorf("no devices found matching our credentials")
 }
 
-func (a *auth) generateHMACSecret(ctx context.Context, pin string) (string, error) {
+func (a *auth) setupHMACSecret(ctx context.Context, pin string) (string, error) {
 	cdh := bytes.Repeat([]byte{0x00}, 32) // No client data
 	rp := &fido2.RelyingParty{
 		ID:   "keys.pub",
@@ -69,6 +70,8 @@ func (a *auth) generateHMACSecret(ctx context.Context, pin string) (string, erro
 
 	userID := keys.Rand16()[:]
 
+	// TODO: Default to using resident key?
+
 	logger.Debugf("Generating hmac-secret...")
 	resp, err := a.auths.GenerateHMACSecret(ctx, &fido2.GenerateHMACSecretRequest{
 		Device:         authDevice.Device.Path,
@@ -79,17 +82,26 @@ func (a *auth) generateHMACSecret(ctx context.Context, pin string) (string, erro
 			ID:   userID,
 			Name: a.cfg.AppName(),
 		},
+		// RK: fido2.True,
 	})
 	if err != nil {
 		return "", err
 	}
 
+	noPin := false
+	if pin == "" {
+		noPin = true
+	}
+
 	id := encoding.MustEncode(resp.CredentialID, encoding.Base62)
 	salt := keys.Rand32()
 	info := &authInfo{
-		AAGUID: authDevice.DeviceInfo.AAGUID,
-		ID:     id,
-		Salt:   salt[:],
+		ID:        id,
+		Type:      fido2HMACSecretAuth,
+		AAGUID:    authDevice.DeviceInfo.AAGUID,
+		Salt:      salt[:],
+		NoPin:     noPin,
+		CreatedAt: time.Now(),
 	}
 	if err := a.saveInfo(info); err != nil {
 		return "", err
@@ -105,7 +117,7 @@ func (a *auth) hmacSecret(ctx context.Context, pin string) ([]byte, string, erro
 		Name: "keys.pub",
 	}
 
-	infos, err := a.loadInfo()
+	infos, err := a.loadInfos()
 	if err != nil {
 		return nil, "", err
 	}
@@ -173,4 +185,21 @@ func (a *auth) unlockHMACSecret(ctx context.Context, pin string) error {
 		}
 	}
 	return nil
+}
+
+func (a *auth) provisionHMACSecret(ctx context.Context, pin string) (string, error) {
+	key, credID, err := a.hmacSecret(ctx, pin)
+	if err != nil {
+		return "", err
+	}
+	if len(key) != 32 {
+		return "", errors.Errorf("invalid key length for hmac secret")
+	}
+	auth := keyring.NewAuth(credID, keys.Bytes32(key))
+	id, err := a.keyring.Provision(auth)
+	if err != nil {
+		return "", err
+	}
+	logger.Infof("Provision with auth id: %s", id)
+	return id, nil
 }
