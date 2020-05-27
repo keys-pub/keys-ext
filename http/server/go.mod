@@ -19,7 +19,7 @@ require (
 	google.golang.org/api v0.20.0
 )
 
-replace github.com/keys-pub/keys => ../../../keys
+// replace github.com/keys-pub/keys => ../../../keys
 
 // replace github.com/keys-pub/keysd/http/api => ../api
 
