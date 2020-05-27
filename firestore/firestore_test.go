@@ -316,7 +316,7 @@ func TestSigchains(t *testing.T) {
 
 func ExampleNew() {
 	url := "firestore://chilltest-3297b"
-	collection := "test-" + time.Now().Format(time.RFC3339)
+	collection := "test"
 
 	opts := []option.ClientOption{option.WithCredentialsFile("credentials.json")}
 	fs, err := New(url, opts...)
@@ -346,7 +346,7 @@ func ExampleNew() {
 	fmt.Printf("%s\n", entry.Path)
 	fmt.Printf("%s\n", entry.Data)
 	// Output:
-	// /test/1
+	// /test/key1
 	// value1
 }
 
@@ -359,7 +359,7 @@ func TestDeleteAll(t *testing.T) {
 	err = fs.Set(context.TODO(), ds.Path(collection, "key2"), []byte("val2"))
 	require.NoError(t, err)
 
-	err = fs.DeleteAll(context.TODO(), []string{ds.Path(collection, "key1"), "/test/key2", "/test/key3"})
+	err = fs.DeleteAll(context.TODO(), []string{ds.Path(collection, "key1"), ds.Path(collection, "key2"), ds.Path(collection, "key3")})
 	require.NoError(t, err)
 
 	doc, err := fs.Get(context.TODO(), ds.Path(collection, "key1"))
