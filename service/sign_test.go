@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/saltpack"
-	"github.com/keys-pub/keys/util"
 	"github.com/stretchr/testify/require"
 )
 
@@ -229,7 +229,7 @@ func TestVerifyUnverified(t *testing.T) {
 	env.clock.Add(time.Hour * 24)
 
 	// Set 500 error for bob@github
-	env.req.SetError("https://gist.github.com/bob/1", util.ErrHTTP{StatusCode: 500})
+	env.req.SetError("https://gist.github.com/bob/1", request.ErrHTTP{StatusCode: 500})
 
 	// Sign (bob)
 	signResp, err := bobService.Sign(context.TODO(), &SignRequest{

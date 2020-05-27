@@ -10,12 +10,12 @@ import (
 	"os"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/request"
+	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keys/user"
-	"github.com/keys-pub/keys/util"
 	"github.com/keys-pub/keysd/http/server"
 	"github.com/stretchr/testify/require"
 )
@@ -51,23 +51,23 @@ func writeTestFile(t *testing.T) string {
 	return inPath
 }
 
-func testFire(t *testing.T, clock *clock) server.Fire {
+func testFire(t *testing.T, clock *tsutil.Clock) server.Fire {
 	fi := ds.NewMem()
 	fi.SetTimeNow(clock.Now)
 	return fi
 }
 
 type testEnv struct {
-	clock *clock
+	clock *tsutil.Clock
 	fi    server.Fire
-	req   *util.MockRequestor
+	req   *request.MockRequestor
 	users *user.Store
 }
 
 func newTestEnv(t *testing.T) *testEnv {
-	clock := newClock()
+	clock := tsutil.NewClock()
 	fi := testFire(t, clock)
-	req := util.NewMockRequestor()
+	req := request.NewMockRequestor()
 	users := testUserStore(t, fi, keys.NewSigchainStore(fi), req, clock)
 	return &testEnv{
 		clock: clock,
@@ -77,7 +77,7 @@ func newTestEnv(t *testing.T) *testEnv {
 	}
 }
 
-func testUserStore(t *testing.T, dst ds.DocumentStore, scs keys.SigchainStore, req *util.MockRequestor, clock *clock) *user.Store {
+func testUserStore(t *testing.T, dst ds.DocumentStore, scs keys.SigchainStore, req *request.MockRequestor, clock *tsutil.Clock) *user.Store {
 	ust, err := user.NewStore(dst, scs, req, clock.Now)
 	require.NoError(t, err)
 	return ust
@@ -248,26 +248,6 @@ func testPull(t *testing.T, service *service, kid keys.ID) {
 // 	})
 // 	require.NoError(t, err)
 // }
-
-type clock struct {
-	t time.Time
-}
-
-func newClock() *clock {
-	t := tsutil.ParseMillis(1234567890000)
-	return &clock{
-		t: t,
-	}
-}
-
-func (c *clock) Now() time.Time {
-	c.t = c.t.Add(time.Millisecond)
-	return c.t
-}
-
-func (c *clock) Add(dt time.Duration) {
-	c.t = c.t.Add(dt)
-}
 
 type serverEnv struct {
 	url     string
