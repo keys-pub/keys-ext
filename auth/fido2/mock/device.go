@@ -39,7 +39,7 @@ func newDevice(path string, opts *deviceOpts) *device {
 	return &device{
 		dev:         dev,
 		info:        info,
-		pin:         "",
+		pin:         "12345",
 		credentials: map[string]*credential{},
 	}
 }

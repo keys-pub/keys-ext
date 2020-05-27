@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/keys-pub/keysd/auth/fido2"
-	"github.com/keys-pub/keysd/auth/mock"
+	"github.com/keys-pub/keysd/auth/fido2/mock"
 	"github.com/stretchr/testify/require"
 )
 
