@@ -12,7 +12,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/ds"
-	"github.com/keys-pub/keys/util"
+	"github.com/keys-pub/keys/tsutil"
 	"github.com/stretchr/testify/require"
 )
 
@@ -42,7 +42,7 @@ type clock struct {
 }
 
 func newClock() *clock {
-	t := util.TimeFromMillis(1234567890000)
+	t := tsutil.ParseMillis(1234567890000)
 	return &clock{
 		t: t,
 	}
@@ -286,7 +286,7 @@ func testMetadata(t *testing.T, dst ds.DocumentStore) {
 	doc, err := dst.Get(ctx, "/test/key1")
 	require.NoError(t, err)
 	require.NotNil(t, doc)
-	require.Equal(t, int64(1234567890001), util.TimeToMillis(doc.CreatedAt))
+	require.Equal(t, int64(1234567890001), tsutil.Millis(doc.CreatedAt))
 
 	err = dst.Set(ctx, "/test/key1", []byte("value1b"))
 	require.NoError(t, err)
@@ -294,8 +294,8 @@ func testMetadata(t *testing.T, dst ds.DocumentStore) {
 	doc, err = dst.Get(ctx, "/test/key1")
 	require.NoError(t, err)
 	require.NotNil(t, doc)
-	require.Equal(t, int64(1234567890001), util.TimeToMillis(doc.CreatedAt))
-	require.Equal(t, int64(1234567890002), util.TimeToMillis(doc.UpdatedAt))
+	require.Equal(t, int64(1234567890001), tsutil.Millis(doc.CreatedAt))
+	require.Equal(t, int64(1234567890002), tsutil.Millis(doc.UpdatedAt))
 }
 
 func ExampleDB_OpenAtPath() {
