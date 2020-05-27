@@ -30,22 +30,6 @@ func testFirestore(t *testing.T) *Firestore {
 	return fs
 }
 
-type clock struct {
-	t time.Time
-}
-
-func newClock() *clock {
-	t := tsutil.ParseMillis(1234567890000)
-	return &clock{
-		t: t,
-	}
-}
-
-func (c *clock) Now() time.Time {
-	c.t = c.t.Add(time.Millisecond)
-	return c.t
-}
-
 func TestFirestore(t *testing.T) {
 	// SetContextLogger(NewContextLogger(DebugLevel))
 	fs := testFirestore(t)
@@ -292,7 +276,7 @@ func testMetadata(t *testing.T, dst ds.DocumentStore) {
 }
 
 func TestSigchains(t *testing.T) {
-	clock := newClock()
+	clock := tsutil.NewClock()
 	fs := testFirestore(t)
 	scs := keys.NewSigchainStore(fs)
 
