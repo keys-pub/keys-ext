@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/keys-pub/keys/keyring"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/metadata"
 )
@@ -20,22 +21,22 @@ func TestAuthWithPassword(t *testing.T) {
 	ctx := context.TODO()
 
 	// Setup needed
-	isSetup, err := kr.IsSetup()
+	status, err := kr.Status()
 	require.NoError(t, err)
-	require.False(t, isSetup)
+	require.Equal(t, keyring.Setup, status)
 
 	// Setup
 	err = auth.setup(ctx, "password123", PasswordAuth)
 	require.NoError(t, err)
 
-	isSetup, err = kr.IsSetup()
+	status, err = kr.Status()
 	require.NoError(t, err)
-	require.True(t, isSetup)
+	require.Equal(t, keyring.Unlocked, status)
 
-	authResult, err := auth.unlock(ctx, "password123", PasswordAuth, "test")
+	token, err := auth.unlock(ctx, "password123", PasswordAuth, "test")
 	require.NoError(t, err)
 	require.NotEmpty(t, auth.tokens)
-	require.NotEmpty(t, authResult.token)
+	require.NotEmpty(t, token)
 
 	// Lock
 	err = auth.lock()
@@ -48,10 +49,10 @@ func TestAuthWithPassword(t *testing.T) {
 	require.Empty(t, auth.tokens)
 
 	// Unlock
-	authResult, err = auth.unlock(ctx, "password123", PasswordAuth, "test")
+	token, err = auth.unlock(ctx, "password123", PasswordAuth, "test")
 	require.NoError(t, err)
 	require.NotEmpty(t, auth.tokens)
-	require.NotEmpty(t, authResult.token)
+	require.NotEmpty(t, token)
 }
 
 func TestAuthorize(t *testing.T) {
@@ -82,13 +83,13 @@ func TestAuthorize(t *testing.T) {
 	// Unlock
 	err = auth.setup(ctx, "password123", PasswordAuth)
 	require.NoError(t, err)
-	authResult, err := auth.unlock(ctx, "password123", PasswordAuth, "test")
+	token, err := auth.unlock(ctx, "password123", PasswordAuth, "test")
 	require.NoError(t, err)
 	require.NotEmpty(t, auth.tokens)
-	require.NotEmpty(t, authResult.token)
+	require.NotEmpty(t, token)
 
 	ctx4 := metadata.NewIncomingContext(context.TODO(), metadata.MD{
-		"authorization": []string{authResult.token},
+		"authorization": []string{token},
 	})
 	err = auth.authorize(ctx4, "/service.Keys/SomeMethod")
 	require.NoError(t, err)

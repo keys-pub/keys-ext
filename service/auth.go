@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"os"
 	"sync"
 
 	"github.com/keys-pub/keys"
@@ -65,19 +64,14 @@ func (a *auth) lock() error {
 	return nil
 }
 
-type authResult struct {
-	auth  keyring.Auth
-	token string
-}
-
 func (a *auth) setup(ctx context.Context, secret string, typ AuthType) error {
 	logger.Infof("Setup (%s)", typ)
 	var err error
 	switch typ {
 	case PasswordAuth:
-		_, err = a.keyring.UnlockWithPassword(secret, true)
+		err = a.keyring.UnlockWithPassword(secret, true)
 	case FIDO2HMACSecretAuth:
-		err = a.setupHMACSecret(ctx, secret)
+		_, err = a.generateHMACSecret(ctx, secret)
 	default:
 		return errors.Errorf("unsupported auth type")
 	}
@@ -87,24 +81,72 @@ func (a *auth) setup(ctx context.Context, secret string, typ AuthType) error {
 	return nil
 }
 
-func (a *auth) unlock(ctx context.Context, secret string, typ AuthType, client string) (*authResult, error) {
+func (a *auth) unlock(ctx context.Context, secret string, typ AuthType, client string) (string, error) {
 	logger.Infof("Unlock (%s)", typ)
-	var auth keyring.Auth
 	var err error
 	switch typ {
 	case PasswordAuth:
-		auth, err = a.keyring.UnlockWithPassword(secret, false)
+		err = a.keyring.UnlockWithPassword(secret, false)
 	case FIDO2HMACSecretAuth:
-		auth, err = a.unlockHMACSecret(ctx, secret)
+		err = a.unlockHMACSecret(ctx, secret)
 	default:
-		return nil, errors.Errorf("unsupported auth type")
+		return "", errors.Errorf("unsupported auth type")
 	}
 	if err != nil {
-		return nil, authErr(err, typ, "failed to unlock")
+		return "", authErr(err, typ, "failed to unlock")
 	}
 	logger.Infof("Unlocked (%s)", typ)
 	token := a.registerToken(client)
-	return &authResult{auth: auth, token: token}, nil
+	return token, nil
+}
+
+func (a *auth) provision(ctx context.Context, secret string, typ AuthType, setup bool) (string, error) {
+	logger.Infof("Provision (%s)", typ)
+	switch typ {
+	case PasswordAuth:
+		return a.provisionPassword(ctx, secret)
+	case FIDO2HMACSecretAuth:
+		if setup {
+			return a.generateHMACSecret(ctx, secret)
+		}
+		return a.provisionHMACSecret(ctx, secret)
+	default:
+		return "", errors.Errorf("unknown auth type")
+	}
+}
+
+func (a *auth) provisionPassword(ctx context.Context, password string) (string, error) {
+	salt, err := a.keyring.Salt()
+	if err != nil {
+		return "", err
+	}
+	auth, err := keyring.NewPasswordAuth(password, salt)
+	if err != nil {
+		return "", err
+	}
+	id, err := a.keyring.Provision(auth)
+	if err != nil {
+		return "", err
+	}
+	logger.Infof("Provision with auth id: %s", id)
+	return string(id), nil
+}
+
+func (a *auth) provisionHMACSecret(ctx context.Context, pin string) (string, error) {
+	key, credID, err := a.hmacSecret(ctx, pin)
+	if err != nil {
+		return "", err
+	}
+	if len(key) != 32 {
+		return "", errors.Errorf("invalid key length for hmac secret")
+	}
+	auth := keyring.NewAuth(credID, keys.Bytes32(key))
+	id, err := a.keyring.Provision(auth)
+	if err != nil {
+		return "", err
+	}
+	logger.Infof("Provision with auth id: %s", id)
+	return string(id), nil
 }
 
 func (a *auth) registerToken(client string) string {
@@ -189,104 +231,4 @@ func (a clientAuth) GetRequestMetadata(context.Context, ...string) (map[string]s
 
 func (a clientAuth) RequireTransportSecurity() bool {
 	return true
-}
-
-func (s *service) isAuthSetupNeeded() (bool, error) {
-	kr := s.ks.Keyring()
-	isSetup, err := kr.IsSetup()
-	if err != nil {
-		return false, err
-	}
-	return !isSetup, nil
-}
-
-// AuthSetup (RPC) ...
-func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSetupResponse, error) {
-	logger.Infof("Auth setup...")
-	setupNeeded, err := s.isAuthSetupNeeded()
-	if err != nil {
-		return nil, err
-	}
-	if !setupNeeded {
-		return nil, errors.Errorf("auth already setup")
-	}
-
-	if err := s.auth.setup(ctx, req.Secret, req.Type); err != nil {
-		return nil, err
-	}
-
-	// If setting up auth, and local database exists we should nuke it since the
-	// pre-existing key is different. The database will be rebuilt on Open.
-	path, err := s.cfg.AppPath(dbFilename, false)
-	if err != nil {
-		return nil, err
-	}
-	logger.Debugf("Checking for existing db...")
-	if _, err := os.Stat(path); err == nil {
-		logger.Debugf("Removing existing db: %s", path)
-		if err := os.RemoveAll(path); err != nil {
-			return nil, err
-		}
-	}
-
-	return &AuthSetupResponse{}, nil
-}
-
-// AuthUnlock (RPC) ...
-func (s *service) AuthUnlock(ctx context.Context, req *AuthUnlockRequest) (*AuthUnlockResponse, error) {
-	setupNeeded, err := s.isAuthSetupNeeded()
-	if err != nil {
-		return nil, err
-	}
-	if setupNeeded {
-		return nil, errors.Errorf("auth setup needed")
-	}
-
-	authResult, err := s.auth.unlock(ctx, req.Secret, req.Type, req.Client)
-	if err != nil {
-		return nil, err
-	}
-
-	// TODO: Use a derived key instead of the actual key itself?
-	key := authResult.auth.Key()
-	if err := s.Open(ctx, key); err != nil {
-		return nil, err
-	}
-
-	return &AuthUnlockResponse{
-		AuthToken: authResult.token,
-	}, nil
-}
-
-// AuthLock (RPC) ...
-func (s *service) AuthLock(ctx context.Context, req *AuthLockRequest) (*AuthLockResponse, error) {
-	if err := s.auth.lock(); err != nil {
-		return nil, err
-	}
-
-	s.Close()
-
-	return &AuthLockResponse{}, nil
-}
-
-type testClientAuth struct {
-	token string
-}
-
-func newTestClientAuth(token string) testClientAuth {
-	return testClientAuth{token: token}
-}
-
-func (a testClientAuth) GetRequestMetadata(context.Context, ...string) (map[string]string, error) {
-	if a.token == "" {
-		return nil, nil
-	}
-	return map[string]string{
-		"authorization": a.token,
-	}, nil
-}
-
-func (a testClientAuth) RequireTransportSecurity() bool {
-	// For test client
-	return false
 }

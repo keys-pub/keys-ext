@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+
+	"github.com/keys-pub/keys/keyring"
 )
 
 // RuntimeStatus (RPC) gets the current runtime status.
@@ -12,17 +14,31 @@ func (s *service) RuntimeStatus(ctx context.Context, req *RuntimeStatusRequest) 
 		logger.Errorf("Failed to get current executable path: %s", exeErr)
 	}
 	kr := s.ks.Keyring()
-	isSetup, authedErr := kr.IsSetup()
-	if authedErr != nil {
-		return nil, authedErr
+	status, err := kr.Status()
+	if err != nil {
+		return nil, err
 	}
+
 	resp := RuntimeStatusResponse{
-		Version:         s.build.Version,
-		AppName:         s.cfg.AppName(),
-		Exe:             exe,
-		AuthSetupNeeded: !isSetup,
-		FIDO2:           s.auth.auths != nil,
+		Version:    s.build.Version,
+		AppName:    s.cfg.AppName(),
+		Exe:        exe,
+		AuthStatus: keyringStatusToRPC(status),
+		FIDO2:      s.auth.auths != nil,
 	}
 	logger.Infof("Runtime status, %s", resp.String())
 	return &resp, nil
+}
+
+func keyringStatusToRPC(st keyring.Status) AuthStatus {
+	switch st {
+	case keyring.Locked:
+		return AuthLocked
+	case keyring.Unlocked:
+		return AuthUnlocked
+	case keyring.Setup:
+		return AuthSetup
+	default:
+		return AuthUnknown
+	}
 }

@@ -138,6 +138,10 @@ github.com/keys-pub/keys v0.0.0-20200522044752-3deea969cb8e h1:a07gJu2e83SVObT26
 github.com/keys-pub/keys v0.0.0-20200522044752-3deea969cb8e/go.mod h1:nOaBR3puTwpgR5cN6rQyZvNh8TFYRRmksXuk6ASe3HQ=
 github.com/keys-pub/keys v0.0.0-20200523234830-e6bfdfbf1dde h1:P9jwA7w8YmSESgUV6guEP+Yo8bXxH7AyuDhnmG91mfA=
 github.com/keys-pub/keys v0.0.0-20200523234830-e6bfdfbf1dde/go.mod h1:nOaBR3puTwpgR5cN6rQyZvNh8TFYRRmksXuk6ASe3HQ=
+github.com/keys-pub/keys v0.0.0-20200526201701-a355018ab9fd h1:1GYKicJx+koFQ6u6fd1AoersDL7Dkfqaa+8ikz9ryFQ=
+github.com/keys-pub/keys v0.0.0-20200526201701-a355018ab9fd/go.mod h1:nOaBR3puTwpgR5cN6rQyZvNh8TFYRRmksXuk6ASe3HQ=
+github.com/keys-pub/keys v0.0.0-20200527022006-a219369870f2 h1:j6/rV/RIcWdqwyD6TnTese6FFQr32ygXSePkj4/XnVo=
+github.com/keys-pub/keys v0.0.0-20200527022006-a219369870f2/go.mod h1:nOaBR3puTwpgR5cN6rQyZvNh8TFYRRmksXuk6ASe3HQ=
 github.com/keys-pub/keysd/auth/fido2 v0.0.0-20200522212452-58bc469ec3ad h1:C3wba6OoFQ2Qh5ZYPl/4OWEu8MIUzEsJj59UGxVv+F4=
 github.com/keys-pub/keysd/auth/fido2 v0.0.0-20200522212452-58bc469ec3ad/go.mod h1:VeiOp+slfnecI02nZ0zoZbMPK18HoPfg40uCvt2npiM=
 github.com/keys-pub/keysd/auth/fido2 v0.0.0-20200524000041-6d7e23f9bca0 h1:q/0KRicnWLk6jyxCQM+bm9C+r+IRFYNAxEs1UTJLJ9Q=

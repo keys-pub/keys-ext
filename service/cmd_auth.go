@@ -1,26 +1,35 @@
 package service
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func authCommands(client *Client) []cli.Command {
 	return []cli.Command{
 		cli.Command{
 			Name:  "auth",
-			Usage: "Authenticate",
+			Usage: "Authorize",
 			Flags: []cli.Flag{
-				cli.StringFlag{Name: "password", Usage: "password"},
+				cli.StringFlag{Name: "password, pin", Usage: "password or pin"},
 				cli.BoolFlag{Name: "token", Usage: "output token only"},
-				cli.BoolFlag{Name: "force", Usage: "force recovery"},
+				cli.StringFlag{Name: "type", Usage: "auth type: password, fido2-hmac-secret, fido2-hmac-secret-no-pin", Value: "password"},
 				cli.StringFlag{Name: "client", Value: "cli", Hidden: true},
 			},
 			Aliases: []string{"unlock"},
+			Subcommands: []cli.Command{
+				authProvisionCommand(client),
+				authProvisionsCommand(client),
+				authDeprovisionCommand(client),
+			},
 			Action: func(c *cli.Context) error {
 				if !c.GlobalBool("test") {
 					if err := checkForAppConflict(); err != nil {
@@ -32,67 +41,40 @@ func authCommands(client *Client) []cli.Command {
 				if err != nil {
 					return err
 				}
-				setupNeeded := status.AuthSetupNeeded
-				logger.Infof("Auth setup needed? %t", setupNeeded)
+				setupNeeded := status.AuthStatus == AuthSetup
+				logger.Infof("Auth setup needed: %t", setupNeeded)
 
-				password := c.String("password")
 				clientName := c.String("client")
 				if clientName == "" {
 					return errors.Errorf("no client name")
 				}
 
+				authType, secretRequired, err := chooseAuth("How do you want to authorize?", c.String("type"))
+				if err != nil {
+					return err
+				}
+
 				var authToken string
+				var authErr error
 				if setupNeeded {
 					logger.Infof("Auth setup...")
-
-					if len(password) == 0 {
-						fmt.Fprintf(os.Stderr, "OK, let's create a password.\n")
-						p, err := readVerifyPassword("Create a password:")
-						if err != nil {
-							return err
-						}
-						password = p
+					switch authType {
+					case PasswordAuth:
+						authToken, authErr = passwordAuthSetup(context.TODO(), client, clientName, c.String("password"))
+					case FIDO2HMACSecretAuth:
+						authToken, authErr = fido2AuthSetup(context.TODO(), client, clientName, c.String("pin"), secretRequired)
 					}
-
-					// TODO: Hardware key support
-
-					if _, err := client.KeysClient().AuthSetup(context.TODO(), &AuthSetupRequest{
-						Secret: password,
-						Type:   PasswordAuth,
-					}); err != nil {
-						return err
-					}
-
-					unlockResp, err := client.KeysClient().AuthUnlock(context.TODO(), &AuthUnlockRequest{
-						Secret: password,
-						Type:   PasswordAuth,
-						Client: clientName,
-					})
-					if err != nil {
-						return err
-					}
-
-					authToken = unlockResp.AuthToken
-
 				} else {
-					if len(password) == 0 {
-						p, err := readPassword("Enter your password:")
-						if err != nil {
-							return err
-						}
-						password = p
-					}
-
 					logger.Infof("Auth unlock...")
-					unlock, unlockErr := client.KeysClient().AuthUnlock(context.TODO(), &AuthUnlockRequest{
-						Secret: password,
-						Type:   PasswordAuth,
-						Client: clientName,
-					})
-					if unlockErr != nil {
-						return unlockErr
+					switch authType {
+					case PasswordAuth:
+						authToken, authErr = passwordAuthUnlock(context.TODO(), client, clientName, c.String("password"))
+					case FIDO2HMACSecretAuth:
+						authToken, authErr = fido2AuthUnlock(context.TODO(), client, clientName, c.String("pin"), secretRequired)
 					}
-					authToken = unlock.AuthToken
+				}
+				if authErr != nil {
+					return authErr
 				}
 
 				if c.Bool("token") {
@@ -101,7 +83,7 @@ func authCommands(client *Client) []cli.Command {
 				}
 
 				fmt.Printf("export KEYS_AUTH=\"%s\"\n", authToken)
-				fmt.Printf("# To include in a shell environment:\n")
+				fmt.Printf("# For shell:\n")
 				fmt.Printf("#  export KEYS_AUTH=`keys auth -token`\n")
 				fmt.Printf("#\n")
 				fmt.Printf("# or using eval:\n")
@@ -118,12 +100,156 @@ func authCommands(client *Client) []cli.Command {
 			Usage: "Lock",
 			Flags: []cli.Flag{},
 			Action: func(c *cli.Context) error {
-				_, lockErr := client.KeysClient().AuthLock(context.TODO(), &AuthLockRequest{})
-				if lockErr != nil {
-					return lockErr
+				_, err := client.KeysClient().AuthLock(context.TODO(), &AuthLockRequest{})
+				if err != nil {
+					return err
 				}
 				return nil
 			},
+		},
+	}
+}
+
+func authProvisionCommand(client *Client) cli.Command {
+	return cli.Command{
+		Name:  "provision",
+		Usage: "Provision",
+		Flags: []cli.Flag{
+			cli.StringFlag{Name: "password, pin", Usage: "password or pin"},
+			cli.StringFlag{Name: "type", Usage: "auth type: password, fido2-hmac-secret"},
+			cli.StringFlag{Name: "client", Value: "cli", Hidden: true},
+		},
+		Action: func(c *cli.Context) error {
+			rts, err := client.KeysClient().RuntimeStatus(context.TODO(), &RuntimeStatusRequest{})
+			if err != nil {
+				return err
+			}
+			switch rts.AuthStatus {
+			case AuthSetup:
+				return status.Error(codes.Unauthenticated, "auth setup needed")
+			case AuthLocked:
+				return status.Error(codes.Unauthenticated, "auth locked")
+			}
+
+			clientName := c.String("client")
+			if clientName == "" {
+				return errors.Errorf("no client name")
+			}
+
+			authType, secretRequired, err := chooseAuth("How do you want to provision?", c.String("type"))
+			if err != nil {
+				return err
+			}
+
+			logger.Infof("Auth provision...")
+			switch authType {
+			case PasswordAuth:
+				if err := passwordAuthProvision(context.TODO(), client, clientName, c.String("password")); err != nil {
+					return err
+				}
+			case FIDO2HMACSecretAuth:
+				pin := c.String("pin")
+				if secretRequired && len(pin) == 0 {
+					p, err := readPassword("Enter your PIN:")
+					if err != nil {
+						return err
+					}
+					pin = p
+				}
+
+				if err := fido2AuthProvision(context.TODO(), client, clientName, pin, true); err != nil {
+					return err
+				}
+				if err := fido2AuthProvision(context.TODO(), client, clientName, pin, false); err != nil {
+					return err
+				}
+
+				fmt.Println("We successfully provisioned the security key (using FIDO2 hmac-secret).")
+			}
+
+			return nil
+		},
+	}
+}
+
+func chooseAuth(title string, arg string) (AuthType, bool, error) {
+	if arg != "" {
+		return authTypeFromString(arg)
+	}
+
+	for {
+		reader := bufio.NewReader(os.Stdin)
+		fmt.Fprintln(os.Stderr, title)
+		fmt.Fprintln(os.Stderr, "(p)  Password")
+		fmt.Fprintln(os.Stderr, "(f)  FIDO2 hmac-secret")
+		fmt.Fprintln(os.Stderr, "(fn) FIDO2 hmac-secret (no pin)")
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			return UnknownAuth, false, err
+		}
+
+		authType, secretRequired, err := authTypeFromString(input)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+		} else {
+			return authType, secretRequired, nil
+		}
+	}
+}
+
+func authTypeFromString(s string) (AuthType, bool, error) {
+	switch strings.TrimSpace(strings.ToLower(s)) {
+	case "p", "password":
+		return PasswordAuth, true, nil
+	case "f", "fido2-hmac-secret":
+		return FIDO2HMACSecretAuth, true, nil
+	case "fn", "fido2-hmac-secret-no-pin":
+		return FIDO2HMACSecretAuth, false, nil
+	default:
+		return UnknownAuth, false, errors.Errorf("unknown auth type: %s", s)
+	}
+}
+
+func authProvisionsCommand(client *Client) cli.Command {
+	return cli.Command{
+		Name:  "provisions",
+		Usage: "Provisions",
+		Flags: []cli.Flag{},
+		Action: func(c *cli.Context) error {
+			ctx := context.TODO()
+			resp, err := client.KeysClient().AuthProvisions(ctx, &AuthProvisionsRequest{})
+			if err != nil {
+				return err
+			}
+
+			for _, id := range resp.IDs {
+				fmt.Println(id)
+			}
+
+			return nil
+		},
+	}
+}
+
+func authDeprovisionCommand(client *Client) cli.Command {
+	return cli.Command{
+		Name:  "deprovision",
+		Usage: "Deprovision",
+		Flags: []cli.Flag{},
+		Action: func(c *cli.Context) error {
+			id := c.Args().First()
+			if id == "" {
+				return errors.Errorf("specify a provision id")
+			}
+			// TODO: Don't allow to deprovision last provision.
+			_, err := client.KeysClient().AuthDeprovision(context.TODO(), &AuthDeprovisionRequest{
+				ID: id,
+			})
+			if err != nil {
+				return err
+			}
+
+			return nil
 		},
 	}
 }

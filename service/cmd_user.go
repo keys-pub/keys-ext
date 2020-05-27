@@ -95,14 +95,14 @@ func userCommands(client *Client) []cli.Command {
 						fmt.Println("(g) Github")
 						fmt.Println("(t) Twitter")
 						fmt.Println("(r) Reddit")
-						sservice, err := reader.ReadString('\n')
+						input, err := reader.ReadString('\n')
 						if err != nil {
 							return err
 						}
 
 						service := ""
 						question := ""
-						switch strings.TrimSpace(strings.ToLower(sservice)) {
+						switch strings.TrimSpace(strings.ToLower(input)) {
 						case "g", "github":
 							service = "github"
 							question = "What's your Github username?"
