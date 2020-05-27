@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/ds"
@@ -20,7 +19,7 @@ import (
 // You should defer Close() the result.
 func testDB(t *testing.T) (*DB, func()) {
 	db := New()
-	db.SetTimeNow(newClock().Now)
+	db.SetTimeNow(tsutil.NewClock().Now)
 	path := testPath()
 	ctx := context.TODO()
 	key := keys.Rand32()
@@ -35,22 +34,6 @@ func testDB(t *testing.T) (*DB, func()) {
 
 func testPath() string {
 	return filepath.Join(os.TempDir(), fmt.Sprintf("db-test-%s.leveldb", keys.Rand3262()))
-}
-
-type clock struct {
-	t time.Time
-}
-
-func newClock() *clock {
-	t := tsutil.ParseMillis(1234567890000)
-	return &clock{
-		t: t,
-	}
-}
-
-func (c *clock) Now() time.Time {
-	c.t = c.t.Add(time.Millisecond)
-	return c.t
 }
 
 func TestDB(t *testing.T) {
