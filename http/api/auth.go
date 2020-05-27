@@ -12,7 +12,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/encoding"
-	"github.com/keys-pub/keys/util"
+	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
 )
 
@@ -46,7 +46,7 @@ func newAuth(method string, urs string, tm time.Time, nonce *[32]byte, key *keys
 	q := ur.Query()
 	ns := encoding.MustEncode(nonce[:], encoding.Base62)
 	q.Set("nonce", ns)
-	ts := util.TimeToMillis(tm)
+	ts := tsutil.Millis(tm)
 	q.Set("ts", fmt.Sprintf("%d", ts))
 	ur.RawQuery = q.Encode()
 
@@ -173,7 +173,7 @@ func CheckAuthorization(ctx context.Context, method string, urs string, auth str
 	if err != nil {
 		return nil, err
 	}
-	tm := util.TimeFromMillis(int64(i))
+	tm := tsutil.ParseMillis(int64(i))
 	td := now.Sub(tm)
 	if td < 0 {
 		td = td * -1
