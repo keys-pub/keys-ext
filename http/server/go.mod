@@ -5,7 +5,7 @@ go 1.12
 require (
 	9fans.net/go v0.0.2 // indirect
 	github.com/gorilla/websocket v1.4.2
-	github.com/keys-pub/keys v0.0.0-20200527180456-3546952f005f
+	github.com/keys-pub/keys v0.0.0-20200527183651-c2daa203af2c
 	github.com/keys-pub/keysd/firestore v0.0.0-20200527181815-3e81575df31a
 	github.com/keys-pub/keysd/http/api v0.0.0-20200527181927-f0409e2de588
 	github.com/keys-pub/wincred v1.0.4 // indirect
