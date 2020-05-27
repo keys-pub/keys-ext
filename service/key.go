@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/util"
+	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
 )
 
@@ -178,7 +178,7 @@ func (s *service) fillKey(ctx context.Context, kid keys.ID, key *Key) error {
 		key.SigchainLength = int32(sc.Length())
 		last := sc.Last()
 		if last != nil {
-			key.SigchainUpdatedAt = util.TimeToMillis(last.Timestamp)
+			key.SigchainUpdatedAt = tsutil.Millis(last.Timestamp)
 		}
 	}
 	return nil

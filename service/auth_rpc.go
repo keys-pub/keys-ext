@@ -6,7 +6,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/keyring"
-	"github.com/keys-pub/keys/util"
+	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
 )
 
@@ -122,7 +122,7 @@ func (s *service) AuthProvisions(ctx context.Context, req *AuthProvisionsRequest
 			provision.Type = authTypeToRPC(info.Type)
 			provision.AAGUID = info.AAGUID
 			provision.NoPin = info.NoPin
-			provision.CreatedAt = util.TimeToMillis(info.CreatedAt)
+			provision.CreatedAt = tsutil.Millis(info.CreatedAt)
 		}
 		provisions = append(provisions, provision)
 	}

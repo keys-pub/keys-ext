@@ -254,7 +254,7 @@ type clock struct {
 }
 
 func newClock() *clock {
-	t := util.TimeFromMillis(1234567890000)
+	t := tsutil.ParseMillis(1234567890000)
 	return &clock{
 		t: t,
 	}
