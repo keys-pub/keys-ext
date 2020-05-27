@@ -70,6 +70,6 @@ func (a *auth) provisionPassword(ctx context.Context, password string) (string, 
 		return "", err
 	}
 
-	logger.Infof("Provision password with auth id: %s", id)
+	logger.Infof("Provision (password) with auth id: %s", id)
 	return string(id), nil
 }

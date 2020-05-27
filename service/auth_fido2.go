@@ -200,6 +200,6 @@ func (a *auth) provisionHMACSecret(ctx context.Context, pin string) (string, err
 	if err != nil {
 		return "", err
 	}
-	logger.Infof("Provision with auth id: %s", id)
+	logger.Infof("Provision (hmac-secret) with auth id: %s", id)
 	return id, nil
 }

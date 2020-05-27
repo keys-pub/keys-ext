@@ -478,6 +478,7 @@ message AuthDeprovisionResponse {}
 message AuthProvision {
   string id = 1 [(gogoproto.customname) = "ID"];
   AuthType type = 2;
+  int64 createdAt = 3;
 
   // For FIDO2
   // AAGUID is a device "identifier" (only unique across batches for privacy reasons).
