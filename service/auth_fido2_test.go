@@ -21,6 +21,8 @@ func TestHMACSecretAuth(t *testing.T) {
 	if os.Getenv("FIDO2_TESTS") != "1" {
 		t.Skip()
 	}
+	pin := os.Getenv("FIDO2_PIN")
+
 	SetLogger(NewLogger(DebugLevel))
 
 	cfg, closeFn := testConfig(t, "KeysTest", "", "mem")
@@ -32,14 +34,14 @@ func TestHMACSecretAuth(t *testing.T) {
 
 	fido2Plugin, err := fido2.OpenPlugin(filepath.Join(goBin(t), "fido2.so"))
 	require.NoError(t, err)
-	auth.auths = fido2Plugin
+	auth.fido2 = fido2Plugin
 
 	t.Logf("Setup")
-	err = auth.setup(context.TODO(), "12345", FIDO2HMACSecretAuth)
+	err = auth.setup(context.TODO(), pin, FIDO2HMACSecretAuth)
 	require.NoError(t, err)
 
 	t.Logf("Unlock")
-	unlock, err := auth.unlock(context.TODO(), "12345", FIDO2HMACSecretAuth, "test")
+	token, err := auth.unlock(context.TODO(), pin, FIDO2HMACSecretAuth, "test")
 	require.NoError(t, err)
-	require.NotEmpty(t, unlock.token)
+	require.NotEmpty(t, token)
 }

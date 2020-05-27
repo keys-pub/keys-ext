@@ -10,7 +10,7 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/saltpack"
-	"github.com/keys-pub/keys/util"
+	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keysd/http/client"
 	"github.com/pkg/errors"
 )
@@ -144,7 +144,7 @@ func (s *service) fillMessage(ctx context.Context, message *Message, t time.Time
 	}
 
 	message.Sender = key
-	message.CreatedAt = int64(util.TimeToMillis(t))
+	message.CreatedAt = int64(tsutil.Millis(t))
 	message.TimeDisplay = timeDisplay(t)
 	message.DateDisplay = dateDisplay(t)
 	return nil
@@ -231,7 +231,7 @@ func (s *service) pullMessages(ctx context.Context, key *keys.EdX25519Key, recip
 
 	logger.Infof("Received %d messages", len(msgs))
 	for _, msg := range msgs {
-		ts := 9223372036854775807 - util.TimeToMillis(msg.CreatedAt)
+		ts := 9223372036854775807 - tsutil.Millis(msg.CreatedAt)
 		pathKey := fmt.Sprintf("messages-%s-%s", key.ID(), recipient)
 		pathVal := fmt.Sprintf("%d-%s", ts, msg.ID)
 		path := ds.Path(pathKey, pathVal)

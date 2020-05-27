@@ -20,9 +20,9 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/keyring"
 	"github.com/keys-pub/keys/link"
+	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/saltpack"
 	"github.com/keys-pub/keys/user"
-	"github.com/keys-pub/keys/util"
 	"github.com/keys-pub/keysd/auth/fido2"
 	"github.com/keys-pub/keysd/db"
 	"github.com/keys-pub/keysd/http/client"
@@ -37,7 +37,7 @@ import (
 )
 
 func newProtoService(cfg *Config, build Build, auth *auth) (*service, error) {
-	req := util.NewHTTPRequestor()
+	req := request.NewHTTPRequestor()
 	srv, err := newService(cfg, build, auth, req, time.Now)
 	if err != nil {
 		return nil, err
@@ -118,7 +118,6 @@ func Run(build Build) {
 	SetLogger(lg)
 	keys.SetLogger(lg)
 	user.SetLogger(lg)
-	util.SetLogger(lg)
 	link.SetLogger(lg)
 	saltpack.SetLogger(lg)
 	keyring.SetLogger(lg)
@@ -234,7 +233,7 @@ func NewServiceFn(cfg *Config, build Build, cert *keys.CertificateKey, lgi LogIn
 	} else {
 		logger.Infof("Registering FIDO2 plugin...")
 		fido2.RegisterAuthServer(grpcServer, fido2Plugin)
-		auth.auths = fido2Plugin
+		auth.fido2 = fido2Plugin
 	}
 
 	logger.Infof("Listening for connections on port %d", cfg.Port())

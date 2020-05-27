@@ -9,14 +9,15 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
 	github.com/keybase/go-keychain v0.0.0-20200502122510-cda31fe0c86d // indirect
 	github.com/keybase/saltpack v0.0.0-20200430135328-e19b1910c0c5 // indirect
-	github.com/keys-pub/keys v0.0.0-20200523234830-e6bfdfbf1dde
+	github.com/keys-pub/keys v0.0.0-20200527184410-f6d64358550a
 	github.com/keys-pub/keysd/auth/fido2 v0.0.0-20200524000041-6d7e23f9bca0
-	github.com/keys-pub/keysd/db v0.0.0-20200522210637-42d998d4c90e
+	github.com/keys-pub/keysd/db v0.0.0-20200527183902-ffb35f491a74
 	github.com/keys-pub/keysd/git v0.0.0-20200523201022-17afba0cb421
-	github.com/keys-pub/keysd/http/api v0.0.0-20200522210637-42d998d4c90e
-	github.com/keys-pub/keysd/http/client v0.0.0-20200522210637-42d998d4c90e
-	github.com/keys-pub/keysd/http/server v0.0.0-20200522210637-42d998d4c90e
-	github.com/keys-pub/keysd/wormhole v0.0.0-20200522210637-42d998d4c90e
+	github.com/keys-pub/keysd/http/api v0.0.0-20200527183746-ca4c118983c4
+	github.com/keys-pub/keysd/http/client v0.0.0-20200527183209-12da56e5cb21
+	github.com/keys-pub/keysd/http/server v0.0.0-20200527183746-ca4c118983c4
+	github.com/keys-pub/keysd/wormhole v0.0.0-20200527183902-ffb35f491a74
+	github.com/labstack/echo v3.3.10+incompatible // indirect
 	github.com/mercari/go-grpc-interceptor v0.0.0-20180110035004-b8ad3827e82a
 	github.com/mitchellh/go-ps v1.0.0
 	github.com/pkg/errors v0.9.1
@@ -24,6 +25,7 @@ require (
 	github.com/stretchr/testify v1.5.1
 	github.com/urfave/cli v1.22.4
 	github.com/vmihailenco/msgpack/v4 v4.3.11
+	github.com/zalando/go-keyring v0.0.0-20200121091418-667557018717 // indirect
 	golang.org/x/crypto v0.0.0-20200510223506-06a226fb4e37
 	google.golang.org/appengine v1.6.6 // indirect
 	google.golang.org/grpc v1.29.1

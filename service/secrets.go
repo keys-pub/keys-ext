@@ -7,7 +7,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/secret"
-	"github.com/keys-pub/keys/util"
+	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
 )
 
@@ -115,8 +115,8 @@ func secretToRPC(s *secret.Secret) *Secret {
 		Password:  s.Password,
 		URL:       s.URL,
 		Notes:     s.Notes,
-		CreatedAt: int64(util.TimeToMillis(s.CreatedAt)),
-		UpdatedAt: int64(util.TimeToMillis(s.UpdatedAt)),
+		CreatedAt: int64(tsutil.Millis(s.CreatedAt)),
+		UpdatedAt: int64(tsutil.Millis(s.UpdatedAt)),
 	}
 }
 
@@ -129,8 +129,8 @@ func secretFromRPC(s *Secret) *secret.Secret {
 		Password:  s.Password,
 		URL:       s.URL,
 		Notes:     s.Notes,
-		CreatedAt: util.TimeFromMillis(int64(s.CreatedAt)),
-		UpdatedAt: util.TimeFromMillis(int64(s.UpdatedAt)),
+		CreatedAt: tsutil.ParseMillis(int64(s.CreatedAt)),
+		UpdatedAt: tsutil.ParseMillis(int64(s.UpdatedAt)),
 	}
 }
 

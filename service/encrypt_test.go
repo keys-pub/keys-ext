@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/util"
+	"github.com/keys-pub/keys/request"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/status"
 )
@@ -482,7 +482,7 @@ func TestEncryptUnverified(t *testing.T) {
 	env.clock.Add(time.Hour * 24)
 
 	// Set 500 error for bob@github
-	env.req.SetError("https://gist.github.com/bob/1", util.ErrHTTP{StatusCode: 500})
+	env.req.SetError("https://gist.github.com/bob/1", request.ErrHTTP{StatusCode: 500})
 
 	// Encrypt (bob, error)
 	_, err = aliceService.Encrypt(context.TODO(), &EncryptRequest{

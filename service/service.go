@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/secret"
 	"github.com/keys-pub/keys/user"
-	"github.com/keys-pub/keys/util"
 	"github.com/keys-pub/keysd/db"
 	"github.com/keys-pub/keysd/http/client"
 )
@@ -34,10 +34,10 @@ type service struct {
 	openMtx sync.Mutex
 }
 
-func newService(cfg *Config, build Build, auth *auth, req util.Requestor, nowFn func() time.Time) (*service, error) {
+func newService(cfg *Config, build Build, auth *auth, req request.Requestor, nowFn func() time.Time) (*service, error) {
 	logger.Debugf("New service: %s", cfg.AppName())
-	ks := keys.NewStore(auth.keyring)
-	ss := secret.NewStore(auth.keyring)
+	ks := keys.NewStore(auth.kr)
+	ss := secret.NewStore(auth.kr)
 	ss.SetTimeNow(nowFn)
 	db := db.New()
 	db.SetTimeNow(nowFn)

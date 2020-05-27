@@ -25,7 +25,7 @@ func TestCopy(t *testing.T) {
 
 	// Keyring #1 (mem)
 	kr := keyring.NewMem(false)
-	_, err = kr.UnlockWithPassword("testkeyringpassword", true)
+	err = kr.UnlockWithPassword("testkeyringpassword", true)
 	require.NoError(t, err)
 
 	item := keyring.NewItem(keys.Rand3262(), []byte("testpassword"), "", time.Now())
