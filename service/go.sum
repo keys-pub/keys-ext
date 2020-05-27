@@ -102,6 +102,8 @@ github.com/google/pprof v0.0.0-20181206194817-3ea8567a2e57/go.mod h1:zfwlbNMJ+OI
 github.com/google/pprof v0.0.0-20190515194954-54271f7e092f/go.mod h1:zfwlbNMJ+OItoe0UupaVj+oy1omPYYDuagoSzA8v9mc=
 github.com/google/pprof v0.0.0-20191218002539-d4f498aebedc/go.mod h1:ZgVRPoUq/hfqzAqh7sHMqb3I9Rq5C59dIz2SbBwJ4eM=
 github.com/google/renameio v0.1.0/go.mod h1:KWCgfxg9yswjAJkECMjeO8J8rahYeXnNhOm40UhjYkI=
+github.com/google/uuid v1.1.1 h1:Gkbcsh/GbpXz7lPftLA3P6TYMwjCLYm83jiFQZF/3gY=
+github.com/google/uuid v1.1.1/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/googleapis/gax-go/v2 v2.0.4/go.mod h1:0Wqv26UfaUD9n4G6kQubkQ+KchISgw+vpHVxEJEs9eg=
 github.com/googleapis/gax-go/v2 v2.0.5 h1:sjZBwGj9Jlw33ImPtvFviGYvseOtDM7hkSKB7+Tv3SM=
 github.com/googleapis/gax-go/v2 v2.0.5/go.mod h1:DWXyrwAJ9X0FpwwEdw+IPEYBICEFu5mhpdKc/us6bOk=
@@ -148,8 +150,13 @@ github.com/keys-pub/keys v0.0.0-20200527183651-c2daa203af2c h1:fI4IOTTEm6CqWzS2B
 github.com/keys-pub/keys v0.0.0-20200527183651-c2daa203af2c/go.mod h1:nOaBR3puTwpgR5cN6rQyZvNh8TFYRRmksXuk6ASe3HQ=
 github.com/keys-pub/keys v0.0.0-20200527184410-f6d64358550a h1:xIlzyn3o+HLBqwHskJQGQyiJNCcsTtMJnkoA2MQO1AI=
 github.com/keys-pub/keys v0.0.0-20200527184410-f6d64358550a/go.mod h1:nOaBR3puTwpgR5cN6rQyZvNh8TFYRRmksXuk6ASe3HQ=
+github.com/keys-pub/keys v0.0.0-20200527185604-bcec14efcd7b h1:7rSz9NWa/K6qZ0f2/TjP84BN5sg9P11xyb8qDSBQPIc=
+github.com/keys-pub/keys v0.0.0-20200527185604-bcec14efcd7b/go.mod h1:nOaBR3puTwpgR5cN6rQyZvNh8TFYRRmksXuk6ASe3HQ=
+github.com/keys-pub/keysd v0.0.45 h1:cOWy0G8puPU+dBcweNXg0Gczc1ROYXvJs2exx1Ue598=
 github.com/keys-pub/keysd/auth/fido2 v0.0.0-20200524000041-6d7e23f9bca0 h1:q/0KRicnWLk6jyxCQM+bm9C+r+IRFYNAxEs1UTJLJ9Q=
 github.com/keys-pub/keysd/auth/fido2 v0.0.0-20200524000041-6d7e23f9bca0/go.mod h1:VeiOp+slfnecI02nZ0zoZbMPK18HoPfg40uCvt2npiM=
+github.com/keys-pub/keysd/auth/fido2 v0.0.0-20200527221948-be862bfe6ba3 h1:HBSqlkZSBo/JPTXKHQ39MM20AEYOtlfTBhnqXSk2LxQ=
+github.com/keys-pub/keysd/auth/fido2 v0.0.0-20200527221948-be862bfe6ba3/go.mod h1:GXRSnBPhdhOTWyapDkg96R8U9l/wMmlrUjQQKBZIv5c=
 github.com/keys-pub/keysd/db v0.0.0-20200522210637-42d998d4c90e h1:2+wxVQgcWH+HmiTbx2Bivi6bpX87XRR/rQOKz2c49mk=
 github.com/keys-pub/keysd/db v0.0.0-20200522210637-42d998d4c90e/go.mod h1:S0Umz2X227gIi6TdAsZnvVmxS6vIEa8wsM+gMpE2cB0=
 github.com/keys-pub/keysd/db v0.0.0-20200527183902-ffb35f491a74 h1:gnvm+DIEJ0ADZTYc9OTLDqyjvM+UYk28obmH/hOMSgE=

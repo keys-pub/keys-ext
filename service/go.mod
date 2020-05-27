@@ -6,11 +6,12 @@ require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1
 	github.com/gogo/protobuf v1.3.1
+	github.com/google/uuid v1.1.1 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
 	github.com/keybase/go-keychain v0.0.0-20200502122510-cda31fe0c86d // indirect
 	github.com/keybase/saltpack v0.0.0-20200430135328-e19b1910c0c5 // indirect
-	github.com/keys-pub/keys v0.0.0-20200527184410-f6d64358550a
-	github.com/keys-pub/keysd/auth/fido2 v0.0.0-20200524000041-6d7e23f9bca0
+	github.com/keys-pub/keys v0.0.0-20200527185604-bcec14efcd7b
+	github.com/keys-pub/keysd/auth/fido2 v0.0.0-20200527221948-be862bfe6ba3
 	github.com/keys-pub/keysd/db v0.0.0-20200527183902-ffb35f491a74
 	github.com/keys-pub/keysd/git v0.0.0-20200523201022-17afba0cb421
 	github.com/keys-pub/keysd/http/api v0.0.0-20200527183746-ca4c118983c4
