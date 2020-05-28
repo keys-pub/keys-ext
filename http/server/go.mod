@@ -1,22 +1,16 @@
 module github.com/keys-pub/keys-ext/http/server
 
-go 1.12
+go 1.14
 
 require (
-	9fans.net/go v0.0.2 // indirect
 	github.com/gorilla/websocket v1.4.2
-	github.com/keys-pub/keys v0.0.0-20200527183651-c2daa203af2c
-	github.com/keys-pub/keys-ext/firestore v0.0.0-20200527181815-3e81575df31a
-	github.com/keys-pub/keys-ext/http/api v0.0.0-20200527181927-f0409e2de588
-	github.com/keys-pub/wincred v1.0.4 // indirect
-	github.com/labstack/echo/v4 v4.1.11
-	github.com/mattn/go-colorable v0.1.4 // indirect
-	github.com/mattn/go-isatty v0.0.10 // indirect
+	github.com/keys-pub/keys v0.0.0-20200528181135-18e38db61305
+	github.com/keys-pub/keys-ext/firestore v0.0.0-20200528184029-7548f2a0a594
+	github.com/keys-pub/keys-ext/http/api v0.0.0-20200528184029-7548f2a0a594
+	github.com/labstack/echo/v4 v4.1.16
 	github.com/pkg/errors v0.9.1
-	github.com/rogpeppe/godef v1.1.2 // indirect
 	github.com/stretchr/testify v1.5.1
-	github.com/valyala/fasttemplate v1.1.0 // indirect
-	google.golang.org/api v0.20.0
+	google.golang.org/api v0.25.0
 )
 
 // replace github.com/keys-pub/keys => ../../../keys
