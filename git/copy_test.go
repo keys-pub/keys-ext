@@ -34,9 +34,10 @@ func TestCopy(t *testing.T) {
 
 	// Repo #2, Keyring #2
 	path2 := keys.RandTempPath("")
-	repo2, err := git.NewRepository(url, path2, repoKey, nil)
+	repo2 := git.NewRepository()
+	err = repo2.SetKey(repoKey)
 	require.NoError(t, err)
-	err = repo2.Open()
+	err = repo2.Clone(url, path2)
 	require.NoError(t, err)
 	kr2, err := keyring.New(service, repo2)
 	require.NoError(t, err)
@@ -52,13 +53,14 @@ func TestCopy(t *testing.T) {
 
 	// Repo #3, Keyring #3
 	path3 := keys.RandTempPath("")
-	repo3, err := git.NewRepository(url, path3, repoKey, nil)
+	repo3 := git.NewRepository()
+	err = repo3.SetKey(repoKey)
 	require.NoError(t, err)
-	err = repo3.Open()
+	err = repo3.Clone(url, path3)
 	require.NoError(t, err)
 	kr3, err := keyring.New(service, repo3)
 	require.NoError(t, err)
-	_, err = kr3.UnlockWithPassword("testkeyringpassword", false)
+	err = kr3.UnlockWithPassword("testkeyringpassword", false)
 	require.NoError(t, err)
 	out, err := kr3.Get(item.ID)
 	require.NoError(t, err)

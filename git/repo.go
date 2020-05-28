@@ -6,62 +6,24 @@ import (
 	"strings"
 	"time"
 
-	"github.com/keys-pub/keys"
-
 	git "github.com/keys-pub/git2go"
+	"github.com/keys-pub/keys"
 	"github.com/pkg/errors"
 )
 
 // Repository ...
 type Repository struct {
-	urs  string
-	path string
-	opts *RepositoryOpts
-
 	publicKey  string
 	privateKey string
-
-	host string
+	gitUser    string
 
 	repo *git.Repository
-}
-
-// RepositoryOpts are options for repository.
-type RepositoryOpts struct {
-	GitUser string
+	path string
 }
 
 // NewRepository ...
-func NewRepository(urs string, path string, key *keys.EdX25519Key, opts *RepositoryOpts) (*Repository, error) {
-	if opts == nil {
-		opts = &RepositoryOpts{}
-	}
-	if opts.GitUser == "" {
-		opts.GitUser = "git"
-	}
-
-	host, err := ParseHost(urs)
-	if err != nil {
-		return nil, err
-	}
-
-	privateKey, err := key.EncodeToSSH(nil)
-	if err != nil {
-		return nil, err
-	}
-	publicKey := key.PublicKey().EncodeToSSHAuthorized()
-	logger.Debugf("Git url: %s", urs)
-	logger.Debugf("Git public key: %s", publicKey)
-	logger.Debugf("Git user: %s", opts.GitUser)
-
-	return &Repository{
-		path:       path,
-		opts:       opts,
-		urs:        urs,
-		host:       host,
-		publicKey:  string(publicKey),
-		privateKey: string(privateKey),
-	}, nil
+func NewRepository() *Repository {
+	return &Repository{}
 }
 
 // Path to repo.
@@ -70,7 +32,15 @@ func (r *Repository) Path() string {
 }
 
 func (r *Repository) credentialsCallback(url string, usernameFromURL string, allowedTypes git.CredType) (*git.Cred, error) {
-	cred, err := git.NewCredSshKeyFromMemory(r.opts.GitUser, r.publicKey, r.privateKey, "")
+	if r.privateKey == "" || r.publicKey == "" {
+		return nil, errors.Errorf("no ssh key set")
+	}
+	gitUser := r.gitUser
+	if gitUser == "" {
+		gitUser = "git"
+	}
+
+	cred, err := git.NewCredSshKeyFromMemory(gitUser, r.publicKey, r.privateKey, "")
 	if err != nil {
 		return nil, err
 	}
@@ -82,45 +52,84 @@ func (r *Repository) newRemoteCallbacks() git.RemoteCallbacks {
 		CredentialsCallback: r.credentialsCallback,
 		CertificateCheckCallback: func(cert *git.Certificate, valid bool, hostname string) git.ErrorCode {
 			logger.Debugf("Certificate check %t %s", valid, hostname)
-			// TODO: Check
+			// TODO: Check cert
 			// if !valid {
 			// 	return git.ErrCertificate
 			// }
-			if hostname != r.host {
-				return git.ErrCertificate
-			}
+			// if hostname != r.host {
+			// 	return git.ErrCertificate
+			// }
 			return git.ErrOk
 		},
 	}
 }
 
+func pathExists(path string) (bool, error) {
+	if _, err := os.Stat(path); err == nil {
+		return true, nil
+	} else if os.IsNotExist(err) {
+		return false, nil
+	} else {
+		return false, err
+	}
+}
+
 // Open repository.
-func (r *Repository) Open() error {
+func (r *Repository) Open(path string) error {
 	if r.repo != nil {
 		return errors.Errorf("already open")
 	}
 
-	logger.Debugf("Open repo: %s", r.path)
-	if _, err := os.Stat(r.path); err == nil {
-		repo, err := git.OpenRepository(r.path)
-		if err != nil {
-			return errors.Wrapf(err, "failed to open repository")
-		}
-		r.repo = repo
-	} else {
-		logger.Debugf("Clone repo: %s", r.urs)
-		opts := &git.CloneOptions{}
-		opts.FetchOptions = &git.FetchOptions{
-			RemoteCallbacks: r.newRemoteCallbacks(),
-		}
-		repo, err := git.Clone(r.urs, r.path, opts)
-		if err != nil {
-			return errors.Wrapf(err, "failed to clone repository")
-		}
-		r.repo = repo
+	logger.Debugf("Open repo: %s", path)
+	exist, err := pathExists(path)
+	if err != nil {
+		return err
+	}
+	if !exist {
+		return errors.Errorf("path doesn't exist: %s", r.path)
 	}
 
-	logger.Debugf("Repo: %s", r.repo.Path())
+	repo, err := git.OpenRepository(path)
+	if err != nil {
+		return errors.Wrapf(err, "failed to open repository")
+	}
+	r.repo = repo
+	r.path = path
+	logger.Debugf("Opened repo: %s", r.repo.Path())
+	return nil
+}
+
+// SetKey sets the ssh key.
+func (r *Repository) SetKey(key *keys.EdX25519Key) error {
+	privateKey, err := key.EncodeToSSH(nil)
+	if err != nil {
+		return err
+	}
+	publicKey := key.PublicKey().EncodeToSSHAuthorized()
+	logger.Debugf("Git public key: %s", publicKey)
+	r.privateKey = string(privateKey)
+	r.publicKey = string(publicKey)
+	return nil
+}
+
+// Clone repository.
+func (r *Repository) Clone(urs string, path string) error {
+	if r.repo != nil {
+		return errors.Errorf("already open")
+	}
+
+	logger.Debugf("Clone repo: %s", urs)
+	opts := &git.CloneOptions{}
+	opts.FetchOptions = &git.FetchOptions{
+		RemoteCallbacks: r.newRemoteCallbacks(),
+	}
+	repo, err := git.Clone(urs, path, opts)
+	if err != nil {
+		return errors.Wrapf(err, "failed to clone repository")
+	}
+	r.repo = repo
+	r.path = path
+	logger.Debugf("Cloned repo: %s", r.repo.Path())
 	return nil
 }
 
