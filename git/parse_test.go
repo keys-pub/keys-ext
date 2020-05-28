@@ -3,7 +3,7 @@ package git_test
 import (
 	"testing"
 
-	"github.com/keys-pub/keysd/git"
+	"github.com/keys-pub/keys-ext/git"
 	"github.com/stretchr/testify/require"
 )
 

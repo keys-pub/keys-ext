@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keysd/http/api"
+	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/pkg/errors"
 )
 

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keysd/http/api"
+	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 )

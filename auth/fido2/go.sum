@@ -48,7 +48,7 @@ github.com/keybase/saltpack v0.0.0-20190828020936-3f47e8e2e6ec h1:ejQ18jEAjyiFen
 github.com/keybase/saltpack v0.0.0-20190828020936-3f47e8e2e6ec/go.mod h1:loEJH62iafRcA8ZYlUEq9WgJh/Z9BHdHHfAmxzacQng=
 github.com/keys-pub/keys v0.0.0-20200527185604-bcec14efcd7b h1:7rSz9NWa/K6qZ0f2/TjP84BN5sg9P11xyb8qDSBQPIc=
 github.com/keys-pub/keys v0.0.0-20200527185604-bcec14efcd7b/go.mod h1:nOaBR3puTwpgR5cN6rQyZvNh8TFYRRmksXuk6ASe3HQ=
-github.com/keys-pub/keysd v0.0.45 h1:cOWy0G8puPU+dBcweNXg0Gczc1ROYXvJs2exx1Ue598=
+github.com/keys-pub/keys-ext v0.0.45 h1:cOWy0G8puPU+dBcweNXg0Gczc1ROYXvJs2exx1Ue598=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f/go.mod h1:YRHMiVbZqh7u8xRm77CvwJNAZdDlNXwWvQ4DK0N9mYg=
 github.com/kisielk/errcheck v1.2.0/go.mod h1:/BMXB+zMLi60iA8Vv6Ksmxu/1UDYcXs4uQLJ+jE2L00=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=

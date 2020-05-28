@@ -10,8 +10,8 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/ds"
-	"github.com/keys-pub/keysd/http/api"
-	"github.com/keys-pub/keysd/http/server"
+	"github.com/keys-pub/keys-ext/http/api"
+	"github.com/keys-pub/keys-ext/http/server"
 	"github.com/stretchr/testify/require"
 )
 

@@ -8,7 +8,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/ds"
-	"github.com/keys-pub/keysd/http/api"
+	"github.com/keys-pub/keys-ext/http/api"
 )
 
 // CreateInvite writes a sender recipient address (invite).

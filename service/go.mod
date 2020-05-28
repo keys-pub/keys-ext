@@ -1,4 +1,4 @@
-module github.com/keys-pub/keysd/service
+module github.com/keys-pub/keys-ext/service
 
 go 1.14
 
@@ -8,13 +8,13 @@ require (
 	github.com/gogo/protobuf v1.3.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
 	github.com/keys-pub/keys v0.0.0-20200528181135-18e38db61305	
-	github.com/keys-pub/keysd/auth/fido2 v0.0.0-20200527221948-be862bfe6ba3
-	github.com/keys-pub/keysd/db v0.0.0-20200527183902-ffb35f491a74
-	github.com/keys-pub/keysd/git v0.0.0-20200528181638-f95ae2138e27
-	github.com/keys-pub/keysd/http/api v0.0.0-20200527183746-ca4c118983c4
-	github.com/keys-pub/keysd/http/client v0.0.0-20200527183209-12da56e5cb21
-	github.com/keys-pub/keysd/http/server v0.0.0-20200527183746-ca4c118983c4
-	github.com/keys-pub/keysd/wormhole v0.0.0-20200527183902-ffb35f491a74
+	github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200527221948-be862bfe6ba3
+	github.com/keys-pub/keys-ext/db v0.0.0-20200527183902-ffb35f491a74
+	github.com/keys-pub/keys-ext/git v0.0.0-20200528181638-f95ae2138e27
+	github.com/keys-pub/keys-ext/http/api v0.0.0-20200527183746-ca4c118983c4
+	github.com/keys-pub/keys-ext/http/client v0.0.0-20200527183209-12da56e5cb21
+	github.com/keys-pub/keys-ext/http/server v0.0.0-20200527183746-ca4c118983c4
+	github.com/keys-pub/keys-ext/wormhole v0.0.0-20200527183902-ffb35f491a74
 	github.com/mercari/go-grpc-interceptor v0.0.0-20180110035004-b8ad3827e82a
 	github.com/mitchellh/go-ps v1.0.0
 	github.com/pkg/errors v0.9.1
@@ -30,16 +30,16 @@ require (
 
 // replace github.com/keys-pub/keys => ../../keys
 
-// replace github.com/keys-pub/keysd/db => ../db
+// replace github.com/keys-pub/keys-ext/db => ../db
 
-// replace github.com/keys-pub/keysd/auth/fido2 => ../auth/fido2
+// replace github.com/keys-pub/keys-ext/auth/fido2 => ../auth/fido2
 
-// replace github.com/keys-pub/keysd/git => ../git
+// replace github.com/keys-pub/keys-ext/git => ../git
 
-// replace github.com/keys-pub/keysd/http/api => ../http/api
+// replace github.com/keys-pub/keys-ext/http/api => ../http/api
 
-// replace github.com/keys-pub/keysd/http/client => ../http/client
+// replace github.com/keys-pub/keys-ext/http/client => ../http/client
 
-// replace github.com/keys-pub/keysd/http/server => ../http/server
+// replace github.com/keys-pub/keys-ext/http/server => ../http/server
 
-// replace github.com/keys-pub/keysd/wormhole => ../wormhole
+// replace github.com/keys-pub/keys-ext/wormhole => ../wormhole

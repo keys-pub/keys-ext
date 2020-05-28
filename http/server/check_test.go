@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keysd/http/api"
+	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/stretchr/testify/require"
 )
 

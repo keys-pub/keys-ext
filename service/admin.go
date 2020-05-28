@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/keys-pub/keysd/http/api"
+	"github.com/keys-pub/keys-ext/http/api"
 )
 
 // AdminSignURL ...

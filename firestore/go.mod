@@ -1,4 +1,4 @@
-module github.com/keys-pub/keysd/firestore
+module github.com/keys-pub/keys-ext/firestore
 
 go 1.12
 

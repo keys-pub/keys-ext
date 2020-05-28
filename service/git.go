@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keysd/git"
+	"github.com/keys-pub/keys-ext/git"
 	"github.com/pkg/errors"
 )
 

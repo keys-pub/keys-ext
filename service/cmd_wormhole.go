@@ -8,7 +8,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/keys-pub/keysd/wormhole"
+	"github.com/keys-pub/keys-ext/wormhole"
 	"github.com/urfave/cli"
 )
 

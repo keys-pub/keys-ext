@@ -2,7 +2,7 @@ package mock
 
 import (
 	"github.com/google/uuid"
-	"github.com/keys-pub/keysd/auth/fido2"
+	"github.com/keys-pub/keys-ext/auth/fido2"
 )
 
 type device struct {

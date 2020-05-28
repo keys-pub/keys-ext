@@ -7,7 +7,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/keys-pub/keysd/auth/fido2"
+	"github.com/keys-pub/keys-ext/auth/fido2"
 )
 
 func main() {

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keys-pub/keysd/wormhole/sctp"
+	"github.com/keys-pub/keys-ext/wormhole/sctp"
 	"github.com/stretchr/testify/require"
 )
 

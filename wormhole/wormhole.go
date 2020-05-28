@@ -9,10 +9,10 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/noise"
-	"github.com/keys-pub/keysd/http/api"
-	"github.com/keys-pub/keysd/http/client"
-	httpclient "github.com/keys-pub/keysd/http/client"
-	"github.com/keys-pub/keysd/wormhole/sctp"
+	"github.com/keys-pub/keys-ext/http/api"
+	"github.com/keys-pub/keys-ext/http/client"
+	httpclient "github.com/keys-pub/keys-ext/http/client"
+	"github.com/keys-pub/keys-ext/wormhole/sctp"
 	"github.com/pkg/errors"
 )
 

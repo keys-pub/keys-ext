@@ -1,4 +1,4 @@
-module github.com/keys-pub/keysd/db
+module github.com/keys-pub/keys-ext/db
 
 go 1.12
 

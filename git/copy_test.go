@@ -8,7 +8,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/keyring"
-	"github.com/keys-pub/keysd/git"
+	"github.com/keys-pub/keys-ext/git"
 	"github.com/stretchr/testify/require"
 )
 

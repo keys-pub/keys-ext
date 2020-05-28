@@ -9,8 +9,8 @@ import (
 	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/secret"
 	"github.com/keys-pub/keys/user"
-	"github.com/keys-pub/keysd/db"
-	"github.com/keys-pub/keysd/http/client"
+	"github.com/keys-pub/keys-ext/db"
+	"github.com/keys-pub/keys-ext/http/client"
 )
 
 // TODO: Detect stale sigchains

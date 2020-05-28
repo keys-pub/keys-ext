@@ -28,8 +28,8 @@ github.com/google/go-cmp v0.3.0/go.mod h1:8QqcDgzrUqlUb/G2PQTWiueGozuR1884gddMyw
 github.com/google/go-cmp v0.3.1/go.mod h1:8QqcDgzrUqlUb/G2PQTWiueGozuR1884gddMywk6iLU=
 github.com/google/go-cmp v0.4.0 h1:xsAVV57WRhGj6kEIi8ReJzQlHHqcBYCElAvkovg3B/4=
 github.com/google/go-cmp v0.4.0/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
-github.com/keys-pub/keysd/auth/fido2 v0.0.0-20200522212452-58bc469ec3ad h1:C3wba6OoFQ2Qh5ZYPl/4OWEu8MIUzEsJj59UGxVv+F4=
-github.com/keys-pub/keysd/auth/fido2 v0.0.0-20200522212452-58bc469ec3ad/go.mod h1:VeiOp+slfnecI02nZ0zoZbMPK18HoPfg40uCvt2npiM=
+github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200522212452-58bc469ec3ad h1:C3wba6OoFQ2Qh5ZYPl/4OWEu8MIUzEsJj59UGxVv+F4=
+github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200522212452-58bc469ec3ad/go.mod h1:VeiOp+slfnecI02nZ0zoZbMPK18HoPfg40uCvt2npiM=
 github.com/kisielk/errcheck v1.2.0/go.mod h1:/BMXB+zMLi60iA8Vv6Ksmxu/1UDYcXs4uQLJ+jE2L00=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=

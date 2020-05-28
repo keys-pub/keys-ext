@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/keys-pub/keys/tsutil"
-	"github.com/keys-pub/keysd/firestore"
+	"github.com/keys-pub/keys-ext/firestore"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/api/option"
 )

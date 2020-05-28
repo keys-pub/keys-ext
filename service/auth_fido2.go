@@ -8,7 +8,7 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/keyring"
-	"github.com/keys-pub/keysd/auth/fido2"
+	"github.com/keys-pub/keys-ext/auth/fido2"
 	"github.com/pkg/errors"
 )
 

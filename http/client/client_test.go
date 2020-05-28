@@ -9,8 +9,8 @@ import (
 	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keys/user"
-	"github.com/keys-pub/keysd/http/client"
-	"github.com/keys-pub/keysd/http/server"
+	"github.com/keys-pub/keys-ext/http/client"
+	"github.com/keys-pub/keys-ext/http/server"
 	"github.com/stretchr/testify/require"
 )
 

@@ -11,7 +11,7 @@ import (
 	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/saltpack"
 	"github.com/keys-pub/keys/tsutil"
-	"github.com/keys-pub/keysd/http/client"
+	"github.com/keys-pub/keys-ext/http/client"
 	"github.com/pkg/errors"
 )
 

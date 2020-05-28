@@ -1,4 +1,4 @@
-module github.com/keys-pub/keysd/auth/fido2
+module github.com/keys-pub/keys-ext/auth/fido2
 
 go 1.14
 

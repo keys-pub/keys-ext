@@ -1,4 +1,4 @@
-module github.com/keys-pub/keysd/http/api
+module github.com/keys-pub/keys-ext/http/api
 
 go 1.12
 

@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys/ds"
-	"github.com/keys-pub/keysd/auth/fido2"
+	"github.com/keys-pub/keys-ext/auth/fido2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"

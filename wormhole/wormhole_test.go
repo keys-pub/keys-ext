@@ -10,8 +10,8 @@ import (
 
 	"github.com/keys-pub/keys"
 
-	"github.com/keys-pub/keysd/wormhole"
-	"github.com/keys-pub/keysd/wormhole/sctp"
+	"github.com/keys-pub/keys-ext/wormhole"
+	"github.com/keys-pub/keys-ext/wormhole/sctp"
 	"github.com/stretchr/testify/require"
 )
 
