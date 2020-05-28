@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/keys-pub/keysd/service"
+	"github.com/keys-pub/keys-ext/service"
 )
 
 // build flags passed from goreleaser
