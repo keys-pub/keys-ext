@@ -23,6 +23,8 @@ func newKeyringStore(cfg *Config) (keyring.Store, error) {
 	case "mem":
 		logger.Infof("Keyring (mem)")
 		return keyring.Mem(), nil
+	case "git":
+		return nil, errors.Errorf("not implemented")
 	default:
 		return nil, errors.Errorf("unknown keyring type %s", kt)
 	}

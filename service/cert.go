@@ -40,7 +40,11 @@ func loadCertificate(cfg *Config) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if _, err := os.Stat(certPath); os.IsNotExist(err) {
+	exists, err := pathExists(certPath)
+	if err != nil {
+		return "", err
+	}
+	if !exists {
 		return "", nil
 	}
 	logger.Debugf("Loading certificate %s", certPath)
@@ -60,11 +64,12 @@ func DeleteCertificate(cfg *Config) error {
 	if err != nil {
 		return err
 	}
-	if _, err := os.Stat(certPath); err == nil {
-		return os.Remove(certPath)
-	} else if os.IsNotExist(err) {
-		return nil
-	} else {
+	exists, err := pathExists(certPath)
+	if err != nil {
 		return err
 	}
+	if !exists {
+		return nil
+	}
+	return os.Remove(certPath)
 }

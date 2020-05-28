@@ -31,7 +31,7 @@ func fido2Commands(client *Client) []cli.Command {
 					Name:  "device-info",
 					Usage: "Device info",
 					Flags: []cli.Flag{
-						cli.StringFlag{Name: "device, d", Usage: "Device"},
+						cli.StringFlag{Name: "device, d", Usage: "device path"},
 					},
 					Action: func(c *cli.Context) error {
 						req := fido2.DeviceInfoRequest{
@@ -49,8 +49,8 @@ func fido2Commands(client *Client) []cli.Command {
 					Name:  "credentials-info",
 					Usage: "Credentials info",
 					Flags: []cli.Flag{
-						cli.StringFlag{Name: "device, d", Usage: "Device"},
-						cli.StringFlag{Name: "pin", Usage: "PIN"},
+						cli.StringFlag{Name: "device, d", Usage: "device path"},
+						cli.StringFlag{Name: "pin", Usage: "pin"},
 					},
 					Action: func(c *cli.Context) error {
 						req := fido2.CredentialsInfoRequest{
@@ -69,8 +69,8 @@ func fido2Commands(client *Client) []cli.Command {
 					Name:  "credentials",
 					Usage: "Credentials",
 					Flags: []cli.Flag{
-						cli.StringFlag{Name: "device, d", Usage: "Device"},
-						cli.StringFlag{Name: "pin", Usage: "PIN"},
+						cli.StringFlag{Name: "device, d", Usage: "device"},
+						cli.StringFlag{Name: "pin", Usage: "pin"},
 					},
 					Action: func(c *cli.Context) error {
 						req := fido2.CredentialsRequest{

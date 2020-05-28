@@ -85,6 +85,10 @@ func (c Config) KeyringService(name string) string {
 	return c.AppName() + ".keyring"
 }
 
+func (c Config) keyringGitPath() (string, error) {
+	return c.AppPath("keyring", true)
+}
+
 // AppDir is where app related files are persisted.
 func (c Config) AppDir() string {
 	p, err := c.AppPath("", false)
@@ -170,7 +174,11 @@ func configPath(dir string, appName string, fileName string, makeDir bool) (stri
 	}
 	dir = filepath.Join(dir, appName)
 
-	if _, err := os.Stat(dir); os.IsNotExist(err) {
+	exists, err := pathExists(dir)
+	if err != nil {
+		return "", err
+	}
+	if !exists {
 		logger.Infof("Creating directory: %s", dir)
 		err := os.MkdirAll(dir, 0700)
 		if err != nil {
@@ -214,8 +222,14 @@ func (c *Config) Load() error {
 	if err != nil {
 		return err
 	}
+
 	var values map[string]string
-	if _, err := os.Stat(path); !os.IsNotExist(err) {
+
+	exists, err := pathExists(path)
+	if err != nil {
+		return err
+	}
+	if exists {
 		b, err := ioutil.ReadFile(path) // #nosec
 		if err != nil {
 			return err
@@ -253,7 +267,12 @@ func (c *Config) Reset() error {
 	if err != nil {
 		return err
 	}
-	if _, err := os.Stat(path); os.IsNotExist(err) {
+
+	exists, err := pathExists(path)
+	if err != nil {
+		return err
+	}
+	if !exists {
 		return nil
 	}
 	return os.Remove(path)

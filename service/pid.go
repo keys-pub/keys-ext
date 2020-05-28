@@ -2,7 +2,6 @@ package service
 
 import (
 	"io/ioutil"
-	"os"
 	"strconv"
 	"time"
 
@@ -12,7 +11,11 @@ import (
 
 // checkForPID checks path for pid.
 func checkForPID(path string) (int, error) {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
+	exists, err := pathExists(path)
+	if err != nil {
+		return -1, err
+	}
+	if !exists {
 		return -1, nil
 	}
 	data, err := ioutil.ReadFile(path) // #nosec

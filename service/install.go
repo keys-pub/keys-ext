@@ -69,7 +69,11 @@ func stop(cfg *Config) error {
 }
 
 func removeFile(pidPath string) error {
-	if _, err := os.Stat(pidPath); !os.IsNotExist(err) {
+	exists, err := pathExists(pidPath)
+	if err != nil {
+		return err
+	}
+	if exists {
 		logger.Infof("Removing file %s", pidPath)
 		if err := os.Remove(pidPath); err != nil {
 			return err
@@ -129,21 +133,27 @@ func installSymlink() error {
 	linkPath := filepath.Join(linkDir, "keys")
 
 	logger.Infof("Checking if %s exists", linkDir)
+	linkDirExists, err := pathExists(linkDir)
+	if err != nil {
+		return err
+	}
 	// Check if /usr/local/bin directory exists
-	if _, err := os.Stat(linkDir); os.IsNotExist(err) {
+	if !linkDirExists {
 		return errors.Errorf("%s does not exist", linkDir)
 	}
 
 	logger.Infof("Checking if %s exists", linkPath)
+	linkExists, err := pathExists(linkPath)
+	if err != nil {
+		return err
+	}
 	// Check if /usr/local/bin/keys exists
-	if _, err := os.Stat(linkPath); err == nil {
+	if linkExists {
 		logger.Infof("%s already exists", linkPath)
 		return nil
 	} else if os.IsNotExist(err) {
 		// OK
 		logger.Infof("%s doesn't exist", linkPath)
-	} else {
-		return err
 	}
 
 	logger.Infof("Linking %s to %s", linkPath, binPath)
@@ -170,11 +180,25 @@ func checkForAppConflict() error {
 	}
 	for _, c := range check {
 		if !strings.HasPrefix(path, c) {
-			if _, err := os.Stat(c); err == nil {
+			exists, err := pathExists(c)
+			if err != nil {
+				return err
+			}
+			if exists {
 				return errors.Errorf("You have the app installed (%s), but this (%s) doesn't point there. You may have multiple installations?", c, path)
 			}
 		}
 	}
 
 	return nil
+}
+
+func pathExists(path string) (bool, error) {
+	if _, err := os.Stat(path); err == nil {
+		return true, nil
+	} else if os.IsNotExist(err) {
+		return false, nil
+	} else {
+		return false, err
+	}
 }

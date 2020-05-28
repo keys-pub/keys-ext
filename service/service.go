@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"os"
 	"sync"
 	"time"
 
@@ -89,8 +88,12 @@ func (s *service) Open(ctx context.Context, key *[32]byte) error {
 		return err
 	}
 
+	exists, err := pathExists(path)
+	if err != nil {
+		return err
+	}
 	isNew := false
-	if _, err := os.Stat(path); os.IsNotExist(err) {
+	if !exists {
 		isNew = true
 	}
 

@@ -32,7 +32,11 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 		return nil, err
 	}
 	logger.Debugf("Checking for existing db...")
-	if _, err := os.Stat(path); err == nil {
+	exists, err := pathExists(path)
+	if err != nil {
+		return nil, err
+	}
+	if exists {
 		logger.Debugf("Removing existing db: %s", path)
 		if err := os.RemoveAll(path); err != nil {
 			return nil, err

@@ -88,7 +88,7 @@ func (s *service) VerifyFile(srv Keys_VerifyFileServer) error {
 			out = strings.TrimSuffix(in, ".signed")
 		}
 	}
-	exists, err := fileExists(out)
+	exists, err := pathExists(out)
 	if err != nil {
 		return err
 	}

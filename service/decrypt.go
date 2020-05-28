@@ -102,7 +102,7 @@ func (s *service) DecryptFile(srv Keys_DecryptFileServer) error {
 			out = strings.TrimSuffix(req.In, ".enc")
 		}
 	}
-	exists, err := fileExists(out)
+	exists, err := pathExists(out)
 	if err != nil {
 		return err
 	}
