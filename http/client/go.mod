@@ -1,12 +1,12 @@
 module github.com/keys-pub/keys-ext/http/client
 
-go 1.12
+go 1.14
 
 require (
 	github.com/gorilla/websocket v1.4.2
-	github.com/keys-pub/keys v0.0.0-20200527180456-3546952f005f
-	github.com/keys-pub/keys-ext/http/api v0.0.0-20200527181927-f0409e2de588
-	github.com/keys-pub/keys-ext/http/server v0.0.0-20200527182913-749cd5601e56
+	github.com/keys-pub/keys v0.0.0-20200528181135-18e38db61305
+	github.com/keys-pub/keys-ext/http/api v0.0.0-20200528184029-7548f2a0a594
+	github.com/keys-pub/keys-ext/http/server v0.0.0-20200528185324-90ced7e635aa
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.5.1
 )
