@@ -30,7 +30,7 @@ func gitCommands(client *Client) []cli.Command {
 							return err
 						}
 						if exists {
-							b, err := ioutil.ReadFile(keyFlag)
+							b, err := ioutil.ReadFile(keyFlag) // #nosec
 							if err != nil {
 								return err
 							}
