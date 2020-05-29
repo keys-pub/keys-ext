@@ -1,14 +1,15 @@
 package git_test
 
 import (
+	"bytes"
 	"io/ioutil"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/keyring"
 	"github.com/keys-pub/keys-ext/git"
+	"github.com/keys-pub/keys/encoding"
+	"github.com/keys-pub/keys/keyring"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,10 +26,17 @@ func TestCopy(t *testing.T) {
 
 	// Keyring #1 (mem)
 	kr := keyring.NewMem(false)
-	err = kr.UnlockWithPassword("testkeyringpassword", true)
+	salt, err := kr.Salt()
+	require.NoError(t, err)
+	key, err := keyring.KeyForPassword("testkeyringpassword", salt)
+	require.NoError(t, err)
+	id := encoding.MustEncode(bytes.Repeat([]byte{0x02}, 32), encoding.Base62)
+	provision := &keyring.Provision{ID: id}
+	err = kr.Setup(key, provision)
 	require.NoError(t, err)
 
-	item := keyring.NewItem(keys.Rand3262(), []byte("testpassword"), "", time.Now())
+	iid := encoding.MustEncode(bytes.Repeat([]byte{0x03}, 32), encoding.Base62)
+	item := keyring.NewItem(iid, []byte("testpassword"), "", time.Now())
 	err = kr.Create(item)
 	require.NoError(t, err)
 
@@ -45,8 +53,12 @@ func TestCopy(t *testing.T) {
 	// Copy #1 to #2
 	ids, err := keyring.Copy(kr, kr2)
 	require.NoError(t, err)
-	require.True(t, strings.HasPrefix(ids[0], "#auth-"))
-	require.Equal(t, []string{"#salt", item.ID}, ids[1:])
+	require.Equal(t, []string{
+		"#auth-0TWD4V5tkyUQGc5qXvlBDd2Fj97aqsMoBGJJjsttG4I",
+		"#provision-0TWD4V5tkyUQGc5qXvlBDd2Fj97aqsMoBGJJjsttG4I",
+		"#salt",
+		"0iHJbkdqdSjdOv8lotdlpRYNaigOHJYDGtSybpLpt6R",
+	}, ids)
 
 	err = repo2.Push()
 	require.NoError(t, err)

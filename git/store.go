@@ -52,7 +52,7 @@ func (r *Repository) Set(service string, id string, data []byte) error {
 	}
 
 	name := filepath.Join(service, id)
-	if err := r.add(name); err != nil {
+	if err := r.Add(name); err != nil {
 		// TODO: How do we resolve invalid state?
 		return errors.Wrapf(err, "failed to add to repo")
 	}
@@ -76,7 +76,7 @@ func (r *Repository) Delete(service string, id string) (bool, error) {
 		return false, err
 	}
 
-	if err := r.delete(name); err != nil {
+	if err := r.Remove(name); err != nil {
 		// TODO: How do we resolve invalid state?
 		// TODO: Move file into tmp and the remove if successful from git rm
 		return false, err

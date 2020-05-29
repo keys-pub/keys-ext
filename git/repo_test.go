@@ -3,12 +3,13 @@ package git_test
 import (
 	"bytes"
 	"io/ioutil"
+	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/keyring"
 	"github.com/keys-pub/keys-ext/git"
+	"github.com/keys-pub/keys/keyring"
 	"github.com/stretchr/testify/require"
 )
 
@@ -16,11 +17,12 @@ func TestRepositoryAddDelete(t *testing.T) {
 	// git.SetLogger(git.NewLogger(git.DebugLevel))
 
 	path := keys.RandTempPath("")
+	t.Logf("Path: %s", path)
 	path2 := keys.RandTempPath("")
 
 	privateKey, err := ioutil.ReadFile("id_ed25519")
 	require.NoError(t, err)
-	key, err := keys.ParseSSHKey(privateKey, nil, true)
+	skey, err := keys.ParseSSHKey(privateKey, nil, true)
 	require.NoError(t, err)
 
 	url := "git@gitlab.com:gabrielha/pass-test.git"
@@ -28,33 +30,45 @@ func TestRepositoryAddDelete(t *testing.T) {
 	service := "GitTest-" + keys.Rand3262()
 
 	salt := bytes.Repeat([]byte{0x01}, 16)
-	auth, err := keyring.NewPasswordAuth("testpassword", salt)
+	pkey, err := keyring.KeyForPassword("testpassword", salt)
 	require.NoError(t, err)
+	provision := keyring.NewProvision(keyring.UnknownAuth)
 
 	// Keyring #1
 	repo1 := git.NewRepository()
-	err = repo1.SetKey(key)
+	err = repo1.SetKey(skey)
 	require.NoError(t, err)
 	err = repo1.Clone(url, path)
 	require.NoError(t, err)
 	kr1, err := keyring.New(service, repo1)
 	require.NoError(t, err)
-	_, err = kr1.Setup(auth)
+	err = kr1.Setup(pkey, provision)
 	require.NoError(t, err)
 	err = repo1.Push()
 	require.NoError(t, err)
 
+	// Add random file
+	file := "test2." + keys.Rand3262()
+	data := []byte("testdata")
+	err = ioutil.WriteFile(filepath.Join(path, file), data, 0600)
+	require.NoError(t, err)
+	err = repo1.Add(file)
+	require.NoError(t, err)
+	// Add (again)
+	err = repo1.Add(file)
+	require.NoError(t, err)
+
 	// Keyring #2
 	repo2 := git.NewRepository()
-	err = repo2.SetKey(key)
+	err = repo2.SetKey(skey)
 	require.NoError(t, err)
 	err = repo2.Clone(url, path2)
 	require.NoError(t, err)
 	kr2, err := keyring.New(service, repo2)
 	require.NoError(t, err)
-	_, err = kr2.Unlock(keyring.NewAuth("test", keys.Rand32()))
+	_, err = kr2.Unlock(keys.Rand32())
 	require.EqualError(t, err, "invalid keyring auth")
-	_, err = kr2.Unlock(auth)
+	_, err = kr2.Unlock(pkey)
 	require.NoError(t, err)
 
 	// Repo1: Create, Push
@@ -66,13 +80,13 @@ func TestRepositoryAddDelete(t *testing.T) {
 
 	// Keyring #3 (same dir as #1)
 	repo3 := git.NewRepository()
-	err = repo3.SetKey(key)
+	err = repo3.SetKey(skey)
 	require.NoError(t, err)
 	err = repo3.Open(path)
 	require.NoError(t, err)
 	kr3, err := keyring.New(service, repo3)
 	require.NoError(t, err)
-	_, err = kr3.Unlock(auth)
+	_, err = kr3.Unlock(pkey)
 	require.NoError(t, err)
 	items, err := kr3.List()
 	require.NoError(t, err)
@@ -110,7 +124,7 @@ func TestConflictResolve(t *testing.T) {
 
 	privateKey, err := ioutil.ReadFile("id_ed25519")
 	require.NoError(t, err)
-	key, err := keys.ParseSSHKey(privateKey, nil, true)
+	skey, err := keys.ParseSSHKey(privateKey, nil, true)
 	require.NoError(t, err)
 
 	url := "git@gitlab.com:gabrielha/pass-test.git"
@@ -118,31 +132,32 @@ func TestConflictResolve(t *testing.T) {
 	service := "GitTest-" + keys.Rand3262()
 
 	salt := bytes.Repeat([]byte{0x01}, 16)
-	auth, err := keyring.NewPasswordAuth("testpassword", salt)
+	pkey, err := keyring.KeyForPassword("testpassword", salt)
 	require.NoError(t, err)
+	provision := keyring.NewProvision(keyring.UnknownAuth)
 
 	// Keyring #1
 	repo1 := git.NewRepository()
-	err = repo1.SetKey(key)
+	err = repo1.SetKey(skey)
 	require.NoError(t, err)
 	err = repo1.Clone(url, path)
 	require.NoError(t, err)
 	kr1, err := keyring.New(service, repo1)
 	require.NoError(t, err)
-	_, err = kr1.Setup(auth)
+	err = kr1.Setup(pkey, provision)
 	require.NoError(t, err)
 	err = repo1.Push()
 	require.NoError(t, err)
 
 	// Keyring #2
 	repo2 := git.NewRepository()
-	err = repo2.SetKey(key)
+	err = repo2.SetKey(skey)
 	require.NoError(t, err)
 	err = repo2.Clone(url, path2)
 	require.NoError(t, err)
 	kr2, err := keyring.New(service, repo2)
 	require.NoError(t, err)
-	_, err = kr2.Unlock(auth)
+	_, err = kr2.Unlock(pkey)
 	require.NoError(t, err)
 
 	// Repo1: Create, Push
@@ -158,19 +173,30 @@ func TestConflictResolve(t *testing.T) {
 	require.NoError(t, err)
 	err = repo2.Push()
 	require.EqualError(t, err, "non-fast-forward update: refs/heads/master")
-	// require.True(t, git.ErrIsCode(err, git.ErrNonFastForward))
 
 	err = repo2.Pull()
-	require.EqualError(t, err, "non-fast-forward update")
+	require.NoError(t, err)
+	err = repo2.Push()
+	require.NoError(t, err)
 
-	//require.NoError(t, err)
-	// err = repo2.Push()
-	// require.NoError(t, err)
+	// Repo1: Pull
+	err = repo1.Pull()
+	require.NoError(t, err)
+	out, err := kr2.Get(item.ID)
+	require.NoError(t, err)
+	require.Equal(t, "testpassword2", string(out.Data))
 
-	// // Repo1: Pull
-	// err = repo1.Pull()
-	// require.NoError(t, err)
-	// out, err := kr2.Get(item.ID)
-	// require.NoError(t, err)
-	// require.Equal(t, "testpassword2", string(out.Data))
+	// Repo1: Edit, Push
+	err = kr1.Update(item.ID, []byte("testpassword4"))
+	require.NoError(t, err)
+	err = repo1.Push()
+	require.NoError(t, err)
+	// Repo2: Edit, Pull
+	err = kr2.Update(item.ID, []byte("testpassword3"))
+	err = repo2.Pull()
+	require.NoError(t, err)
+
+	out, err = kr2.Get(item.ID)
+	require.NoError(t, err)
+	require.Equal(t, "testpassword3", string(out.Data))
 }

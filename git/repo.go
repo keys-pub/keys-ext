@@ -17,7 +17,6 @@ import (
 type Repository struct {
 	repo *git.Repository
 	path string
-
 	auth transport.AuthMethod
 }
 
@@ -57,6 +56,9 @@ func (r *Repository) Open(path string) error {
 	}
 
 	repo, err := git.PlainOpen(path)
+	if err != nil {
+		return err
+	}
 	r.repo = repo
 	r.path = path
 	logger.Debugf("Opened repo: %s", path)
@@ -73,9 +75,7 @@ func (r *Repository) SetKey(key *keys.EdX25519Key) error {
 	// if err != nil {
 	// 	return err
 
-	auth := &gitssh.PublicKeys{User: "git", Signer: key.SSHSigner()}
-	r.auth = auth
-
+	r.auth = &gitssh.PublicKeys{User: "git", Signer: key.SSHSigner()}
 	return nil
 }
 
@@ -85,40 +85,92 @@ func (r *Repository) Clone(urs string, path string) error {
 		return errors.Errorf("already open")
 	}
 
+	// Prepare temp path
+	tmpPath := path + ".tmp"
+	tmpExists, err := pathExists(tmpPath)
+	if err != nil {
+		return err
+	}
+	if tmpExists {
+		if err := os.RemoveAll(tmpPath); err != nil {
+			return err
+		}
+	}
+
+	// Clone to temp
 	logger.Debugf("Clone repo: %s", urs)
-	repo, err := git.PlainClone(path, false, &git.CloneOptions{
+	if _, err := git.PlainClone(tmpPath, false, &git.CloneOptions{
 		URL: urs,
 		// Progress: os.Stdout,
 		Auth: r.auth,
-	})
+	}); err != nil {
+		return err
+	}
+
+	// Move into place
+	if err := os.Rename(tmpPath, path); err != nil {
+		return err
+	}
+
+	// Open repo
+	repo, err := git.PlainOpen(path)
 	if err != nil {
 		return err
 	}
 
 	r.repo = repo
 	r.path = path
-	logger.Debugf("Cloned repo", r.path)
+	logger.Debugf("Cloned repo: %s", r.path)
 	return nil
 }
 
-// Pull changes.
-func (r *Repository) Pull() error {
+// // Pull changes.
+// func (r *Repository) Pull() error {
+// 	if r.repo == nil {
+// 		return errors.Errorf("not open")
+// 	}
+
+// 	w, err := r.repo.Worktree()
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	if err := w.Pull(&git.PullOptions{
+// 		RemoteName: "origin",
+// 		Auth:       r.auth,
+// 	}); err != nil {
+// 		return err
+// 	}
+
+// 	return nil
+// }
+
+// Fetch remote.
+func (r *Repository) Fetch() error {
 	if r.repo == nil {
 		return errors.Errorf("not open")
 	}
 
-	w, err := r.repo.Worktree()
-	if err != nil {
-		return err
-	}
-
-	if err := w.Pull(&git.PullOptions{
+	logger.Debugf("Fetch origin...")
+	fetchOptions := &git.FetchOptions{
 		RemoteName: "origin",
 		Auth:       r.auth,
-	}); err != nil {
+	}
+	if err := r.repo.Fetch(fetchOptions); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+// Pull fetches and merges.
+func (r *Repository) Pull() error {
+	if err := r.Fetch(); err != nil {
+		return err
+	}
+	if err := r.Merge(); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -144,7 +196,8 @@ func (r *Repository) signature() *object.Signature {
 	}
 }
 
-func (r *Repository) add(name string) error {
+// Add file.
+func (r *Repository) Add(name string) error {
 	logger.Debugf("Add %s", name)
 	message := fmt.Sprintf("Add %s\n", name)
 
@@ -164,9 +217,10 @@ func (r *Repository) add(name string) error {
 	return nil
 }
 
-func (r *Repository) delete(name string) error {
-	logger.Debugf("Delete %s", name)
-	message := fmt.Sprintf("Add %s\n", name)
+// Remove file.
+func (r *Repository) Remove(name string) error {
+	logger.Debugf("Remove %s", name)
+	message := fmt.Sprintf("Remove %s\n", name)
 
 	w, err := r.repo.Worktree()
 	if err != nil {
