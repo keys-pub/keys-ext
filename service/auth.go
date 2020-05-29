@@ -61,7 +61,9 @@ func newAuth(cfg *Config) (*auth, error) {
 		sys:       sys,
 	}
 
-	a.loadGit()
+	if _, err := a.loadGit(); err != nil {
+		return nil, err
+	}
 
 	return a, nil
 }
@@ -93,7 +95,9 @@ func (a *auth) Keyring() *keyring.Keyring {
 
 // reset (for testing)
 func (a *auth) reset() {
-	a.sys.Reset()
+	if err := a.sys.Reset(); err != nil {
+		logger.Errorf("failed to reset auth keyring")
+	}
 }
 
 func (a *auth) lock() error {
