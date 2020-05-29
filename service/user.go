@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/link"
 	"github.com/keys-pub/keys/user"
-	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/pkg/errors"
 )
 
@@ -471,7 +471,8 @@ func (s *service) checkForKeyUpdate(ctx context.Context, kid keys.ID, updateIfMi
 // This currently only updates keys that have had a user.
 func (s *service) checkForKeyUpdates(ctx context.Context) error {
 	logger.Infof("Checking keys...")
-	pks, err := s.ks.EdX25519PublicKeys()
+	ks := s.keyStore()
+	pks, err := ks.EdX25519PublicKeys()
 	if err != nil {
 		return err
 	}
@@ -485,7 +486,8 @@ func (s *service) checkForKeyUpdates(ctx context.Context) error {
 
 func (s *service) updateAllKeys(ctx context.Context) error {
 	logger.Infof("Updating keys...")
-	pks, err := s.ks.EdX25519PublicKeys()
+	ks := s.keyStore()
+	pks, err := ks.EdX25519PublicKeys()
 	if err != nil {
 		return err
 	}

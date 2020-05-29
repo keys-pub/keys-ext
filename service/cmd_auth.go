@@ -21,7 +21,7 @@ func authCommands(client *Client) []cli.Command {
 			Flags: []cli.Flag{
 				cli.StringFlag{Name: "password, pin", Usage: "password or pin"},
 				cli.BoolFlag{Name: "token", Usage: "output token only"},
-				cli.StringFlag{Name: "type", Usage: "auth type: password, fido2-hmac-secret, fido2-hmac-secret-no-pin", Value: "password"},
+				cli.StringFlag{Name: "type, t", Usage: "auth type: password, fido2-hmac-secret", Value: "password"},
 				cli.StringFlag{Name: "client", Value: "cli", Hidden: true},
 			},
 			Aliases: []string{"unlock"},

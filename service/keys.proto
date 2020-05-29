@@ -88,14 +88,15 @@ service Keys {
   rpc AuthLock(AuthLockRequest) returns (AuthLockResponse) {}
   rpc RuntimeStatus(RuntimeStatusRequest) returns (RuntimeStatusResponse) {}
   rpc Rand(RandRequest) returns (RandResponse) {}
-  rpc RandPassword(RandPasswordRequest) returns (RandPasswordResponse) {}
-  rpc GitSetup(GitSetupRequest) returns (GitSetupResponse) {}
+  rpc RandPassword(RandPasswordRequest) returns (RandPasswordResponse) {}  
   // END NO AUTH
 
   rpc AuthProvision(AuthProvisionRequest) returns (AuthProvisionResponse) {}
   rpc AuthDeprovision(AuthDeprovisionRequest) returns (AuthDeprovisionResponse) {}
   rpc AuthProvisions(AuthProvisionsRequest) returns (AuthProvisionsResponse) {}  
-  
+
+  rpc GitSetup(GitSetupRequest) returns (GitSetupResponse) {}
+
   rpc Collections(CollectionsRequest) returns (CollectionsResponse) {}
   rpc Documents(DocumentsRequest) returns (DocumentsResponse) {}
   rpc DocumentDelete(DocumentDeleteRequest) returns (DocumentDeleteResponse) {}
@@ -467,7 +468,7 @@ message AuthProvisionRequest {
   bool setup = 7;
 }
 message AuthProvisionResponse {
-  string id = 1 [(gogoproto.customname) = "ID"];
+  AuthProvision provision = 1;
 }
 
 message AuthDeprovisionRequest {
@@ -1012,13 +1013,12 @@ message AdminCheckRequest {
   string kid = 2 [(gogoproto.customname) = "KID"];
 }
 
-message AdminCheckResponse {
-}
+message AdminCheckResponse {}
 
 message GitSetupRequest {
   string url = 1 [(gogoproto.customname) = "URL"];
   string key = 2;
 }
+message GitSetupResponse {}
 
-message GitSetupResponse {
-}
+

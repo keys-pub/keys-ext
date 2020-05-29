@@ -6,11 +6,10 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/request"
-	"github.com/keys-pub/keys/secret"
-	"github.com/keys-pub/keys/user"
 	"github.com/keys-pub/keys-ext/db"
 	"github.com/keys-pub/keys-ext/http/client"
+	"github.com/keys-pub/keys/request"
+	"github.com/keys-pub/keys/user"
 )
 
 // TODO: Detect stale sigchains
@@ -21,8 +20,6 @@ type service struct {
 	build  Build
 	auth   *auth
 	db     *db.DB
-	ks     *keys.Store
-	ss     *secret.Store
 	remote *client.Client
 	scs    keys.SigchainStore
 	users  *user.Store
@@ -35,9 +32,6 @@ type service struct {
 
 func newService(cfg *Config, build Build, auth *auth, req request.Requestor, nowFn func() time.Time) (*service, error) {
 	logger.Debugf("New service: %s", cfg.AppName())
-	ks := keys.NewStore(auth.kr)
-	ss := secret.NewStore(auth.kr)
-	ss.SetTimeNow(nowFn)
 	db := db.New()
 	db.SetTimeNow(nowFn)
 	scs := keys.NewSigchainStore(db)
@@ -56,8 +50,6 @@ func newService(cfg *Config, build Build, auth *auth, req request.Requestor, now
 		auth:   auth,
 		build:  build,
 		cfg:    cfg,
-		ks:     ks,
-		ss:     ss,
 		scs:    scs,
 		db:     db,
 		users:  users,
@@ -101,6 +93,7 @@ func (s *service) Open(ctx context.Context, key *[32]byte) error {
 	if err := s.db.OpenAtPath(ctx, path, key); err != nil {
 		return err
 	}
+
 	s.open = true
 
 	// If database is new, we are either in a new state or from a uninstalled

@@ -12,15 +12,13 @@ import (
 func TestAuthWithPassword(t *testing.T) {
 	cfg, closeFn := testConfig(t, "KeysTest", "", "mem")
 	defer closeFn()
-	st, err := newKeyringStore(cfg)
+	auth, err := newAuth(cfg)
 	require.NoError(t, err)
-	auth, err := newAuth(cfg, st)
-	require.NoError(t, err)
-	defer func() { _ = auth.kr.Reset() }()
+	defer auth.reset()
 	ctx := context.TODO()
 
 	// Setup needed
-	status, err := auth.kr.Status()
+	status, err := auth.Keyring().Status()
 	require.NoError(t, err)
 	require.Equal(t, keyring.Setup, status)
 
@@ -28,7 +26,7 @@ func TestAuthWithPassword(t *testing.T) {
 	err = auth.setup(ctx, "password123", PasswordAuth)
 	require.NoError(t, err)
 
-	status, err = auth.kr.Status()
+	status, err = auth.Keyring().Status()
 	require.NoError(t, err)
 	require.Equal(t, keyring.Unlocked, status)
 
@@ -57,11 +55,9 @@ func TestAuthWithPassword(t *testing.T) {
 func TestAuthorize(t *testing.T) {
 	cfg, closeFn := testConfig(t, "KeysTest", "", "mem")
 	defer closeFn()
-	st, err := newKeyringStore(cfg)
+	auth, err := newAuth(cfg)
 	require.NoError(t, err)
-	auth, err := newAuth(cfg, st)
-	require.NoError(t, err)
-	defer func() { _ = auth.kr.Reset() }()
+	defer auth.reset()
 
 	ctx := metadata.NewIncomingContext(context.TODO(), metadata.MD{})
 	err = auth.authorize(ctx, "/service.Keys/SomeMethod")

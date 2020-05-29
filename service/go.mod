@@ -26,13 +26,13 @@ require (
 )
 
 
-// replace github.com/keys-pub/keys => ../../keys
+replace github.com/keys-pub/keys => ../../keys
 
 // replace github.com/keys-pub/keys-ext/db => ../db
 
 // replace github.com/keys-pub/keys-ext/auth/fido2 => ../auth/fido2
 
-// replace github.com/keys-pub/keys-ext/git => ../git
+replace github.com/keys-pub/keys-ext/git => ../git
 
 // replace github.com/keys-pub/keys-ext/http/api => ../http/api
 

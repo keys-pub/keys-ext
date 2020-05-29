@@ -18,16 +18,16 @@ import (
 	middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/keyring"
-	"github.com/keys-pub/keys/link"
-	"github.com/keys-pub/keys/request"
-	"github.com/keys-pub/keys/saltpack"
-	"github.com/keys-pub/keys/user"
 	"github.com/keys-pub/keys-ext/auth/fido2"
 	"github.com/keys-pub/keys-ext/db"
 	"github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys-ext/wormhole"
 	"github.com/keys-pub/keys-ext/wormhole/sctp"
+	"github.com/keys-pub/keys/keyring"
+	"github.com/keys-pub/keys/link"
+	"github.com/keys-pub/keys/request"
+	"github.com/keys-pub/keys/saltpack"
+	"github.com/keys-pub/keys/user"
 	"github.com/mercari/go-grpc-interceptor/panichandler"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -59,7 +59,7 @@ func resetKeyringAndExit(cfg *Config) {
 	if err != nil {
 		logFatal(errors.Wrapf(err, "failed to init keyring store"))
 	}
-	service := cfg.KeyringService(st.Name())
+	service := cfg.keyringService()
 	kr, err := keyring.New(service, st)
 	if err != nil {
 		logFatal(errors.Wrapf(err, "failed to init keyring"))
@@ -180,11 +180,6 @@ func runService(cfg *Config, build Build, lgi LogInterceptor) error {
 func NewServiceFn(cfg *Config, build Build, cert *keys.CertificateKey, lgi LogInterceptor) (ServeFn, CloseFn, error) {
 	var opts []grpc.ServerOption
 
-	st, err := newKeyringStore(cfg)
-	if err != nil {
-		return nil, nil, err
-	}
-
 	if cert == nil {
 		return nil, nil, errNoCertFound{}
 	}
@@ -195,7 +190,7 @@ func NewServiceFn(cfg *Config, build Build, cert *keys.CertificateKey, lgi LogIn
 		grpc.Creds(creds),
 	}
 
-	auth, err := newAuth(cfg, st)
+	auth, err := newAuth(cfg)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -233,7 +228,7 @@ func NewServiceFn(cfg *Config, build Build, cert *keys.CertificateKey, lgi LogIn
 	} else {
 		logger.Infof("Registering FIDO2 plugin...")
 		fido2.RegisterAuthServer(grpcServer, fido2Plugin)
-		auth.fido2 = fido2Plugin
+		auth.auths = fido2Plugin
 	}
 
 	logger.Infof("Listening for connections on port %d", cfg.Port())

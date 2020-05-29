@@ -10,10 +10,14 @@ import (
 	"github.com/pkg/errors"
 )
 
+func (s *service) keyStore() *keys.Store {
+	return keys.NewStore(s.auth.Keyring())
+}
+
 // AuthSetup (RPC) ...
 func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSetupResponse, error) {
 	logger.Infof("Auth setup...")
-	status, err := s.ks.Keyring().Status()
+	status, err := s.auth.Keyring().Status()
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +52,7 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 
 // AuthUnlock (RPC) ...
 func (s *service) AuthUnlock(ctx context.Context, req *AuthUnlockRequest) (*AuthUnlockResponse, error) {
-	status, err := s.ks.Keyring().Status()
+	status, err := s.auth.Keyring().Status()
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +66,7 @@ func (s *service) AuthUnlock(ctx context.Context, req *AuthUnlockRequest) (*Auth
 	}
 
 	// TODO: Use a derived key instead of the actual key itself
-	key := s.auth.kr.MasterKey()
+	key := s.auth.Keyring().MasterKey()
 	if err := s.Open(ctx, key); err != nil {
 		return nil, err
 	}
@@ -74,28 +78,23 @@ func (s *service) AuthUnlock(ctx context.Context, req *AuthUnlockRequest) (*Auth
 
 // AuthProvision (RPC) ...
 func (s *service) AuthProvision(ctx context.Context, req *AuthProvisionRequest) (*AuthProvisionResponse, error) {
-	id, err := s.auth.provision(ctx, req.Secret, req.Type, req.Setup)
+	provision, err := s.auth.provision(ctx, req.Secret, req.Type, req.Setup)
 	if err != nil {
 		return nil, err
 	}
 	return &AuthProvisionResponse{
-		ID: id,
+		Provision: provisionToRPC(provision),
 	}, nil
 }
 
 // AuthDeprovision (RPC) ...
 func (s *service) AuthDeprovision(ctx context.Context, req *AuthDeprovisionRequest) (*AuthDeprovisionResponse, error) {
-	ok, err := s.auth.kr.Deprovision(req.ID)
+	ok, err := s.auth.Keyring().Deprovision(req.ID)
 	if err != nil {
 		return nil, err
 	}
 	if !ok {
 		return nil, keys.NewErrNotFound(req.ID)
-	}
-
-	// Remove auth info (ignore if it doesn't exist)
-	if _, err := s.auth.deleteInfo(req.ID); err != nil {
-		return nil, err
 	}
 
 	// TODO: If FIDO2 resident key and supports credMgmt remove from the device also?
@@ -105,34 +104,18 @@ func (s *service) AuthDeprovision(ctx context.Context, req *AuthDeprovisionReque
 
 // AuthProvisions (RPC) ...
 func (s *service) AuthProvisions(ctx context.Context, req *AuthProvisionsRequest) (*AuthProvisionsResponse, error) {
-	ids, err := s.auth.kr.Provisions()
+	provisions, err := s.auth.Keyring().Provisions()
 	if err != nil {
 		return nil, err
 	}
 
-	provisions := make([]*AuthProvision, 0, len(ids))
-	for _, id := range ids {
-		if id == "v1.auth" {
-			provisions = append(provisions, &AuthProvision{ID: id, Type: PasswordAuth})
-			continue
-		}
-
-		info, err := s.auth.loadInfo(id)
-		if err != nil {
-			return nil, err
-		}
-		provision := &AuthProvision{ID: id}
-		if info != nil {
-			provision.Type = authTypeToRPC(info.Type)
-			provision.AAGUID = info.AAGUID
-			provision.NoPin = info.NoPin
-			provision.CreatedAt = tsutil.Millis(info.CreatedAt)
-		}
-		provisions = append(provisions, provision)
+	out := make([]*AuthProvision, 0, len(provisions))
+	for _, provision := range provisions {
+		out = append(out, provisionToRPC(provision))
 	}
 
 	return &AuthProvisionsResponse{
-		Provisions: provisions,
+		Provisions: out,
 	}, nil
 }
 
@@ -167,4 +150,34 @@ func (a testClientAuth) GetRequestMetadata(context.Context, ...string) (map[stri
 func (a testClientAuth) RequireTransportSecurity() bool {
 	// For test client
 	return false
+}
+
+func provisionToRPC(p *keyring.Provision) *AuthProvision {
+	return &AuthProvision{
+		ID:        p.ID,
+		Type:      authTypeToRPC(p.Type),
+		AAGUID:    p.AAGUID,
+		NoPin:     p.NoPin,
+		CreatedAt: tsutil.Millis(p.CreatedAt),
+	}
+}
+
+func authTypeToRPC(t keyring.AuthType) AuthType {
+	switch t {
+	case keyring.PasswordAuth:
+		return PasswordAuth
+	case keyring.FIDO2HMACSecretAuth:
+		return FIDO2HMACSecretAuth
+	default:
+		return UnknownAuth
+	}
+}
+
+func matchAAGUID(provisions []*keyring.Provision, aaguid string) *keyring.Provision {
+	for _, provision := range provisions {
+		if provision.AAGUID == aaguid {
+			return provision
+		}
+	}
+	return nil
 }

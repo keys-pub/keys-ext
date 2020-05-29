@@ -55,6 +55,8 @@ func (s *service) Encrypt(ctx context.Context, req *EncryptRequest) (*EncryptRes
 		return nil, err
 	}
 
+	ks := s.keyStore()
+
 	var out []byte
 	switch enc.mode {
 	case EncryptV2:
@@ -79,7 +81,7 @@ func (s *service) Encrypt(ctx context.Context, req *EncryptRequest) (*EncryptRes
 		if enc.sender == "" {
 			return nil, errors.Errorf("no sender specified: sender is required for signcrypt mode")
 		}
-		sk, err := s.ks.EdX25519Key(enc.sender)
+		sk, err := ks.EdX25519Key(enc.sender)
 		if err != nil {
 			return nil, err
 		}
@@ -160,6 +162,7 @@ func (s *service) encryptWriteInOut(ctx context.Context, in string, out string, 
 
 func (s *service) encryptWriter(ctx context.Context, w io.Writer, enc *encrypt, armored bool) (io.WriteCloser, error) {
 	var stream io.WriteCloser
+	ks := s.keyStore()
 
 	switch enc.mode {
 	case EncryptV2:
@@ -186,7 +189,7 @@ func (s *service) encryptWriter(ctx context.Context, w io.Writer, enc *encrypt, 
 		if enc.sender == "" {
 			return nil, errors.Errorf("no sender specified")
 		}
-		sk, err := s.ks.EdX25519Key(enc.sender)
+		sk, err := ks.EdX25519Key(enc.sender)
 		if err != nil {
 			return nil, err
 		}

@@ -5,10 +5,11 @@ import (
 	"sync"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/auth/fido2"
+	"github.com/keys-pub/keys-ext/git"
 	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/keyring"
-	"github.com/keys-pub/keys-ext/auth/fido2"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -22,14 +23,18 @@ import (
 type auth struct {
 	sync.Mutex
 	cfg       *Config
-	kr        *keyring.Keyring
 	tokens    map[string]string
 	whitelist *ds.StringSet
 
-	fido2 fido2.AuthServer
+	sys *keyring.Keyring
+
+	git  *keyring.Keyring
+	repo *git.Repository
+
+	auths fido2.AuthServer
 }
 
-func newAuth(cfg *Config, st keyring.Store) (*auth, error) {
+func newAuth(cfg *Config) (*auth, error) {
 	// We don't need auth for the following methods.
 	whitelist := ds.NewStringSet(
 		"/service.Keys/AuthSetup",
@@ -40,24 +45,64 @@ func newAuth(cfg *Config, st keyring.Store) (*auth, error) {
 		"/service.Keys/RandPassword",
 	)
 
-	service := cfg.KeyringService(st.Name())
-	kr, err := keyring.New(service, st)
+	st, err := newKeyringStore(cfg)
 	if err != nil {
 		return nil, err
 	}
-
-	return &auth{
+	service := cfg.keyringService()
+	sys, err := keyring.New(service, st)
+	if err != nil {
+		return nil, err
+	}
+	a := &auth{
 		cfg:       cfg,
-		kr:        kr,
 		tokens:    map[string]string{},
 		whitelist: whitelist,
-	}, nil
+		sys:       sys,
+	}
+
+	a.loadGit()
+
+	return a, nil
+}
+
+func (a *auth) loadGit() (bool, error) {
+	repo, err := repository(a.cfg)
+	if err != nil {
+		return false, err
+	}
+	if repo == nil {
+		return false, nil
+	}
+	service := a.cfg.keyringService()
+	git, err := keyring.New(service, repo)
+	if err != nil {
+		return false, err
+	}
+	a.repo = repo
+	a.git = git
+	return true, nil
+}
+
+func (a *auth) Keyring() *keyring.Keyring {
+	if a.git != nil {
+		return a.git
+	}
+	return a.sys
+}
+
+// reset (for testing)
+func (a *auth) reset() {
+	a.sys.Reset()
 }
 
 func (a *auth) lock() error {
 	// TODO: Lock after running for a certain amount of time (maybe a few hours?)
 	logger.Infof("Locking")
-	if err := a.kr.Lock(); err != nil {
+	if err := a.sys.Lock(); err != nil {
+		return err
+	}
+	if err := a.sys.Lock(); err != nil {
 		return err
 	}
 	a.tokens = map[string]string{}
@@ -66,19 +111,21 @@ func (a *auth) lock() error {
 
 func (a *auth) setup(ctx context.Context, secret string, typ AuthType) error {
 	logger.Infof("Setup (%s)", typ)
-	var err error
 	switch typ {
 	case PasswordAuth:
-		err = a.setupPassword(secret)
+		if err := setupPassword(a.Keyring(), secret); err != nil {
+			return authErr(err, typ, "failed to setup")
+		}
+		return nil
 	case FIDO2HMACSecretAuth:
-		_, err = a.setupHMACSecret(ctx, secret)
+		_, err := setupHMACSecret(ctx, a.auths, a.Keyring(), secret, a.cfg.AppName())
+		if err != nil {
+			return authErr(err, typ, "failed to setup")
+		}
+		return nil
 	default:
 		return errors.Errorf("unsupported auth type")
 	}
-	if err != nil {
-		return authErr(err, typ, "failed to setup")
-	}
-	return nil
 }
 
 func (a *auth) unlock(ctx context.Context, secret string, typ AuthType, client string) (string, error) {
@@ -86,9 +133,9 @@ func (a *auth) unlock(ctx context.Context, secret string, typ AuthType, client s
 	var err error
 	switch typ {
 	case PasswordAuth:
-		err = a.unlockPassword(secret)
+		err = unlockPassword(a.Keyring(), secret)
 	case FIDO2HMACSecretAuth:
-		err = a.unlockHMACSecret(ctx, secret)
+		err = unlockHMACSecret(ctx, a.auths, a.Keyring(), secret)
 	default:
 		return "", errors.Errorf("unsupported auth type")
 	}
@@ -100,18 +147,18 @@ func (a *auth) unlock(ctx context.Context, secret string, typ AuthType, client s
 	return token, nil
 }
 
-func (a *auth) provision(ctx context.Context, secret string, typ AuthType, setup bool) (string, error) {
+func (a *auth) provision(ctx context.Context, secret string, typ AuthType, setup bool) (*keyring.Provision, error) {
 	logger.Infof("Provision (%s)", typ)
 	switch typ {
 	case PasswordAuth:
-		return a.provisionPassword(ctx, secret)
+		return provisionPassword(ctx, a.Keyring(), secret)
 	case FIDO2HMACSecretAuth:
 		if setup {
-			return a.setupHMACSecret(ctx, secret)
+			return setupHMACSecret(ctx, a.auths, a.Keyring(), secret, a.cfg.AppName())
 		}
-		return a.provisionHMACSecret(ctx, secret)
+		return provisionHMACSecret(ctx, a.auths, a.Keyring(), secret)
 	default:
-		return "", errors.Errorf("unknown auth type")
+		return nil, errors.Errorf("unknown auth type")
 	}
 }
 

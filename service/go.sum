@@ -145,6 +145,8 @@ github.com/keybase/go.dbus v0.0.0-20200324223359-a94be52c0b03/go.mod h1:a8clEhrr
 github.com/keybase/saltpack v0.0.0-20190828020936-3f47e8e2e6ec/go.mod h1:loEJH62iafRcA8ZYlUEq9WgJh/Z9BHdHHfAmxzacQng=
 github.com/keybase/saltpack v0.0.0-20200430135328-e19b1910c0c5 h1:X6nYzCVURqxDv0GuyptaCcRFTXPM0rSGNUrTeQ2NKUQ=
 github.com/keybase/saltpack v0.0.0-20200430135328-e19b1910c0c5/go.mod h1:FNSq71OhXv/Z1W9M37nnHxJVhXitc03z6qshCbAten8=
+github.com/keys-pub/git2go v0.0.0-20200529003006-6fe50fc72b35 h1:8yvnCvIChSdTJGZ4Hr1zgXRCHh6aiDm1F5+bSwI13gM=
+github.com/keys-pub/git2go v0.0.0-20200529003006-6fe50fc72b35/go.mod h1:2yDyBoOzUb3nx48nLIv/QgF9Kp/FiDgLoBcL/eYbYxI=
 github.com/keys-pub/keys v0.0.0-20200527180456-3546952f005f/go.mod h1:nOaBR3puTwpgR5cN6rQyZvNh8TFYRRmksXuk6ASe3HQ=
 github.com/keys-pub/keys v0.0.0-20200527185604-bcec14efcd7b/go.mod h1:nOaBR3puTwpgR5cN6rQyZvNh8TFYRRmksXuk6ASe3HQ=
 github.com/keys-pub/keys v0.0.0-20200528181135-18e38db61305 h1:zPMGqZ6ROwBe1lC5cq4il8WjbPJ7ZPNwgtYRHpyaaHg=

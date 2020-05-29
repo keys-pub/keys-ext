@@ -28,14 +28,13 @@ func TestHMACSecretAuthOnDevice(t *testing.T) {
 
 	cfg, closeFn := testConfig(t, "KeysTest", "", "mem")
 	defer closeFn()
-	st, err := newKeyringStore(cfg)
-	require.NoError(t, err)
-	auth, err := newAuth(cfg, st)
+
+	auth, err := newAuth(cfg)
 	require.NoError(t, err)
 
 	fido2Plugin, err := fido2.OpenPlugin(filepath.Join(goBin(t), "fido2.so"))
 	require.NoError(t, err)
-	auth.fido2 = fido2Plugin
+	auth.auths = fido2Plugin
 
 	t.Logf("Setup")
 	err = auth.setup(context.TODO(), pin, FIDO2HMACSecretAuth)
@@ -49,15 +48,15 @@ func TestHMACSecretAuthOnDevice(t *testing.T) {
 
 func TestHMACSecretAuth(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
+	// keyring.SetLogger(NewLogger(DebugLevel))
+
 	cfg, closeFn := testConfig(t, "KeysTest", "", "mem")
 	defer closeFn()
-	st, err := newKeyringStore(cfg)
-	require.NoError(t, err)
-	auth, err := newAuth(cfg, st)
+	auth, err := newAuth(cfg)
 	require.NoError(t, err)
 
 	auths := mock.NewAuthServer()
-	auth.fido2 = auths
+	auth.auths = auths
 
 	pin := "12345"
 
@@ -70,12 +69,12 @@ func TestHMACSecretAuth(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 
-	mk := auth.kr.MasterKey()
+	mk := auth.Keyring().MasterKey()
 
-	err = auth.kr.Lock()
+	err = auth.Keyring().Lock()
 	require.NoError(t, err)
 
 	_, err = auth.unlock(context.TODO(), pin, FIDO2HMACSecretAuth, "test")
 	require.NoError(t, err)
-	require.Equal(t, mk, auth.kr.MasterKey())
+	require.Equal(t, mk, auth.Keyring().MasterKey())
 }

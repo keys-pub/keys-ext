@@ -76,12 +76,7 @@ func (c Config) AppName() string {
 	return c.appName
 }
 
-// KeyringService for store name.
-// Name should be from keyring.Store#Name().
-func (c Config) KeyringService(name string) string {
-	if name == "git" {
-		return c.AppName()
-	}
+func (c Config) keyringService() string {
 	return c.AppName() + ".keyring"
 }
 

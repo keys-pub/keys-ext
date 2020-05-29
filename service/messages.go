@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/saltpack"
 	"github.com/keys-pub/keys/tsutil"
-	"github.com/keys-pub/keys-ext/http/client"
 	"github.com/pkg/errors"
 )
 
@@ -159,7 +159,8 @@ func (s *service) message(ctx context.Context, path string) (*Message, error) {
 		return nil, nil
 	}
 
-	decrypted, sender, err := saltpack.SigncryptOpen(doc.Data, s.ks)
+	ks := s.keyStore()
+	decrypted, sender, err := saltpack.SigncryptOpen(doc.Data, ks)
 	if err != nil {
 		return nil, err
 	}
