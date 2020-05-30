@@ -77,9 +77,6 @@ service Keys {
   rpc Push(PushRequest) returns (PushResponse) {}
   
   rpc Wormhole(stream WormholeInput) returns (stream WormholeOutput) {}  
-
-  rpc Preferences(PreferencesRequest) returns (PreferencesResponse) {}
-  rpc PreferenceSet(PreferenceSetRequest) returns (PreferenceSetResponse) {}
   
   // These requests do not need auth.
   // BEGIN NO AUTH
@@ -870,29 +867,6 @@ message WatchEvent {
   string path = 2;
 }
 
-message Pref {
-  string key = 1;
-  string value = 2;
-}
-
-enum PrefKey {
-  option (gogoproto.goproto_enum_prefix) = false;
-  option (gogoproto.enum_customname) = "PrefKey";
-
-  PREF_UNKNOWN = 0 [(gogoproto.enumvalue_customname) = "PrefUnknown"];
-}
-
-message PreferencesRequest {  
-}
-message PreferencesResponse {
-  repeated Pref prefs = 1;
-}
-
-message PreferenceSetRequest {
-  Pref pref = 1;
-}
-message PreferenceSetResponse {}
-
 message WormholeInput {  
   string sender = 1;
   string recipient = 2;
@@ -1017,7 +991,7 @@ message AdminCheckResponse {}
 
 message GitSetupRequest {
   string url = 1 [(gogoproto.customname) = "URL"];
-  string key = 2;
+  string kid = 2 [(gogoproto.customname) = "KID"];
 }
 message GitSetupResponse {}
 

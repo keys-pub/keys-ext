@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"io/ioutil"
 
 	"github.com/urfave/cli"
 )
@@ -18,35 +17,19 @@ func gitCommands(client *Client) []cli.Command {
 					Name:  "setup",
 					Usage: "Setup",
 					Flags: []cli.Flag{
-						cli.StringFlag{Name: "key, k", Usage: "git ssh key"},
+						cli.StringFlag{Name: "kid, k", Usage: "git ssh kid"},
 						cli.StringFlag{Name: "url, u", Usage: "git repo url"},
 					},
 					Action: func(c *cli.Context) error {
-						keyFlag := c.String("key")
-
-						var key string
-						exists, err := pathExists(keyFlag)
-						if err != nil {
-							return err
-						}
-						if exists {
-							b, err := ioutil.ReadFile(keyFlag) // #nosec
-							if err != nil {
-								return err
-							}
-							key = string(b)
-						}
-
+						kid := c.String("kid")
 						url := c.String("url")
-
 						req := &GitSetupRequest{
 							URL: url,
-							Key: key,
+							KID: kid,
 						}
 						if _, err := client.KeysClient().GitSetup(context.TODO(), req); err != nil {
 							return err
 						}
-						// printResponse(resp)
 						return nil
 					},
 				},

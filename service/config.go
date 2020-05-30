@@ -17,21 +17,20 @@ import (
 // Config for app runtime.
 // Do not store anything sensitive in here, values are saved clear and can be
 // modified at will.
-// Config is not authenticated, use Settings instead.
+// Config is not authenticated.
 type Config struct {
 	appName string
 	values  map[string]string
 }
 
 // Config key names
-const serverKey = "server"
-const portKey = "port"
-const logLevelKey = "logLevel"
-const keyringTypeKey = "keyring"
+const serverCfgKey = "server"
+const portCfgKey = "port"
+const logLevelCfgKey = "logLevel"
+const keyringTypeCfgKey = "keyring"
+const gitAuthCfgKey = "gitAuth"
 
-// TODO: Deprecate keyring type? Use fs fallback if no system keyring available automatically.
-
-var configKeys = []string{serverKey, portKey, logLevelKey, keyringTypeKey}
+var configKeys = []string{serverCfgKey, portCfgKey, logLevelCfgKey, keyringTypeCfgKey, gitAuthCfgKey}
 
 // IsKey returns true if config key is recognized.
 func (c Config) IsKey(s string) bool {
@@ -45,19 +44,24 @@ func (c Config) IsKey(s string) bool {
 
 // Port to connect.
 func (c Config) Port() int {
-	return c.GetInt(portKey, 22405)
+	return c.GetInt(portCfgKey, 22405)
 }
 
 // Server to connect to.
 func (c Config) Server() string {
-	return c.Get(serverKey, "https://keys.pub")
+	return c.Get(serverCfgKey, "https://keys.pub")
 }
 
 // LogLevel for logging.
 func (c *Config) LogLevel() LogLevel {
-	ll := c.Get(logLevelKey, "")
+	ll := c.Get(logLevelCfgKey, "")
 	l, _ := parseLogLevel(ll)
 	return l
+}
+
+// GitAuth is key ID for git auth.
+func (c Config) GitAuth() string {
+	return c.Get(gitAuthCfgKey, "")
 }
 
 // Build describes build flags.

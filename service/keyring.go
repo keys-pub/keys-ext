@@ -8,8 +8,13 @@ import (
 
 // KeyringFn provides a keyring.Keyring to the service.
 type KeyringFn interface {
+	// Keyring returns the service keyring.
 	Keyring() *keyring.Keyring
+
+	// Pull changes from remote (if supported).
 	Pull() error
+
+	// Push changes to remote (if supported).
 	Push() error
 }
 
@@ -19,9 +24,9 @@ func newKeyringFn(cfg *Config) (KeyringFn, error) {
 		return nil, err
 	}
 	if path != "" {
-		return newGitKeyring(cfg, path)
+		return newGitKeyringFn(cfg)
 	}
-	return newSystemKeyring(cfg)
+	return newSystemKeyringFn(cfg)
 }
 
 func (s *service) keyring() *keyring.Keyring {
@@ -32,11 +37,11 @@ func (s *service) keyStore() *keys.Store {
 	return keys.NewStore(s.keyringFn.Keyring())
 }
 
-type sysKeyring struct {
+type sysKeyringFn struct {
 	sys *keyring.Keyring
 }
 
-func newSystemKeyring(cfg *Config) (KeyringFn, error) {
+func newSystemKeyringFn(cfg *Config) (KeyringFn, error) {
 	st, err := newKeyringStore(cfg)
 	if err != nil {
 		return nil, err
@@ -47,23 +52,25 @@ func newSystemKeyring(cfg *Config) (KeyringFn, error) {
 		return nil, err
 	}
 
-	return &sysKeyring{sys: sys}, nil
+	return &sysKeyringFn{sys: sys}, nil
 }
 
-func (k *sysKeyring) Keyring() *keyring.Keyring {
+func (k *sysKeyringFn) Keyring() *keyring.Keyring {
 	return k.sys
 }
 
-func (k *sysKeyring) Pull() error {
+func (k *sysKeyringFn) Pull() error {
+	// Not supported by system keyring
 	return nil
 }
 
-func (k *sysKeyring) Push() error {
+func (k *sysKeyringFn) Push() error {
+	// Not supported by system keyring
 	return nil
 }
 
 func newKeyringStore(cfg *Config) (keyring.Store, error) {
-	kt := cfg.Get(keyringTypeKey, "")
+	kt := cfg.Get(keyringTypeCfgKey, "")
 	switch kt {
 	case "":
 		logger.Infof("Keyring (default)")

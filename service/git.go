@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"os"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/git"
@@ -9,12 +10,17 @@ import (
 	"github.com/pkg/errors"
 )
 
-type gitKeyring struct {
+type gitKeyringFn struct {
 	git  *keyring.Keyring
 	repo *git.Repository
+	kid  keys.ID
 }
 
-func newGitKeyring(cfg *Config, path string) (KeyringFn, error) {
+func newGitKeyringFn(cfg *Config) (KeyringFn, error) {
+	path, err := gitPath(cfg)
+	if err != nil {
+		return nil, err
+	}
 	if path == "" {
 		return nil, errors.Errorf("no git path specified")
 	}
@@ -28,22 +34,63 @@ func newGitKeyring(cfg *Config, path string) (KeyringFn, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &gitKeyring{
+
+	gitAuth := cfg.GitAuth()
+	if gitAuth == "" {
+		return nil, errors.Errorf("no git auth set")
+	}
+	kid, err := keys.ParseID(gitAuth)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to parse git auth")
+	}
+
+	gitFn := &gitKeyringFn{
 		git:  git,
 		repo: repo,
-	}, nil
+		kid:  kid,
+	}
+	git.AddListener(gitFn)
+	return gitFn, nil
 }
 
-func (k *gitKeyring) Keyring() *keyring.Keyring {
+func (k *gitKeyringFn) Keyring() *keyring.Keyring {
 	return k.git
 }
 
-func (k *gitKeyring) Pull() error {
+func (k *gitKeyringFn) Pull() error {
 	return k.repo.Pull()
 }
 
-func (k *gitKeyring) Push() error {
+func (k *gitKeyringFn) Push() error {
 	return k.repo.Push()
+}
+
+func (k *gitKeyringFn) Locked() {
+	if err := k.repo.SetKey(nil); err != nil {
+		logger.Errorf("Failed to clear git repo key on lock: %v", err)
+	}
+}
+
+func (k *gitKeyringFn) Unlocked(p *keyring.Provision) {
+	if err := k.loadAuth(); err != nil {
+		logger.Errorf("Failed to set git repo key on unlock: %v", err)
+	}
+}
+
+func (k *gitKeyringFn) loadAuth() error {
+	// Set repo auth using key from git keyring
+	ks := keys.NewStore(k.git)
+	key, err := ks.EdX25519Key(k.kid)
+	if err != nil {
+		return err
+	}
+	if key == nil {
+		return keys.NewErrNotFound(k.kid.String())
+	}
+	if err := k.repo.SetKey(key); err != nil {
+		return err
+	}
+	return nil
 }
 
 func gitPath(cfg *Config) (string, error) {
@@ -75,44 +122,72 @@ func (s *service) GitSetup(ctx context.Context, req *GitSetupRequest) (*GitSetup
 	if exists {
 		return nil, errors.Errorf("git repository already exists")
 	}
+
+	// Check current keyring (not already git)
 	kro := s.keyring()
+	kso := keys.NewStore(kro)
 	if kro.Store().Name() == "git" {
 		return nil, errors.Errorf("git already set as keyring")
 	}
 
-	// Clone repo
-	repo := git.NewRepository()
-	key, err := keys.ParseSSHKey([]byte(req.Key), nil, true)
+	// Get key from current keyring
+	kid, err := keys.ParseID(req.KID)
 	if err != nil {
 		return nil, err
 	}
+	key, err := kso.EdX25519Key(kid)
+	if err != nil {
+		return nil, err
+	}
+
+	// Clear tmp path (if it exists)
+	tmpPath := path + ".tmp"
+	tmpExists, err := pathExists(tmpPath)
+	if err != nil {
+		return nil, err
+	}
+	if tmpExists {
+		if err := os.RemoveAll(tmpPath); err != nil {
+			return nil, err
+		}
+	}
+	defer func() { _ = os.RemoveAll(tmpPath) }()
+
+	// Clone repo (into tmpPath)
+	repo := git.NewRepository()
 	if err := repo.SetKey(key); err != nil {
 		return nil, err
 	}
-	if err := repo.Clone(req.URL, path); err != nil {
+	if err := repo.Clone(req.URL, tmpPath); err != nil {
 		return nil, errors.Wrapf(err, "failed to clone git repo")
 	}
 
-	// New git keyring
+	// Copy old keyring into git repo (still in tmp)
 	serviceName := s.cfg.keyringService()
 	krg, err := keyring.New(serviceName, repo)
 	if err != nil {
-		// TODO: If we fail here we are are in an inconsistent state
 		return nil, err
 	}
-
-	// Copy old keyring into git repo
 	ids, err := keyring.Copy(kro, krg)
 	if err != nil {
-		// TODO: If we fail here we are are in an inconsistent state
 		return nil, err
 	}
 	logger.Debugf("Keyring copied: %s", ids)
 
+	// Save KID as git auth to config
+	s.cfg.Set(gitAuthCfgKey, key.ID().String())
+	if err := s.cfg.Save(); err != nil {
+		return nil, err
+	}
+
+	// Move repo into place (from tmpPath)
+	if err := os.Rename(tmpPath, path); err != nil {
+		return nil, err
+	}
+
 	// Set git as the service keyring
-	git, err := newGitKeyring(s.cfg, path)
+	git, err := newGitKeyringFn(s.cfg)
 	if err != nil {
-		// TODO: If we fail here we are are in an inconsistent state
 		return nil, err
 	}
 	s.keyringFn = git
