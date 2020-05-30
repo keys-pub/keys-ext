@@ -1,10 +1,66 @@
 package service
 
 import (
-	"github.com/keys-pub/keys-ext/git"
+	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/keyring"
 	"github.com/pkg/errors"
 )
+
+// KeyringFn provides a keyring.Keyring to the service.
+type KeyringFn interface {
+	Keyring() *keyring.Keyring
+	Pull() error
+	Push() error
+}
+
+func newKeyringFn(cfg *Config) (KeyringFn, error) {
+	path, err := gitPath(cfg)
+	if err != nil {
+		return nil, err
+	}
+	if path != "" {
+		return newGitKeyring(cfg, path)
+	}
+	return newSystemKeyring(cfg)
+}
+
+func (s *service) keyring() *keyring.Keyring {
+	return s.keyringFn.Keyring()
+}
+
+func (s *service) keyStore() *keys.Store {
+	return keys.NewStore(s.keyringFn.Keyring())
+}
+
+type sysKeyring struct {
+	sys *keyring.Keyring
+}
+
+func newSystemKeyring(cfg *Config) (KeyringFn, error) {
+	st, err := newKeyringStore(cfg)
+	if err != nil {
+		return nil, err
+	}
+	service := cfg.keyringService()
+	sys, err := keyring.New(service, st)
+	if err != nil {
+		return nil, err
+	}
+
+	return &sysKeyring{sys: sys}, nil
+}
+
+func (k *sysKeyring) Keyring() *keyring.Keyring {
+	return k.sys
+}
+
+func (k *sysKeyring) Pull() error {
+	return nil
+}
+
+func (k *sysKeyring) Push() error {
+	return nil
+}
 
 func newKeyringStore(cfg *Config) (keyring.Store, error) {
 	kt := cfg.Get(keyringTypeKey, "")
@@ -27,26 +83,4 @@ func newKeyringStore(cfg *Config) (keyring.Store, error) {
 	default:
 		return nil, errors.Errorf("unknown keyring type %s", kt)
 	}
-}
-
-func repository(cfg *Config) (*git.Repository, error) {
-	path, err := cfg.keyringGitPath()
-	if err != nil {
-		return nil, err
-	}
-	exists, err := pathExists(path)
-	if err != nil {
-		return nil, err
-	}
-	if !exists {
-		return nil, nil
-	}
-	repo := git.NewRepository()
-	// if err := repo.SetKey(key); err != nil {
-	// 	return nil, err
-	// }
-	if err := repo.Open(path); err != nil {
-		return nil, errors.Wrapf(err, "failed to open git repo")
-	}
-	return repo, nil
 }

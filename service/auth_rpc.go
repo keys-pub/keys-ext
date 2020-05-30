@@ -10,14 +10,11 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *service) keyStore() *keys.Store {
-	return keys.NewStore(s.auth.Keyring())
-}
-
 // AuthSetup (RPC) ...
 func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSetupResponse, error) {
 	logger.Infof("Auth setup...")
-	status, err := s.auth.Keyring().Status()
+	kr := s.keyring()
+	status, err := kr.Status()
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +22,7 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 		return nil, errors.Errorf("auth already setup")
 	}
 
-	if err := s.auth.setup(ctx, req.Secret, req.Type); err != nil {
+	if err := s.auth.setup(ctx, kr, req.Secret, req.Type); err != nil {
 		return nil, err
 	}
 
@@ -52,7 +49,8 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 
 // AuthUnlock (RPC) ...
 func (s *service) AuthUnlock(ctx context.Context, req *AuthUnlockRequest) (*AuthUnlockResponse, error) {
-	status, err := s.auth.Keyring().Status()
+	kr := s.keyring()
+	status, err := kr.Status()
 	if err != nil {
 		return nil, err
 	}
@@ -60,13 +58,13 @@ func (s *service) AuthUnlock(ctx context.Context, req *AuthUnlockRequest) (*Auth
 		return nil, errors.Errorf("auth setup needed")
 	}
 
-	token, err := s.auth.unlock(ctx, req.Secret, req.Type, req.Client)
+	token, err := s.auth.unlock(ctx, kr, req.Secret, req.Type, req.Client)
 	if err != nil {
 		return nil, err
 	}
 
 	// TODO: Use a derived key instead of the actual key itself
-	key := s.auth.Keyring().MasterKey()
+	key := kr.MasterKey()
 	if err := s.Open(ctx, key); err != nil {
 		return nil, err
 	}
@@ -78,7 +76,8 @@ func (s *service) AuthUnlock(ctx context.Context, req *AuthUnlockRequest) (*Auth
 
 // AuthProvision (RPC) ...
 func (s *service) AuthProvision(ctx context.Context, req *AuthProvisionRequest) (*AuthProvisionResponse, error) {
-	provision, err := s.auth.provision(ctx, req.Secret, req.Type, req.Setup)
+	kr := s.keyring()
+	provision, err := s.auth.provision(ctx, kr, req.Secret, req.Type, req.Setup)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +88,8 @@ func (s *service) AuthProvision(ctx context.Context, req *AuthProvisionRequest) 
 
 // AuthDeprovision (RPC) ...
 func (s *service) AuthDeprovision(ctx context.Context, req *AuthDeprovisionRequest) (*AuthDeprovisionResponse, error) {
-	ok, err := s.auth.Keyring().Deprovision(req.ID)
+	kr := s.keyring()
+	ok, err := kr.Deprovision(req.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +104,8 @@ func (s *service) AuthDeprovision(ctx context.Context, req *AuthDeprovisionReque
 
 // AuthProvisions (RPC) ...
 func (s *service) AuthProvisions(ctx context.Context, req *AuthProvisionsRequest) (*AuthProvisionsResponse, error) {
-	provisions, err := s.auth.Keyring().Provisions()
+	kr := s.keyring()
+	provisions, err := kr.Provisions()
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +122,8 @@ func (s *service) AuthProvisions(ctx context.Context, req *AuthProvisionsRequest
 
 // AuthLock (RPC) ...
 func (s *service) AuthLock(ctx context.Context, req *AuthLockRequest) (*AuthLockResponse, error) {
-	if err := s.auth.lock(); err != nil {
+	s.auth.reset()
+	if err := s.keyring().Lock(); err != nil {
 		return nil, err
 	}
 

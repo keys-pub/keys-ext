@@ -9,6 +9,58 @@ import (
 	"github.com/pkg/errors"
 )
 
+type gitKeyring struct {
+	git  *keyring.Keyring
+	repo *git.Repository
+}
+
+func newGitKeyring(cfg *Config, path string) (KeyringFn, error) {
+	if path == "" {
+		return nil, errors.Errorf("no git path specified")
+	}
+	repo := git.NewRepository()
+	if err := repo.Open(path); err != nil {
+		return nil, errors.Wrapf(err, "failed to open git repo")
+	}
+
+	service := cfg.keyringService()
+	git, err := keyring.New(service, repo)
+	if err != nil {
+		return nil, err
+	}
+	return &gitKeyring{
+		git:  git,
+		repo: repo,
+	}, nil
+}
+
+func (k *gitKeyring) Keyring() *keyring.Keyring {
+	return k.git
+}
+
+func (k *gitKeyring) Pull() error {
+	return k.repo.Pull()
+}
+
+func (k *gitKeyring) Push() error {
+	return k.repo.Push()
+}
+
+func gitPath(cfg *Config) (string, error) {
+	path, err := cfg.keyringGitPath()
+	if err != nil {
+		return "", err
+	}
+	exists, err := pathExists(path)
+	if err != nil {
+		return "", err
+	}
+	if !exists {
+		return "", nil
+	}
+	return path, nil
+}
+
 // GitSetup (RPC) sets up git keyring.
 func (s *service) GitSetup(ctx context.Context, req *GitSetupRequest) (*GitSetupResponse, error) {
 	// Check if already setup
@@ -23,7 +75,7 @@ func (s *service) GitSetup(ctx context.Context, req *GitSetupRequest) (*GitSetup
 	if exists {
 		return nil, errors.Errorf("git repository already exists")
 	}
-	kro := s.auth.Keyring()
+	kro := s.keyring()
 	if kro.Store().Name() == "git" {
 		return nil, errors.Errorf("git already set as keyring")
 	}
@@ -57,16 +109,13 @@ func (s *service) GitSetup(ctx context.Context, req *GitSetupRequest) (*GitSetup
 	}
 	logger.Debugf("Keyring copied: %s", ids)
 
-	// Set new git keyring store
-	ok, err := s.auth.loadGit()
+	// Set git as the service keyring
+	git, err := newGitKeyring(s.cfg, path)
 	if err != nil {
 		// TODO: If we fail here we are are in an inconsistent state
 		return nil, err
 	}
-	if !ok {
-		// TODO: If we fail here we are are in an inconsistent state
-		return nil, errors.Errorf("failed to load git after setup")
-	}
+	s.keyringFn = git
 
 	if err := repo.Push(); err != nil {
 		return nil, err

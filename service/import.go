@@ -32,7 +32,7 @@ func (s *service) KeyImport(ctx context.Context, req *KeyImportRequest) (*KeyImp
 
 func (s *service) importID(id keys.ID) error {
 	// Check if item already exists and skip if so.
-	kr := s.auth.Keyring()
+	kr := s.keyring()
 	ks := keys.NewStore(kr)
 	item, err := kr.Get(id.String())
 	if err != nil {

@@ -90,15 +90,14 @@ func newTestService(t *testing.T, env *testEnv, appName string) (*service, Close
 func newTestServiceWithOpts(t *testing.T, env *testEnv, appName string, keyringType string) (*service, CloseFn) {
 	serverEnv := newTestServerEnv(t, env)
 	cfg, closeCfg := testConfig(t, appName, serverEnv.url, keyringType)
-	auth, err := newAuth(cfg)
-	require.NoError(t, err)
+	auth := newAuth(cfg)
+
 	svc, err := newService(cfg, Build{Version: "1.2.3", Commit: "deadbeef"}, auth, env.req, env.clock.Now)
 	require.NoError(t, err)
 
 	closeFn := func() {
 		serverEnv.closeFn()
 		svc.Close()
-		auth.reset()
 		closeCfg()
 	}
 

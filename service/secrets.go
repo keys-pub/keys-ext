@@ -12,7 +12,7 @@ import (
 )
 
 func (s *service) secretStore() *secret.Store {
-	ss := secret.NewStore(s.auth.Keyring())
+	ss := secret.NewStore(s.keyring())
 	ss.SetTimeNow(s.nowFn)
 	return ss
 }
