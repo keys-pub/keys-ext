@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys-ext/auth/fido2"
+	"github.com/keys-pub/keys/ds"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
@@ -276,6 +276,7 @@ func connect(cfg *Config, client *Client, build Build, authToken string, reconne
 	if status.Version != build.Version {
 		logger.Infof("Service client version mismatch, %s != %s", status.Version, build.Version)
 		if reconnect {
+			fmt.Fprintf(os.Stderr, "keysd is different version than the client, restarting keysd...\n")
 			// Try to restart
 			if err := restart(cfg); err != nil {
 				return errServiceRuntime{Reason: err.Error()}

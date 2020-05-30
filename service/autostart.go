@@ -56,16 +56,6 @@ func waitForStart(cfg *Config) error {
 var errNotRunning = errors.New("not running")
 var errAlreadyRunning = errors.New("already running")
 
-func restartProcess(cfg *Config) error {
-	logger.Debugf("Restart process")
-	if err := stopProcess(cfg); err != nil {
-		if err != errNotRunning {
-			return err
-		}
-	}
-	return autostart(cfg)
-}
-
 func startProcess(cfg *Config) error {
 	logger.Debugf("Start process")
 	ps, err := findProcessByName("keysd")
