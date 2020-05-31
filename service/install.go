@@ -38,7 +38,13 @@ func defaultServicePath() string {
 }
 
 func restart(cfg *Config) error {
-	return restartProcess(cfg)
+	logger.Debugf("Restart process")
+	if err := stop(cfg); err != nil {
+		if err != errNotRunning {
+			return err
+		}
+	}
+	return autostart(cfg)
 }
 
 func start(cfg *Config, wait bool) error {
