@@ -276,7 +276,7 @@ func connect(cfg *Config, client *Client, build Build, authToken string, reconne
 	if status.Version != build.Version {
 		logger.Infof("Service client version mismatch, %s != %s", status.Version, build.Version)
 		if reconnect {
-			fmt.Fprintf(os.Stderr, "keysd is different version than the client, restarting...\n")
+			fmt.Fprintf(os.Stderr, "The keysd (service) is a different version than the client, restarting it...\n")
 			// Try to restart
 			if err := restart(cfg); err != nil {
 				return errServiceRuntime{Reason: err.Error()}
