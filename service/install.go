@@ -102,6 +102,8 @@ func Uninstall(cfg *Config) error {
 		return err
 	}
 
+	// TODO: Reset keyring when git is configured
+
 	fmt.Printf("Uninstalled %q.\n", cfg.AppName())
 	fmt.Printf("Run `keysd -reset-keyring` to remove keyring items.\n")
 	return nil

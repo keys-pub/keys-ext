@@ -17,21 +17,34 @@ import (
 // Config for app runtime.
 // Do not store anything sensitive in here, values are saved clear and can be
 // modified at will.
-// Config is not authenticated, use Settings instead.
+// Config is not authenticated.
 type Config struct {
 	appName string
 	values  map[string]string
 }
 
+// NewConfig loads a Config.
+func NewConfig(appName string) (*Config, error) {
+	if appName == "" {
+		return nil, errors.Errorf("no app name")
+	}
+	cfg := &Config{
+		appName: appName,
+	}
+	if err := cfg.Load(); err != nil {
+		return nil, err
+	}
+	return cfg, nil
+}
+
 // Config key names
-const serverKey = "server"
-const portKey = "port"
-const logLevelKey = "logLevel"
-const keyringTypeKey = "keyring"
+const serverCfgKey = "server"
+const portCfgKey = "port"
+const logLevelCfgKey = "logLevel"
+const keyringTypeCfgKey = "keyring"
+const gitAuthCfgKey = "gitAuth"
 
-// TODO: Deprecate keyring type? Use fs fallback if no system keyring available automatically.
-
-var configKeys = []string{serverKey, portKey, logLevelKey, keyringTypeKey}
+var configKeys = []string{serverCfgKey, portCfgKey, logLevelCfgKey, keyringTypeCfgKey, gitAuthCfgKey}
 
 // IsKey returns true if config key is recognized.
 func (c Config) IsKey(s string) bool {
@@ -45,19 +58,24 @@ func (c Config) IsKey(s string) bool {
 
 // Port to connect.
 func (c Config) Port() int {
-	return c.GetInt(portKey, 22405)
+	return c.GetInt(portCfgKey, 22405)
 }
 
 // Server to connect to.
 func (c Config) Server() string {
-	return c.Get(serverKey, "https://keys.pub")
+	return c.Get(serverCfgKey, "https://keys.pub")
 }
 
 // LogLevel for logging.
 func (c *Config) LogLevel() LogLevel {
-	ll := c.Get(logLevelKey, "")
+	ll := c.Get(logLevelCfgKey, "")
 	l, _ := parseLogLevel(ll)
 	return l
+}
+
+// GitAuth is key ID for git auth.
+func (c Config) GitAuth() string {
+	return c.Get(gitAuthCfgKey, "")
 }
 
 // Build describes build flags.
@@ -76,12 +94,7 @@ func (c Config) AppName() string {
 	return c.appName
 }
 
-// KeyringService for store name.
-// Name should be from keyring.Store#Name().
-func (c Config) KeyringService(name string) string {
-	if name == "git" {
-		return c.AppName()
-	}
+func (c Config) keyringService() string {
 	return c.AppName() + ".keyring"
 }
 
@@ -125,46 +138,61 @@ func (c Config) certPath(makeDir bool) (string, error) {
 func SupportPath(appName string, fileName string, makeDir bool) (string, error) {
 	switch runtime.GOOS {
 	case "darwin":
-		dir := filepath.Join(DefaultHomeDir(), "Library", "Application Support")
+		home := homeDir()
+		if home == "" {
+			return "", errors.Errorf("no home dir")
+		}
+		dir := filepath.Join(home, "Library", "Application Support")
 		return configPath(dir, appName, fileName, makeDir)
 	case "windows":
 		dir := os.Getenv("LOCALAPPDATA")
 		if dir == "" {
-			panic("LOCALAPPDATA not set")
+			return "", errors.Errorf("LOCALAPPDATA not set")
 		}
 		return configPath(dir, appName, fileName, makeDir)
 	case "linux":
 		dir := os.Getenv("XDG_DATA_HOME")
 		if dir == "" {
-			dir = filepath.Join(DefaultHomeDir(), ".local", "share")
+			home := homeDir()
+			if home == "" {
+				return "", errors.Errorf("no home dir")
+			}
+			dir = filepath.Join(home, ".local", "share")
 		}
 		return configPath(dir, appName, fileName, makeDir)
 	default:
-		panic(fmt.Sprintf("unsupported platform %s", runtime.GOOS))
+		return "", errors.Errorf("unsupported platform %s", runtime.GOOS)
 	}
-
 }
 
 // LogsPath ...
 func LogsPath(appName string, fileName string, makeDir bool) (string, error) {
 	switch runtime.GOOS {
 	case "darwin":
-		dir := filepath.Join(DefaultHomeDir(), "Library", "Logs")
+		home := homeDir()
+		if home == "" {
+			return "", errors.Errorf("no home dir")
+		}
+		dir := filepath.Join(home, "Library", "Logs")
 		return configPath(dir, appName, fileName, makeDir)
 	case "windows":
 		dir := os.Getenv("LOCALAPPDATA")
 		if dir == "" {
-			panic("LOCALAPPDATA not set")
+			return "", errors.Errorf("LOCALAPPDATA not set")
 		}
 		return configPath(dir, appName, fileName, makeDir)
 	case "linux":
 		dir := os.Getenv("XDG_CACHE_HOME")
 		if dir == "" {
-			dir = filepath.Join(DefaultHomeDir(), ".cache")
+			home := homeDir()
+			if dir == "" {
+				return "", errors.Errorf("no home dir")
+			}
+			dir = filepath.Join(home, ".cache")
 		}
 		return configPath(dir, appName, fileName, makeDir)
 	default:
-		panic(fmt.Sprintf("unsupported platform %s", runtime.GOOS))
+		return "", errors.Errorf("unsupported platform %s", runtime.GOOS)
 	}
 }
 
@@ -192,28 +220,22 @@ func configPath(dir string, appName string, fileName string, makeDir bool) (stri
 	return path, nil
 }
 
-// DefaultHomeDir returns current user home directory (or "" on error).
-func DefaultHomeDir() string {
+// homeDir returns current user home directory (or "" on error).
+func homeDir() string {
 	// TODO: Switch to UserHomeDir in go 1.12
 	usr, err := user.Current()
 	if err != nil {
-		panic(err)
+		return ""
 	}
 	return usr.HomeDir
 }
 
-// NewConfig creates a Config.
-func NewConfig(appName string) (*Config, error) {
-	if appName == "" {
-		return nil, errors.Errorf("no app name")
+func homePath(paths ...string) string {
+	dir := homeDir()
+	if dir == "" {
+		return ""
 	}
-	cfg := &Config{
-		appName: appName,
-	}
-	if err := cfg.Load(); err != nil {
-		return nil, err
-	}
-	return cfg, nil
+	return filepath.Join(append([]string{dir}, paths...)...)
 }
 
 // Load ...

@@ -6,26 +6,26 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/auth/fido2"
 	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/keyring"
-	"github.com/keys-pub/keys-ext/auth/fido2"
 	"github.com/pkg/errors"
 )
 
 type authDevice struct {
 	Device     *fido2.Device
 	DeviceInfo *fido2.DeviceInfo
-	Info       *authInfo
+	Provision  *keyring.Provision
 }
 
 // findDevice returns supported device.
 // If infos is specified we try to find the device matching the auth credentials (aaguid).
-func (a *auth) findDevice(ctx context.Context, infos []*authInfo) (*authDevice, error) {
-	if a.fido2 == nil {
+func findDevice(ctx context.Context, auths fido2.AuthServer, provisions []*keyring.Provision) (*authDevice, error) {
+	if auths == nil {
 		return nil, errors.Errorf("fido2 plugin not available")
 	}
 
-	devicesResp, err := a.fido2.Devices(ctx, &fido2.DevicesRequest{})
+	devicesResp, err := auths.Devices(ctx, &fido2.DevicesRequest{})
 	if err != nil {
 		return nil, err
 	}
@@ -36,18 +36,20 @@ func (a *auth) findDevice(ctx context.Context, infos []*authInfo) (*authDevice, 
 	// TODO: We return first device found, but we might want the user to choose instead.
 
 	for _, device := range devicesResp.Devices {
-		infoResp, err := a.fido2.DeviceInfo(ctx, &fido2.DeviceInfoRequest{Device: device.Path})
+		infoResp, err := auths.DeviceInfo(ctx, &fido2.DeviceInfoRequest{Device: device.Path})
 		if err != nil {
 			return nil, err
 		}
 		deviceInfo := infoResp.Info
+		logger.Debugf("Checking device: %v", deviceInfo)
 		if deviceInfo.HasExtension(fido2.HMACSecretExtension) {
-			info := matchAAGUID(infos, deviceInfo.AAGUID)
-			if len(infos) == 0 || info != nil {
+			provision := matchAAGUID(provisions, deviceInfo.AAGUID)
+			if len(provisions) == 0 || provision != nil {
+				logger.Debugf("Found device: %v", device.Path)
 				return &authDevice{
 					Device:     device,
 					DeviceInfo: deviceInfo,
-					Info:       info,
+					Provision:  provision,
 				}, nil
 			}
 		}
@@ -55,7 +57,7 @@ func (a *auth) findDevice(ctx context.Context, infos []*authInfo) (*authDevice, 
 	return nil, errors.Errorf("no devices found matching our credentials")
 }
 
-func (a *auth) setupHMACSecret(ctx context.Context, pin string) (string, error) {
+func setupHMACSecret(ctx context.Context, auths fido2.AuthServer, kr *keyring.Keyring, pin string, appName string) (*keyring.Provision, error) {
 	cdh := bytes.Repeat([]byte{0x00}, 32) // No client data
 	rp := &fido2.RelyingParty{
 		ID:   "keys.pub",
@@ -63,9 +65,9 @@ func (a *auth) setupHMACSecret(ctx context.Context, pin string) (string, error) 
 	}
 
 	logger.Debugf("Auth setup hmac-secret, looking for supported devices...")
-	authDevice, err := a.findDevice(ctx, nil)
+	authDevice, err := findDevice(ctx, auths, nil)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	userID := keys.Rand16()[:]
@@ -73,19 +75,19 @@ func (a *auth) setupHMACSecret(ctx context.Context, pin string) (string, error) 
 	// TODO: Default to using resident key?
 
 	logger.Debugf("Generating hmac-secret...")
-	resp, err := a.fido2.GenerateHMACSecret(ctx, &fido2.GenerateHMACSecretRequest{
+	resp, err := auths.GenerateHMACSecret(ctx, &fido2.GenerateHMACSecretRequest{
 		Device:         authDevice.Device.Path,
 		PIN:            pin,
 		ClientDataHash: cdh[:],
 		RP:             rp,
 		User: &fido2.User{
 			ID:   userID,
-			Name: a.cfg.AppName(),
+			Name: appName,
 		},
 		// RK: fido2.True,
 	})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	noPin := false
@@ -95,75 +97,77 @@ func (a *auth) setupHMACSecret(ctx context.Context, pin string) (string, error) 
 
 	id := encoding.MustEncode(resp.CredentialID, encoding.Base62)
 	salt := keys.Rand32()
-	info := &authInfo{
+	provision := &keyring.Provision{
 		ID:        id,
-		Type:      fido2HMACSecretAuth,
+		Type:      keyring.FIDO2HMACSecretAuth,
 		AAGUID:    authDevice.DeviceInfo.AAGUID,
 		Salt:      salt[:],
 		NoPin:     noPin,
 		CreatedAt: time.Now(),
 	}
-	if err := a.saveInfo(info); err != nil {
-		return "", err
+
+	logger.Debugf("Saving provision: %v...", provision)
+	if err := kr.SaveProvision(provision); err != nil {
+		return nil, err
 	}
 
-	return id, nil
+	return provision, nil
 }
 
-func (a *auth) hmacSecret(ctx context.Context, pin string) ([]byte, string, error) {
+func hmacSecret(ctx context.Context, auths fido2.AuthServer, kr *keyring.Keyring, pin string) ([]byte, *keyring.Provision, error) {
 	cdh := bytes.Repeat([]byte{0x00}, 32) // No client data
 	rp := &fido2.RelyingParty{
 		ID:   "keys.pub",
 		Name: "keys.pub",
 	}
 
-	infos, err := a.loadInfos()
+	provisions, err := kr.Provisions()
 	if err != nil {
-		return nil, "", err
+		return nil, nil, err
 	}
-	if len(infos) == 0 {
-		return nil, "", errors.Errorf("no metadata found for hmac-secret")
+	if len(provisions) == 0 {
+		return nil, nil, errors.Errorf("no provisions found for hmac-secret")
 	}
 
 	logger.Debugf("Looking for device with a matching credential...")
-	authDevice, err := a.findDevice(ctx, infos)
+	authDevice, err := findDevice(ctx, auths, provisions)
 	if err != nil {
-		return nil, "", err
+		return nil, nil, err
 	}
-	if authDevice.Info == nil {
-		return nil, "", errors.Errorf("device has no metadata")
+	if authDevice.Provision == nil {
+		return nil, nil, errors.Errorf("device has no provision")
 	}
 
-	credID, err := encoding.Decode(authDevice.Info.ID, encoding.Base62)
+	credID, err := encoding.Decode(authDevice.Provision.ID, encoding.Base62)
 	if err != nil {
-		return nil, "", errors.Wrapf(err, "credential (auth) id was invalid")
+		return nil, nil, errors.Wrapf(err, "credential (provision) id was invalid")
 	}
 
 	logger.Debugf("Getting hmac-secret...")
-	secretResp, err := a.fido2.HMACSecret(ctx, &fido2.HMACSecretRequest{
+	secretResp, err := auths.HMACSecret(ctx, &fido2.HMACSecretRequest{
 		Device:         authDevice.Device.Path,
 		PIN:            pin,
 		ClientDataHash: cdh[:],
 		RPID:           rp.ID,
 		CredentialID:   credID,
-		Salt:           authDevice.Info.Salt,
+		Salt:           authDevice.Provision.Salt,
 	})
 	if err != nil {
-		return nil, "", err
+		return nil, nil, err
 	}
 
-	return secretResp.HMACSecret, authDevice.Info.ID, nil
+	return secretResp.HMACSecret, authDevice.Provision, nil
 }
 
-func (a *auth) unlockHMACSecret(ctx context.Context, pin string) error {
-	key, id, err := a.hmacSecret(ctx, pin)
+func unlockHMACSecret(ctx context.Context, auths fido2.AuthServer, kr *keyring.Keyring, pin string) error {
+	secret, provision, err := hmacSecret(ctx, auths, kr, pin)
 	if err != nil {
 		return err
 	}
-	if len(key) != 32 {
+	if len(secret) != 32 {
 		return errors.Errorf("invalid key length from hmac-secret")
 	}
-	auth := keyring.NewAuth(id, keys.Bytes32(key))
+	key := keys.Bytes32(secret)
 
 	// If we have setup hmac-secret but have not setup the keyring, we do that
 	// on the first unlock. When we setup the hmac-secret, we use MakeCredential
@@ -171,35 +175,35 @@ func (a *auth) unlockHMACSecret(ctx context.Context, pin string) error {
 	// usually requires user presence so we split up these blocking calls into
 	// two requests. The first request doesn't give us the auth, so we do the
 	// keyring setup of first unlock instead of during setup.
-	status, err := a.kr.Status()
+	status, err := kr.Status()
 	if err != nil {
 		return err
 	}
 	if status == keyring.Setup {
-		if _, err := a.kr.Setup(auth); err != nil {
+		if err := kr.Setup(key, provision); err != nil {
 			return err
 		}
 	} else {
-		if _, err := a.kr.Unlock(auth); err != nil {
+		if _, err := kr.Unlock(key); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (a *auth) provisionHMACSecret(ctx context.Context, pin string) (string, error) {
-	key, credID, err := a.hmacSecret(ctx, pin)
+func provisionHMACSecret(ctx context.Context, auths fido2.AuthServer, kr *keyring.Keyring, pin string) (*keyring.Provision, error) {
+	secret, provision, err := hmacSecret(ctx, auths, kr, pin)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	if len(key) != 32 {
-		return "", errors.Errorf("invalid key length for hmac secret")
+	if len(secret) != 32 {
+		return nil, errors.Errorf("invalid key length for hmac secret")
 	}
-	auth := keyring.NewAuth(credID, keys.Bytes32(key))
-	id, err := a.kr.Provision(auth)
-	if err != nil {
-		return "", err
+	key := keys.Bytes32(secret)
+
+	if err := kr.Provision(key, provision); err != nil {
+		return nil, err
 	}
-	logger.Infof("Provision (hmac-secret) with auth id: %s", id)
-	return id, nil
+	logger.Infof("Provision (hmac-secret): %s", provision.ID)
+	return provision, nil
 }

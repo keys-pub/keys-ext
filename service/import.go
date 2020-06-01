@@ -15,7 +15,8 @@ func (s *service) KeyImport(ctx context.Context, req *KeyImportRequest) (*KeyImp
 		return nil, err
 	}
 
-	if err := s.ks.Save(key); err != nil {
+	ks := s.keyStore()
+	if err := ks.Save(key); err != nil {
 		return nil, err
 	}
 
@@ -31,7 +32,8 @@ func (s *service) KeyImport(ctx context.Context, req *KeyImportRequest) (*KeyImp
 
 func (s *service) importID(id keys.ID) error {
 	// Check if item already exists and skip if so.
-	kr := s.ks.Keyring()
+	kr := s.keyring()
+	ks := keys.NewStore(kr)
 	item, err := kr.Get(id.String())
 	if err != nil {
 		return err
@@ -39,5 +41,5 @@ func (s *service) importID(id keys.ID) error {
 	if item != nil {
 		return nil
 	}
-	return s.ks.Save(id)
+	return ks.Save(id)
 }

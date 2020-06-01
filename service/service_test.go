@@ -12,11 +12,11 @@ import (
 	"testing"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/http/server"
 	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keys/user"
-	"github.com/keys-pub/keys-ext/http/server"
 	"github.com/stretchr/testify/require"
 )
 
@@ -45,7 +45,7 @@ func randName() string {
 }
 
 func writeTestFile(t *testing.T) string {
-	inPath := keys.RandTempPath(".txt")
+	inPath := keys.RandTempPath() + ".txt"
 	writeErr := ioutil.WriteFile(inPath, []byte("test message"), 0644)
 	require.NoError(t, writeErr)
 	return inPath
@@ -90,18 +90,14 @@ func newTestService(t *testing.T, env *testEnv, appName string) (*service, Close
 func newTestServiceWithOpts(t *testing.T, env *testEnv, appName string, keyringType string) (*service, CloseFn) {
 	serverEnv := newTestServerEnv(t, env)
 	cfg, closeCfg := testConfig(t, appName, serverEnv.url, keyringType)
-	st, err := newKeyringStore(cfg)
-	require.NoError(t, err)
-	auth, err := newAuth(cfg, st)
-	require.NoError(t, err)
+	auth := newAuth(cfg)
+
 	svc, err := newService(cfg, Build{Version: "1.2.3", Commit: "deadbeef"}, auth, env.req, env.clock.Now)
 	require.NoError(t, err)
 
 	closeFn := func() {
 		serverEnv.closeFn()
 		svc.Close()
-		err := auth.kr.Reset()
-		require.NoError(t, err)
 		closeCfg()
 	}
 

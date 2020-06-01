@@ -26,12 +26,13 @@ func (s *service) Keys(ctx context.Context, req *KeysRequest) (*KeysResponse, er
 		types = append(types, typ)
 	}
 
-	ks, err := s.ks.Keys(&keys.Opts{Types: types})
+	ks := s.keyStore()
+	out, err := ks.Keys(&keys.Opts{Types: types})
 	if err != nil {
 		return nil, err
 	}
 
-	keys, err := s.keys(ctx, ks, req.Query, sortField, sortDirection)
+	keys, err := s.keys(ctx, out, req.Query, sortField, sortDirection)
 	if err != nil {
 		return nil, err
 	}

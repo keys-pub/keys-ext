@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"io/ioutil"
 
 	"github.com/urfave/cli"
 )
@@ -15,38 +14,60 @@ func gitCommands(client *Client) []cli.Command {
 			Hidden: true,
 			Subcommands: []cli.Command{
 				cli.Command{
-					Name:  "setup",
-					Usage: "Setup",
+					Name:  "import",
+					Usage: "Import into a git repository",
 					Flags: []cli.Flag{
-						cli.StringFlag{Name: "key, k", Usage: "git ssh key"},
+						cli.StringFlag{Name: "key", Usage: "git ssh key path", Value: homePath(".ssh", "id_ed25519")},
 						cli.StringFlag{Name: "url, u", Usage: "git repo url"},
 					},
 					Action: func(c *cli.Context) error {
-						keyFlag := c.String("key")
-
-						var key string
-						exists, err := pathExists(keyFlag)
-						if err != nil {
+						req := &GitImportRequest{
+							URL:     c.String("url"),
+							KeyPath: c.String("key"),
+						}
+						if _, err := client.KeysClient().GitImport(context.TODO(), req); err != nil {
 							return err
 						}
-						if exists {
-							b, err := ioutil.ReadFile(keyFlag) // #nosec
-							if err != nil {
-								return err
-							}
-							key = string(b)
+						return nil
+					},
+				},
+				cli.Command{
+					Name:  "clone",
+					Usage: "Clone a git repository",
+					Flags: []cli.Flag{
+						cli.StringFlag{Name: "key", Usage: "git ssh key path", Value: homePath(".ssh", "id_ed25519")},
+						cli.StringFlag{Name: "url, u", Usage: "git repo url"},
+					},
+					Action: func(c *cli.Context) error {
+						req := &GitCloneRequest{
+							URL:     c.String("url"),
+							KeyPath: c.String("key"),
 						}
-
-						url := c.String("url")
-
-						req := &GitSetupRequest{
-							URL: url,
-							Key: key,
-						}
-						if _, err := client.KeysClient().GitSetup(context.TODO(), req); err != nil {
+						if _, err := client.KeysClient().GitClone(context.TODO(), req); err != nil {
 							return err
 						}
-						// printResponse(resp)
+						return nil
+					},
+				},
+				cli.Command{
+					Name:  "pull",
+					Usage: "Pull",
+					Flags: []cli.Flag{},
+					Action: func(c *cli.Context) error {
+						if _, err := client.KeysClient().GitPull(context.TODO(), &GitPullRequest{}); err != nil {
+							return err
+						}
+						return nil
+					},
+				},
+				cli.Command{
+					Name:  "push",
+					Usage: "Push",
+					Flags: []cli.Flag{},
+					Action: func(c *cli.Context) error {
+						if _, err := client.KeysClient().GitPush(context.TODO(), &GitPushRequest{}); err != nil {
+							return err
+						}
 						return nil
 					},
 				},

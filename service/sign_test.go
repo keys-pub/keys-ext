@@ -172,7 +172,7 @@ func TestSignVerifyAttachedFile(t *testing.T) {
 	testImportKey(t, bobService, bob)
 
 	b := []byte("test message")
-	inPath := keys.RandTempPath("")
+	inPath := keys.RandTempPath()
 	outPath := inPath + ".signed"
 	verifiedPath := inPath + ".ver"
 

@@ -16,9 +16,9 @@ import (
 func TestRepositoryAddDelete(t *testing.T) {
 	// git.SetLogger(git.NewLogger(git.DebugLevel))
 
-	path := keys.RandTempPath("")
+	path := keys.RandTempPath()
 	t.Logf("Path: %s", path)
-	path2 := keys.RandTempPath("")
+	path2 := keys.RandTempPath()
 
 	privateKey, err := ioutil.ReadFile("id_ed25519")
 	require.NoError(t, err)
@@ -27,7 +27,7 @@ func TestRepositoryAddDelete(t *testing.T) {
 
 	url := "git@gitlab.com:gabrielha/pass-test.git"
 
-	service := "GitTest-" + keys.Rand3262()
+	krDir := "GitTest-" + keys.Rand3262()
 
 	salt := bytes.Repeat([]byte{0x01}, 16)
 	pkey, err := keyring.KeyForPassword("testpassword", salt)
@@ -36,11 +36,12 @@ func TestRepositoryAddDelete(t *testing.T) {
 
 	// Keyring #1
 	repo1 := git.NewRepository()
+	repo1.SetKeyringDir(krDir)
 	err = repo1.SetKey(skey)
 	require.NoError(t, err)
 	err = repo1.Clone(url, path)
 	require.NoError(t, err)
-	kr1, err := keyring.New(service, repo1)
+	kr1, err := keyring.New(keyring.WithStore(repo1))
 	require.NoError(t, err)
 	err = kr1.Setup(pkey, provision)
 	require.NoError(t, err)
@@ -60,11 +61,12 @@ func TestRepositoryAddDelete(t *testing.T) {
 
 	// Keyring #2
 	repo2 := git.NewRepository()
+	repo2.SetKeyringDir(krDir)
 	err = repo2.SetKey(skey)
 	require.NoError(t, err)
 	err = repo2.Clone(url, path2)
 	require.NoError(t, err)
-	kr2, err := keyring.New(service, repo2)
+	kr2, err := keyring.New(keyring.WithStore(repo2))
 	require.NoError(t, err)
 	_, err = kr2.Unlock(keys.Rand32())
 	require.EqualError(t, err, "invalid keyring auth")
@@ -80,11 +82,12 @@ func TestRepositoryAddDelete(t *testing.T) {
 
 	// Keyring #3 (same dir as #1)
 	repo3 := git.NewRepository()
+	repo3.SetKeyringDir(krDir)
 	err = repo3.SetKey(skey)
 	require.NoError(t, err)
 	err = repo3.Open(path)
 	require.NoError(t, err)
-	kr3, err := keyring.New(service, repo3)
+	kr3, err := keyring.New(keyring.WithStore(repo3))
 	require.NoError(t, err)
 	_, err = kr3.Unlock(pkey)
 	require.NoError(t, err)
@@ -119,8 +122,8 @@ func TestRepositoryAddDelete(t *testing.T) {
 func TestConflictResolve(t *testing.T) {
 	// git.SetLogger(git.NewLogger(git.DebugLevel))
 
-	path := keys.RandTempPath("")
-	path2 := keys.RandTempPath("")
+	path := keys.RandTempPath()
+	path2 := keys.RandTempPath()
 
 	privateKey, err := ioutil.ReadFile("id_ed25519")
 	require.NoError(t, err)
@@ -129,7 +132,7 @@ func TestConflictResolve(t *testing.T) {
 
 	url := "git@gitlab.com:gabrielha/pass-test.git"
 
-	service := "GitTest-" + keys.Rand3262()
+	krDir := "GitTest-" + keys.Rand3262()
 
 	salt := bytes.Repeat([]byte{0x01}, 16)
 	pkey, err := keyring.KeyForPassword("testpassword", salt)
@@ -138,11 +141,12 @@ func TestConflictResolve(t *testing.T) {
 
 	// Keyring #1
 	repo1 := git.NewRepository()
+	repo1.SetKeyringDir(krDir)
 	err = repo1.SetKey(skey)
 	require.NoError(t, err)
 	err = repo1.Clone(url, path)
 	require.NoError(t, err)
-	kr1, err := keyring.New(service, repo1)
+	kr1, err := keyring.New(keyring.WithStore(repo1))
 	require.NoError(t, err)
 	err = kr1.Setup(pkey, provision)
 	require.NoError(t, err)
@@ -151,11 +155,12 @@ func TestConflictResolve(t *testing.T) {
 
 	// Keyring #2
 	repo2 := git.NewRepository()
+	repo2.SetKeyringDir(krDir)
 	err = repo2.SetKey(skey)
 	require.NoError(t, err)
 	err = repo2.Clone(url, path2)
 	require.NoError(t, err)
-	kr2, err := keyring.New(service, repo2)
+	kr2, err := keyring.New(keyring.WithStore(repo2))
 	require.NoError(t, err)
 	_, err = kr2.Unlock(pkey)
 	require.NoError(t, err)
@@ -199,4 +204,30 @@ func TestConflictResolve(t *testing.T) {
 	out, err = kr2.Get(item.ID)
 	require.NoError(t, err)
 	require.Equal(t, "testpassword3", string(out.Data))
+}
+
+func TestRepositoryClone(t *testing.T) {
+	var err error
+	// git.SetLogger(git.NewLogger(git.DebugLevel))
+
+	urs := "git@gitlab.com:gabrielha/empty.git"
+	path := keys.RandTempPath()
+	// defer func() { _ = os.RemoveAll(path) }()
+
+	privateKey, err := ioutil.ReadFile("id_ed25519")
+	require.NoError(t, err)
+	skey, err := keys.ParseSSHKey(privateKey, nil, true)
+	require.NoError(t, err)
+
+	repo := git.NewRepository()
+	err = repo.SetKey(skey)
+	require.NoError(t, err)
+	err = repo.Clone(urs, path)
+	require.NoError(t, err)
+
+	repo2 := git.NewRepository()
+	err = repo.SetKey(skey)
+	require.NoError(t, err)
+	err = repo2.Open(path)
+	require.NoError(t, err)
 }

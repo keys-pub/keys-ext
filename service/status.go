@@ -13,7 +13,7 @@ func (s *service) RuntimeStatus(ctx context.Context, req *RuntimeStatusRequest) 
 	if exeErr != nil {
 		logger.Errorf("Failed to get current executable path: %s", exeErr)
 	}
-	kr := s.ks.Keyring()
+	kr := s.keyring()
 	status, err := kr.Status()
 	if err != nil {
 		return nil, err
@@ -24,7 +24,7 @@ func (s *service) RuntimeStatus(ctx context.Context, req *RuntimeStatusRequest) 
 		AppName:    s.cfg.AppName(),
 		Exe:        exe,
 		AuthStatus: keyringStatusToRPC(status),
-		FIDO2:      s.auth.fido2 != nil,
+		FIDO2:      s.auth.fas != nil,
 	}
 	logger.Infof("Runtime status, %s", resp.String())
 	return &resp, nil

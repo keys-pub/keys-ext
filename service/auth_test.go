@@ -12,43 +12,41 @@ import (
 func TestAuthWithPassword(t *testing.T) {
 	cfg, closeFn := testConfig(t, "KeysTest", "", "mem")
 	defer closeFn()
-	st, err := newKeyringStore(cfg)
+	auth := newAuth(cfg)
+	keyringFn, err := newKeyringFn(cfg)
 	require.NoError(t, err)
-	auth, err := newAuth(cfg, st)
-	require.NoError(t, err)
-	defer func() { _ = auth.kr.Reset() }()
+	kr := keyringFn.Keyring()
+
 	ctx := context.TODO()
 
 	// Setup needed
-	status, err := auth.kr.Status()
+	status, err := kr.Status()
 	require.NoError(t, err)
 	require.Equal(t, keyring.Setup, status)
 
 	// Setup
-	err = auth.setup(ctx, "password123", PasswordAuth)
+	err = auth.setup(ctx, kr, "password123", PasswordAuth)
 	require.NoError(t, err)
 
-	status, err = auth.kr.Status()
+	status, err = kr.Status()
 	require.NoError(t, err)
 	require.Equal(t, keyring.Unlocked, status)
 
-	token, err := auth.unlock(ctx, "password123", PasswordAuth, "test")
+	token, err := auth.unlock(ctx, kr, "password123", PasswordAuth, "test")
 	require.NoError(t, err)
 	require.NotEmpty(t, auth.tokens)
 	require.NotEmpty(t, token)
 
-	// Lock
-	err = auth.lock()
-	require.NoError(t, err)
+	// Clear
+	auth.reset()
 
 	// Unlock with invalid password
-	_, err = auth.unlock(ctx, "invalidpassword", PasswordAuth, "test")
+	_, err = auth.unlock(ctx, kr, "invalidpassword", PasswordAuth, "test")
 	require.EqualError(t, err, "rpc error: code = Unauthenticated desc = invalid password")
-	require.Empty(t, auth.tokens)
 	require.Empty(t, auth.tokens)
 
 	// Unlock
-	token, err = auth.unlock(ctx, "password123", PasswordAuth, "test")
+	token, err = auth.unlock(ctx, kr, "password123", PasswordAuth, "test")
 	require.NoError(t, err)
 	require.NotEmpty(t, auth.tokens)
 	require.NotEmpty(t, token)
@@ -57,11 +55,10 @@ func TestAuthWithPassword(t *testing.T) {
 func TestAuthorize(t *testing.T) {
 	cfg, closeFn := testConfig(t, "KeysTest", "", "mem")
 	defer closeFn()
-	st, err := newKeyringStore(cfg)
+	auth := newAuth(cfg)
+	keyringFn, err := newKeyringFn(cfg)
 	require.NoError(t, err)
-	auth, err := newAuth(cfg, st)
-	require.NoError(t, err)
-	defer func() { _ = auth.kr.Reset() }()
+	kr := keyringFn.Keyring()
 
 	ctx := metadata.NewIncomingContext(context.TODO(), metadata.MD{})
 	err = auth.authorize(ctx, "/service.Keys/SomeMethod")
@@ -79,10 +76,11 @@ func TestAuthorize(t *testing.T) {
 	err = auth.authorize(ctx3, "/service.Keys/SomeMethod")
 	require.EqualError(t, err, "rpc error: code = Unauthenticated desc = invalid token")
 
-	// Unlock
-	err = auth.setup(ctx, "password123", PasswordAuth)
+	// Setup
+	err = auth.setup(ctx, kr, "password123", PasswordAuth)
 	require.NoError(t, err)
-	token, err := auth.unlock(ctx, "password123", PasswordAuth, "test")
+
+	token, err := auth.unlock(ctx, kr, "password123", PasswordAuth, "test")
 	require.NoError(t, err)
 	require.NotEmpty(t, auth.tokens)
 	require.NotEmpty(t, token)

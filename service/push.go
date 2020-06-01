@@ -26,7 +26,8 @@ func (s *service) Push(ctx context.Context, req *PushRequest) (*PushResponse, er
 
 	// TODO: Is remote check appropriate here?
 	if req.RemoteCheck {
-		key, err := s.ks.EdX25519Key(kid)
+		ks := s.keyStore()
+		key, err := ks.EdX25519Key(kid)
 		if err != nil {
 			return nil, err
 		}
