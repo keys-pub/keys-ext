@@ -10,8 +10,9 @@ import (
 func adminCommands(client *Client) []cli.Command {
 	return []cli.Command{
 		cli.Command{
-			Name:  "admin",
-			Usage: "Admin",
+			Name:   "admin",
+			Usage:  "Admin",
+			Hidden: true,
 			Subcommands: []cli.Command{
 				cli.Command{
 					Name:  "sign-url",
