@@ -224,7 +224,7 @@ func (s *service) GitClone(ctx context.Context, req *GitCloneRequest) (*GitClone
 }
 
 func gitKey(path string) (*keys.EdX25519Key, error) {
-	b, err := ioutil.ReadFile(path)
+	b, err := ioutil.ReadFile(path) // #nosec
 	if err != nil {
 		return nil, err
 	}
