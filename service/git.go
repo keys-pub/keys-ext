@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"io/ioutil"
 	"os"
 
 	"github.com/keys-pub/keys"
@@ -13,7 +14,6 @@ import (
 type gitKeyringFn struct {
 	git  *keyring.Keyring
 	repo *git.Repository
-	kid  keys.ID
 }
 
 func newGitKeyringFn(cfg *Config) (KeyringFn, error) {
@@ -34,21 +34,18 @@ func newGitKeyringFn(cfg *Config) (KeyringFn, error) {
 		return nil, err
 	}
 
-	gitAuth := cfg.GitAuth()
-	if gitAuth == "" {
-		return nil, errors.Errorf("no git auth set")
-	}
-	kid, err := keys.ParseID(gitAuth)
+	key, err := loadGitKey(cfg)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to parse git auth")
+		return nil, err
+	}
+	if err := repo.SetKey(key); err != nil {
+		return nil, err
 	}
 
 	gitFn := &gitKeyringFn{
 		git:  git,
 		repo: repo,
-		kid:  kid,
 	}
-	git.AddListener(gitFn)
 	return gitFn, nil
 }
 
@@ -62,34 +59,6 @@ func (k *gitKeyringFn) Pull() error {
 
 func (k *gitKeyringFn) Push() error {
 	return k.repo.Push()
-}
-
-func (k *gitKeyringFn) Locked() {
-	if err := k.repo.SetKey(nil); err != nil {
-		logger.Errorf("Failed to clear git repo key on lock: %v", err)
-	}
-}
-
-func (k *gitKeyringFn) Unlocked(p *keyring.Provision) {
-	if err := k.loadAuth(); err != nil {
-		logger.Errorf("Failed to set git repo key on unlock: %v", err)
-	}
-}
-
-func (k *gitKeyringFn) loadAuth() error {
-	// Set repo auth using key from git keyring
-	ks := keys.NewStore(k.git)
-	key, err := ks.EdX25519Key(k.kid)
-	if err != nil {
-		return err
-	}
-	if key == nil {
-		return keys.NewErrNotFound(k.kid.String())
-	}
-	if err := k.repo.SetKey(key); err != nil {
-		return err
-	}
-	return nil
 }
 
 func gitPath(cfg *Config) (string, error) {
@@ -107,52 +76,65 @@ func gitPath(cfg *Config) (string, error) {
 	return path, nil
 }
 
-// GitSetup (RPC) sets up a git keyring.
-func (s *service) GitSetup(ctx context.Context, req *GitSetupRequest) (*GitSetupResponse, error) {
-	logger.Infof("Git setup...")
-	// Check if already setup
-	path, err := s.cfg.keyringGitPath()
+// GitImport (RPC) imports into a git keyring.
+func (s *service) GitImport(ctx context.Context, req *GitImportRequest) (*GitImportResponse, error) {
+	urs := req.URL
+	key, err := gitKey(req.KeyPath)
 	if err != nil {
 		return nil, err
+	}
+	if err := saveGitKeyPath(s.cfg, req.KeyPath); err != nil {
+		return nil, err
+	}
+	if err := s.gitImport(ctx, key, urs); err != nil {
+		return nil, err
+	}
+	return &GitImportResponse{}, nil
+}
+
+func (s *service) checkGitSetup() (string, error) {
+	path, err := s.cfg.keyringGitPath()
+	if err != nil {
+		return "", err
 	}
 	logger.Infof("Checking path: %s", path)
 	exists, err := pathExists(path)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	if exists {
-		return nil, errors.Errorf("git repository already exists")
+		return "", errors.Errorf("git repository already exists")
 	}
 
 	// Check current keyring (not already git)
-	kro := s.keyring()
-	kso := keys.NewStore(kro)
-	logger.Infof("Current store: %s", kro.Store().Name())
-	if kro.Store().Name() == "git" {
-		return nil, errors.Errorf("git already set as keyring")
+	kr := s.keyring()
+	logger.Infof("Current store: %s", kr.Store().Name())
+	if kr.Store().Name() == "git" {
+		return "", errors.Errorf("git already set as keyring")
+	}
+	return path, nil
+}
+
+func (s *service) gitImport(ctx context.Context, key *keys.EdX25519Key, urs string) error {
+	logger.Infof("Git import...")
+
+	path, err := s.checkGitSetup()
+	if err != nil {
+		return err
 	}
 
-	// Get key from current keyring
-	kid, err := keys.ParseID(req.KID)
-	if err != nil {
-		return nil, err
-	}
-	key, err := kso.EdX25519Key(kid)
-	if err != nil {
-		return nil, err
-	}
-	logger.Infof("Using key: %s", kid)
+	logger.Infof("Git using key: %s", key.ID())
 
 	// Clear tmp path (if it exists)
 	tmpPath := path + ".tmp"
 	tmpExists, err := pathExists(tmpPath)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if tmpExists {
 		logger.Infof("Remove existing temp: %s", tmpPath)
 		if err := os.RemoveAll(tmpPath); err != nil {
-			return nil, err
+			return err
 		}
 	}
 	defer func() { _ = os.RemoveAll(tmpPath) }()
@@ -160,64 +142,191 @@ func (s *service) GitSetup(ctx context.Context, req *GitSetupRequest) (*GitSetup
 	// Clone repo (into tmpPath)
 	repo := git.NewRepository()
 	if err := repo.SetKey(key); err != nil {
-		return nil, err
+		return err
 	}
-	logger.Infof("Cloning repo: %s", req.URL)
-	if err := repo.Clone(req.URL, tmpPath); err != nil {
-		return nil, errors.Wrapf(err, "failed to clone git repo")
+	logger.Infof("Cloning repo: %s", urs)
+	if err := repo.Clone(urs, tmpPath); err != nil {
+		return errors.Wrapf(err, "failed to clone git repo")
+	}
+
+	// Check existing state of the repo is empty
+	existing, err := repo.IDs(keyring.Reserved(), keyring.Hidden())
+	if err != nil {
+		return err
+	}
+	if !equalStrings(existing, []string{".git"}) {
+		return errors.Errorf("import only supported on empty repository")
 	}
 
 	// Copy old keyring into git repo (still in tmp)
 	logger.Infof("Copying keyring into git...")
-	ids, err := keyring.Copy(kro.Store(), repo)
+	kr := s.keyring()
+	ids, err := keyring.Copy(kr.Store(), repo)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	logger.Infof("Keyring copied: %s", ids)
-
-	// Save KID as git auth to config
-	logger.Infof("Saving git auth to config: %s", key.ID().String())
-	s.cfg.Set(gitAuthCfgKey, key.ID().String())
-	if err := s.cfg.Save(); err != nil {
-		return nil, err
-	}
+	logger.Infof("Keyring copied into git: %s", ids)
 
 	logger.Infof("Pushing git keyring...")
 	if err := repo.Push(); err != nil {
-		return nil, err
+		return err
 	}
 
 	// Move repo into place (from tmpPath)
 	logger.Infof("Moving into place: %s", path)
 	if err := os.Rename(tmpPath, path); err != nil {
-		return nil, err
+		return err
 	}
 
 	// Set git as the service keyring
 	logger.Infof("Setting keyring to git...")
 	git, err := newGitKeyringFn(s.cfg)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	s.keyringFn = git
 
-	// Unlock the new git keyring
-	git.Keyring().SetMasterKey(kro.MasterKey())
+	// Unlock the new git keyring (if set)
+	git.Keyring().SetMasterKey(kr.MasterKey())
 
 	// TODO: Test the new keyring before reseting old?
 
 	// Backup old keyring
-	if _, err := s.backup(kro.Store()); err != nil {
-		return nil, err
+	if _, err := s.backup(kr.Store()); err != nil {
+		return err
 	}
 
 	// Reset old keyring
 	logger.Infof("Resetting old keyring...")
-	if err := kro.Reset(); err != nil {
-		return nil, err
+	if err := kr.Reset(); err != nil {
+		return err
 	}
 
 	logger.Infof("Git setup finished")
 
-	return &GitSetupResponse{}, nil
+	return nil
+}
+
+// GitClone (RPC) clones a repository.
+func (s *service) GitClone(ctx context.Context, req *GitCloneRequest) (*GitCloneResponse, error) {
+	urs := req.URL
+	key, err := gitKey(req.KeyPath)
+	if err != nil {
+		return nil, err
+	}
+	if err := saveGitKeyPath(s.cfg, req.KeyPath); err != nil {
+		return nil, err
+	}
+	if err := s.gitClone(ctx, key, urs); err != nil {
+		return nil, err
+	}
+	return &GitCloneResponse{}, nil
+}
+
+func gitKey(path string) (*keys.EdX25519Key, error) {
+	b, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	skey, err := keys.ParseSSHKey(b, nil, true)
+	if err != nil {
+		return nil, err
+	}
+	key, ok := skey.(*keys.EdX25519Key)
+	if !ok {
+		return nil, errors.Errorf("unsupported key type for git clone, ed25519 expected")
+	}
+
+	return key, nil
+}
+
+func saveGitKeyPath(cfg *Config, path string) error {
+	logger.Infof("Saving git auth to config: %s", path)
+	cfg.Set(gitAuthCfgKey, path)
+	if err := cfg.Save(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func loadGitKey(cfg *Config) (*keys.EdX25519Key, error) {
+	path := cfg.Get(gitAuthCfgKey, homePath(".ssh", "id_ed25519"))
+	if path == "" {
+		return nil, errors.Errorf("no git key set in config")
+	}
+	return gitKey(path)
+}
+
+func (s *service) gitClone(ctx context.Context, key *keys.EdX25519Key, urs string) error {
+	logger.Infof("Git clone...")
+
+	path, err := s.checkGitSetup()
+	if err != nil {
+		return err
+	}
+	logger.Infof("Git using key: %s", key.ID())
+
+	// Clone repo
+	repo := git.NewRepository()
+	if err := repo.SetKey(key); err != nil {
+		return err
+	}
+	logger.Infof("Cloning repo: %s", urs)
+	if err := repo.Clone(urs, path); err != nil {
+		return errors.Wrapf(err, "failed to clone git repo")
+	}
+
+	kr := s.keyringFn.Keyring()
+
+	// Set git as the service keyring
+	logger.Infof("Setting keyring to git...")
+	git, err := newGitKeyringFn(s.cfg)
+	if err != nil {
+		return err
+	}
+	s.keyringFn = git
+
+	// Unlock the new git keyring (if set)
+	git.Keyring().SetMasterKey(kr.MasterKey())
+
+	logger.Infof("Git clone finished")
+	return nil
+}
+
+func (s *service) GitPull(ctx context.Context, req *GitPullRequest) (*GitPullResponse, error) {
+	st := s.keyringFn.Keyring().Store()
+	if st.Name() != "git" {
+		return nil, errors.Errorf("git keyring is not setup")
+	}
+	if err := s.keyringFn.Pull(); err != nil {
+		return nil, err
+	}
+
+	return &GitPullResponse{}, nil
+}
+
+func (s *service) GitPush(ctx context.Context, req *GitPushRequest) (*GitPushResponse, error) {
+	st := s.keyringFn.Keyring().Store()
+	if st.Name() != "git" {
+		return nil, errors.Errorf("git keyring is not setup")
+	}
+
+	if err := s.keyringFn.Push(); err != nil {
+		return nil, err
+	}
+
+	return &GitPushResponse{}, nil
+}
+
+func equalStrings(s1 []string, s2 []string) bool {
+	if len(s1) != len(s2) {
+		return false
+	}
+	for i := 0; i < len(s1); i++ {
+		if s1[i] != s2[i] {
+			return false
+		}
+	}
+	return true
 }

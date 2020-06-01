@@ -162,6 +162,8 @@ github.com/keys-pub/keys v0.0.0-20200601012402-9dfef04c5ce3 h1:C5gUHzIYdnPSN0P4a
 github.com/keys-pub/keys v0.0.0-20200601012402-9dfef04c5ce3/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys v0.0.0-20200601190116-baa0e3869109 h1:ex1WDH2tAq+ewPsqOFbwwRMKXalVVTb/R6Eq5ud02Z8=
 github.com/keys-pub/keys v0.0.0-20200601190116-baa0e3869109/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.0.0-20200601215340-b3e229e689c8 h1:9sQ3sua/RwH0oGAKWef3F69ETUIlnjqkKcFAqo44Hxk=
+github.com/keys-pub/keys v0.0.0-20200601215340-b3e229e689c8/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys-ext v0.0.45 h1:G5xeyTOBy03moOomCHJE2h/qr0gz8yxtTpzvxkMqfGg=
 github.com/keys-pub/keys-ext v0.0.46-0.20200528185636-49b5d7075454 h1:2xf+JcLTaOPoTBAWZE/JBxd+rgP8l3niLS8UhhQNaN0=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200528184029-7548f2a0a594 h1:9myo45jCdYqP8u9kyP4dhoxD4TJEkWpiaG3nUKS9esU=

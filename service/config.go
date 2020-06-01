@@ -23,6 +23,20 @@ type Config struct {
 	values  map[string]string
 }
 
+// NewConfig loads a Config.
+func NewConfig(appName string) (*Config, error) {
+	if appName == "" {
+		return nil, errors.Errorf("no app name")
+	}
+	cfg := &Config{
+		appName: appName,
+	}
+	if err := cfg.Load(); err != nil {
+		return nil, err
+	}
+	return cfg, nil
+}
+
 // Config key names
 const serverCfgKey = "server"
 const portCfgKey = "port"
@@ -124,46 +138,61 @@ func (c Config) certPath(makeDir bool) (string, error) {
 func SupportPath(appName string, fileName string, makeDir bool) (string, error) {
 	switch runtime.GOOS {
 	case "darwin":
-		dir := filepath.Join(DefaultHomeDir(), "Library", "Application Support")
+		home := homeDir()
+		if home == "" {
+			return "", errors.Errorf("no home dir")
+		}
+		dir := filepath.Join(home, "Library", "Application Support")
 		return configPath(dir, appName, fileName, makeDir)
 	case "windows":
 		dir := os.Getenv("LOCALAPPDATA")
 		if dir == "" {
-			panic("LOCALAPPDATA not set")
+			return "", errors.Errorf("LOCALAPPDATA not set")
 		}
 		return configPath(dir, appName, fileName, makeDir)
 	case "linux":
 		dir := os.Getenv("XDG_DATA_HOME")
 		if dir == "" {
-			dir = filepath.Join(DefaultHomeDir(), ".local", "share")
+			home := homeDir()
+			if home == "" {
+				return "", errors.Errorf("no home dir")
+			}
+			dir = filepath.Join(home, ".local", "share")
 		}
 		return configPath(dir, appName, fileName, makeDir)
 	default:
-		panic(fmt.Sprintf("unsupported platform %s", runtime.GOOS))
+		return "", errors.Errorf("unsupported platform %s", runtime.GOOS)
 	}
-
 }
 
 // LogsPath ...
 func LogsPath(appName string, fileName string, makeDir bool) (string, error) {
 	switch runtime.GOOS {
 	case "darwin":
-		dir := filepath.Join(DefaultHomeDir(), "Library", "Logs")
+		home := homeDir()
+		if home == "" {
+			return "", errors.Errorf("no home dir")
+		}
+		dir := filepath.Join(home, "Library", "Logs")
 		return configPath(dir, appName, fileName, makeDir)
 	case "windows":
 		dir := os.Getenv("LOCALAPPDATA")
 		if dir == "" {
-			panic("LOCALAPPDATA not set")
+			return "", errors.Errorf("LOCALAPPDATA not set")
 		}
 		return configPath(dir, appName, fileName, makeDir)
 	case "linux":
 		dir := os.Getenv("XDG_CACHE_HOME")
 		if dir == "" {
-			dir = filepath.Join(DefaultHomeDir(), ".cache")
+			home := homeDir()
+			if dir == "" {
+				return "", errors.Errorf("no home dir")
+			}
+			dir = filepath.Join(home, ".cache")
 		}
 		return configPath(dir, appName, fileName, makeDir)
 	default:
-		panic(fmt.Sprintf("unsupported platform %s", runtime.GOOS))
+		return "", errors.Errorf("unsupported platform %s", runtime.GOOS)
 	}
 }
 
@@ -191,28 +220,22 @@ func configPath(dir string, appName string, fileName string, makeDir bool) (stri
 	return path, nil
 }
 
-// DefaultHomeDir returns current user home directory (or "" on error).
-func DefaultHomeDir() string {
+// homeDir returns current user home directory (or "" on error).
+func homeDir() string {
 	// TODO: Switch to UserHomeDir in go 1.12
 	usr, err := user.Current()
 	if err != nil {
-		panic(err)
+		return ""
 	}
 	return usr.HomeDir
 }
 
-// NewConfig creates a Config.
-func NewConfig(appName string) (*Config, error) {
-	if appName == "" {
-		return nil, errors.Errorf("no app name")
+func homePath(paths ...string) string {
+	dir := homeDir()
+	if dir == "" {
+		return ""
 	}
-	cfg := &Config{
-		appName: appName,
-	}
-	if err := cfg.Load(); err != nil {
-		return nil, err
-	}
-	return cfg, nil
+	return filepath.Join(append([]string{dir}, paths...)...)
 }
 
 // Load ...

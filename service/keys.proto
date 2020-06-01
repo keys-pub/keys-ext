@@ -87,13 +87,16 @@ service Keys {
   rpc Rand(RandRequest) returns (RandResponse) {}
   rpc RandPassword(RandPasswordRequest) returns (RandPasswordResponse) {}  
   rpc Restore(RestoreRequest) returns (RestoreResponse) {}
+  rpc GitClone(GitCloneRequest) returns (GitCloneResponse) {}  
   // END NO AUTH
 
   rpc AuthProvision(AuthProvisionRequest) returns (AuthProvisionResponse) {}
   rpc AuthDeprovision(AuthDeprovisionRequest) returns (AuthDeprovisionResponse) {}
   rpc AuthProvisions(AuthProvisionsRequest) returns (AuthProvisionsResponse) {}  
-
-  rpc GitSetup(GitSetupRequest) returns (GitSetupResponse) {}
+  
+  rpc GitImport(GitImportRequest) returns (GitImportResponse) {}
+  rpc GitPull(GitPullRequest) returns (GitPullResponse) {}
+  rpc GitPush(GitPushRequest) returns (GitPushResponse) {}
 
   rpc Backup(BackupRequest) returns (BackupResponse) {}  
 
@@ -852,24 +855,6 @@ message SearchResponse {
   repeated Key keys = 1;  
 }
 
-message WatchRequest {}
-
-enum WatchStatus {
-  option (gogoproto.goproto_enum_prefix) = false;
-  option (gogoproto.enum_customname) = "WatchStatus";
-
-  WATCH_UKNOWN = 0 [(gogoproto.enumvalue_customname) = "WatchStatusUnknown"];
-  WATCH_OUTAGE = 12 [(gogoproto.enumvalue_customname) = "WatchStatusOutage"];    // Persisting error, the service may be down
-  WATCH_DISRUPTED = 13 [(gogoproto.enumvalue_customname) = "WatchStatusDisrupted"]; // Temporary error, we'll retry and probably come back
-  WATCH_STARTING = 14 [(gogoproto.enumvalue_customname) = "WatchStatusStarting"];
-  WATCH_DATA = 16 [(gogoproto.enumvalue_customname) = "WatchStatusData"];
-}
-
-message WatchEvent {  
-  WatchStatus status = 1;  
-  string path = 2;
-}
-
 message WormholeInput {  
   string sender = 1;
   string recipient = 2;
@@ -992,11 +977,23 @@ message AdminCheckRequest {
 
 message AdminCheckResponse {}
 
-message GitSetupRequest {
+message GitImportRequest {
   string url = 1 [(gogoproto.customname) = "URL"];
-  string kid = 2 [(gogoproto.customname) = "KID"];
+  string keyPath = 2;
 }
-message GitSetupResponse {}
+message GitImportResponse {}
+
+message GitCloneRequest {
+  string url = 1 [(gogoproto.customname) = "URL"];
+  string keyPath = 2; 
+}
+message GitCloneResponse {}
+
+message GitPullRequest {}
+message GitPullResponse {}
+
+message GitPushRequest {}
+message GitPushResponse {}
 
 message BackupRequest {}
 message BackupResponse {
