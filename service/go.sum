@@ -175,6 +175,8 @@ github.com/keys-pub/keys-ext/git v0.0.0-20200528184029-7548f2a0a594 h1:O7v5sK0xC
 github.com/keys-pub/keys-ext/git v0.0.0-20200528184029-7548f2a0a594/go.mod h1:kFJWk0piVJyVCmUKavWJ6BGDx4wCXWjEgqd0GmKbug0=
 github.com/keys-pub/keys-ext/git v0.0.0-20200529223633-ff4b9d73dca6 h1:Qvvk8H+tYbWKz7jFX22cBCSFdzHChkD6V020EqhR2u8=
 github.com/keys-pub/keys-ext/git v0.0.0-20200529223633-ff4b9d73dca6/go.mod h1:9Z9fcHPmKYeSE0B+anNLVCTe5sSGTAAynGFG0KClzVs=
+github.com/keys-pub/keys-ext/git v0.0.0-20200601234707-2bcd9361babc h1:wR5famJFeTCntpoIrMI/L6/+AgWtzkJ+aOKZ6JCjFFk=
+github.com/keys-pub/keys-ext/git v0.0.0-20200601234707-2bcd9361babc/go.mod h1:dzzPjOEX5bAj7q3LF+riu8fM6s4DGwPOpeff61wyNj0=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20200528184029-7548f2a0a594 h1:ruE65kGESefD2DZmEX6uG4NlEwgdlTRVDljDCAwCFhg=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20200528184029-7548f2a0a594/go.mod h1:S2mshNfPWtxKP9XJa5X0G3S6Bd8RPIPOkMEkI5FLTmc=
 github.com/keys-pub/keys-ext/http/client v0.0.0-20200528185501-04f091ec8e61 h1:YJZ0EjAMbtW1WxiF29n1CEaE5WmrLvhsKc3kO/NDBoY=
