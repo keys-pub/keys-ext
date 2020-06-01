@@ -67,14 +67,6 @@ func (r *Repository) Open(path string) error {
 		return err
 	}
 
-	remotes, err := repo.Remotes()
-	if err != nil {
-		return err
-	}
-	for _, remote := range remotes {
-		logger.Infof("Remote: %s", remote)
-	}
-
 	r.repo = repo
 	r.path = path
 	logger.Debugf("Opened repo: %s", path)
@@ -83,14 +75,6 @@ func (r *Repository) Open(path string) error {
 
 // SetKey sets the ssh key.
 func (r *Repository) SetKey(key *keys.EdX25519Key) error {
-	// privateKey, err := key.EncodeToSSH(nil)
-	// if err != nil {
-	// 	return err
-	// }
-	// signer, err := ssh.ParsePrivateKey(privateKey)
-	// if err != nil {
-	// 	return err
-
 	r.auth = &gitssh.PublicKeys{User: "git", Signer: key.SSHSigner()}
 	return nil
 }
@@ -153,27 +137,6 @@ func (r *Repository) Clone(urs string, path string) error {
 
 	return r.Open(path)
 }
-
-// // Pull changes.
-// func (r *Repository) Pull() error {
-// 	if r.repo == nil {
-// 		return errors.Errorf("not open")
-// 	}
-
-// 	w, err := r.repo.Worktree()
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	if err := w.Pull(&git.PullOptions{
-// 		RemoteName: "origin",
-// 		Auth:       r.auth,
-// 	}); err != nil {
-// 		return err
-// 	}
-
-// 	return nil
-// }
 
 // Fetch remote.
 func (r *Repository) Fetch() error {
