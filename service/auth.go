@@ -37,6 +37,7 @@ func newAuth(cfg *Config) *auth {
 		"/service.Keys/RuntimeStatus",
 		"/service.Keys/Rand",
 		"/service.Keys/RandPassword",
+		"/service.Keys/Restore",
 	)
 
 	return &auth{

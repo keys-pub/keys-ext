@@ -18,7 +18,7 @@ func (r *Repository) Name() string {
 }
 
 // Get bytes.
-func (r *Repository) Get(service string, id string) ([]byte, error) {
+func (r *Repository) Get(id string) ([]byte, error) {
 	if id == "" {
 		return nil, errors.Errorf("failed to get keyring item: no id specified")
 	}
@@ -26,7 +26,7 @@ func (r *Repository) Get(service string, id string) ([]byte, error) {
 		return nil, errors.Errorf("failed to get keyring item: invalid id %q", id)
 	}
 
-	path := filepath.Join(r.Path(), service, id)
+	path := filepath.Join(r.Path(), r.krd, id)
 	exists, err := pathExists(path)
 	if err != nil {
 		return nil, err
@@ -38,11 +38,11 @@ func (r *Repository) Get(service string, id string) ([]byte, error) {
 }
 
 // Set bytes.
-func (r *Repository) Set(service string, id string, data []byte) error {
+func (r *Repository) Set(id string, data []byte) error {
 	if id == "" {
 		return errors.Errorf("no id specified")
 	}
-	dir := filepath.Join(r.Path(), service)
+	dir := filepath.Join(r.Path(), r.krd)
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		return err
 	}
@@ -51,7 +51,7 @@ func (r *Repository) Set(service string, id string, data []byte) error {
 		return errors.Wrapf(err, "failed to write file")
 	}
 
-	name := filepath.Join(service, id)
+	name := filepath.Join(r.krd, id)
 	if err := r.Add(name); err != nil {
 		// TODO: How do we resolve invalid state?
 		return errors.Wrapf(err, "failed to add to repo")
@@ -61,9 +61,9 @@ func (r *Repository) Set(service string, id string, data []byte) error {
 }
 
 // Delete bytes.
-func (r *Repository) Delete(service string, id string) (bool, error) {
-	name := filepath.Join(service, id)
-	path := filepath.Join(r.Path(), service, id)
+func (r *Repository) Delete(id string) (bool, error) {
+	name := filepath.Join(r.krd, id)
+	path := filepath.Join(r.Path(), r.krd, id)
 	exists, err := pathExists(path)
 	if err != nil {
 		return false, err
@@ -85,11 +85,11 @@ func (r *Repository) Delete(service string, id string) (bool, error) {
 }
 
 // IDs ...
-func (r *Repository) IDs(service string, opts ...keyring.IDsOption) ([]string, error) {
+func (r *Repository) IDs(opts ...keyring.IDsOption) ([]string, error) {
 	options := keyring.NewIDsOptions(opts...)
 	prefix, showHidden, showReserved := options.Prefix, options.Hidden, options.Reserved
 
-	path := filepath.Join(r.Path(), service)
+	path := filepath.Join(r.Path(), r.krd)
 	exists, err := pathExists(path)
 	if err != nil {
 		return nil, err
@@ -120,12 +120,12 @@ func (r *Repository) IDs(service string, opts ...keyring.IDsOption) ([]string, e
 }
 
 // Exists ...
-func (r *Repository) Exists(service string, id string) (bool, error) {
-	path := filepath.Join(r.Path(), service, id)
+func (r *Repository) Exists(id string) (bool, error) {
+	path := filepath.Join(r.Path(), r.krd, id)
 	return pathExists(path)
 }
 
 // Reset ...
-func (r *Repository) Reset(service string) error {
+func (r *Repository) Reset() error {
 	return errors.Errorf("reset not supported for git keyring")
 }

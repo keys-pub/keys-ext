@@ -17,7 +17,7 @@ func TestCopy(t *testing.T) {
 	// git.SetLogger(git.NewLogger(git.DebugLevel))
 	var err error
 
-	service := "GitTest-Export-" + keys.Rand3262()
+	krDir := "GitTest-Export-" + keys.Rand3262()
 	url := "git@gitlab.com:gabrielha/pass-test.git"
 	privateKey, err := ioutil.ReadFile("id_ed25519")
 	require.NoError(t, err)
@@ -41,17 +41,18 @@ func TestCopy(t *testing.T) {
 	require.NoError(t, err)
 
 	// Repo #2, Keyring #2
-	path2 := keys.RandTempPath("")
+	path2 := keys.RandTempPath()
 	repo2 := git.NewRepository()
+	repo2.SetKeyringDir(krDir)
 	err = repo2.SetKey(repoKey)
 	require.NoError(t, err)
 	err = repo2.Clone(url, path2)
 	require.NoError(t, err)
-	kr2, err := keyring.New(service, repo2)
+	kr2, err := keyring.New(keyring.WithStore(repo2))
 	require.NoError(t, err)
 
 	// Copy #1 to #2
-	ids, err := keyring.Copy(kr, kr2)
+	ids, err := keyring.Copy(kr.Store(), repo2)
 	require.NoError(t, err)
 	require.Equal(t, []string{
 		"#auth-0TWD4V5tkyUQGc5qXvlBDd2Fj97aqsMoBGJJjsttG4I",
@@ -63,14 +64,18 @@ func TestCopy(t *testing.T) {
 	err = repo2.Push()
 	require.NoError(t, err)
 
+	err = kr2.UnlockWithPassword("testkeyringpassword", false)
+	require.NoError(t, err)
+
 	// Repo #3, Keyring #3
-	path3 := keys.RandTempPath("")
+	path3 := keys.RandTempPath()
 	repo3 := git.NewRepository()
+	repo3.SetKeyringDir(krDir)
 	err = repo3.SetKey(repoKey)
 	require.NoError(t, err)
 	err = repo3.Clone(url, path3)
 	require.NoError(t, err)
-	kr3, err := keyring.New(service, repo3)
+	kr3, err := keyring.New(keyring.WithStore(repo3))
 	require.NoError(t, err)
 	err = kr3.UnlockWithPassword("testkeyringpassword", false)
 	require.NoError(t, err)

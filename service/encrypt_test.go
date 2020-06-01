@@ -410,7 +410,7 @@ func TestEncryptDecryptFile(t *testing.T) {
 	testImportID(t, bobService, alice.ID())
 
 	b := []byte("test message")
-	inPath := keys.RandTempPath("")
+	inPath := keys.RandTempPath()
 	outPath := inPath + ".enc"
 	decryptedPath := inPath + ".dec"
 

@@ -29,8 +29,7 @@ func newGitKeyringFn(cfg *Config) (KeyringFn, error) {
 		return nil, errors.Wrapf(err, "failed to open git repo")
 	}
 
-	service := cfg.keyringService()
-	git, err := keyring.New(service, repo)
+	git, err := keyring.New(keyring.WithStore(repo))
 	if err != nil {
 		return nil, err
 	}
@@ -108,13 +107,15 @@ func gitPath(cfg *Config) (string, error) {
 	return path, nil
 }
 
-// GitSetup (RPC) sets up git keyring.
+// GitSetup (RPC) sets up a git keyring.
 func (s *service) GitSetup(ctx context.Context, req *GitSetupRequest) (*GitSetupResponse, error) {
+	logger.Infof("Git setup...")
 	// Check if already setup
 	path, err := s.cfg.keyringGitPath()
 	if err != nil {
 		return nil, err
 	}
+	logger.Infof("Checking path: %s", path)
 	exists, err := pathExists(path)
 	if err != nil {
 		return nil, err
@@ -126,6 +127,7 @@ func (s *service) GitSetup(ctx context.Context, req *GitSetupRequest) (*GitSetup
 	// Check current keyring (not already git)
 	kro := s.keyring()
 	kso := keys.NewStore(kro)
+	logger.Infof("Current store: %s", kro.Store().Name())
 	if kro.Store().Name() == "git" {
 		return nil, errors.Errorf("git already set as keyring")
 	}
@@ -139,6 +141,7 @@ func (s *service) GitSetup(ctx context.Context, req *GitSetupRequest) (*GitSetup
 	if err != nil {
 		return nil, err
 	}
+	logger.Infof("Using key: %s", kid)
 
 	// Clear tmp path (if it exists)
 	tmpPath := path + ".tmp"
@@ -147,6 +150,7 @@ func (s *service) GitSetup(ctx context.Context, req *GitSetupRequest) (*GitSetup
 		return nil, err
 	}
 	if tmpExists {
+		logger.Infof("Remove existing temp: %s", tmpPath)
 		if err := os.RemoveAll(tmpPath); err != nil {
 			return nil, err
 		}
@@ -158,50 +162,62 @@ func (s *service) GitSetup(ctx context.Context, req *GitSetupRequest) (*GitSetup
 	if err := repo.SetKey(key); err != nil {
 		return nil, err
 	}
+	logger.Infof("Cloning repo: %s", req.URL)
 	if err := repo.Clone(req.URL, tmpPath); err != nil {
 		return nil, errors.Wrapf(err, "failed to clone git repo")
 	}
 
 	// Copy old keyring into git repo (still in tmp)
-	serviceName := s.cfg.keyringService()
-	krg, err := keyring.New(serviceName, repo)
+	logger.Infof("Copying keyring into git...")
+	ids, err := keyring.Copy(kro.Store(), repo)
 	if err != nil {
 		return nil, err
 	}
-	ids, err := keyring.Copy(kro, krg)
-	if err != nil {
-		return nil, err
-	}
-	logger.Debugf("Keyring copied: %s", ids)
+	logger.Infof("Keyring copied: %s", ids)
 
 	// Save KID as git auth to config
+	logger.Infof("Saving git auth to config: %s", key.ID().String())
 	s.cfg.Set(gitAuthCfgKey, key.ID().String())
 	if err := s.cfg.Save(); err != nil {
 		return nil, err
 	}
 
+	logger.Infof("Pushing git keyring...")
+	if err := repo.Push(); err != nil {
+		return nil, err
+	}
+
 	// Move repo into place (from tmpPath)
+	logger.Infof("Moving into place: %s", path)
 	if err := os.Rename(tmpPath, path); err != nil {
 		return nil, err
 	}
 
 	// Set git as the service keyring
+	logger.Infof("Setting keyring to git...")
 	git, err := newGitKeyringFn(s.cfg)
 	if err != nil {
 		return nil, err
 	}
 	s.keyringFn = git
 
-	if err := repo.Push(); err != nil {
-		return nil, err
-	}
+	// Unlock the new git keyring
+	git.Keyring().SetMasterKey(kro.MasterKey())
 
 	// TODO: Test the new keyring before reseting old?
 
+	// Backup old keyring
+	if _, err := s.backup(kro.Store()); err != nil {
+		return nil, err
+	}
+
 	// Reset old keyring
+	logger.Infof("Resetting old keyring...")
 	if err := kro.Reset(); err != nil {
 		return nil, err
 	}
+
+	logger.Infof("Git setup finished")
 
 	return &GitSetupResponse{}, nil
 }

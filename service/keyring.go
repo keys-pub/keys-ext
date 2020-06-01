@@ -46,8 +46,7 @@ func newSystemKeyringFn(cfg *Config) (KeyringFn, error) {
 	if err != nil {
 		return nil, err
 	}
-	service := cfg.keyringService()
-	sys, err := keyring.New(service, st)
+	sys, err := keyring.New(keyring.WithStore(st))
 	if err != nil {
 		return nil, err
 	}
@@ -74,16 +73,21 @@ func newKeyringStore(cfg *Config) (keyring.Store, error) {
 	switch kt {
 	case "":
 		logger.Infof("Keyring (default)")
-		kr := keyring.SystemOrFS()
-		logger.Infof("Keyring (default) using %s", kr.Name())
-		return kr, nil
+		service := cfg.keyringService()
+		st, err := keyring.NewSystemOrFS(service)
+		if err != nil {
+			return nil, err
+		}
+		logger.Infof("Keyring (default) using %s", st.Name())
+		return st, nil
 	case "fs":
 		logger.Infof("Keyring (fs)")
 		dir, err := cfg.AppPath("keyring", false)
 		if err != nil {
 			return nil, err
 		}
-		return keyring.FS(dir)
+		service := cfg.keyringService()
+		return keyring.NewFS(service, dir)
 	case "mem":
 		logger.Infof("Keyring (mem)")
 		return keyring.Mem(), nil

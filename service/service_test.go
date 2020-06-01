@@ -45,7 +45,7 @@ func randName() string {
 }
 
 func writeTestFile(t *testing.T) string {
-	inPath := keys.RandTempPath(".txt")
+	inPath := keys.RandTempPath() + ".txt"
 	writeErr := ioutil.WriteFile(inPath, []byte("test message"), 0644)
 	require.NoError(t, writeErr)
 	return inPath

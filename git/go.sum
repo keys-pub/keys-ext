@@ -71,6 +71,14 @@ github.com/keys-pub/keys v0.0.0-20200528181135-18e38db61305 h1:zPMGqZ6ROwBe1lC5c
 github.com/keys-pub/keys v0.0.0-20200528181135-18e38db61305/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys v0.0.0-20200529222241-8c34c3af1194 h1:VKSedVN/YOBhTd81eqRt3u/47KvP93hkDcG1T+i62Bw=
 github.com/keys-pub/keys v0.0.0-20200529222241-8c34c3af1194/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.0.0-20200531234152-0e140d77095f h1:S3B9sdD/NoDTgv+fIzGdzquXE0Pt7oVWqLV7FqsM/r8=
+github.com/keys-pub/keys v0.0.0-20200531234152-0e140d77095f/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.0.0-20200601002033-5f719b4d410e h1:xdK1vsdOYxQ3K28PPHknOaMG2req/p8MzvkuLgXFjdU=
+github.com/keys-pub/keys v0.0.0-20200601002033-5f719b4d410e/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.0.0-20200601012402-9dfef04c5ce3 h1:C5gUHzIYdnPSN0P4amiAKVRK6VswUQaqYz+vD9e27OE=
+github.com/keys-pub/keys v0.0.0-20200601012402-9dfef04c5ce3/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.0.0-20200601190116-baa0e3869109 h1:ex1WDH2tAq+ewPsqOFbwwRMKXalVVTb/R6Eq5ud02Z8=
+github.com/keys-pub/keys v0.0.0-20200601190116-baa0e3869109/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys-ext v0.0.45 h1:G5xeyTOBy03moOomCHJE2h/qr0gz8yxtTpzvxkMqfGg=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f h1:LLsdI2XManLH0JonKqB6OYmHdHk/WwJByDbHI3hCEcs=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f/go.mod h1:YRHMiVbZqh7u8xRm77CvwJNAZdDlNXwWvQ4DK0N9mYg=

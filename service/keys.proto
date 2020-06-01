@@ -86,6 +86,7 @@ service Keys {
   rpc RuntimeStatus(RuntimeStatusRequest) returns (RuntimeStatusResponse) {}
   rpc Rand(RandRequest) returns (RandResponse) {}
   rpc RandPassword(RandPasswordRequest) returns (RandPasswordResponse) {}  
+  rpc Restore(RestoreRequest) returns (RestoreResponse) {}
   // END NO AUTH
 
   rpc AuthProvision(AuthProvisionRequest) returns (AuthProvisionResponse) {}
@@ -93,6 +94,8 @@ service Keys {
   rpc AuthProvisions(AuthProvisionsRequest) returns (AuthProvisionsResponse) {}  
 
   rpc GitSetup(GitSetupRequest) returns (GitSetupResponse) {}
+
+  rpc Backup(BackupRequest) returns (BackupResponse) {}  
 
   rpc Collections(CollectionsRequest) returns (CollectionsResponse) {}
   rpc Documents(DocumentsRequest) returns (DocumentsResponse) {}
@@ -995,4 +998,12 @@ message GitSetupRequest {
 }
 message GitSetupResponse {}
 
+message BackupRequest {}
+message BackupResponse {
+  string path = 1;
+}
 
+message RestoreRequest {
+  string path = 1;
+}
+message RestoreResponse {}

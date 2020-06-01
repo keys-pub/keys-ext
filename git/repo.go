@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	gitssh "github.com/go-git/go-git/v5/plumbing/transport/ssh"
@@ -18,11 +19,17 @@ type Repository struct {
 	repo *git.Repository
 	path string
 	auth transport.AuthMethod
+	krd  string
 }
 
-// NewRepository ...
+// NewRepository creates a new repository.
 func NewRepository() *Repository {
 	return &Repository{}
+}
+
+// SetKeyringDir sets the keyring subdirectory (optional).
+func (r *Repository) SetKeyringDir(krd string) {
+	r.krd = krd
 }
 
 // Path to repo.
@@ -59,6 +66,15 @@ func (r *Repository) Open(path string) error {
 	if err != nil {
 		return err
 	}
+
+	remotes, err := repo.Remotes()
+	if err != nil {
+		return err
+	}
+	for _, remote := range remotes {
+		logger.Infof("Remote: %s", remote)
+	}
+
 	r.repo = repo
 	r.path = path
 	logger.Debugf("Opened repo: %s", path)
@@ -86,7 +102,7 @@ func (r *Repository) Clone(urs string, path string) error {
 	}
 
 	// Prepare temp path
-	tmpPath := path + ".tmp"
+	tmpPath := path + ".clone"
 	tmpExists, err := pathExists(tmpPath)
 	if err != nil {
 		return err
@@ -96,32 +112,46 @@ func (r *Repository) Clone(urs string, path string) error {
 			return err
 		}
 	}
+	defer func() { _ = os.RemoveAll(tmpPath) }()
 
 	// Clone to temp
+	empty := false
 	logger.Debugf("Clone repo: %s", urs)
 	if _, err := git.PlainClone(tmpPath, false, &git.CloneOptions{
 		URL: urs,
 		// Progress: os.Stdout,
 		Auth: r.auth,
 	}); err != nil {
-		return err
+		if errors.Cause(err) == transport.ErrEmptyRemoteRepository {
+			logger.Infof("Repository is empty")
+			empty = true
+		} else {
+			return err
+		}
+	}
+
+	if empty {
+		logger.Infof("Initializing repo: %s", tmpPath)
+		repo, err := git.PlainInit(tmpPath, false)
+		if err != nil {
+			return err
+		}
+		cfg := &config.RemoteConfig{
+			Name: "origin",
+			URLs: []string{urs},
+		}
+		if _, err := repo.CreateRemote(cfg); err != nil {
+			return err
+		}
 	}
 
 	// Move into place
+	logger.Debugf("Moving repo into place: %s", path)
 	if err := os.Rename(tmpPath, path); err != nil {
 		return err
 	}
 
-	// Open repo
-	repo, err := git.PlainOpen(path)
-	if err != nil {
-		return err
-	}
-
-	r.repo = repo
-	r.path = path
-	logger.Debugf("Cloned repo: %s", r.path)
-	return nil
+	return r.Open(path)
 }
 
 // // Pull changes.

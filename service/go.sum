@@ -155,6 +155,13 @@ github.com/keys-pub/keys v0.0.0-20200529222241-8c34c3af1194 h1:VKSedVN/YOBhTd81e
 github.com/keys-pub/keys v0.0.0-20200529222241-8c34c3af1194/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys v0.0.0-20200530210004-3b88733d8291 h1:j60/YFwVWyKjukRL1nYK3tqdffd7KQIyK/DBcU9POOU=
 github.com/keys-pub/keys v0.0.0-20200530210004-3b88733d8291/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.0.0-20200531234152-0e140d77095f/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.0.0-20200601002033-5f719b4d410e h1:xdK1vsdOYxQ3K28PPHknOaMG2req/p8MzvkuLgXFjdU=
+github.com/keys-pub/keys v0.0.0-20200601002033-5f719b4d410e/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.0.0-20200601012402-9dfef04c5ce3 h1:C5gUHzIYdnPSN0P4amiAKVRK6VswUQaqYz+vD9e27OE=
+github.com/keys-pub/keys v0.0.0-20200601012402-9dfef04c5ce3/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.0.0-20200601190116-baa0e3869109 h1:ex1WDH2tAq+ewPsqOFbwwRMKXalVVTb/R6Eq5ud02Z8=
+github.com/keys-pub/keys v0.0.0-20200601190116-baa0e3869109/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys-ext v0.0.45 h1:G5xeyTOBy03moOomCHJE2h/qr0gz8yxtTpzvxkMqfGg=
 github.com/keys-pub/keys-ext v0.0.46-0.20200528185636-49b5d7075454 h1:2xf+JcLTaOPoTBAWZE/JBxd+rgP8l3niLS8UhhQNaN0=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200528184029-7548f2a0a594 h1:9myo45jCdYqP8u9kyP4dhoxD4TJEkWpiaG3nUKS9esU=
