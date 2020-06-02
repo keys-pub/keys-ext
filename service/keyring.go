@@ -6,25 +6,19 @@ import (
 	"github.com/pkg/errors"
 )
 
-// KeyringFn provides a keyring.Keyring to the service.
-type KeyringFn interface {
+// keyringFn provides a keyring.Keyring to the service.
+type keyringFn interface {
 	// Keyring returns the service keyring.
 	Keyring() *keyring.Keyring
-
-	// Pull changes from remote (if supported).
-	Pull() error
-
-	// Push changes to remote (if supported).
-	Push() error
 }
 
-func newKeyringFn(cfg *Config) (KeyringFn, error) {
+func newKeyringFn(cfg *Config) (keyringFn, error) {
 	path, err := gitPath(cfg)
 	if err != nil {
 		return nil, err
 	}
 	if path != "" {
-		return newGitKeyringFn(cfg)
+		return startGitKeyringFn(cfg)
 	}
 	return newSystemKeyringFn(cfg)
 }
@@ -41,7 +35,7 @@ type sysKeyringFn struct {
 	sys *keyring.Keyring
 }
 
-func newSystemKeyringFn(cfg *Config) (KeyringFn, error) {
+func newSystemKeyringFn(cfg *Config) (keyringFn, error) {
 	st, err := newKeyringStore(cfg)
 	if err != nil {
 		return nil, err
@@ -56,16 +50,6 @@ func newSystemKeyringFn(cfg *Config) (KeyringFn, error) {
 
 func (k *sysKeyringFn) Keyring() *keyring.Keyring {
 	return k.sys
-}
-
-func (k *sysKeyringFn) Pull() error {
-	// Not supported by system keyring
-	return nil
-}
-
-func (k *sysKeyringFn) Push() error {
-	// Not supported by system keyring
-	return nil
 }
 
 func newKeyringStore(cfg *Config) (keyring.Store, error) {

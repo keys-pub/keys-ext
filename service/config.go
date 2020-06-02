@@ -42,9 +42,9 @@ const serverCfgKey = "server"
 const portCfgKey = "port"
 const logLevelCfgKey = "logLevel"
 const keyringTypeCfgKey = "keyring"
-const gitAuthCfgKey = "gitAuth"
+const gitKeyPathCfgKey = "gitKeyPath"
 
-var configKeys = []string{serverCfgKey, portCfgKey, logLevelCfgKey, keyringTypeCfgKey, gitAuthCfgKey}
+var configKeys = []string{serverCfgKey, portCfgKey, logLevelCfgKey, keyringTypeCfgKey, gitKeyPathCfgKey}
 
 // IsKey returns true if config key is recognized.
 func (c Config) IsKey(s string) bool {
@@ -71,11 +71,6 @@ func (c *Config) LogLevel() LogLevel {
 	ll := c.Get(logLevelCfgKey, "")
 	l, _ := parseLogLevel(ll)
 	return l
-}
-
-// GitAuth is key ID for git auth.
-func (c Config) GitAuth() string {
-	return c.Get(gitAuthCfgKey, "")
 }
 
 // Build describes build flags.

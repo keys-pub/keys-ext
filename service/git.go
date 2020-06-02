@@ -4,6 +4,8 @@ import (
 	"context"
 	"io/ioutil"
 	"os"
+	"sync"
+	"time"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/git"
@@ -12,11 +14,12 @@ import (
 )
 
 type gitKeyringFn struct {
+	sync.Mutex
 	git  *keyring.Keyring
 	repo *git.Repository
 }
 
-func newGitKeyringFn(cfg *Config) (KeyringFn, error) {
+func newGitKeyringFn(cfg *Config) (*gitKeyringFn, error) {
 	path, err := gitPath(cfg)
 	if err != nil {
 		return nil, err
@@ -49,16 +52,56 @@ func newGitKeyringFn(cfg *Config) (KeyringFn, error) {
 	return gitFn, nil
 }
 
+func startGitKeyringFn(cfg *Config) (*gitKeyringFn, error) {
+	kr, err := newGitKeyringFn(cfg)
+	if err != nil {
+		return nil, err
+	}
+	kr.start()
+	return kr, nil
+}
+
+func (k *gitKeyringFn) start() {
+	go func() {
+		// Initial sync
+		k.sync()
+
+		ch := k.git.Subscribe("git")
+		timer := time.NewTimer(15 * time.Minute)
+		for {
+			select {
+			// TODO: Implement stop, using context cancel
+			// case <-ctx.Done():
+			case <-timer.C:
+				go func() {
+					k.sync()
+				}()
+			case event := <-ch:
+				switch event.(type) {
+				case keyring.CreateEvent, keyring.UpdateEvent:
+					logger.Infof("Create update event: %v", event)
+					go func() {
+						k.sync()
+					}()
+				}
+			}
+		}
+	}()
+}
+
+func (k *gitKeyringFn) sync() {
+	k.Lock()
+	defer k.Unlock()
+
+	// TODO: Don't add/remove items from keyring while sync'ing?
+
+	if err := k.repo.Sync(); err != nil {
+		logger.Errorf("Failed to sync git keyring: %v", err)
+	}
+}
+
 func (k *gitKeyringFn) Keyring() *keyring.Keyring {
 	return k.git
-}
-
-func (k *gitKeyringFn) Pull() error {
-	return k.repo.Pull()
-}
-
-func (k *gitKeyringFn) Push() error {
-	return k.repo.Push()
 }
 
 func gitPath(cfg *Config) (string, error) {
@@ -180,23 +223,21 @@ func (s *service) gitImport(ctx context.Context, key *keys.EdX25519Key, urs stri
 
 	// Set git as the service keyring
 	logger.Infof("Setting keyring to git...")
-	git, err := newGitKeyringFn(s.cfg)
+	git, err := startGitKeyringFn(s.cfg)
 	if err != nil {
 		return err
 	}
 	s.keyringFn = git
 
-	// Unlock the new git keyring (if set)
+	// Unlock the new git keyring (if unlocked, otherwise is noop)
 	git.Keyring().SetMasterKey(kr.MasterKey())
 
 	// TODO: Test the new keyring before reseting old?
 
-	// Backup old keyring
+	// Backup and reset old keyring
 	if _, err := s.backup(kr.Store()); err != nil {
 		return err
 	}
-
-	// Reset old keyring
 	logger.Infof("Resetting old keyring...")
 	if err := kr.Reset(); err != nil {
 		return err
@@ -243,7 +284,7 @@ func gitKey(path string) (*keys.EdX25519Key, error) {
 
 func saveGitKeyPath(cfg *Config, path string) error {
 	logger.Infof("Saving git auth to config: %s", path)
-	cfg.Set(gitAuthCfgKey, path)
+	cfg.Set(gitKeyPathCfgKey, path)
 	if err := cfg.Save(); err != nil {
 		return err
 	}
@@ -251,7 +292,7 @@ func saveGitKeyPath(cfg *Config, path string) error {
 }
 
 func loadGitKey(cfg *Config) (*keys.EdX25519Key, error) {
-	path := cfg.Get(gitAuthCfgKey, homePath(".ssh", "id_ed25519"))
+	path := cfg.Get(gitKeyPathCfgKey, homePath(".ssh", "id_ed25519"))
 	if path == "" {
 		return nil, errors.Errorf("no git key set in config")
 	}
@@ -281,7 +322,7 @@ func (s *service) gitClone(ctx context.Context, key *keys.EdX25519Key, urs strin
 
 	// Set git as the service keyring
 	logger.Infof("Setting keyring to git...")
-	git, err := newGitKeyringFn(s.cfg)
+	git, err := startGitKeyringFn(s.cfg)
 	if err != nil {
 		return err
 	}
@@ -292,31 +333,6 @@ func (s *service) gitClone(ctx context.Context, key *keys.EdX25519Key, urs strin
 
 	logger.Infof("Git clone finished")
 	return nil
-}
-
-func (s *service) GitPull(ctx context.Context, req *GitPullRequest) (*GitPullResponse, error) {
-	st := s.keyringFn.Keyring().Store()
-	if st.Name() != "git" {
-		return nil, errors.Errorf("git keyring is not setup")
-	}
-	if err := s.keyringFn.Pull(); err != nil {
-		return nil, err
-	}
-
-	return &GitPullResponse{}, nil
-}
-
-func (s *service) GitPush(ctx context.Context, req *GitPushRequest) (*GitPushResponse, error) {
-	st := s.keyringFn.Keyring().Store()
-	if st.Name() != "git" {
-		return nil, errors.Errorf("git keyring is not setup")
-	}
-
-	if err := s.keyringFn.Push(); err != nil {
-		return nil, err
-	}
-
-	return &GitPushResponse{}, nil
 }
 
 func equalStrings(s1 []string, s2 []string) bool {

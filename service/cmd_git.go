@@ -49,28 +49,6 @@ func gitCommands(client *Client) []cli.Command {
 						return nil
 					},
 				},
-				cli.Command{
-					Name:  "pull",
-					Usage: "Pull",
-					Flags: []cli.Flag{},
-					Action: func(c *cli.Context) error {
-						if _, err := client.KeysClient().GitPull(context.TODO(), &GitPullRequest{}); err != nil {
-							return err
-						}
-						return nil
-					},
-				},
-				cli.Command{
-					Name:  "push",
-					Usage: "Push",
-					Flags: []cli.Flag{},
-					Action: func(c *cli.Context) error {
-						if _, err := client.KeysClient().GitPush(context.TODO(), &GitPushRequest{}); err != nil {
-							return err
-						}
-						return nil
-					},
-				},
 			},
 		},
 	}
