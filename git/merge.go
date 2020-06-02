@@ -8,8 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Merge ...
-func (r *Repository) Merge() error {
+func (r *Repository) merge() error {
 	logger.Debugf("Merge...")
 	if r.repo == nil {
 		return errors.Errorf("not open")

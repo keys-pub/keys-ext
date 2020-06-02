@@ -79,6 +79,8 @@ github.com/keys-pub/keys v0.0.0-20200601012402-9dfef04c5ce3 h1:C5gUHzIYdnPSN0P4a
 github.com/keys-pub/keys v0.0.0-20200601012402-9dfef04c5ce3/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys v0.0.0-20200601190116-baa0e3869109 h1:ex1WDH2tAq+ewPsqOFbwwRMKXalVVTb/R6Eq5ud02Z8=
 github.com/keys-pub/keys v0.0.0-20200601190116-baa0e3869109/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.0.0-20200602221939-5aac9a3884c2 h1:OZBlAlZj6m0CncRuLnN2wJJTURDiaQvBOAsFSDTrwNQ=
+github.com/keys-pub/keys v0.0.0-20200602221939-5aac9a3884c2/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys-ext v0.0.45 h1:G5xeyTOBy03moOomCHJE2h/qr0gz8yxtTpzvxkMqfGg=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f h1:LLsdI2XManLH0JonKqB6OYmHdHk/WwJByDbHI3hCEcs=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f/go.mod h1:YRHMiVbZqh7u8xRm77CvwJNAZdDlNXwWvQ4DK0N9mYg=

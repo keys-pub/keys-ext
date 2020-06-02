@@ -22,8 +22,10 @@ func TestRepositoryAddDelete(t *testing.T) {
 
 	privateKey, err := ioutil.ReadFile("id_ed25519")
 	require.NoError(t, err)
-	skey, err := keys.ParseSSHKey(privateKey, nil, true)
+	sshKey, err := keys.ParseSSHKey(privateKey, nil, true)
 	require.NoError(t, err)
+	repoKey, ok := sshKey.(*keys.EdX25519Key)
+	require.True(t, ok)
 
 	url := "git@gitlab.com:gabrielha/pass-test.git"
 
@@ -37,7 +39,7 @@ func TestRepositoryAddDelete(t *testing.T) {
 	// Keyring #1
 	repo1 := git.NewRepository()
 	repo1.SetKeyringDir(krDir)
-	err = repo1.SetKey(skey)
+	err = repo1.SetKey(repoKey)
 	require.NoError(t, err)
 	err = repo1.Clone(url, path)
 	require.NoError(t, err)
@@ -62,7 +64,7 @@ func TestRepositoryAddDelete(t *testing.T) {
 	// Keyring #2
 	repo2 := git.NewRepository()
 	repo2.SetKeyringDir(krDir)
-	err = repo2.SetKey(skey)
+	err = repo2.SetKey(repoKey)
 	require.NoError(t, err)
 	err = repo2.Clone(url, path2)
 	require.NoError(t, err)
@@ -83,7 +85,7 @@ func TestRepositoryAddDelete(t *testing.T) {
 	// Keyring #3 (same dir as #1)
 	repo3 := git.NewRepository()
 	repo3.SetKeyringDir(krDir)
-	err = repo3.SetKey(skey)
+	err = repo3.SetKey(repoKey)
 	require.NoError(t, err)
 	err = repo3.Open(path)
 	require.NoError(t, err)
@@ -105,7 +107,7 @@ func TestRepositoryAddDelete(t *testing.T) {
 	require.Equal(t, []byte("mypassword"), items[0].Data)
 
 	// Repo2: Delete, Push
-	ok, err := kr2.Delete(item.ID)
+	ok, err = kr2.Delete(item.ID)
 	require.NoError(t, err)
 	require.True(t, ok)
 	err = repo2.Push()
@@ -127,8 +129,10 @@ func TestConflictResolve(t *testing.T) {
 
 	privateKey, err := ioutil.ReadFile("id_ed25519")
 	require.NoError(t, err)
-	skey, err := keys.ParseSSHKey(privateKey, nil, true)
+	sshKey, err := keys.ParseSSHKey(privateKey, nil, true)
 	require.NoError(t, err)
+	repoKey, ok := sshKey.(*keys.EdX25519Key)
+	require.True(t, ok)
 
 	url := "git@gitlab.com:gabrielha/pass-test.git"
 
@@ -142,7 +146,7 @@ func TestConflictResolve(t *testing.T) {
 	// Keyring #1
 	repo1 := git.NewRepository()
 	repo1.SetKeyringDir(krDir)
-	err = repo1.SetKey(skey)
+	err = repo1.SetKey(repoKey)
 	require.NoError(t, err)
 	err = repo1.Clone(url, path)
 	require.NoError(t, err)
@@ -156,7 +160,7 @@ func TestConflictResolve(t *testing.T) {
 	// Keyring #2
 	repo2 := git.NewRepository()
 	repo2.SetKeyringDir(krDir)
-	err = repo2.SetKey(skey)
+	err = repo2.SetKey(repoKey)
 	require.NoError(t, err)
 	err = repo2.Clone(url, path2)
 	require.NoError(t, err)
@@ -216,17 +220,19 @@ func TestRepositoryClone(t *testing.T) {
 
 	privateKey, err := ioutil.ReadFile("id_ed25519")
 	require.NoError(t, err)
-	skey, err := keys.ParseSSHKey(privateKey, nil, true)
+	sshKey, err := keys.ParseSSHKey(privateKey, nil, true)
 	require.NoError(t, err)
+	repoKey, ok := sshKey.(*keys.EdX25519Key)
+	require.True(t, ok)
 
 	repo := git.NewRepository()
-	err = repo.SetKey(skey)
+	err = repo.SetKey(repoKey)
 	require.NoError(t, err)
 	err = repo.Clone(urs, path)
 	require.NoError(t, err)
 
 	repo2 := git.NewRepository()
-	err = repo.SetKey(skey)
+	err = repo.SetKey(repoKey)
 	require.NoError(t, err)
 	err = repo2.Open(path)
 	require.NoError(t, err)

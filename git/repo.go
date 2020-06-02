@@ -67,9 +67,14 @@ func (r *Repository) Open(path string) error {
 		return err
 	}
 
+	remote, err := repo.Remote("origin")
+	if err != nil {
+		return err
+	}
+	logger.Infof("Remote: %s", remote.Config().URLs)
+
 	r.repo = repo
 	r.path = path
-	logger.Debugf("Opened repo: %s", path)
 	return nil
 }
 
@@ -138,18 +143,27 @@ func (r *Repository) Clone(urs string, path string) error {
 	return r.Open(path)
 }
 
-// Fetch remote.
-func (r *Repository) Fetch() error {
+// // Fetch remote.
+// func (r *Repository) Fetch() error {
+// 	r.Lock()
+// 	defer r.Unlock()
+// 	return r.fetch()
+// }
+
+func (r *Repository) fetch() error {
 	if r.repo == nil {
 		return errors.Errorf("not open")
 	}
-
 	logger.Debugf("Fetch origin...")
 	fetchOptions := &git.FetchOptions{
 		RemoteName: "origin",
 		Auth:       r.auth,
 	}
 	if err := r.repo.Fetch(fetchOptions); err != nil {
+		if errors.Cause(err) == git.NoErrAlreadyUpToDate {
+			logger.Debugf("Fetch (already up to date)")
+			return nil
+		}
 		return err
 	}
 
@@ -158,10 +172,14 @@ func (r *Repository) Fetch() error {
 
 // Pull fetches and merges.
 func (r *Repository) Pull() error {
-	if err := r.Fetch(); err != nil {
+	return r.pull()
+}
+
+func (r *Repository) pull() error {
+	if err := r.fetch(); err != nil {
 		return err
 	}
-	if err := r.Merge(); err != nil {
+	if err := r.merge(); err != nil {
 		return err
 	}
 	return nil
@@ -169,14 +187,37 @@ func (r *Repository) Pull() error {
 
 // Push changes.
 func (r *Repository) Push() error {
+	return r.push()
+}
+
+func (r *Repository) push() error {
 	if r.repo == nil {
 		return errors.Errorf("not open")
 	}
 
+	logger.Debugf("Push git")
 	if err := r.repo.Push(&git.PushOptions{
 		Auth: r.auth,
 	}); err != nil {
+		if errors.Cause(err) == git.NoErrAlreadyUpToDate {
+			logger.Debugf("Push (already up to date)")
+			return nil
+		}
 		return err
+	}
+	logger.Debugf("Push complete")
+	return nil
+}
+
+// Sync does a pull (fetch, merge), push.
+func (r *Repository) Sync() error {
+	logger.Infof("Syncing git remote...")
+
+	if err := r.pull(); err != nil {
+		return errors.Wrapf(err, "failed to sync (pull)")
+	}
+	if err := r.push(); err != nil {
+		return errors.Wrapf(err, "failed to sync (push)")
 	}
 	return nil
 }

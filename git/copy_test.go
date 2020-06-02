@@ -21,8 +21,10 @@ func TestCopy(t *testing.T) {
 	url := "git@gitlab.com:gabrielha/pass-test.git"
 	privateKey, err := ioutil.ReadFile("id_ed25519")
 	require.NoError(t, err)
-	repoKey, err := keys.ParseSSHKey(privateKey, nil, true)
+	sshKey, err := keys.ParseSSHKey(privateKey, nil, true)
 	require.NoError(t, err)
+	repoKey, ok := sshKey.(*keys.EdX25519Key)
+	require.True(t, ok)
 
 	// Keyring #1 (mem)
 	kr := keyring.NewMem(false)

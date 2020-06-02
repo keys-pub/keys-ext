@@ -6,7 +6,7 @@ require (
 	github.com/go-git/go-git/v5 v5.1.0
 	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/keys-pub/git2go v0.0.0-20200529003006-6fe50fc72b35
-	github.com/keys-pub/keys v0.0.0-20200601190116-baa0e3869109
+	github.com/keys-pub/keys v0.0.0-20200602221939-5aac9a3884c2
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.5.1
