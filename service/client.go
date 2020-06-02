@@ -183,7 +183,6 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 	cmds = append(cmds, logCommands(client)...)
 	cmds = append(cmds, wormholeCommands(client)...)
 	cmds = append(cmds, fido2Commands(client)...)
-	cmds = append(cmds, gitCommands(client)...)
 	cmds = append(cmds, adminCommands(client)...)
 	cmds = append(cmds, backupCommands(client)...)
 

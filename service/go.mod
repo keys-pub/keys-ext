@@ -9,7 +9,6 @@ require (
 	github.com/keys-pub/keys v0.0.0-20200602230544-2fbd83e596db
 	github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200528184029-7548f2a0a594
 	github.com/keys-pub/keys-ext/db v0.0.0-20200528184029-7548f2a0a594
-	github.com/keys-pub/keys-ext/git v0.0.0-20200602222733-c4f6c556d167
 	github.com/keys-pub/keys-ext/http/api v0.0.0-20200528184029-7548f2a0a594
 	github.com/keys-pub/keys-ext/http/client v0.0.0-20200528185501-04f091ec8e61
 	github.com/keys-pub/keys-ext/http/server v0.0.0-20200528185324-90ced7e635aa
@@ -20,7 +19,6 @@ require (
 	github.com/sirupsen/logrus v1.6.0
 	github.com/stretchr/testify v1.5.1
 	github.com/urfave/cli v1.22.4
-	github.com/vmihailenco/msgpack/v4 v4.3.11
 	golang.org/x/crypto v0.0.0-20200510223506-06a226fb4e37
 	google.golang.org/grpc v1.29.1
 )
@@ -30,8 +28,6 @@ require (
 // replace github.com/keys-pub/keys-ext/db => ../db
 
 // replace github.com/keys-pub/keys-ext/auth/fido2 => ../auth/fido2
-
-// replace github.com/keys-pub/keys-ext/git => ../git
 
 // replace github.com/keys-pub/keys-ext/http/api => ../http/api
 

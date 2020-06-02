@@ -20,7 +20,6 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/auth/fido2"
 	"github.com/keys-pub/keys-ext/db"
-	"github.com/keys-pub/keys-ext/git"
 	"github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys-ext/wormhole"
 	"github.com/keys-pub/keys-ext/wormhole/sctp"
@@ -125,7 +124,6 @@ func Run(build Build) {
 	wormhole.SetLogger(lg)
 	sctp.SetLogger(lg)
 	db.SetLogger(lg)
-	git.SetLogger(lg)
 
 	logger.Debugf("Running %v", os.Args)
 
