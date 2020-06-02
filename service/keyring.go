@@ -13,13 +13,6 @@ type keyringFn interface {
 }
 
 func newKeyringFn(cfg *Config) (keyringFn, error) {
-	path, err := gitPath(cfg)
-	if err != nil {
-		return nil, err
-	}
-	if path != "" {
-		return startGitKeyringFn(cfg)
-	}
 	return newSystemKeyringFn(cfg)
 }
 
