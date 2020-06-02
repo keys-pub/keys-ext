@@ -95,9 +95,7 @@ service Keys {
   rpc AuthProvisions(AuthProvisionsRequest) returns (AuthProvisionsResponse) {}  
   
   rpc GitImport(GitImportRequest) returns (GitImportResponse) {}
-  rpc GitPull(GitPullRequest) returns (GitPullResponse) {}
-  rpc GitPush(GitPushRequest) returns (GitPushResponse) {}
-
+  
   rpc Backup(BackupRequest) returns (BackupResponse) {}  
 
   rpc Collections(CollectionsRequest) returns (CollectionsResponse) {}
@@ -988,12 +986,6 @@ message GitCloneRequest {
   string keyPath = 2; 
 }
 message GitCloneResponse {}
-
-message GitPullRequest {}
-message GitPullResponse {}
-
-message GitPushRequest {}
-message GitPushResponse {}
 
 message BackupRequest {}
 message BackupResponse {

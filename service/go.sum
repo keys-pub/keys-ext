@@ -164,6 +164,8 @@ github.com/keys-pub/keys v0.0.0-20200601190116-baa0e3869109 h1:ex1WDH2tAq+ewPsqO
 github.com/keys-pub/keys v0.0.0-20200601190116-baa0e3869109/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys v0.0.0-20200601215340-b3e229e689c8 h1:9sQ3sua/RwH0oGAKWef3F69ETUIlnjqkKcFAqo44Hxk=
 github.com/keys-pub/keys v0.0.0-20200601215340-b3e229e689c8/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.0.0-20200602221939-5aac9a3884c2 h1:OZBlAlZj6m0CncRuLnN2wJJTURDiaQvBOAsFSDTrwNQ=
+github.com/keys-pub/keys v0.0.0-20200602221939-5aac9a3884c2/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys-ext v0.0.45 h1:G5xeyTOBy03moOomCHJE2h/qr0gz8yxtTpzvxkMqfGg=
 github.com/keys-pub/keys-ext v0.0.46-0.20200528185636-49b5d7075454 h1:2xf+JcLTaOPoTBAWZE/JBxd+rgP8l3niLS8UhhQNaN0=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200528184029-7548f2a0a594 h1:9myo45jCdYqP8u9kyP4dhoxD4TJEkWpiaG3nUKS9esU=
@@ -177,6 +179,8 @@ github.com/keys-pub/keys-ext/git v0.0.0-20200529223633-ff4b9d73dca6 h1:Qvvk8H+tY
 github.com/keys-pub/keys-ext/git v0.0.0-20200529223633-ff4b9d73dca6/go.mod h1:9Z9fcHPmKYeSE0B+anNLVCTe5sSGTAAynGFG0KClzVs=
 github.com/keys-pub/keys-ext/git v0.0.0-20200601234707-2bcd9361babc h1:wR5famJFeTCntpoIrMI/L6/+AgWtzkJ+aOKZ6JCjFFk=
 github.com/keys-pub/keys-ext/git v0.0.0-20200601234707-2bcd9361babc/go.mod h1:dzzPjOEX5bAj7q3LF+riu8fM6s4DGwPOpeff61wyNj0=
+github.com/keys-pub/keys-ext/git v0.0.0-20200602222733-c4f6c556d167 h1:pn/FSxv4Fyf4X9dMrQjKmKYGcKd8Eb/w0V/QSncgyO8=
+github.com/keys-pub/keys-ext/git v0.0.0-20200602222733-c4f6c556d167/go.mod h1:r3CmPp3ucHeYsgVIaZjSUIudDQGq/aXx69mAwgQkK0w=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20200528184029-7548f2a0a594 h1:ruE65kGESefD2DZmEX6uG4NlEwgdlTRVDljDCAwCFhg=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20200528184029-7548f2a0a594/go.mod h1:S2mshNfPWtxKP9XJa5X0G3S6Bd8RPIPOkMEkI5FLTmc=
 github.com/keys-pub/keys-ext/http/client v0.0.0-20200528185501-04f091ec8e61 h1:YJZ0EjAMbtW1WxiF29n1CEaE5WmrLvhsKc3kO/NDBoY=

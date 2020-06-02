@@ -24,7 +24,7 @@ type service struct {
 	scs       keys.SigchainStore
 	users     *user.Store
 	nowFn     func() time.Time
-	keyringFn KeyringFn
+	keyringFn keyringFn
 
 	closeCh chan bool
 	open    bool

@@ -16,7 +16,7 @@ func userCommands(client *Client) []cli.Command {
 	return []cli.Command{
 		cli.Command{
 			Name:  "user",
-			Usage: "Manage users",
+			Usage: "Link and search users",
 			Subcommands: []cli.Command{
 				cli.Command{
 					Name:  "find",

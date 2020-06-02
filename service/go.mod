@@ -6,10 +6,10 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/gogo/protobuf v1.3.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
-	github.com/keys-pub/keys v0.0.0-20200601215340-b3e229e689c8
+	github.com/keys-pub/keys v0.0.0-20200602221939-5aac9a3884c2
 	github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200528184029-7548f2a0a594
 	github.com/keys-pub/keys-ext/db v0.0.0-20200528184029-7548f2a0a594
-	github.com/keys-pub/keys-ext/git v0.0.0-20200601234707-2bcd9361babc
+	github.com/keys-pub/keys-ext/git v0.0.0-20200602222733-c4f6c556d167
 	github.com/keys-pub/keys-ext/http/api v0.0.0-20200528184029-7548f2a0a594
 	github.com/keys-pub/keys-ext/http/client v0.0.0-20200528185501-04f091ec8e61
 	github.com/keys-pub/keys-ext/http/server v0.0.0-20200528185324-90ced7e635aa
