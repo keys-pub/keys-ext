@@ -10,7 +10,7 @@ require (
 	github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200528184029-7548f2a0a594
 	github.com/keys-pub/keys-ext/db v0.0.0-20200528184029-7548f2a0a594
 	github.com/keys-pub/keys-ext/http/api v0.0.0-20200528184029-7548f2a0a594
-	github.com/keys-pub/keys-ext/http/client v0.0.0-20200528185501-04f091ec8e61
+	github.com/keys-pub/keys-ext/http/client v0.0.0-20200603163512-e65da09d2d8c
 	github.com/keys-pub/keys-ext/http/server v0.0.0-20200528185324-90ced7e635aa
 	github.com/keys-pub/keys-ext/wormhole v0.0.0-20200528185636-49b5d7075454
 	github.com/mercari/go-grpc-interceptor v0.0.0-20180110035004-b8ad3827e82a

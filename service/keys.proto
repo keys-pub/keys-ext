@@ -967,7 +967,7 @@ message AdminSignURLResponse {
 
 message AdminCheckRequest {
   string signer = 1;
-  string kid = 2 [(gogoproto.customname) = "KID"];
+  string check = 2;
 }
 
 message AdminCheckResponse {}

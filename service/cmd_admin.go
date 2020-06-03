@@ -44,12 +44,12 @@ func adminCommands(client *Client) []cli.Command {
 					Hidden: true,
 					Flags: []cli.Flag{
 						cli.StringFlag{Name: "signer, s", Usage: "signer"},
-						cli.StringFlag{Name: "kid, k", Usage: "key to update"},
+						cli.StringFlag{Name: "check, c", Usage: "what to check: kid, all"},
 					},
 					Action: func(c *cli.Context) error {
 						req := &AdminCheckRequest{
 							Signer: c.String("signer"),
-							KID:    c.String("kid"),
+							Check:  c.String("check"),
 						}
 						resp, err := client.KeysClient().AdminCheck(context.TODO(), req)
 						if err != nil {

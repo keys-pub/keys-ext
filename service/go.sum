@@ -154,6 +154,8 @@ github.com/keys-pub/keys-ext/http/api v0.0.0-20200528184029-7548f2a0a594 h1:ruE6
 github.com/keys-pub/keys-ext/http/api v0.0.0-20200528184029-7548f2a0a594/go.mod h1:S2mshNfPWtxKP9XJa5X0G3S6Bd8RPIPOkMEkI5FLTmc=
 github.com/keys-pub/keys-ext/http/client v0.0.0-20200528185501-04f091ec8e61 h1:YJZ0EjAMbtW1WxiF29n1CEaE5WmrLvhsKc3kO/NDBoY=
 github.com/keys-pub/keys-ext/http/client v0.0.0-20200528185501-04f091ec8e61/go.mod h1:PR4sbFLFSJiJopzZerGsuzrVYqXkbdNrdRUnwEkE/LE=
+github.com/keys-pub/keys-ext/http/client v0.0.0-20200603163512-e65da09d2d8c h1:i8cvU2ir4vDR6bWmeX+2GCvKOjaB+51HJcZp08j0rko=
+github.com/keys-pub/keys-ext/http/client v0.0.0-20200603163512-e65da09d2d8c/go.mod h1:PR4sbFLFSJiJopzZerGsuzrVYqXkbdNrdRUnwEkE/LE=
 github.com/keys-pub/keys-ext/http/server v0.0.0-20200528185324-90ced7e635aa h1:1WQjVLXL7VVkVrZhRhRzAhH2tjJTYUC1weRQljP7hz0=
 github.com/keys-pub/keys-ext/http/server v0.0.0-20200528185324-90ced7e635aa/go.mod h1:puLR2eOIxCnTO5D3gEChXBoQbLPQeTWUJdjYsMaW9rg=
 github.com/keys-pub/keys-ext/wormhole v0.0.0-20200528185636-49b5d7075454 h1:FmMQGJoAxozSTHLKJqeDoxSK4A1jzE5yPigXwYNiC+w=

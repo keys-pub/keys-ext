@@ -35,12 +35,7 @@ func (s *service) AdminCheck(ctx context.Context, req *AdminCheckRequest) (*Admi
 		return nil, err
 	}
 
-	kid, err := s.parseKID(req.KID)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := s.remote.AdminCheck(ctx, kid, admin); err != nil {
+	if err := s.remote.AdminCheck(ctx, req.Check, admin); err != nil {
 		return nil, err
 	}
 
