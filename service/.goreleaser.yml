@@ -37,14 +37,12 @@ archives:
   - replacements:
       386: i386
       amd64: x86_64
+release:
+  prerelease: true
+changelog:
+  skip: true
 snapshot:
   name_template: "{{ .Tag }}-next"
-changelog:
-  sort: asc
-  filters:
-    exclude:
-      - "^docs:"
-      - "^test:"
 brews:
   - name: "keys"
     homepage: "https://keys.pub"

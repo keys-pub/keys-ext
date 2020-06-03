@@ -18,3 +18,7 @@ archives:
       amd64: x86_64
 snapshot:
   name_template: "{{ .Tag }}-next"
+release:
+  prerelease: true
+changelog:
+  skip: true

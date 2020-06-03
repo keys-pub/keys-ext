@@ -26,12 +26,10 @@ checksum:
   name_template: "{{ .ProjectName }}_linux_checksums.txt"
 snapshot:
   name_template: "{{ .Tag }}-next"
+release:
+  prerelease: true
 changelog:
-  sort: asc
-  filters:
-    exclude:
-      - "^docs:"
-      - "^test:"
+  skip: true
 nfpms:
   - description: "keys.pub"
     homepage: "https://keys.pub"

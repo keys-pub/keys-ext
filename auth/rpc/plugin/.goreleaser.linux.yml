@@ -18,3 +18,7 @@ checksum:
   name_template: "{{ .ProjectName }}_linux_checksums.txt"
 snapshot:
   name_template: "{{ .Tag }}-next"
+release:
+  prerelease: true
+changelog:
+  skip: true
