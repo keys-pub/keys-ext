@@ -18,14 +18,6 @@ builds:
       - amd64
       - 386
       # - arm
-  - id: fido2
-    main: ./fido2/plugin.go
-    binary: fido2.so
-    flags: -buildmode=plugin
-    goos:
-      - linux
-    goarch:
-      - amd64
 archives:
   - replacements:
       386: i386

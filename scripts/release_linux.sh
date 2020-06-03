@@ -9,14 +9,18 @@ tmpdir=`mktemp -d 2>/dev/null || mktemp -d -t 'mytmpdir'`
 echo "$tmpdir"
 cd "$tmpdir"
 git clone https://github.com/keys-pub/keys-ext
-cd keysd
+cd keys-ext
 
 ver=`git describe --abbrev=0 --tags`
 echo "Latest tag: $ver"
 git checkout $ver
 
 cd service
-goreleaser --config=.goreleaser.linux.yml --rm-dist
+goreleaser --config=.goreleaser.linux.yml
+
+cd ../auth/rpc/plugin
+goreleaser --config=.goreleaser.linux.yml
+
 $dir/aptly.sh $ver
 
 # Cleanup

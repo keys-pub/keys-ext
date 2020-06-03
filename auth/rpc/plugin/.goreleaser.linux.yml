@@ -1,0 +1,20 @@
+project_name: "fido2"
+builds:
+  - id: fido2
+    main: plugin.go
+    binary: fido2.so
+    flags: -buildmode=plugin
+    env:
+      - CGO_ENABLED=1
+    goos:
+      - linux
+    goarch:
+      - amd64
+archives:
+  - replacements:
+      386: i386
+      amd64: x86_64
+checksum:
+  name_template: "{{ .ProjectName }}_linux_checksums.txt"
+snapshot:
+  name_template: "{{ .Tag }}-next"
