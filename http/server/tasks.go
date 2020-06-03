@@ -88,27 +88,42 @@ func (s *Server) taskCheck(c echo.Context) error {
 	return c.String(http.StatusOK, "")
 }
 
+func (s *Server) checkUserStatus(ctx context.Context, status user.Status) error {
+	kids, err := s.users.Status(ctx, status)
+	if err != nil {
+		return err
+	}
+	s.logger.Infof("Checking %s (%d)", status, len(kids))
+	if err := s.checkKeys(ctx, kids); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *Server) checkExpired(ctx context.Context, dt time.Duration) error {
+	kids, err := s.users.Expired(ctx, dt)
+	if err != nil {
+		return err
+	}
+	s.logger.Infof("Checking expired (%d)", len(kids))
+	if err := s.checkKeys(ctx, kids); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *Server) cronCheck(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
 	// TODO: Need to test this
 
-	// Check connection failures
-	fails, err := s.users.Status(ctx, user.StatusConnFailure)
-	if err != nil {
-		return s.internalError(c, err)
-	}
-	if err := s.checkKeys(ctx, fails); err != nil {
+	if err := s.checkUserStatus(ctx, user.StatusConnFailure); err != nil {
 		return s.internalError(c, err)
 	}
 
 	// Check expired
-	kids, err := s.users.Expired(ctx, time.Hour*23)
-	if err != nil {
-		return s.internalError(c, err)
-	}
-	if err := s.checkKeys(ctx, kids); err != nil {
+	if err := s.checkExpired(ctx, time.Hour*12); err != nil {
 		return s.internalError(c, err)
 	}
 
