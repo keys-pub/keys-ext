@@ -133,9 +133,9 @@ func (c Config) certPath(makeDir bool) (string, error) {
 func SupportPath(appName string, fileName string, makeDir bool) (string, error) {
 	switch runtime.GOOS {
 	case "darwin":
-		home := homeDir()
-		if home == "" {
-			return "", errors.Errorf("no home dir")
+		home, err := homeDir()
+		if err != nil {
+			return "", err
 		}
 		dir := filepath.Join(home, "Library", "Application Support")
 		return configPath(dir, appName, fileName, makeDir)
@@ -148,9 +148,9 @@ func SupportPath(appName string, fileName string, makeDir bool) (string, error) 
 	case "linux":
 		dir := os.Getenv("XDG_DATA_HOME")
 		if dir == "" {
-			home := homeDir()
-			if home == "" {
-				return "", errors.Errorf("no home dir")
+			home, err := homeDir()
+			if err != nil {
+				return "", err
 			}
 			dir = filepath.Join(home, ".local", "share")
 		}
@@ -164,9 +164,9 @@ func SupportPath(appName string, fileName string, makeDir bool) (string, error) 
 func LogsPath(appName string, fileName string, makeDir bool) (string, error) {
 	switch runtime.GOOS {
 	case "darwin":
-		home := homeDir()
-		if home == "" {
-			return "", errors.Errorf("no home dir")
+		home, err := homeDir()
+		if err != nil {
+			return "", err
 		}
 		dir := filepath.Join(home, "Library", "Logs")
 		return configPath(dir, appName, fileName, makeDir)
@@ -179,9 +179,9 @@ func LogsPath(appName string, fileName string, makeDir bool) (string, error) {
 	case "linux":
 		dir := os.Getenv("XDG_CACHE_HOME")
 		if dir == "" {
-			home := homeDir()
-			if dir == "" {
-				return "", errors.Errorf("no home dir")
+			home, err := homeDir()
+			if err != nil {
+				return "", err
 			}
 			dir = filepath.Join(home, ".cache")
 		}
@@ -215,22 +215,23 @@ func configPath(dir string, appName string, fileName string, makeDir bool) (stri
 	return path, nil
 }
 
-// homeDir returns current user home directory (or "" on error).
-func homeDir() string {
+// homeDir returns current user home directory.
+// On linux, when running an AppImage, homeDir can be empty.
+func homeDir() (string, error) {
 	// TODO: Switch to UserHomeDir in go 1.12
 	usr, err := user.Current()
 	if err != nil {
-		return ""
+		return "", err
 	}
-	return usr.HomeDir
+	return usr.HomeDir, nil
 }
 
-func homePath(paths ...string) string {
-	dir := homeDir()
-	if dir == "" {
-		return ""
+func homePath(paths ...string) (string, error) {
+	dir, err := homeDir()
+	if err != nil {
+		return "", err
 	}
-	return filepath.Join(append([]string{dir}, paths...)...)
+	return filepath.Join(append([]string{dir}, paths...)...), nil
 }
 
 // Load ...
