@@ -226,14 +226,6 @@ func homeDir() (string, error) {
 	return usr.HomeDir, nil
 }
 
-func homePath(paths ...string) (string, error) {
-	dir, err := homeDir()
-	if err != nil {
-		return "", err
-	}
-	return filepath.Join(append([]string{dir}, paths...)...), nil
-}
-
 // Load ...
 func (c *Config) Load() error {
 	path, err := c.AppPath("config.json", false)
