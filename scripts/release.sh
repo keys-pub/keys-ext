@@ -9,7 +9,7 @@ tmpdir=`mktemp -d 2>/dev/null || mktemp -d -t 'mytmpdir'`
 echo "$tmpdir"
 cd "$tmpdir"
 git clone https://github.com/keys-pub/keys-ext
-cd keysd
+cd keys-ext
 
 # keys, keysd
 cd service
