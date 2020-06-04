@@ -175,6 +175,10 @@ github.com/keys-pub/keys v0.0.0-20200602221939-5aac9a3884c2 h1:OZBlAlZj6m0CncRuL
 github.com/keys-pub/keys v0.0.0-20200602221939-5aac9a3884c2/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys v0.0.0-20200604024324-1fd790bf91a5 h1:Rn8zAgIdL5aoWyqpS/Iy1QktSehRBQ4lns9I+31nuuE=
 github.com/keys-pub/keys v0.0.0-20200604024324-1fd790bf91a5/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.0.0-20200604181626-a4150ec123e4 h1:/jVlDzA+x93tjtOtU5Dxikuk5+Ap/H2brI1flYJ4CMs=
+github.com/keys-pub/keys v0.0.0-20200604181626-a4150ec123e4/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.0.0-20200604182647-b8d6b989cc48 h1:7UlD7b2tQCLlTRLIrmUrs36dcjCnOsUY6huj0jcbeJ4=
+github.com/keys-pub/keys v0.0.0-20200604182647-b8d6b989cc48/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200528184029-7548f2a0a594 h1:9myo45jCdYqP8u9kyP4dhoxD4TJEkWpiaG3nUKS9esU=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200528184029-7548f2a0a594/go.mod h1:x/G3gwUe4ZbszY+qWXzvsy4nAun2b/ENISACWfwAB04=
 github.com/keys-pub/keys-ext/db v0.0.0-20200528184029-7548f2a0a594 h1:dT7LQhFXfxCfz0EgbGegLrjgdMBgMGD93B7kkYnoeGc=
@@ -193,6 +197,8 @@ github.com/keys-pub/keys-ext/http/server v0.0.0-20200528185324-90ced7e635aa h1:1
 github.com/keys-pub/keys-ext/http/server v0.0.0-20200528185324-90ced7e635aa/go.mod h1:puLR2eOIxCnTO5D3gEChXBoQbLPQeTWUJdjYsMaW9rg=
 github.com/keys-pub/keys-ext/wormhole v0.0.0-20200604030016-f980322b2269 h1:XtLz+o/Uxu1Y8Uv/ptlYtltJzuf1ofcYTjxs5RjKSDQ=
 github.com/keys-pub/keys-ext/wormhole v0.0.0-20200604030016-f980322b2269/go.mod h1:aihIfbaH5EynSxZNxIET+uIzjD0ltNJ+TQlxo3QCvQQ=
+github.com/keys-pub/keys-ext/wormhole v0.0.0-20200604181719-aff69f455544 h1:yGeZV0emNJEmECJUOKTkYn2FbkX5ndY5mOdYFuSRjOY=
+github.com/keys-pub/keys-ext/wormhole v0.0.0-20200604181719-aff69f455544/go.mod h1:DPvRCD95AlpK5390x6bqOwmqbyiYSBwjf6v8CvLM6Oo=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f h1:LLsdI2XManLH0JonKqB6OYmHdHk/WwJByDbHI3hCEcs=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f/go.mod h1:YRHMiVbZqh7u8xRm77CvwJNAZdDlNXwWvQ4DK0N9mYg=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=

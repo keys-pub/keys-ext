@@ -33,7 +33,7 @@ func (s *service) Decrypt(ctx context.Context, req *DecryptRequest) (*DecryptRes
 		mode = EncryptV2
 	}
 
-	ks := s.keyStore()
+	ks := &saltpackKeyring{s.keyring()}
 
 	// TODO: Autodetect if input data is armored or not
 
@@ -210,7 +210,7 @@ func (s *service) decryptStream(srv decryptStreamServer, mode EncryptMode, armor
 }
 
 func (s *service) decryptReader(ctx context.Context, reader io.Reader, mode EncryptMode, armored bool) (io.Reader, keys.ID, error) {
-	ks := s.keyStore()
+	ks := &saltpackKeyring{s.keyring()}
 	var out io.Reader
 	var kid keys.ID
 	var decryptErr error
