@@ -129,19 +129,19 @@ type cmd struct {
 }
 
 func newCmd() (*cmd, error) {
-	ks := keys.NewMemStore()
+	ks := keys.NewMemStore(true)
 
 	offerKey := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	answerKey := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
 
-	if err := ks.SaveEdX25519Key(offerKey); err != nil {
+	if err := ks.Save(offerKey); err != nil {
 		return nil, err
 	}
-	if err := ks.SaveEdX25519Key(answerKey); err != nil {
+	if err := ks.Save(answerKey); err != nil {
 		return nil, err
 	}
 
-	hcl, err := httpclient.New("https://keys.pub", ks)
+	hcl, err := httpclient.New("https://keys.pub")
 	if err != nil {
 		return nil, err
 	}
@@ -154,26 +154,26 @@ func newCmd() (*cmd, error) {
 }
 
 func (c *cmd) writeOffer(ctx context.Context, offer *sctp.Addr) error {
-	return c.writeSession(ctx, c.offerKey.ID(), c.answerKey.ID(), offer, "offer")
+	return c.writeSession(ctx, c.offerKey, c.answerKey.ID(), offer, "offer")
 }
 
 func (c *cmd) readOffer(ctx context.Context) (*sctp.Addr, error) {
-	return c.readSession(ctx, c.offerKey.ID(), c.answerKey.ID(), "offer")
+	return c.readSession(ctx, c.offerKey.ID(), c.answerKey, "offer")
 }
 
 func (c *cmd) writeAnswer(ctx context.Context, answer *sctp.Addr) error {
-	return c.writeSession(ctx, c.answerKey.ID(), c.offerKey.ID(), answer, "answer")
+	return c.writeSession(ctx, c.answerKey, c.offerKey.ID(), answer, "answer")
 }
 
 func (c *cmd) readAnswer(ctx context.Context) (*sctp.Addr, error) {
-	return c.readSession(ctx, c.answerKey.ID(), c.offerKey.ID(), "answer")
+	return c.readSession(ctx, c.answerKey.ID(), c.offerKey, "answer")
 }
 
-func (c *cmd) writeSession(ctx context.Context, sender keys.ID, recipient keys.ID, addr *sctp.Addr, typ client.DiscoType) error {
+func (c *cmd) writeSession(ctx context.Context, sender *keys.EdX25519Key, recipient keys.ID, addr *sctp.Addr, typ client.DiscoType) error {
 	return c.hcl.PutDisco(ctx, sender, recipient, typ, addr.String(), time.Minute)
 }
 
-func (c *cmd) readSession(ctx context.Context, sender keys.ID, recipient keys.ID, typ client.DiscoType) (*sctp.Addr, error) {
+func (c *cmd) readSession(ctx context.Context, sender keys.ID, recipient *keys.EdX25519Key, typ client.DiscoType) (*sctp.Addr, error) {
 	for {
 		fmt.Printf("Get disco (%s)...\n", typ)
 		addr, err := c.hcl.GetDisco(ctx, sender, recipient, typ)

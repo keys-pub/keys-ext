@@ -7,12 +7,12 @@ import (
 	"unicode/utf8"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/encoding"
-	"github.com/keys-pub/keys/noise"
 	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys-ext/http/client"
 	httpclient "github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys-ext/wormhole/sctp"
+	"github.com/keys-pub/keys/encoding"
+	"github.com/keys-pub/keys/noise"
 	"github.com/pkg/errors"
 )
 
@@ -303,7 +303,7 @@ func (w *Wormhole) noiseHandshake(ctx context.Context, sender *keys.EdX25519Key,
 		return errors.Errorf("wormhole already started")
 	}
 
-	recipientPublicKey, err := w.ks.EdX25519PublicKey(recipient)
+	recipientPublicKey, err := keys.NewEdX25519PublicKeyFromID(recipient)
 	if err != nil {
 		return err
 	}
