@@ -10,6 +10,7 @@ require (
 	github.com/keys-pub/keys v0.0.0-20200604024324-1fd790bf91a5
 	github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200528184029-7548f2a0a594
 	github.com/keys-pub/keys-ext/db v0.0.0-20200528184029-7548f2a0a594
+	github.com/keys-pub/keys-ext/git v0.0.0-20200602222733-c4f6c556d167
 	github.com/keys-pub/keys-ext/http/api v0.0.0-20200528184029-7548f2a0a594
 	github.com/keys-pub/keys-ext/http/client v0.0.0-20200603163512-e65da09d2d8c
 	github.com/keys-pub/keys-ext/http/server v0.0.0-20200528185324-90ced7e635aa
@@ -29,6 +30,8 @@ require (
 // replace github.com/keys-pub/keys-ext/db => ../db
 
 // replace github.com/keys-pub/keys-ext/auth/fido2 => ../auth/fido2
+
+// replace github.com/keys-pub/keys-ext/git => ../git
 
 // replace github.com/keys-pub/keys-ext/http/api => ../http/api
 
