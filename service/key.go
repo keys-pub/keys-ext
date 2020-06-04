@@ -315,12 +315,16 @@ func (s *service) parseSigner(signer string, required bool) (*keys.EdX25519Key, 
 		return nil, err
 	}
 	ks := s.keyStore()
-	sk, err := ks.EdX25519Key(kid)
+	key, err := ks.Key(kid)
 	if err != nil {
 		return nil, err
 	}
-	if sk == nil {
+	if key == nil {
 		return nil, keys.NewErrNotFound(kid.String())
+	}
+	sk, ok := key.(*keys.EdX25519Key)
+	if !ok {
+		return nil, errors.Errorf("unsupported key type for %s", kid)
 	}
 	return sk, nil
 }
@@ -330,47 +334,45 @@ func (s *service) parseBoxKey(kid keys.ID) (*keys.X25519Key, error) {
 		return nil, nil
 	}
 	ks := s.keyStore()
-	switch kid.PublicKeyType() {
-	case keys.EdX25519Public:
-		key, err := ks.EdX25519Key(kid)
-		if err != nil {
-			return nil, err
-		}
-		if key == nil {
-			return nil, nil
-		}
-		return key.X25519Key(), nil
-	case keys.X25519Public:
-		return ks.X25519Key(kid)
+
+	key, err := ks.Key(kid)
+	if err != nil {
+		return nil, err
+	}
+	switch k := key.(type) {
+	case *keys.EdX25519Key:
+		return k.X25519Key(), nil
+	case *keys.X25519Key:
+		return k, nil
 	default:
 		return nil, errors.Errorf("unsupported key type for %s", kid)
 	}
 }
 
-func (s *service) parseSignKey(kid string, required bool) (*keys.EdX25519Key, error) {
-	if kid == "" {
+func (s *service) parseSignKey(id string, required bool) (*keys.EdX25519Key, error) {
+	if id == "" {
 		if required {
 			return nil, errors.Errorf("no kid specified")
 		}
 		return nil, nil
 	}
-	id, err := keys.ParseID(kid)
+	kid, err := keys.ParseID(id)
 	if err != nil {
 		return nil, err
 	}
 	ks := s.keyStore()
-	switch id.PublicKeyType() {
-	case keys.EdX25519Public:
-		key, err := ks.EdX25519Key(id)
-		if err != nil {
-			return nil, err
-		}
-		if key == nil && required {
-			return nil, keys.NewErrNotFound(kid)
-		}
-		return key, nil
+	key, err := ks.Key(kid)
+	if err != nil {
+		return nil, err
+	}
+	if key == nil && required {
+		return nil, keys.NewErrNotFound(id)
+	}
+	switch k := key.(type) {
+	case *keys.EdX25519Key:
+		return k, nil
 	default:
-		return nil, errors.Errorf("unsupported key type for signing %s", id)
+		return nil, errors.Errorf("unsupported key type for %s", kid)
 	}
 }
 
@@ -379,18 +381,20 @@ func (s *service) parseIdentityForEdX25519Key(ctx context.Context, identity stri
 	if err != nil {
 		return nil, err
 	}
-	if !kid.IsEdX25519() {
-		return nil, errors.Errorf("identity needs to be a edx25519 key")
-	}
 	ks := s.keyStore()
-	key, err := ks.EdX25519Key(kid)
+	key, err := ks.Key(kid)
 	if err != nil {
 		return nil, err
 	}
 	if key == nil {
 		return nil, keys.NewErrNotFound(kid.String())
 	}
-	return key, nil
+	switch k := key.(type) {
+	case *keys.EdX25519Key:
+		return k, nil
+	default:
+		return nil, errors.Errorf("unsupported key type for %s", kid)
+	}
 }
 
 func (s *service) parseIdentityForEdX25519PublicKey(ctx context.Context, identity string) (*keys.EdX25519PublicKey, error) {
