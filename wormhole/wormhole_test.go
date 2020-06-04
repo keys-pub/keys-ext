@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/keyring"
 
 	"github.com/keys-pub/keys-ext/wormhole"
 	"github.com/keys-pub/keys-ext/wormhole/sctp"
@@ -30,19 +31,19 @@ func TestNew(t *testing.T) {
 	// Local
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
-	ksa := keys.NewMemStore(true)
-	err := ksa.Save(alice)
+	kra := keyring.NewMem(true)
+	err := keys.Save(kra, alice)
 	require.NoError(t, err)
-	err = ksa.Save(bob.PublicKey())
-	require.NoError(t, err)
-
-	ksb := keys.NewMemStore(true)
-	err = ksb.Save(bob)
-	require.NoError(t, err)
-	err = ksb.Save(alice.PublicKey())
+	err = keys.Save(kra, bob.PublicKey())
 	require.NoError(t, err)
 
-	testWormhole(t, env, true, alice, bob, ksa, ksb)
+	krb := keyring.NewMem(true)
+	err = keys.Save(krb, bob)
+	require.NoError(t, err)
+	err = keys.Save(krb, alice.PublicKey())
+	require.NoError(t, err)
+
+	testWormhole(t, env, true, alice, bob, kra, krb)
 
 	// Remote
 	// testWormhole(t, env, false)
@@ -56,14 +57,14 @@ func TestWormholeSameKey(t *testing.T) {
 	defer env.closeFn()
 
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
-	ksa := keys.NewMemStore(true)
-	err := ksa.Save(alice)
+	kra := keyring.NewMem(true)
+	err := keys.Save(kra, alice)
 	require.NoError(t, err)
 
-	testWormhole(t, env, true, alice, alice, ksa, ksa)
+	testWormhole(t, env, true, alice, alice, kra, kra)
 }
 
-func testWormhole(t *testing.T, env *env, local bool, alice *keys.EdX25519Key, bob *keys.EdX25519Key, ksa *keys.Store, ksb *keys.Store) {
+func testWormhole(t *testing.T, env *env, local bool, alice *keys.EdX25519Key, bob *keys.EdX25519Key, kra *keyring.Keyring, krb *keyring.Keyring) {
 	ctx := context.TODO()
 
 	openWg := &sync.WaitGroup{}
@@ -73,7 +74,7 @@ func testWormhole(t *testing.T, env *env, local bool, alice *keys.EdX25519Key, b
 	closeWg.Add(2)
 
 	server := env.httpServer.URL
-	wha, err := wormhole.New(server, ksa)
+	wha, err := wormhole.New(server, kra)
 	require.NoError(t, err)
 	defer wha.Close()
 	wha.SetTimeNow(env.clock.Now)
@@ -106,7 +107,7 @@ func testWormhole(t *testing.T, env *env, local bool, alice *keys.EdX25519Key, b
 		}
 	}()
 
-	whb, err := wormhole.New(server, ksb)
+	whb, err := wormhole.New(server, krb)
 	require.NoError(t, err)
 	defer whb.Close()
 	whb.SetTimeNow(env.clock.Now)
@@ -194,11 +195,11 @@ func testWormholeCancel(t *testing.T, env *env, dt time.Duration) {
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
 
-	ksa := keys.NewMemStore(true)
-	err := ksa.Save(alice)
+	kra := keyring.NewMem(true)
+	err := keys.Save(kra, alice)
 	require.NoError(t, err)
 
-	wha, err := wormhole.New(server, ksa)
+	wha, err := wormhole.New(server, kra)
 	require.NoError(t, err)
 	defer wha.Close()
 	wha.SetTimeNow(env.clock.Now)
@@ -223,20 +224,20 @@ func TestWormholeNoRecipient(t *testing.T) {
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
 
-	ksa := keys.NewMemStore(true)
-	err := ksa.Save(alice)
+	kra := keyring.NewMem(true)
+	err := keys.Save(kra, alice)
 	require.NoError(t, err)
 
-	ksb := keys.NewMemStore(true)
-	err = ksb.Save(bob)
+	krb := keyring.NewMem(true)
+	err = keys.Save(krb, bob)
 	require.NoError(t, err)
 
-	wha, err := wormhole.New(server, ksa)
+	wha, err := wormhole.New(server, kra)
 	require.NoError(t, err)
 	defer wha.Close()
 	wha.SetTimeNow(env.clock.Now)
 
-	whb, err := wormhole.New(server, ksb)
+	whb, err := wormhole.New(server, krb)
 	require.NoError(t, err)
 	defer wha.Close()
 	whb.SetTimeNow(env.clock.Now)

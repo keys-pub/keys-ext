@@ -12,6 +12,7 @@ import (
 	"github.com/keys-pub/keys-ext/http/client"
 	httpclient "github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys-ext/wormhole/sctp"
+	"github.com/keys-pub/keys/keyring"
 )
 
 func main() {
@@ -129,15 +130,15 @@ type cmd struct {
 }
 
 func newCmd() (*cmd, error) {
-	ks := keys.NewMemStore(true)
+	kr := keyring.NewMem(true)
 
 	offerKey := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	answerKey := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
 
-	if err := ks.Save(offerKey); err != nil {
+	if err := keys.Save(kr, offerKey); err != nil {
 		return nil, err
 	}
-	if err := ks.Save(answerKey); err != nil {
+	if err := keys.Save(kr, answerKey); err != nil {
 		return nil, err
 	}
 
