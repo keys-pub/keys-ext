@@ -96,8 +96,8 @@ func TestKeyRemove(t *testing.T) {
 	require.NoError(t, err)
 	kid, err := keys.ParseID(genResp.KID)
 	require.NoError(t, err)
-	ks := service.keyStore()
-	key, err := ks.EdX25519Key(kid)
+	kr := service.keyring()
+	key, err := keys.FindEdX25519Key(kr, kid)
 	require.NoError(t, err)
 	require.NotNil(t, key)
 

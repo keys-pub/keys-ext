@@ -20,10 +20,6 @@ func (s *service) keyring() *keyring.Keyring {
 	return s.keyringFn.Keyring()
 }
 
-func (s *service) keyStore() *keys.Store {
-	return keys.NewStore(s.keyringFn.Keyring())
-}
-
 type sysKeyringFn struct {
 	sys *keyring.Keyring
 }
@@ -71,4 +67,12 @@ func newKeyringStore(cfg *Config) (keyring.Store, error) {
 	default:
 		return nil, errors.Errorf("unknown keyring type %s", kt)
 	}
+}
+
+type saltpackKeyring struct {
+	*keyring.Keyring
+}
+
+func (k *saltpackKeyring) X25519Keys() ([]*keys.X25519Key, error) {
+	return keys.X25519Keys(k.Keyring)
 }
