@@ -27,7 +27,7 @@ func (s *service) Keys(ctx context.Context, req *KeysRequest) (*KeysResponse, er
 	}
 
 	ks := s.keyStore()
-	out, err := ks.Keys(&keys.Opts{Types: types})
+	out, err := ks.Keys(keys.WithTypes(types...))
 	if err != nil {
 		return nil, err
 	}

@@ -12,9 +12,6 @@ import (
 	"github.com/keys-pub/keys/user"
 )
 
-// TODO: Detect stale sigchains
-// TODO: If db cleared, reload sigchains on startup
-
 type service struct {
 	cfg       *Config
 	build     Build
