@@ -20,8 +20,8 @@ func (s *service) KeyExport(ctx context.Context, req *KeyExportRequest) (*KeyExp
 		typ = SaltpackExport
 	}
 
-	ks := s.keyStore()
-	key, err := ks.Key(id)
+	kr := s.keyring()
+	key, err := keys.Find(kr, id)
 	if err != nil {
 		return nil, err
 	}
