@@ -145,3 +145,47 @@ func TestAuthSetup(t *testing.T) {
 	_, err := service.AuthSetup(ctx, &AuthSetupRequest{Secret: "password123", Type: PasswordAuth})
 	require.NoError(t, err)
 }
+
+func TestPasswordChange(t *testing.T) {
+	var err error
+	env := newTestEnv(t)
+	service, closeFn := newTestService(t, env, "")
+	defer closeFn()
+	ctx := context.TODO()
+
+	_, err = service.AuthSetup(ctx, &AuthSetupRequest{Secret: "password123", Type: PasswordAuth})
+	require.NoError(t, err)
+
+	_, err = service.PasswordChange(ctx, &PasswordChangeRequest{
+		Old: "invalid",
+		New: "newpassword",
+	})
+	require.EqualError(t, err, "invalid password")
+
+	_, err = service.PasswordChange(ctx, &PasswordChangeRequest{
+		Old: "",
+		New: "newpassword",
+	})
+	require.EqualError(t, err, "empty password")
+
+	_, err = service.PasswordChange(ctx, &PasswordChangeRequest{
+		Old: "password123",
+		New: "password1234",
+	})
+	require.NoError(t, err)
+
+	_, err = service.AuthUnlock(ctx, &AuthUnlockRequest{
+		Secret: "password123",
+		Type:   PasswordAuth,
+		Client: "test",
+	})
+	require.EqualError(t, err, "rpc error: code = Unauthenticated desc = invalid password")
+
+	_, err = service.AuthUnlock(ctx, &AuthUnlockRequest{
+		Secret: "password1234",
+		Type:   PasswordAuth,
+		Client: "test",
+	})
+	require.NoError(t, err)
+
+}

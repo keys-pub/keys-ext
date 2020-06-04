@@ -89,7 +89,7 @@ func (s *service) AuthProvision(ctx context.Context, req *AuthProvisionRequest) 
 // AuthDeprovision (RPC) ...
 func (s *service) AuthDeprovision(ctx context.Context, req *AuthDeprovisionRequest) (*AuthDeprovisionResponse, error) {
 	kr := s.keyring()
-	ok, err := kr.Deprovision(req.ID)
+	ok, err := kr.Deprovision(req.ID, false)
 	if err != nil {
 		return nil, err
 	}

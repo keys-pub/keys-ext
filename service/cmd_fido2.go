@@ -23,7 +23,7 @@ func fido2Commands(client *Client) []cli.Command {
 						if err != nil {
 							return err
 						}
-						printResponse(resp)
+						printMessage(resp)
 						return nil
 					},
 				},
@@ -41,7 +41,7 @@ func fido2Commands(client *Client) []cli.Command {
 						if err != nil {
 							return err
 						}
-						printResponse(resp)
+						printMessage(resp)
 						return nil
 					},
 				},
@@ -61,7 +61,7 @@ func fido2Commands(client *Client) []cli.Command {
 						if err != nil {
 							return err
 						}
-						printResponse(resp)
+						printMessage(resp)
 						return nil
 					},
 				},
@@ -81,7 +81,7 @@ func fido2Commands(client *Client) []cli.Command {
 						if err != nil {
 							return err
 						}
-						printResponse(resp)
+						printMessage(resp)
 						return nil
 					},
 				},
