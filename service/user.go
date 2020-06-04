@@ -83,7 +83,7 @@ func (s *service) UserService(ctx context.Context, req *UserServiceRequest) (*Us
 	if err != nil {
 		return nil, err
 	}
-	_, err = user.NewUserForSigning(key.ID(), req.Service, "test")
+	_, err = user.NewForSigning(key.ID(), req.Service, "test")
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func (s *service) UserSign(ctx context.Context, req *UserSignRequest) (*UserSign
 		return nil, err
 	}
 
-	user, err := user.NewUserForSigning(key.ID(), req.Service, req.Name)
+	user, err := user.NewForSigning(key.ID(), req.Service, req.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -171,7 +171,7 @@ func (s *service) sigchainUserAdd(ctx context.Context, key *keys.EdX25519Key, se
 		return nil, nil, errors.Errorf("user check failed: %s", userResult.Err)
 	}
 
-	st, err := user.NewUserSigchainStatement(sc, usr, key, s.Now())
+	st, err := user.NewSigchainStatement(sc, usr, key, s.Now())
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "failed to generate user statement")
 	}

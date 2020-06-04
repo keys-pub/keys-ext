@@ -75,7 +75,7 @@ func (a *auth) unlock(ctx context.Context, kr *keyring.Keyring, secret string, t
 	var err error
 	switch typ {
 	case PasswordAuth:
-		err = unlockPassword(kr, secret)
+		_, err = unlockPassword(kr, secret)
 	case FIDO2HMACSecretAuth:
 		err = unlockHMACSecret(ctx, a.fas, kr, secret)
 	default:

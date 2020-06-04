@@ -29,6 +29,7 @@ func authCommands(client *Client) []cli.Command {
 				authProvisionCommand(client),
 				authProvisionsCommand(client),
 				authDeprovisionCommand(client),
+				changePasswordCommand(client),
 			},
 			Action: func(c *cli.Context) error {
 				if !c.GlobalBool("test") {
@@ -110,6 +111,31 @@ func authCommands(client *Client) []cli.Command {
 	}
 }
 
+func changePasswordCommand(client *Client) cli.Command {
+	return cli.Command{
+		Name:  "change-password",
+		Usage: "Change password",
+		Flags: []cli.Flag{},
+		Action: func(c *cli.Context) error {
+			old, err := readPassword("Old password:", false)
+			if err != nil {
+				return err
+			}
+			new, err := readVerifyPassword("New password:")
+			if err != nil {
+				return err
+			}
+			if _, err := client.KeysClient().PasswordChange(context.TODO(), &PasswordChangeRequest{
+				Old: old,
+				New: new,
+			}); err != nil {
+				return err
+			}
+			return nil
+		},
+	}
+}
+
 func authProvisionCommand(client *Client) cli.Command {
 	return cli.Command{
 		Name:  "provision",
@@ -157,9 +183,11 @@ func authProvisionCommand(client *Client) cli.Command {
 					pin = p
 				}
 
+				// Setup
 				if err := fido2AuthProvision(context.TODO(), client, clientName, pin, true); err != nil {
 					return err
 				}
+				// Unlock
 				if err := fido2AuthProvision(context.TODO(), client, clientName, pin, false); err != nil {
 					return err
 				}
@@ -218,9 +246,7 @@ func authProvisionsCommand(client *Client) cli.Command {
 			if err != nil {
 				return err
 			}
-
-			printResponse(resp.Provisions)
-
+			printMessage(resp)
 			return nil
 		},
 	}
@@ -236,7 +262,6 @@ func authDeprovisionCommand(client *Client) cli.Command {
 			if id == "" {
 				return errors.Errorf("specify a provision id")
 			}
-			// TODO: Don't allow to deprovision last provision.
 			_, err := client.KeysClient().AuthDeprovision(context.TODO(), &AuthDeprovisionRequest{
 				ID: id,
 			})

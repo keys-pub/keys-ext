@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -66,13 +65,7 @@ func keyCommands(client *Client) []cli.Command {
 				if resp.Key == nil {
 					return errors.Errorf("key not found")
 				}
-				// fmtKeys([]*Key{resp.Key})
-				// TODO: key type outputs as int
-				b, err := json.MarshalIndent(resp.Key, "", "  ")
-				if err != nil {
-					return err
-				}
-				fmt.Print(string(b))
+				printMessage(resp.Key)
 				return nil
 			},
 		},

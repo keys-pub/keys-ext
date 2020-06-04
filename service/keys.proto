@@ -92,6 +92,7 @@ service Keys {
   rpc AuthProvision(AuthProvisionRequest) returns (AuthProvisionResponse) {}
   rpc AuthDeprovision(AuthDeprovisionRequest) returns (AuthDeprovisionResponse) {}
   rpc AuthProvisions(AuthProvisionsRequest) returns (AuthProvisionsResponse) {}  
+  rpc PasswordChange(PasswordChangeRequest) returns (PasswordChangeResponse) {}
   
   rpc Backup(BackupRequest) returns (BackupResponse) {}  
 
@@ -473,6 +474,12 @@ message AuthDeprovisionRequest {
   string id = 1 [(gogoproto.customname) = "ID"];
 }
 message AuthDeprovisionResponse {}
+
+message PasswordChangeRequest {
+  string old = 1;
+  string new = 2;
+}
+message PasswordChangeResponse {}
 
 message AuthProvision {
   string id = 1 [(gogoproto.customname) = "ID"];

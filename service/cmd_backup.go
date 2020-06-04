@@ -31,7 +31,7 @@ func backupCommands(client *Client) []cli.Command {
 				if err != nil {
 					return err
 				}
-				printResponse(resp)
+				printMessage(resp)
 				return nil
 			},
 		},

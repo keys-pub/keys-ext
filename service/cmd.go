@@ -3,13 +3,14 @@ package service
 import (
 	"bufio"
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"text/tabwriter"
 	"unicode/utf8"
 
+	proto "github.com/gogo/protobuf/proto"
+	"github.com/golang/protobuf/jsonpb"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
@@ -163,8 +164,11 @@ func argString(c *cli.Context, name string, optional bool) (string, error) {
 	return "", errors.Errorf("no %s specified", name)
 }
 
-func printResponse(i interface{}) {
-	b, err := json.MarshalIndent(i, "", "  ")
+func printMessage(m proto.Message) {
+	marshal := jsonpb.Marshaler{
+		Indent: "  ",
+	}
+	b, err := marshal.MarshalToString(m)
 	if err != nil {
 		panic(err)
 	}
