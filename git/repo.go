@@ -9,8 +9,7 @@ import (
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/transport"
-	gitssh "github.com/go-git/go-git/v5/plumbing/transport/ssh"
-	"github.com/keys-pub/keys"
+
 	"github.com/pkg/errors"
 )
 
@@ -18,18 +17,18 @@ import (
 type Repository struct {
 	repo *git.Repository
 	path string
-	auth transport.AuthMethod
-	krd  string
+	opts Options
+
+	cache *files
 }
 
 // NewRepository creates a new repository.
-func NewRepository() *Repository {
-	return &Repository{}
-}
-
-// SetKeyringDir sets the keyring subdirectory (optional).
-func (r *Repository) SetKeyringDir(krd string) {
-	r.krd = krd
+func NewRepository(opt ...Option) (*Repository, error) {
+	opts, err := newOptions(opt...)
+	if err != nil {
+		return nil, err
+	}
+	return &Repository{opts: opts}, nil
 }
 
 // Path to repo.
@@ -78,9 +77,14 @@ func (r *Repository) Open(path string) error {
 	return nil
 }
 
-// SetKey sets the ssh key.
-func (r *Repository) SetKey(key *keys.EdX25519Key) error {
-	r.auth = &gitssh.PublicKeys{User: "git", Signer: key.SSHSigner()}
+// Init to create an empty git repo.
+func (r *Repository) Init(path string) error {
+	repo, err := git.PlainInit(path, false)
+	if err != nil {
+		return err
+	}
+	r.repo = repo
+	r.path = path
 	return nil
 }
 
@@ -109,7 +113,7 @@ func (r *Repository) Clone(urs string, path string) error {
 	if _, err := git.PlainClone(tmpPath, false, &git.CloneOptions{
 		URL: urs,
 		// Progress: os.Stdout,
-		Auth: r.auth,
+		Auth: r.opts.auth,
 	}); err != nil {
 		if errors.Cause(err) == transport.ErrEmptyRemoteRepository {
 			logger.Infof("Repository is empty")
@@ -143,13 +147,6 @@ func (r *Repository) Clone(urs string, path string) error {
 	return r.Open(path)
 }
 
-// // Fetch remote.
-// func (r *Repository) Fetch() error {
-// 	r.Lock()
-// 	defer r.Unlock()
-// 	return r.fetch()
-// }
-
 func (r *Repository) fetch() error {
 	if r.repo == nil {
 		return errors.Errorf("not open")
@@ -157,7 +154,7 @@ func (r *Repository) fetch() error {
 	logger.Debugf("Fetch origin...")
 	fetchOptions := &git.FetchOptions{
 		RemoteName: "origin",
-		Auth:       r.auth,
+		Auth:       r.opts.auth,
 	}
 	if err := r.repo.Fetch(fetchOptions); err != nil {
 		if errors.Cause(err) == git.NoErrAlreadyUpToDate {
@@ -176,13 +173,25 @@ func (r *Repository) Pull() error {
 }
 
 func (r *Repository) pull() error {
-	if err := r.fetch(); err != nil {
+	logger.Debugf("Pull...")
+	tree, err := r.repo.Worktree()
+	if err != nil {
 		return err
 	}
-	if err := r.merge(); err != nil {
+
+	if err := tree.Pull(&git.PullOptions{
+		Auth: r.opts.auth,
+	}); err != nil {
+		if errors.Cause(err) == git.NoErrAlreadyUpToDate {
+			logger.Debugf("Push (already up to date)")
+			return nil
+		}
 		return err
 	}
+
+	logger.Debugf("Pull complete")
 	return nil
+
 }
 
 // Push changes.
@@ -197,7 +206,7 @@ func (r *Repository) push() error {
 
 	logger.Debugf("Push git")
 	if err := r.repo.Push(&git.PushOptions{
-		Auth: r.auth,
+		Auth: r.opts.auth,
 	}); err != nil {
 		if errors.Cause(err) == git.NoErrAlreadyUpToDate {
 			logger.Debugf("Push (already up to date)")
@@ -230,10 +239,8 @@ func (r *Repository) signature() *object.Signature {
 	}
 }
 
-// Add file.
-func (r *Repository) Add(name string) error {
-	logger.Debugf("Add %s", name)
-	message := fmt.Sprintf("Add %s\n", name)
+func (r *Repository) addCommit(name string, msg string) error {
+	logger.Debugf("Git add: %s", msg)
 
 	w, err := r.repo.Worktree()
 	if err != nil {
@@ -244,15 +251,14 @@ func (r *Repository) Add(name string) error {
 		return err
 	}
 
-	commit, err := w.Commit(message, &git.CommitOptions{
+	commit, err := w.Commit(msg, &git.CommitOptions{
 		Author: r.signature(),
 	})
 	logger.Debugf("Commit %s", commit)
 	return nil
 }
 
-// Remove file.
-func (r *Repository) Remove(name string) error {
+func (r *Repository) removeCommit(name string) error {
 	logger.Debugf("Remove %s", name)
 	message := fmt.Sprintf("Remove %s\n", name)
 

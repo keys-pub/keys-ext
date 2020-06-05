@@ -18,7 +18,7 @@ func TestCopy(t *testing.T) {
 	var err error
 
 	krDir := "GitTest-Export-" + keys.Rand3262()
-	url := "git@gitlab.com:gabrielha/pass-test.git"
+	url := "git@gitlab.com:gabrielha/keys.pub.test.git"
 	privateKey, err := ioutil.ReadFile("id_ed25519")
 	require.NoError(t, err)
 	sshKey, err := keys.ParseSSHKey(privateKey, nil, true)
@@ -44,9 +44,7 @@ func TestCopy(t *testing.T) {
 
 	// Repo #2, Keyring #2
 	path2 := keys.RandTempPath()
-	repo2 := git.NewRepository()
-	repo2.SetKeyringDir(krDir)
-	err = repo2.SetKey(repoKey)
+	repo2, err := git.NewRepository(git.Key(repoKey), git.KeyringDir(krDir))
 	require.NoError(t, err)
 	err = repo2.Clone(url, path2)
 	require.NoError(t, err)
@@ -71,9 +69,7 @@ func TestCopy(t *testing.T) {
 
 	// Repo #3, Keyring #3
 	path3 := keys.RandTempPath()
-	repo3 := git.NewRepository()
-	repo3.SetKeyringDir(krDir)
-	err = repo3.SetKey(repoKey)
+	repo3, err := git.NewRepository(git.Key(repoKey), git.KeyringDir(krDir))
 	require.NoError(t, err)
 	err = repo3.Clone(url, path3)
 	require.NoError(t, err)

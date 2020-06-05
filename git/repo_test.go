@@ -3,7 +3,6 @@ package git_test
 import (
 	"bytes"
 	"io/ioutil"
-	"path/filepath"
 	"testing"
 	"time"
 
@@ -27,7 +26,7 @@ func TestRepositoryAddDelete(t *testing.T) {
 	repoKey, ok := sshKey.(*keys.EdX25519Key)
 	require.True(t, ok)
 
-	url := "git@gitlab.com:gabrielha/pass-test.git"
+	url := "git@gitlab.com:gabrielha/keys.pub.test.git"
 
 	krDir := "GitTest-" + keys.Rand3262()
 
@@ -37,9 +36,7 @@ func TestRepositoryAddDelete(t *testing.T) {
 	provision := keyring.NewProvision(keyring.UnknownAuth)
 
 	// Keyring #1
-	repo1 := git.NewRepository()
-	repo1.SetKeyringDir(krDir)
-	err = repo1.SetKey(repoKey)
+	repo1, err := git.NewRepository(git.Key(repoKey), git.KeyringDir(krDir))
 	require.NoError(t, err)
 	err = repo1.Clone(url, path)
 	require.NoError(t, err)
@@ -50,21 +47,8 @@ func TestRepositoryAddDelete(t *testing.T) {
 	err = repo1.Push()
 	require.NoError(t, err)
 
-	// Add random file
-	file := "test2." + keys.Rand3262()
-	data := []byte("testdata")
-	err = ioutil.WriteFile(filepath.Join(path, file), data, 0600)
-	require.NoError(t, err)
-	err = repo1.Add(file)
-	require.NoError(t, err)
-	// Add (again)
-	err = repo1.Add(file)
-	require.NoError(t, err)
-
 	// Keyring #2
-	repo2 := git.NewRepository()
-	repo2.SetKeyringDir(krDir)
-	err = repo2.SetKey(repoKey)
+	repo2, err := git.NewRepository(git.Key(repoKey), git.KeyringDir(krDir))
 	require.NoError(t, err)
 	err = repo2.Clone(url, path2)
 	require.NoError(t, err)
@@ -83,9 +67,7 @@ func TestRepositoryAddDelete(t *testing.T) {
 	require.NoError(t, err)
 
 	// Keyring #3 (same dir as #1)
-	repo3 := git.NewRepository()
-	repo3.SetKeyringDir(krDir)
-	err = repo3.SetKey(repoKey)
+	repo3, err := git.NewRepository(git.Key(repoKey), git.KeyringDir(krDir))
 	require.NoError(t, err)
 	err = repo3.Open(path)
 	require.NoError(t, err)
@@ -122,7 +104,7 @@ func TestRepositoryAddDelete(t *testing.T) {
 }
 
 func TestConflictResolve(t *testing.T) {
-	// git.SetLogger(git.NewLogger(git.DebugLevel))
+	git.SetLogger(git.NewLogger(git.DebugLevel))
 
 	path := keys.RandTempPath()
 	path2 := keys.RandTempPath()
@@ -134,7 +116,7 @@ func TestConflictResolve(t *testing.T) {
 	repoKey, ok := sshKey.(*keys.EdX25519Key)
 	require.True(t, ok)
 
-	url := "git@gitlab.com:gabrielha/pass-test.git"
+	url := "git@gitlab.com:gabrielha/keys.pub.test.git"
 
 	krDir := "GitTest-" + keys.Rand3262()
 
@@ -144,9 +126,7 @@ func TestConflictResolve(t *testing.T) {
 	provision := keyring.NewProvision(keyring.UnknownAuth)
 
 	// Keyring #1
-	repo1 := git.NewRepository()
-	repo1.SetKeyringDir(krDir)
-	err = repo1.SetKey(repoKey)
+	repo1, err := git.NewRepository(git.Key(repoKey), git.KeyringDir(krDir))
 	require.NoError(t, err)
 	err = repo1.Clone(url, path)
 	require.NoError(t, err)
@@ -158,9 +138,7 @@ func TestConflictResolve(t *testing.T) {
 	require.NoError(t, err)
 
 	// Keyring #2
-	repo2 := git.NewRepository()
-	repo2.SetKeyringDir(krDir)
-	err = repo2.SetKey(repoKey)
+	repo2, err := git.NewRepository(git.Key(repoKey), git.KeyringDir(krDir))
 	require.NoError(t, err)
 	err = repo2.Clone(url, path2)
 	require.NoError(t, err)
@@ -171,6 +149,7 @@ func TestConflictResolve(t *testing.T) {
 
 	// Repo1: Create, Push
 	item := keyring.NewItem(keys.Rand3262(), []byte("testpassword"), "", time.Now())
+	t.Logf("Create repo1 item: %s", item.ID)
 	err = kr1.Create(item)
 	require.NoError(t, err)
 	err = repo1.Push()
@@ -178,6 +157,7 @@ func TestConflictResolve(t *testing.T) {
 
 	// Repo2: Create, Push (conflict)
 	item.Data = []byte("testpassword2")
+	t.Logf("Create repo2 item: %s", item.ID)
 	err = kr2.Create(item)
 	require.NoError(t, err)
 	err = repo2.Push()
@@ -225,14 +205,12 @@ func TestRepositoryClone(t *testing.T) {
 	repoKey, ok := sshKey.(*keys.EdX25519Key)
 	require.True(t, ok)
 
-	repo := git.NewRepository()
-	err = repo.SetKey(repoKey)
+	repo, err := git.NewRepository(git.Key(repoKey))
 	require.NoError(t, err)
 	err = repo.Clone(urs, path)
 	require.NoError(t, err)
 
-	repo2 := git.NewRepository()
-	err = repo.SetKey(repoKey)
+	repo2, err := git.NewRepository(git.Key(repoKey))
 	require.NoError(t, err)
 	err = repo2.Open(path)
 	require.NoError(t, err)
