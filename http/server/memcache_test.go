@@ -6,8 +6,9 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keys-ext/http/server"
+	"github.com/keys-pub/keys/encoding"
+	"github.com/keys-pub/keys/tsutil"
 	"github.com/stretchr/testify/require"
 )
 
@@ -15,7 +16,7 @@ func TestMemTestCache(t *testing.T) {
 	clock := tsutil.NewClock()
 	mc := server.NewMemTestCache(clock.Now)
 
-	n1 := keys.Rand3262()
+	n1 := encoding.MustEncode(keys.RandBytes(32), encoding.Base62)
 	val, err := mc.Get(context.TODO(), n1)
 	require.NoError(t, err)
 	require.Empty(t, val)
@@ -42,7 +43,7 @@ func TestMemTestCacheExpiration(t *testing.T) {
 	clock.SetTick(time.Second)
 	mc := server.NewMemTestCache(clock.Now)
 
-	n1 := keys.Rand3262()
+	n1 := encoding.MustEncode(keys.RandBytes(32), encoding.Base62)
 	val, err := mc.Get(context.TODO(), n1)
 	require.NoError(t, err)
 	require.Empty(t, val)
@@ -56,7 +57,7 @@ func TestMemTestCacheExpiration(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, val2)
 
-	n2 := keys.Rand3262()
+	n2 := encoding.MustEncode(keys.RandBytes(32), encoding.Base62)
 	err = mc.Set(context.TODO(), n2, "2")
 	require.NoError(t, err)
 	err = mc.Expire(context.TODO(), n2, time.Minute)

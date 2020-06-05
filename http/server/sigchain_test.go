@@ -207,7 +207,7 @@ func TestSigchains(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)
-	require.Equal(t, `{"error":{"code":404,"message":"invalid ID: separator '1' at invalid position: pos=-1, len=3"}}`, body)
+	require.Equal(t, `{"error":{"code":404,"message":"failed to parse id: separator '1' at invalid position: pos=-1, len=3"}}`, body)
 
 	// GET /:kid/bar
 	req, err = http.NewRequest("GET", ds.Path(alice.ID(), "bar"), nil)

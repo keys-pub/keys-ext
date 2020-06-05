@@ -8,8 +8,9 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys-ext/http/api"
+	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/encoding"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 )
@@ -71,7 +72,7 @@ func (s *Server) postMessage(c echo.Context) error {
 		exp = ""
 	}
 
-	id := keys.Rand3262()
+	id := encoding.MustEncode(keys.RandBytes(32), encoding.Base62)
 
 	msg := message{
 		ID:     id,

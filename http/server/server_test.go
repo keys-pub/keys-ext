@@ -7,15 +7,17 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/http/api"
+	"github.com/keys-pub/keys-ext/http/server"
 	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keys/user"
-	"github.com/keys-pub/keys-ext/http/api"
-	"github.com/keys-pub/keys-ext/http/server"
 	"github.com/stretchr/testify/require"
 )
 
@@ -98,7 +100,7 @@ func newTestServer(t *testing.T, env *env) *testServer {
 	svr := server.New(env.fi, mc, env.users, server.NewLogger(env.logLevel))
 	tasks := server.NewTestTasks(svr)
 	svr.SetTasks(tasks)
-	svr.SetInternalAuth(keys.Rand3262())
+	svr.SetInternalAuth(encoding.MustEncode(keys.RandBytes(32), encoding.Base62))
 	svr.SetNowFn(env.clock.Now)
 	svr.SetAccessFn(func(c server.AccessContext, resource server.AccessResource, action server.AccessAction) server.Access {
 		return server.AccessAllow()
@@ -169,7 +171,7 @@ func (s *testPubSubServer) WebsocketDial(t *testing.T, path string, clock *tsuti
 	return conn
 }
 
-func userMock(t *testing.T, users *user.Store, key *keys.EdX25519Key, name string, service string, mock *request.MockRequestor) *keys.Statement {
+func userMock(t *testing.T, key *keys.EdX25519Key, name string, service string, mock *request.MockRequestor, nowFn func() time.Time) *keys.Statement {
 	url := ""
 	switch service {
 	case "github":
@@ -181,9 +183,9 @@ func userMock(t *testing.T, users *user.Store, key *keys.EdX25519Key, name strin
 	}
 
 	sc := keys.NewSigchain(key.ID())
-	usr, err := user.New(users, key.ID(), service, name, url, sc.LastSeq()+1)
+	usr, err := user.New(key.ID(), service, name, url, sc.LastSeq()+1)
 	require.NoError(t, err)
-	st, err := user.NewUserSigchainStatement(sc, usr, key, users.Now())
+	st, err := user.NewSigchainStatement(sc, usr, key, nowFn())
 	require.NoError(t, err)
 
 	msg, err := usr.Sign(key)
