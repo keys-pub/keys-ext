@@ -27,7 +27,7 @@ func testChanges(t *testing.T, dst ds.DocumentStore, changes ds.Changes) {
 	length := 40
 
 	for i := 0; i < length; i++ {
-		id := fmt.Sprintf("%s-%06d", keys.Rand3262(), i)
+		id := fmt.Sprintf("%s-%06d", keys.RandFileName(), i)
 		path := ds.Path(collection, id)
 		paths = append(paths, path)
 		err := dst.Create(ctx, path, []byte(fmt.Sprintf("value%d", i)))
@@ -39,7 +39,7 @@ func testChanges(t *testing.T, dst ds.DocumentStore, changes ds.Changes) {
 	sorted := stringsCopy(paths)
 	sort.Strings(sorted)
 
-	iter, err := dst.Documents(ctx, collection, &ds.DocumentsOpts{Index: 1, Limit: 2})
+	iter, err := dst.Documents(ctx, collection, ds.Index(1), ds.Limit(2))
 	require.NoError(t, err)
 	doc, err := iter.Next()
 	require.NoError(t, err)

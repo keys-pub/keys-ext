@@ -76,7 +76,7 @@ func testDocumentStore(t *testing.T, dst ds.DocumentStore) {
 		require.NoError(t, err)
 	}
 
-	iter, err := dst.Documents(ctx, collection1, nil)
+	iter, err := dst.Documents(ctx, collection1)
 	require.NoError(t, err)
 	doc, err := iter.Next()
 	require.NoError(t, err)
@@ -122,22 +122,22 @@ func testDocumentStore(t *testing.T, dst ds.DocumentStore) {
 
 	expected := "/" + collection1 + "/key10 overwrite\n/" + collection1 + "/key20 value20\n/" + collection1 + "/key30 value30\n"
 	var b bytes.Buffer
-	iter, err = dst.Documents(context.TODO(), collection1, nil)
+	iter, err = dst.Documents(context.TODO(), collection1)
 	require.NoError(t, err)
-	err = ds.SpewOut(iter, nil, &b)
+	err = ds.SpewOut(iter, &b)
 	require.NoError(t, err)
 	require.Equal(t, expected, b.String())
 	iter.Release()
 
-	iter, err = dst.Documents(context.TODO(), collection1, nil)
+	iter, err = dst.Documents(context.TODO(), collection1)
 	require.NoError(t, err)
-	spew, err := ds.Spew(iter, nil)
+	spew, err := ds.Spew(iter)
 	require.NoError(t, err)
 	require.Equal(t, b.String(), spew.String())
 	require.Equal(t, expected, spew.String())
 	iter.Release()
 
-	iter, err = dst.Documents(context.TODO(), collection1, &ds.DocumentsOpts{Prefix: "key1", PathOnly: true})
+	iter, err = dst.Documents(context.TODO(), collection1, ds.Prefix("key1"), ds.NoData())
 	require.NoError(t, err)
 	doc, err = iter.Next()
 	require.NoError(t, err)
@@ -214,7 +214,7 @@ func testDocumentStoreListOptions(t *testing.T, dst ds.DocumentStore) {
 		require.NoError(t, err)
 	}
 
-	iter, err := dst.Documents(ctx, collection, nil)
+	iter, err := dst.Documents(ctx, collection)
 	require.NoError(t, err)
 	paths := []string{}
 	for {
@@ -228,16 +228,16 @@ func testDocumentStoreListOptions(t *testing.T, dst ds.DocumentStore) {
 	require.Equal(t, []string{ds.Path(collection, "key1"), ds.Path(collection, "key2"), ds.Path(collection, "key3")}, paths)
 	iter.Release()
 
-	iter, err = dst.Documents(context.TODO(), collection, nil)
+	iter, err = dst.Documents(context.TODO(), collection)
 	require.NoError(t, err)
-	b, err := ds.Spew(iter, nil)
+	b, err := ds.Spew(iter)
 	require.NoError(t, err)
 	expected := "/" + collection + "/key1 val1\n" + "/" + collection + "/key2 val2\n" + "/" + collection + "/key3 val3\n"
 
 	require.Equal(t, expected, b.String())
 	iter.Release()
 
-	iter, err = dst.Documents(ctx, "b"+collection, &ds.DocumentsOpts{Prefix: "eb"})
+	iter, err = dst.Documents(ctx, "b"+collection, ds.Prefix("eb"))
 	require.NoError(t, err)
 	paths = []string{}
 	for {

@@ -310,10 +310,9 @@ func (f *Firestore) getValue(ctx context.Context, path string, v interface{}) (b
 }
 
 // Documents ...
-func (f *Firestore) Documents(ctx context.Context, parent string, opts *ds.DocumentsOpts) (ds.DocumentIterator, error) {
-	if opts == nil {
-		opts = &ds.DocumentsOpts{}
-	}
+func (f *Firestore) Documents(ctx context.Context, parent string, opt ...ds.DocumentsOption) (ds.DocumentIterator, error) {
+	opts := ds.NewDocumentsOptions(opt...)
+
 	// TODO: Handle context Done()
 	path := normalizePath(parent)
 
@@ -346,7 +345,7 @@ func (f *Firestore) Documents(ctx context.Context, parent string, opts *ds.Docum
 	}
 
 	iter := q.Documents(ctx)
-	return &docsIterator{iter: iter, parent: path, prefix: opts.Prefix, pathOnly: opts.PathOnly}, nil
+	return &docsIterator{iter: iter, parent: path, prefix: opts.Prefix, pathOnly: opts.NoData}, nil
 }
 
 // processError tries to unmarshal Firebase JSON error, if it fails it returns
