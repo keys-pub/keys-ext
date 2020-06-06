@@ -2,13 +2,13 @@ package db
 
 import (
 	"context"
-	"encoding/json"
 	"sync"
 	"time"
 
 	"github.com/keys-pub/keys/ds"
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/vmihailenco/msgpack/v4"
 )
 
 var _ ds.DocumentStore = &DB{}
@@ -95,8 +95,23 @@ func (d *DB) Create(ctx context.Context, path string, b []byte) error {
 	}
 
 	now := d.Now()
-	md := &metadata{CreateTime: now, UpdateTime: now}
-	return d.put(path, b, md)
+	doc := &ds.Document{
+		Path:      path,
+		Data:      b,
+		CreatedAt: now,
+		UpdatedAt: now,
+	}
+
+	mb, err := msgpack.Marshal(doc)
+	if err != nil {
+		return err
+	}
+
+	if err := d.sdb.Put(path, mb); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Set saves document to the db at key.
@@ -111,74 +126,33 @@ func (d *DB) Set(ctx context.Context, path string, b []byte) error {
 		return errors.Errorf("invalid path %s", path)
 	}
 
-	md, err := d.getMetadata(path)
+	doc, err := d.Get(ctx, path)
 	if err != nil {
 		return err
-	}
-	if md == nil {
-		md = &metadata{}
 	}
 	now := d.Now()
-	if md.CreateTime.IsZero() {
-		md.CreateTime = now
+	if doc == nil {
+		doc = &ds.Document{
+			Path:      path,
+			Data:      b,
+			CreatedAt: now,
+			UpdatedAt: now,
+		}
+	} else {
+		doc.UpdatedAt = now
+		doc.Data = b
 	}
-	md.UpdateTime = now
 
-	return d.put(path, b, md)
-}
+	mb, err := msgpack.Marshal(doc)
+	if err != nil {
+		return err
+	}
 
-func (d *DB) put(path string, b []byte, md *metadata) error {
-	if err := d.setMetadata(path, md); err != nil {
+	if err := d.sdb.Put(path, mb); err != nil {
 		return err
 	}
-	if err := d.setCollection(path, md); err != nil {
-		return err
-	}
-	logger.Debugf("Put %s (%d bytes)", path, len(b))
-	if err := d.sdb.Put(path, b); err != nil {
-		return err
-	}
+
 	return nil
-}
-
-type metadata struct {
-	CreateTime time.Time
-	UpdateTime time.Time
-}
-
-func (d *DB) getMetadata(path string) (*metadata, error) {
-	b, err := d.sdb.Get("~" + path)
-	if err != nil {
-		return nil, err
-	}
-	if b == nil {
-		return nil, nil
-	}
-	var md metadata
-	if err := json.Unmarshal(b, &md); err != nil {
-		return nil, err
-	}
-	return &md, nil
-}
-
-func (d *DB) setMetadata(path string, md *metadata) error {
-	mpath := "~" + path
-	logger.Debugf("Set metadata %s %+v", mpath, md)
-	b, err := json.Marshal(md)
-	if err != nil {
-		return err
-	}
-	return d.sdb.Put(mpath, b)
-}
-
-func (d *DB) setCollection(path string, md *metadata) error {
-	cpath := "+" + ds.FirstPathComponent(path)
-	logger.Debugf("Set collection %s %+v", cpath, md)
-	b, err := json.Marshal(md)
-	if err != nil {
-		return err
-	}
-	return d.sdb.Put(cpath, b)
 }
 
 // Get entry at path.
@@ -220,8 +194,31 @@ func (d *DB) Collections(ctx context.Context, parent string) (ds.CollectionItera
 		return nil, errors.Errorf("only root collections supported")
 	}
 
-	iter := d.sdb.NewIterator("+")
-	return &colsIterator{iter: iter}, nil
+	// We iterate over all the paths to build the collections list, this is slow.
+	collections := []*ds.Collection{}
+	count := map[string]int{}
+	iter := &docsIterator{
+		db:   d,
+		iter: d.sdb.NewIterator(""),
+	}
+	for {
+		doc, err := iter.Next()
+		if err != nil {
+			return nil, err
+		}
+		if doc == nil {
+			break
+		}
+		col := ds.FirstPathComponent(doc.Path)
+		colv, ok := count[col]
+		if !ok {
+			collections = append(collections, &ds.Collection{Path: ds.Path(col)})
+			count[col] = 1
+		} else {
+			count[col] = colv + 1
+		}
+	}
+	return ds.NewCollectionIterator(collections), nil
 }
 
 // Delete value at path.
@@ -257,23 +254,21 @@ func (d *DB) DeleteAll(ctx context.Context, paths []string) error {
 }
 
 func (d *DB) document(path string, b []byte) (*ds.Document, error) {
-	md, err := d.getMetadata(path)
-	if err != nil {
+	var doc ds.Document
+	if err := msgpack.Unmarshal(b, &doc); err != nil {
 		return nil, err
 	}
-	doc := ds.NewDocument(path, b)
-	doc.CreatedAt = md.CreateTime
-	doc.UpdatedAt = md.UpdateTime
-	return doc, nil
+	if doc.Path != path {
+		return nil, errors.Errorf("document path mismatch %s != %s", doc.Path, path)
+	}
+	return &doc, nil
 }
 
 // Documents ...
-func (d *DB) Documents(ctx context.Context, parent string, opts *ds.DocumentsOpts) (ds.DocumentIterator, error) {
+func (d *DB) Documents(ctx context.Context, parent string, opt ...ds.DocumentsOption) (ds.DocumentIterator, error) {
 	d.rwmtx.RLock()
 	defer d.rwmtx.RUnlock()
-	if opts == nil {
-		opts = &ds.DocumentsOpts{}
-	}
+	opts := ds.NewDocumentsOptions(opt...)
 
 	if d.sdb == nil {
 		return nil, errors.Errorf("db not open")
