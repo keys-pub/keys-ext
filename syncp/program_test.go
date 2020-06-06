@@ -1,4 +1,4 @@
-package sync_test
+package syncp_test
 
 import (
 	"io/ioutil"
@@ -7,13 +7,13 @@ import (
 	"testing"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys-ext/sync"
+	"github.com/keys-pub/keys-ext/syncp"
 	"github.com/stretchr/testify/require"
 )
 
 type fixture map[string][]byte
 
-func testProgram(t *testing.T, pr sync.Program, cfg sync.Config, existing fixture) {
+func testProgramSync(t *testing.T, pr syncp.Program, cfg syncp.Config, existing fixture) syncp.Result {
 	var err error
 
 	// Write test files
@@ -24,8 +24,8 @@ func testProgram(t *testing.T, pr sync.Program, cfg sync.Config, existing fixtur
 	err = ioutil.WriteFile(filepath.Join(cfg.Dir, path2), []byte("testdata2"), 0600)
 	require.NoError(t, err)
 
-	err = sync.Run(pr, cfg)
-	require.NoError(t, err)
+	res := pr.Sync(cfg)
+	require.NoError(t, res.Err)
 
 	fileInfos, err := ioutil.ReadDir(cfg.Dir)
 	require.NoError(t, err)
@@ -39,6 +39,8 @@ func testProgram(t *testing.T, pr sync.Program, cfg sync.Config, existing fixtur
 	for path, b := range existing {
 		testFile(t, filepath.Join(cfg.Dir, path), b, files)
 	}
+
+	return res
 }
 
 func testFile(t *testing.T, path string, expected []byte, files []string) {
