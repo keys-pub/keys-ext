@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/user"
 	"github.com/keys-pub/keys-ext/http/client"
+	"github.com/keys-pub/keys/user"
 	"github.com/stretchr/testify/require"
 )
 
@@ -24,9 +24,9 @@ func saveUser(t *testing.T, env *env, cl *client.Client, key *keys.EdX25519Key, 
 	}
 
 	sc := keys.NewSigchain(key.ID())
-	usr, err := user.New(env.users, key.ID(), service, name, url, sc.LastSeq()+1)
+	usr, err := user.New(key.ID(), service, name, url, sc.LastSeq()+1)
 	require.NoError(t, err)
-	st, err := user.NewUserSigchainStatement(sc, usr, key, env.clock.Now())
+	st, err := user.NewSigchainStatement(sc, usr, key, env.clock.Now())
 	require.NoError(t, err)
 
 	msg, err := usr.Sign(key)
