@@ -10,16 +10,16 @@ import (
 	"strconv"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/tsutil"
-	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 )
 
 func (s *Server) sigchain(c echo.Context, kid keys.ID) (*keys.Sigchain, map[string]api.Metadata, error) {
 	ctx := c.Request().Context()
-	iter, err := s.fi.Documents(ctx, SigchainResource.String(), &ds.DocumentsOpts{Prefix: kid.String()})
+	iter, err := s.fi.Documents(ctx, SigchainResource.String(), ds.Prefix(kid.String()))
 	defer iter.Release()
 	if err != nil {
 		return nil, nil, err
