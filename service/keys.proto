@@ -1014,8 +1014,9 @@ message RestoreRequest {
 message RestoreResponse {}
 
 message MigrateRequest {
-  string source = 1;
-  string destination = 2;
+  string resource = 1;
+  string source = 2;
+  string destination = 3;
 }
 message MigrateResponse {}
 

@@ -13,7 +13,7 @@ func backupCommands(client *Client) []cli.Command {
 			Name:  "backup",
 			Usage: "Backup",
 			Flags: []cli.Flag{
-				cli.StringFlag{Name: "resource, r", Usage: "resource"},
+				cli.StringFlag{Name: "resource, r", Usage: "resource (keyring)"},
 			},
 			Action: func(c *cli.Context) error {
 				resp, err := client.KeysClient().Backup(context.TODO(), &BackupRequest{
@@ -31,7 +31,7 @@ func backupCommands(client *Client) []cli.Command {
 			Name:  "restore",
 			Usage: "Restore",
 			Flags: []cli.Flag{
-				cli.StringFlag{Name: "resource, r", Usage: "resource"},
+				cli.StringFlag{Name: "resource, r", Usage: "resource (keyring)"},
 				cli.StringFlag{Name: "path, p", Usage: "path to backup"},
 			},
 			Action: func(c *cli.Context) error {
@@ -56,6 +56,7 @@ func backupCommands(client *Client) []cli.Command {
 			Hidden: true,
 			Action: func(c *cli.Context) error {
 				resp, err := client.KeysClient().Migrate(context.TODO(), &MigrateRequest{
+					Resource:    c.String("resource"),
 					Source:      c.String("source"),
 					Destination: c.String("destination"),
 				})
