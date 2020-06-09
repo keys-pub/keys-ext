@@ -170,6 +170,8 @@ github.com/keys-pub/keys-ext/syncp v0.0.0-20200606214603-bc234cd442f3 h1:Rz89NQW
 github.com/keys-pub/keys-ext/syncp v0.0.0-20200606214603-bc234cd442f3/go.mod h1:ajoGln2fk+zEmE6u+L2A6ZaYDdE5tCWFaB3c2qxZGps=
 github.com/keys-pub/keys-ext/syncp v0.0.0-20200609053106-9a060123cc95 h1:+b1NA6nvyXb7n2iP7Xy0GLfTIzwcSrP9JQdt/65iKvk=
 github.com/keys-pub/keys-ext/syncp v0.0.0-20200609053106-9a060123cc95/go.mod h1:ajoGln2fk+zEmE6u+L2A6ZaYDdE5tCWFaB3c2qxZGps=
+github.com/keys-pub/keys-ext/syncp v0.0.0-20200609230547-f78059b59c28 h1:cxxON16pJ3FU5KYfx3fo/0+/D/lxrD40N9ZNufS2I4E=
+github.com/keys-pub/keys-ext/syncp v0.0.0-20200609230547-f78059b59c28/go.mod h1:ajoGln2fk+zEmE6u+L2A6ZaYDdE5tCWFaB3c2qxZGps=
 github.com/keys-pub/keys-ext/wormhole v0.0.0-20200604181719-aff69f455544 h1:yGeZV0emNJEmECJUOKTkYn2FbkX5ndY5mOdYFuSRjOY=
 github.com/keys-pub/keys-ext/wormhole v0.0.0-20200604181719-aff69f455544/go.mod h1:DPvRCD95AlpK5390x6bqOwmqbyiYSBwjf6v8CvLM6Oo=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f h1:LLsdI2XManLH0JonKqB6OYmHdHk/WwJByDbHI3hCEcs=
