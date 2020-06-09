@@ -273,9 +273,9 @@ func newTestServerEnv(t *testing.T, env *testEnv) *serverEnv {
 }
 
 // func spewService(t *testing.T, service *service) {
-// 	iter, iterErr := service.db.Documents(context.TODO(), "", nil)
+// 	iter, iterErr := service.db.Documents(context.TODO(), "")
 // 	require.NoError(t, iterErr)
-// 	spew, err := ds.Spew(iter, nil)
+// 	spew, err := ds.Spew(iter)
 // 	require.NoError(t, err)
 // 	t.Logf(spew.String())
 // }

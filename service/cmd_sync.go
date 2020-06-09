@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"fmt"
+	"io"
 
 	"github.com/urfave/cli"
 )
@@ -10,73 +12,60 @@ func syncCommands(client *Client) []cli.Command {
 	return []cli.Command{
 		cli.Command{
 			Name:   "sync",
-			Usage:  "Sync keyring",
+			Usage:  "Sync",
 			Hidden: true,
-			Subcommands: []cli.Command{
-				syncProgramsCommand(client),
+			Flags: []cli.Flag{
+				cli.BoolFlag{Name: "quiet, q", Usage: "quiet"},
+				cli.BoolFlag{Name: "unset", Usage: "unset current program"},
+				cli.BoolFlag{Name: "show", Usage: "show current program"},
 			},
 			Action: func(c *cli.Context) error {
-				_, err := client.KeysClient().Sync(context.TODO(), &SyncRequest{})
+				if c.Bool("unset") {
+					_, err := client.KeysClient().SyncUnset(context.TODO(), &SyncUnsetRequest{})
+					if err != nil {
+						return err
+					}
+					return nil
+				}
+
+				if c.Bool("show") {
+					resp, err := client.KeysClient().SyncProgram(context.TODO(), &SyncProgramRequest{})
+					if err != nil {
+						return err
+					}
+					if resp.Program != nil {
+						printMessage(resp.Program)
+					}
+					return nil
+				}
+
+				name := c.Args().Get(0)
+				remote := c.Args().Get(1)
+
+				quiet := c.Bool("quiet")
+				syncClient, err := client.KeysClient().Sync(context.TODO(), &SyncRequest{
+					Name:   name,
+					Remote: remote,
+				})
 				if err != nil {
 					return err
 				}
+
+				for {
+					resp, recvErr := syncClient.Recv()
+					if recvErr != nil {
+						if recvErr == io.EOF {
+							break
+						}
+						return recvErr
+					}
+					if !quiet {
+						fmt.Println(resp.Out)
+					}
+				}
+
 				return nil
 			},
-		},
-	}
-}
-
-func syncProgramsCommand(client *Client) cli.Command {
-	return cli.Command{
-		Name:  "programs",
-		Usage: "Programs",
-		Subcommands: []cli.Command{
-			syncProgramsAddCommand(client),
-			syncProgramsRemoveCommand(client),
-		},
-		Action: func(c *cli.Context) error {
-			resp, err := client.KeysClient().SyncPrograms(context.TODO(), &SyncProgramsRequest{})
-			if err != nil {
-				return err
-			}
-			printMessage(resp)
-			return nil
-		},
-	}
-}
-
-func syncProgramsAddCommand(client *Client) cli.Command {
-	return cli.Command{
-		Name:  "add",
-		Usage: "Add program",
-		Action: func(c *cli.Context) error {
-			resp, err := client.KeysClient().SyncProgramsAdd(context.TODO(), &SyncProgramsAddRequest{
-				Name:   c.Args().Get(0),
-				Remote: c.Args().Get(1),
-			})
-			if err != nil {
-				return err
-			}
-			printMessage(resp)
-			return nil
-		},
-	}
-}
-
-func syncProgramsRemoveCommand(client *Client) cli.Command {
-	return cli.Command{
-		Name:    "remove",
-		Aliases: []string{"rm"},
-		Usage:   "Remove program",
-		Action: func(c *cli.Context) error {
-			resp, err := client.KeysClient().SyncProgramsRemove(context.TODO(), &SyncProgramsRemoveRequest{
-				ID: c.Args().First(),
-			})
-			if err != nil {
-				return err
-			}
-			printMessage(resp)
-			return nil
 		},
 	}
 }

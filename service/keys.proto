@@ -97,10 +97,9 @@ service Keys {
   rpc Backup(BackupRequest) returns (BackupResponse) {}  
   rpc Migrate(MigrateRequest) returns (MigrateResponse) {}
   
-  rpc Sync(SyncRequest) returns (SyncResponse) {}
-  rpc SyncProgramsAdd(SyncProgramsAddRequest) returns (SyncProgramsAddResponse) {}
-  rpc SyncProgramsRemove(SyncProgramsRemoveRequest) returns (SyncProgramsRemoveResponse) {}
-  rpc SyncPrograms(SyncProgramsRequest) returns (SyncProgramsResponse) {}
+  rpc Sync(SyncRequest) returns (stream SyncOutput) {}
+  rpc SyncUnset(SyncUnsetRequest) returns (SyncUnsetResponse) {}
+  rpc SyncProgram(SyncProgramRequest) returns (SyncProgramResponse) {}
 
   rpc Collections(CollectionsRequest) returns (CollectionsResponse) {}
   rpc Documents(DocumentsRequest) returns (DocumentsResponse) {}
@@ -1021,28 +1020,22 @@ message MigrateRequest {
 message MigrateResponse {}
 
 message SyncProgram {
-  string id = 1 [(gogoproto.customname) = "ID"];
-  string name = 2;
-  string remote = 3;
-}
-
-message SyncRequest {}
-message SyncResponse {}
-
-message SyncProgramsAddRequest {
   string name = 1;
   string remote = 2;
 }
-message SyncProgramsAddResponse {
+
+message SyncRequest {
+  string name = 1;
+  string remote = 2;
+}
+message SyncOutput {
+  string out = 1;
+}
+
+message SyncUnsetRequest {}
+message SyncUnsetResponse {}
+
+message SyncProgramRequest {}
+message SyncProgramResponse {
   SyncProgram program = 1;
-}
-
-message SyncProgramsRemoveRequest {
-  string id = 1 [(gogoproto.customname) = "ID"];
-}
-message SyncProgramsRemoveResponse {}
-
-message SyncProgramsRequest {}
-message SyncProgramsResponse {
-  repeated SyncProgram programs = 1;
 }
