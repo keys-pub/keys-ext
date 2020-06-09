@@ -59,8 +59,7 @@ func (s *service) verifyKey(ctx context.Context, kid keys.ID) (*Key, error) {
 }
 
 func (s *service) loadKey(ctx context.Context, kid keys.ID) (*Key, error) {
-	kr := s.keyring()
-	key, err := keys.Find(kr, kid)
+	key, err := keys.Find(s.kr, kid)
 	if err != nil {
 		return nil, err
 	}
@@ -141,8 +140,7 @@ func (s *service) keyToRPC(ctx context.Context, key keys.Key) (*Key, error) {
 }
 
 func (s *service) keyIDToRPC(ctx context.Context, kid keys.ID) (*Key, error) {
-	kr := s.keyring()
-	key, err := keys.Find(kr, kid)
+	key, err := keys.Find(s.kr, kid)
 	if err != nil {
 		return nil, err
 	}
@@ -195,8 +193,7 @@ func (s *service) KeyRemove(ctx context.Context, req *KeyRemoveRequest) (*KeyRem
 	if err != nil {
 		return nil, err
 	}
-	kr := s.keyring()
-	ok, err := keys.Delete(kr, kid)
+	ok, err := keys.Delete(s.kr, kid)
 	if err != nil {
 		return nil, err
 	}
@@ -222,7 +219,6 @@ func (s *service) KeyGenerate(ctx context.Context, req *KeyGenerateRequest) (*Ke
 	if req.Type == UnknownKeyType {
 		return nil, errors.Errorf("no key type specified")
 	}
-	kr := s.keyring()
 	var key keys.Key
 	switch req.Type {
 	case EdX25519:
@@ -232,7 +228,7 @@ func (s *service) KeyGenerate(ctx context.Context, req *KeyGenerateRequest) (*Ke
 	default:
 		return nil, errors.Errorf("unknown key type %s", req.Type)
 	}
-	if err := keys.Save(kr, key); err != nil {
+	if err := keys.Save(s.kr, key); err != nil {
 		return nil, err
 	}
 	kid := key.ID()
@@ -260,12 +256,11 @@ func (s *service) parseKey(kid string, required bool) (keys.Key, error) {
 		}
 		return nil, nil
 	}
-	kr := s.keyring()
 	id, err := keys.ParseID(kid)
 	if err != nil {
 		return nil, err
 	}
-	key, err := keys.Find(kr, id)
+	key, err := keys.Find(s.kr, id)
 	if err != nil {
 		return nil, err
 	}
@@ -282,9 +277,8 @@ func (s *service) convertX25519ID(kid keys.ID) (keys.ID, error) {
 		return "", nil
 	}
 	if kid.IsX25519() {
-		kr := s.keyring()
 		logger.Debugf("Convert sender %s", kid)
-		spk, err := keys.FindEdX25519PublicKey(kr, kid)
+		spk, err := keys.FindEdX25519PublicKey(s.kr, kid)
 		if err != nil {
 			return "", err
 		}
@@ -310,8 +304,7 @@ func (s *service) parseSigner(signer string, required bool) (*keys.EdX25519Key, 
 	if err != nil {
 		return nil, err
 	}
-	kr := s.keyring()
-	key, err := keys.Find(kr, kid)
+	key, err := keys.Find(s.kr, kid)
 	if err != nil {
 		return nil, err
 	}
@@ -329,8 +322,7 @@ func (s *service) parseBoxKey(kid keys.ID) (*keys.X25519Key, error) {
 	if kid == "" {
 		return nil, nil
 	}
-	kr := s.keyring()
-	key, err := keys.Find(kr, kid)
+	key, err := keys.Find(s.kr, kid)
 	if err != nil {
 		return nil, err
 	}
@@ -355,8 +347,7 @@ func (s *service) parseSignKey(id string, required bool) (*keys.EdX25519Key, err
 	if err != nil {
 		return nil, err
 	}
-	kr := s.keyring()
-	key, err := keys.Find(kr, kid)
+	key, err := keys.Find(s.kr, kid)
 	if err != nil {
 		return nil, err
 	}
@@ -376,8 +367,7 @@ func (s *service) parseIdentityForEdX25519Key(ctx context.Context, identity stri
 	if err != nil {
 		return nil, err
 	}
-	kr := s.keyring()
-	key, err := keys.Find(kr, kid)
+	key, err := keys.Find(s.kr, kid)
 	if err != nil {
 		return nil, err
 	}

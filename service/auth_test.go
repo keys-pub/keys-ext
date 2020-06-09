@@ -10,12 +10,11 @@ import (
 )
 
 func TestAuthWithPassword(t *testing.T) {
-	cfg, closeFn := testConfig(t, "KeysTest", "", "mem")
+	cfg, closeFn := testConfig(t, "KeysTest", "")
 	defer closeFn()
 	auth := newAuth(cfg)
-	keyringFn, err := newKeyringFn(cfg)
+	kr, _, err := newKeyring(cfg, "mem")
 	require.NoError(t, err)
-	kr := keyringFn.Keyring()
 
 	ctx := context.TODO()
 
@@ -53,12 +52,11 @@ func TestAuthWithPassword(t *testing.T) {
 }
 
 func TestAuthorize(t *testing.T) {
-	cfg, closeFn := testConfig(t, "KeysTest", "", "mem")
+	cfg, closeFn := testConfig(t, "KeysTest", "")
 	defer closeFn()
 	auth := newAuth(cfg)
-	keyringFn, err := newKeyringFn(cfg)
+	kr, _, err := newKeyring(cfg, "mem")
 	require.NoError(t, err)
-	kr := keyringFn.Keyring()
 
 	ctx := metadata.NewIncomingContext(context.TODO(), metadata.MD{})
 	err = auth.authorize(ctx, "/service.Keys/SomeMethod")

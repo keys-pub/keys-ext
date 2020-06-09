@@ -15,6 +15,8 @@ func otherCommands(client *Client) []cli.Command {
 			Flags: []cli.Flag{
 				cli.IntFlag{Name: "num-bytes, n", Usage: "number of bytes", Value: 32},
 				cli.StringFlag{Name: "encoding, enc, e", Usage: "encoding (base64, base62, base58, base32, base16, bip39, saltpack)", Value: "base62"},
+				cli.BoolFlag{Name: "no-padding", Usage: "no padding (base64, base32"},
+				cli.BoolFlag{Name: "lower", Usage: "lowercase (base64, base32"},
 			},
 			Action: func(c *cli.Context) error {
 				enc, err := encodingToRPC(c.String("enc"))
@@ -22,8 +24,10 @@ func otherCommands(client *Client) []cli.Command {
 					return err
 				}
 				rand, err := client.KeysClient().Rand(context.TODO(), &RandRequest{
-					NumBytes: int32(c.Int("num-bytes")),
-					Encoding: enc,
+					NumBytes:  int32(c.Int("num-bytes")),
+					Encoding:  enc,
+					NoPadding: c.Bool("no-padding"),
+					Lowercase: c.Bool("lower"),
 				})
 				if err != nil {
 					return err

@@ -115,7 +115,7 @@ func (c *Client) Close() error {
 func config(c *cli.Context) (*Config, error) {
 	appName := c.GlobalString("app")
 	if appName == "" {
-		return nil, errors.Errorf("empty app name specified")
+		return nil, errors.Errorf("no app name")
 	}
 	return NewConfig(appName)
 }
@@ -185,6 +185,7 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 	cmds = append(cmds, fido2Commands(client)...)
 	cmds = append(cmds, adminCommands(client)...)
 	cmds = append(cmds, backupCommands(client)...)
+	cmds = append(cmds, syncCommands(client)...)
 
 	sort.Slice(cmds, func(i, j int) bool {
 		return cmds[i].Name < cmds[j].Name

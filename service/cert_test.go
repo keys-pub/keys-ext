@@ -8,7 +8,7 @@ import (
 )
 
 func TestCertificate(t *testing.T) {
-	cfg, closeFn := testConfig(t, "KeysTest", "", "mem")
+	cfg, closeFn := testConfig(t, "KeysTest", "")
 	defer closeFn()
 
 	cert, err := loadCertificate(cfg)

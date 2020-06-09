@@ -40,12 +40,10 @@ func (s *service) Collections(ctx context.Context, req *CollectionsRequest) (*Co
 
 // Documents (RPC) lists local document store.
 func (s *service) Documents(ctx context.Context, req *DocumentsRequest) (*DocumentsResponse, error) {
-	iter, err := s.db.Documents(ctx, req.Path,
-		&ds.DocumentsOpts{
-			Prefix: req.Prefix,
-			// Index:  int(req.Index),
-			// Limit:  int(req.Length),
-		})
+	if req.Path == "" {
+		return nil, errors.Errorf("no collection specified")
+	}
+	iter, err := s.db.Documents(ctx, req.Path, ds.Prefix(req.Prefix))
 	if err != nil {
 		return nil, err
 	}
@@ -84,5 +82,15 @@ func (s *service) Documents(ctx context.Context, req *DocumentsRequest) (*Docume
 
 // DocumentDelete (RPC) ...
 func (s *service) DocumentDelete(ctx context.Context, req *DocumentDeleteRequest) (*DocumentDeleteResponse, error) {
-	return nil, errors.Errorf("not implemented")
+	if req.Path == "" {
+		return nil, errors.Errorf("invalid path")
+	}
+	ok, err := s.db.Delete(ctx, req.Path)
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		return nil, errors.Errorf("path not found %s", req.Path)
+	}
+	return &DocumentDeleteResponse{}, nil
 }

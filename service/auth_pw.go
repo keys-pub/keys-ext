@@ -55,8 +55,7 @@ func provisionPassword(ctx context.Context, kr *keyring.Keyring, password string
 
 // PasswordChange (RPC) ...
 func (s *service) PasswordChange(ctx context.Context, req *PasswordChangeRequest) (*PasswordChangeResponse, error) {
-	kr := s.keyring()
-	old, err := unlockPassword(kr, req.Old)
+	old, err := unlockPassword(s.kr, req.Old)
 	if err != nil {
 		if errors.Cause(err) == keyring.ErrInvalidAuth {
 			return nil, errors.Errorf("invalid password")
@@ -64,11 +63,11 @@ func (s *service) PasswordChange(ctx context.Context, req *PasswordChangeRequest
 		return nil, err
 	}
 
-	if _, err := provisionPassword(ctx, kr, req.New); err != nil {
+	if _, err := provisionPassword(ctx, s.kr, req.New); err != nil {
 		return nil, err
 	}
 
-	ok, err := kr.Deprovision(old.ID, false)
+	ok, err := s.kr.Deprovision(old.ID, false)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to deprovision old password (new password was provisioned)")
 	}

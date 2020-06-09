@@ -27,9 +27,8 @@ func (s *service) Pull(ctx context.Context, req *PullRequest) (*PullResponse, er
 	}
 
 	// Update existing if no kid or user specified
-	kr := s.keyring()
 	pulled := []string{}
-	spks, err := keys.EdX25519PublicKeys(kr)
+	spks, err := keys.EdX25519PublicKeys(s.kr)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load keys")
 	}

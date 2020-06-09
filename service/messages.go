@@ -159,8 +159,7 @@ func (s *service) message(ctx context.Context, path string) (*Message, error) {
 		return nil, nil
 	}
 
-	kr := s.keyring()
-	ks := &saltpackKeyring{kr}
+	ks := &saltpackKeyring{s.kr}
 	decrypted, sender, err := saltpack.SigncryptOpen(doc.Data, ks)
 	if err != nil {
 		return nil, err
@@ -183,7 +182,7 @@ func (s *service) message(ctx context.Context, path string) (*Message, error) {
 
 func (s *service) messages(ctx context.Context, key *keys.EdX25519Key, recipient keys.ID) ([]*Message, error) {
 	path := fmt.Sprintf("messages-%s-%s", key.ID(), recipient)
-	iter, iterErr := s.db.Documents(ctx, path, &ds.DocumentsOpts{PathOnly: true})
+	iter, iterErr := s.db.Documents(ctx, path, ds.NoData())
 	if iterErr != nil {
 		return nil, iterErr
 	}

@@ -39,7 +39,7 @@ func newTestRPCClient(t *testing.T, srvc *service, env *testEnv, appName string)
 
 	client := NewClient()
 	client.connectFn = connect
-	cfg, cfgClose := testConfig(t, appName, "", "mem")
+	cfg, cfgClose := testConfig(t, appName, "")
 	err := client.Connect(cfg, "")
 	require.NoError(t, err)
 

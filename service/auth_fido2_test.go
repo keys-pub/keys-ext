@@ -26,13 +26,12 @@ func TestHMACSecretAuthOnDevice(t *testing.T) {
 
 	// SetLogger(NewLogger(DebugLevel))
 
-	cfg, closeFn := testConfig(t, "KeysTest", "", "mem")
+	cfg, closeFn := testConfig(t, "KeysTest", "")
 	defer closeFn()
 
 	auth := newAuth(cfg)
-	keyringFn, err := newKeyringFn(cfg)
+	kr, _, err := newKeyring(cfg, "mem")
 	require.NoError(t, err)
-	kr := keyringFn.Keyring()
 
 	// Try without plugin
 	err = auth.setup(context.TODO(), kr, pin, FIDO2HMACSecretAuth)
@@ -60,12 +59,11 @@ func TestHMACSecretAuth(t *testing.T) {
 	// keyring.SetLogger(NewLogger(DebugLevel))
 	var err error
 
-	cfg, closeFn := testConfig(t, "KeysTest", "", "mem")
+	cfg, closeFn := testConfig(t, "KeysTest", "")
 	defer closeFn()
 	auth := newAuth(cfg)
-	keyringFn, err := newKeyringFn(cfg)
+	kr, _, err := newKeyring(cfg, "mem")
 	require.NoError(t, err)
-	kr := keyringFn.Keyring()
 	pin := "12345"
 
 	// Try without plugin
