@@ -20,14 +20,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func testConfig(t *testing.T, appName string, serverURL string, keyringType string) (*Config, CloseFn) {
+func testConfig(t *testing.T, appName string, serverURL string) (*Config, CloseFn) {
 	if appName == "" {
 		appName = "KeysTest-" + randName()
 	}
 	cfg, err := NewConfig(appName)
 	require.NoError(t, err)
-	cfg.Set("server", serverURL)
-	cfg.Set("keyring", keyringType)
+	cfg.Set(serverCfgKey, serverURL)
 
 	closeFn := func() {
 		removeErr := os.RemoveAll(cfg.AppDir())
@@ -89,10 +88,10 @@ func newTestService(t *testing.T, env *testEnv, appName string) (*service, Close
 
 func newTestServiceWithOpts(t *testing.T, env *testEnv, appName string, keyringType string) (*service, CloseFn) {
 	serverEnv := newTestServerEnv(t, env)
-	cfg, closeCfg := testConfig(t, appName, serverEnv.url, keyringType)
+	cfg, closeCfg := testConfig(t, appName, serverEnv.url)
 	auth := newAuth(cfg)
 
-	svc, err := newService(cfg, Build{Version: "1.2.3", Commit: "deadbeef"}, auth, env.req, env.clock.Now)
+	svc, err := newService(cfg, Build{Version: "1.2.3", Commit: "deadbeef"}, auth, keyringType, env.req, env.clock.Now)
 	require.NoError(t, err)
 
 	closeFn := func() {

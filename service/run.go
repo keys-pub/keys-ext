@@ -38,7 +38,7 @@ import (
 
 func newProtoService(cfg *Config, build Build, auth *auth) (*service, error) {
 	req := request.NewHTTPRequestor()
-	srv, err := newService(cfg, build, auth, req, time.Now)
+	srv, err := newService(cfg, build, auth, "", req, time.Now)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func logFatal(err error) {
 }
 
 func resetKeyringAndExit(cfg *Config) {
-	st, err := newKeyringStore(cfg)
+	st, err := newKeyringStore(cfg, "")
 	if err != nil {
 		logFatal(errors.Wrapf(err, "failed to init keyring store"))
 	}

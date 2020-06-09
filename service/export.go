@@ -20,8 +20,7 @@ func (s *service) KeyExport(ctx context.Context, req *KeyExportRequest) (*KeyExp
 		typ = SaltpackExport
 	}
 
-	kr := s.keyring()
-	key, err := keys.Find(kr, id)
+	key, err := keys.Find(s.kr, id)
 	if err != nil {
 		return nil, err
 	}
@@ -31,7 +30,7 @@ func (s *service) KeyExport(ctx context.Context, req *KeyExportRequest) (*KeyExp
 
 	// TODO: What if we don't have any password auth?
 	if req.Password != "" {
-		if err := s.keyring().UnlockWithPassword(req.Password, false); err != nil {
+		if err := s.kr.UnlockWithPassword(req.Password, false); err != nil {
 			if err == keyring.ErrInvalidAuth {
 				return nil, errors.Errorf("invalid password")
 			}

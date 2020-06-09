@@ -26,8 +26,7 @@ func (s *service) Keys(ctx context.Context, req *KeysRequest) (*KeysResponse, er
 		types = append(types, typ)
 	}
 
-	kr := s.keyring()
-	out, err := keys.Keys(kr, keys.WithTypes(types...))
+	out, err := keys.Keys(s.kr, keys.WithTypes(types...))
 	if err != nil {
 		return nil, err
 	}

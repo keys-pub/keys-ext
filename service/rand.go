@@ -15,7 +15,16 @@ func (s *service) Rand(ctx context.Context, req *RandRequest) (*RandResponse, er
 	if err != nil {
 		return nil, err
 	}
-	out, err := encoding.Encode(b, enc)
+
+	opts := []encoding.EncodeOption{}
+	if req.NoPadding {
+		opts = append(opts, encoding.NoPadding())
+	}
+	if req.Lowercase {
+		opts = append(opts, encoding.Lowercase())
+	}
+
+	out, err := encoding.Encode(b, enc, opts...)
 	if err != nil {
 		return nil, err
 	}

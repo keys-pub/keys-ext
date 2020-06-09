@@ -44,6 +44,9 @@ func dbCommands(client *Client) []cli.Command {
 					Usage:     "List documents",
 					Flags:     []cli.Flag{},
 					ArgsUsage: "collection",
+					Subcommands: []cli.Command{
+						documentDeleteCommand(client),
+					},
 					Action: func(c *cli.Context) error {
 						if c.NArg() > 1 {
 							return errors.Errorf("too many arguments")
@@ -71,6 +74,20 @@ func dbCommands(client *Client) []cli.Command {
 					},
 				},
 			},
+		},
+	}
+}
+
+func documentDeleteCommand(client *Client) cli.Command {
+	return cli.Command{
+		Name:  "rm",
+		Usage: "Delete document",
+		Action: func(c *cli.Context) error {
+			_, err := client.KeysClient().DocumentDelete(context.TODO(), &DocumentDeleteRequest{Path: c.Args().First()})
+			if err != nil {
+				return err
+			}
+			return nil
 		},
 	}
 }

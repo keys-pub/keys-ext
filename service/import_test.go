@@ -33,13 +33,12 @@ func TestKeyImport(t *testing.T) {
 	require.Equal(t, key.ID().String(), keyResp.Key.ID)
 
 	// Check key
-	kr := service.keyring()
-	out, err := keys.FindEdX25519Key(kr, key.ID())
+	out, err := keys.FindEdX25519Key(service.kr, key.ID())
 	require.NoError(t, err)
 	require.NotNil(t, out)
 	require.Equal(t, out.ID(), key.ID())
 
-	sks, err := keys.EdX25519Keys(kr)
+	sks, err := keys.EdX25519Keys(service.kr)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(sks))
 

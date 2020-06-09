@@ -10,10 +10,67 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *service) backup(st keyring.Store) (string, error) {
+// Backup (RPC) ...
+func (s *service) Backup(ctx context.Context, req *BackupRequest) (*BackupResponse, error) {
+	switch req.Resource {
+	case "keyring":
+		st := s.kr.Store()
+		path, err := backupKeyring(s.cfg, st)
+		if err != nil {
+			return nil, err
+		}
+		return &BackupResponse{
+			Path: path,
+		}, nil
+	case "":
+		return nil, errors.Errorf("no resource specified")
+	default:
+		return nil, errors.Errorf("unrecognized resource: %s", req.Resource)
+	}
+
+}
+
+// Restore (RPC) ...
+func (s *service) Restore(ctx context.Context, req *RestoreRequest) (*RestoreResponse, error) {
+	switch req.Resource {
+	case "keyring":
+		st := s.kr.Store()
+		if err := keyring.Restore(req.Path, st); err != nil {
+			return nil, err
+		}
+		return &RestoreResponse{}, nil
+	case "":
+		return nil, errors.Errorf("no resource specified")
+	default:
+		return nil, errors.Errorf("unrecognized resource: %s", req.Resource)
+	}
+}
+
+// Migrate (RPC) ...
+func (s *service) Migrate(ctx context.Context, req *MigrateRequest) (*MigrateResponse, error) {
+	// So we can unlock new keyring after
+	mk := s.kr.MasterKey()
+
+	if err := migrateKeyring(s.cfg, req.Source, req.Destination); err != nil {
+		return nil, err
+	}
+
+	// (Re-)load keyring
+	kr, scfg, err := newKeyring(s.cfg, "")
+	if err != nil {
+		return nil, err
+	}
+	kr.SetMasterKey(mk)
+	s.kr = kr
+	s.scfg = scfg
+
+	return &MigrateResponse{}, nil
+}
+
+func backupKeyring(cfg *Config, st keyring.Store) (string, error) {
 	now := time.Now()
-	backupFile := fmt.Sprintf("keyring-backup-%d.tgz", tsutil.Millis(now))
-	backupPath, err := s.cfg.AppPath(backupFile, true)
+	backupFile := fmt.Sprintf("backup-keyring-%d.tgz", tsutil.Millis(now))
+	backupPath, err := cfg.AppPath(backupFile, true)
 	if err != nil {
 		return "", err
 	}
@@ -22,33 +79,4 @@ func (s *service) backup(st keyring.Store) (string, error) {
 		return "", err
 	}
 	return backupPath, nil
-}
-
-// Backup (RPC) ...
-func (s *service) Backup(ctx context.Context, req *BackupRequest) (*BackupResponse, error) {
-	st := s.keyringFn.Keyring().Store()
-	if st.Name() == "git" {
-		return nil, errors.Errorf("keyring backup not supported for git repo")
-	}
-
-	path, err := s.backup(st)
-	if err != nil {
-		return nil, err
-	}
-	return &BackupResponse{
-		Path: path,
-	}, nil
-}
-
-// Restore (RPC) ...
-func (s *service) Restore(ctx context.Context, req *RestoreRequest) (*RestoreResponse, error) {
-	st := s.keyringFn.Keyring().Store()
-	if st.Name() == "git" {
-		return nil, errors.Errorf("keyring restore not supported for git repo")
-	}
-
-	if err := keyring.Restore(req.Path, st); err != nil {
-		return nil, err
-	}
-	return &RestoreResponse{}, nil
 }

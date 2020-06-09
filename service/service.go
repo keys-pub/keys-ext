@@ -8,30 +8,33 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/db"
 	"github.com/keys-pub/keys-ext/http/client"
+	"github.com/keys-pub/keys-ext/syncp"
+	"github.com/keys-pub/keys/keyring"
 	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/user"
 )
 
 type service struct {
-	cfg       *Config
-	build     Build
-	auth      *auth
-	db        *db.DB
-	remote    *client.Client
-	scs       keys.SigchainStore
-	users     *user.Store
-	nowFn     func() time.Time
-	keyringFn keyringFn
+	cfg    *Config
+	build  Build
+	auth   *auth
+	db     *db.DB
+	remote *client.Client
+	scs    keys.SigchainStore
+	users  *user.Store
+	nowFn  func() time.Time
+	kr     *keyring.Keyring
+	scfg   syncp.Config
 
 	closeCh chan bool
 	open    bool
 	openMtx sync.Mutex
 }
 
-func newService(cfg *Config, build Build, auth *auth, req request.Requestor, nowFn func() time.Time) (*service, error) {
+func newService(cfg *Config, build Build, auth *auth, keyringType string, req request.Requestor, nowFn func() time.Time) (*service, error) {
 	logger.Debugf("New service: %s", cfg.AppName())
 
-	keyringFn, err := newKeyringFn(cfg)
+	kr, scfg, err := newKeyring(cfg, keyringType)
 	if err != nil {
 		return nil, err
 	}
@@ -51,15 +54,16 @@ func newService(cfg *Config, build Build, auth *auth, req request.Requestor, now
 	remote.SetTimeNow(nowFn)
 
 	return &service{
-		auth:      auth,
-		build:     build,
-		cfg:       cfg,
-		keyringFn: keyringFn,
-		scs:       scs,
-		db:        db,
-		users:     users,
-		remote:    remote,
-		nowFn:     nowFn,
+		auth:   auth,
+		build:  build,
+		cfg:    cfg,
+		kr:     kr,
+		scfg:   scfg,
+		scs:    scs,
+		db:     db,
+		users:  users,
+		remote: remote,
+		nowFn:  nowFn,
 	}, nil
 }
 
@@ -68,7 +72,9 @@ func (s *service) Now() time.Time {
 	return s.nowFn()
 }
 
-const dbFilename = "keys.leveldb"
+const dbFilename = "keys.sdb"
+
+// TODO: Remove old db "keys.leveldb"
 
 // Open the service.
 // If already open, will close and re-open.

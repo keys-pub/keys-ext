@@ -12,11 +12,17 @@ func backupCommands(client *Client) []cli.Command {
 		cli.Command{
 			Name:  "backup",
 			Usage: "Backup",
+			Flags: []cli.Flag{
+				cli.StringFlag{Name: "resource, r", Usage: "resource"},
+			},
 			Action: func(c *cli.Context) error {
-				resp, err := client.KeysClient().Backup(context.TODO(), &BackupRequest{})
+				resp, err := client.KeysClient().Backup(context.TODO(), &BackupRequest{
+					Resource: c.String("resource"),
+				})
 				if err != nil {
 					return err
 				}
+				// TODO: Make path configurable
 				fmt.Println(resp.Path)
 				return nil
 			},
@@ -24,9 +30,34 @@ func backupCommands(client *Client) []cli.Command {
 		cli.Command{
 			Name:  "restore",
 			Usage: "Restore",
+			Flags: []cli.Flag{
+				cli.StringFlag{Name: "resource, r", Usage: "resource"},
+				cli.StringFlag{Name: "path, p", Usage: "path to backup"},
+			},
 			Action: func(c *cli.Context) error {
 				resp, err := client.KeysClient().Restore(context.TODO(), &RestoreRequest{
-					Path: c.Args().First(),
+					Resource: c.String("resource"),
+					Path:     c.String("path"),
+				})
+				if err != nil {
+					return err
+				}
+				printMessage(resp)
+				return nil
+			},
+		},
+		cli.Command{
+			Name:  "migrate",
+			Usage: "Migrate keyring",
+			Flags: []cli.Flag{
+				cli.StringFlag{Name: "source, s", Usage: "source"},
+				cli.StringFlag{Name: "destination, d", Usage: "destination"},
+			},
+			Hidden: true,
+			Action: func(c *cli.Context) error {
+				resp, err := client.KeysClient().Migrate(context.TODO(), &MigrateRequest{
+					Source:      c.String("source"),
+					Destination: c.String("destination"),
 				})
 				if err != nil {
 					return err

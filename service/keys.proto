@@ -95,6 +95,12 @@ service Keys {
   rpc PasswordChange(PasswordChangeRequest) returns (PasswordChangeResponse) {}
   
   rpc Backup(BackupRequest) returns (BackupResponse) {}  
+  rpc Migrate(MigrateRequest) returns (MigrateResponse) {}
+  
+  rpc Sync(SyncRequest) returns (SyncResponse) {}
+  rpc SyncProgramsAdd(SyncProgramsAddRequest) returns (SyncProgramsAddResponse) {}
+  rpc SyncProgramsRemove(SyncProgramsRemoveRequest) returns (SyncProgramsRemoveResponse) {}
+  rpc SyncPrograms(SyncProgramsRequest) returns (SyncProgramsResponse) {}
 
   rpc Collections(CollectionsRequest) returns (CollectionsResponse) {}
   rpc Documents(DocumentsRequest) returns (DocumentsResponse) {}
@@ -742,6 +748,8 @@ enum Encoding {
 message RandRequest {
   int32 numBytes = 1;
   Encoding encoding = 2;
+  bool noPadding = 10;
+  bool lowercase = 11;
 }
 message RandResponse {
   string data = 1;
@@ -991,12 +999,49 @@ message GitCloneRequest {
 }
 message GitCloneResponse {}
 
-message BackupRequest {}
-message BackupResponse {
+message BackupRequest {
+  string resource = 1;
+  string dir = 2;
+}
+message BackupResponse {  
   string path = 1;
 }
 
 message RestoreRequest {
-  string path = 1;
+   string resource = 1;
+  string path = 2;
 }
 message RestoreResponse {}
+
+message MigrateRequest {
+  string source = 1;
+  string destination = 2;
+}
+message MigrateResponse {}
+
+message SyncProgram {
+  string id = 1 [(gogoproto.customname) = "ID"];
+  string name = 2;
+  string remote = 3;
+}
+
+message SyncRequest {}
+message SyncResponse {}
+
+message SyncProgramsAddRequest {
+  string name = 1;
+  string remote = 2;
+}
+message SyncProgramsAddResponse {
+  SyncProgram program = 1;
+}
+
+message SyncProgramsRemoveRequest {
+  string id = 1 [(gogoproto.customname) = "ID"];
+}
+message SyncProgramsRemoveResponse {}
+
+message SyncProgramsRequest {}
+message SyncProgramsResponse {
+  repeated SyncProgram programs = 1;
+}

@@ -471,8 +471,7 @@ func (s *service) checkForKeyUpdate(ctx context.Context, kid keys.ID, updateIfMi
 // This currently only updates keys that have had a user.
 func (s *service) checkForKeyUpdates(ctx context.Context) error {
 	logger.Infof("Checking keys...")
-	kr := s.keyring()
-	pks, err := keys.EdX25519PublicKeys(kr)
+	pks, err := keys.EdX25519PublicKeys(s.kr)
 	if err != nil {
 		return err
 	}
@@ -486,8 +485,7 @@ func (s *service) checkForKeyUpdates(ctx context.Context) error {
 
 func (s *service) updateAllKeys(ctx context.Context) error {
 	logger.Infof("Updating keys...")
-	kr := s.keyring()
-	pks, err := keys.EdX25519PublicKeys(kr)
+	pks, err := keys.EdX25519PublicKeys(s.kr)
 	if err != nil {
 		return err
 	}

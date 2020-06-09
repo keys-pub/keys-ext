@@ -41,10 +41,8 @@ func NewConfig(appName string) (*Config, error) {
 const serverCfgKey = "server"
 const portCfgKey = "port"
 const logLevelCfgKey = "logLevel"
-const keyringTypeCfgKey = "keyring"
-const gitKeyPathCfgKey = "gitKeyPath"
 
-var configKeys = []string{serverCfgKey, portCfgKey, logLevelCfgKey, keyringTypeCfgKey, gitKeyPathCfgKey}
+var configKeys = []string{serverCfgKey, portCfgKey, logLevelCfgKey}
 
 // IsKey returns true if config key is recognized.
 func (c Config) IsKey(s string) bool {
@@ -89,14 +87,6 @@ func (c Config) AppName() string {
 	return c.appName
 }
 
-func (c Config) keyringService() string {
-	return c.AppName() + ".keyring"
-}
-
-func (c Config) keyringGitPath() (string, error) {
-	return c.AppPath("keyring", true)
-}
-
 // AppDir is where app related files are persisted.
 func (c Config) AppDir() string {
 	p, err := c.AppPath("", false)
@@ -114,6 +104,8 @@ func (c Config) LogsDir() string {
 	}
 	return p
 }
+
+// TODO: use env package for paths
 
 // AppPath ...
 func (c Config) AppPath(fileName string, makeDir bool) (string, error) {
