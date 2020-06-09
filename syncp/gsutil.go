@@ -14,9 +14,6 @@ type GSUtil struct {
 }
 
 // NewGSUtil creates gcp storage rsync command.
-//
-// To setup, make a remote bucket:
-// gsutil mb gs://bucket
 func NewGSUtil(bucket string) (*GSUtil, error) {
 	if err := validateBucket(bucket); err != nil {
 		return nil, err
@@ -72,25 +69,29 @@ func (g *GSUtil) pullArgs(cfg Config) []string {
 }
 
 // Setup for gsutil is a noop.
-func (g *GSUtil) Setup(cfg Config) Result {
-	return Result{}
+// TODO: To setup, make a remote bucket, gsutil mb gs://bucket
+func (g *GSUtil) Setup(cfg Config, rt Runtime) error {
+	return nil
+}
+
+// Clean for gsutil is a noop.
+func (g *GSUtil) Clean(cfg Config, rt Runtime) error {
+	return nil
 }
 
 // Sync commands.
-func (g *GSUtil) Sync(cfg Config) Result {
-	binPath, err := exec.LookPath("gsutil")
+func (g *GSUtil) Sync(cfg Config, rt Runtime) error {
+	bin, err := exec.LookPath("gsutil")
 	if err != nil {
-		return Result{Err: err}
+		return err
 	}
-	cmds := []Cmd{
-		Cmd{
-			BinPath: binPath,
-			Args:    g.pushArgs(cfg),
-		},
-		Cmd{
-			BinPath: binPath,
-			Args:    g.pullArgs(cfg),
-		},
+
+	if res := Run(NewCmd(bin, Args(g.pushArgs(cfg)...)), rt); res.Err != nil {
+		return res.Err
 	}
-	return RunAll(cmds, cfg)
+	if res := Run(NewCmd(bin, Args(g.pullArgs(cfg)...)), rt); res.Err != nil {
+		return res.Err
+	}
+
+	return nil
 }

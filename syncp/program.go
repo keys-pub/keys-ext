@@ -1,6 +1,7 @@
 package syncp
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
@@ -11,10 +12,14 @@ import (
 
 // Program to run for syncing.
 type Program interface {
-	// Setup runs optional setup commands.
-	Setup(cfg Config) Result
 	// Sync runs the sync commands.
-	Sync(cfg Config) Result
+	Sync(cfg Config, rt Runtime) error
+
+	// Setup runs setup commands.
+	Setup(cfg Config, rt Runtime) error
+
+	// Clean runs cleanup commands.
+	Clean(cfg Config, rt Runtime) error
 }
 
 // NewProgram creates a program.
@@ -31,41 +36,104 @@ func NewProgram(name string, remote string) (Program, error) {
 
 // Cmd describes the commands that are run.
 type Cmd struct {
-	BinPath string
-	Args    []string
-	Chdir   string
+	Bin  string
+	Opts CmdOptions
 }
 
-// Result from running commands.
-type Result struct {
-	CmdResults []CmdResult
-	Err        error
+// NewCmd creates a command.
+func NewCmd(bin string, opt ...CmdOption) Cmd {
+	opts := newCmdOptions(opt...)
+	return Cmd{
+		Bin:  bin,
+		Opts: opts,
+	}
 }
 
-func (r Result) String() string {
-	out := []string{}
-	for _, r := range r.CmdResults {
-		out = append(out, fmt.Sprintf("----"))
-		out = append(out, fmt.Sprintf("cmd: %s %v", r.Cmd.BinPath, r.Cmd.Args))
-		out = append(out, fmt.Sprintf("out: %s", string(r.Output)))
-		out = append(out, fmt.Sprintf("exc: %d", r.ExitCode()))
-		if r.Err != nil {
-			out = append(out, fmt.Sprintf("err: %v", r.Err))
+// Config describes the current runtime environment.
+type Config struct {
+	Dir string
+}
+
+// Runtime ...
+type Runtime interface {
+	Log(format string, args ...interface{})
+	Logs() []string
+}
+
+type runtime struct {
+	logs []string
+}
+
+// NewRuntime creates a Log.
+func NewRuntime() Runtime {
+	return &runtime{}
+}
+
+// Log ...
+func (l *runtime) Log(format string, args ...interface{}) {
+	l.logs = append(l.logs, fmt.Sprintf(format, args...))
+}
+
+func (l *runtime) Logs() []string {
+	return l.logs
+}
+
+// Run a command.
+func Run(c Cmd, rt Runtime) Result {
+	result := Result{Cmd: c}
+	if c.Opts.Chdir != "" {
+		if err := os.Chdir(c.Opts.Chdir); err != nil {
+			result.Err = errors.Wrapf(err, "failed to chdir")
+			return result
 		}
 	}
-	return strings.Join(out, "\n")
+
+	// TODO: This could be dangerous in a privileged environment
+	cmd := exec.Command(c.Bin, c.Opts.Args...) // #nosec
+	logger.Infof("Running %s %s", c.Bin, c.Opts.Args)
+
+	var stdout bytes.Buffer
+	cmd.Stdout = &stdout
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	result.Err = cmd.Run()
+	result.Output = Output{Stdout: stdout.Bytes(), Stderr: stderr.Bytes()}
+
+	rt.Log("%s %v", c.Bin, c.Opts.Args)
+	rt.Log("%s", result.Output.String())
+
+	return result
 }
 
-// CmdResult from running command.
-type CmdResult struct {
+// Result from running command.
+type Result struct {
 	Cmd    Cmd
-	Output []byte
+	Output Output
 	Err    error
+}
+
+// Output from running command.
+type Output struct {
+	Stdout []byte
+	Stderr []byte
+}
+
+func (o Output) String() string {
+	s := []string{}
+	out := strings.TrimSpace(string(o.Stdout))
+	if out != "" {
+		s = append(s, out)
+	}
+	err := strings.TrimSpace(string(o.Stderr))
+	if err != "" {
+		s = append(s, err)
+	}
+	return strings.Join(s, "\n")
 }
 
 // ExitCode returns 0 if no error, the exit code if an exec.ExitError, or -1 if
 // a different error.
-func (r CmdResult) ExitCode() int {
+func (r Result) ExitCode() int {
 	if r.Err == nil {
 		return 0
 	}
@@ -75,49 +143,12 @@ func (r CmdResult) ExitCode() int {
 	return -1
 }
 
-// Config describes the current runtime environment.
-type Config struct {
-	Dir string
-}
-
-// RunAll the commands.
-func RunAll(cmds []Cmd, cfg Config) Result {
-	result := Result{
-		CmdResults: []CmdResult{},
+func pathExists(path string) (bool, error) {
+	if _, err := os.Stat(path); err == nil {
+		return true, nil
+	} else if os.IsNotExist(err) {
+		return false, nil
+	} else {
+		return false, err
 	}
-	if cfg.Dir == "" {
-		result.Err = errors.Errorf("invalid sync dir: %q", cfg.Dir)
-		return result
-	}
-	for _, c := range cmds {
-		cmdResult := Run(c, cfg)
-		result.CmdResults = append(result.CmdResults, cmdResult)
-		if cmdResult.Err != nil {
-			result.Err = cmdResult.Err
-			break
-		}
-	}
-	return result
-}
-
-// Run a command.
-func Run(c Cmd, cfg Config) CmdResult {
-	result := CmdResult{Cmd: c}
-	if c.Chdir != "" {
-		if err := os.Chdir(c.Chdir); err != nil {
-			result.Err = errors.Wrapf(err, "failed to chdir (sync)")
-			return result
-		}
-	}
-
-	// TODO: If this ever runs under a privileged environment we need to be
-	// careful that the PATH only includes privileged locations.
-	cmd := exec.Command(c.BinPath, c.Args...) // #nosec
-	logger.Infof("Running %s %s", c.BinPath, c.Args)
-	out, err := cmd.CombinedOutput()
-	result.Output = out
-	if err != nil {
-		result.Err = err
-	}
-	return result
 }

@@ -32,18 +32,10 @@ func TestGSUtil(t *testing.T) {
 	gsutil, err := syncp.NewGSUtil("gs://keys-chill-test")
 	require.NoError(t, err)
 
-	res := testProgramSync(t, gsutil, cfg, existing)
-	require.NoError(t, res.Err)
-	require.Equal(t, 2, len(res.CmdResults))
-	cmd0 := res.CmdResults[0].Cmd
-	cmd1 := res.CmdResults[1].Cmd
+	rt := syncp.NewRuntime()
+	testProgramSync(t, gsutil, cfg, rt, existing)
 
-	require.NotEmpty(t, cmd0.BinPath)
-	expectedArgs := []string{"-m", "rsync", "-e", "-x", "\\.git$", cfg.Dir, "gs://keys-chill-test"}
-	require.Equal(t, expectedArgs, cmd0.Args)
-	require.NotEmpty(t, cmd1.BinPath)
-	expectedArgs2 := []string{"-m", "rsync", "-e", "-x", "\\.git$", "gs://keys-chill-test", cfg.Dir}
-	require.Equal(t, expectedArgs2, cmd1.Args)
+	// t.Logf(strings.Join(rt.Logs(), "\n"))
 }
 
 func TestGSUtilValidate(t *testing.T) {

@@ -1,7 +1,12 @@
 package syncp
 
 import (
+	"io/ioutil"
+	"os"
 	"os/exec"
+	"path/filepath"
+
+	"github.com/pkg/errors"
 )
 
 // Git describes how to run git syncing.
@@ -20,74 +25,107 @@ func (g *Git) Remote() string {
 }
 
 // Setup commands.
-// git init
-// git remote add origin git@gitlab.com:gabrielha/keys.pub.test.git
-func (g *Git) Setup(cfg Config) Result {
-	binPath, err := exec.LookPath("git")
+func (g *Git) Setup(cfg Config, rt Runtime) error {
+	if cfg.Dir == "" {
+		return errors.Errorf("no sync dir")
+	}
+
+	bin, err := exec.LookPath("git")
 	if err != nil {
-		return Result{Err: err}
+		return err
 	}
-	cmds := []Cmd{
-		Cmd{
-			BinPath: binPath,
-			Args: []string{
-				"init",
-			},
-			Chdir: cfg.Dir,
-		},
-		Cmd{
-			BinPath: binPath,
-			Args: []string{
-				"remote", "add", "origin", g.repo,
-			},
-			Chdir: cfg.Dir,
-		},
+
+	isEmpty := false
+	res := Run(NewCmd(bin, Args("ls-remote", g.repo), Chdir(cfg.Dir)), rt)
+	if res.Err != nil {
+		return res.Err
 	}
-	return RunAll(cmds, cfg)
+	refs := string(res.Output.Stdout)
+	if refs == "" {
+		isEmpty = true
+	}
+
+	if isEmpty {
+		if err := ensureReadme(cfg.Dir, rt); err != nil {
+			return err
+		}
+		if res := Run(NewCmd(bin, Args("init"), Chdir(cfg.Dir)), rt); res.Err != nil {
+			return res.Err
+		}
+		if res := Run(NewCmd(bin, Args("remote", "add", "origin", g.repo), Chdir(cfg.Dir)), rt); res.Err != nil {
+			return res.Err
+		}
+		if res := Run(NewCmd(bin, Args("add", "."), Chdir(cfg.Dir)), rt); res.Err != nil {
+			return res.Err
+		}
+		if res := Run(NewCmd(bin, Args("commit", "-m", "Import"), Chdir(cfg.Dir)), rt); res.Err != nil {
+			return res.Err
+		}
+		if res := Run(NewCmd(bin, Args("push", "origin", "master"), Chdir(cfg.Dir)), rt); res.Err != nil {
+			return res.Err
+		}
+	} else {
+		if res := Run(NewCmd(bin, Args("init"), Chdir(cfg.Dir)), rt); res.Err != nil {
+			return res.Err
+		}
+		if res := Run(NewCmd(bin, Args("remote", "add", "origin", g.repo), Chdir(cfg.Dir)), rt); res.Err != nil {
+			return res.Err
+		}
+	}
+	return nil
 }
 
 // Sync commands.
-func (g *Git) Sync(cfg Config) Result {
-	binPath, err := exec.LookPath("git")
+func (g *Git) Sync(cfg Config, rt Runtime) error {
+	bin, err := exec.LookPath("git")
 	if err != nil {
-		return Result{Err: err}
+		return err
 	}
-	cmds := []Cmd{
-		Cmd{
-			BinPath: binPath,
-			Args: []string{
-				"pull",
-				"origin",
-				"master",
-			},
-			Chdir: cfg.Dir,
-		},
-		Cmd{
-			BinPath: binPath,
-			Args: []string{
-				"add",
-				".",
-			},
-			Chdir: cfg.Dir,
-		},
-		Cmd{
-			BinPath: binPath,
-			Args: []string{
-				"commit",
-				"-m",
-				"Syncing...",
-			},
-			Chdir: cfg.Dir,
-		},
-		Cmd{
-			BinPath: binPath,
-			Args: []string{
-				"push",
-				"origin",
-				"master",
-			},
-			Chdir: cfg.Dir,
-		},
+
+	if res := Run(NewCmd(bin, Args("add", "."), Chdir(cfg.Dir)), rt); res.Err != nil {
+		return res.Err
 	}
-	return RunAll(cmds, cfg)
+	if res := Run(NewCmd(bin, Args("commit", "-m", "Sync"), Chdir(cfg.Dir)), rt); res.Err != nil {
+		return res.Err
+	}
+	if res := Run(NewCmd(bin, Args("pull", "--rebase", "origin", "master"), Chdir(cfg.Dir)), rt); res.Err != nil {
+		return res.Err
+	}
+	if res := Run(NewCmd(bin, Args("push", "origin", "master"), Chdir(cfg.Dir)), rt); res.Err != nil {
+		return res.Err
+	}
+	return nil
+}
+
+// Clean for gsutil is a noop.
+func (g *Git) Clean(cfg Config, rt Runtime) error {
+	dotGit := filepath.Join(cfg.Dir, ".git")
+	exists, err := pathExists(dotGit)
+	if err != nil {
+		return err
+	}
+	if exists {
+		rt.Log("Removing %s", dotGit)
+		if err := os.RemoveAll(dotGit); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func ensureReadme(dir string, rt Runtime) error {
+	path := filepath.Join(dir, "README.md")
+	exists, err := pathExists(path)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return nil
+	}
+	rt.Log("Creating %s", path)
+	b := []byte("# keys.pub\n")
+	if err := ioutil.WriteFile(path, b, 0700); err != nil {
+		return err
+	}
+	return nil
 }

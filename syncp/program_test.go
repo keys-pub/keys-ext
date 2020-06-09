@@ -13,7 +13,7 @@ import (
 
 type fixture map[string][]byte
 
-func testProgramSync(t *testing.T, pr syncp.Program, cfg syncp.Config, existing fixture) syncp.Result {
+func testProgramSync(t *testing.T, pr syncp.Program, cfg syncp.Config, rt syncp.Runtime, existing fixture) {
 	var err error
 
 	// Write test files
@@ -24,8 +24,8 @@ func testProgramSync(t *testing.T, pr syncp.Program, cfg syncp.Config, existing 
 	err = ioutil.WriteFile(filepath.Join(cfg.Dir, path2), []byte("testdata2"), 0600)
 	require.NoError(t, err)
 
-	res := pr.Sync(cfg)
-	require.NoError(t, res.Err)
+	err = pr.Sync(cfg, rt)
+	require.NoError(t, err)
 
 	fileInfos, err := ioutil.ReadDir(cfg.Dir)
 	require.NoError(t, err)
@@ -39,8 +39,6 @@ func testProgramSync(t *testing.T, pr syncp.Program, cfg syncp.Config, existing 
 	for path, b := range existing {
 		testFile(t, filepath.Join(cfg.Dir, path), b, files)
 	}
-
-	return res
 }
 
 func testFile(t *testing.T, path string, expected []byte, files []string) {

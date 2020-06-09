@@ -24,59 +24,26 @@ func TestGit(t *testing.T) {
 	}
 	t.Logf("Dir: %s", tmpDir)
 
-	existing := map[string][]byte{
-		"test.txt":  []byte("testdata"),
-		"test2.txt": []byte("testdata2"),
-	}
-
 	repo := "git@gitlab.com:gabrielha/keys.pub.test.git"
 	git, err := syncp.NewGit(repo)
 	require.NoError(t, err)
 
+	rt := syncp.NewRuntime()
 	// Setup
 	func() {
-		res := git.Setup(cfg)
-		require.NoError(t, res.Err)
-		t.Logf("%s", res)
-
-		require.Equal(t, 2, len(res.CmdResults))
-		cmd0 := res.CmdResults[0].Cmd
-		cmd1 := res.CmdResults[1].Cmd
-
-		require.NotEmpty(t, cmd0.BinPath)
-		expectedArgs := []string{"init"}
-		require.Equal(t, expectedArgs, cmd0.Args)
-
-		require.NotEmpty(t, cmd1.BinPath)
-		expectedArgs2 := []string{"remote", "add", "origin", git.Remote()}
-		require.Equal(t, expectedArgs2, cmd1.Args)
+		err := git.Setup(cfg, rt)
+		require.NoError(t, err)
 	}()
 
 	// Sync
 	func() {
-		res := testProgramSync(t, git, cfg, existing)
-		t.Logf("%s", res)
+		existing := map[string][]byte{
+			"test.txt":  []byte("testdata"),
+			"test2.txt": []byte("testdata2"),
+		}
 
-		require.Equal(t, 4, len(res.CmdResults))
-		cmd0 := res.CmdResults[0].Cmd
-		cmd1 := res.CmdResults[1].Cmd
-		cmd2 := res.CmdResults[2].Cmd
-		cmd3 := res.CmdResults[3].Cmd
-
-		require.NotEmpty(t, cmd0.BinPath)
-		expectedArgs := []string{"pull", "origin", "master"}
-		require.Equal(t, expectedArgs, cmd0.Args)
-
-		require.NotEmpty(t, cmd1.BinPath)
-		expectedArgs = []string{"add", "."}
-		require.Equal(t, expectedArgs, cmd1.Args)
-
-		require.NotEmpty(t, cmd2.BinPath)
-		expectedArgs = []string{"commit", "-m", "Syncing..."}
-		require.Equal(t, expectedArgs, cmd2.Args)
-
-		require.NotEmpty(t, cmd3.BinPath)
-		expectedArgs = []string{"push", "origin", "master"}
-		require.Equal(t, expectedArgs, cmd3.Args)
+		testProgramSync(t, git, cfg, rt, existing)
 	}()
+
+	// t.Logf(strings.Join(rt.Logs(), "\n"))
 }
