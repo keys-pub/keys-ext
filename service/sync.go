@@ -55,9 +55,11 @@ type syncRuntime struct {
 }
 
 func (s syncRuntime) Log(format string, args ...interface{}) {
-	s.srv.Send(&SyncOutput{
+	if err := s.srv.Send(&SyncOutput{
 		Out: fmt.Sprintf(format, args...),
-	})
+	}); err != nil {
+		logger.Errorf("Failed to send sync output to client: %v", err)
+	}
 }
 
 func syncProgram(p *SyncProgram) (syncp.Program, error) {
