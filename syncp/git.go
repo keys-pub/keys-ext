@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -24,19 +25,14 @@ func (g *Git) Remote() string {
 	return g.repo
 }
 
-// Setup commands.
-func (g *Git) Setup(cfg Config, rt Runtime) error {
-	if cfg.Dir == "" {
-		return errors.Errorf("no sync dir")
-	}
-
+func (g *Git) setup(cfg Config, rt Runtime) error {
 	bin, err := exec.LookPath("git")
 	if err != nil {
 		return err
 	}
 
 	isEmpty := false
-	res := Run(NewCmd(bin, Args("ls-remote", g.repo), Chdir(cfg.Dir)), rt)
+	res := Run(NewCmd(bin, Args("ls-remote", "-h", g.repo), Chdir(cfg.Dir)), rt)
 	if res.Err != nil {
 		return res.Err
 	}
@@ -46,7 +42,7 @@ func (g *Git) Setup(cfg Config, rt Runtime) error {
 	}
 
 	if isEmpty {
-		if err := ensureReadme(cfg.Dir, rt); err != nil {
+		if err := ensureIgnore(cfg.Dir, rt); err != nil {
 			return err
 		}
 		if res := Run(NewCmd(bin, Args("init"), Chdir(cfg.Dir)), rt); res.Err != nil {
@@ -76,45 +72,84 @@ func (g *Git) Setup(cfg Config, rt Runtime) error {
 }
 
 // Sync commands.
-func (g *Git) Sync(cfg Config, rt Runtime) error {
+func (g *Git) Sync(cfg Config, opt ...SyncOption) error {
+	opts := newSyncOptions(opt...)
+	rt := opts.Runtime
+	if cfg.Dir == "" {
+		return errors.Errorf("no sync dir")
+	}
+
+	exists, err := pathExists(filepath.Join(cfg.Dir, ".git"))
+	if err != nil {
+		return err
+	}
+	if !exists {
+		if err := g.setup(cfg, rt); err != nil {
+			return err
+		}
+	}
+
+	if err := checkIgnore(cfg); err != nil {
+		return err
+	}
+
 	bin, err := exec.LookPath("git")
 	if err != nil {
 		return err
 	}
 
-	if res := Run(NewCmd(bin, Args("add", "."), Chdir(cfg.Dir)), rt); res.Err != nil {
-		return res.Err
+	status := Run(NewCmd(bin, Args("status", "--porcelain"), Chdir(cfg.Dir)), rt)
+	if status.Err != nil {
+		return status.Err
 	}
-	if res := Run(NewCmd(bin, Args("commit", "-m", "Sync"), Chdir(cfg.Dir)), rt); res.Err != nil {
-		return res.Err
-	}
-	if res := Run(NewCmd(bin, Args("pull", "--rebase", "origin", "master"), Chdir(cfg.Dir)), rt); res.Err != nil {
-		return res.Err
-	}
-	if res := Run(NewCmd(bin, Args("push", "origin", "master"), Chdir(cfg.Dir)), rt); res.Err != nil {
-		return res.Err
+	changes := string(status.Output.Stdout)
+	if changes != "" {
+		if res := Run(NewCmd(bin, Args("add", "."), Chdir(cfg.Dir)), rt); res.Err != nil {
+			return res.Err
+		}
+		if res := Run(NewCmd(bin, Args("commit", "-m", "Sync"), Chdir(cfg.Dir)), rt); res.Err != nil {
+			return res.Err
+		}
+		if res := Run(NewCmd(bin, Args("pull", "--rebase", "origin", "master"), Chdir(cfg.Dir)), rt); res.Err != nil {
+			return res.Err
+		}
+		if res := Run(NewCmd(bin, Args("push", "origin", "master"), Chdir(cfg.Dir)), rt); res.Err != nil {
+			return res.Err
+		}
+	} else {
+		if res := Run(NewCmd(bin, Args("pull", "--rebase", "origin", "master"), Chdir(cfg.Dir)), rt); res.Err != nil {
+			return res.Err
+		}
 	}
 	return nil
 }
 
 // Clean for gsutil is a noop.
-func (g *Git) Clean(cfg Config, rt Runtime) error {
-	dotGit := filepath.Join(cfg.Dir, ".git")
-	exists, err := pathExists(dotGit)
+func (g *Git) Clean(cfg Config) error {
+	if err := removeIfExists(filepath.Join(cfg.Dir, ".git")); err != nil {
+		return err
+	}
+	if err := removeIfExists(filepath.Join(cfg.Dir, ".gitignore")); err != nil {
+		return err
+	}
+	return nil
+}
+
+func removeIfExists(path string) error {
+	exists, err := pathExists(path)
 	if err != nil {
 		return err
 	}
 	if exists {
-		rt.Log("Removing %s", dotGit)
-		if err := os.RemoveAll(dotGit); err != nil {
+		if err := os.RemoveAll(path); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func ensureReadme(dir string, rt Runtime) error {
-	path := filepath.Join(dir, "README.md")
+func ensureIgnore(dir string, rt Runtime) error {
+	path := filepath.Join(dir, ".gitignore")
 	exists, err := pathExists(path)
 	if err != nil {
 		return err
@@ -123,9 +158,39 @@ func ensureReadme(dir string, rt Runtime) error {
 		return nil
 	}
 	rt.Log("Creating %s", path)
-	b := []byte("# keys.pub\n")
-	if err := ioutil.WriteFile(path, b, 0700); err != nil {
+	b := []byte(".*\n!/.gitignore\n")
+	if err := ioutil.WriteFile(path, b, 0600); err != nil {
 		return err
+	}
+	return nil
+}
+
+// checkIgnore checks to see that we either have a .gitignore present or that no
+// dot (.) files exist.
+// This check is necessary when first setting up the repo, since we can't import
+// files to a non-empty repo and skip existing hidden files at the same time
+// (without stashing) since we need to pull the .gitignore first.
+func checkIgnore(cfg Config) error {
+	path := filepath.Join(cfg.Dir, ".gitignore")
+	exists, err := pathExists(path)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return nil
+	}
+
+	files, err := ioutil.ReadDir(cfg.Dir)
+	if err != nil {
+		return nil
+	}
+	for _, f := range files {
+		if f.Name() == ".git" {
+			continue
+		}
+		if strings.HasPrefix(f.Name(), ".") {
+			return errors.Errorf("hidden file exists before we can initialize .gitignore: %s", f.Name())
+		}
 	}
 	return nil
 }

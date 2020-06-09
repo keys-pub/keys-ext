@@ -1,7 +1,6 @@
 package syncp
 
 import (
-	"fmt"
 	"os/exec"
 	"strings"
 
@@ -15,7 +14,7 @@ type GSUtil struct {
 
 // NewGSUtil creates gcp storage rsync command.
 func NewGSUtil(bucket string) (*GSUtil, error) {
-	if err := validateBucket(bucket); err != nil {
+	if err := validateGSBucket(bucket); err != nil {
 		return nil, err
 	}
 	return &GSUtil{
@@ -23,7 +22,7 @@ func NewGSUtil(bucket string) (*GSUtil, error) {
 	}, nil
 }
 
-func validateBucket(s string) error {
+func validateGSBucket(s string) error {
 	if s == "" {
 		return errors.Errorf("no gsutil bucket specified")
 	}
@@ -33,22 +32,13 @@ func validateBucket(s string) error {
 	return nil
 }
 
-// ID returns unique identifier for the program + remote.
-func (g *GSUtil) ID() string {
-	return fmt.Sprintf("gsutil+" + g.bucket)
-}
-
-func (g *GSUtil) String() string {
-	return fmt.Sprintf("gsutil+" + g.bucket)
-}
-
 func (g *GSUtil) pushArgs(cfg Config) []string {
 	args := []string{
 		"-m",
 		"rsync",
 		"-e", // Exclude symlinks
 		"-x", // Exclude .git
-		`\.git$`,
+		`\..*`,
 		cfg.Dir,
 		g.bucket,
 	}
@@ -61,26 +51,17 @@ func (g *GSUtil) pullArgs(cfg Config) []string {
 		"rsync",
 		"-e", // Exclude symlinks
 		"-x", // Exclude .git
-		`\.git$`,
+		`\..*`,
 		g.bucket,
 		cfg.Dir,
 	}
 	return args
 }
 
-// Setup for gsutil is a noop.
-// TODO: To setup, make a remote bucket, gsutil mb gs://bucket
-func (g *GSUtil) Setup(cfg Config, rt Runtime) error {
-	return nil
-}
-
-// Clean for gsutil is a noop.
-func (g *GSUtil) Clean(cfg Config, rt Runtime) error {
-	return nil
-}
-
 // Sync commands.
-func (g *GSUtil) Sync(cfg Config, rt Runtime) error {
+func (g *GSUtil) Sync(cfg Config, opt ...SyncOption) error {
+	opts := newSyncOptions(opt...)
+	rt := opts.Runtime
 	bin, err := exec.LookPath("gsutil")
 	if err != nil {
 		return err
@@ -93,5 +74,10 @@ func (g *GSUtil) Sync(cfg Config, rt Runtime) error {
 		return res.Err
 	}
 
+	return nil
+}
+
+// Clean for gsutil is a noop.
+func (g *GSUtil) Clean(cfg Config) error {
 	return nil
 }

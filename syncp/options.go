@@ -1,5 +1,30 @@
 package syncp
 
+// SyncOptions ...
+type SyncOptions struct {
+	Runtime Runtime
+}
+
+// SyncOption ...
+type SyncOption func(*SyncOptions)
+
+func newSyncOptions(opt ...SyncOption) SyncOptions {
+	opts := SyncOptions{
+		Runtime: runtime{},
+	}
+	for _, o := range opt {
+		o(&opts)
+	}
+	return opts
+}
+
+// WithRuntime ..
+func WithRuntime(rt Runtime) SyncOption {
+	return func(o *SyncOptions) {
+		o.Runtime = rt
+	}
+}
+
 // CmdOptions ...
 type CmdOptions struct {
 	Args  []string
@@ -9,7 +34,6 @@ type CmdOptions struct {
 // CmdOption ...
 type CmdOption func(*CmdOptions)
 
-// NewCmd creates a Cmd.
 func newCmdOptions(opt ...CmdOption) CmdOptions {
 	var opts CmdOptions
 	for _, o := range opt {

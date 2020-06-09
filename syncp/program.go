@@ -2,7 +2,6 @@ package syncp
 
 import (
 	"bytes"
-	"fmt"
 	"os"
 	"os/exec"
 	"strings"
@@ -13,13 +12,10 @@ import (
 // Program to run for syncing.
 type Program interface {
 	// Sync runs the sync commands.
-	Sync(cfg Config, rt Runtime) error
+	Sync(Config, ...SyncOption) error
 
-	// Setup runs setup commands.
-	Setup(cfg Config, rt Runtime) error
-
-	// Clean runs cleanup commands.
-	Clean(cfg Config, rt Runtime) error
+	// Clean removes files created by program.
+	Clean(Config) error
 }
 
 // NewProgram creates a program.
@@ -29,6 +25,10 @@ func NewProgram(name string, remote string) (Program, error) {
 		return NewGSUtil(remote)
 	case "git":
 		return NewGit(remote)
+	case "awss3":
+		return NewAWSS3(remote)
+	case "rclone":
+		return NewRClone(remote)
 	default:
 		return nil, errors.Errorf("unrecognized sync program name %q", name)
 	}
@@ -54,32 +54,21 @@ type Config struct {
 	Dir string
 }
 
-// Runtime ...
+// Runtime keeps information about the running program, like logs.
 type Runtime interface {
+	// Log ...
 	Log(format string, args ...interface{})
-	Logs() []string
 }
 
-type runtime struct {
-	logs []string
-}
+type runtime struct{}
 
-// NewRuntime creates a Log.
-func NewRuntime() Runtime {
-	return &runtime{}
-}
-
-// Log ...
-func (l *runtime) Log(format string, args ...interface{}) {
-	l.logs = append(l.logs, fmt.Sprintf(format, args...))
-}
-
-func (l *runtime) Logs() []string {
-	return l.logs
-}
+func (r runtime) Log(format string, args ...interface{}) {}
 
 // Run a command.
 func Run(c Cmd, rt Runtime) Result {
+	if rt == nil {
+		rt = runtime{}
+	}
 	result := Result{Cmd: c}
 	if c.Opts.Chdir != "" {
 		if err := os.Chdir(c.Opts.Chdir); err != nil {
@@ -88,9 +77,9 @@ func Run(c Cmd, rt Runtime) Result {
 		}
 	}
 
+	rt.Log("%s %v", c.Bin, c.Opts.Args)
 	// TODO: This could be dangerous in a privileged environment
 	cmd := exec.Command(c.Bin, c.Opts.Args...) // #nosec
-	logger.Infof("Running %s %s", c.Bin, c.Opts.Args)
 
 	var stdout bytes.Buffer
 	cmd.Stdout = &stdout
@@ -99,8 +88,10 @@ func Run(c Cmd, rt Runtime) Result {
 	result.Err = cmd.Run()
 	result.Output = Output{Stdout: stdout.Bytes(), Stderr: stderr.Bytes()}
 
-	rt.Log("%s %v", c.Bin, c.Opts.Args)
-	rt.Log("%s", result.Output.String())
+	out := result.Output.String()
+	if out != "" {
+		rt.Log("%s", result.Output.String())
+	}
 
 	return result
 }
