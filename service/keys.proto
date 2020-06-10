@@ -96,10 +96,6 @@ service Keys {
   
   rpc Backup(BackupRequest) returns (BackupResponse) {}  
   rpc Migrate(MigrateRequest) returns (MigrateResponse) {}
-  
-  rpc Sync(SyncRequest) returns (stream SyncOutput) {}
-  rpc SyncSet(SyncSetRequest) returns (SyncSetResponse) {}
-  rpc SyncUnset(SyncUnsetRequest) returns (SyncUnsetResponse) {}  
 
   rpc Collections(CollectionsRequest) returns (CollectionsResponse) {}
   rpc Documents(DocumentsRequest) returns (DocumentsResponse) {}
@@ -1017,27 +1013,3 @@ message MigrateRequest {
   string destination = 3;
 }
 message MigrateResponse {}
-
-message SyncRemote {
-  string name = 1;
-  string location = 2;
-}
-
-message SyncRequest {
-  string name = 1;
-  string location = 2;
-}
-message SyncOutput {
-  string out = 1;
-}
-
-message SyncUnsetRequest {}
-message SyncUnsetResponse {}
-
-message SyncSetRequest {
-  string name = 1;
-  string location = 2;
-}
-message SyncSetResponse {
-  SyncRemote remote = 1;
-}

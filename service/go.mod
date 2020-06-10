@@ -13,7 +13,6 @@ require (
 	github.com/keys-pub/keys-ext/http/api v0.0.0-20200528184029-7548f2a0a594
 	github.com/keys-pub/keys-ext/http/client v0.0.0-20200603163512-e65da09d2d8c
 	github.com/keys-pub/keys-ext/http/server v0.0.0-20200606203119-151969f281ef
-	github.com/keys-pub/keys-ext/syncp v0.0.0-20200609230547-f78059b59c28
 	github.com/keys-pub/keys-ext/wormhole v0.0.0-20200604181719-aff69f455544
 	github.com/mercari/go-grpc-interceptor v0.0.0-20180110035004-b8ad3827e82a
 	github.com/mitchellh/go-ps v1.0.0
@@ -36,7 +35,5 @@ require (
 // replace github.com/keys-pub/keys-ext/http/client => ../http/client
 
 // replace github.com/keys-pub/keys-ext/http/server => ../http/server
-
-// replace github.com/keys-pub/keys-ext/syncp => ../syncp
 
 // replace github.com/keys-pub/keys-ext/wormhole => ../wormhole
