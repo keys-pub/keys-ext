@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"github.com/keys-pub/keys/keyring"
@@ -15,7 +16,7 @@ func (s *service) Backup(ctx context.Context, req *BackupRequest) (*BackupRespon
 	switch req.Resource {
 	case "keyring":
 		st := s.kr.Store()
-		path, err := backupKeyring(s.cfg, st)
+		path, err := backupKeyring(s.cfg, st, req.Dir)
 		if err != nil {
 			return nil, err
 		}
@@ -27,7 +28,6 @@ func (s *service) Backup(ctx context.Context, req *BackupRequest) (*BackupRespon
 	default:
 		return nil, errors.Errorf("unrecognized resource: %s", req.Resource)
 	}
-
 }
 
 // Restore (RPC) ...
@@ -50,7 +50,7 @@ func (s *service) Restore(ctx context.Context, req *RestoreRequest) (*RestoreRes
 func (s *service) Migrate(ctx context.Context, req *MigrateRequest) (*MigrateResponse, error) {
 	switch req.Resource {
 	case "keyring":
-		if err := s.migrateKeyring(req.Source, req.Destination); err != nil {
+		if err := s.migrateKeyring(req.Destination); err != nil {
 			return nil, err
 		}
 		return &MigrateResponse{}, nil
@@ -61,33 +61,32 @@ func (s *service) Migrate(ctx context.Context, req *MigrateRequest) (*MigrateRes
 	}
 }
 
-func (s *service) migrateKeyring(source string, destination string) error {
+func (s *service) migrateKeyring(destination string) error {
 	// So we can unlock new keyring after
 	mk := s.kr.MasterKey()
 
-	if err := migrateKeyring(s.cfg, source, destination); err != nil {
+	if err := migrateKeyring(s.cfg, "", destination); err != nil {
 		return err
 	}
 
 	// (Re-)load keyring
-	kr, scfg, err := newKeyring(s.cfg, "")
+	kr, err := newKeyring(s.cfg, "")
 	if err != nil {
 		return err
 	}
 	kr.SetMasterKey(mk)
 	s.kr = kr
-	s.scfg = scfg
-
 	return nil
 }
 
-func backupKeyring(cfg *Config, st keyring.Store) (string, error) {
+func backupKeyring(cfg *Config, st keyring.Store, dir string) (string, error) {
+	if dir == "" {
+		return "", errors.Errorf("no directory specified")
+	}
+
 	now := time.Now()
 	backupFile := fmt.Sprintf("backup-keyring-%d.tgz", tsutil.Millis(now))
-	backupPath, err := cfg.AppPath(backupFile, true)
-	if err != nil {
-		return "", err
-	}
+	backupPath := filepath.Join(dir, backupFile)
 	logger.Infof("Backing up to %s", backupPath)
 	if err := keyring.Backup(backupPath, st, now); err != nil {
 		return "", err

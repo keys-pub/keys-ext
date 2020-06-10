@@ -13,7 +13,7 @@ func TestAuthWithPassword(t *testing.T) {
 	cfg, closeFn := testConfig(t, "KeysTest", "")
 	defer closeFn()
 	auth := newAuth(cfg)
-	kr, _, err := newKeyring(cfg, "mem")
+	kr, err := newKeyring(cfg, "mem")
 	require.NoError(t, err)
 
 	ctx := context.TODO()
@@ -55,7 +55,7 @@ func TestAuthorize(t *testing.T) {
 	cfg, closeFn := testConfig(t, "KeysTest", "")
 	defer closeFn()
 	auth := newAuth(cfg)
-	kr, _, err := newKeyring(cfg, "mem")
+	kr, err := newKeyring(cfg, "mem")
 	require.NoError(t, err)
 
 	ctx := metadata.NewIncomingContext(context.TODO(), metadata.MD{})

@@ -23,14 +23,14 @@ type auth struct {
 	sync.Mutex
 	cfg       *Config
 	tokens    map[string]string
-	whitelist *ds.StringSet
+	allowlist *ds.StringSet
 
 	fas fido2.AuthServer
 }
 
 func newAuth(cfg *Config) *auth {
 	// We don't need auth for the following methods.
-	whitelist := ds.NewStringSet(
+	allowlist := ds.NewStringSet(
 		"/service.Keys/AuthSetup",
 		"/service.Keys/AuthUnlock",
 		"/service.Keys/AuthLock",
@@ -43,7 +43,7 @@ func newAuth(cfg *Config) *auth {
 	return &auth{
 		cfg:       cfg,
 		tokens:    map[string]string{},
-		whitelist: whitelist,
+		allowlist: allowlist,
 	}
 }
 
@@ -142,8 +142,8 @@ func (a *auth) unaryInterceptor(ctx context.Context, req interface{}, info *grpc
 }
 
 func (a *auth) authorize(ctx context.Context, method string) error {
-	// No authorization needed for whitelisted methods.
-	if a.whitelist.Contains(method) {
+	// No authorization needed for allowed methods.
+	if a.allowlist.Contains(method) {
 		logger.Infof("Authorization is not required for %s", method)
 		return nil
 	}

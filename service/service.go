@@ -8,7 +8,6 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/db"
 	"github.com/keys-pub/keys-ext/http/client"
-	"github.com/keys-pub/keys-ext/syncp"
 	"github.com/keys-pub/keys/keyring"
 	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/user"
@@ -24,7 +23,6 @@ type service struct {
 	users  *user.Store
 	nowFn  func() time.Time
 	kr     *keyring.Keyring
-	scfg   syncp.Config
 
 	closeCh chan bool
 	open    bool
@@ -34,7 +32,7 @@ type service struct {
 func newService(cfg *Config, build Build, auth *auth, keyringType string, req request.Requestor, nowFn func() time.Time) (*service, error) {
 	logger.Debugf("New service: %s", cfg.AppName())
 
-	kr, scfg, err := newKeyring(cfg, keyringType)
+	kr, err := newKeyring(cfg, keyringType)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +56,6 @@ func newService(cfg *Config, build Build, auth *auth, keyringType string, req re
 		build:  build,
 		cfg:    cfg,
 		kr:     kr,
-		scfg:   scfg,
 		scs:    scs,
 		db:     db,
 		users:  users,

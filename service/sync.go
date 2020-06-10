@@ -14,35 +14,44 @@ import (
 // Sync (RPC) ...
 func (s *service) Sync(req *SyncRequest, srv Keys_SyncServer) error {
 	ctx := srv.Context()
+	name, location := strings.TrimSpace(req.Name), strings.TrimSpace(req.Location)
+	rt := syncRuntime{srv: srv}
+	if err := s.sync(ctx, name, location, syncp.WithRuntime(rt)); err != nil {
+		return err
+	}
+	return nil
+}
 
-	programSet := false
-	name, remote := strings.TrimSpace(req.Name), strings.TrimSpace(req.Remote)
+func (s *service) sync(ctx context.Context, name string, location string, opt ...syncp.SyncOption) error {
+	// Set remote if name, location
+	remoteSet := false
 	if name != "" {
-		set, err := s.syncProgramSet(ctx, name, remote)
+		set, err := s.syncRemoteSet(ctx, name, location)
 		if err != nil {
 			return err
 		}
-		programSet = set
+		remoteSet = set
 	}
 
-	sp, err := s.syncProgram(ctx)
+	// Get remote
+	sr, err := s.syncRemote(ctx)
 	if err != nil {
 		return err
 	}
-	if sp == nil {
-		return errors.Errorf("no sync program is set")
+	if sr == nil {
+		return errors.Errorf("no sync remote is set")
 	}
 
-	rt := syncRuntime{srv: srv}
-	program, err := syncp.NewProgram(sp.Name, sp.Remote)
+	// Sync
+	program, err := syncp.NewProgram(sr.Name, sr.Location)
 	if err != nil {
 		return err
 	}
-	if err := program.Sync(s.scfg, syncp.WithRuntime(rt)); err != nil {
+	if err := program.Sync(s.syncConfig(), opt...); err != nil {
 		// If program was set (new) in this call, we'll unset it.
-		if programSet {
+		if remoteSet {
 			if err := s.syncUnset(ctx); err != nil {
-				logger.Errorf("Unable to unset program after failure: %v", err)
+				logger.Errorf("Unable to unset remote after failure: %v", err)
 			}
 		}
 		return err
@@ -62,95 +71,75 @@ func (s syncRuntime) Log(format string, args ...interface{}) {
 	}
 }
 
-func syncProgram(p *SyncProgram) (syncp.Program, error) {
-	return syncp.NewProgram(p.Name, p.Remote)
-}
-
-func (s *service) syncProgram(ctx context.Context) (*SyncProgram, error) {
-	doc, err := s.db.Get(ctx, ds.Path("sync", "program"))
+func (s *service) syncRemote(ctx context.Context) (*SyncRemote, error) {
+	doc, err := s.db.Get(ctx, ds.Path("sync", "remote"))
 	if err != nil {
 		return nil, err
 	}
 	if doc == nil {
 		return nil, nil
 	}
-	var sp SyncProgram
-	if err := json.Unmarshal(doc.Data, &sp); err != nil {
+	var sr SyncRemote
+	if err := json.Unmarshal(doc.Data, &sr); err != nil {
 		return nil, err
 	}
-	return &sp, nil
+	return &sr, nil
 }
 
-// SyncPrograms (RPC) ...
-func (s *service) SyncProgram(ctx context.Context, req *SyncProgramRequest) (*SyncProgramResponse, error) {
-	sp, err := s.syncProgram(ctx)
+// SyncSet (RPC) ...
+func (s *service) SyncSet(ctx context.Context, req *SyncSetRequest) (*SyncSetResponse, error) {
+	name, location := strings.TrimSpace(req.Name), strings.TrimSpace(req.Location)
+	if name != "" {
+		_, err := s.syncRemoteSet(ctx, name, location)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	remote, err := s.syncRemote(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return &SyncProgramResponse{
-		Program: sp,
+	return &SyncSetResponse{
+		Remote: remote,
 	}, nil
 }
 
-func (s *service) syncProgramSet(ctx context.Context, name string, remote string) (bool, error) {
+func (s *service) syncRemoteSet(ctx context.Context, name string, location string) (bool, error) {
+	if err := s.syncSupported(); err != nil {
+		return false, err
+	}
+
 	// Validate program
-	_, err := syncp.NewProgram(name, remote)
+	_, err := syncp.NewProgram(name, location)
 	if err != nil {
 		return false, err
 	}
-	sp, err := s.syncProgram(ctx)
+	sr, err := s.syncRemote(ctx)
 	if err != nil {
 		return false, err
 	}
-	if sp == nil {
+	if sr == nil {
 		// Nothing set yet
-	} else if sp.Name == name && sp.Remote == remote {
+	} else if sr.Name == name && sr.Location == location {
 		// Resetting to same, it is already set
 		return false, nil
 	} else {
-		return false, errors.Errorf("sync program is already set")
+		return false, errors.Errorf("sync remote is already set")
 	}
 
-	program := &SyncProgram{
-		Name:   name,
-		Remote: remote,
+	srNew := &SyncRemote{
+		Name:     name,
+		Location: location,
 	}
-	b, err := json.Marshal(program)
+	b, err := json.Marshal(srNew)
 	if err != nil {
 		return false, err
 	}
-	if err := s.db.Set(ctx, ds.Path("sync", "program"), b); err != nil {
+	if err := s.db.Set(ctx, ds.Path("sync", "remote"), b); err != nil {
 		return false, err
 	}
 	return true, nil
-}
-
-func (s *service) syncUnset(ctx context.Context) error {
-	sp, err := s.syncProgram(ctx)
-	if err != nil {
-		return err
-	}
-	if sp == nil {
-		return errors.Errorf("no sync program is set")
-	}
-
-	ok, err := s.db.Delete(ctx, ds.Path("sync", "program"))
-	if err != nil {
-		return err
-	}
-	if !ok {
-		return errors.Errorf("no sync program is set")
-	}
-
-	program, err := syncp.NewProgram(sp.Name, sp.Remote)
-	if err != nil {
-		return err
-	}
-	if err := program.Clean(s.scfg); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // SyncUnset (RPC) ...
@@ -159,4 +148,43 @@ func (s *service) SyncUnset(ctx context.Context, req *SyncUnsetRequest) (*SyncUn
 		return nil, err
 	}
 	return &SyncUnsetResponse{}, nil
+}
+
+func (s *service) syncUnset(ctx context.Context) error {
+	sr, err := s.syncRemote(ctx)
+	if err != nil {
+		return err
+	}
+	if sr == nil {
+		return errors.Errorf("no sync remote is set")
+	}
+
+	ok, err := s.db.Delete(ctx, ds.Path("sync", "remote"))
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return errors.Errorf("no sync remote is set")
+	}
+
+	program, err := syncp.NewProgram(sr.Name, sr.Location)
+	if err != nil {
+		return err
+	}
+	if err := program.Clean(s.syncConfig()); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *service) syncSupported() error {
+	if s.syncConfig().Dir == "" {
+		return errors.Errorf("sync not supported for current keyring type")
+	}
+	return nil
+}
+
+func (s *service) syncConfig() syncp.Config {
+	return syncp.Config{}
 }

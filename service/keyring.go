@@ -6,57 +6,39 @@ import (
 	"runtime"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys-ext/syncp"
 	"github.com/keys-pub/keys/keyring"
 	"github.com/pkg/errors"
 )
 
-func newKeyring(cfg *Config, typ string) (*keyring.Keyring, syncp.Config, error) {
+func newKeyring(cfg *Config, typ string) (*keyring.Keyring, error) {
 	st, err := newKeyringStore(cfg, typ)
 	if err != nil {
-		return nil, syncp.Config{}, err
+		return nil, err
 	}
 	sys, err := keyring.New(keyring.WithStore(st))
 	if err != nil {
-		return nil, syncp.Config{}, err
+		return nil, err
 	}
 
-	return sys, syncp.Config{Dir: st.syncDir}, nil
-}
-
-type keyringStore struct {
-	keyring.Store
-	syncDir string
+	return sys, nil
 }
 
 // When looking for the current keyring store, we check:
-// - FS (versioned)
-// - FS (deprecated)
-// - Linux FS (fallback)
-// - System
-func defaultKeyringStore(cfg *Config) (*keyringStore, error) {
-	// Check fs (versioned)
-	fsv, err := hasFS(cfg, true)
-	if err != nil {
-		return nil, err
-	}
-	if fsv {
-		return newKeyringStore(cfg, "fsv")
-	}
-
-	// Check fs
-	fs, err := hasFS(cfg, false)
-	if err != nil {
-		return nil, err
-	}
-	if fs {
-		return newKeyringStore(cfg, "fs")
-	}
-
+func defaultKeyringStore(cfg *Config) (keyring.Store, error) {
 	// Check linux fallback.
+	// We used to support a keyring type config option for "fs".
 	// In earlier version of keyring, we used a fallback for linux at
 	// ~/.keyring/<service>.
 	if runtime.GOOS == "linux" {
+		// Check fs
+		fs, err := hasFS(cfg)
+		if err != nil {
+			return nil, err
+		}
+		if fs {
+			return newKeyringStore(cfg, "fs")
+		}
+
 		if err := keyring.CheckSystem(); err != nil {
 			service := keyringServiceName(cfg)
 			return linuxFallbackFS(service)
@@ -67,7 +49,7 @@ func defaultKeyringStore(cfg *Config) (*keyringStore, error) {
 	return newKeyringStore(cfg, "sys")
 }
 
-func newKeyringStore(cfg *Config, typ string) (*keyringStore, error) {
+func newKeyringStore(cfg *Config, typ string) (keyring.Store, error) {
 	switch typ {
 	case "":
 		logger.Infof("Keyring (default)")
@@ -80,10 +62,10 @@ func newKeyringStore(cfg *Config, typ string) (*keyringStore, error) {
 	case "sys":
 		service := keyringServiceName(cfg)
 		st := keyring.NewSystem(service)
-		return &keyringStore{st, ""}, nil
+		return st, nil
 	case "fs":
 		logger.Infof("Keyring (fs)")
-		dir, err := fsDir(cfg, false)
+		dir, err := fsDir(cfg)
 		if err != nil {
 			return nil, err
 		}
@@ -91,21 +73,10 @@ func newKeyringStore(cfg *Config, typ string) (*keyringStore, error) {
 		if err != nil {
 			return nil, err
 		}
-		return &keyringStore{st, ""}, nil
-	case "fsv":
-		logger.Infof("Keyring (fsv)")
-		dir, err := fsDir(cfg, true)
-		if err != nil {
-			return nil, err
-		}
-		st, err := keyring.NewFS(dir, true)
-		if err != nil {
-			return nil, err
-		}
-		return &keyringStore{st, dir}, nil
+		return st, nil
 	case "mem":
 		logger.Infof("Keyring (mem)")
-		return &keyringStore{keyring.NewMem(), ""}, nil
+		return keyring.NewMem(), nil
 	default:
 		return nil, errors.Errorf("unknown keyring type %s", typ)
 	}
@@ -147,7 +118,8 @@ func migrateKeyring(cfg *Config, source string, destination string) error {
 	logger.Infof("Keyring copied: %s", ids)
 
 	// Backup and reset old keyring
-	if _, err := backupKeyring(cfg, from); err != nil {
+	home, _ := homeDir()
+	if _, err := backupKeyring(cfg, from, home); err != nil {
 		return err
 	}
 	logger.Infof("Resetting old keyring...")
@@ -162,22 +134,15 @@ func keyringServiceName(cfg *Config) string {
 	return cfg.AppName() + ".keyring"
 }
 
-func hasFS(cfg *Config, versioned bool) (bool, error) {
-	dir, err := fsDir(cfg, versioned)
+func hasFS(cfg *Config) (bool, error) {
+	dir, err := fsDir(cfg)
 	if err != nil {
 		return false, err
 	}
 	return pathExists(dir)
 }
 
-func fsDir(cfg *Config, versioned bool) (string, error) {
-	if versioned {
-		dir, err := cfg.AppPath("keyring.fsv", false)
-		if err != nil {
-			return "", err
-		}
-		return dir, nil
-	}
+func fsDir(cfg *Config) (string, error) {
 	dir, err := cfg.AppPath("keyring", false)
 	if err != nil {
 		return "", err
@@ -195,7 +160,7 @@ func linuxFallbackDir(service string) (string, error) {
 	return filepath.Join(usr.HomeDir, ".keyring", service), nil
 }
 
-func linuxFallbackFS(service string) (*keyringStore, error) {
+func linuxFallbackFS(service string) (keyring.Store, error) {
 	dir, err := linuxFallbackDir(service)
 	if err != nil {
 		return nil, err
@@ -204,5 +169,5 @@ func linuxFallbackFS(service string) (*keyringStore, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &keyringStore{st, ""}, nil
+	return st, nil
 }

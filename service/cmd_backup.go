@@ -8,21 +8,23 @@ import (
 )
 
 func backupCommands(client *Client) []cli.Command {
+	home, _ := homeDir()
 	return []cli.Command{
 		cli.Command{
 			Name:  "backup",
 			Usage: "Backup",
 			Flags: []cli.Flag{
-				cli.StringFlag{Name: "resource, r", Usage: "resource (keyring)"},
+				cli.StringFlag{Name: "resource, r", Usage: "what to backup", Value: "keyring"},
+				cli.StringFlag{Name: "dir, d", Usage: "directory to save to", Value: home},
 			},
 			Action: func(c *cli.Context) error {
 				resp, err := client.KeysClient().Backup(context.TODO(), &BackupRequest{
 					Resource: c.String("resource"),
+					Dir:      c.String("dir"),
 				})
 				if err != nil {
 					return err
 				}
-				// TODO: Make path configurable
 				fmt.Println(resp.Path)
 				return nil
 			},
@@ -31,39 +33,38 @@ func backupCommands(client *Client) []cli.Command {
 			Name:  "restore",
 			Usage: "Restore",
 			Flags: []cli.Flag{
-				cli.StringFlag{Name: "resource, r", Usage: "resource (keyring)"},
+				cli.StringFlag{Name: "resource, r", Usage: "what to restore", Value: "keyring"},
 				cli.StringFlag{Name: "path, p", Usage: "path to backup"},
 			},
 			Action: func(c *cli.Context) error {
-				resp, err := client.KeysClient().Restore(context.TODO(), &RestoreRequest{
+				_, err := client.KeysClient().Restore(context.TODO(), &RestoreRequest{
 					Resource: c.String("resource"),
 					Path:     c.String("path"),
 				})
 				if err != nil {
 					return err
 				}
-				printMessage(resp)
+				// printMessage(resp)
 				return nil
 			},
 		},
 		cli.Command{
 			Name:  "migrate",
-			Usage: "Migrate keyring",
+			Usage: "Migrate (experimental)",
 			Flags: []cli.Flag{
-				cli.StringFlag{Name: "source, s", Usage: "source"},
+				cli.StringFlag{Name: "resource, r", Usage: "resource"},
 				cli.StringFlag{Name: "destination, d", Usage: "destination"},
 			},
 			Hidden: true,
 			Action: func(c *cli.Context) error {
-				resp, err := client.KeysClient().Migrate(context.TODO(), &MigrateRequest{
+				_, err := client.KeysClient().Migrate(context.TODO(), &MigrateRequest{
 					Resource:    c.String("resource"),
-					Source:      c.String("source"),
 					Destination: c.String("destination"),
 				})
 				if err != nil {
 					return err
 				}
-				printMessage(resp)
+				// printMessage(resp)
 				return nil
 			},
 		},

@@ -208,8 +208,8 @@ func chooseAuth(title string, arg string) (AuthType, error) {
 	for {
 		reader := bufio.NewReader(os.Stdin)
 		fmt.Fprintln(os.Stderr, title)
-		fmt.Fprintln(os.Stderr, "(p)  Password")
-		fmt.Fprintln(os.Stderr, "(f)  FIDO2 hmac-secret")
+		fmt.Fprintln(os.Stderr, "(p) Password")
+		fmt.Fprintln(os.Stderr, "(f) FIDO2 hmac-secret")
 		input, err := reader.ReadString('\n')
 		if err != nil {
 			return UnknownAuth, err

@@ -30,7 +30,7 @@ func TestHMACSecretAuthOnDevice(t *testing.T) {
 	defer closeFn()
 
 	auth := newAuth(cfg)
-	kr, _, err := newKeyring(cfg, "mem")
+	kr, err := newKeyring(cfg, "mem")
 	require.NoError(t, err)
 
 	// Try without plugin
@@ -62,7 +62,7 @@ func TestHMACSecretAuth(t *testing.T) {
 	cfg, closeFn := testConfig(t, "KeysTest", "")
 	defer closeFn()
 	auth := newAuth(cfg)
-	kr, _, err := newKeyring(cfg, "mem")
+	kr, err := newKeyring(cfg, "mem")
 	require.NoError(t, err)
 	pin := "12345"
 
