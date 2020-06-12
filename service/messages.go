@@ -126,7 +126,7 @@ func (s *service) messageCreate(ctx context.Context, sender string, recipient st
 		return nil, err
 	}
 
-	resp, err := s.remote.SendMessage(ctx, key, rid, b, time.Hour*24)
+	resp, err := s.remote.MessageSend(ctx, key, rid, b, time.Hour*24)
 	if err != nil {
 		return nil, err
 	}

@@ -181,7 +181,7 @@ func (s *service) sigchainUserAdd(ctx context.Context, key *keys.EdX25519Key, se
 	}
 
 	if !localOnly {
-		if err := s.remote.PutSigchainStatement(ctx, st); err != nil {
+		if err := s.remote.SigchainSave(ctx, st); err != nil {
 			return nil, nil, err
 		}
 	}

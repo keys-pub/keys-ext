@@ -82,7 +82,7 @@ func (s *service) push(ctx context.Context, kid keys.ID) ([]string, error) {
 				return nil, errors.Errorf("remote and local sigchain statements differ")
 			}
 		} else {
-			if err := s.remote.PutSigchainStatement(ctx, st); err != nil {
+			if err := s.remote.SigchainSave(ctx, st); err != nil {
 				return nil, err
 			}
 		}
