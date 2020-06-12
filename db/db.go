@@ -191,6 +191,7 @@ func (d *DB) Collections(ctx context.Context, parent string) (ds.CollectionItera
 		return nil, errors.Errorf("db not open")
 	}
 	if ds.Path(parent) != "/" {
+		// TODO: Support nested collections
 		return nil, errors.Errorf("only root collections supported")
 	}
 
