@@ -8,12 +8,12 @@ import (
 	"testing"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys-ext/http/api"
+	"github.com/keys-pub/keys/ds"
 	"github.com/stretchr/testify/require"
 )
 
-func TestMessagesMem(t *testing.T) {
+func TestMessages(t *testing.T) {
 	env := newEnv(t)
 	// env.logLevel = server.DebugLevel
 	testMessages(t, env)
@@ -32,16 +32,16 @@ func testMessages(t *testing.T, env *env) {
 	req, err := api.NewRequest("GET", ds.Path("msgs", alice.ID(), charlie.ID()), nil, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
-	require.Equal(t, http.StatusNotFound, code)
-	require.Equal(t, `{"error":{"code":404,"message":"messages not found"}}`, body)
+	require.Equal(t, http.StatusOK, code)
+	require.Equal(t, `{"messages":[],"version":"0"}`, body)
 
 	// POST /msgs/:kid/:rid (no body)
 	req, err = api.NewRequest("POST", ds.Path("msgs", alice.ID(), charlie.ID()), nil, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
-	require.Equal(t, http.StatusBadRequest, code)
 	expected := `{"error":{"code":400,"message":"missing body"}}`
 	require.Equal(t, expected, body)
+	require.Equal(t, http.StatusBadRequest, code)
 
 	// POST /msgs/:kid/:rid
 	req, err = api.NewRequest("POST", ds.Path("msgs", alice.ID(), charlie.ID()), bytes.NewReader([]byte("test1")), clock.Now(), alice)
@@ -191,8 +191,8 @@ func TestMessagesAuth(t *testing.T) {
 	req, err = api.NewRequest("GET", ds.Path("msgs", alice.ID(), charlie.ID()), nil, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
-	require.Equal(t, http.StatusNotFound, code)
-	require.Equal(t, `{"error":{"code":404,"message":"messages not found"}}`, body)
+	require.Equal(t, http.StatusOK, code)
+	require.Equal(t, `{"messages":[],"version":"0"}`, body)
 
 	// Replay last request
 	reqReplay, err := http.NewRequest("GET", req.URL.String(), nil)

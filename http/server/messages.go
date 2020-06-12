@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -91,14 +92,15 @@ func (s *Server) postMessage(c echo.Context) error {
 		return s.internalError(c, err)
 	}
 
-	spath := fmt.Sprintf("msgs-%s-%s", kid, rid)
-	if err := s.fi.ChangeAdd(ctx, spath, id, path); err != nil {
+	spath := ds.Path("direct", kid, rid)
+	if _, err := s.fi.ChangeAdd(ctx, spath, []byte(path)); err != nil {
 		return s.internalError(c, err)
 	}
 
 	if kid != rid {
-		rpath := fmt.Sprintf("msgs-%s-%s", rid, kid)
-		if err := s.fi.ChangeAdd(ctx, rpath, id, path); err != nil {
+		rpath := ds.Path("direct", rid, kid)
+		if _, err := s.fi.ChangeAdd(ctx, rpath, []byte(path)); err != nil {
+			// TODO: This could leave in an inconsistent state (only 1 person sees message)
 			return s.internalError(c, err)
 		}
 	}
@@ -111,6 +113,7 @@ func (s *Server) postMessage(c echo.Context) error {
 
 func (s *Server) listMessages(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
+	ctx := c.Request().Context()
 
 	kid, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.mc)
 	if err != nil {
@@ -126,22 +129,24 @@ func (s *Server) listMessages(c echo.Context) error {
 		return ErrBadRequest(c, err)
 	}
 
-	path := fmt.Sprintf("msgs-%s-%s", kid, rid)
+	path := ds.Path("direct", kid, rid)
 
-	chgs, err := s.changes(c, path)
+	chgs, clientErr, err := s.changes(c, path)
 	if err != nil {
 		return s.internalError(c, err)
 	}
-	if chgs.errBadRequest != nil {
-		return ErrResponse(c, http.StatusBadRequest, chgs.errBadRequest.Error())
-	}
-	if len(chgs.docs) == 0 && chgs.version == 0 {
-		return ErrNotFound(c, errors.Errorf("messages not found"))
+	if clientErr != nil {
+		return ErrResponse(c, http.StatusBadRequest, clientErr.Error())
 	}
 
-	messages := make([]*api.Message, 0, len(chgs.docs))
-	md := make(map[string]api.Metadata, len(chgs.docs))
-	for _, doc := range chgs.docs {
+	docs, err := s.docsFromChanges(ctx, chgs.changes)
+	if err != nil {
+		return s.internalError(c, err)
+	}
+
+	messages := make([]*api.Message, 0, len(chgs.changes))
+	md := make(map[string]api.Metadata, len(chgs.changes))
+	for _, doc := range docs {
 		msg, err := s.msgFromDoc(doc)
 		if err != nil {
 			return s.internalError(c, err)
@@ -166,6 +171,17 @@ func (s *Server) listMessages(c echo.Context) error {
 		resp.Metadata = md
 	}
 	return JSON(c, http.StatusOK, resp)
+}
+
+func (s *Server) docsFromChanges(ctx context.Context, chgs []*ds.Change) ([]*ds.Document, error) {
+	paths := make([]string, 0, len(chgs))
+	for _, c := range chgs {
+		path := string(c.Data)
+		if path != "" {
+			paths = append(paths, path)
+		}
+	}
+	return s.fi.GetAll(ctx, paths)
 }
 
 func (s *Server) msgFromDoc(doc *ds.Document) (*api.Message, error) {

@@ -10,13 +10,12 @@ import (
 )
 
 type changes struct {
-	docs          []*ds.Document
-	version       int64
-	versionNext   int64
-	errBadRequest error
+	changes     []*ds.Change
+	version     int64
+	versionNext int64
 }
 
-func (s *Server) changes(c echo.Context, path string) (*changes, error) {
+func (s *Server) changes(c echo.Context, path string) (*changes, error, error) {
 	request := c.Request()
 	ctx := request.Context()
 
@@ -24,7 +23,7 @@ func (s *Server) changes(c echo.Context, path string) (*changes, error) {
 	if f := c.QueryParam("version"); f != "" {
 		i, err := strconv.Atoi(f)
 		if err != nil {
-			return &changes{errBadRequest: errors.Wrapf(err, "invalid version")}, nil
+			return nil, errors.Wrapf(err, "invalid version"), nil
 		}
 		version = int64(i)
 	}
@@ -34,10 +33,10 @@ func (s *Server) changes(c echo.Context, path string) (*changes, error) {
 	}
 	limit, err := strconv.Atoi(plimit)
 	if err != nil {
-		return &changes{errBadRequest: errors.Wrapf(err, "invalid limit")}, nil
+		return nil, errors.Wrapf(err, "invalid limit"), nil
 	}
 	if limit > 100 {
-		return &changes{errBadRequest: errors.Errorf("invalid limit, too large")}, nil
+		return nil, errors.Errorf("invalid limit, too large"), nil
 	}
 
 	pdir := c.QueryParam("direction")
@@ -52,25 +51,21 @@ func (s *Server) changes(c echo.Context, path string) (*changes, error) {
 	case "desc":
 		dir = ds.Descending
 	default:
-		return &changes{errBadRequest: errors.Errorf("invalid dir")}, nil
+		return nil, errors.Errorf("invalid dir"), nil
 	}
 
 	s.logger.Infof("Changes %s", path)
-	chngs, to, err := s.fi.Changes(ctx, path, tsutil.ParseMillis(version), limit, dir)
+	iter, err := s.fi.Changes(ctx, path, tsutil.ParseMillis(version), limit, dir)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
+	}
+	defer iter.Release()
+	chngs, to, err := ds.ChangesFromIterator(iter, tsutil.ParseMillis(version))
+	if err != nil {
+		return nil, nil, err
 	}
 
-	s.logger.Infof("Changes %s, found %d", path, len(chngs))
-	paths := make([]string, 0, len(chngs))
-	for _, a := range chngs {
-		paths = append(paths, a.Path)
-	}
-	out, err := s.fi.GetAll(ctx, paths)
-	if err != nil {
-		return nil, err
-	}
-	s.logger.Debugf("Changes %s, got docs %d", path, len(out))
+	s.logger.Debugf("Changes %s, got %d", path, len(chngs))
 
 	versionNext := int64(0)
 	if to.IsZero() {
@@ -82,8 +77,8 @@ func (s *Server) changes(c echo.Context, path string) (*changes, error) {
 	s.logger.Infof("Changes %s, version next: %d", path, versionNext)
 
 	return &changes{
-		docs:        out,
+		changes:     chngs,
 		version:     int64(version),
 		versionNext: int64(versionNext),
-	}, nil
+	}, nil, nil
 }

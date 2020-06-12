@@ -109,6 +109,10 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	e.POST("/msgs/:kid/:rid", s.postMessage)
 	e.GET("/msgs/:kid/:rid", s.listMessages)
 
+	// Vault
+	e.POST("/vault/:kid", s.postVault)
+	e.GET("/vault/:kid", s.listVault)
+
 	// Disco
 	e.PUT("/disco/:kid/:rid/:type", s.putDisco)
 	e.GET("/disco/:kid/:rid/:type", s.getDisco)
