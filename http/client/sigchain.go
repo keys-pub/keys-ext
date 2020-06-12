@@ -7,13 +7,13 @@ import (
 	"net/url"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys-ext/http/api"
+	"github.com/keys-pub/keys/ds"
 	"github.com/pkg/errors"
 )
 
-// PutSigchainStatement ...
-func (c *Client) PutSigchainStatement(ctx context.Context, st *keys.Statement) error {
+// SigchainSave ...
+func (c *Client) SigchainSave(ctx context.Context, st *keys.Statement) error {
 	path := ds.Path(st.URL())
 	b, err := st.Bytes()
 	if err != nil {

@@ -24,7 +24,7 @@ func TestInvite(t *testing.T) {
 	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
 
 	// Create invite
-	resp, err := aliceClient.CreateInvite(context.TODO(), alice, bob.ID())
+	resp, err := aliceClient.InviteCreate(context.TODO(), alice, bob.ID())
 	require.NoError(t, err)
 
 	// Get invite

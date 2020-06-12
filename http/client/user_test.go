@@ -33,7 +33,7 @@ func saveUser(t *testing.T, env *env, cl *client.Client, key *keys.EdX25519Key, 
 	require.NoError(t, err)
 	env.req.SetResponse(url, []byte(msg))
 
-	err = cl.PutSigchainStatement(context.TODO(), st)
+	err = cl.SigchainSave(context.TODO(), st)
 	require.NoError(t, err)
 
 	// err = cl.Check(key)

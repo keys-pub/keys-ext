@@ -21,8 +21,8 @@ const (
 	Answer DiscoType = "answer"
 )
 
-// PutDisco puts a discovery offer or answer.
-func (c *Client) PutDisco(ctx context.Context, sender *keys.EdX25519Key, recipient keys.ID, typ DiscoType, data string, expire time.Duration) error {
+// DiscoSave puts a discovery offer or answer.
+func (c *Client) DiscoSave(ctx context.Context, sender *keys.EdX25519Key, recipient keys.ID, typ DiscoType, data string, expire time.Duration) error {
 	recipientKey, err := keys.NewX25519PublicKeyFromID(recipient)
 	if err != nil {
 		return err
@@ -42,8 +42,8 @@ func (c *Client) PutDisco(ctx context.Context, sender *keys.EdX25519Key, recipie
 	return nil
 }
 
-// GetDisco gets a discovery address.
-func (c *Client) GetDisco(ctx context.Context, sender keys.ID, recipient *keys.EdX25519Key, typ DiscoType) (string, error) {
+// Disco gets a discovery address.
+func (c *Client) Disco(ctx context.Context, sender keys.ID, recipient *keys.EdX25519Key, typ DiscoType) (string, error) {
 	senderKey, err := keys.NewX25519PublicKeyFromID(sender)
 	if err != nil {
 		return "", err
@@ -67,8 +67,8 @@ func (c *Client) GetDisco(ctx context.Context, sender keys.ID, recipient *keys.E
 	return string(decrypted), nil
 }
 
-// DeleteDisco removes discovery addresses.
-func (c *Client) DeleteDisco(ctx context.Context, sender *keys.EdX25519Key, recipient keys.ID) error {
+// DiscoDelete removes discovery addresses.
+func (c *Client) DiscoDelete(ctx context.Context, sender *keys.EdX25519Key, recipient keys.ID) error {
 	path := ds.Path("disco", sender.ID(), recipient)
 	vals := url.Values{}
 	if _, err := c.delete(ctx, path, vals, sender); err != nil {

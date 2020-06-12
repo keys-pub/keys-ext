@@ -22,14 +22,14 @@ func TestSigchain(t *testing.T) {
 	require.NoError(t, err)
 	err = sc.Add(st)
 	require.NoError(t, err)
-	err = client.PutSigchainStatement(context.TODO(), st)
+	err = client.SigchainSave(context.TODO(), st)
 	require.NoError(t, err)
 
 	st2, err := keys.NewSigchainStatement(sc, []byte("testing2"), alice, "", env.clock.Now())
 	require.NoError(t, err)
 	err = sc.Add(st2)
 	require.NoError(t, err)
-	psiErr2 := client.PutSigchainStatement(context.TODO(), st2)
+	psiErr2 := client.SigchainSave(context.TODO(), st2)
 	require.NoError(t, psiErr2)
 
 	scResp, err := client.Sigchain(context.TODO(), alice.ID())
@@ -48,7 +48,7 @@ func TestSigchain(t *testing.T) {
 	require.NoError(t, err)
 	err = sc.Add(st3)
 	require.NoError(t, err)
-	psiErr3 := client.PutSigchainStatement(context.TODO(), st3)
+	psiErr3 := client.SigchainSave(context.TODO(), st3)
 	require.NoError(t, psiErr3)
 
 	spew := sc.Spew()

@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/saltpack"
-	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/pkg/errors"
 )
 
@@ -24,8 +24,8 @@ type Message struct {
 	UpdatedAt time.Time
 }
 
-// SendMessage posts an encrypted expiring message.
-func (c *Client) SendMessage(ctx context.Context, sender *keys.EdX25519Key, recipient keys.ID, b []byte, expire time.Duration) (*api.CreateMessageResponse, error) {
+// MessageSend posts an encrypted expiring message.
+func (c *Client) MessageSend(ctx context.Context, sender *keys.EdX25519Key, recipient keys.ID, b []byte, expire time.Duration) (*api.CreateMessageResponse, error) {
 	if expire == time.Duration(0) {
 		return nil, errors.Errorf("no expire specified")
 	}
@@ -59,7 +59,7 @@ type MessagesOpts struct {
 }
 
 // Messages returns encrypted messages.
-// To decrypt a message, use Client#DecryptMessage.
+// To decrypt a message, use Client#MessageDecrypt.
 func (c *Client) Messages(ctx context.Context, key *keys.EdX25519Key, from keys.ID, opts *MessagesOpts) ([]*Message, string, error) {
 	path := ds.Path("msgs", key.ID(), from)
 	if opts == nil {
@@ -106,8 +106,8 @@ func (c *Client) Messages(ctx context.Context, key *keys.EdX25519Key, from keys.
 	return msgs, resp.Version, nil
 }
 
-// DecryptMessage decrypts a message from Messages.
-func (c *Client) DecryptMessage(key *keys.EdX25519Key, msg *Message) ([]byte, keys.ID, error) {
+// MessageDecrypt decrypts a message from Messages.
+func (c *Client) MessageDecrypt(key *keys.EdX25519Key, msg *Message) ([]byte, keys.ID, error) {
 	decrypted, pk, err := saltpack.SigncryptOpen(msg.Data, saltpack.NewKeyStore(key))
 	if err != nil {
 		return nil, "", err
