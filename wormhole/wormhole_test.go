@@ -21,23 +21,30 @@ import (
 // TODO: Close, reconnect?
 // TODO: Messages could have been omitted by network, include previous message ID
 
+func testKeyring(t *testing.T) *keyring.Keyring {
+	kr, err := keyring.New(keyring.Mem())
+	require.NoError(t, err)
+	kr.SetMasterKey(keys.Rand32())
+	return kr
+}
+
 func TestNew(t *testing.T) {
 	// wormhole.SetLogger(wormhole.NewLogger(wormhole.DebugLevel))
 	// sctp.SetLogger(sctp.NewLogger(sctp.DebugLevel))
-
+	var err error
 	env := testEnv(t)
 	defer env.closeFn()
 
 	// Local
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
-	kra := keyring.NewMem(true)
-	err := keys.Save(kra, alice)
+	kra := testKeyring(t)
+	err = keys.Save(kra, alice)
 	require.NoError(t, err)
 	err = keys.Save(kra, bob.PublicKey())
 	require.NoError(t, err)
 
-	krb := keyring.NewMem(true)
+	krb := testKeyring(t)
 	err = keys.Save(krb, bob)
 	require.NoError(t, err)
 	err = keys.Save(krb, alice.PublicKey())
@@ -52,13 +59,13 @@ func TestNew(t *testing.T) {
 func TestWormholeSameKey(t *testing.T) {
 	// wormhole.SetLogger(wormhole.NewLogger(wormhole.DebugLevel))
 	// sctp.SetLogger(sctp.NewLogger(sctp.DebugLevel))
-
+	var err error
 	env := testEnv(t)
 	defer env.closeFn()
 
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
-	kra := keyring.NewMem(true)
-	err := keys.Save(kra, alice)
+	kra := testKeyring(t)
+	err = keys.Save(kra, alice)
 	require.NoError(t, err)
 
 	testWormhole(t, env, true, alice, alice, kra, kra)
@@ -190,13 +197,14 @@ func TestWormholeCancel(t *testing.T) {
 }
 
 func testWormholeCancel(t *testing.T, env *env, dt time.Duration) {
+	var err error
 	server := env.httpServer.URL
 
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
 
-	kra := keyring.NewMem(true)
-	err := keys.Save(kra, alice)
+	kra := testKeyring(t)
+	err = keys.Save(kra, alice)
 	require.NoError(t, err)
 
 	wha, err := wormhole.New(server, kra)
@@ -216,7 +224,7 @@ func testWormholeCancel(t *testing.T, env *env, dt time.Duration) {
 func TestWormholeNoRecipient(t *testing.T) {
 	// wormhole.SetLogger(wormhole.NewLogger(wormhole.DebugLevel))
 	// sctp.SetLogger(sctp.NewLogger(sctp.DebugLevel))
-
+	var err error
 	env := testEnv(t)
 	defer env.closeFn()
 	server := env.httpServer.URL
@@ -224,11 +232,11 @@ func TestWormholeNoRecipient(t *testing.T) {
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
 
-	kra := keyring.NewMem(true)
-	err := keys.Save(kra, alice)
+	kra := testKeyring(t)
+	err = keys.Save(kra, alice)
 	require.NoError(t, err)
 
-	krb := keyring.NewMem(true)
+	krb := testKeyring(t)
 	err = keys.Save(krb, bob)
 	require.NoError(t, err)
 
