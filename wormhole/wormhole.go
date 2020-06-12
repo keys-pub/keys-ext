@@ -105,7 +105,7 @@ func (w *Wormhole) Close() {
 			logger.Infof("Removing offer (if any)...")
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
-			_ = w.hcl.DeleteDisco(ctx, w.sender, w.recipient)
+			_ = w.hcl.DiscoDelete(ctx, w.sender, w.recipient)
 		}()
 	}
 
@@ -240,7 +240,7 @@ func (w *Wormhole) CreateInvite(ctx context.Context, sender keys.ID, recipient k
 		return "", keys.NewErrNotFound(sender.String())
 	}
 
-	invite, err := w.hcl.CreateInvite(ctx, senderKey, recipient)
+	invite, err := w.hcl.InviteCreate(ctx, senderKey, recipient)
 	if err != nil {
 		return "", err
 	}
@@ -530,7 +530,7 @@ func (w *Wormhole) readAnswer(ctx context.Context, recipient keys.ID, sender *ke
 
 func (w *Wormhole) writeSession(ctx context.Context, addr *sctp.Addr, sender *keys.EdX25519Key, recipient keys.ID, typ client.DiscoType, genCode bool, expire time.Duration) error {
 	logger.Debugf("Writing disco: %s (%s)", addr, typ)
-	if err := w.hcl.PutDisco(ctx, sender, recipient, typ, addr.String(), expire); err != nil {
+	if err := w.hcl.DiscoSave(ctx, sender, recipient, typ, addr.String(), expire); err != nil {
 		return err
 	}
 	return nil
@@ -558,7 +558,7 @@ func (w *Wormhole) readSession(ctx context.Context, recipient keys.ID, sender *k
 
 func (w *Wormhole) readOnce(ctx context.Context, recipient keys.ID, sender *keys.EdX25519Key, typ client.DiscoType) (*sctp.Addr, error) {
 	logger.Debugf("Read disco...")
-	out, err := w.hcl.GetDisco(ctx, recipient, sender, typ)
+	out, err := w.hcl.Disco(ctx, recipient, sender, typ)
 	if err != nil {
 		return nil, err
 	}
