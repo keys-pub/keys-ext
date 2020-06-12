@@ -5,7 +5,6 @@ import (
 
 	"cloud.google.com/go/firestore"
 	"github.com/keys-pub/keys/ds"
-	"github.com/pkg/errors"
 	"google.golang.org/api/iterator"
 )
 
@@ -45,7 +44,7 @@ func (i *docsIterator) Next() (*ds.Document, error) {
 	m := doc.Data()
 	b, ok := m["data"].([]byte)
 	if !ok {
-		return nil, errors.Errorf("firestore value missing data")
+		// Missing value
 	}
 	out := ds.NewDocument(kp, b)
 	out.CreatedAt = doc.CreateTime
@@ -76,4 +75,39 @@ func (i *colsIterator) Next() (*ds.Collection, error) {
 
 func (i *colsIterator) Release() {
 	// Nothing to do for firestore.CollectionIterator
+}
+
+type changeIterator struct {
+	iter  *firestore.DocumentIterator
+	limit int
+	count int
+}
+
+func (i *changeIterator) Next() (*ds.Change, error) {
+	if i.iter == nil {
+		return nil, nil
+	}
+	doc, err := i.iter.Next()
+	if err == iterator.Done {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	if i.count >= i.limit {
+		return nil, nil
+	}
+	var change ds.Change
+	if err := doc.DataTo(&change); err != nil {
+		return nil, err
+	}
+	i.count++
+	return &change, nil
+
+}
+
+func (i *changeIterator) Release() {
+	if i.iter != nil {
+		i.iter.Stop()
+	}
 }

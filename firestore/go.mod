@@ -5,7 +5,7 @@ go 1.12
 require (
 	cloud.google.com/go v0.51.0 // indirect
 	cloud.google.com/go/firestore v1.1.0
-	github.com/keys-pub/keys v0.0.0-20200606200849-798e051be6e6
+	github.com/keys-pub/keys v0.0.0-20200612010917-0cf3f60778ea
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.5.1

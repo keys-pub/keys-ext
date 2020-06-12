@@ -19,37 +19,11 @@ const testURL = "firestore://chilltest-3297b"
 
 var ctx = context.TODO()
 
-func testCollection() string {
-	return "test-" + time.Now().Format(time.RFC3339Nano)
-}
-
 func testFirestore(t *testing.T) *Firestore {
 	opts := []option.ClientOption{option.WithCredentialsFile("credentials.json")}
 	fs, err := New(testURL, opts...)
 	require.NoError(t, err)
 	return fs
-}
-
-func TestFirestore(t *testing.T) {
-	// SetContextLogger(NewContextLogger(DebugLevel))
-	fs := testFirestore(t)
-	testDocumentStore(t, fs)
-}
-
-func TestFirestorePath(t *testing.T) {
-	fs := testFirestore(t)
-	testDocumentStorePath(t, fs)
-}
-
-func TestFirestoreListOptions(t *testing.T) {
-	fs := testFirestore(t)
-	testDocumentStoreListOptions(t, fs)
-}
-
-func TestFirestoreMetadata(t *testing.T) {
-	// SetContextLogger(NewContextLogger(DebugLevel))
-	fs := testFirestore(t)
-	testMetadata(t, fs)
 }
 
 func TestEmptyIterator(t *testing.T) {
@@ -60,7 +34,12 @@ func TestEmptyIterator(t *testing.T) {
 	iter.Release()
 }
 
-func testDocumentStore(t *testing.T, dst ds.DocumentStore) {
+func testCollection() string {
+	return ds.Path("test", time.Now().Format(time.RFC3339Nano), "docs")
+}
+
+func TestDocumentStore(t *testing.T) {
+	dst := testFirestore(t)
 	ctx := context.TODO()
 	collection1 := testCollection()
 	collection2 := testCollection()
@@ -110,17 +89,17 @@ func testDocumentStore(t *testing.T, dst ds.DocumentStore) {
 	require.Equal(t, ds.Path(collection2, "key20"), out[1].Path)
 
 	ok, err = dst.Delete(ctx, ds.Path(collection2, "key10"))
+	require.NoError(t, err)
 	require.True(t, ok)
-	require.NoError(t, err)
 	ok, err = dst.Delete(ctx, ds.Path(collection2, "key10"))
-	require.False(t, ok)
 	require.NoError(t, err)
+	require.False(t, ok)
 
 	ok, err = dst.Exists(ctx, ds.Path(collection2, "key10"))
 	require.NoError(t, err)
 	require.False(t, ok)
 
-	expected := "/" + collection1 + "/key10 overwrite\n/" + collection1 + "/key20 value20\n/" + collection1 + "/key30 value30\n"
+	expected := collection1 + "/key10 overwrite\n" + collection1 + "/key20 value20\n" + collection1 + "/key30 value30\n"
 	var b bytes.Buffer
 	iter, err = dst.Documents(context.TODO(), collection1)
 	require.NoError(t, err)
@@ -163,7 +142,8 @@ func testDocumentStore(t *testing.T, dst ds.DocumentStore) {
 	require.EqualError(t, err, "only root collections supported")
 }
 
-func testDocumentStorePath(t *testing.T, dst ds.DocumentStore) {
+func TestDocumentStorePath(t *testing.T) {
+	dst := testFirestore(t)
 	ctx := context.TODO()
 	collection := testCollection()
 
@@ -173,6 +153,7 @@ func testDocumentStorePath(t *testing.T, dst ds.DocumentStore) {
 	doc, err := dst.Get(ctx, ds.Path(collection, "key1"))
 	require.NoError(t, err)
 	require.NotNil(t, doc)
+	require.Equal(t, []byte("value1"), doc.Data)
 
 	ok, err := dst.Exists(ctx, ds.Path(collection, "key1"))
 	require.NoError(t, err)
@@ -180,9 +161,24 @@ func testDocumentStorePath(t *testing.T, dst ds.DocumentStore) {
 	ok, err = dst.Exists(ctx, ds.Path(collection, "key1"))
 	require.NoError(t, err)
 	require.True(t, ok)
+
+	err = dst.Create(ctx, ds.Path(collection, "key2", "col2", "key3"), []byte("value3"))
+	require.NoError(t, err)
+
+	doc, err = dst.Get(ctx, ds.Path(collection, "key2", "col2", "key3"))
+	require.NoError(t, err)
+	require.NotNil(t, doc)
+	require.Equal(t, []byte("value3"), doc.Data)
+
+	// citer, err := dst.Collections(ctx, "")
+	// require.NoError(t, err)
+	// cols, err := ds.CollectionsFromIterator(citer)
+	// require.NoError(t, err)
+	// require.Equal(t, "/test", cols[0].Path)
 }
 
-func testDocumentStoreListOptions(t *testing.T, dst ds.DocumentStore) {
+func TestDocumentStoreListOptions(t *testing.T) {
+	dst := testFirestore(t)
 	ctx := context.TODO()
 	collection := testCollection()
 
@@ -194,23 +190,23 @@ func testDocumentStoreListOptions(t *testing.T, dst ds.DocumentStore) {
 	require.NoError(t, err)
 
 	for i := 1; i < 3; i++ {
-		err := dst.Create(ctx, ds.Path("a"+collection, fmt.Sprintf("e%d", i)), []byte("🤓"))
+		err := dst.Create(ctx, ds.Path(collection+"a", fmt.Sprintf("e%d", i)), []byte("🤓"))
 		require.NoError(t, err)
 	}
 	for i := 1; i < 3; i++ {
-		err := dst.Create(ctx, ds.Path("b"+collection, fmt.Sprintf("ea%d", i)), []byte("😎"))
+		err := dst.Create(ctx, ds.Path(collection+"b", fmt.Sprintf("ea%d", i)), []byte("😎"))
 		require.NoError(t, err)
 	}
 	for i := 1; i < 3; i++ {
-		err := dst.Create(ctx, ds.Path("b"+collection, fmt.Sprintf("eb%d", i)), []byte("😎"))
+		err := dst.Create(ctx, ds.Path(collection+"b", fmt.Sprintf("eb%d", i)), []byte("😎"))
 		require.NoError(t, err)
 	}
 	for i := 1; i < 3; i++ {
-		err := dst.Create(ctx, ds.Path("b"+collection, fmt.Sprintf("ec%d", i)), []byte("😎"))
+		err := dst.Create(ctx, ds.Path(collection+"b", fmt.Sprintf("ec%d", i)), []byte("😎"))
 		require.NoError(t, err)
 	}
 	for i := 1; i < 3; i++ {
-		err := dst.Create(ctx, ds.Path("c"+collection, fmt.Sprintf("e%d", i)), []byte("😎"))
+		err := dst.Create(ctx, ds.Path(collection+"c", fmt.Sprintf("e%d", i)), []byte("😎"))
 		require.NoError(t, err)
 	}
 
@@ -232,12 +228,12 @@ func testDocumentStoreListOptions(t *testing.T, dst ds.DocumentStore) {
 	require.NoError(t, err)
 	b, err := ds.Spew(iter)
 	require.NoError(t, err)
-	expected := "/" + collection + "/key1 val1\n" + "/" + collection + "/key2 val2\n" + "/" + collection + "/key3 val3\n"
+	expected := collection + "/key1 val1\n" + collection + "/key2 val2\n" + collection + "/key3 val3\n"
 
 	require.Equal(t, expected, b.String())
 	iter.Release()
 
-	iter, err = dst.Documents(ctx, "b"+collection, ds.Prefix("eb"))
+	iter, err = dst.Documents(ctx, ds.Path(collection+"b"), ds.Prefix("eb"))
 	require.NoError(t, err)
 	paths = []string{}
 	for {
@@ -249,10 +245,11 @@ func testDocumentStoreListOptions(t *testing.T, dst ds.DocumentStore) {
 		paths = append(paths, doc.Path)
 	}
 	iter.Release()
-	require.Equal(t, []string{"/b" + collection + "/eb1", "/b" + collection + "/eb2"}, paths)
+	require.Equal(t, []string{collection + "b/eb1", collection + "b/eb2"}, paths)
 }
 
-func testMetadata(t *testing.T, dst ds.DocumentStore) {
+func TestMetadata(t *testing.T) {
+	dst := testFirestore(t)
 	ctx := context.TODO()
 	collection := testCollection()
 
@@ -353,3 +350,28 @@ func TestDeleteAll(t *testing.T) {
 	require.NoError(t, err)
 	require.Nil(t, doc)
 }
+
+// func TestDeleteCollections(t *testing.T) {
+// 	fs := testFirestore(t)
+// 	iter, err := fs.Collections(context.TODO(), "")
+// 	require.NoError(t, err)
+// 	cols, err := ds.CollectionsFromIterator(iter)
+// 	require.NoError(t, err)
+// 	iter.Release()
+
+// 	for _, col := range cols {
+// 		if strings.HasPrefix(col.Path, "/test") {
+// 			t.Logf("Col: %s", col)
+// 			diter, err := fs.Documents(context.TODO(), col.Path)
+// 			require.NoError(t, err)
+// 			docs, err := ds.DocumentsFromIterator(diter)
+// 			require.NoError(t, err)
+// 			diter.Release()
+// 			for _, doc := range docs {
+// 				t.Logf("Delete: %s", doc.Path)
+// 				_, err = fs.Delete(context.TODO(), doc.Path)
+// 				require.NoError(t, err)
+// 			}
+// 		}
+// 	}
+// }
