@@ -37,13 +37,13 @@ func NewClient() *Client {
 // Close ...
 func (c *Client) Close() {
 	if c.stream != nil {
-		c.stream.Close()
+		_ = c.stream.Close()
 	}
 	if c.assoc != nil {
-		c.assoc.Close()
+		_ = c.assoc.Close()
 	}
 	if c.conn != nil {
-		c.conn.Close()
+		_ = c.conn.Close()
 	}
 }
 
