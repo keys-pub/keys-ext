@@ -1,15 +1,15 @@
-# DB
+# SDB
 
 This package provides a leveldb database encrypted with [github.com/minio/sio](https://github.com/minio/sio) (DARE).
 
 **Only values are encrypted.**
 
 ```go
-db := New()
+db := sdb.New()
 defer db.Close()
 
-key := keys.RandKey()
-if err := db.OpenAtPath(context.TODO(), "my.db", key); err != nil {
+key := keys.Rand32()
+if err := db.OpenAtPath(context.TODO(), "my.sdb", key); err != nil {
     log.Fatal(err)
 }
 
@@ -27,6 +27,7 @@ iter, err := db.Documents(context.TODO(), ds.Path("collection1"), nil)
 if err != nil {
     log.Fatal(err)
 }
+defer iter.Release()
 for {
     doc, err := iter.Next()
     if err != nil {

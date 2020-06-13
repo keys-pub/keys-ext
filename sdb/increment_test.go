@@ -1,4 +1,4 @@
-package db_test
+package sdb_test
 
 import (
 	"context"
@@ -15,25 +15,25 @@ func TestIncrement(t *testing.T) {
 	ctx := context.TODO()
 	path := testPath()
 	key := keys.Rand32()
-	d, closeFn := testDBWithOpts(t, path, key)
+	db, closeFn := testDBWithOpts(t, path, key)
 	defer closeFn()
 
 	prev := ""
 	for i := 0; i < 100000; i++ {
-		n, err := d.Increment(ctx, ds.Path("db/increment"))
+		n, err := db.Increment(ctx, ds.Path("db/increment"))
 		require.NoError(t, err)
 		require.True(t, n > prev)
 		prev = n
 	}
 	t.Logf("Prev: %s", prev)
-	d.Close()
+	db.Close()
 
 	// Re-open and do increment
-	d2, closeFn2 := testDBWithOpts(t, path, key)
+	db2, closeFn2 := testDBWithOpts(t, path, key)
 	defer closeFn2()
 
 	for i := 0; i < 100000; i++ {
-		n, err := d2.Increment(ctx, ds.Path("db/increment"))
+		n, err := db2.Increment(ctx, ds.Path("db/increment"))
 		require.NoError(t, err)
 		require.True(t, n > prev)
 		prev = n

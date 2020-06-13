@@ -1,4 +1,4 @@
-package db
+package sdb
 
 import (
 	"github.com/keys-pub/keys/ds"
