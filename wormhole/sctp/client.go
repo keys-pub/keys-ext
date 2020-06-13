@@ -43,7 +43,7 @@ func (c *Client) Close() {
 		c.assoc.Close()
 	}
 	if c.conn != nil {
-		c.conn.Close()
+		_ = c.conn.Close()
 	}
 }
 

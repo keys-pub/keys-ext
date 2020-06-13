@@ -7,8 +7,8 @@ import (
 	"crypto/sha256"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys-ext/auth/fido2"
+	"github.com/keys-pub/keys/encoding"
 	"github.com/pkg/errors"
 )
 
@@ -173,7 +173,7 @@ func (s *server) HMACSecret(ctx context.Context, req *fido2.HMACSecretRequest) (
 	}
 
 	h := hmac.New(sha256.New, bytes.Join([][]byte{cred.secret, req.Salt}, []byte{}))
-	h.Write(req.ClientDataHash)
+	_ = h.Write(req.ClientDataHash)
 	hmacSecret := h.Sum(nil)
 
 	return &fido2.HMACSecretResponse{
