@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -297,9 +298,12 @@ func ExampleDB_OpenAtPath() {
 	defer db.Close()
 
 	key := keys.Rand32()
-	ctx := context.TODO()
-	path := filepath.Join(os.TempDir(), "my.sdb")
-	if err := db.OpenAtPath(ctx, path, key); err != nil {
+	dir, err := ioutil.TempDir("", "")
+	if err != nil {
+		log.Fatal(err)
+	}
+	path := filepath.Join(dir, "my.sdb")
+	if err := db.OpenAtPath(context.TODO(), path, key); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -309,9 +313,12 @@ func ExampleDB_Create() {
 	defer db.Close()
 
 	key := keys.Rand32()
-	ctx := context.TODO()
-	path := filepath.Join(os.TempDir(), "my.sdb")
-	if err := db.OpenAtPath(ctx, path, key); err != nil {
+	dir, err := ioutil.TempDir("", "")
+	if err != nil {
+		log.Fatal(err)
+	}
+	path := filepath.Join(dir, "my.sdb")
+	if err := db.OpenAtPath(context.TODO(), path, key); err != nil {
 		log.Fatal(err)
 	}
 
@@ -325,19 +332,22 @@ func ExampleDB_Get() {
 	defer db.Close()
 
 	key := keys.Rand32()
-	ctx := context.TODO()
-	path := filepath.Join(os.TempDir(), "my.sdb")
-	if err := db.OpenAtPath(ctx, path, key); err != nil {
+	dir, err := ioutil.TempDir("", "")
+	if err != nil {
+		log.Fatal(err)
+	}
+	path := filepath.Join(dir, "my.sdb")
+	if err := db.OpenAtPath(context.TODO(), path, key); err != nil {
 		log.Fatal(err)
 	}
 	// Don't remove db in real life
 	defer os.RemoveAll(path)
 
-	if err := db.Set(ctx, ds.Path("collection1", "doc1"), []byte("hi")); err != nil {
+	if err := db.Set(context.TODO(), ds.Path("collection1", "doc1"), []byte("hi")); err != nil {
 		log.Fatal(err)
 	}
 
-	doc, err := db.Get(ctx, ds.Path("collection1", "doc1"))
+	doc, err := db.Get(context.TODO(), ds.Path("collection1", "doc1"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -351,19 +361,22 @@ func ExampleDB_Set() {
 	defer db.Close()
 
 	key := keys.Rand32()
-	ctx := context.TODO()
-	path := filepath.Join(os.TempDir(), "my.sdb")
-	if err := db.OpenAtPath(ctx, path, key); err != nil {
+	dir, err := ioutil.TempDir("", "")
+	if err != nil {
+		log.Fatal(err)
+	}
+	path := filepath.Join(dir, "my.sdb")
+	if err := db.OpenAtPath(context.TODO(), path, key); err != nil {
 		log.Fatal(err)
 	}
 	// Don't remove db in real life
 	defer os.RemoveAll(path)
 
-	if err := db.Set(ctx, ds.Path("collection1", "doc1"), []byte("hi")); err != nil {
+	if err := db.Set(context.TODO(), ds.Path("collection1", "doc1"), []byte("hi")); err != nil {
 		log.Fatal(err)
 	}
 
-	doc, err := db.Get(ctx, ds.Path("collection1", "doc1"))
+	doc, err := db.Get(context.TODO(), ds.Path("collection1", "doc1"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -377,19 +390,22 @@ func ExampleDB_Documents() {
 	defer db.Close()
 
 	key := keys.Rand32()
-	ctx := context.TODO()
-	path := filepath.Join(os.TempDir(), "my.sdb")
-	if err := db.OpenAtPath(ctx, path, key); err != nil {
+	dir, err := ioutil.TempDir("", "")
+	if err != nil {
+		log.Fatal(err)
+	}
+	path := filepath.Join(dir, "my.sdb")
+	if err := db.OpenAtPath(context.TODO(), path, key); err != nil {
 		log.Fatal(err)
 	}
 	// Don't remove db in real life
 	defer os.RemoveAll(path)
 
-	if err := db.Set(ctx, ds.Path("collection1", "doc1"), []byte("hi")); err != nil {
+	if err := db.Set(context.TODO(), ds.Path("collection1", "doc1"), []byte("hi")); err != nil {
 		log.Fatal(err)
 	}
 
-	iter, err := db.Documents(ctx, ds.Path("collection1"))
+	iter, err := db.Documents(context.TODO(), ds.Path("collection1"))
 	if err != nil {
 		log.Fatal(err)
 	}

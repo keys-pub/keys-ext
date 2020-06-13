@@ -25,7 +25,7 @@ func TestIncrement(t *testing.T) {
 		require.True(t, n > prev)
 		prev = n
 	}
-	t.Logf("Prev: %s", prev)
+	// t.Logf("Prev: %s", prev)
 	db.Close()
 
 	// Re-open and do increment
@@ -38,6 +38,5 @@ func TestIncrement(t *testing.T) {
 		require.True(t, n > prev)
 		prev = n
 	}
-	t.Logf("Prev (2): %s", prev)
-
+	// t.Logf("Prev (2): %s", prev)
 }
