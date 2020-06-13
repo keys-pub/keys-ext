@@ -24,6 +24,9 @@ type DB struct {
 	nowFn func() time.Time
 
 	key SecretKey
+
+	inc    int
+	incMax int
 }
 
 // New creates a DB.
@@ -46,6 +49,9 @@ func (d *DB) Now() time.Time {
 
 // OpenAtPath opens db located at path
 func (d *DB) OpenAtPath(ctx context.Context, path string, key SecretKey) error {
+	d.rwmtx.Lock()
+	defer d.rwmtx.Unlock()
+
 	logger.Infof("LevelDB at %s", path)
 	d.fpath = path
 	db, err := leveldb.OpenFile(path, nil)
@@ -60,9 +66,16 @@ func (d *DB) OpenAtPath(ctx context.Context, path string, key SecretKey) error {
 
 // Close the db.
 func (d *DB) Close() {
-	logger.Infof("Closing leveldb %s", d.fpath)
-	if err := d.sdb.Close(); err != nil {
-		logger.Errorf("Error closing DB: %s", err)
+	d.rwmtx.Lock()
+	defer d.rwmtx.Unlock()
+
+	if d.sdb != nil {
+		logger.Infof("Closing leveldb %s", d.fpath)
+		if err := d.sdb.Close(); err != nil {
+			logger.Errorf("Error closing DB: %s", err)
+		}
+		d.sdb = nil
+		d.key = nil
 	}
 }
 
@@ -125,7 +138,10 @@ func (d *DB) Set(ctx context.Context, path string, b []byte) error {
 	if path == "/" {
 		return errors.Errorf("invalid path %s", path)
 	}
+	return d.set(ctx, path, b)
+}
 
+func (d *DB) set(ctx context.Context, path string, b []byte) error {
 	doc, err := d.Get(ctx, path)
 	if err != nil {
 		return err

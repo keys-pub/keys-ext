@@ -1,4 +1,4 @@
-package db
+package db_test
 
 import (
 	"bytes"
@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/db"
 	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/stretchr/testify/require"
@@ -17,17 +18,21 @@ import (
 
 // testDB returns DB for testing.
 // You should defer Close() the result.
-func testDB(t *testing.T) (*DB, func()) {
-	db := New()
-	db.SetTimeNow(tsutil.NewClock().Now)
+func testDB(t *testing.T) (*db.DB, func()) {
 	path := testPath()
-	ctx := context.TODO()
 	key := keys.Rand32()
-	err := db.OpenAtPath(ctx, path, key)
+	return testDBWithOpts(t, path, key)
+}
+
+func testDBWithOpts(t *testing.T, path string, key db.SecretKey) (*db.DB, func()) {
+	d := db.New()
+	d.SetTimeNow(tsutil.NewClock().Now)
+	ctx := context.TODO()
+	err := d.OpenAtPath(ctx, path, key)
 	require.NoError(t, err)
 
-	return db, func() {
-		db.Close()
+	return d, func() {
+		d.Close()
 		os.Remove(path)
 	}
 }
@@ -38,24 +43,9 @@ func testPath() string {
 
 func TestDB(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
-	db, closeFn := testDB(t)
+	dst, closeFn := testDB(t)
 	defer closeFn()
-	testDocumentStore(t, db)
-}
 
-func TestDBListOptions(t *testing.T) {
-	db, closeFn := testDB(t)
-	defer closeFn()
-	testDocumentStoreListOptions(t, db)
-}
-
-func TestDBMetadata(t *testing.T) {
-	db, closeFn := testDB(t)
-	defer closeFn()
-	testMetadata(t, db)
-}
-
-func testDocumentStore(t *testing.T, dst ds.DocumentStore) {
 	ctx := context.TODO()
 
 	for i := 10; i <= 30; i = i + 10 {
@@ -205,7 +195,10 @@ func TestDocumentStorePath(t *testing.T) {
 	// require.Equal(t, "/test/key2/col2", cols[0].Path)
 }
 
-func testDocumentStoreListOptions(t *testing.T, dst ds.DocumentStore) {
+func TestDBListOptions(t *testing.T) {
+	dst, closeFn := testDB(t)
+	defer closeFn()
+
 	ctx := context.TODO()
 
 	err := dst.Create(ctx, "/test/1", []byte("val1"))
@@ -276,8 +269,10 @@ func testDocumentStoreListOptions(t *testing.T, dst ds.DocumentStore) {
 	require.Equal(t, []string{"/b/eb1", "/b/eb2"}, paths)
 }
 
-func testMetadata(t *testing.T, dst ds.DocumentStore) {
+func TestMetadata(t *testing.T) {
 	ctx := context.TODO()
+	dst, closeFn := testDB(t)
+	defer closeFn()
 
 	err := dst.Create(ctx, "/test/key1", []byte("value1"))
 	require.NoError(t, err)
@@ -298,51 +293,51 @@ func testMetadata(t *testing.T, dst ds.DocumentStore) {
 }
 
 func ExampleDB_OpenAtPath() {
-	db := New()
-	defer db.Close()
+	d := db.New()
+	defer d.Close()
 
 	key := keys.Rand32()
 	ctx := context.TODO()
 	path := filepath.Join(os.TempDir(), "example-db-open.db")
-	if err := db.OpenAtPath(ctx, path, key); err != nil {
+	if err := d.OpenAtPath(ctx, path, key); err != nil {
 		log.Fatal(err)
 	}
 }
 
 func ExampleDB_Create() {
-	db := New()
-	defer db.Close()
+	d := db.New()
+	defer d.Close()
 
 	key := keys.Rand32()
 	ctx := context.TODO()
 	path := filepath.Join(os.TempDir(), "example-db-create.db")
-	if err := db.OpenAtPath(ctx, path, key); err != nil {
+	if err := d.OpenAtPath(ctx, path, key); err != nil {
 		log.Fatal(err)
 	}
 
-	if err := db.Create(context.TODO(), "/test/1", []byte{0x01, 0x02, 0x03}); err != nil {
+	if err := d.Create(context.TODO(), "/test/1", []byte{0x01, 0x02, 0x03}); err != nil {
 		log.Fatal(err)
 	}
 }
 
 func ExampleDB_Get() {
-	db := New()
-	defer db.Close()
+	d := db.New()
+	defer d.Close()
 
 	key := keys.Rand32()
 	ctx := context.TODO()
 	path := filepath.Join(os.TempDir(), "example-db-get.db")
-	if err := db.OpenAtPath(ctx, path, key); err != nil {
+	if err := d.OpenAtPath(ctx, path, key); err != nil {
 		log.Fatal(err)
 	}
 	// Don't remove db in real life
 	defer os.RemoveAll(path)
 
-	if err := db.Set(ctx, ds.Path("collection1", "doc1"), []byte("hi")); err != nil {
+	if err := d.Set(ctx, ds.Path("collection1", "doc1"), []byte("hi")); err != nil {
 		log.Fatal(err)
 	}
 
-	doc, err := db.Get(ctx, ds.Path("collection1", "doc1"))
+	doc, err := d.Get(ctx, ds.Path("collection1", "doc1"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -352,23 +347,23 @@ func ExampleDB_Get() {
 }
 
 func ExampleDB_Set() {
-	db := New()
-	defer db.Close()
+	d := db.New()
+	defer d.Close()
 
 	key := keys.Rand32()
 	ctx := context.TODO()
 	path := filepath.Join(os.TempDir(), "example-db-set.db")
-	if err := db.OpenAtPath(ctx, path, key); err != nil {
+	if err := d.OpenAtPath(ctx, path, key); err != nil {
 		log.Fatal(err)
 	}
 	// Don't remove db in real life
 	defer os.RemoveAll(path)
 
-	if err := db.Set(ctx, ds.Path("collection1", "doc1"), []byte("hi")); err != nil {
+	if err := d.Set(ctx, ds.Path("collection1", "doc1"), []byte("hi")); err != nil {
 		log.Fatal(err)
 	}
 
-	doc, err := db.Get(ctx, ds.Path("collection1", "doc1"))
+	doc, err := d.Get(ctx, ds.Path("collection1", "doc1"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -378,23 +373,23 @@ func ExampleDB_Set() {
 }
 
 func ExampleDB_Documents() {
-	db := New()
-	defer db.Close()
+	d := db.New()
+	defer d.Close()
 
 	key := keys.Rand32()
 	ctx := context.TODO()
 	path := filepath.Join(os.TempDir(), "example-db-documents.db")
-	if err := db.OpenAtPath(ctx, path, key); err != nil {
+	if err := d.OpenAtPath(ctx, path, key); err != nil {
 		log.Fatal(err)
 	}
 	// Don't remove db in real life
 	defer os.RemoveAll(path)
 
-	if err := db.Set(ctx, ds.Path("collection1", "doc1"), []byte("hi")); err != nil {
+	if err := d.Set(ctx, ds.Path("collection1", "doc1"), []byte("hi")); err != nil {
 		log.Fatal(err)
 	}
 
-	iter, err := db.Documents(ctx, ds.Path("collection1"))
+	iter, err := d.Documents(ctx, ds.Path("collection1"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -414,49 +409,49 @@ func ExampleDB_Documents() {
 
 func TestDBGetSetLarge(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
-	db, closeFn := testDB(t)
+	d, closeFn := testDB(t)
 	defer closeFn()
 
 	large := bytes.Repeat([]byte{0x01}, 10*1024*1024)
 
-	err := db.Set(context.TODO(), "/test/key1", large)
+	err := d.Set(context.TODO(), "/test/key1", large)
 	require.NoError(t, err)
 
-	doc, err := db.Get(context.TODO(), "/test/key1")
+	doc, err := d.Get(context.TODO(), "/test/key1")
 	require.NoError(t, err)
 	require.Equal(t, large, doc.Data)
 }
 
 func TestDBGetSetEmpty(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
-	db, closeFn := testDB(t)
+	d, closeFn := testDB(t)
 	defer closeFn()
 
-	err := db.Set(context.TODO(), "/test/key1", []byte{})
+	err := d.Set(context.TODO(), "/test/key1", []byte{})
 	require.NoError(t, err)
 
-	doc, err := db.Get(context.TODO(), "/test/key1")
+	doc, err := d.Get(context.TODO(), "/test/key1")
 	require.NoError(t, err)
 	require.Equal(t, []byte{}, doc.Data)
 }
 
 func TestDeleteAll(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
-	db, closeFn := testDB(t)
+	d, closeFn := testDB(t)
 	defer closeFn()
 
-	err := db.Set(context.TODO(), "/test/key1", []byte("val1"))
+	err := d.Set(context.TODO(), "/test/key1", []byte("val1"))
 	require.NoError(t, err)
-	err = db.Set(context.TODO(), "/test/key2", []byte("val2"))
-	require.NoError(t, err)
-
-	err = db.DeleteAll(context.TODO(), []string{"/test/key1", "/test/key2", "/test/key3"})
+	err = d.Set(context.TODO(), "/test/key2", []byte("val2"))
 	require.NoError(t, err)
 
-	doc, err := db.Get(context.TODO(), "/test/key1")
+	err = d.DeleteAll(context.TODO(), []string{"/test/key1", "/test/key2", "/test/key3"})
+	require.NoError(t, err)
+
+	doc, err := d.Get(context.TODO(), "/test/key1")
 	require.NoError(t, err)
 	require.Nil(t, doc)
-	doc, err = db.Get(context.TODO(), "/test/key2")
+	doc, err = d.Get(context.TODO(), "/test/key2")
 	require.NoError(t, err)
 	require.Nil(t, doc)
 }
