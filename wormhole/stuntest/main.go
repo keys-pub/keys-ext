@@ -74,6 +74,7 @@ func readAddress() (string, error) {
 
 var stunServer = "stun.l.google.com:19302"
 
+// Client ...
 type Client struct {
 	publicAddr stun.XORMappedAddress
 	conn       *udpConn
@@ -81,6 +82,7 @@ type Client struct {
 	onMessage  func(message []byte)
 }
 
+// NewClient ...
 func NewClient() *Client {
 	return &Client{
 		onStunAddr: func(addr string) {},
@@ -88,16 +90,19 @@ func NewClient() *Client {
 	}
 }
 
+// Close ...
 func (c *Client) Close() {
 	if c.conn != nil {
-		c.conn.Close()
+		_ = c.conn.Close()
 	}
 }
 
+// OnStunAddr ...
 func (c *Client) OnStunAddr(f func(addr string)) {
 	c.onStunAddr = f
 }
 
+// OnMessage ...
 func (c *Client) OnMessage(f func(b []byte)) {
 	c.onMessage = f
 }
@@ -113,8 +118,9 @@ func (c *Client) Send(message []byte) error {
 	return c.conn.Send(message)
 }
 
+// Listen ...
 func (c *Client) Listen() error {
-	conn, err := ListenUDP()
+	conn, err := listenUDP()
 	if err != nil {
 		return err
 	}
@@ -172,7 +178,7 @@ type udpConn struct {
 	conn     *net.UDPConn
 }
 
-func ListenUDP() (*udpConn, error) {
+func listenUDP() (*udpConn, error) {
 	conn, err := net.ListenUDP(udp, nil)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to net.ListenUDP")
