@@ -173,7 +173,7 @@ func (s *server) HMACSecret(ctx context.Context, req *fido2.HMACSecretRequest) (
 	}
 
 	h := hmac.New(sha256.New, bytes.Join([][]byte{cred.secret, req.Salt}, []byte{}))
-	_ = h.Write(req.ClientDataHash)
+	_, _ = h.Write(req.ClientDataHash)
 	hmacSecret := h.Sum(nil)
 
 	return &fido2.HMACSecretResponse{
