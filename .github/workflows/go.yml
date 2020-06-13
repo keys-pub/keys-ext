@@ -44,8 +44,8 @@ jobs:
           go-version: 1.13.x
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Test (db)
-        run: (cd db && go test -v ./...)
+      - name: Test (sdb)
+        run: (cd sdb && go test -v ./...)
       - name: Test (auth)
         if: matrix.os == 'macos-latest'
         run: |
