@@ -177,7 +177,7 @@ func TestUserAddGithub(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	url := fmt.Sprintf("https://gist.github.com/bob/1")
+	url := "https://gist.github.com/bob/1"
 	env.req.SetResponse(url, []byte(resp.Message))
 
 	// Bob
@@ -210,7 +210,7 @@ func TestUserAddReddit(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	url := fmt.Sprintf("https://www.reddit.com/r/keyspubmsgs/comments/123/bob")
+	url := "https://www.reddit.com/r/keyspubmsgs/comments/123/bob"
 	rmsg := mockRedditMessage("bob", resp.Message, "keyspubmsgs")
 	env.req.SetResponse(url+".json", []byte(rmsg))
 
@@ -224,7 +224,7 @@ func TestUserAddReddit(t *testing.T) {
 	require.NoError(t, err)
 
 	// "Bob" sign
-	resp, err = service.UserSign(context.TODO(), &UserSignRequest{
+	_, err = service.UserSign(context.TODO(), &UserSignRequest{
 		KID:     bob.ID().String(),
 		Service: "reddit",
 		Name:    "Bob",

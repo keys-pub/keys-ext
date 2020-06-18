@@ -14,7 +14,6 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/server"
 	"github.com/keys-pub/keys/ds"
-	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keys/user"
@@ -124,12 +123,12 @@ func testAuthSetup(t *testing.T, service *service) {
 	require.NoError(t, err)
 }
 
-func testAuthVault(t *testing.T, service *service, key *keys.EdX25519Key) {
-	_, err := service.AuthVault(context.TODO(), &AuthVaultRequest{
-		Key: encoding.MustEncode(key.Seed()[:], encoding.BIP39),
-	})
-	require.NoError(t, err)
-}
+// func testAuthVault(t *testing.T, service *service, key *keys.EdX25519Key) {
+// 	_, err := service.AuthVault(context.TODO(), &AuthVaultRequest{
+// 		Key: encoding.MustEncode(key.Seed()[:], encoding.BIP39),
+// 	})
+// 	require.NoError(t, err)
+// }
 
 func testImportKey(t *testing.T, service *service, key *keys.EdX25519Key) {
 	saltpack, err := keys.EncodeKeyToSaltpack(key, authPassword)
@@ -175,33 +174,33 @@ func testUserSetupGithub(t *testing.T, env *testEnv, service *service, key *keys
 	require.NoError(t, err)
 }
 
-func userSetupReddit(env *testEnv, service *service, key *keys.EdX25519Key, username string) error {
-	resp, err := service.UserSign(context.TODO(), &UserSignRequest{
-		KID:     key.ID().String(),
-		Service: "reddit",
-		Name:    username,
-	})
-	if err != nil {
-		return err
-	}
+// func userSetupReddit(env *testEnv, service *service, key *keys.EdX25519Key, username string) error {
+// 	resp, err := service.UserSign(context.TODO(), &UserSignRequest{
+// 		KID:     key.ID().String(),
+// 		Service: "reddit",
+// 		Name:    username,
+// 	})
+// 	if err != nil {
+// 		return err
+// 	}
 
-	url := fmt.Sprintf("https://reddit.com/r/keyspubmsgs/comments/123/%s", username)
-	rmsg := mockRedditMessage(username, resp.Message, "keyspubmsgs")
-	env.req.SetResponse(url+".json", []byte(rmsg))
+// 	url := fmt.Sprintf("https://reddit.com/r/keyspubmsgs/comments/123/%s", username)
+// 	rmsg := mockRedditMessage(username, resp.Message, "keyspubmsgs")
+// 	env.req.SetResponse(url+".json", []byte(rmsg))
 
-	_, err = service.UserAdd(context.TODO(), &UserAddRequest{
-		KID:     key.ID().String(),
-		Service: "reddit",
-		Name:    username,
-		URL:     url,
-	})
-	return err
-}
+// 	_, err = service.UserAdd(context.TODO(), &UserAddRequest{
+// 		KID:     key.ID().String(),
+// 		Service: "reddit",
+// 		Name:    username,
+// 		URL:     url,
+// 	})
+// 	return err
+// }
 
-func testUserSetupReddit(t *testing.T, env *testEnv, service *service, key *keys.EdX25519Key, username string) {
-	err := userSetupReddit(env, service, key, username)
-	require.NoError(t, err)
-}
+// func testUserSetupReddit(t *testing.T, env *testEnv, service *service, key *keys.EdX25519Key, username string) {
+// 	err := userSetupReddit(env, service, key, username)
+// 	require.NoError(t, err)
+// }
 
 func mockRedditMessage(author string, msg string, subreddit string) string {
 	msg = strings.ReplaceAll(msg, "\n", " ")
@@ -222,9 +221,9 @@ func mockRedditMessage(author string, msg string, subreddit string) string {
     }]`
 }
 
-func mockRedditURL(url string) string {
-	return url + ".json"
-}
+// func mockRedditURL(url string) string {
+// 	return url + ".json"
+// }
 
 // func testRemoveKey(t *testing.T, service *service, key *keys.EdX25519Key) {
 // 	_, err := service.KeyRemove(context.TODO(), &KeyRemoveRequest{

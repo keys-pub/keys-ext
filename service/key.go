@@ -249,26 +249,26 @@ func (s *service) parseKID(kid string) (keys.ID, error) {
 	return id, nil
 }
 
-func (s *service) parseKey(kid string, required bool) (keys.Key, error) {
-	if kid == "" {
-		if required {
-			return nil, errors.Errorf("no kid specified")
-		}
-		return nil, nil
-	}
-	id, err := keys.ParseID(kid)
-	if err != nil {
-		return nil, err
-	}
-	key, err := s.vault.Key(id)
-	if err != nil {
-		return nil, err
-	}
-	if key == nil && required {
-		return nil, keys.NewErrNotFound(kid)
-	}
-	return key, nil
-}
+// func (s *service) parseKey(kid string, required bool) (keys.Key, error) {
+// 	if kid == "" {
+// 		if required {
+// 			return nil, errors.Errorf("no kid specified")
+// 		}
+// 		return nil, nil
+// 	}
+// 	id, err := keys.ParseID(kid)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	key, err := s.vault.Key(id)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	if key == nil && required {
+// 		return nil, keys.NewErrNotFound(kid)
+// 	}
+// 	return key, nil
+// }
 
 // convertKey checks if the ID is a X25519 public key, finds the EdX25519 public key
 // equivalent if found, otherwise returns itself.
@@ -382,10 +382,10 @@ func (s *service) parseIdentityForEdX25519Key(ctx context.Context, identity stri
 	}
 }
 
-func (s *service) parseIdentityForEdX25519PublicKey(ctx context.Context, identity string) (*keys.EdX25519PublicKey, error) {
-	kid, err := s.parseIdentity(ctx, identity, false)
-	if err != nil {
-		return nil, err
-	}
-	return keys.NewEdX25519PublicKeyFromID(kid)
-}
+// func (s *service) parseIdentityForEdX25519PublicKey(ctx context.Context, identity string) (*keys.EdX25519PublicKey, error) {
+// 	kid, err := s.parseIdentity(ctx, identity, false)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return keys.NewEdX25519PublicKeyFromID(kid)
+// }
