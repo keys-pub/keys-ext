@@ -11,6 +11,7 @@ jobs:
         with:
           args: go get github.com/securego/gosec/cmd/gosec; (cd auth/fido2 && gosec ./...) && (cd auth/rpc && gosec ./...) && (cd firestore && gosec ./...) && (cd http/api && gosec ./...) && (cd http/client && gosec ./...) && (cd http/server && gosec ./...) && (cd sdb && gosec ./...) && (cd service && gosec ./...) && (cd wormhole && gosec .)
   golangci-lint:
+    name: Linter
     runs-on: macos-latest
     steps:
       - name: Install golangci-lint
@@ -18,6 +19,8 @@ jobs:
           brew install golangci/tap/golangci-lint
       - name: Run golangci-lint
         run: |
+          cwd
+          ls -al
           (cd service && golangci-lint run)
           (cd vault && golangci-lint run)
   test:
