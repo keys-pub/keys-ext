@@ -92,4 +92,4 @@ jobs:
       - name: Test (macos)
       if: matrix.os == 'macos-latest'
         run: |
-          (cd auth/fido2 && go test -v ./...)                    
+          (cd auth/rpc && go test -v ./...)                    
