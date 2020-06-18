@@ -20,7 +20,7 @@ jobs:
           (cd http/server && gosec ./...)
           (cd sdb && gosec ./...)
           (cd service && gosec ./...)
-          (cd vault && gosec .)
+          (cd vault && gosec ./...)
           (cd wormhole && gosec .)
   golangci-lint:
     name: Linter

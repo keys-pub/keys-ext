@@ -42,10 +42,7 @@ func (i *docsIterator) Next() (*ds.Document, error) {
 	}
 
 	m := doc.Data()
-	b, ok := m["data"].([]byte)
-	if !ok {
-		// Missing value
-	}
+	b, _ := m["data"].([]byte)
 	out := ds.NewDocument(kp, b)
 	out.CreatedAt = doc.CreateTime
 	out.UpdatedAt = doc.UpdateTime

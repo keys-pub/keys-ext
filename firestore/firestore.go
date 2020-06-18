@@ -240,20 +240,6 @@ func (f *Firestore) get(ctx context.Context, path string) (*firestore.DocumentSn
 	return doc, nil
 }
 
-func (f *Firestore) getValue(ctx context.Context, path string, v interface{}) (bool, error) {
-	doc, err := f.get(ctx, path)
-	if err != nil {
-		return false, err
-	}
-	if doc == nil {
-		return false, nil
-	}
-	if err := doc.DataTo(v); err != nil {
-		return false, err
-	}
-	return true, nil
-}
-
 // Documents ...
 func (f *Firestore) Documents(ctx context.Context, parent string, opt ...ds.DocumentsOption) (ds.DocumentIterator, error) {
 	opts := ds.NewDocumentsOptions(opt...)

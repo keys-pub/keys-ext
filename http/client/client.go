@@ -13,7 +13,6 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gorilla/websocket"
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/ds"
@@ -204,36 +203,36 @@ func (c *Client) get(ctx context.Context, path string, params url.Values, key *k
 	return resp, nil
 }
 
-func (c *Client) websocketGet(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key) (*websocket.Conn, error) {
-	url := c.url.String() + path
-	query := params.Encode()
-	if query != "" {
-		url = url + "?" + query
-	}
+// func (c *Client) websocketGet(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key) (*websocket.Conn, error) {
+// 	url := c.url.String() + path
+// 	query := params.Encode()
+// 	if query != "" {
+// 		url = url + "?" + query
+// 	}
 
-	auth, err := api.NewAuth("GET", url, c.clock(), key)
-	if err != nil {
-		return nil, err
-	}
+// 	auth, err := api.NewAuth("GET", url, c.clock(), key)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	switch c.url.Scheme {
-	case "http":
-		auth.URL.Scheme = "ws"
-	case "https":
-		auth.URL.Scheme = "wss"
-	}
+// 	switch c.url.Scheme {
+// 	case "http":
+// 		auth.URL.Scheme = "ws"
+// 	case "https":
+// 		auth.URL.Scheme = "wss"
+// 	}
 
-	header := http.Header{}
-	header.Set("Authorization", auth.Header())
+// 	header := http.Header{}
+// 	header.Set("Authorization", auth.Header())
 
-	logger.Debugf("Websocket dial %s", auth.URL.String())
-	conn, _, err := websocket.DefaultDialer.Dial(auth.URL.String(), header)
-	if err != nil {
-		return nil, err
-	}
+// 	logger.Debugf("Websocket dial %s", auth.URL.String())
+// 	conn, _, err := websocket.DefaultDialer.Dial(auth.URL.String(), header)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return conn, nil
-}
+// 	return conn, nil
+// }
 
 func (c *Client) put(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key, reader io.Reader) (*http.Response, error) {
 	resp, err := c.req(ctx, "PUT", path, params, key, reader)

@@ -347,6 +347,7 @@ func testSetupUnlockProvision(t *testing.T, vlt *vault.Vault) {
 	key := keys.Bytes32(bytes.Repeat([]byte{0x01}, 32))
 	vlt.SetMasterKey(key)
 	err = vlt.Set(vault.NewItem("key1", []byte("password"), "", time.Now()))
+	require.NoError(t, err)
 	vlt.SetMasterKey(nil)
 
 	err = vlt.Set(vault.NewItem("key1", []byte("password"), "", time.Now()))

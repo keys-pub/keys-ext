@@ -58,12 +58,12 @@ func (s *subscribers) Unsubscribe(topic string) {
 	delete(s.subs, topic)
 }
 
-func (s *subscribers) notify(event Event) {
-	s.Lock()
-	defer s.Unlock()
+// func (s *subscribers) notify(event Event) {
+// 	s.Lock()
+// 	defer s.Unlock()
 
-	for _, c := range s.subs {
-		// TODO: This will block if buffer is met
-		c <- event
-	}
-}
+// 	for _, c := range s.subs {
+// 		// TODO: This will block if buffer is met
+// 		c <- event
+// 	}
+// }

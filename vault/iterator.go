@@ -5,12 +5,6 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/iterator"
 )
 
-func newDocumentIterator(iter iterator.Iterator) ds.DocumentIterator {
-	return &docsIterator{
-		iter: iter,
-	}
-}
-
 type docsIterator struct {
 	iter  iterator.Iterator
 	index int

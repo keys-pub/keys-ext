@@ -20,9 +20,9 @@ type credential struct {
 type deviceOpts struct{}
 
 func newDevice(path string, opts *deviceOpts) *device {
-	if opts == nil {
-		opts = &deviceOpts{}
-	}
+	// if opts == nil {
+	// 	opts = &deviceOpts{}
+	// }
 	dev := &fido2.Device{
 		Path:         path,
 		ProductID:    123,
