@@ -80,9 +80,8 @@ jobs:
         uses: actions/checkout@v2
       - name: Test
         run: |
-          (cd auth/rpc && go test -v ./...)
-          (cd auth/mock && go test -v ./...)
-          (cd auth/fido2 && go test -v ./...)
+          (cd auth/fido2 && go test -v ./...)          
+          (cd auth/mock && go test -v ./...)          
           (cd http/api && go test -v ./...)
           (cd http/client && go test -v ./...)
           (cd http/server && go test -v ./...)
@@ -90,3 +89,7 @@ jobs:
           (cd service && go test -v ./...)
           (cd vault && go test -v ./...)
           (cd wormhole && go test -v ./...)
+      - name: Test (macos)
+      if: matrix.os == 'macos-latest'
+        run: |
+          (cd auth/fido2 && go test -v ./...)                    
