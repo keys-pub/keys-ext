@@ -7,10 +7,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install gosec
-        uses: "cedrickring/golang-action@1.4.1"
+        run: |
+          curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b $GOPATH/bin v2.3.0
       - name: Run gosec
         run: |
-          go get github.com/securego/gosec/cmd/gosec
           (cd auth/fido2 && gosec ./...)
           (cd auth/mock && gosec ./...)
           (cd auth/rpc && gosec ./...)
