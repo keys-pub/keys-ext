@@ -14,13 +14,12 @@ jobs:
     name: Linter
     runs-on: macos-latest
     steps:
+      - uses: actions/checkout@v2
       - name: Install golangci-lint
         run: |
           brew install golangci/tap/golangci-lint
       - name: Run golangci-lint
         run: |
-          pwd
-          ls -al
           (cd service && golangci-lint run)
           (cd vault && golangci-lint run)
   test:
