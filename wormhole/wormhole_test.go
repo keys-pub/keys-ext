@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/keyring"
 
 	"github.com/keys-pub/keys-ext/wormhole"
 	"github.com/keys-pub/keys-ext/wormhole/sctp"
@@ -21,57 +20,32 @@ import (
 // TODO: Close, reconnect?
 // TODO: Messages could have been omitted by network, include previous message ID
 
-func testKeyring(t *testing.T) *keyring.Keyring {
-	kr, err := keyring.New(keyring.Mem())
-	require.NoError(t, err)
-	kr.SetMasterKey(keys.Rand32())
-	return kr
-}
-
 func TestNew(t *testing.T) {
 	// wormhole.SetLogger(wormhole.NewLogger(wormhole.DebugLevel))
 	// sctp.SetLogger(sctp.NewLogger(sctp.DebugLevel))
-	var err error
 	env := testEnv(t)
 	defer env.closeFn()
 
-	// Local
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
-	kra := testKeyring(t)
-	err = keys.Save(kra, alice)
-	require.NoError(t, err)
-	err = keys.Save(kra, bob.PublicKey())
-	require.NoError(t, err)
-
-	krb := testKeyring(t)
-	err = keys.Save(krb, bob)
-	require.NoError(t, err)
-	err = keys.Save(krb, alice.PublicKey())
-	require.NoError(t, err)
-
-	testWormhole(t, env, true, alice, bob, kra, krb)
-
-	// Remote
-	// testWormhole(t, env, false)
+	vlta := wormhole.NewVault(alice)
+	vltb := wormhole.NewVault(bob)
+	testWormhole(t, env, true, alice, bob, vlta, vltb)
 }
 
 func TestWormholeSameKey(t *testing.T) {
 	// wormhole.SetLogger(wormhole.NewLogger(wormhole.DebugLevel))
 	// sctp.SetLogger(sctp.NewLogger(sctp.DebugLevel))
-	var err error
 	env := testEnv(t)
 	defer env.closeFn()
 
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
-	kra := testKeyring(t)
-	err = keys.Save(kra, alice)
-	require.NoError(t, err)
+	vlta := wormhole.NewVault(alice)
 
-	testWormhole(t, env, true, alice, alice, kra, kra)
+	testWormhole(t, env, true, alice, alice, vlta, vlta)
 }
 
-func testWormhole(t *testing.T, env *env, local bool, alice *keys.EdX25519Key, bob *keys.EdX25519Key, kra *keyring.Keyring, krb *keyring.Keyring) {
+func testWormhole(t *testing.T, env *env, local bool, alice *keys.EdX25519Key, bob *keys.EdX25519Key, vlta wormhole.Vault, vltb wormhole.Vault) {
 	ctx := context.TODO()
 
 	openWg := &sync.WaitGroup{}
@@ -81,10 +55,10 @@ func testWormhole(t *testing.T, env *env, local bool, alice *keys.EdX25519Key, b
 	closeWg.Add(2)
 
 	server := env.httpServer.URL
-	wha, err := wormhole.New(server, kra)
+	wha, err := wormhole.New(server, vlta)
 	require.NoError(t, err)
 	defer wha.Close()
-	wha.SetTimeNow(env.clock.Now)
+	wha.SetClock(env.clock.Now)
 	wha.OnStatus(func(st wormhole.Status) {
 		switch st {
 		case wormhole.Connected:
@@ -114,10 +88,10 @@ func testWormhole(t *testing.T, env *env, local bool, alice *keys.EdX25519Key, b
 		}
 	}()
 
-	whb, err := wormhole.New(server, krb)
+	whb, err := wormhole.New(server, vltb)
 	require.NoError(t, err)
 	defer whb.Close()
-	whb.SetTimeNow(env.clock.Now)
+	whb.SetClock(env.clock.Now)
 	whb.OnStatus(func(st wormhole.Status) {
 		switch st {
 		case wormhole.Connected:
@@ -203,14 +177,12 @@ func testWormholeCancel(t *testing.T, env *env, dt time.Duration) {
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
 
-	kra := testKeyring(t)
-	err = keys.Save(kra, alice)
-	require.NoError(t, err)
+	vlta := wormhole.NewVault(alice)
 
-	wha, err := wormhole.New(server, kra)
+	wha, err := wormhole.New(server, vlta)
 	require.NoError(t, err)
 	defer wha.Close()
-	wha.SetTimeNow(env.clock.Now)
+	wha.SetClock(env.clock.Now)
 	ctx, cancel := context.WithTimeout(context.Background(), dt)
 	defer cancel()
 
@@ -232,23 +204,18 @@ func TestWormholeNoRecipient(t *testing.T) {
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
 
-	kra := testKeyring(t)
-	err = keys.Save(kra, alice)
-	require.NoError(t, err)
+	vlta := wormhole.NewVault(alice)
+	vltb := wormhole.NewVault(bob)
 
-	krb := testKeyring(t)
-	err = keys.Save(krb, bob)
-	require.NoError(t, err)
-
-	wha, err := wormhole.New(server, kra)
+	wha, err := wormhole.New(server, vlta)
 	require.NoError(t, err)
 	defer wha.Close()
-	wha.SetTimeNow(env.clock.Now)
+	wha.SetClock(env.clock.Now)
 
-	whb, err := wormhole.New(server, krb)
+	whb, err := wormhole.New(server, vltb)
 	require.NoError(t, err)
 	defer wha.Close()
-	whb.SetTimeNow(env.clock.Now)
+	whb.SetClock(env.clock.Now)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()

@@ -12,7 +12,6 @@ import (
 	httpclient "github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys-ext/wormhole/sctp"
 	"github.com/keys-pub/keys/encoding"
-	"github.com/keys-pub/keys/keyring"
 	"github.com/keys-pub/keys/noise"
 	"github.com/pkg/errors"
 )
@@ -43,13 +42,19 @@ const (
 	Closed Status = "closed"
 )
 
+// Vault is interface for keys.
+type Vault interface {
+	EdX25519Key(id keys.ID) (*keys.EdX25519Key, error)
+	EdX25519Keys() ([]*keys.EdX25519Key, error)
+}
+
 // Wormhole for connecting two participants using webrtc, noise and
 // keys.pub.
 type Wormhole struct {
 	sync.Mutex
 	rtc    *sctp.Client
 	hcl    *httpclient.Client
-	kr     *keyring.Keyring
+	vault  Vault
 	cipher noise.Cipher
 
 	sender    *keys.EdX25519Key
@@ -67,7 +72,7 @@ const maxSize = 16 * 1024
 // New creates a new Wormhole.
 // Server is offer/answer message server, only used to coordinate starting the
 // webrtc channel.
-func New(server string, kr *keyring.Keyring) (*Wormhole, error) {
+func New(server string, vault Vault) (*Wormhole, error) {
 	rtc := sctp.NewClient()
 
 	if server == "" {
@@ -83,7 +88,7 @@ func New(server string, kr *keyring.Keyring) (*Wormhole, error) {
 	w := &Wormhole{
 		rtc:      rtc,
 		hcl:      hcl,
-		kr:       kr,
+		vault:    vault,
 		buf:      make([]byte, maxSize),
 		onStatus: func(Status) {},
 	}
@@ -120,9 +125,9 @@ func (w *Wormhole) Close() {
 	}()
 }
 
-// SetTimeNow sets wormhole clock.
-func (w *Wormhole) SetTimeNow(nowFn func() time.Time) {
-	w.hcl.SetTimeNow(nowFn)
+// SetClock sets wormhole clock.
+func (w *Wormhole) SetClock(clock func() time.Time) {
+	w.hcl.SetClock(clock)
 }
 
 // OnStatus registers status listener.
@@ -134,7 +139,7 @@ func (w *Wormhole) OnStatus(f func(Status)) {
 func (w *Wormhole) Connect(ctx context.Context, sender keys.ID, recipient keys.ID, offer *sctp.Addr) error {
 	logger.Infof("Wormhole connect...")
 
-	senderKey, err := keys.FindEdX25519Key(w.kr, sender)
+	senderKey, err := w.vault.EdX25519Key(sender)
 	if err != nil {
 		return err
 	}
@@ -186,7 +191,7 @@ func (w *Wormhole) Connect(ctx context.Context, sender keys.ID, recipient keys.I
 // FindInvite looks for an invite.
 func (w *Wormhole) FindInvite(ctx context.Context, code string) (*api.InviteResponse, error) {
 	// TODO: Brute force here is slow
-	keys, err := keys.EdX25519Keys(w.kr)
+	keys, err := w.vault.EdX25519Keys()
 	if err != nil {
 		return nil, err
 	}
@@ -209,7 +214,7 @@ func (w *Wormhole) FindInvite(ctx context.Context, code string) (*api.InviteResp
 
 // FindOffer looks for an offer from the discovery server.
 func (w *Wormhole) FindOffer(ctx context.Context, recipient keys.ID, sender keys.ID) (*sctp.Addr, error) {
-	senderKey, err := keys.FindEdX25519Key(w.kr, sender)
+	senderKey, err := w.vault.EdX25519Key(sender)
 	if err != nil {
 		return nil, err
 	}
@@ -232,7 +237,7 @@ func (w *Wormhole) CreateOffer(ctx context.Context, sender keys.ID, recipient ke
 // CreateInvite creates an invite code for sender/recipient.
 func (w *Wormhole) CreateInvite(ctx context.Context, sender keys.ID, recipient keys.ID) (string, error) {
 	logger.Infof("Creating invite...")
-	senderKey, err := keys.FindEdX25519Key(w.kr, sender)
+	senderKey, err := w.vault.EdX25519Key(sender)
 	if err != nil {
 		return "", err
 	}
@@ -255,7 +260,7 @@ func (w *Wormhole) CreateLocalOffer(ctx context.Context, sender keys.ID, recipie
 // Listen to offer.
 func (w *Wormhole) Listen(ctx context.Context, sender keys.ID, recipient keys.ID, offer *sctp.Addr) error {
 	logger.Infof("Wormhole listen...")
-	senderKey, err := keys.FindEdX25519Key(w.kr, sender)
+	senderKey, err := w.vault.EdX25519Key(sender)
 	if err != nil {
 		return err
 	}

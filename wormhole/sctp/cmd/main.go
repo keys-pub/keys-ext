@@ -12,7 +12,6 @@ import (
 	"github.com/keys-pub/keys-ext/http/client"
 	httpclient "github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys-ext/wormhole/sctp"
-	"github.com/keys-pub/keys/keyring"
 )
 
 func main() {
@@ -130,17 +129,8 @@ type cmd struct {
 }
 
 func newCmd() (*cmd, error) {
-	kr := keyring.NewMem(true)
-
 	offerKey := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	answerKey := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
-
-	if err := keys.Save(kr, offerKey); err != nil {
-		return nil, err
-	}
-	if err := keys.Save(kr, answerKey); err != nil {
-		return nil, err
-	}
 
 	hcl, err := httpclient.New("https://keys.pub")
 	if err != nil {
@@ -171,13 +161,13 @@ func (c *cmd) readAnswer(ctx context.Context) (*sctp.Addr, error) {
 }
 
 func (c *cmd) writeSession(ctx context.Context, sender *keys.EdX25519Key, recipient keys.ID, addr *sctp.Addr, typ client.DiscoType) error {
-	return c.hcl.PutDisco(ctx, sender, recipient, typ, addr.String(), time.Minute)
+	return c.hcl.DiscoSave(ctx, sender, recipient, typ, addr.String(), time.Minute)
 }
 
 func (c *cmd) readSession(ctx context.Context, sender keys.ID, recipient *keys.EdX25519Key, typ client.DiscoType) (*sctp.Addr, error) {
 	for {
 		fmt.Printf("Get disco (%s)...\n", typ)
-		addr, err := c.hcl.GetDisco(ctx, sender, recipient, typ)
+		addr, err := c.hcl.Disco(ctx, sender, recipient, typ)
 		if err != nil {
 			return nil, err
 		}
