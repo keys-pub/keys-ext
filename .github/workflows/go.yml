@@ -19,7 +19,7 @@ jobs:
           brew install golangci/tap/golangci-lint
       - name: Run golangci-lint
         run: |
-          cwd
+          pwd
           ls -al
           (cd service && golangci-lint run)
           (cd vault && golangci-lint run)
