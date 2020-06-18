@@ -5,11 +5,22 @@ jobs:
     name: Review security
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v2
       - name: Run gosec
         uses: "cedrickring/golang-action@1.4.1"
-        with:
-          args: go get github.com/securego/gosec/cmd/gosec; (cd auth/fido2 && gosec ./...) && (cd auth/rpc && gosec ./...) && (cd firestore && gosec ./...) && (cd http/api && gosec ./...) && (cd http/client && gosec ./...) && (cd http/server && gosec ./...) && (cd sdb && gosec ./...) && (cd service && gosec ./...) && (cd wormhole && gosec .)
+        run: |
+          go get github.com/securego/gosec/cmd/gosec
+          (cd auth/fido2 && gosec ./...)
+          (cd auth/mock && gosec ./...)
+          (cd auth/rpc && gosec ./...)
+          (cd firestore && gosec ./...)
+          (cd http/api && gosec ./...)
+          (cd http/client && gosec ./...)
+          (cd http/server && gosec ./...)
+          (cd sdb && gosec ./...)
+          (cd service && gosec ./...)
+          (cd vault && gosec .)
+          (cd wormhole && gosec .)
   golangci-lint:
     name: Linter
     runs-on: macos-latest
@@ -20,8 +31,17 @@ jobs:
           brew install golangci/tap/golangci-lint
       - name: Run golangci-lint
         run: |
-          (cd service && golangci-lint run)
-          (cd vault && golangci-lint run)
+        (cd auth/fido2 && golangci-lint run)
+        (cd auth/mock && golangci-lint run)
+        (cd auth/rpc && golangci-lint run)
+        (cd firestore && golangci-lint run)
+        (cd http/api && golangci-lint run)
+        (cd http/client && golangci-lint run)
+        (cd http/server && golangci-lint run)
+        (cd sdb && golangci-lint run)
+        (cd service && golangci-lint run)
+        (cd vault && golangci-lint run)
+        (cd wormhole && golangci-lint run)
   test:
     strategy:
       matrix:
@@ -56,19 +76,18 @@ jobs:
           go-version: 1.13.x
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Test (sdb)
-        run: (cd sdb && go test -v ./...)
-      - name: Test (auth)
-        if: matrix.os == 'macos-latest'
+      - name: Test (macos)
+          (cd service && go test -v ./...)
+      - name: Test
         run: |
           (cd auth/rpc && go test -v ./...)
+          (cd auth/mock && go test -v ./...)
           (cd auth/fido2 && go test -v ./...)
-      - name: Test (http/api)
-        run: (cd http/api && go test -v ./...)
-      - name: Test (http/client)
-        run: (cd http/client && go test -v ./...)
-      - name: Test (http/server)
-        run: (cd http/server && go test -v ./...)
-      - name: Test (service)
-        if: matrix.os == 'macos-latest'
-        run: (cd service && go test -v ./...)
+          (cd http/api && go test -v ./...)
+          (cd http/client && go test -v ./...)
+          (cd http/server && go test -v ./...)
+          (cd sdb && go test -v ./...)
+          (cd service && go test -v ./...)
+          (cd vault && go test -v ./...)
+          (cd wormhole && go test -v ./...)
+        
