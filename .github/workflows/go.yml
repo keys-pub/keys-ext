@@ -31,17 +31,17 @@ jobs:
           brew install golangci/tap/golangci-lint
       - name: Run golangci-lint
         run: |
-        (cd auth/fido2 && golangci-lint run)
-        (cd auth/mock && golangci-lint run)
-        (cd auth/rpc && golangci-lint run)
-        (cd firestore && golangci-lint run)
-        (cd http/api && golangci-lint run)
-        (cd http/client && golangci-lint run)
-        (cd http/server && golangci-lint run)
-        (cd sdb && golangci-lint run)
-        (cd service && golangci-lint run)
-        (cd vault && golangci-lint run)
-        (cd wormhole && golangci-lint run)
+          (cd auth/fido2 && golangci-lint run)
+          (cd auth/mock && golangci-lint run)
+          (cd auth/rpc && golangci-lint run)
+          (cd firestore && golangci-lint run)
+          (cd http/api && golangci-lint run)
+          (cd http/client && golangci-lint run)
+          (cd http/server && golangci-lint run)
+          (cd sdb && golangci-lint run)
+          (cd service && golangci-lint run)
+          (cd vault && golangci-lint run)
+          (cd wormhole && golangci-lint run)
   test:
     strategy:
       matrix:
@@ -90,4 +90,3 @@ jobs:
           (cd service && go test -v ./...)
           (cd vault && go test -v ./...)
           (cd wormhole && go test -v ./...)
-        
