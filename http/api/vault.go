@@ -5,7 +5,7 @@ import "time"
 // VaultItem ...
 type VaultItem struct {
 	Data      []byte    `json:"data"`
-	Timestamp time.Time `json:"ts"`
+	Timestamp time.Time `json:"ts,omitempty"`
 }
 
 // VaultResponse ...
