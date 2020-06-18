@@ -77,8 +77,6 @@ jobs:
           go-version: 1.13.x
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Test (macos)
-          (cd service && go test -v ./...)
       - name: Test
         run: |
           (cd auth/rpc && go test -v ./...)
