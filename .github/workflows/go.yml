@@ -27,6 +27,9 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          brew install libfido2
       - name: Install golangci-lint
         run: |
           brew install golangci/tap/golangci-lint
@@ -56,13 +59,11 @@ jobs:
           sudo apt-add-repository ppa:yubico/stable
           sudo apt update
           sudo apt install libfido2-dev
-          sudo apt install libgit2-dev
       - name: Install dependencies (macos)
         if: matrix.os == 'macos-latest'
         run: |
           brew install pkg-config
           brew install libfido2
-          brew install libgit2
       - name: Install dependencies (windows)
         if: matrix.os == 'windows-latest'
         run: |
