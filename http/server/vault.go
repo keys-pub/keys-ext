@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -19,6 +20,8 @@ func (s *Server) postVault(c echo.Context) error {
 		return ErrResponse(c, status, err.Error())
 	}
 
+	// TODO: max vault size
+
 	var data []byte
 	if c.Request().Body != nil {
 		b, err := ioutil.ReadAll(c.Request().Body)
@@ -34,12 +37,6 @@ func (s *Server) postVault(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-
-	// path := ds.Path("vaults", kid, "items", id)
-	// if err := s.fi.Set(ctx, path, mb); err != nil {
-	// 	return s.internalError(c, err)
-	// }
-
 	cpath := ds.Path("vaults", kid, "changes")
 	if _, err := s.fi.ChangeAdd(ctx, cpath, data); err != nil {
 		return s.internalError(c, err)
@@ -96,4 +93,44 @@ func (s *Server) vaultItemFromChange(chg *ds.Change) (*api.VaultItem, error) {
 		Data:      chg.Data,
 		Timestamp: chg.Timestamp,
 	}, nil
+}
+
+func (s *Server) putVault(c echo.Context) error {
+	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
+
+	kid, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.mc)
+	if err != nil {
+		return ErrResponse(c, status, err.Error())
+	}
+
+	// TODO: max vault size
+
+	if c.Request().Body == nil {
+		return ErrBadRequest(c, errors.Errorf("no body data"))
+	}
+	b, err := ioutil.ReadAll(c.Request().Body)
+	if err != nil {
+		return s.internalError(c, err)
+	}
+
+	if len(b) > 1024*1024 {
+		// TODO: Check length before reading data
+		return ErrBadRequest(c, errors.Errorf("message too large (greater than 1MiB)"))
+	}
+
+	var vault []*api.VaultItem
+	if err := json.Unmarshal(b, &vault); err != nil {
+		return ErrBadRequest(c, err)
+	}
+
+	ctx := c.Request().Context()
+	cpath := ds.Path("vaults", kid, "changes")
+	for _, item := range vault {
+		if _, err := s.fi.ChangeAdd(ctx, cpath, item.Data); err != nil {
+			return s.internalError(c, err)
+		}
+	}
+
+	var resp struct{}
+	return JSON(c, http.StatusOK, resp)
 }

@@ -31,25 +31,11 @@ func TestVault(t *testing.T) {
 	require.Equal(t, `{"error":{"code":404,"message":"vault not found"}}`, body)
 
 	// POST /vault/:kid/id1
-	req, err = api.NewRequest("POST", ds.Path("vault", alice.ID()), bytes.NewReader([]byte("test1.1")), clock.Now(), alice)
+	req, err = api.NewRequest("POST", ds.Path("vault", alice.ID()), bytes.NewReader([]byte("test1")), clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, "{}", body)
-
-	// PUT /vault/:kid (invalid method)
-	req, err = api.NewRequest("PUT", ds.Path("vault", alice.ID()), nil, clock.Now(), alice)
-	require.NoError(t, err)
-	code, _, body = srv.Serve(req)
-	require.Equal(t, http.StatusMethodNotAllowed, code)
-	require.Equal(t, `{"error":{"code":405,"message":"method not allowed"}}`, body)
-
-	// POST /vault/:kid/id1
-	req, err = api.NewRequest("POST", ds.Path("vault", alice.ID()), bytes.NewReader([]byte("test1.2")), clock.Now(), alice)
-	require.NoError(t, err)
-	code, _, body = srv.Serve(req)
-	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, `{}`, body)
 
 	// GET /vault/:kid
 	req, err = api.NewRequest("GET", ds.Path("vault", alice.ID()), nil, clock.Now(), alice)
@@ -60,9 +46,8 @@ func TestVault(t *testing.T) {
 	err = json.Unmarshal([]byte(body), &resp)
 	require.NoError(t, err)
 	require.NotEmpty(t, resp.Version)
-	require.Equal(t, 2, len(resp.Items))
-	require.Equal(t, []byte("test1.1"), resp.Items[0].Data)
-	require.Equal(t, []byte("test1.2"), resp.Items[1].Data)
+	require.Equal(t, 1, len(resp.Items))
+	require.Equal(t, []byte("test1"), resp.Items[0].Data)
 
 	// GET /vault/:kid?version=next
 	req, err = api.NewRequest("GET", ds.Path("vault", alice.ID())+"?version="+resp.Version, nil, clock.Now(), alice)
@@ -76,13 +61,13 @@ func TestVault(t *testing.T) {
 	require.Equal(t, resp.Version, resp2.Version)
 
 	// POST /vault/:kid
-	req, err = api.NewRequest("POST", ds.Path("vault", alice.ID()), bytes.NewReader([]byte("test2.1")), clock.Now(), alice)
+	req, err = api.NewRequest("POST", ds.Path("vault", alice.ID()), bytes.NewReader([]byte("test2")), clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, `{}`, body)
 	// POST /vault/:kid
-	req, err = api.NewRequest("POST", ds.Path("vault", alice.ID()), bytes.NewReader([]byte("test3.1")), clock.Now(), alice)
+	req, err = api.NewRequest("POST", ds.Path("vault", alice.ID()), bytes.NewReader([]byte("test3")), clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
@@ -97,9 +82,43 @@ func TestVault(t *testing.T) {
 	err = json.Unmarshal([]byte(body), &resp3)
 	require.NoError(t, err)
 	require.Equal(t, 3, len(resp3.Items))
-	require.Equal(t, []byte("test1.2"), resp3.Items[0].Data)
-	require.Equal(t, []byte("test2.1"), resp3.Items[1].Data)
-	require.Equal(t, []byte("test3.1"), resp3.Items[2].Data)
+	require.Equal(t, []byte("test1"), resp3.Items[0].Data)
+	require.Equal(t, []byte("test2"), resp3.Items[1].Data)
+	require.Equal(t, []byte("test3"), resp3.Items[2].Data)
+
+	// PUT /vault/:kid
+	vault := []*api.VaultItem{
+		&api.VaultItem{Data: []byte("test4")},
+		&api.VaultItem{Data: []byte("test5")},
+		&api.VaultItem{Data: []byte("test6")},
+		&api.VaultItem{Data: []byte("test7")},
+		&api.VaultItem{Data: []byte("test8")},
+		&api.VaultItem{Data: []byte("test9")},
+	}
+	data, err := json.Marshal(vault)
+	require.NoError(t, err)
+	req, err = api.NewRequest("PUT", ds.Path("vault", alice.ID()), bytes.NewReader(data), clock.Now(), alice)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusOK, code)
+	require.Equal(t, `{}`, body)
+
+	// GET /vault/:kid?version=next
+	req, err = api.NewRequest("GET", ds.Path("vault", alice.ID())+"?version="+resp3.Version, nil, clock.Now(), alice)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusOK, code)
+	var resp4 api.VaultResponse
+	err = json.Unmarshal([]byte(body), &resp4)
+	require.NoError(t, err)
+	require.Equal(t, 7, len(resp4.Items))
+	require.Equal(t, []byte("test3"), resp4.Items[0].Data)
+	require.Equal(t, []byte("test4"), resp4.Items[1].Data)
+	require.Equal(t, []byte("test5"), resp4.Items[2].Data)
+	require.Equal(t, []byte("test6"), resp4.Items[3].Data)
+	require.Equal(t, []byte("test7"), resp4.Items[4].Data)
+	require.Equal(t, []byte("test8"), resp4.Items[5].Data)
+	require.Equal(t, []byte("test9"), resp4.Items[6].Data)
 }
 
 func TestVaultAuth(t *testing.T) {

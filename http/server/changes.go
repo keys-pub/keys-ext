@@ -54,7 +54,7 @@ func (s *Server) changes(c echo.Context, path string) (*changes, error, error) {
 		return nil, errors.Errorf("invalid dir"), nil
 	}
 
-	s.logger.Infof("Changes %s", path)
+	s.logger.Infof("Changes %s (from=%d)", path, version)
 	iter, err := s.fi.Changes(ctx, path, tsutil.ParseMillis(version), limit, dir)
 	if err != nil {
 		return nil, nil, err
@@ -74,7 +74,7 @@ func (s *Server) changes(c echo.Context, path string) (*changes, error, error) {
 		versionNext = tsutil.Millis(to)
 	}
 
-	s.logger.Infof("Changes %s, version next: %d", path, versionNext)
+	s.logger.Infof("Changes %s (to=%d)", path, versionNext)
 
 	return &changes{
 		changes:     chngs,
