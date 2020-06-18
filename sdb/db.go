@@ -2,9 +2,12 @@ package sdb
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"sync"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keys-pub/keys/ds"
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
@@ -20,10 +23,8 @@ type SecretKey *[32]byte
 type DB struct {
 	rwmtx *sync.RWMutex
 	sdb   *sdb
-	fpath string
-	nowFn func() time.Time
-
-	key SecretKey
+	path  string
+	clock func() time.Time
 
 	inc    int
 	incMax int
@@ -33,34 +34,31 @@ type DB struct {
 func New() *DB {
 	return &DB{
 		rwmtx: &sync.RWMutex{},
-		nowFn: time.Now,
+		clock: time.Now,
 	}
 }
 
-// SetTimeNow sets clock.
-func (d *DB) SetTimeNow(nowFn func() time.Time) {
-	d.nowFn = nowFn
+// SetClock sets clock.
+func (d *DB) SetClock(clock func() time.Time) {
+	d.clock = clock
 }
 
-// Now returns current time.
-func (d *DB) Now() time.Time {
-	return d.nowFn()
-}
-
-// OpenAtPath opens db located at path
+// OpenAtPath opens db located at path.
 func (d *DB) OpenAtPath(ctx context.Context, path string, key SecretKey) error {
 	d.rwmtx.Lock()
 	defer d.rwmtx.Unlock()
+	if d.sdb != nil {
+		return errors.Errorf("already open")
+	}
 
-	logger.Infof("LevelDB at %s", path)
-	d.fpath = path
+	logger.Infof("DB at %s", path)
+	d.path = path
 	db, err := leveldb.OpenFile(path, nil)
 	if err != nil {
 		return err
 	}
 	sdb := newSDB(db, key)
 	d.sdb = sdb
-	d.key = key
 	return nil
 }
 
@@ -70,12 +68,11 @@ func (d *DB) Close() {
 	defer d.rwmtx.Unlock()
 
 	if d.sdb != nil {
-		logger.Infof("Closing leveldb %s", d.fpath)
+		logger.Infof("Closing db %s", d.path)
 		if err := d.sdb.Close(); err != nil {
 			logger.Errorf("Error closing DB: %s", err)
 		}
 		d.sdb = nil
-		d.key = nil
 	}
 }
 
@@ -107,7 +104,7 @@ func (d *DB) Create(ctx context.Context, path string, b []byte) error {
 		return ds.NewErrPathExists(path)
 	}
 
-	now := d.Now()
+	now := d.clock()
 	doc := &ds.Document{
 		Path:      path,
 		Data:      b,
@@ -146,7 +143,7 @@ func (d *DB) set(ctx context.Context, path string, b []byte) error {
 	if err != nil {
 		return err
 	}
-	now := d.Now()
+	now := d.clock()
 	if doc == nil {
 		doc = &ds.Document{
 			Path:      path,
@@ -306,7 +303,6 @@ func (d *DB) Documents(ctx context.Context, parent string, opt ...ds.DocumentsOp
 		return nil, errors.Errorf("list root not supported")
 	}
 
-	// logger.Debugf("Iterator prefix %s", prefix)
 	// TODO: Handle context Done()
 	iter := d.sdb.NewIterator(prefix)
 	return &docsIterator{
@@ -341,6 +337,7 @@ func (d *DB) Last(ctx context.Context, prefix string) (*ds.Document, error) {
 	}
 	var doc *ds.Document
 	iter := d.sdb.NewIterator(prefix)
+	defer iter.Release()
 	if ok := iter.Last(); ok {
 		path := string(iter.Value())
 		val, err := d.get(ctx, path)
@@ -349,7 +346,6 @@ func (d *DB) Last(ctx context.Context, prefix string) (*ds.Document, error) {
 		}
 		doc = val
 	}
-	iter.Release()
 	if err := iter.Error(); err != nil {
 		return nil, errors.Wrap(err, "failed to iterate db")
 	}
@@ -373,6 +369,7 @@ func (d *DB) countEntries(prefix string, contains string) (int, error) {
 		prefixRange = prefix
 	}
 	iter := d.sdb.NewIterator(prefixRange)
+	defer iter.Release()
 	total := 0
 	for iter.Next() {
 		path := string(iter.Key())
@@ -386,9 +383,31 @@ func (d *DB) countEntries(prefix string, contains string) (int, error) {
 			total++
 		}
 	}
-	iter.Release()
 	if err := iter.Error(); err != nil {
 		return -1, err
 	}
 	return total, nil
+}
+
+// Spew ...
+func (d *DB) Spew(prefix string, out io.Writer) error {
+	d.rwmtx.RLock()
+	defer d.rwmtx.RUnlock()
+	if d.sdb == nil {
+		return errors.Errorf("db not open")
+	}
+
+	iter := d.sdb.NewIterator(prefix)
+	defer iter.Release()
+	for iter.Next() {
+		k := string(iter.Key())
+		s := fmt.Sprintf("%s %s\n", k, spew.Sdump(iter.Value()))
+		if _, err := out.Write([]byte(s)); err != nil {
+			return err
+		}
+	}
+	if err := iter.Error(); err != nil {
+		return err
+	}
+	return nil
 }

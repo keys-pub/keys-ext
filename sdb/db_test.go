@@ -27,7 +27,7 @@ func testDB(t *testing.T) (*sdb.DB, func()) {
 
 func testDBWithOpts(t *testing.T, path string, key sdb.SecretKey) (*sdb.DB, func()) {
 	db := sdb.New()
-	db.SetTimeNow(tsutil.NewClock().Now)
+	db.SetClock(tsutil.NewClock().Now)
 	ctx := context.TODO()
 	err := db.OpenAtPath(ctx, path, key)
 	require.NoError(t, err)
@@ -39,7 +39,7 @@ func testDBWithOpts(t *testing.T, path string, key sdb.SecretKey) (*sdb.DB, func
 }
 
 func testPath() string {
-	return filepath.Join(os.TempDir(), fmt.Sprintf("db-test-%s.leveldb", keys.RandFileName()))
+	return filepath.Join(os.TempDir(), fmt.Sprintf("%s.sdb", keys.RandFileName()))
 }
 
 func TestDB(t *testing.T) {
@@ -409,6 +409,7 @@ func ExampleDB_Documents() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer iter.Release()
 	for {
 		doc, err := iter.Next()
 		if err != nil {
