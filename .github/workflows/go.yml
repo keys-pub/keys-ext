@@ -90,6 +90,6 @@ jobs:
           (cd vault && go test -v ./...)
           (cd wormhole && go test -v ./...)
       - name: Test (macos)
-      if: matrix.os == 'macos-latest'
+        if: matrix.os == 'macos-latest'
         run: |
-          (cd auth/rpc && go test -v ./...)                    
+          (cd auth/rpc && go test -v ./...)
