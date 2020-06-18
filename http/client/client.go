@@ -15,9 +15,9 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/tsutil"
-	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/pkg/errors"
 )
 
@@ -25,7 +25,7 @@ import (
 type Client struct {
 	url        *url.URL
 	httpClient *http.Client
-	nowFn      func() time.Time
+	clock      func() time.Time
 }
 
 // New creates a Client for an HTTP API.
@@ -38,18 +38,13 @@ func New(urs string) (*Client, error) {
 	return &Client{
 		url:        urp,
 		httpClient: defaultHTTPClient(),
-		nowFn:      time.Now,
+		clock:      time.Now,
 	}, nil
 }
 
 // SetHTTPClient sets the http.Client to use.
 func (c *Client) SetHTTPClient(httpClient *http.Client) {
 	c.httpClient = httpClient
-}
-
-// Now returns current time.
-func (c *Client) Now() time.Time {
-	return c.nowFn()
 }
 
 // TODO: are these timeouts too agressive?
@@ -81,9 +76,9 @@ func (c *Client) URL() *url.URL {
 	return c.url
 }
 
-// SetTimeNow sets the clock Now fn.
-func (c *Client) SetTimeNow(nowFn func() time.Time) {
-	c.nowFn = nowFn
+// SetClock sets the clock Now fn.
+func (c *Client) SetClock(clock func() time.Time) {
+	c.clock = clock
 }
 
 func checkResponse(resp *http.Response) error {
@@ -134,7 +129,7 @@ func (c *Client) req(ctx context.Context, method string, path string, params url
 
 	var req *http.Request
 	if key != nil {
-		r, err := api.NewRequestWithContext(ctx, method, urs, body, c.nowFn(), key)
+		r, err := api.NewRequestWithContext(ctx, method, urs, body, c.clock(), key)
 		if err != nil {
 			return nil, err
 		}
@@ -216,7 +211,7 @@ func (c *Client) websocketGet(ctx context.Context, path string, params url.Value
 		url = url + "?" + query
 	}
 
-	auth, err := api.NewAuth("GET", url, c.nowFn(), key)
+	auth, err := api.NewAuth("GET", url, c.clock(), key)
 	if err != nil {
 		return nil, err
 	}

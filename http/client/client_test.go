@@ -5,12 +5,12 @@ import (
 	"testing"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/http/client"
+	"github.com/keys-pub/keys-ext/http/server"
 	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keys/user"
-	"github.com/keys-pub/keys-ext/http/client"
-	"github.com/keys-pub/keys-ext/http/server"
 	"github.com/stretchr/testify/require"
 )
 
@@ -54,7 +54,7 @@ func testClient(t *testing.T, env *env) *client.Client {
 	cl, err := client.New(env.httpServer.URL)
 	require.NoError(t, err)
 	cl.SetHTTPClient(env.httpServer.Client())
-	cl.SetTimeNow(env.clock.Now)
+	cl.SetClock(env.clock.Now)
 	return cl
 }
 
