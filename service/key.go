@@ -59,7 +59,7 @@ func (s *service) verifyKey(ctx context.Context, kid keys.ID) (*Key, error) {
 }
 
 func (s *service) loadKey(ctx context.Context, kid keys.ID) (*Key, error) {
-	key, err := keys.Find(s.kr, kid)
+	key, err := s.vault.Key(kid)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +140,7 @@ func (s *service) keyToRPC(ctx context.Context, key keys.Key) (*Key, error) {
 }
 
 func (s *service) keyIDToRPC(ctx context.Context, kid keys.ID) (*Key, error) {
-	key, err := keys.Find(s.kr, kid)
+	key, err := s.vault.Key(kid)
 	if err != nil {
 		return nil, err
 	}
@@ -193,7 +193,7 @@ func (s *service) KeyRemove(ctx context.Context, req *KeyRemoveRequest) (*KeyRem
 	if err != nil {
 		return nil, err
 	}
-	ok, err := keys.Delete(s.kr, kid)
+	ok, err := s.vault.Delete(kid.String())
 	if err != nil {
 		return nil, err
 	}
@@ -228,7 +228,7 @@ func (s *service) KeyGenerate(ctx context.Context, req *KeyGenerateRequest) (*Ke
 	default:
 		return nil, errors.Errorf("unknown key type %s", req.Type)
 	}
-	if err := keys.Save(s.kr, key); err != nil {
+	if err := s.vault.SaveKey(key); err != nil {
 		return nil, err
 	}
 	kid := key.ID()
@@ -260,7 +260,7 @@ func (s *service) parseKey(kid string, required bool) (keys.Key, error) {
 	if err != nil {
 		return nil, err
 	}
-	key, err := keys.Find(s.kr, id)
+	key, err := s.vault.Key(id)
 	if err != nil {
 		return nil, err
 	}
@@ -278,7 +278,7 @@ func (s *service) convertX25519ID(kid keys.ID) (keys.ID, error) {
 	}
 	if kid.IsX25519() {
 		logger.Debugf("Convert sender %s", kid)
-		spk, err := keys.FindEdX25519PublicKey(s.kr, kid)
+		spk, err := s.vault.EdX25519PublicKey(kid)
 		if err != nil {
 			return "", err
 		}
@@ -304,7 +304,7 @@ func (s *service) parseSigner(signer string, required bool) (*keys.EdX25519Key, 
 	if err != nil {
 		return nil, err
 	}
-	key, err := keys.Find(s.kr, kid)
+	key, err := s.vault.Key(kid)
 	if err != nil {
 		return nil, err
 	}
@@ -322,7 +322,7 @@ func (s *service) parseBoxKey(kid keys.ID) (*keys.X25519Key, error) {
 	if kid == "" {
 		return nil, nil
 	}
-	key, err := keys.Find(s.kr, kid)
+	key, err := s.vault.Key(kid)
 	if err != nil {
 		return nil, err
 	}
@@ -347,7 +347,7 @@ func (s *service) parseSignKey(id string, required bool) (*keys.EdX25519Key, err
 	if err != nil {
 		return nil, err
 	}
-	key, err := keys.Find(s.kr, kid)
+	key, err := s.vault.Key(kid)
 	if err != nil {
 		return nil, err
 	}
@@ -367,7 +367,7 @@ func (s *service) parseIdentityForEdX25519Key(ctx context.Context, identity stri
 	if err != nil {
 		return nil, err
 	}
-	key, err := keys.Find(s.kr, kid)
+	key, err := s.vault.Key(kid)
 	if err != nil {
 		return nil, err
 	}

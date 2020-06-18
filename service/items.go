@@ -6,13 +6,13 @@ import (
 	"strings"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/keyring"
+	"github.com/keys-pub/keys-ext/vault"
 	"github.com/pkg/errors"
 )
 
 // Item (RPC) returns an item for an ID.
 func (s *service) Item(ctx context.Context, req *ItemRequest) (*ItemResponse, error) {
-	item, err := s.kr.Get(req.ID)
+	item, err := s.vault.Get(req.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -24,13 +24,13 @@ func (s *service) Item(ctx context.Context, req *ItemRequest) (*ItemResponse, er
 	}, nil
 }
 
-// Items (RPC) returns list of keyring items.
+// Items (RPC) returns list of vault items.
 func (s *service) Items(ctx context.Context, req *ItemsRequest) (*ItemsResponse, error) {
 	if req.Query != "" {
 		return nil, errors.Errorf("query not implemented")
 	}
 
-	items, err := s.kr.List()
+	items, err := s.vault.Items()
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func (s *service) Items(ctx context.Context, req *ItemsRequest) (*ItemsResponse,
 	}, nil
 }
 
-func itemToRPC(i *keyring.Item) *Item {
+func itemToRPC(i *vault.Item) *Item {
 	item := &Item{
 		ID:   i.ID,
 		Type: i.Type,

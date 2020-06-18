@@ -35,19 +35,6 @@ func keyCommands(client *Client) []cli.Command {
 			},
 		},
 		cli.Command{
-			Name:  "keyring",
-			Usage: "Keyring",
-			Flags: []cli.Flag{},
-			Action: func(c *cli.Context) error {
-				resp, err := client.KeysClient().Items(context.TODO(), &ItemsRequest{})
-				if err != nil {
-					return err
-				}
-				fmtItems(resp.Items)
-				return nil
-			},
-		},
-		cli.Command{
 			Name:      "key",
 			Usage:     "Show key",
 			ArgsUsage: "kid or user",

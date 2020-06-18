@@ -7,20 +7,20 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/auth/fido2"
+	"github.com/keys-pub/keys-ext/vault"
 	"github.com/keys-pub/keys/encoding"
-	"github.com/keys-pub/keys/keyring"
 	"github.com/pkg/errors"
 )
 
 type authDevice struct {
 	Device     *fido2.Device
 	DeviceInfo *fido2.DeviceInfo
-	Provision  *keyring.Provision
+	Provision  *vault.Provision
 }
 
 // findDevice returns supported device.
 // If infos is specified we try to find the device matching the auth credentials (aaguid).
-func findDevice(ctx context.Context, auths fido2.AuthServer, provisions []*keyring.Provision) (*authDevice, error) {
+func findDevice(ctx context.Context, auths fido2.AuthServer, provisions []*vault.Provision) (*authDevice, error) {
 	if auths == nil {
 		return nil, errors.Errorf("fido2 plugin not available")
 	}
@@ -57,7 +57,7 @@ func findDevice(ctx context.Context, auths fido2.AuthServer, provisions []*keyri
 	return nil, errors.Errorf("no devices found matching our credentials")
 }
 
-func setupHMACSecret(ctx context.Context, auths fido2.AuthServer, kr *keyring.Keyring, pin string, appName string) (*keyring.Provision, error) {
+func setupHMACSecret(ctx context.Context, auths fido2.AuthServer, vlt *vault.Vault, pin string, appName string) (*vault.Provision, error) {
 	cdh := bytes.Repeat([]byte{0x00}, 32) // No client data
 	rp := &fido2.RelyingParty{
 		ID:   "keys.pub",
@@ -97,9 +97,9 @@ func setupHMACSecret(ctx context.Context, auths fido2.AuthServer, kr *keyring.Ke
 
 	id := encoding.MustEncode(resp.CredentialID, encoding.Base62)
 	salt := keys.Rand32()
-	provision := &keyring.Provision{
+	provision := &vault.Provision{
 		ID:        id,
-		Type:      keyring.FIDO2HMACSecretAuth,
+		Type:      vault.FIDO2HMACSecretAuth,
 		AAGUID:    authDevice.DeviceInfo.AAGUID,
 		Salt:      salt[:],
 		NoPin:     noPin,
@@ -107,21 +107,21 @@ func setupHMACSecret(ctx context.Context, auths fido2.AuthServer, kr *keyring.Ke
 	}
 
 	logger.Debugf("Saving provision: %v...", provision)
-	if err := kr.SaveProvision(provision); err != nil {
+	if err := vlt.SaveProvision(provision); err != nil {
 		return nil, err
 	}
 
 	return provision, nil
 }
 
-func hmacSecret(ctx context.Context, auths fido2.AuthServer, kr *keyring.Keyring, pin string) ([]byte, *keyring.Provision, error) {
+func hmacSecret(ctx context.Context, auths fido2.AuthServer, vlt *vault.Vault, pin string) ([]byte, *vault.Provision, error) {
 	cdh := bytes.Repeat([]byte{0x00}, 32) // No client data
 	rp := &fido2.RelyingParty{
 		ID:   "keys.pub",
 		Name: "keys.pub",
 	}
 
-	provisions, err := kr.Provisions()
+	provisions, err := vlt.Provisions()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -159,8 +159,8 @@ func hmacSecret(ctx context.Context, auths fido2.AuthServer, kr *keyring.Keyring
 	return secretResp.HMACSecret, authDevice.Provision, nil
 }
 
-func unlockHMACSecret(ctx context.Context, auths fido2.AuthServer, kr *keyring.Keyring, pin string) error {
-	secret, provision, err := hmacSecret(ctx, auths, kr, pin)
+func unlockHMACSecret(ctx context.Context, auths fido2.AuthServer, vlt *vault.Vault, pin string) error {
+	secret, provision, err := hmacSecret(ctx, auths, vlt, pin)
 	if err != nil {
 		return err
 	}
@@ -169,30 +169,30 @@ func unlockHMACSecret(ctx context.Context, auths fido2.AuthServer, kr *keyring.K
 	}
 	key := keys.Bytes32(secret)
 
-	// If we have setup hmac-secret but have not setup the keyring, we do that
-	// on the first unlock. When we setup the hmac-secret, we use MakeCredential
+	// If we have setup hmac-secret provision but have not finished setup, we do
+	// that on the first unlock. When we setup the hmac-secret, we use MakeCredential
 	// which usually requires user presence (touching the device). Unlock also
 	// usually requires user presence so we split up these blocking calls into
 	// two requests. The first request doesn't give us the auth, so we do the
-	// keyring setup of first unlock instead of during setup.
-	status, err := kr.Status()
+	// setup of first unlock instead of during setup.
+	status, err := vlt.Status()
 	if err != nil {
 		return err
 	}
-	if status == keyring.Setup {
-		if err := kr.Setup(key, provision); err != nil {
+	if status == vault.Setup {
+		if err := vlt.Setup(key, provision); err != nil {
 			return err
 		}
 	} else {
-		if _, err := kr.Unlock(key); err != nil {
+		if _, err := vlt.Unlock(key); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func provisionHMACSecret(ctx context.Context, auths fido2.AuthServer, kr *keyring.Keyring, pin string) (*keyring.Provision, error) {
-	secret, provision, err := hmacSecret(ctx, auths, kr, pin)
+func provisionHMACSecret(ctx context.Context, auths fido2.AuthServer, vlt *vault.Vault, pin string) (*vault.Provision, error) {
+	secret, provision, err := hmacSecret(ctx, auths, vlt, pin)
 	if err != nil {
 		return nil, err
 	}
@@ -201,7 +201,7 @@ func provisionHMACSecret(ctx context.Context, auths fido2.AuthServer, kr *keyrin
 	}
 	key := keys.Bytes32(secret)
 
-	if err := kr.Provision(key, provision); err != nil {
+	if err := vlt.Provision(key, provision); err != nil {
 		return nil, err
 	}
 	logger.Infof("Provision (hmac-secret): %s", provision.ID)

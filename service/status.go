@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"github.com/keys-pub/keys/keyring"
+	"github.com/keys-pub/keys-ext/vault"
 )
 
 // RuntimeStatus (RPC) gets the current runtime status.
@@ -13,7 +13,7 @@ func (s *service) RuntimeStatus(ctx context.Context, req *RuntimeStatusRequest) 
 	if exeErr != nil {
 		logger.Errorf("Failed to get current executable path: %s", exeErr)
 	}
-	status, err := s.kr.Status()
+	status, err := s.vault.Status()
 	if err != nil {
 		return nil, err
 	}
@@ -22,20 +22,20 @@ func (s *service) RuntimeStatus(ctx context.Context, req *RuntimeStatusRequest) 
 		Version:    s.build.Version,
 		AppName:    s.cfg.AppName(),
 		Exe:        exe,
-		AuthStatus: keyringStatusToRPC(status),
+		AuthStatus: vaultStatusToRPC(status),
 		FIDO2:      s.auth.fas != nil,
 	}
 	logger.Infof("Runtime status, %s", resp.String())
 	return &resp, nil
 }
 
-func keyringStatusToRPC(st keyring.Status) AuthStatus {
+func vaultStatusToRPC(st vault.Status) AuthStatus {
 	switch st {
-	case keyring.Locked:
+	case vault.Locked:
 		return AuthLocked
-	case keyring.Unlocked:
+	case vault.Unlocked:
 		return AuthUnlocked
-	case keyring.Setup:
+	case vault.Setup:
 		return AuthSetup
 	default:
 		return AuthUnknown

@@ -16,6 +16,7 @@ func (s *service) Collections(ctx context.Context, req *CollectionsRequest) (*Co
 	if err != nil {
 		return nil, err
 	}
+	defer iter.Release()
 	cols := make([]*Collection, 0, 100)
 	for {
 		col, err := iter.Next()
@@ -32,7 +33,6 @@ func (s *service) Collections(ctx context.Context, req *CollectionsRequest) (*Co
 			Path: col.Path,
 		})
 	}
-	iter.Release()
 	return &CollectionsResponse{
 		Collections: cols,
 	}, nil
@@ -47,6 +47,7 @@ func (s *service) Documents(ctx context.Context, req *DocumentsRequest) (*Docume
 	if err != nil {
 		return nil, err
 	}
+	defer iter.Release()
 	out := make([]*Document, 0, 100)
 	for {
 		doc, err := iter.Next()
@@ -74,7 +75,6 @@ func (s *service) Documents(ctx context.Context, req *DocumentsRequest) (*Docume
 			UpdatedAt: int64(tsutil.Millis(doc.UpdatedAt)),
 		})
 	}
-	iter.Release()
 	return &DocumentsResponse{
 		Documents: out,
 	}, nil

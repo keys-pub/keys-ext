@@ -33,8 +33,6 @@ func (s *service) Decrypt(ctx context.Context, req *DecryptRequest) (*DecryptRes
 		mode = EncryptV2
 	}
 
-	ks := &saltpackKeyring{s.kr}
-
 	// TODO: Autodetect if input data is armored or not
 
 	var decrypted []byte
@@ -44,12 +42,12 @@ func (s *service) Decrypt(ctx context.Context, req *DecryptRequest) (*DecryptRes
 	case EncryptV2:
 		var sender *keys.X25519PublicKey
 		if req.Armored {
-			decrypted, sender, decryptErr = saltpack.DecryptArmored(string(req.Data), ks)
+			decrypted, sender, decryptErr = saltpack.DecryptArmored(string(req.Data), s.vault)
 			if sender != nil {
 				kid = sender.ID()
 			}
 		} else {
-			decrypted, sender, decryptErr = saltpack.Decrypt(req.Data, ks)
+			decrypted, sender, decryptErr = saltpack.Decrypt(req.Data, s.vault)
 			if sender != nil {
 				kid = sender.ID()
 			}
@@ -57,12 +55,12 @@ func (s *service) Decrypt(ctx context.Context, req *DecryptRequest) (*DecryptRes
 	case SigncryptV1:
 		var sender *keys.EdX25519PublicKey
 		if req.Armored {
-			decrypted, sender, decryptErr = saltpack.SigncryptArmoredOpen(string(req.Data), ks)
+			decrypted, sender, decryptErr = saltpack.SigncryptArmoredOpen(string(req.Data), s.vault)
 			if sender != nil {
 				kid = sender.ID()
 			}
 		} else {
-			decrypted, sender, decryptErr = saltpack.SigncryptOpen(req.Data, ks)
+			decrypted, sender, decryptErr = saltpack.SigncryptOpen(req.Data, s.vault)
 			if sender != nil {
 				kid = sender.ID()
 			}
@@ -210,7 +208,6 @@ func (s *service) decryptStream(srv decryptStreamServer, mode EncryptMode, armor
 }
 
 func (s *service) decryptReader(ctx context.Context, reader io.Reader, mode EncryptMode, armored bool) (io.Reader, keys.ID, error) {
-	ks := &saltpackKeyring{s.kr}
 	var out io.Reader
 	var kid keys.ID
 	var decryptErr error
@@ -218,12 +215,12 @@ func (s *service) decryptReader(ctx context.Context, reader io.Reader, mode Encr
 	case DefaultEncryptMode, EncryptV2:
 		var sender *keys.X25519PublicKey
 		if armored {
-			out, sender, decryptErr = saltpack.NewDecryptArmoredStream(reader, ks)
+			out, sender, decryptErr = saltpack.NewDecryptArmoredStream(reader, s.vault)
 			if sender != nil {
 				kid = sender.ID()
 			}
 		} else {
-			out, sender, decryptErr = saltpack.NewDecryptStream(reader, ks)
+			out, sender, decryptErr = saltpack.NewDecryptStream(reader, s.vault)
 			if sender != nil {
 				kid = sender.ID()
 			}
@@ -231,12 +228,12 @@ func (s *service) decryptReader(ctx context.Context, reader io.Reader, mode Encr
 	case SigncryptV1:
 		var sender *keys.EdX25519PublicKey
 		if armored {
-			out, sender, decryptErr = saltpack.NewSigncryptArmoredOpenStream(reader, ks)
+			out, sender, decryptErr = saltpack.NewSigncryptArmoredOpenStream(reader, s.vault)
 			if sender != nil {
 				kid = sender.ID()
 			}
 		} else {
-			out, sender, decryptErr = saltpack.NewSigncryptOpenStream(reader, ks)
+			out, sender, decryptErr = saltpack.NewSigncryptOpenStream(reader, s.vault)
 			if sender != nil {
 				kid = sender.ID()
 			}

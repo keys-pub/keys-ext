@@ -171,7 +171,7 @@ func (s *service) sigchainUserAdd(ctx context.Context, key *keys.EdX25519Key, se
 		return nil, nil, errors.Errorf("user check failed: %s", userResult.Err)
 	}
 
-	st, err := user.NewSigchainStatement(sc, usr, key, s.Now())
+	st, err := user.NewSigchainStatement(sc, usr, key, s.clock())
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "failed to generate user statement")
 	}
@@ -410,7 +410,7 @@ func (s *service) ensureVerifiedResult(ctx context.Context, res *user.Result) er
 	}
 
 	// Verified recently
-	if !res.IsVerifyExpired(s.Now(), userVerifiedExpire) {
+	if !res.IsVerifyExpired(s.clock(), userVerifiedExpire) {
 		return nil
 	}
 
@@ -456,7 +456,7 @@ func (s *service) checkForKeyUpdate(ctx context.Context, kid keys.ID, updateIfMi
 	}
 
 	// If not OK, check every "userCheckFailureExpire", otherwise check every "userCheckExpire"
-	now := s.Now()
+	now := s.clock()
 	if (res.Status != user.StatusOK && res.IsTimestampExpired(now, userCheckFailureExpire)) ||
 		res.IsTimestampExpired(now, userCheckExpire) {
 		if _, _, err := s.update(ctx, kid); err != nil {
@@ -471,7 +471,7 @@ func (s *service) checkForKeyUpdate(ctx context.Context, kid keys.ID, updateIfMi
 // This currently only updates keys that have had a user.
 func (s *service) checkForKeyUpdates(ctx context.Context) error {
 	logger.Infof("Checking keys...")
-	pks, err := keys.EdX25519PublicKeys(s.kr)
+	pks, err := s.vault.EdX25519PublicKeys()
 	if err != nil {
 		return err
 	}
@@ -485,7 +485,7 @@ func (s *service) checkForKeyUpdates(ctx context.Context) error {
 
 func (s *service) updateAllKeys(ctx context.Context) error {
 	logger.Infof("Updating keys...")
-	pks, err := keys.EdX25519PublicKeys(s.kr)
+	pks, err := s.vault.EdX25519PublicKeys()
 	if err != nil {
 		return err
 	}

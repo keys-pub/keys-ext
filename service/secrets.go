@@ -11,15 +11,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *service) secretStore() *secret.Store {
-	ss := secret.NewStore(s.kr)
-	ss.SetTimeNow(s.nowFn)
-	return ss
-}
-
 func (s *service) Secret(ctx context.Context, req *SecretRequest) (*SecretResponse, error) {
-	ss := s.secretStore()
-	secret, err := ss.Get(req.ID)
+	secret, err := s.vault.Secret(req.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -46,8 +39,7 @@ func (s *service) SecretSave(ctx context.Context, req *SecretSaveRequest) (*Secr
 		return nil, errors.Errorf("name not specified")
 	}
 
-	ss := s.secretStore()
-	out, _, err := ss.Set(sec)
+	out, _, err := s.vault.SaveSecret(sec)
 	if err != nil {
 		return nil, err
 	}
@@ -61,9 +53,8 @@ func (s *service) SecretRemove(ctx context.Context, req *SecretRemoveRequest) (*
 	if req.ID == "" {
 		return nil, errors.Errorf("id not specified")
 	}
-
-	ss := s.secretStore()
-	ok, err := ss.Delete(req.ID)
+	// TODO: What if ID isn't for secret?
+	ok, err := s.vault.Delete(req.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -82,8 +73,7 @@ func (s *service) Secrets(ctx context.Context, req *SecretsRequest) (*SecretsRes
 	}
 	sortDirection := req.SortDirection
 
-	ss := s.secretStore()
-	secrets, err := ss.List()
+	secrets, err := s.vault.Secrets()
 	if err != nil {
 		return nil, err
 	}

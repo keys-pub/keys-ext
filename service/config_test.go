@@ -20,7 +20,6 @@ func TestConfig(t *testing.T) {
 	cfg.SetInt("port", 3001)
 	cfg.Set("server", "https://server.url")
 	cfg.Set("logLevel", "debug")
-	cfg.Set("keyring", "mem")
 	cfg.SetBool("disableSymlinkCheck", true)
 	err = cfg.Save()
 	require.NoError(t, err)
@@ -30,6 +29,5 @@ func TestConfig(t *testing.T) {
 	require.Equal(t, 3001, cfg2.Port())
 	require.Equal(t, "https://server.url", cfg2.Server())
 	require.Equal(t, DebugLevel, cfg2.LogLevel())
-	require.Equal(t, "mem", cfg2.Get("keyring", ""))
 	require.True(t, cfg2.GetBool("disableSymlinkCheck"))
 }

@@ -6,9 +6,9 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/auth/fido2"
+	"github.com/keys-pub/keys-ext/vault"
 	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/encoding"
-	"github.com/keys-pub/keys/keyring"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -16,7 +16,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// TODO: Some clients log grpc requests which for AuthSetup and AuthUnlock include a password.
+// TODO: Some clients could log grpc requests which for AuthSetup and AuthUnlock include a password.
 //       We need to ensure client logging doesn't do this in the future accidentally.
 
 type auth struct {
@@ -51,16 +51,16 @@ func (a *auth) reset() {
 	a.tokens = map[string]string{}
 }
 
-func (a *auth) setup(ctx context.Context, kr *keyring.Keyring, secret string, typ AuthType) error {
+func (a *auth) setup(ctx context.Context, vlt *vault.Vault, secret string, typ AuthType) error {
 	logger.Infof("Setup (%s)", typ)
 	switch typ {
 	case PasswordAuth:
-		if err := setupPassword(kr, secret); err != nil {
+		if err := setupPassword(vlt, secret); err != nil {
 			return authErr(err, typ, "failed to setup")
 		}
 		return nil
 	case FIDO2HMACSecretAuth:
-		_, err := setupHMACSecret(ctx, a.fas, kr, secret, a.cfg.AppName())
+		_, err := setupHMACSecret(ctx, a.fas, vlt, secret, a.cfg.AppName())
 		if err != nil {
 			return authErr(err, typ, "failed to setup")
 		}
@@ -70,35 +70,37 @@ func (a *auth) setup(ctx context.Context, kr *keyring.Keyring, secret string, ty
 	}
 }
 
-func (a *auth) unlock(ctx context.Context, kr *keyring.Keyring, secret string, typ AuthType, client string) (string, error) {
+func (a *auth) unlock(ctx context.Context, vlt *vault.Vault, secret string, typ AuthType, client string) (string, error) {
 	logger.Infof("Unlock (%s)", typ)
-	var err error
+
 	switch typ {
 	case PasswordAuth:
-		_, err = unlockPassword(kr, secret)
+		if _, err := unlockPassword(vlt, secret); err != nil {
+			return "", authErr(err, typ, "failed to unlock")
+		}
 	case FIDO2HMACSecretAuth:
-		err = unlockHMACSecret(ctx, a.fas, kr, secret)
+		if err := unlockHMACSecret(ctx, a.fas, vlt, secret); err != nil {
+			return "", authErr(err, typ, "failed to unlock")
+		}
 	default:
 		return "", errors.Errorf("unsupported auth type")
 	}
-	if err != nil {
-		return "", authErr(err, typ, "failed to unlock")
-	}
+
 	logger.Infof("Unlocked (%s)", typ)
 	token := a.registerToken(client)
 	return token, nil
 }
 
-func (a *auth) provision(ctx context.Context, kr *keyring.Keyring, secret string, typ AuthType, setup bool) (*keyring.Provision, error) {
+func (a *auth) provision(ctx context.Context, vlt *vault.Vault, secret string, typ AuthType, setup bool) (*vault.Provision, error) {
 	logger.Infof("Provision (%s)", typ)
 	switch typ {
 	case PasswordAuth:
-		return provisionPassword(ctx, kr, secret)
+		return provisionPassword(ctx, vlt, secret)
 	case FIDO2HMACSecretAuth:
 		if setup {
-			return setupHMACSecret(ctx, a.fas, kr, secret, a.cfg.AppName())
+			return setupHMACSecret(ctx, a.fas, vlt, secret, a.cfg.AppName())
 		}
-		return provisionHMACSecret(ctx, a.fas, kr, secret)
+		return provisionHMACSecret(ctx, a.fas, vlt, secret)
 	default:
 		return nil, errors.Errorf("unknown auth type")
 	}
@@ -111,7 +113,7 @@ func (a *auth) registerToken(client string) string {
 }
 
 func authErr(err error, typ AuthType, wrap string) error {
-	if errors.Cause(err) == keyring.ErrInvalidAuth {
+	if errors.Cause(err) == vault.ErrInvalidAuth {
 		switch typ {
 		case PasswordAuth:
 			return status.Error(codes.Unauthenticated, "invalid password")

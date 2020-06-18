@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -96,17 +95,16 @@ func Uninstall(cfg *Config) error {
 		}
 	}
 
-	appDir := cfg.AppDir()
-	logger.Infof("Removing app directory %s", appDir)
-	if err := os.RemoveAll(appDir); err != nil {
-		return err
-	}
+	// appDir := cfg.AppDir()
+	// logger.Infof("Removing app directory %s", appDir)
+	// if err := os.RemoveAll(appDir); err != nil {
+	// 	return err
+	// }
+	// fmt.Printf("Uninstalled %q.\n", cfg.AppName())
+	// return nil
 
-	// TODO: Reset keyring when git is configured
-
-	fmt.Printf("Uninstalled %q.\n", cfg.AppName())
-	fmt.Printf("Run `keysd -reset-keyring` to remove keyring items.\n")
-	return nil
+	// TODO: Fix uninstall
+	return errors.Errorf("not implemented")
 }
 
 func startFromApp(cfg *Config) error {

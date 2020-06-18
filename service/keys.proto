@@ -81,12 +81,12 @@ service Keys {
   // These requests do not need auth.
   // BEGIN NO AUTH
   rpc AuthSetup(AuthSetupRequest) returns (AuthSetupResponse) {}
+  rpc AuthVault(AuthVaultRequest) returns (AuthVaultResponse) {}
   rpc AuthUnlock(AuthUnlockRequest) returns (AuthUnlockResponse) {}
   rpc AuthLock(AuthLockRequest) returns (AuthLockResponse) {}
   rpc RuntimeStatus(RuntimeStatusRequest) returns (RuntimeStatusResponse) {}
   rpc Rand(RandRequest) returns (RandResponse) {}
   rpc RandPassword(RandPasswordRequest) returns (RandPasswordResponse) {}  
-  rpc Restore(RestoreRequest) returns (RestoreResponse) {}
   // END NO AUTH
 
   rpc AuthProvision(AuthProvisionRequest) returns (AuthProvisionResponse) {}
@@ -94,9 +94,6 @@ service Keys {
   rpc AuthProvisions(AuthProvisionsRequest) returns (AuthProvisionsResponse) {}  
   rpc PasswordChange(PasswordChangeRequest) returns (PasswordChangeResponse) {}
   
-  rpc Backup(BackupRequest) returns (BackupResponse) {}  
-  rpc Migrate(MigrateRequest) returns (MigrateResponse) {}
-
   rpc Collections(CollectionsRequest) returns (CollectionsResponse) {}
   rpc Documents(DocumentsRequest) returns (DocumentsResponse) {}
   rpc DocumentDelete(DocumentDeleteRequest) returns (DocumentDeleteResponse) {}
@@ -445,6 +442,11 @@ message AuthSetupRequest {
   AuthType type = 2;  
 }
 message AuthSetupResponse {}
+
+message AuthVaultRequest {
+  string key = 1;
+}
+message AuthVaultResponse {}
 
 message AuthUnlockRequest {
   // Secret for auth depending on auth type, e.g. password, pin, etc.
@@ -982,34 +984,3 @@ message AdminCheckRequest {
 
 message AdminCheckResponse {}
 
-message GitImportRequest {
-  string url = 1 [(gogoproto.customname) = "URL"];
-  string keyPath = 2;
-}
-message GitImportResponse {}
-
-message GitCloneRequest {
-  string url = 1 [(gogoproto.customname) = "URL"];
-  string keyPath = 2; 
-}
-message GitCloneResponse {}
-
-message BackupRequest {
-  string resource = 1;
-  string dir = 2;
-}
-message BackupResponse {  
-  string path = 1;
-}
-
-message RestoreRequest {
-   string resource = 1;
-  string path = 2;
-}
-message RestoreResponse {}
-
-message MigrateRequest {
-  string resource = 1;
-  string destination = 3;
-}
-message MigrateResponse {}

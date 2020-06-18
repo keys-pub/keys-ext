@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/keys-pub/keys/keyring"
+	"github.com/keys-pub/keys-ext/vault"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/metadata"
 )
@@ -13,25 +13,24 @@ func TestAuthWithPassword(t *testing.T) {
 	cfg, closeFn := testConfig(t, "KeysTest", "")
 	defer closeFn()
 	auth := newAuth(cfg)
-	kr, err := newKeyring(cfg, "mem")
-	require.NoError(t, err)
+	vlt := newTestVault(t, false)
 
 	ctx := context.TODO()
 
 	// Setup needed
-	status, err := kr.Status()
+	status, err := vlt.Status()
 	require.NoError(t, err)
-	require.Equal(t, keyring.Setup, status)
+	require.Equal(t, vault.Setup, status)
 
 	// Setup
-	err = auth.setup(ctx, kr, "password123", PasswordAuth)
+	err = auth.setup(ctx, vlt, "password123", PasswordAuth)
 	require.NoError(t, err)
 
-	status, err = kr.Status()
+	status, err = vlt.Status()
 	require.NoError(t, err)
-	require.Equal(t, keyring.Unlocked, status)
+	require.Equal(t, vault.Unlocked, status)
 
-	token, err := auth.unlock(ctx, kr, "password123", PasswordAuth, "test")
+	token, err := auth.unlock(ctx, vlt, "password123", PasswordAuth, "test")
 	require.NoError(t, err)
 	require.NotEmpty(t, auth.tokens)
 	require.NotEmpty(t, token)
@@ -40,23 +39,23 @@ func TestAuthWithPassword(t *testing.T) {
 	auth.reset()
 
 	// Unlock with invalid password
-	_, err = auth.unlock(ctx, kr, "invalidpassword", PasswordAuth, "test")
+	_, err = auth.unlock(ctx, vlt, "invalidpassword", PasswordAuth, "test")
 	require.EqualError(t, err, "rpc error: code = Unauthenticated desc = invalid password")
 	require.Empty(t, auth.tokens)
 
 	// Unlock
-	token, err = auth.unlock(ctx, kr, "password123", PasswordAuth, "test")
+	token, err = auth.unlock(ctx, vlt, "password123", PasswordAuth, "test")
 	require.NoError(t, err)
 	require.NotEmpty(t, auth.tokens)
 	require.NotEmpty(t, token)
 }
 
 func TestAuthorize(t *testing.T) {
+	var err error
 	cfg, closeFn := testConfig(t, "KeysTest", "")
 	defer closeFn()
 	auth := newAuth(cfg)
-	kr, err := newKeyring(cfg, "mem")
-	require.NoError(t, err)
+	vlt := newTestVault(t, false)
 
 	ctx := metadata.NewIncomingContext(context.TODO(), metadata.MD{})
 	err = auth.authorize(ctx, "/service.Keys/SomeMethod")
@@ -75,10 +74,10 @@ func TestAuthorize(t *testing.T) {
 	require.EqualError(t, err, "rpc error: code = Unauthenticated desc = invalid token")
 
 	// Setup
-	err = auth.setup(ctx, kr, "password123", PasswordAuth)
+	err = auth.setup(ctx, vlt, "password123", PasswordAuth)
 	require.NoError(t, err)
 
-	token, err := auth.unlock(ctx, kr, "password123", PasswordAuth, "test")
+	token, err := auth.unlock(ctx, vlt, "password123", PasswordAuth, "test")
 	require.NoError(t, err)
 	require.NotEmpty(t, auth.tokens)
 	require.NotEmpty(t, token)
@@ -101,7 +100,7 @@ func TestGenerateToken(t *testing.T) {
 	require.NotEmpty(t, token)
 }
 
-func TestAuthLock(t *testing.T) {
+func TestAuthUnlockLock(t *testing.T) {
 	env := newTestEnv(t)
 	service, closeFn := newTestService(t, env, "")
 	defer closeFn()
@@ -126,12 +125,16 @@ func TestAuthLock(t *testing.T) {
 	_, err = service.Sign(context.TODO(), &SignRequest{Data: []byte("test"), Signer: alice.ID().String()})
 	require.NoError(t, err)
 
+	items, err := service.vault.Items()
+	require.NoError(t, err)
+	require.Equal(t, 1, len(items))
+
 	_, err = service.AuthLock(ctx, &AuthLockRequest{})
 	require.NoError(t, err)
 	require.Empty(t, service.auth.tokens)
 
 	_, err = service.Sign(context.TODO(), &SignRequest{Data: []byte("test"), Signer: alice.ID().String()})
-	require.EqualError(t, err, "keyring is locked")
+	require.EqualError(t, err, "vault is locked")
 }
 
 func TestAuthSetup(t *testing.T) {
@@ -141,6 +144,10 @@ func TestAuthSetup(t *testing.T) {
 	ctx := context.TODO()
 
 	_, err := service.AuthSetup(ctx, &AuthSetupRequest{Secret: "password123", Type: PasswordAuth})
+	require.NoError(t, err)
+
+	testImportKey(t, service, alice)
+	_, err = service.Sign(context.TODO(), &SignRequest{Data: []byte("test"), Signer: alice.ID().String()})
 	require.NoError(t, err)
 }
 

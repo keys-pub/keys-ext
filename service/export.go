@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/keyring"
+	"github.com/keys-pub/keys-ext/vault"
 	"github.com/pkg/errors"
 )
 
@@ -20,7 +20,7 @@ func (s *service) KeyExport(ctx context.Context, req *KeyExportRequest) (*KeyExp
 		typ = SaltpackExport
 	}
 
-	key, err := keys.Find(s.kr, id)
+	key, err := s.vault.Key(id)
 	if err != nil {
 		return nil, err
 	}
@@ -30,8 +30,8 @@ func (s *service) KeyExport(ctx context.Context, req *KeyExportRequest) (*KeyExp
 
 	// TODO: What if we don't have any password auth?
 	if req.Password != "" {
-		if err := s.kr.UnlockWithPassword(req.Password, false); err != nil {
-			if err == keyring.ErrInvalidAuth {
+		if err := s.vault.UnlockWithPassword(req.Password, false); err != nil {
+			if err == vault.ErrInvalidAuth {
 				return nil, errors.Errorf("invalid password")
 			}
 			return nil, err

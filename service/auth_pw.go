@@ -3,49 +3,50 @@ package service
 import (
 	"context"
 
-	"github.com/keys-pub/keys/keyring"
+	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/vault"
 	"github.com/pkg/errors"
 )
 
-func setupPassword(kr *keyring.Keyring, password string) error {
-	salt, err := kr.Salt()
+func setupPassword(vlt *vault.Vault, password string) error {
+	salt, err := vlt.Salt()
 	if err != nil {
 		return err
 	}
-	key, err := keyring.KeyForPassword(password, salt)
+	key, err := keys.KeyForPassword(password, salt)
 	if err != nil {
 		return err
 	}
-	provision := keyring.NewProvision(keyring.PasswordAuth)
-	if err := kr.Setup(key, provision); err != nil {
+	provision := vault.NewProvision(vault.PasswordAuth)
+	if err := vlt.Setup(key, provision); err != nil {
 		return err
 	}
 	return nil
 }
 
-func unlockPassword(kr *keyring.Keyring, password string) (*keyring.Provision, error) {
-	salt, err := kr.Salt()
+func unlockPassword(vlt *vault.Vault, password string) (*vault.Provision, error) {
+	salt, err := vlt.Salt()
 	if err != nil {
 		return nil, err
 	}
-	key, err := keyring.KeyForPassword(password, salt)
+	key, err := keys.KeyForPassword(password, salt)
 	if err != nil {
 		return nil, err
 	}
-	return kr.Unlock(key)
+	return vlt.Unlock(key)
 }
 
-func provisionPassword(ctx context.Context, kr *keyring.Keyring, password string) (*keyring.Provision, error) {
-	salt, err := kr.Salt()
+func provisionPassword(ctx context.Context, vlt *vault.Vault, password string) (*vault.Provision, error) {
+	salt, err := vlt.Salt()
 	if err != nil {
 		return nil, err
 	}
-	key, err := keyring.KeyForPassword(password, salt)
+	key, err := keys.KeyForPassword(password, salt)
 	if err != nil {
 		return nil, err
 	}
-	provision := keyring.NewProvision(keyring.PasswordAuth)
-	if err := kr.Provision(key, provision); err != nil {
+	provision := vault.NewProvision(vault.PasswordAuth)
+	if err := vlt.Provision(key, provision); err != nil {
 		return nil, err
 	}
 
@@ -55,19 +56,19 @@ func provisionPassword(ctx context.Context, kr *keyring.Keyring, password string
 
 // PasswordChange (RPC) ...
 func (s *service) PasswordChange(ctx context.Context, req *PasswordChangeRequest) (*PasswordChangeResponse, error) {
-	old, err := unlockPassword(s.kr, req.Old)
+	old, err := unlockPassword(s.vault, req.Old)
 	if err != nil {
-		if errors.Cause(err) == keyring.ErrInvalidAuth {
+		if errors.Cause(err) == vault.ErrInvalidAuth {
 			return nil, errors.Errorf("invalid password")
 		}
 		return nil, err
 	}
 
-	if _, err := provisionPassword(ctx, s.kr, req.New); err != nil {
+	if _, err := provisionPassword(ctx, s.vault, req.New); err != nil {
 		return nil, err
 	}
 
-	ok, err := s.kr.Deprovision(old.ID, false)
+	ok, err := s.vault.Deprovision(old.ID, false)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to deprovision old password (new password was provisioned)")
 	}

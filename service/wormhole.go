@@ -140,7 +140,7 @@ func (s *service) wormholeReadSend(ctx context.Context, wh *wormhole.Wormhole, s
 func (s *service) Wormhole(srv Keys_WormholeServer) error {
 	// TODO: EOF's if auth token is stale? Need better error?
 
-	wh, err := wormhole.New(s.cfg.Server(), s.kr)
+	wh, err := wormhole.New(s.cfg.Server(), s.vault)
 	if err != nil {
 		return err
 	}

@@ -14,6 +14,7 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/server"
 	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keys/user"
@@ -83,19 +84,23 @@ func testUserStore(t *testing.T, dst ds.DocumentStore, scs keys.SigchainStore, r
 }
 
 func newTestService(t *testing.T, env *testEnv, appName string) (*service, CloseFn) {
-	return newTestServiceWithOpts(t, env, appName, "mem")
+	return newTestServiceWithOpts(t, env, appName)
 }
 
-func newTestServiceWithOpts(t *testing.T, env *testEnv, appName string, keyringType string) (*service, CloseFn) {
+func newTestServiceWithOpts(t *testing.T, env *testEnv, appName string) (*service, CloseFn) {
 	serverEnv := newTestServerEnv(t, env)
 	cfg, closeCfg := testConfig(t, appName, serverEnv.url)
 	auth := newAuth(cfg)
 
-	svc, err := newService(cfg, Build{Version: "1.2.3", Commit: "deadbeef"}, auth, keyringType, env.req, env.clock.Now)
+	svc, err := newService(cfg, Build{Version: "1.2.3", Commit: "deadbeef"}, auth, env.req, "mem", env.clock.Now)
+	require.NoError(t, err)
+
+	err = svc.Open()
 	require.NoError(t, err)
 
 	closeFn := func() {
 		serverEnv.closeFn()
+		svc.Lock()
 		svc.Close()
 		closeCfg()
 	}
@@ -115,6 +120,13 @@ func testAuthSetup(t *testing.T, service *service) {
 		Secret: authPassword,
 		Type:   PasswordAuth,
 		Client: "test",
+	})
+	require.NoError(t, err)
+}
+
+func testAuthVault(t *testing.T, service *service, key *keys.EdX25519Key) {
+	_, err := service.AuthVault(context.TODO(), &AuthVaultRequest{
+		Key: encoding.MustEncode(key.Seed()[:], encoding.BIP39),
 	})
 	require.NoError(t, err)
 }
@@ -288,26 +300,6 @@ func TestRuntimeStatus(t *testing.T) {
 	resp, err := service.RuntimeStatus(context.TODO(), &RuntimeStatusRequest{})
 	require.NoError(t, err)
 	require.Equal(t, "1.2.3", resp.Version)
-}
-
-func TestKeyringFS(t *testing.T) {
-	// SetLogger(NewLogger(DebugLevel))
-	// keys.SetLogger(NewLogger(DebugLevel))
-	// keyring.SetLogger(NewLogger(DebugLevel))
-
-	env := newTestEnv(t)
-	service, closeFn := newTestServiceWithOpts(t, env, "", "fs")
-	defer closeFn()
-
-	testAuthSetup(t, service)
-
-	resp, err := service.RuntimeStatus(context.TODO(), &RuntimeStatusRequest{})
-	require.NoError(t, err)
-	require.Equal(t, "1.2.3", resp.Version)
-
-	keys, err := service.Keys(context.TODO(), &KeysRequest{})
-	require.NoError(t, err)
-	require.Equal(t, 0, len(keys.Keys))
 }
 
 func TestCheckUpdate(t *testing.T) {

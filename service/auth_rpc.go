@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/keyring"
+	"github.com/keys-pub/keys-ext/vault"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
 )
@@ -13,21 +13,21 @@ import (
 // AuthSetup (RPC) ...
 func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSetupResponse, error) {
 	logger.Infof("Auth setup...")
-	status, err := s.kr.Status()
+	status, err := s.vault.Status()
 	if err != nil {
 		return nil, err
 	}
-	if status != keyring.Setup {
+	if status != vault.Setup {
 		return nil, errors.Errorf("auth already setup")
 	}
 
-	if err := s.auth.setup(ctx, s.kr, req.Secret, req.Type); err != nil {
+	if err := s.auth.setup(ctx, s.vault, req.Secret, req.Type); err != nil {
 		return nil, err
 	}
 
-	// If setting up auth, and local database exists we should nuke it since the
+	// If setting up auth, and service database exists we should nuke it since the
 	// pre-existing key is different. The database will be rebuilt on Open.
-	path, err := s.cfg.AppPath(dbFilename, false)
+	path, err := s.cfg.AppPath(sdbFilename, false)
 	if err != nil {
 		return nil, err
 	}
@@ -46,25 +46,32 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 	return &AuthSetupResponse{}, nil
 }
 
+// AuthVault (RPC) ...
+func (s *service) AuthVault(ctx context.Context, req *AuthVaultRequest) (*AuthVaultResponse, error) {
+	logger.Infof("Auth vault...")
+	status, err := s.vault.Status()
+	if err != nil {
+		return nil, err
+	}
+	if status != vault.Setup {
+		return nil, errors.Errorf("auth already setup")
+	}
+
+	return nil, errors.Errorf("not implemented")
+	// return &AuthVaultResponse{}, nil
+}
+
 // AuthUnlock (RPC) ...
 func (s *service) AuthUnlock(ctx context.Context, req *AuthUnlockRequest) (*AuthUnlockResponse, error) {
-	status, err := s.kr.Status()
-	if err != nil {
-		return nil, err
-	}
-	if status == keyring.Setup {
-		return nil, errors.Errorf("auth setup needed")
-	}
-
-	token, err := s.auth.unlock(ctx, s.kr, req.Secret, req.Type, req.Client)
+	token, err := s.auth.unlock(ctx, s.vault, req.Secret, req.Type, req.Client)
 	if err != nil {
 		return nil, err
 	}
 
-	// Derive key
-	key := keys.Bytes32(keys.HKDFSHA256(s.kr.MasterKey()[:], 32, nil, []byte("keys.pub/ldb")))
-
-	if err := s.Open(ctx, key); err != nil {
+	mk := s.vault.MasterKey()
+	// Derive db key
+	key := keys.Bytes32(keys.HKDFSHA256(mk[:], 32, nil, []byte("keys.pub/ldb")))
+	if err := s.Unlock(ctx, key); err != nil {
 		return nil, err
 	}
 
@@ -75,7 +82,7 @@ func (s *service) AuthUnlock(ctx context.Context, req *AuthUnlockRequest) (*Auth
 
 // AuthProvision (RPC) ...
 func (s *service) AuthProvision(ctx context.Context, req *AuthProvisionRequest) (*AuthProvisionResponse, error) {
-	provision, err := s.auth.provision(ctx, s.kr, req.Secret, req.Type, req.Setup)
+	provision, err := s.auth.provision(ctx, s.vault, req.Secret, req.Type, req.Setup)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +93,7 @@ func (s *service) AuthProvision(ctx context.Context, req *AuthProvisionRequest) 
 
 // AuthDeprovision (RPC) ...
 func (s *service) AuthDeprovision(ctx context.Context, req *AuthDeprovisionRequest) (*AuthDeprovisionResponse, error) {
-	ok, err := s.kr.Deprovision(req.ID, false)
+	ok, err := s.vault.Deprovision(req.ID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +108,7 @@ func (s *service) AuthDeprovision(ctx context.Context, req *AuthDeprovisionReque
 
 // AuthProvisions (RPC) ...
 func (s *service) AuthProvisions(ctx context.Context, req *AuthProvisionsRequest) (*AuthProvisionsResponse, error) {
-	provisions, err := s.kr.Provisions()
+	provisions, err := s.vault.Provisions()
 	if err != nil {
 		return nil, err
 	}
@@ -119,11 +126,11 @@ func (s *service) AuthProvisions(ctx context.Context, req *AuthProvisionsRequest
 // AuthLock (RPC) ...
 func (s *service) AuthLock(ctx context.Context, req *AuthLockRequest) (*AuthLockResponse, error) {
 	s.auth.reset()
-	if err := s.kr.Lock(); err != nil {
+	if err := s.vault.Lock(); err != nil {
 		return nil, err
 	}
 
-	s.Close()
+	s.Lock()
 
 	return &AuthLockResponse{}, nil
 }
@@ -150,7 +157,7 @@ func (a testClientAuth) RequireTransportSecurity() bool {
 	return false
 }
 
-func provisionToRPC(p *keyring.Provision) *AuthProvision {
+func provisionToRPC(p *vault.Provision) *AuthProvision {
 	return &AuthProvision{
 		ID:        p.ID,
 		Type:      authTypeToRPC(p.Type),
@@ -160,18 +167,18 @@ func provisionToRPC(p *keyring.Provision) *AuthProvision {
 	}
 }
 
-func authTypeToRPC(t keyring.AuthType) AuthType {
+func authTypeToRPC(t vault.AuthType) AuthType {
 	switch t {
-	case keyring.PasswordAuth:
+	case vault.PasswordAuth:
 		return PasswordAuth
-	case keyring.FIDO2HMACSecretAuth:
+	case vault.FIDO2HMACSecretAuth:
 		return FIDO2HMACSecretAuth
 	default:
 		return UnknownAuth
 	}
 }
 
-func matchAAGUID(provisions []*keyring.Provision, aaguid string) *keyring.Provision {
+func matchAAGUID(provisions []*vault.Provision, aaguid string) *vault.Provision {
 	for _, provision := range provisions {
 		if provision.AAGUID == aaguid {
 			return provision

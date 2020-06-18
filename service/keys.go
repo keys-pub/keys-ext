@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/vault"
 	"github.com/pkg/errors"
 )
 
@@ -26,18 +27,18 @@ func (s *service) Keys(ctx context.Context, req *KeysRequest) (*KeysResponse, er
 		types = append(types, typ)
 	}
 
-	out, err := keys.Keys(s.kr, keys.WithTypes(types...))
+	res, err := s.vault.Keys(vault.WithKeyTypes(types...))
 	if err != nil {
 		return nil, err
 	}
 
-	keys, err := s.keys(ctx, out, req.Query, sortField, sortDirection)
+	out, err := s.keys(ctx, res, req.Query, sortField, sortDirection)
 	if err != nil {
 		return nil, err
 	}
 
 	return &KeysResponse{
-		Keys:          keys,
+		Keys:          out,
 		SortField:     sortField,
 		SortDirection: sortDirection,
 	}, nil

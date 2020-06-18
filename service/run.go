@@ -1,7 +1,6 @@
 package service
 
 import (
-	"bufio"
 	"context"
 	"flag"
 	"fmt"
@@ -12,18 +11,16 @@ import (
 	"runtime"
 	"runtime/debug"
 	"strconv"
-	"strings"
 	"time"
 
 	middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/auth/fido2"
-	"github.com/keys-pub/keys-ext/db"
 	"github.com/keys-pub/keys-ext/http/client"
+	"github.com/keys-pub/keys-ext/vault"
 	"github.com/keys-pub/keys-ext/wormhole"
 	"github.com/keys-pub/keys-ext/wormhole/sctp"
-	"github.com/keys-pub/keys/keyring"
 	"github.com/keys-pub/keys/link"
 	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/saltpack"
@@ -38,7 +35,7 @@ import (
 
 func newProtoService(cfg *Config, build Build, auth *auth) (*service, error) {
 	req := request.NewHTTPRequestor()
-	srv, err := newService(cfg, build, auth, "", req, time.Now)
+	srv, err := newService(cfg, build, auth, req, "", time.Now)
 	if err != nil {
 		return nil, err
 	}
@@ -54,29 +51,11 @@ func logFatal(err error) {
 	os.Exit(1)
 }
 
-func resetKeyringAndExit(cfg *Config) {
-	st, err := newKeyringStore(cfg, "")
-	if err != nil {
-		logFatal(errors.Wrapf(err, "failed to init keyring store"))
-	}
-	kr, err := keyring.New(keyring.WithStore(st))
-	if err != nil {
-		logFatal(errors.Wrapf(err, "failed to init keyring"))
-	}
-	if err := kr.Reset(); err != nil {
-		logFatal(errors.Wrapf(err, "failed to reset keyring"))
-	}
-	fmt.Println("Keyring reset.")
-	os.Exit(0)
-}
-
 // Run the service.
 func Run(build Build) {
 	appName := flag.String("app", "Keys", "app name")
 	logPath := flag.String("log-path", "", "log path")
 	version := flag.Bool("version", false, "print version")
-	resetKeyring := flag.Bool("reset-keyring", false, "reset keyring")
-	force := flag.Bool("force", false, "force it")
 
 	flag.Parse()
 
@@ -94,23 +73,6 @@ func Run(build Build) {
 		logFatal(errors.Errorf("Invalid arguments. Did you mean to run `keys`?"))
 	}
 
-	if *resetKeyring {
-		if !*force {
-			reader := bufio.NewReader(os.Stdin)
-			words := keys.RandWords(6)
-			fmt.Printf("Are you sure you want to reset the app and remove keys?\n")
-			fmt.Printf("If so enter this phrase: %s\n\n", words)
-			text, _ := reader.ReadString('\n')
-			text = strings.Trim(text, "\r\n")
-			fmt.Println("")
-			if text != words {
-				fmt.Println("Phrase doesn't match.")
-				os.Exit(1)
-			}
-		}
-		resetKeyringAndExit(cfg)
-	}
-
 	// TODO: Disable logging by default
 
 	lg, lgi := setupLogging(cfg, *logPath)
@@ -119,11 +81,10 @@ func Run(build Build) {
 	user.SetLogger(lg)
 	link.SetLogger(lg)
 	saltpack.SetLogger(lg)
-	keyring.SetLogger(lg)
+	vault.SetLogger(lg)
 	client.SetLogger(lg)
 	wormhole.SetLogger(lg)
 	sctp.SetLogger(lg)
-	db.SetLogger(lg)
 
 	logger.Debugf("Running %v", os.Args)
 
@@ -213,6 +174,10 @@ func NewServiceFn(cfg *Config, build Build, cert *keys.CertificateKey, lgi LogIn
 		return nil, nil, err
 	}
 
+	if err := service.Open(); err != nil {
+		return nil, nil, err
+	}
+
 	// Keys service
 	logger.Infof("Registering Keys service...")
 	RegisterKeysServer(grpcServer, service)
@@ -241,6 +206,7 @@ func NewServiceFn(cfg *Config, build Build, cert *keys.CertificateKey, lgi LogIn
 	}
 	closeFn := func() {
 		grpcServer.Stop()
+		service.Lock()
 		service.Close()
 	}
 	return serveFn, closeFn, nil

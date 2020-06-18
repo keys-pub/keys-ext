@@ -10,7 +10,6 @@ keys stop || true
 function cleanup {
     echo "Cleaning up..."
     keys -app Test uninstall
-    keysd -app Test -reset-keyring -force
 }
 trap cleanup EXIT
 

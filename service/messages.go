@@ -159,8 +159,7 @@ func (s *service) message(ctx context.Context, path string) (*Message, error) {
 		return nil, nil
 	}
 
-	ks := &saltpackKeyring{s.kr}
-	decrypted, sender, err := saltpack.SigncryptOpen(doc.Data, ks)
+	decrypted, sender, err := saltpack.SigncryptOpen(doc.Data, s.vault)
 	if err != nil {
 		return nil, err
 	}
