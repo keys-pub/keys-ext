@@ -6,8 +6,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Run gosec
+      - name: Install gosec
         uses: "cedrickring/golang-action@1.4.1"
+      - name: Run gosec
         run: |
           go get github.com/securego/gosec/cmd/gosec
           (cd auth/fido2 && gosec ./...)
