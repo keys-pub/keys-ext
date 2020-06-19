@@ -88,7 +88,7 @@ jobs:
           (cd sdb && go test -v ./...)
           (cd service && go test -v ./...)
           (cd vault && go test -v ./...)
-          (cd wormhole && go test -v ./...)
+          # (cd wormhole && go test -v ./...)
       - name: Test (macos)
         if: matrix.os == 'macos-latest'
         run: |
