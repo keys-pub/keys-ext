@@ -195,17 +195,14 @@ func (v *Vault) hasAuth() (bool, error) {
 		return false, err
 	}
 	defer iter.Release()
-	for {
-		doc, err := iter.Next()
-		if err != nil {
-			return false, err
-		}
-		if doc == nil {
-			break
-		}
-		return true, nil
+	doc, err := iter.Next()
+	if err != nil {
+		return false, err
 	}
-	return false, nil
+	if doc == nil {
+		return false, nil
+	}
+	return true, nil
 }
 
 // authUnlock returns (id, master key) or ("", nil) if a matching auth

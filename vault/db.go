@@ -47,7 +47,7 @@ func (d *DB) OpenAtPath(path string) error {
 // Close DB.
 func (d *DB) Close() {
 	if d.ldb != nil {
-		d.ldb.Close()
+		_ = d.ldb.Close()
 		d.ldb = nil
 	}
 	d.path = ""

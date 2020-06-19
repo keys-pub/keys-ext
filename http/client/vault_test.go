@@ -24,6 +24,7 @@ func TestVault(t *testing.T) {
 		&client.VaultItem{Data: []byte("test2")},
 	}
 	err = aliceClient.VaultSave(context.TODO(), alice, items)
+	require.NoError(t, err)
 
 	vault, err := aliceClient.Vault(context.TODO(), alice)
 	require.NoError(t, err)

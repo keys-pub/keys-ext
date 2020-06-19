@@ -72,6 +72,9 @@ func TestKeyringAuth(t *testing.T) {
 // }
 
 func TestKeyringProtocolV1(t *testing.T) {
+	if skipKeyring(t) {
+		return
+	}
 	var err error
 
 	kr, err := keyring.NewSystem("KeysTest")

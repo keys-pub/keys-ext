@@ -1,6 +1,7 @@
 package server_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/keys-pub/keys-ext/firestore"
@@ -19,7 +20,9 @@ func testFirestore(t *testing.T) *firestore.Firestore {
 }
 
 func TestMessagesFirestore(t *testing.T) {
-	t.Skip()
+	if os.Getenv("TEST_FIRESTORE") != "1" {
+		t.Skip()
+	}
 	firestore.SetContextLogger(firestore.NewContextLogger(firestore.DebugLevel))
 	fs := testFirestore(t)
 

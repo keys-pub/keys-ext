@@ -17,8 +17,6 @@ import (
 
 const testURL = "firestore://chilltest-3297b"
 
-var ctx = context.TODO()
-
 func testFirestore(t *testing.T) *Firestore {
 	opts := []option.ClientOption{option.WithCredentialsFile("credentials.json")}
 	fs, err := New(testURL, opts...)

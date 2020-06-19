@@ -1,41 +1,17 @@
 package service
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"io"
-	"os"
 	"text/tabwriter"
 	"unicode/utf8"
 
+	"github.com/gogo/protobuf/jsonpb"
 	proto "github.com/gogo/protobuf/proto"
-	"github.com/golang/protobuf/jsonpb"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
-
-func readerFromArgs(in string) (io.Reader, error) {
-	if in != "" {
-		file, err := os.Open(in) // #nosec
-		if err != nil {
-			return nil, err
-		}
-		return bufio.NewReader(file), nil
-	}
-	return bufio.NewReader(os.Stdin), nil
-}
-
-func writerFromArgs(out string) (io.Writer, error) {
-	if out != "" {
-		file, createErr := os.Create(out)
-		if createErr != nil {
-			return nil, createErr
-		}
-		return file, nil
-	}
-	return os.Stdout, nil
-}
 
 func writeAll(writer io.Writer, b []byte) error {
 	n, writeErr := writer.Write(b)
@@ -92,26 +68,6 @@ func fmtKey(w io.Writer, key *Key, prefix string) {
 		fmt.Fprint(w, fmtUser(key.User))
 	}
 	fmt.Fprintf(w, "\n")
-}
-
-func fmtItems(items []*Item) {
-	out := &bytes.Buffer{}
-	w := new(tabwriter.Writer)
-	w.Init(out, 0, 8, 1, ' ', 0)
-	for _, item := range items {
-		fmtItem(w, item)
-	}
-	if err := w.Flush(); err != nil {
-		panic(err)
-	}
-	fmt.Print(out.String())
-}
-
-func fmtItem(w io.Writer, item *Item) {
-	if item == nil {
-		return
-	}
-	fmt.Fprintf(w, "%s\t%s\n", item.ID, item.Type)
 }
 
 func fmtContent(w io.Writer, content *Content) {

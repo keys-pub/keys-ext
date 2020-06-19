@@ -92,7 +92,7 @@ func backup(file *os.File, st Store, now time.Time) error {
 
 // Restore from path.tgz into Store.
 func Restore(path string, st Store) error {
-	file, err := os.OpenFile(path, os.O_RDONLY, 0)
+	file, err := os.OpenFile(path, os.O_RDONLY, 0) // #nosec
 	if err != nil {
 		return errors.Wrapf(err, "failed to open backup")
 	}

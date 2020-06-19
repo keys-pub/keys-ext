@@ -24,6 +24,7 @@ require (
 	github.com/urfave/cli v1.22.4
 	golang.org/x/crypto v0.0.0-20200604202706-70a84ac30bf9
 	google.golang.org/grpc v1.29.1
+	google.golang.org/protobuf v1.24.0
 )
 
 // replace github.com/keys-pub/keys => ../../keys
