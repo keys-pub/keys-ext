@@ -79,6 +79,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Test
+        shell: bash
         run: |
           (cd auth/fido2 && go test -v ./...)          
           (cd auth/mock && go test -v ./...)          
