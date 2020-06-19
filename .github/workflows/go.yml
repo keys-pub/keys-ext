@@ -11,17 +11,17 @@ jobs:
           curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s v2.3.0
       - name: Run gosec
         run: |
-          (cd auth/fido2 && gosec ./...)
-          (cd auth/mock && gosec ./...)
-          (cd auth/rpc && gosec ./...)
-          (cd firestore && gosec ./...)
-          (cd http/api && gosec ./...)
-          (cd http/client && gosec ./...)
-          (cd http/server && gosec ./...)
-          (cd sdb && gosec ./...)
-          (cd service && gosec ./...)
-          (cd vault && gosec ./...)
-          (cd wormhole && gosec .)
+          (cd auth/fido2 && ./bin/gosec ./...)
+          (cd auth/mock && ./bin/gosec ./...)
+          (cd auth/rpc && ./bin/gosec ./...)
+          (cd firestore && ./bin/gosec ./...)
+          (cd http/api && ./bin/gosec ./...)
+          (cd http/client && ./bin/gosec ./...)
+          (cd http/server && ./bin/gosec ./...)
+          (cd sdb && ./bin/gosec ./...)
+          (cd service && ./bin/gosec ./...)
+          (cd vault && ./bin/gosec ./...)
+          (cd wormhole && ./bin/gosec .)
   golangci-lint:
     name: Linter
     runs-on: macos-latest
