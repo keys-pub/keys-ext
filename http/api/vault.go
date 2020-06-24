@@ -2,14 +2,18 @@ package api
 
 import "time"
 
-// VaultItem ...
-type VaultItem struct {
-	Data      []byte    `json:"data"`
+// VaultBox ...
+type VaultBox struct {
+	// Data encrypted.
+	Data []byte `json:"data"`
+	// Version of data from remote (untrusted).
+	Version int64 `json:"v,omitempty"`
+	// Timestamp when data was saved on the remote (untrusted).
 	Timestamp time.Time `json:"ts,omitempty"`
 }
 
 // VaultResponse ...
 type VaultResponse struct {
-	Items   []*VaultItem `json:"items"`
-	Version string       `json:"version"`
+	Boxes   []*VaultBox `json:"datas"`
+	Version string      `json:"version"`
 }
