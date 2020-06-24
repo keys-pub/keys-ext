@@ -2,34 +2,52 @@ package firestore
 
 import (
 	"context"
-	"time"
 
 	"cloud.google.com/go/firestore"
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/encoding"
+	"github.com/pkg/errors"
 )
 
-// timestampField should match firestore tag on keys.Change.
-const timestampField = "ts"
+// ChangesAdd adds changes.
+func (f *Firestore) ChangesAdd(ctx context.Context, collection string, data [][]byte) error {
+	if f.incrementFn == nil {
+		return errors.Errorf("no increment fn set")
+	}
+	if len(data) > 499 {
+		return errors.Errorf("too many changes to batch (max 500)")
+	}
 
-// ChangeAdd adds Change.
-func (f *Firestore) ChangeAdd(ctx context.Context, collection string, data []byte) (string, error) {
-	id := encoding.MustEncode(keys.RandBytes(32), encoding.Base62)
-	path := ds.Path(collection, id)
-	// Map should match keys.Change json format
-	m := map[string]interface{}{
-		"data":         data,
-		timestampField: firestore.ServerTimestamp,
+	batch := f.client.Batch()
+
+	for _, b := range data {
+		version, err := f.incrementFn(ctx)
+		if err != nil {
+			return err
+		}
+
+		id := encoding.MustEncode(keys.RandBytes(32), encoding.Base62)
+		path := ds.Path(collection, id)
+		// Map should match keys.
+		m := map[string]interface{}{
+			"data": b,
+			"v":    version,
+			"ts":   firestore.ServerTimestamp,
+		}
+		doc := f.client.Doc(normalizePath(path))
+		batch.Create(doc, m)
 	}
-	if err := f.createValue(ctx, path, m); err != nil {
-		return "", err
+
+	if _, err := batch.Commit(ctx); err != nil {
+		return err
 	}
-	return path, nil
+
+	return nil
 }
 
 // Changes ...
-func (f *Firestore) Changes(ctx context.Context, collection string, ts time.Time, limit int, direction ds.Direction) (ds.ChangeIterator, error) {
+func (f *Firestore) Changes(ctx context.Context, collection string, version int64, limit int, direction ds.Direction) (ds.ChangeIterator, error) {
 	path := normalizePath(collection)
 	col := f.client.Collection(path)
 	if col == nil {
@@ -39,28 +57,29 @@ func (f *Firestore) Changes(ctx context.Context, collection string, ts time.Time
 	var q firestore.Query
 	switch direction {
 	case ds.Ascending:
-		if ts.IsZero() {
+		if version == 0 {
 			logger.Infof(ctx, "List changes (asc)...")
-			q = col.OrderBy(timestampField, firestore.Asc)
+			q = col.OrderBy("v", firestore.Asc)
 		} else {
-			logger.Infof(ctx, "List changes (asc >= %s)", ts)
-			q = col.OrderBy(timestampField, firestore.Asc).Where(timestampField, ">=", ts)
+			logger.Infof(ctx, "List changes (asc > %s)", version)
+			q = col.OrderBy("v", firestore.Asc).Where("v", ">", version)
 		}
 	case ds.Descending:
-		if ts.IsZero() {
+		if version == 0 {
 			logger.Infof(ctx, "List changes (desc)...")
-			q = col.OrderBy(timestampField, firestore.Desc)
+			q = col.OrderBy("v", firestore.Desc)
 		} else {
-			logger.Infof(ctx, "List changes (desc <= %s)", ts)
-			q = col.OrderBy(timestampField, firestore.Desc).Where(timestampField, "<=", ts)
+			logger.Infof(ctx, "List changes (desc < %s)", version)
+			q = col.OrderBy("v", firestore.Desc).Where("v", "<", version)
 		}
 	}
 
 	iter := q.Documents(ctx)
 
-	if limit == 0 {
-		limit = 100
-	}
+	// TODO: Put limits when clients can handle paging
+	// if limit == 0 {
+	// 	limit = 100
+	// }
 
 	return &changeIterator{iter: iter, limit: limit}, nil
 }

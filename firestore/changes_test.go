@@ -7,28 +7,36 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/tsutil"
 	"github.com/stretchr/testify/require"
 )
 
 func TestFirestoreChanges(t *testing.T) {
+	var err error
 	// SetContextLogger(NewContextLogger(DebugLevel))
 	changes := testFirestore(t)
+	clock := tsutil.NewClock()
+	changes.SetIncrementFn(func(ctx context.Context) (int64, error) {
+		return tsutil.Millis(clock.Now()), nil
+	})
 	ctx := context.TODO()
-	col := ds.Path("changes", "test", testCollection())
+	col := testCollection()
 
 	length := 40
-	values := []string{}
+	values := [][]byte{}
+	strs := []string{}
 	for i := 0; i < length; i++ {
-		value := fmt.Sprintf("value%d", i)
-		_, err := changes.ChangeAdd(ctx, col, []byte(value))
-		require.NoError(t, err)
-		values = append(values, value)
+		str := fmt.Sprintf("value%d", i)
+		values = append(values, []byte(str))
+		strs = append(strs, str)
 	}
+	err = changes.ChangesAdd(ctx, col, values)
+	require.NoError(t, err)
 
 	// Changes (limit=10, asc)
-	iter, err := changes.Changes(ctx, col, time.Time{}, 10, ds.Ascending)
+	iter, err := changes.Changes(ctx, col, 0, 10, ds.Ascending)
 	require.NoError(t, err)
-	chgs, ts, err := ds.ChangesFromIterator(iter, time.Time{})
+	chgs, version, err := ds.ChangesFromIterator(iter, 0)
 	require.NoError(t, err)
 	iter.Release()
 	require.Equal(t, 10, len(chgs))
@@ -36,62 +44,62 @@ func TestFirestoreChanges(t *testing.T) {
 	for _, doc := range chgs {
 		chgsValues = append(chgsValues, string(doc.Data))
 	}
-	require.Equal(t, values[0:10], chgsValues)
+	require.Equal(t, strs[0:10], chgsValues)
 
-	// Changes (ts, asc)
-	iter, err = changes.Changes(ctx, col, ts, 10, ds.Ascending)
+	// Changes (version, asc)
+	iter, err = changes.Changes(ctx, col, version, 10, ds.Ascending)
 	require.NoError(t, err)
-	chgs, ts, err = ds.ChangesFromIterator(iter, ts)
+	chgs, version, err = ds.ChangesFromIterator(iter, version)
 	require.NoError(t, err)
 	iter.Release()
-	require.False(t, ts.IsZero())
+	require.Equal(t, int64(1234567890020), version)
 	require.Equal(t, 10, len(chgs))
 	chgsValues = []string{}
-	for _, doc := range chgs {
-		chgsValues = append(chgsValues, string(doc.Data))
+	for _, chg := range chgs {
+		chgsValues = append(chgsValues, string(chg.Data))
 	}
-	require.Equal(t, values[9:19], chgsValues)
+	require.Equal(t, strs[10:20], chgsValues)
 
-	// Changes (now)
-	now := time.Now()
-	iter, err = changes.Changes(ctx, col, now, 100, ds.Ascending)
+	// Changes (max version)
+	max := tsutil.Millis(time.Now())
+	iter, err = changes.Changes(ctx, col, max, 100, ds.Ascending)
 	require.NoError(t, err)
-	chgs, ts, err = ds.ChangesFromIterator(iter, now)
+	chgs, version, err = ds.ChangesFromIterator(iter, max)
 	require.NoError(t, err)
 	iter.Release()
 	require.Equal(t, 0, len(chgs))
-	require.Equal(t, now, ts)
+	require.Equal(t, max, version)
 
 	// Descending
-	revValues := reverseCopy(values)
+	revs := reverseCopy(strs)
 
 	// Changes (limit=10, desc)
-	iter, err = changes.Changes(ctx, col, time.Time{}, 10, ds.Descending)
+	iter, err = changes.Changes(ctx, col, 0, 10, ds.Descending)
 	require.NoError(t, err)
-	chgs, ts, err = ds.ChangesFromIterator(iter, time.Time{})
+	chgs, version, err = ds.ChangesFromIterator(iter, 0)
 	require.NoError(t, err)
 	iter.Release()
 	require.Equal(t, 10, len(chgs))
-	require.False(t, ts.IsZero())
+	require.Equal(t, int64(1234567890031), version)
 	chgsValues = []string{}
-	for _, doc := range chgs {
-		chgsValues = append(chgsValues, string(doc.Data))
+	for _, chg := range chgs {
+		chgsValues = append(chgsValues, string(chg.Data))
 	}
-	require.Equal(t, revValues[0:10], chgsValues)
+	require.Equal(t, revs[0:10], chgsValues)
 
-	// Changes (limit=5, ts, desc)
-	iter, err = changes.Changes(ctx, col, ts, 5, ds.Descending)
+	// Changes (limit=5, version, desc)
+	iter, err = changes.Changes(ctx, col, version, 5, ds.Descending)
 	require.NoError(t, err)
-	chgs, ts, err = ds.ChangesFromIterator(iter, ts)
+	chgs, version, err = ds.ChangesFromIterator(iter, version)
 	require.NoError(t, err)
 	iter.Release()
 	require.Equal(t, 5, len(chgs))
-	require.False(t, ts.IsZero())
+	require.Equal(t, int64(1234567890026), version)
 	chgsValues = []string{}
-	for _, doc := range chgs {
-		chgsValues = append(chgsValues, string(doc.Data))
+	for _, chg := range chgs {
+		chgsValues = append(chgsValues, string(chg.Data))
 	}
-	require.Equal(t, revValues[9:14], chgsValues)
+	require.Equal(t, revs[10:15], chgsValues)
 }
 
 func reverseCopy(s []string) []string {
