@@ -152,16 +152,6 @@ func (f *Firestore) set(ctx context.Context, path string, b []byte) error {
 	return nil
 }
 
-func (f *Firestore) createValue(ctx context.Context, path string, m map[string]interface{}) error {
-	path = normalizePath(path)
-	doc := f.client.Doc(path)
-	_, err := doc.Create(ctx, m)
-	if err != nil {
-		return errors.Wrapf(processError(err), "failed to set firestore value")
-	}
-	return nil
-}
-
 // GetAll paths.
 func (f *Firestore) GetAll(ctx context.Context, paths []string) ([]*ds.Document, error) {
 	refs := make([]*firestore.DocumentRef, 0, len(paths))
