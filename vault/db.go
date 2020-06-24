@@ -16,8 +16,10 @@ type DB struct {
 }
 
 // NewDB creates DB Store.
-func NewDB() *DB {
-	return &DB{}
+func NewDB(path string) *DB {
+	return &DB{
+		path: path,
+	}
 }
 
 // Name for Store.
@@ -25,32 +27,33 @@ func (d *DB) Name() string {
 	return "vdb"
 }
 
-// OpenAtPath opens db located at path.
-func (d *DB) OpenAtPath(path string) error {
+// Open db.
+func (d *DB) Open() error {
 	if d.ldb != nil {
 		return errors.Errorf("already open")
 	}
-	if path == "" || path == "/" || path == `\` {
+	if d.path == "" || d.path == "/" || d.path == `\` {
 		return errors.Errorf("invalid path")
 	}
 
-	logger.Infof("DB at %s", path)
-	ldb, err := leveldb.OpenFile(path, nil)
+	logger.Infof("DB at %s", d.path)
+	ldb, err := leveldb.OpenFile(d.path, nil)
 	if err != nil {
 		return err
 	}
 	d.ldb = ldb
-	d.path = path
 	return nil
 }
 
-// Close DB.
-func (d *DB) Close() {
+// Close db.
+func (d *DB) Close() error {
 	if d.ldb != nil {
-		_ = d.ldb.Close()
+		if err := d.ldb.Close(); err != nil {
+			return err
+		}
 		d.ldb = nil
 	}
-	d.path = ""
+	return nil
 }
 
 // Set in DB.

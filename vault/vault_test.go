@@ -15,6 +15,7 @@ import (
 	"github.com/keys-pub/keys-ext/http/server"
 	"github.com/keys-pub/keys-ext/vault"
 	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/stretchr/testify/require"
 )
@@ -28,13 +29,13 @@ func newTestVault(t *testing.T, unlocked bool) *vault.Vault {
 }
 
 func newTestVaultDB(t *testing.T) (*vault.DB, func()) {
-	db := vault.NewDB()
 	path := testPath()
+	db := vault.NewDB(path)
 	close := func() {
 		db.Close()
 		_ = os.RemoveAll(path)
 	}
-	err := db.OpenAtPath(path)
+	err := db.Open()
 	require.NoError(t, err)
 	return db, close
 }
@@ -57,6 +58,12 @@ func newTestEnv(t *testing.T, logger server.Logger) *testEnv {
 	clock := tsutil.NewClock()
 	fi := ds.NewMem()
 	fi.SetTimeNow(clock.Now)
+
+	vclock := tsutil.NewClock()
+	fi.SetIncrementFn(func(ctx context.Context) (int64, error) {
+		return tsutil.Millis(vclock.Now()), nil
+	})
+
 	ns := server.NewMemTestCache(clock.Now)
 	srv := server.New(fi, ns, nil, logger)
 	srv.SetNowFn(clock.Now)
@@ -173,7 +180,7 @@ func testSync(t *testing.T, st1 vault.Store, st2 vault.Store) {
 
 	// _ = st1.Spew("", os.Stderr)
 
-	history, err := v1.History("key1")
+	history, err := v1.ItemHistory("key1")
 	require.NoError(t, err)
 	//vault.SpewItems(versions, os.Stderr)
 	require.Equal(t, 3, len(history))
@@ -185,7 +192,7 @@ func testSync(t *testing.T, st1 vault.Store, st2 vault.Store) {
 	err = v1.Set(vault.NewItem("key1", []byte("mysecretdata.1d"), "", time.Now()))
 	require.NoError(t, err)
 
-	history, err = v1.History("key1")
+	history, err = v1.ItemHistory("key1")
 	require.NoError(t, err)
 	require.Equal(t, 4, len(history))
 	require.Equal(t, []byte("mysecretdata.1a"), history[0].Data)
@@ -213,14 +220,34 @@ func testSync(t *testing.T, st1 vault.Store, st2 vault.Store) {
 	require.NoError(t, err)
 	require.Nil(t, out)
 
-	history, err = v1.History("key1")
+	history, err = v1.ItemHistory("key1")
 	require.NoError(t, err)
 	require.Equal(t, 5, len(history))
 	require.Equal(t, []byte("mysecretdata.1a"), history[0].Data)
 	require.Equal(t, []byte("mysecretdata.1c"), history[1].Data)
 	require.Equal(t, []byte("mysecretdata.1b"), history[2].Data)
 	require.Equal(t, []byte("mysecretdata.1d"), history[3].Data)
-	require.Equal(t, []byte{}, history[4].Data)
+	require.Nil(t, history[4].Data)
+
+	paths, err := vault.Paths(v1.Store(), "/pull")
+	require.NoError(t, err)
+	expected := []string{
+		"/pull/001234567890001/1234567890004/item/key1",
+		"/pull/001234567890002/1234567890012/item/key2",
+		"/pull/001234567890003/1234567890020/item/key1",
+		"/pull/001234567890004/1234567890028/item/key1",
+		"/pull/001234567890005/1234567890039/item/key1",
+		"/pull/001234567890006/1234567890047/item/key1",
+	}
+	require.Equal(t, expected, paths)
+
+	paths, err = vault.Paths(v1.Store(), "/item")
+	require.NoError(t, err)
+	expected = []string{
+		"/item/key1",
+		"/item/key2",
+	}
+	require.Equal(t, expected, paths)
 }
 
 func TestErrors(t *testing.T) {
@@ -246,7 +273,7 @@ func TestErrors(t *testing.T) {
 
 	_, err = vlt.Items()
 	require.EqualError(t, err, "vault is locked")
-	_, err = vlt.History("key1")
+	_, err = vlt.ItemHistory("key1")
 	require.EqualError(t, err, "vault is locked")
 }
 
@@ -286,14 +313,6 @@ func testUpdate(t *testing.T, vlt *vault.Vault) {
 	require.Equal(t, []byte("password"), out.Data)
 	require.Equal(t, tsutil.Millis(now), tsutil.Millis(out.CreatedAt))
 
-	has, err := vlt.Exists("abc")
-	require.NoError(t, err)
-	require.True(t, has)
-
-	has2, err := vlt.Exists("xyz")
-	require.NoError(t, err)
-	require.False(t, has2)
-
 	// Update
 	item.Data = []byte("newpassword")
 	err = vlt.Set(item)
@@ -324,10 +343,6 @@ func testUpdate(t *testing.T, vlt *vault.Vault) {
 	item3, err := vlt.Get("abc")
 	require.NoError(t, err)
 	require.Nil(t, item3)
-
-	has3, err := vlt.Exists("abc")
-	require.NoError(t, err)
-	require.False(t, has3)
 
 	ok2, err := vlt.Delete("abc")
 	require.NoError(t, err)
@@ -372,10 +387,6 @@ func testSetupUnlockProvision(t *testing.T, vlt *vault.Vault) {
 	_, err = vlt.Items()
 	require.EqualError(t, err, "vault is locked")
 
-	ok, err := vlt.Exists("key1")
-	require.NoError(t, err)
-	require.True(t, ok)
-
 	_, err = vlt.Delete("key1")
 	require.EqualError(t, err, "vault is locked")
 
@@ -392,7 +403,7 @@ func testSetupUnlockProvision(t *testing.T, vlt *vault.Vault) {
 	require.NoError(t, err)
 
 	// Deprovision
-	ok, err = vlt.Deprovision(provision.ID, false)
+	ok, err := vlt.Deprovision(provision.ID, false)
 	require.NoError(t, err)
 	require.True(t, ok)
 
@@ -418,27 +429,22 @@ func TestSetErrors(t *testing.T) {
 	require.EqualError(t, err, "invalid id")
 }
 
-func TestProtocolV2(t *testing.T) {
+func TestProtocol(t *testing.T) {
 	st, closeFn := newTestVaultDB(t)
 	defer closeFn()
 	vlt := vault.New(st)
 
 	var err error
 
-	// Store set
-	err = st.Set("test", []byte{0x01})
-	require.NoError(t, err)
-
-	paths, err := vault.Paths(st, "")
-	require.NoError(t, err)
-	require.Equal(t, 1, len(paths))
-	require.Equal(t, "/test", paths[0])
-
 	// Setup
 	salt := bytes.Repeat([]byte{0x01}, 32)
 	key, err := keys.KeyForPassword("password123", salt)
 	require.NoError(t, err)
-	provision := vault.NewProvision(vault.UnknownAuth)
+	provision := &vault.Provision{
+		ID:        encoding.MustEncode(bytes.Repeat([]byte{0x02}, 32), encoding.Base62),
+		Type:      vault.UnknownAuth,
+		CreatedAt: time.Now(),
+	}
 	err = vlt.Setup(key, provision)
 	require.NoError(t, err)
 
@@ -447,15 +453,16 @@ func TestProtocolV2(t *testing.T) {
 	err = vlt.Set(item)
 	require.NoError(t, err)
 
-	paths, err = vault.Paths(st, "")
+	paths, err := vault.Paths(st, "")
 	require.NoError(t, err)
 	require.Equal(t, []string{
-		"/auth/" + provision.ID,
-		"/config/increment",
+		"/auth/0TWD4V5tkyUQGc5qXvlBDd2Fj97aqsMoBGJJjsttG4I",
+		"/db/increment",
 		"/item/testid1",
-		"/pending/testid1/000000000000001",
-		"/provision/" + provision.ID,
-		"/test",
+		"/provision/0TWD4V5tkyUQGc5qXvlBDd2Fj97aqsMoBGJJjsttG4I",
+		"/push/000000000000001/auth/0TWD4V5tkyUQGc5qXvlBDd2Fj97aqsMoBGJJjsttG4I",
+		"/push/000000000000002/provision/0TWD4V5tkyUQGc5qXvlBDd2Fj97aqsMoBGJJjsttG4I",
+		"/push/000000000000003/item/testid1",
 	}, paths)
 
 	paths, err = vault.Paths(st, "/auth")
@@ -466,4 +473,67 @@ func TestProtocolV2(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(items))
 	require.Equal(t, "testid1", items[0].ID)
+}
+
+func TestAuthPull(t *testing.T) {
+	// vault.SetLogger(vault.NewLogger(vault.DebugLevel))
+	var err error
+	env := newTestEnv(t, nil) // vault.NewLogger(vault.DebugLevel))
+	defer env.closeFn()
+
+	rk := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
+	ctx := context.TODO()
+
+	// Client #1
+	client1 := testClient(t, env)
+
+	v1 := vault.New(vault.NewMem())
+	v1.SetRemote(client1)
+	v1.SetRemoteKey(rk)
+
+	err = v1.UnlockWithPassword("mypassword", true)
+	require.NoError(t, err)
+
+	provisions, err := v1.Provisions()
+	require.NoError(t, err)
+	require.Equal(t, 1, len(provisions))
+	provision := provisions[0]
+
+	err = v1.Set(vault.NewItem("key1", []byte("value1"), "", time.Now()))
+	require.NoError(t, err)
+
+	err = v1.Sync(ctx)
+	require.NoError(t, err)
+
+	// Client #2
+	client2 := testClient(t, env)
+
+	v2 := vault.New(vault.NewMem())
+	v2.SetRemote(client2)
+	v2.SetRemoteKey(rk)
+
+	err = v2.Pull(ctx)
+	require.NoError(t, err)
+
+	err = v2.UnlockWithPassword("mypassword", false)
+	require.NoError(t, err)
+
+	out, err := v2.Get("key1")
+	require.NoError(t, err)
+	require.Equal(t, "key1", out.ID)
+	require.Equal(t, []byte("value1"), out.Data)
+
+	paths1, err := vault.Paths(v1.Store(), "/pull")
+	require.NoError(t, err)
+	expected := []string{
+		"/pull/001234567890001/1234567890004/config/salt",
+		"/pull/001234567890002/1234567890006/auth/" + provision.ID,
+		"/pull/001234567890003/1234567890008/provision/" + provision.ID,
+		"/pull/001234567890004/1234567890010/item/key1",
+	}
+	require.Equal(t, expected, paths1)
+
+	paths2, err := vault.Paths(v2.Store(), "/pull")
+	require.NoError(t, err)
+	require.Equal(t, expected, paths2)
 }

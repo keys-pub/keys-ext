@@ -157,13 +157,13 @@ func TestKeys(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 4, len(out))
 
-	out, err = vlt.Keys(vault.WithKeyTypes(keys.X25519, keys.X25519Public))
+	out, err = vlt.Keys(vault.Keys.Types(keys.X25519, keys.X25519Public))
 	require.NoError(t, err)
 	require.Equal(t, 2, len(out))
 	require.Equal(t, bk.ID(), out[0].ID())
 	require.Equal(t, bk2.ID(), out[1].ID())
 
-	out, err = vlt.Keys(vault.WithKeyTypes(keys.X25519))
+	out, err = vlt.Keys(vault.Keys.Types(keys.X25519))
 	require.NoError(t, err)
 	require.Equal(t, 1, len(out))
 	require.Equal(t, bk.ID(), out[0].ID())

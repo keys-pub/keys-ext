@@ -17,10 +17,6 @@ type Item struct {
 
 	// CreatedAt when item was created.
 	CreatedAt time.Time `msgpack:"cts,omitempty"`
-
-	// Timestamp is set from the remote.
-	// This can be used for versioning.
-	Timestamp time.Time `msgpack:"ts,omitempty"`
 }
 
 // NewItem creates an item.

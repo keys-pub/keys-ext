@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"io"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/tsutil"
@@ -24,21 +24,18 @@ type Vault struct {
 	mk *[32]byte
 	rk *keys.EdX25519Key
 
-	inc    int
-	incMax int
-
-	protocol protocol
-	subs     *subscribers
+	inc    int64
+	incMax int64
+	subs   *subscribers
 }
 
 // New vault.
 func New(st Store, opt ...Option) *Vault {
 	opts := newOptions(opt...)
 	return &Vault{
-		store:    st,
-		clock:    opts.Clock,
-		protocol: opts.protocol,
-		subs:     newSubscribers(),
+		store: st,
+		clock: opts.Clock,
+		subs:  newSubscribers(),
 	}
 }
 
@@ -75,21 +72,23 @@ func (v *Vault) Set(item *Item) error {
 	if err != nil {
 		return err
 	}
-	path := v.protocol.Path(itemEntity, item.ID)
+	return v.set(ds.Path("item", item.ID), b)
+}
+
+func (v *Vault) set(path string, b []byte) error {
 	if err := v.store.Set(path, b); err != nil {
 		return err
 	}
-	return v.addPending(item.ID, b)
+	return v.addToPush(path, b)
 }
 
-func (v *Vault) addPending(id string, b []byte) error {
-	cpath := v.protocol.Path(configEntity, "increment")
-	inc, err := v.Increment(cpath)
+func (v *Vault) addToPush(path string, b []byte) error {
+	inc, err := v.Increment(1)
 	if err != nil {
 		return err
 	}
-	path := v.protocol.Path(pendingEntity, id, inc)
-	if err := v.store.Set(path, b); err != nil {
+	ppath := ds.Path("push", inc, path)
+	if err := v.store.Set(ppath, b); err != nil {
 		return err
 	}
 	return nil
@@ -97,7 +96,7 @@ func (v *Vault) addPending(id string, b []byte) error {
 
 // Get vault item.
 func (v *Vault) Get(id string) (*Item, error) {
-	path := v.protocol.Path(itemEntity, id)
+	path := ds.Path("item", id)
 	b, err := v.store.Get(path)
 	if err != nil {
 		return nil, err
@@ -112,119 +111,49 @@ func (v *Vault) Get(id string) (*Item, error) {
 	if item.ID != id {
 		return nil, errors.Errorf("item id mismatch %s != %s", item.ID, id)
 	}
+	if len(item.Data) == 0 {
+		return nil, nil
+	}
 	return item, nil
 }
 
 // Delete vault item.
 func (v *Vault) Delete(id string) (bool, error) {
-	exists, err := v.Exists(id)
+	item, err := v.Get(id)
 	if err != nil {
 		return false, err
 	}
-	if !exists {
+	if item == nil {
 		return false, nil
 	}
 
-	// Delete sets with empty bytes.
-	item := &Item{
-		ID:   id,
-		Data: []byte{},
-	}
+	// Delete clears bytes
+	item.Data = nil
 	b, err := encryptItem(item, v.mk)
 	if err != nil {
 		return false, err
 	}
-
-	path := v.protocol.Path(itemEntity, id)
-	if _, err := v.store.Delete(path); err != nil {
+	if err := v.set(ds.Path("item", item.ID), b); err != nil {
 		return false, err
 	}
 
-	if err := v.addPending(item.ID, b); err != nil {
-		return false, err
-	}
 	return true, nil
-}
-
-// Exists returns true if item exists.
-func (v *Vault) Exists(id string) (bool, error) {
-	path := v.protocol.Path(itemEntity, id)
-	return v.store.Exists(path)
 }
 
 // Sync vault.
 func (v *Vault) Sync(ctx context.Context) error {
 	if err := v.push(ctx); err != nil {
-		return errors.Wrapf(err, "failed to push vault")
+		return errors.Wrapf(err, "failed to push vault (sync)")
 	}
-	if err := v.pull(ctx); err != nil {
-		return errors.Wrapf(err, "failed to pull vault")
+	if err := v.Pull(ctx); err != nil {
+		return errors.Wrapf(err, "failed to pull vault (sync)")
 	}
 	return nil
 }
 
-// pending returns list of pending items awaiting push.
-func (v *Vault) pending(id string) ([]*Item, []string, error) {
-	path := v.protocol.Path(pendingEntity, id)
-	iter, err := v.store.Documents(ds.Prefix(path))
-	if err != nil {
-		return nil, nil, err
-	}
-	defer iter.Release()
-	items := []*Item{}
-	paths := []string{}
-	for {
-		doc, err := iter.Next()
-		if err != nil {
-			return nil, nil, err
-		}
-		if doc == nil {
-			break
-		}
-		item, err := decryptItem(doc.Data, v.mk)
-		if err != nil {
-			return nil, nil, err
-		}
-		paths = append(paths, doc.Path)
-		items = append(items, item)
-	}
-	return items, paths, nil
-}
-
 // Items to list.
 func (v *Vault) Items() ([]*Item, error) {
-	path := v.protocol.Path(itemEntity, "")
-	iter, err := v.store.Documents(ds.Prefix(path))
-	if err != nil {
-		return nil, err
-	}
-	defer iter.Release()
-	items := []*Item{}
-	for {
-		doc, err := iter.Next()
-		if err != nil {
-			return nil, err
-		}
-		if doc == nil {
-			break
-		}
-		// Skip protocol v1 reserved entries.
-		if strings.HasPrefix(doc.Path, "#") {
-			continue
-		}
-		item, err := decryptItem(doc.Data, v.mk)
-		if err != nil {
-			return nil, err
-		}
-		items = append(items, item)
-	}
-	return items, nil
-}
-
-// History returns history of an item.
-// Items with empty data signify deleted items.
-func (v *Vault) History(id string) ([]*Item, error) {
-	path := v.protocol.Path(historyEntity, id)
+	path := ds.Path("item")
 	iter, err := v.store.Documents(ds.Prefix(path))
 	if err != nil {
 		return nil, err
@@ -245,13 +174,6 @@ func (v *Vault) History(id string) ([]*Item, error) {
 		}
 		items = append(items, item)
 	}
-
-	pending, _, err := v.pending(id)
-	if err != nil {
-		return nil, err
-	}
-	items = append(items, pending...)
-
 	return items, nil
 }
 
@@ -259,32 +181,43 @@ func (v *Vault) push(ctx context.Context) error {
 	if v.remote == nil {
 		return errors.Errorf("no vault remote set")
 	}
+
 	if v.rk == nil {
 		return errors.Errorf("no remote key")
 	}
 
 	paths := []string{}
-	items := []*client.VaultItem{}
+	changes := []*client.VaultChange{}
 
-	pending, pp, err := v.pending("")
+	// Get changes from push.
+	path := ds.Path("push")
+	iter, err := v.store.Documents(ds.Prefix(path))
 	if err != nil {
 		return err
 	}
-	for _, item := range pending {
-		b, err := encryptItem(item, v.mk)
+	defer iter.Release()
+	for {
+		doc, err := iter.Next()
 		if err != nil {
 			return err
 		}
-		items = append(items, &client.VaultItem{Data: b})
+		if doc == nil {
+			break
+		}
+		logger.Debugf("Push %s", doc.Path)
+		paths = append(paths, doc.Path)
+		path := ds.PathFrom(doc.Path, 2)
+		change := &client.VaultChange{Path: path, Data: doc.Data, Nonce: api.GenerateNonce()}
+		changes = append(changes, change)
 	}
 
-	if len(items) > 0 {
-		logger.Infof("Pushing %d vault items", len(items))
-		if err := v.remote.VaultSave(ctx, v.rk, items); err != nil {
+	if len(changes) > 0 {
+		logger.Infof("Pushing %d vault changes", len(changes))
+		if err := v.remote.VaultChanged(ctx, v.rk, changes); err != nil {
 			return err
 		}
-		logger.Infof("Removing %d pending vault items", len(paths))
-		if err := deleteAll(v.store, pp); err != nil {
+		logger.Infof("Removing %d from push", len(paths))
+		if err := deleteAll(v.store, paths); err != nil {
 			return err
 		}
 	}
@@ -292,11 +225,17 @@ func (v *Vault) push(ctx context.Context) error {
 	return nil
 }
 
-// pull changes from remote.
-func (v *Vault) pull(ctx context.Context) error {
-	if v.mk == nil {
-		return ErrLocked
+func (v *Vault) version() (string, error) {
+	b, err := v.store.Get(ds.Path("db", "version"))
+	if err != nil {
+		return "", err
 	}
+	return string(b), nil
+}
+
+// Pull changes from remote.
+// Does NOT require Unlock.
+func (v *Vault) Pull(ctx context.Context) error {
 	if v.remote == nil {
 		return errors.Errorf("no vault remote set")
 	}
@@ -304,12 +243,10 @@ func (v *Vault) pull(ctx context.Context) error {
 		return errors.Errorf("no remote key")
 	}
 
-	cpath := v.protocol.Path(configEntity, "version")
-	b, err := v.store.Get(cpath)
+	version, err := v.version()
 	if err != nil {
 		return err
 	}
-	version := string(b)
 
 	logger.Infof("Getting vault items")
 	vault, err := v.remote.Vault(ctx, v.rk, client.VaultVersion(version))
@@ -318,89 +255,41 @@ func (v *Vault) pull(ctx context.Context) error {
 	}
 
 	if vault != nil {
-		for _, vaultItem := range vault.Items {
-			item, err := decryptItem(vaultItem.Data, v.mk)
-			if err != nil {
-				return err
+		for _, change := range vault.Changes {
+			logger.Debugf("Pull %s", change.Path)
+			if change.Path == "" {
+				return errors.Errorf("invalid change (no path)")
 			}
-			item.Timestamp = vaultItem.Timestamp
-			b, err := encryptItem(item, v.mk)
-			if err != nil {
+			if err := v.checkNonce(change.Nonce); err != nil {
 				return err
 			}
 
-			// TODO: Is nanosecond available from server? Use it?
-			ts := fmt.Sprintf("%015d", tsutil.Millis(item.Timestamp))
-			hpath := v.protocol.Path(historyEntity, item.ID, ts)
-			if err := v.store.Set(hpath, b); err != nil {
-				return err
-			}
-			ipath := v.protocol.Path(itemEntity, item.ID)
-			if len(item.Data) == 0 {
-				if _, err := v.store.Delete(ipath); err != nil {
+			if len(change.Data) == 0 {
+				if _, err := v.store.Delete(change.Path); err != nil {
 					return err
 				}
 			} else {
-				if err := v.store.Set(ipath, b); err != nil {
+				if err := v.store.Set(change.Path, change.Data); err != nil {
 					return err
 				}
+			}
+
+			hpath := ds.Path("pull", pad(change.Version), tsutil.Millis(change.Timestamp), change.Path)
+			if err := v.store.Set(hpath, change.Data); err != nil {
+				return err
+			}
+
+			if err := v.commitNonce(change.Nonce); err != nil {
+				return err
 			}
 		}
 
 		// Update version
-		if err := v.store.Set(cpath, []byte(vault.Version)); err != nil {
+		if err := v.store.Set(ds.Path("db", "version"), []byte(vault.Version)); err != nil {
 			return err
 		}
 	}
 
-	return nil
-}
-
-// Increment returns the current increment as an orderable string that persists
-// across opens.
-// => 000000000000001, 000000000000002 ...
-// This is batched. When the increment runs out for the current batch, it
-// gets a new batch.
-// The increment value is saved in the database at the specified path.
-// There may be large gaps between increments (of batch size) after re-opens.
-func (v *Vault) Increment(path string) (string, error) {
-	if v.inc == 0 || v.inc >= v.incMax {
-		if err := v.increment(path); err != nil {
-			return "", err
-		}
-	}
-	v.inc++
-	if v.inc > 999999999999999 {
-		panic("index too large")
-	}
-	return fmt.Sprintf("%015d", v.inc), nil
-}
-
-const incrementBatchSize = 1000
-
-// Increment value from path.
-func (v *Vault) increment(path string) error {
-	b, err := v.store.Get(path)
-	if err != nil {
-		return err
-	}
-
-	inc := 0
-	if b != nil {
-		i, err := strconv.Atoi(string(b))
-		if err != nil {
-			return err
-		}
-		inc = i
-	}
-
-	if err := v.store.Set(path, []byte(strconv.Itoa(inc+incrementBatchSize))); err != nil {
-		return err
-	}
-
-	logger.Debugf("Setting increment batch: %d", inc)
-	v.inc = inc
-	v.incMax = inc + incrementBatchSize - 1
 	return nil
 }
 
@@ -415,4 +304,73 @@ func (v *Vault) Spew(prefix string, out io.Writer) error {
 		return err
 	}
 	return nil
+}
+
+// Increment returns the current increment as an orderable string that persists
+// across opens at /db/increment.
+// => 000000000000001, 000000000000002 ...
+// This is batched. When the increment runs out for the current batch, it
+// gets a new batch.
+// There may be large gaps between increments (of batch size) after re-opens.
+func (v *Vault) Increment(n int64) (string, error) {
+	if v.inc == 0 || (v.inc+n) >= v.incMax {
+		inc, incMax, err := increment(v.store, ds.Path("db", "increment"), 1000)
+		if err != nil {
+			return "", err
+		}
+		v.inc, v.incMax = inc, incMax
+	}
+	v.inc = v.inc + n
+	if v.inc > 999999999999999 {
+		panic("index too large")
+	}
+	// logger.Debugf("Increment(%d) %d", n, v.inc)
+	return pad(v.inc), nil
+}
+
+func increment(st Store, path string, size int64) (inc int64, incMax int64, reterr error) {
+	b, err := st.Get(path)
+	if err != nil {
+		reterr = err
+		return
+	}
+
+	if b != nil {
+		i, err := strconv.Atoi(string(b))
+		if err != nil {
+			reterr = err
+			return
+		}
+		inc = int64(i)
+	}
+
+	max := int(inc + size)
+	if err := st.Set(path, []byte(strconv.Itoa(max))); err != nil {
+		reterr = err
+		return
+	}
+
+	incMax = inc + size - 1
+	return
+}
+
+func pad(n int64) string {
+	return fmt.Sprintf("%015d", n)
+}
+
+// IsEmpty returns true if vault is empty.
+func (v *Vault) IsEmpty() (bool, error) {
+	iter, err := v.store.Documents()
+	if err != nil {
+		return false, err
+	}
+	defer iter.Release()
+	doc, err := iter.Next()
+	if err != nil {
+		return false, err
+	}
+	if doc == nil {
+		return true, nil
+	}
+	return false, nil
 }

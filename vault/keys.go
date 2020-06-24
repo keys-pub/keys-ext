@@ -51,16 +51,13 @@ func (v *Vault) SaveKey(key keys.Key) error {
 	return v.Set(ItemForKey(key))
 }
 
-func filterKey(key keys.Key, types []keys.KeyType) keys.Key {
-	if key == nil || len(types) == 0 {
-		return key
-	}
-	for _, t := range types {
-		if t == key.Type() {
-			return key
-		}
-	}
-	return nil
+// Keys options.
+var Keys = keysOpts{}
+
+type keysOpts struct{}
+
+func (s keysOpts) Types(t ...keys.KeyType) KeysOption {
+	return func(o *KeysOptions) { o.Types = t }
 }
 
 // Keys in the vault.
@@ -87,6 +84,18 @@ func (v *Vault) Keys(opt ...KeysOption) ([]keys.Key, error) {
 	}
 	logger.Debugf("Found %d keys", len(keys))
 	return keys, nil
+}
+
+func filterKey(key keys.Key, types []keys.KeyType) keys.Key {
+	if key == nil || len(types) == 0 {
+		return key
+	}
+	for _, t := range types {
+		if t == key.Type() {
+			return key
+		}
+	}
+	return nil
 }
 
 // X25519Keys from the vault.

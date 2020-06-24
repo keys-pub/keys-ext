@@ -19,53 +19,63 @@ type mem struct {
 	items map[string][]byte
 }
 
-func (k *mem) Name() string {
+func (m *mem) Name() string {
 	return "mem"
 }
 
-func (k *mem) Get(path string) ([]byte, error) {
+func (m *mem) Open() error {
+	return nil
+}
+
+func (m *mem) Close() error {
+	return nil
+}
+
+func (m *mem) Get(path string) ([]byte, error) {
 	if path == "" {
 		return nil, errors.Errorf("invalid path")
 	}
-	if b, ok := k.items[path]; ok {
+	// logger.Debugf("Get %s", path)
+	if b, ok := m.items[path]; ok {
 		return b, nil
 	}
 	return nil, nil
 }
 
-func (k *mem) Set(path string, data []byte) error {
+func (m *mem) Set(path string, data []byte) error {
 	if path == "" {
 		return errors.Errorf("invalid path")
 	}
-	k.items[path] = data
+	// logger.Debugf("Set %s", path)
+	m.items[path] = data
 	return nil
 }
 
-func (k *mem) Exists(path string) (bool, error) {
+func (m *mem) Exists(path string) (bool, error) {
 	if path == "" {
 		return false, errors.Errorf("invalid path")
 	}
-	_, ok := k.items[path]
+	_, ok := m.items[path]
 	return ok, nil
 }
 
-func (k *mem) Delete(path string) (bool, error) {
+func (m *mem) Delete(path string) (bool, error) {
 	if path == "" {
 		return false, errors.Errorf("invalid path")
 	}
-	if _, ok := k.items[path]; ok {
-		delete(k.items, path)
+	if _, ok := m.items[path]; ok {
+		delete(m.items, path)
 		return true, nil
 	}
 	return false, nil
 }
 
-func (k *mem) Documents(opt ...ds.DocumentsOption) (ds.DocumentIterator, error) {
+func (m *mem) Documents(opt ...ds.DocumentsOption) (ds.DocumentIterator, error) {
 	opts := ds.NewDocumentsOptions(opt...)
 	prefix := opts.Prefix
 
-	docs := make([]*ds.Document, 0, len(k.items))
-	for path, b := range k.items {
+	docs := make([]*ds.Document, 0, len(m.items))
+	for path, b := range m.items {
 		if strings.HasPrefix(path, prefix) {
 			docs = append(docs, &ds.Document{Path: path, Data: b})
 		}

@@ -23,7 +23,7 @@ func TestBackupRestore(t *testing.T) {
 	require.NoError(t, err)
 
 	for i := 0; i < 10; i++ {
-		err := st.Set(fmt.Sprintf("item%d", i), []byte(fmt.Sprintf("value%d", i)))
+		err := st.Set(ds.Path("item", i), []byte(fmt.Sprintf("value%d", i)))
 		require.NoError(t, err)
 	}
 
@@ -36,14 +36,14 @@ func TestBackupRestore(t *testing.T) {
 	st2 := vault.NewMem()
 	err = vault.Restore(tmpFile, st2)
 	require.NoError(t, err)
-	testEqualKeyrings(t, st, st2)
+	testEqualStores(t, st, st2)
 
 	vlt2 := vault.New(st2)
 	err = vlt2.UnlockWithPassword("testpassword", false)
 	require.NoError(t, err)
 }
 
-func testEqualKeyrings(t *testing.T, st1 vault.Store, st2 vault.Store) {
+func testEqualStores(t *testing.T, st1 vault.Store, st2 vault.Store) {
 	iter1, err := st1.Documents()
 	require.NoError(t, err)
 	docs1, err := ds.DocumentsFromIterator(iter1)

@@ -17,19 +17,18 @@ var ErrLocked = errors.New("vault is locked")
 // ErrAlreadySetup if already setup.
 var ErrAlreadySetup = errors.New("vault is already setup")
 
-// Salt is default salt value, generated on first access and persisted
-// until Reset().
+// Salt is default salt value, generated on first access.
 // This salt value is not encrypted.
 // Doesn't require Unlock().
 func (v *Vault) Salt() ([]byte, error) {
-	cpath := v.protocol.Path(configEntity, "salt")
-	salt, err := v.store.Get(cpath)
+	path := ds.Path("config", "salt")
+	salt, err := v.store.Get(path)
 	if err != nil {
 		return nil, err
 	}
 	if salt == nil {
 		salt = keys.Rand32()[:]
-		if err := v.store.Set(cpath, salt); err != nil {
+		if err := v.set(path, salt); err != nil {
 			return nil, err
 		}
 	}
@@ -100,7 +99,7 @@ func (v *Vault) Setup(key *[32]byte, provision *Provision) error {
 	}
 
 	if provision != nil {
-		if err := v.saveProvision(provision); err != nil {
+		if err := v.provisionSave(provision); err != nil {
 			return err
 		}
 	}
@@ -123,7 +122,7 @@ func (v *Vault) Unlock(key *[32]byte) (*Provision, error) {
 	logger.Infof("Unlocked with %s", id)
 	v.mk = mk
 
-	provision, err := v.loadProvision(id)
+	provision, err := v.provision(id)
 	if err != nil {
 		return nil, err
 	}
@@ -165,8 +164,7 @@ func (v *Vault) authCreate(id string, key *[32]byte, mk *[32]byte) error {
 	if err != nil {
 		return err
 	}
-	path := v.protocol.Path(authEntity, id)
-	if err := v.store.Set(path, b); err != nil {
+	if err := v.set(ds.Path("auth", id), b); err != nil {
 		return err
 	}
 	return nil
@@ -177,19 +175,29 @@ func (v *Vault) authDelete(id string) (bool, error) {
 	if id == "" {
 		return false, errors.Errorf("no auth id")
 	}
-	path := v.protocol.Path(authEntity, id)
-	exists, err := v.store.Exists(path)
+	path := ds.Path("auth", id)
+	b, err := v.store.Get(path)
 	if err != nil {
 		return false, err
 	}
-	if !exists {
+	if b == nil {
 		return false, nil
 	}
-	return v.store.Delete(path)
+	ok, err := v.store.Delete(path)
+	if err != nil {
+		return false, err
+	}
+	if !ok {
+		return false, nil
+	}
+	if err := v.addToPush(ds.Path("auth", id), nil); err != nil {
+		return true, err
+	}
+	return true, nil
 }
 
 func (v *Vault) hasAuth() (bool, error) {
-	path := v.protocol.Path(authEntity)
+	path := ds.Path("auth")
 	iter, err := v.store.Documents(ds.Prefix(path), ds.NoData())
 	if err != nil {
 		return false, err
@@ -207,9 +215,9 @@ func (v *Vault) hasAuth() (bool, error) {
 
 // authUnlock returns (id, master key) or ("", nil) if a matching auth
 // is not found.
-// Auth is found by trying to decrypt auth until one is successful.
+// Auth is found by trying to decrypt auth until successful.
 func (v *Vault) authUnlock(key *[32]byte) (string, *[32]byte, error) {
-	path := v.protocol.Path(authEntity)
+	path := ds.Path("auth")
 	iter, err := v.store.Documents(ds.Prefix(path))
 	if err != nil {
 		return "", nil, err
@@ -234,7 +242,8 @@ func (v *Vault) authUnlock(key *[32]byte) (string, *[32]byte, error) {
 		if len(item.Data) != 32 {
 			continue
 		}
-		return item.ID, keys.Bytes32(item.Data), nil
+		id := convertID(item.ID)
+		return id, keys.Bytes32(item.Data), nil
 	}
 	return "", nil, nil
 }

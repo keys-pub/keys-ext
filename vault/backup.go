@@ -62,7 +62,6 @@ func backup(file *os.File, st Store, now time.Time) error {
 
 		path := doc.Path
 		b := doc.Data
-
 		header := new(tar.Header)
 		header.Name = path
 		header.Size = int64(len(b))

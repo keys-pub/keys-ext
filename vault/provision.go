@@ -49,7 +49,7 @@ func (v *Vault) Provision(key *[32]byte, provision *Provision) error {
 	}
 
 	if provision != nil {
-		if err := v.saveProvision(provision); err != nil {
+		if err := v.provisionSave(provision); err != nil {
 			return err
 		}
 	}
@@ -60,7 +60,7 @@ func (v *Vault) Provision(key *[32]byte, provision *Provision) error {
 // Provisions are currently provisioned auth.
 // Doesn't require Unlock().
 func (v *Vault) Provisions() ([]*Provision, error) {
-	path := v.protocol.Path(provisionEntity)
+	path := ds.Path("provision")
 	iter, err := v.store.Documents(ds.Prefix(path))
 	if err != nil {
 		return nil, err
@@ -80,18 +80,6 @@ func (v *Vault) Provisions() ([]*Provision, error) {
 			return nil, err
 		}
 		provisions = append(provisions, &provision)
-	}
-
-	// Check for v0 auth
-	v0, err := v.store.Exists("#auth")
-	if err != nil {
-		return nil, err
-	}
-	if v0 {
-		provisions = append(provisions, &Provision{
-			ID:        "auth.v0",
-			CreatedAt: time.Time{},
-		})
 	}
 
 	// Sort by time
@@ -114,28 +102,23 @@ func (v *Vault) Deprovision(id string, force bool) (bool, error) {
 		return false, errors.Errorf("failed to deprovision: last auth")
 	}
 
-	// Check for v0 auth
-	if id == "auth.v0" {
-		return v.store.Delete("#auth")
-	}
-
-	if _, err = v.deleteProvision(id); err != nil {
+	if _, err = v.provisionDelete(id); err != nil {
 		return false, err
 	}
 
 	return v.authDelete(id)
 }
 
-// SaveProvision for auth methods that need to store registration data before
+// ProvisionSave for auth methods that need to store registration data before
 // key is available (for example, FIDO2 hmac-secret).
-func (v *Vault) SaveProvision(provision *Provision) error {
-	return v.saveProvision(provision)
+func (v *Vault) ProvisionSave(provision *Provision) error {
+	return v.provisionSave(provision)
 }
 
-// loadProvision loads provision for id.
-func (v *Vault) loadProvision(id string) (*Provision, error) {
+// provision loads provision for id.
+func (v *Vault) provision(id string) (*Provision, error) {
 	logger.Debugf("Loading provision %s", id)
-	path := v.protocol.Path(provisionEntity, id)
+	path := ds.Path("provision", id)
 	b, err := v.store.Get(path)
 	if err != nil {
 		return nil, err
@@ -150,35 +133,40 @@ func (v *Vault) loadProvision(id string) (*Provision, error) {
 	return &provision, nil
 }
 
-// saveProvision saves provision.
-func (v *Vault) saveProvision(provision *Provision) error {
+// provisionSave saves provision.
+func (v *Vault) provisionSave(provision *Provision) error {
 	logger.Debugf("Saving provision %s", provision.ID)
-	path := v.protocol.Path(provisionEntity, provision.ID)
 	b, err := msgpack.Marshal(provision)
 	if err != nil {
 		return err
 	}
-	if err := v.store.Set(path, b); err != nil {
+	if err := v.set(ds.Path("provision", provision.ID), b); err != nil {
 		return err
 	}
 	return nil
 }
 
-// deleteProvision removes provision.
-func (v *Vault) deleteProvision(id string) (bool, error) {
+// provisionDelete removes provision.
+func (v *Vault) provisionDelete(id string) (bool, error) {
 	logger.Debugf("Deleting provision %s", id)
-
-	path := v.protocol.Path(provisionEntity, id)
-	return v.store.Delete(path)
+	path := ds.Path("provision", id)
+	ok, err := v.store.Delete(path)
+	if err != nil {
+		return false, err
+	}
+	if !ok {
+		return false, nil
+	}
+	if err := v.addToPush(ds.Path("provision", id), nil); err != nil {
+		return true, err
+	}
+	return true, nil
 }
 
 func (v *Vault) isLastAuth(id string) (bool, error) {
 	provisions, err := v.Provisions()
 	if err != nil {
 		return false, err
-	}
-	if len(provisions) == 0 && id == "auth.v0" {
-		return true, nil
 	}
 	if len(provisions) == 1 && provisions[0].ID == id {
 		return true, nil

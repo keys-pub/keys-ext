@@ -31,7 +31,7 @@ func TestProvisions(t *testing.T) {
 	require.Equal(t, "0El6XFXwsUFD8J2vGxsaboW7rZYnQRBP5d9erwRwd29", provisions[0].ID)
 }
 
-func TestSaveProvision(t *testing.T) {
+func TestProvisionSave(t *testing.T) {
 	var err error
 	vlt := newTestVault(t, true)
 
@@ -39,7 +39,7 @@ func TestSaveProvision(t *testing.T) {
 	provision := &vault.Provision{
 		ID: id,
 	}
-	err = vlt.SaveProvision(provision)
+	err = vlt.ProvisionSave(provision)
 	require.NoError(t, err)
 
 	provisions, err := vlt.Provisions()

@@ -16,10 +16,13 @@ type Store interface {
 	// Delete bytes.
 	Delete(path string) (bool, error)
 
-	// Exists returns true if exists.
-	Exists(path string) (bool, error)
-
+	// Documents iterator.
 	Documents(opt ...ds.DocumentsOption) (ds.DocumentIterator, error)
+
+	// Open store.
+	Open() error
+	// Close store.
+	Close() error
 }
 
 // Paths from vault Store.

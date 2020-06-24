@@ -8,8 +8,7 @@ import (
 
 // Options for Vault.
 type Options struct {
-	Clock    func() time.Time
-	protocol protocol
+	Clock func() time.Time
 }
 
 // Option for Vault.
@@ -17,8 +16,7 @@ type Option func(*Options)
 
 func newOptions(opts ...Option) Options {
 	options := Options{
-		Clock:    time.Now,
-		protocol: v2{},
+		Clock: time.Now,
 	}
 	for _, o := range opts {
 		o(&options)
@@ -49,9 +47,30 @@ func newKeysOptions(opts ...KeysOption) KeysOptions {
 	return options
 }
 
-// WithKeyTypes ...
-func WithKeyTypes(types ...keys.KeyType) KeysOption {
-	return func(o *KeysOptions) {
-		o.Types = types
+// SortDirection direction for sorting.
+type SortDirection string
+
+const (
+	// Ascending direction.
+	Ascending SortDirection = "asc"
+	// Descending direction.
+	Descending SortDirection = "desc"
+)
+
+// SecretsOptions ...
+type SecretsOptions struct {
+	Query         string
+	Sort          string
+	SortDirection SortDirection
+}
+
+// SecretsOption ...
+type SecretsOption func(*SecretsOptions)
+
+func newSecretsOptions(opts ...SecretsOption) SecretsOptions {
+	var options SecretsOptions
+	for _, o := range opts {
+		o(&options)
 	}
+	return options
 }
