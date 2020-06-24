@@ -223,7 +223,7 @@ func (d *DB) Collections(ctx context.Context, parent string) (ds.CollectionItera
 		if doc == nil {
 			break
 		}
-		col := ds.FirstPathComponent(doc.Path)
+		col := ds.PathFirst(doc.Path)
 		colv, ok := count[col]
 		if !ok {
 			collections = append(collections, &ds.Collection{Path: ds.Path(col)})
