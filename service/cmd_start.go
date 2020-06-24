@@ -1,8 +1,12 @@
 package service
 
 import (
+	"bufio"
 	"fmt"
+	"os"
+	"strings"
 
+	"github.com/keys-pub/keys"
 	"github.com/urfave/cli"
 )
 
@@ -69,12 +73,29 @@ func startCommands() []cli.Command {
 		cli.Command{
 			Name:  "uninstall",
 			Usage: "Uninstall",
-			Flags: []cli.Flag{},
+			Flags: []cli.Flag{
+				cli.BoolFlag{Name: "force", Usage: "force"},
+			},
 			Action: func(c *cli.Context) error {
 				cfg, err := config(c)
 				if err != nil {
 					return err
 				}
+
+				if !c.Bool("force") {
+					reader := bufio.NewReader(os.Stdin)
+					words := keys.RandWords(6)
+					fmt.Printf("Are you sure you want to uninstall and remove your vault?\n")
+					fmt.Printf("If so enter this phrase: %s\n\n", words)
+					text, _ := reader.ReadString('\n')
+					text = strings.Trim(text, "\r\n")
+					fmt.Println("")
+					if text != words {
+						fmt.Println("Phrase doesn't match.")
+						os.Exit(1)
+					}
+				}
+
 				return Uninstall(cfg)
 			},
 		},

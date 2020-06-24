@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -95,23 +96,26 @@ func Uninstall(cfg *Config) error {
 		}
 	}
 
-	// appDir := cfg.AppDir()
-	// logger.Infof("Removing app directory %s", appDir)
-	// if err := os.RemoveAll(appDir); err != nil {
-	// 	return err
-	// }
-	// fmt.Printf("Uninstalled %q.\n", cfg.AppName())
-	// return nil
+	logsDir := cfg.LogsDir()
+	logger.Infof("Removing logs directory %s", logsDir)
+	if err := os.RemoveAll(logsDir); err != nil {
+		return err
+	}
+	appDir := cfg.AppDir()
+	logger.Infof("Removing app directory %s", appDir)
+	if err := os.RemoveAll(appDir); err != nil {
+		return err
+	}
 
-	// TODO: Fix uninstall
-	return errors.Errorf("not implemented")
+	fmt.Printf("Uninstalled %q.\n", cfg.AppName())
+	return nil
 }
 
 func startFromApp(cfg *Config) error {
 	// TODO: Check/fix symlink if busted
 	if cfg.GetInt("disableSymlinkCheck", 0) < 2 {
 		if err := installSymlink(); err != nil {
-			logger.Warningf("Failed to install symlink: %s", err)
+			logger.Infof("Failed to install symlink: %s", err)
 		} else {
 			// Only install once
 			cfg.Set("disableSymlinkCheck", "2")

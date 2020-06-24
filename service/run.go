@@ -35,7 +35,7 @@ import (
 
 func newProtoService(cfg *Config, build Build, auth *auth) (*service, error) {
 	req := request.NewHTTPRequestor()
-	srv, err := newService(cfg, build, auth, req, "", time.Now)
+	srv, err := newService(cfg, build, auth, req, time.Now)
 	if err != nil {
 		return nil, err
 	}

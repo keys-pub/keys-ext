@@ -107,7 +107,7 @@ func setupHMACSecret(ctx context.Context, auths fido2.AuthServer, vlt *vault.Vau
 	}
 
 	logger.Debugf("Saving provision: %v...", provision)
-	if err := vlt.SaveProvision(provision); err != nil {
+	if err := vlt.ProvisionSave(provision); err != nil {
 		return nil, err
 	}
 

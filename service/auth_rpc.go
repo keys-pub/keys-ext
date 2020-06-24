@@ -57,6 +57,22 @@ func (s *service) AuthVault(ctx context.Context, req *AuthVaultRequest) (*AuthVa
 		return nil, errors.Errorf("auth already setup")
 	}
 
+	key, err := keys.ParseKey([]byte(req.Key), "")
+	if err != nil {
+		return nil, err
+	}
+	sk, ok := key.(*keys.EdX25519Key)
+	if !ok {
+		return nil, errors.Errorf("not an EdX25519 key")
+	}
+
+	vault, err := s.remote.Vault(ctx, sk)
+	if err != nil {
+		return nil, err
+	}
+	logger.Infof("Vault: %+v", vault)
+	// TODO: Implement
+
 	return nil, errors.Errorf("not implemented")
 	// return &AuthVaultResponse{}, nil
 }

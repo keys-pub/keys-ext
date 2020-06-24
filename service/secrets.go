@@ -2,10 +2,10 @@ package service
 
 import (
 	"context"
-	"sort"
 	"strings"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/vault"
 	"github.com/keys-pub/keys/secret"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
@@ -65,46 +65,44 @@ func (s *service) SecretRemove(ctx context.Context, req *SecretRemoveRequest) (*
 }
 
 func (s *service) Secrets(ctx context.Context, req *SecretsRequest) (*SecretsResponse, error) {
-	query := strings.TrimSpace(req.Query)
-
-	sortField := req.SortField
-	if sortField == "" {
-		sortField = "name"
+	if req.SortField == "" {
+		req.SortField = "name"
 	}
-	sortDirection := req.SortDirection
 
-	secrets, err := s.vault.Secrets()
+	secrets, err := s.vault.Secrets(
+		vault.Secrets.Query(req.Query),
+		vault.Secrets.Sort(req.SortField),
+		vault.Secrets.SortDirection(sortDirectionToVault(req.SortDirection)),
+	)
 	if err != nil {
 		return nil, err
 	}
-
-	out := make([]*Secret, 0, len(secrets))
-	for _, s := range secrets {
-		sec := secretToRPC(s)
-		if query == "" ||
-			strings.Contains(sec.Name, query) ||
-			strings.Contains(sec.Username, query) ||
-			strings.Contains(sec.URL, query) ||
-			strings.Contains(sec.Notes, query) {
-			out = append(out, sec)
-		}
-	}
-
-	switch sortField {
-	case "id", "name":
-	default:
-		return nil, errors.Errorf("invalid sort field")
-	}
-
-	sort.Slice(out, func(i, j int) bool {
-		return secretsSort(out, sortField, sortDirection, i, j)
-	})
+	out := secretsToRPC(secrets)
 
 	return &SecretsResponse{
 		Secrets:       out,
-		SortField:     sortField,
-		SortDirection: sortDirection,
+		SortField:     req.SortField,
+		SortDirection: req.SortDirection,
 	}, nil
+}
+
+func sortDirectionToVault(d SortDirection) vault.SortDirection {
+	switch d {
+	case SortAsc:
+		return vault.Ascending
+	case SortDesc:
+		return vault.Descending
+	default:
+		return vault.Ascending
+	}
+}
+
+func secretsToRPC(ss []*secret.Secret) []*Secret {
+	out := make([]*Secret, 0, len(ss))
+	for _, s := range ss {
+		out = append(out, secretToRPC(s))
+	}
+	return out
 }
 
 func secretToRPC(s *secret.Secret) *Secret {
@@ -162,25 +160,5 @@ func secretTypeFromRPC(s SecretType) secret.Type {
 		return secret.NoteType
 	default:
 		return secret.UnknownType
-	}
-}
-
-func secretsSort(secrets []*Secret, sortField string, sortDirection SortDirection, i, j int) bool {
-	switch sortField {
-	case "id":
-		if sortDirection == SortDesc {
-			return secrets[i].ID > secrets[j].ID
-		}
-		return secrets[i].ID < secrets[j].ID
-	case "name":
-		if secrets[i].Name == secrets[j].Name {
-			return secretsSort(secrets, "id", sortDirection, i, j)
-		}
-		if sortDirection == SortDesc {
-			return secrets[i].Name > secrets[j].Name
-		}
-		return secrets[i].Name < secrets[j].Name
-	default:
-		return secretsSort(secrets, "name", sortDirection, i, j)
 	}
 }

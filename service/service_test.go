@@ -53,6 +53,10 @@ func writeTestFile(t *testing.T) string {
 func testFire(t *testing.T, clock *tsutil.Clock) server.Fire {
 	fi := ds.NewMem()
 	fi.SetTimeNow(clock.Now)
+	vclock := tsutil.NewClock()
+	fi.SetIncrementFn(func(ctx context.Context) (int64, error) {
+		return tsutil.Millis(vclock.Now()), nil
+	})
 	return fi
 }
 
@@ -91,7 +95,7 @@ func newTestServiceWithOpts(t *testing.T, env *testEnv, appName string) (*servic
 	cfg, closeCfg := testConfig(t, appName, serverEnv.url)
 	auth := newAuth(cfg)
 
-	svc, err := newService(cfg, Build{Version: "1.2.3", Commit: "deadbeef"}, auth, env.req, "mem", env.clock.Now)
+	svc, err := newService(cfg, Build{Version: "1.2.3", Commit: "deadbeef"}, auth, env.req, env.clock.Now)
 	require.NoError(t, err)
 
 	err = svc.Open()

@@ -9,7 +9,7 @@ keys stop || true
 
 function cleanup {
     echo "Cleaning up..."
-    keys -app Test uninstall
+    keys -app Test uninstall -force
 }
 trap cleanup EXIT
 

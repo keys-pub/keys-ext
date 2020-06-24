@@ -12,6 +12,7 @@ import (
 
 // Keys (RPC) ...
 func (s *service) Keys(ctx context.Context, req *KeysRequest) (*KeysResponse, error) {
+	query := strings.TrimSpace(req.Query)
 	sortField := req.SortField
 	if sortField == "" {
 		sortField = "user"
@@ -27,12 +28,12 @@ func (s *service) Keys(ctx context.Context, req *KeysRequest) (*KeysResponse, er
 		types = append(types, typ)
 	}
 
-	res, err := s.vault.Keys(vault.WithKeyTypes(types...))
+	vkeys, err := s.vault.Keys(vault.Keys.Types(types...))
 	if err != nil {
 		return nil, err
 	}
 
-	out, err := s.keys(ctx, res, req.Query, sortField, sortDirection)
+	out, err := s.filterKeys(ctx, vkeys, query, sortField, sortDirection)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +45,7 @@ func (s *service) Keys(ctx context.Context, req *KeysRequest) (*KeysResponse, er
 	}, nil
 }
 
-func (s *service) keys(ctx context.Context, ks []keys.Key, query string, sortField string, sortDirection SortDirection) ([]*Key, error) {
+func (s *service) filterKeys(ctx context.Context, ks []keys.Key, query string, sortField string, sortDirection SortDirection) ([]*Key, error) {
 	keys := make([]*Key, 0, len(ks))
 	for _, k := range ks {
 		key, err := s.keyToRPC(ctx, k)

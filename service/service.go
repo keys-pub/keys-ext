@@ -29,13 +29,26 @@ type service struct {
 	unlockMtx sync.Mutex
 }
 
-// const vdbFilename = "vault.vdb"
 const sdbFilename = "keys.sdb"
+const vdbFilename = "vault.vdb"
 
 // TODO: Remove old db "keys.leveldb"
 
-func newService(cfg *Config, build Build, auth *auth, req request.Requestor, vaultType string, clock func() time.Time) (*service, error) {
+func newService(cfg *Config, build Build, auth *auth, req request.Requestor, clock func() time.Time) (*service, error) {
 	logger.Debugf("New service: %s", cfg.AppName())
+
+	remote, err := client.New(cfg.Server())
+	if err != nil {
+		return nil, err
+	}
+	remote.SetClock(clock)
+
+	path, err := cfg.AppPath(vdbFilename, true)
+	if err != nil {
+		return nil, err
+	}
+	vlt := vault.New(vault.NewDB(path), vault.WithClock(clock))
+	vlt.SetRemote(remote)
 
 	db := sdb.New()
 	db.SetClock(clock)
@@ -44,18 +57,6 @@ func newService(cfg *Config, build Build, auth *auth, req request.Requestor, vau
 	if err != nil {
 		return nil, err
 	}
-
-	remote, err := client.New(cfg.Server())
-	if err != nil {
-		return nil, err
-	}
-	remote.SetClock(clock)
-
-	vlt, err := newVault(cfg, vaultType, vault.V1(), vault.WithClock(clock))
-	if err != nil {
-		return nil, err
-	}
-	vlt.SetRemote(remote)
 
 	return &service{
 		auth:   auth,
@@ -71,20 +72,22 @@ func newService(cfg *Config, build Build, auth *auth, req request.Requestor, vau
 }
 
 func (s *service) Open() error {
-	// logger.Infof("Opening vault db...")
-	// path, err := s.cfg.AppPath(vdbFilename, true)
-	// if err != nil {
-	// 	return err
-	// }
-	// if err := s.vault.OpenAtPath(path); err != nil {
-	// 	return err
-	// }
+	logger.Infof("Opening vault...")
+	if err := s.vault.Store().Open(); err != nil {
+		return err
+	}
+	if err := checkKeyringConvert(s.cfg, s.vault); err != nil {
+		return err
+	}
 	return nil
 }
 
 func (s *service) Close() {
+	logger.Infof("Closing...")
 	s.Lock()
-	// vdb.Close()
+	if err := s.vault.Store().Close(); err != nil {
+		logger.Errorf("Error closing vault db: %v", err)
+	}
 }
 
 // Unlock the service.
@@ -144,7 +147,7 @@ func (s *service) Lock() {
 
 func (s *service) lock() {
 	s.stopUpdateCheck()
-	logger.Infof("Closing db...")
+	logger.Infof("Closing sdb...")
 	s.db.Close()
 	s.unlocked = false
 }

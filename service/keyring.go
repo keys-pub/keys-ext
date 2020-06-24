@@ -5,15 +5,39 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"github.com/keys-pub/keys-ext/vault"
 	"github.com/keys-pub/keys/keyring"
 	"github.com/pkg/errors"
 )
 
-func newKeyringStore(cfg *Config, typ string) (keyring.Store, error) {
+func checkKeyringConvert(cfg *Config, vlt *vault.Vault) error {
+	empty, err := vlt.IsEmpty()
+	if err != nil {
+		return err
+	}
+	if !empty {
+		return nil
+	}
+	logger.Infof("Checking keyring convert...")
+	kr, err := newKeyring(cfg, "")
+	if err != nil {
+		return err
+	}
+	if err := vault.ConvertKeyring(kr, vlt); err != nil {
+		return err
+	}
+	logger.Infof("Resetting keyring...")
+	if err := kr.Reset(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func newKeyring(cfg *Config, typ string) (keyring.Keyring, error) {
 	switch typ {
 	case "":
 		logger.Infof("Keyring (default)")
-		st, err := defaultKeyringStore(cfg)
+		st, err := defaultKeyring(cfg)
 		if err != nil {
 			return nil, err
 		}
@@ -41,15 +65,15 @@ func newKeyringStore(cfg *Config, typ string) (keyring.Store, error) {
 	}
 }
 
-func defaultKeyringStore(cfg *Config) (keyring.Store, error) {
+func defaultKeyring(cfg *Config) (keyring.Keyring, error) {
 	// Check linux fallback.
 	// We used to support a keyring type config option for "fs".
 	// In earlier version of keyring, we used a fallback for linux at
 	// ~/.keyring/<service>.
+	if cfg.Get("keyring", "") == "fs" {
+		return newKeyring(cfg, "fs")
+	}
 	if runtime.GOOS == "linux" {
-		if cfg.Get("keyring", "") == "fs" {
-			return newKeyringStore(cfg, "fs")
-		}
 		if err := keyring.CheckSystem(); err != nil {
 			service := keyringServiceName(cfg)
 			return linuxFallbackFS(service)
@@ -57,14 +81,14 @@ func defaultKeyringStore(cfg *Config) (keyring.Store, error) {
 	}
 
 	// Use system
-	return newKeyringStore(cfg, "sys")
+	return newKeyring(cfg, "sys")
 }
 
 func keyringServiceName(cfg *Config) string {
 	return cfg.AppName() + ".keyring"
 }
 
-func linuxFallbackFS(service string) (keyring.Store, error) {
+func linuxFallbackFS(service string) (keyring.Keyring, error) {
 	usr, err := user.Current()
 	if err != nil {
 		return nil, err
