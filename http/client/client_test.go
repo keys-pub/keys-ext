@@ -1,6 +1,7 @@
 package client_test
 
 import (
+	"context"
 	"net/http/httptest"
 	"testing"
 
@@ -31,6 +32,10 @@ func testEnv(t *testing.T, logger server.Logger) *env {
 	clock := tsutil.NewClock()
 	fi := ds.NewMem()
 	fi.SetTimeNow(clock.Now)
+	vclock := tsutil.NewClock()
+	fi.SetIncrementFn(func(ctx context.Context) (int64, error) {
+		return tsutil.Millis(vclock.Now()), nil
+	})
 	ns := server.NewMemTestCache(clock.Now)
 	req := request.NewMockRequestor()
 	users := testUserStore(t, fi, req, clock)
