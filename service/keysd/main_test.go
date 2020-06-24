@@ -38,4 +38,7 @@ func TestServiceFn(t *testing.T) {
 	}()
 	serveErr := serveFn()
 	require.NoError(t, serveErr)
+
+	// Give time to close
+	time.Sleep(time.Second)
 }
