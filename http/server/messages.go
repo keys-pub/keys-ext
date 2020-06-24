@@ -93,13 +93,13 @@ func (s *Server) postMessage(c echo.Context) error {
 	}
 
 	spath := ds.Path("direct", kid, rid)
-	if _, err := s.fi.ChangeAdd(ctx, spath, []byte(path)); err != nil {
+	if err := s.fi.ChangesAdd(ctx, spath, [][]byte{[]byte(path)}); err != nil {
 		return s.internalError(c, err)
 	}
 
 	if kid != rid {
 		rpath := ds.Path("direct", rid, kid)
-		if _, err := s.fi.ChangeAdd(ctx, rpath, []byte(path)); err != nil {
+		if err := s.fi.ChangesAdd(ctx, rpath, [][]byte{[]byte(path)}); err != nil {
 			// TODO: This could leave in an inconsistent state (only 1 person sees message)
 			return s.internalError(c, err)
 		}

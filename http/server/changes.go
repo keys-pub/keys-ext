@@ -4,7 +4,6 @@ import (
 	"strconv"
 
 	"github.com/keys-pub/keys/ds"
-	"github.com/keys-pub/keys/tsutil"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 )
@@ -55,24 +54,19 @@ func (s *Server) changes(c echo.Context, path string) (*changes, error, error) {
 	}
 
 	s.logger.Infof("Changes %s (from=%d)", path, version)
-	iter, err := s.fi.Changes(ctx, path, tsutil.ParseMillis(version), limit, dir)
+	iter, err := s.fi.Changes(ctx, path, version, limit, dir)
 	if err != nil {
 		return nil, nil, err
 	}
 	defer iter.Release()
-	chngs, to, err := ds.ChangesFromIterator(iter, tsutil.ParseMillis(version))
+	chngs, to, err := ds.ChangesFromIterator(iter, version)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	s.logger.Debugf("Changes %s, got %d", path, len(chngs))
 
-	versionNext := int64(0)
-	if to.IsZero() {
-		versionNext = version
-	} else {
-		versionNext = tsutil.Millis(to)
-	}
+	versionNext := to
 
 	s.logger.Infof("Changes %s (to=%d)", path, versionNext)
 

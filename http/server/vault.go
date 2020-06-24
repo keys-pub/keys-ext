@@ -38,7 +38,7 @@ func (s *Server) postVault(c echo.Context) error {
 
 	ctx := c.Request().Context()
 	cpath := ds.Path("vaults", kid, "changes")
-	if _, err := s.fi.ChangeAdd(ctx, cpath, data); err != nil {
+	if err := s.fi.ChangesAdd(ctx, cpath, [][]byte{data}); err != nil {
 		return s.internalError(c, err)
 	}
 
@@ -66,31 +66,32 @@ func (s *Server) listVault(c echo.Context) error {
 		return ErrNotFound(c, errors.Errorf("vault not found"))
 	}
 
-	items := make([]*api.VaultItem, 0, len(chgs.changes))
+	boxes := make([]*api.VaultBox, 0, len(chgs.changes))
 	for _, chg := range chgs.changes {
-		item, err := s.vaultItemFromChange(chg)
+		box, err := s.vaultBoxFromChange(chg)
 		if err != nil {
 			return s.internalError(c, err)
 		}
-		if item == nil {
+		if box == nil {
 			continue
 		}
-		items = append(items, item)
+		boxes = append(boxes, box)
 	}
 
 	resp := api.VaultResponse{
-		Items:   items,
+		Boxes:   boxes,
 		Version: fmt.Sprintf("%d", chgs.versionNext),
 	}
 	return JSON(c, http.StatusOK, resp)
 }
 
-func (s *Server) vaultItemFromChange(chg *ds.Change) (*api.VaultItem, error) {
+func (s *Server) vaultBoxFromChange(chg *ds.Change) (*api.VaultBox, error) {
 	if chg == nil {
 		return nil, nil
 	}
-	return &api.VaultItem{
+	return &api.VaultBox{
 		Data:      chg.Data,
+		Version:   chg.Version,
 		Timestamp: chg.Timestamp,
 	}, nil
 }
@@ -118,17 +119,19 @@ func (s *Server) putVault(c echo.Context) error {
 		return ErrBadRequest(c, errors.Errorf("message too large (greater than 1MiB)"))
 	}
 
-	var vault []*api.VaultItem
+	var vault []*api.VaultBox
 	if err := json.Unmarshal(b, &vault); err != nil {
 		return ErrBadRequest(c, err)
 	}
 
 	ctx := c.Request().Context()
 	cpath := ds.Path("vaults", kid, "changes")
-	for _, item := range vault {
-		if _, err := s.fi.ChangeAdd(ctx, cpath, item.Data); err != nil {
-			return s.internalError(c, err)
-		}
+	data := make([][]byte, 0, len(vault))
+	for _, v := range vault {
+		data = append(data, v.Data)
+	}
+	if err := s.fi.ChangesAdd(ctx, cpath, data); err != nil {
+		return s.internalError(c, err)
 	}
 
 	var resp struct{}

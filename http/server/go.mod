@@ -4,9 +4,9 @@ go 1.14
 
 require (
 	github.com/gorilla/websocket v1.4.2
-	github.com/keys-pub/keys v0.0.0-20200618211112-96955ab2a908
-	github.com/keys-pub/keys-ext/firestore v0.0.0-20200612011605-1b8b64293fa0
-	github.com/keys-pub/keys-ext/http/api v0.0.0-20200618211624-e8000cad93a4
+	github.com/keys-pub/keys v0.0.0-20200624005746-a27efaeb8455
+	github.com/keys-pub/keys-ext/firestore v0.0.0-20200624010329-d03428c649d4
+	github.com/keys-pub/keys-ext/http/api v0.0.0-20200624010329-d03428c649d4
 	github.com/labstack/echo/v4 v4.1.16
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.5.1

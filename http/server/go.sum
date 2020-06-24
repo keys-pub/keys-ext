@@ -118,10 +118,16 @@ github.com/keys-pub/keys v0.0.0-20200612010917-0cf3f60778ea h1:aIBP0C4UKUo3KqrXW
 github.com/keys-pub/keys v0.0.0-20200612010917-0cf3f60778ea/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys v0.0.0-20200618211112-96955ab2a908 h1:Pf+nEkPiftcVoPbBKoLboQcN+D6q+EZh0KjHvyr9lZo=
 github.com/keys-pub/keys v0.0.0-20200618211112-96955ab2a908/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.0.0-20200624005746-a27efaeb8455 h1:V7si7TrgSMa52RUwao2ne9fkquKhcsSgcMQihIoYhpU=
+github.com/keys-pub/keys v0.0.0-20200624005746-a27efaeb8455/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys-ext/firestore v0.0.0-20200612011605-1b8b64293fa0 h1:tlT3r1x0ejXQIqRubcD+QSnoE46E0TjbXwUWIzslUVY=
 github.com/keys-pub/keys-ext/firestore v0.0.0-20200612011605-1b8b64293fa0/go.mod h1:b4zTQwJHqfQ5adqVzfqBI0uPdtm1Y6S9klMf/I1m1s0=
+github.com/keys-pub/keys-ext/firestore v0.0.0-20200624010329-d03428c649d4 h1:pbAr6yfWAk+rz6X96GWxF/vEeIg/shXmZ9vvru0dzsQ=
+github.com/keys-pub/keys-ext/firestore v0.0.0-20200624010329-d03428c649d4/go.mod h1:7/M/3nqiUDOWISgY/iZMXnPxxzKtZOJIGa8jHRAFQ0o=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20200618211624-e8000cad93a4 h1:e2zZFpwSKoUwe1AqI+gy/hpgwD8RcshBVLj9J7QOkxA=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20200618211624-e8000cad93a4/go.mod h1:V28cd5Upetp5ozlUwDCtKEnFECf915hO3HS/jFAqCxM=
+github.com/keys-pub/keys-ext/http/api v0.0.0-20200624010329-d03428c649d4 h1:fqmbbioMCMWZg0a96VvTygpAKBurYOBwjdCiuNmfVP8=
+github.com/keys-pub/keys-ext/http/api v0.0.0-20200624010329-d03428c649d4/go.mod h1:V28cd5Upetp5ozlUwDCtKEnFECf915hO3HS/jFAqCxM=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f h1:LLsdI2XManLH0JonKqB6OYmHdHk/WwJByDbHI3hCEcs=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f/go.mod h1:YRHMiVbZqh7u8xRm77CvwJNAZdDlNXwWvQ4DK0N9mYg=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=

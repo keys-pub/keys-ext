@@ -40,6 +40,10 @@ type testServer struct {
 func testFire(t *testing.T, clock *tsutil.Clock) server.Fire {
 	fi := ds.NewMem()
 	fi.SetTimeNow(clock.Now)
+	vclock := tsutil.NewClock()
+	fi.SetIncrementFn(func(ctx context.Context) (int64, error) {
+		return tsutil.Millis(vclock.Now()), nil
+	})
 	return fi
 }
 
