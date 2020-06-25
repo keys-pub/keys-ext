@@ -53,10 +53,6 @@ func writeTestFile(t *testing.T) string {
 func testFire(t *testing.T, clock *tsutil.Clock) server.Fire {
 	fi := ds.NewMem()
 	fi.SetTimeNow(clock.Now)
-	vclock := tsutil.NewClock()
-	fi.SetIncrementFn(func(ctx context.Context) (int64, error) {
-		return tsutil.Millis(vclock.Now()), nil
-	})
 	return fi
 }
 
@@ -265,8 +261,8 @@ type serverEnv struct {
 }
 
 func newTestServerEnv(t *testing.T, env *testEnv) *serverEnv {
-	mc := server.NewMemTestCache(env.clock.Now)
-	srv := server.New(env.fi, mc, env.users, logger)
+	rds := server.NewRedisTest(env.clock.Now)
+	srv := server.New(env.fi, rds, env.users, logger)
 	srv.SetNowFn(env.clock.Now)
 	tasks := server.NewTestTasks(srv)
 	srv.SetTasks(tasks)

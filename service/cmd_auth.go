@@ -29,6 +29,7 @@ func authCommands(client *Client) []cli.Command {
 				authProvisionCommand(client),
 				authProvisionsCommand(client),
 				authDeprovisionCommand(client),
+				authVaultCommand(client),
 				changePasswordCommand(client),
 			},
 			Action: func(c *cli.Context) error {
@@ -107,6 +108,28 @@ func authCommands(client *Client) []cli.Command {
 				}
 				return nil
 			},
+		},
+	}
+}
+
+func authVaultCommand(client *Client) cli.Command {
+	return cli.Command{
+		Name:  "vault",
+		Usage: "Auth from remote vault",
+		Flags: []cli.Flag{
+			cli.StringFlag{Name: "key", Usage: "Key for remote vault"},
+		},
+		Action: func(c *cli.Context) error {
+			key, err := readPassword("Vault key:", false)
+			if err != nil {
+				return err
+			}
+			if _, err := client.KeysClient().AuthVault(context.TODO(), &AuthVaultRequest{
+				Key: key,
+			}); err != nil {
+				return err
+			}
+			return nil
 		},
 	}
 }

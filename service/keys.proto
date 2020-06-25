@@ -94,6 +94,8 @@ service Keys {
   rpc AuthProvisions(AuthProvisionsRequest) returns (AuthProvisionsResponse) {}  
   rpc PasswordChange(PasswordChangeRequest) returns (PasswordChangeResponse) {}
   
+  rpc VaultSync(VaultSyncRequest) returns (VaultSyncResponse) {}
+
   rpc Collections(CollectionsRequest) returns (CollectionsResponse) {}
   rpc Documents(DocumentsRequest) returns (DocumentsResponse) {}
   rpc DocumentDelete(DocumentDeleteRequest) returns (DocumentDeleteResponse) {}
@@ -861,6 +863,9 @@ message SearchRequest {
 message SearchResponse {
   repeated Key keys = 1;  
 }
+
+message VaultSyncRequest {}
+message VaultSyncResponse {}
 
 message WormholeInput {  
   string sender = 1;

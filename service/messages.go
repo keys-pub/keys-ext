@@ -3,19 +3,19 @@ package service
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"sort"
 	"time"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/saltpack"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
 )
 
-// MessagePrepare (RPC) prepares to create a message, the response can be used to show a pending message
+// MessagePrepare (RPC) prepares to create a message, the response can be used to show a pending message.
 func (s *service) MessagePrepare(ctx context.Context, req *MessagePrepareRequest) (*MessagePrepareResponse, error) {
 	message, prepareErr := s.messagePrepare(ctx, req.Sender, req.Recipient, req.Text)
 	if prepareErr != nil {
@@ -26,7 +26,7 @@ func (s *service) MessagePrepare(ctx context.Context, req *MessagePrepareRequest
 	}, nil
 }
 
-// MessageCreate (RPC) creates a message for a recipient
+// MessageCreate (RPC) creates a message for a recipient.
 func (s *service) MessageCreate(ctx context.Context, req *MessageCreateRequest) (*MessageCreateResponse, error) {
 	message, createErr := s.messageCreate(ctx, req.Sender, req.Recipient, req.Text)
 	if createErr != nil {
@@ -87,7 +87,9 @@ func (s *service) messagePrepare(ctx context.Context, sender string, recipient s
 		return nil, err
 	}
 
+	id := encoding.MustEncode(keys.RandBytes(32), encoding.Base62)
 	message := &Message{
+		ID: id,
 		Content: &Content{
 			Data: []byte(text),
 			Type: UTF8Content,
@@ -115,7 +117,10 @@ func (s *service) messageCreate(ctx context.Context, sender string, recipient st
 		return nil, err
 	}
 
+	// TODO: ID from prepare?
+	id := encoding.MustEncode(keys.RandBytes(32), encoding.Base62)
 	message := &Message{
+		ID: id,
 		Content: &Content{
 			Data: []byte(text),
 			Type: UTF8Content,
@@ -126,12 +131,10 @@ func (s *service) messageCreate(ctx context.Context, sender string, recipient st
 		return nil, err
 	}
 
-	resp, err := s.remote.MessageSend(ctx, key, rid, b, time.Hour*24)
-	if err != nil {
+	event := client.NewEvent(ds.Path("msgs", id), b, nil)
+	if err := s.remote.MessageSend(ctx, key, rid, event); err != nil { //, time.Hour*24)
 		return nil, err
 	}
-	message.ID = resp.ID
-
 	// TODO: Sync to local
 
 	return message, nil
@@ -180,7 +183,11 @@ func (s *service) message(ctx context.Context, path string) (*Message, error) {
 }
 
 func (s *service) messages(ctx context.Context, key *keys.EdX25519Key, recipient keys.ID) ([]*Message, error) {
-	path := fmt.Sprintf("messages-%s-%s", key.ID(), recipient)
+	addr, err := keys.NewAddress(key.ID(), recipient)
+	if err != nil {
+		return nil, err
+	}
+	path := ds.Path("msgs", addr)
 	iter, iterErr := s.db.Documents(ctx, path, ds.NoData())
 	if iterErr != nil {
 		return nil, iterErr
@@ -212,35 +219,5 @@ func (s *service) messages(ctx context.Context, key *keys.EdX25519Key, recipient
 
 func (s *service) pullMessages(ctx context.Context, key *keys.EdX25519Key, recipient keys.ID) error {
 	logger.Infof("Pull messages...")
-	versionPath := ds.Path("versions", fmt.Sprintf("messages-%s", key.ID()))
-	e, err := s.db.Get(ctx, versionPath)
-	if err != nil {
-		return err
-	}
-	version := ""
-	if e != nil {
-		version = string(e.Data)
-	}
-	msgs, version, err := s.remote.Messages(ctx, key, recipient, &client.MessagesOpts{Version: version})
-	if err != nil {
-		return err
-	}
-
-	// TODO: Expiry
-	// TODO: If limit hit this doesn't get all messages
-
-	logger.Infof("Received %d messages", len(msgs))
-	for _, msg := range msgs {
-		ts := 9223372036854775807 - tsutil.Millis(msg.CreatedAt)
-		pathKey := fmt.Sprintf("messages-%s-%s", key.ID(), recipient)
-		pathVal := fmt.Sprintf("%d-%s", ts, msg.ID)
-		path := ds.Path(pathKey, pathVal)
-		if err := s.db.Set(ctx, path, msg.Data); err != nil {
-			return err
-		}
-	}
-	if err := s.db.Set(ctx, versionPath, []byte(version)); err != nil {
-		return err
-	}
-	return nil
+	return errors.Errorf("not implemented")
 }

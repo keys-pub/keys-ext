@@ -61,20 +61,18 @@ func (s *service) AuthVault(ctx context.Context, req *AuthVaultRequest) (*AuthVa
 	if err != nil {
 		return nil, err
 	}
-	sk, ok := key.(*keys.EdX25519Key)
+	rk, ok := key.(*keys.EdX25519Key)
 	if !ok {
 		return nil, errors.Errorf("not an EdX25519 key")
 	}
 
-	vault, err := s.remote.Vault(ctx, sk)
-	if err != nil {
+	s.vault.SetRemoteKey(rk)
+
+	if err := s.vault.Pull(ctx); err != nil {
 		return nil, err
 	}
-	logger.Infof("Vault: %+v", vault)
-	// TODO: Implement
 
-	return nil, errors.Errorf("not implemented")
-	// return &AuthVaultResponse{}, nil
+	return &AuthVaultResponse{}, nil
 }
 
 // AuthUnlock (RPC) ...
