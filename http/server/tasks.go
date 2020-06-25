@@ -2,13 +2,11 @@ package server
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/user"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
@@ -143,48 +141,48 @@ func (s *Server) checkKeys(ctx context.Context, kids []keys.ID) error {
 	return nil
 }
 
-func (s *Server) taskExpired(c echo.Context) error {
-	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
-	ctx := c.Request().Context()
+// func (s *Server) taskExpired(c echo.Context) error {
+// 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
+// 	ctx := c.Request().Context()
 
-	if err := s.checkInternalAuth(c); err != nil {
-		return err
-	}
+// 	if err := s.checkInternalAuth(c); err != nil {
+// 		return err
+// 	}
 
-	iter, err := s.fi.Documents(ctx, ds.Path("msgs"))
-	if err != nil {
-		return s.internalError(c, err)
-	}
-	defer iter.Release()
-	paths := []string{}
-	for {
-		doc, err := iter.Next()
-		if err != nil {
-			return s.internalError(c, err)
-		}
-		if doc == nil {
-			break
-		}
-		var msg message
-		if err := json.Unmarshal(doc.Data, &msg); err != nil {
-			return s.internalError(c, err)
-		}
+// 	iter, err := s.fi.Documents(ctx, ds.Path("msgs"))
+// 	if err != nil {
+// 		return s.internalError(c, err)
+// 	}
+// 	defer iter.Release()
+// 	paths := []string{}
+// 	for {
+// 		doc, err := iter.Next()
+// 		if err != nil {
+// 			return s.internalError(c, err)
+// 		}
+// 		if doc == nil {
+// 			break
+// 		}
+// 		var msg message
+// 		if err := json.Unmarshal(doc.Data, &msg); err != nil {
+// 			return s.internalError(c, err)
+// 		}
 
-		ok, err := s.checkMessage(&msg, doc)
-		if err != nil {
-			return s.internalError(c, err)
-		}
-		if !ok {
-			paths = append(paths, doc.Path)
-		}
-	}
+// 		ok, err := s.checkMessage(&msg, doc)
+// 		if err != nil {
+// 			return s.internalError(c, err)
+// 		}
+// 		if !ok {
+// 			paths = append(paths, doc.Path)
+// 		}
+// 	}
 
-	if err := s.fi.DeleteAll(ctx, paths); err != nil {
-		return s.internalError(c, err)
-	}
+// 	if err := s.fi.DeleteAll(ctx, paths); err != nil {
+// 		return s.internalError(c, err)
+// 	}
 
-	return c.String(http.StatusOK, "")
-}
+// 	return c.String(http.StatusOK, "")
+// }
 
 func (s *Server) cronExpired(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())

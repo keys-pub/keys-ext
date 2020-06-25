@@ -40,10 +40,6 @@ type testServer struct {
 func testFire(t *testing.T, clock *tsutil.Clock) server.Fire {
 	fi := ds.NewMem()
 	fi.SetTimeNow(clock.Now)
-	vclock := tsutil.NewClock()
-	fi.SetIncrementFn(func(ctx context.Context) (int64, error) {
-		return tsutil.Millis(vclock.Now()), nil
-	})
 	return fi
 }
 
@@ -100,8 +96,8 @@ func newEnvWithFire(t *testing.T, fi server.Fire, clock *tsutil.Clock) *env {
 }
 
 func newTestServer(t *testing.T, env *env) *testServer {
-	mc := server.NewMemTestCache(env.clock.Now)
-	svr := server.New(env.fi, mc, env.users, server.NewLogger(env.logLevel))
+	rds := server.NewRedisTest(env.clock.Now)
+	svr := server.New(env.fi, rds, env.users, server.NewLogger(env.logLevel))
 	tasks := server.NewTestTasks(svr)
 	svr.SetTasks(tasks)
 	svr.SetInternalAuth(encoding.MustEncode(keys.RandBytes(32), encoding.Base62))
@@ -124,8 +120,8 @@ func (s *testServer) Serve(req *http.Request) (int, http.Header, string) {
 
 func newTestPubSubServer(t *testing.T, env *env) *testPubSubServer {
 	pubSub := server.NewPubSub()
-	mc := server.NewMemTestCache(env.clock.Now)
-	svr := server.NewPubSubServer(pubSub, mc, server.NewLogger(server.ErrLevel))
+	rds := server.NewRedisTest(env.clock.Now)
+	svr := server.NewPubSubServer(pubSub, rds, server.NewLogger(server.ErrLevel))
 	svr.SetNowFn(env.clock.Now)
 	handler := server.NewPubSubHandler(svr)
 	return &testPubSubServer{

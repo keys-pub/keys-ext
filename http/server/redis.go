@@ -9,9 +9,9 @@ import (
 	"github.com/keys-pub/keys/ds"
 )
 
-// MemCache defines interface for memcache.
+// Redis defines interface for memcache.
 // Used to prevent nonce re-use for authenticated requests.
-type MemCache interface {
+type Redis interface {
 	// Get returns value at key.
 	Get(ctx context.Context, k string) (string, error)
 	// Put puts a value at key.
@@ -24,20 +24,20 @@ type MemCache interface {
 	Increment(ctx context.Context, k string) (int64, error)
 }
 
-type memCache struct {
+type rds struct {
 	sync.Mutex
 	kv    map[string]*mcEntry
 	nowFn func() time.Time
 }
 
-// NewMemTestCache returns in memory MemCache (for testing).
-func NewMemTestCache(nowFn func() time.Time) MemCache {
-	return newMemTestCache(nowFn)
+// NewRedisTest returns Redis for testing.
+func NewRedisTest(nowFn func() time.Time) Redis {
+	return newRedis(nowFn)
 }
 
-func newMemTestCache(nowFn func() time.Time) *memCache {
+func newRedis(nowFn func() time.Time) *rds {
 	kv := map[string]*mcEntry{}
-	mc := &memCache{
+	mc := &rds{
 		kv:    kv,
 		nowFn: nowFn,
 	}
@@ -49,7 +49,7 @@ type mcEntry struct {
 	Expire time.Time
 }
 
-func (m *memCache) Get(ctx context.Context, k string) (string, error) {
+func (m *rds) Get(ctx context.Context, k string) (string, error) {
 	m.Lock()
 	defer m.Unlock()
 	e, err := m.get(ctx, k)
@@ -62,7 +62,7 @@ func (m *memCache) Get(ctx context.Context, k string) (string, error) {
 	return e.Value, nil
 }
 
-func (m *memCache) get(ctx context.Context, k string) (*mcEntry, error) {
+func (m *rds) get(ctx context.Context, k string) (*mcEntry, error) {
 	e, ok := m.kv[ds.Path("memcache", k)]
 	if !ok {
 		return nil, nil
@@ -77,7 +77,7 @@ func (m *memCache) get(ctx context.Context, k string) (*mcEntry, error) {
 	return e, nil
 }
 
-func (m *memCache) Expire(ctx context.Context, k string, dt time.Duration) error {
+func (m *rds) Expire(ctx context.Context, k string, dt time.Duration) error {
 	m.Lock()
 	defer m.Unlock()
 	t := m.nowFn()
@@ -90,25 +90,25 @@ func (m *memCache) Expire(ctx context.Context, k string, dt time.Duration) error
 	return m.set(ctx, k, e)
 }
 
-func (m *memCache) Delete(ctx context.Context, k string) error {
+func (m *rds) Delete(ctx context.Context, k string) error {
 	m.Lock()
 	defer m.Unlock()
 	delete(m.kv, ds.Path("memcache", k))
 	return nil
 }
 
-func (m *memCache) Set(ctx context.Context, k string, v string) error {
+func (m *rds) Set(ctx context.Context, k string, v string) error {
 	m.Lock()
 	defer m.Unlock()
 	return m.set(ctx, k, &mcEntry{Value: v})
 }
 
-func (m *memCache) set(ctx context.Context, k string, e *mcEntry) error {
+func (m *rds) set(ctx context.Context, k string, e *mcEntry) error {
 	m.kv[ds.Path("memcache", k)] = e
 	return nil
 }
 
-func (m *memCache) Increment(ctx context.Context, k string) (int64, error) {
+func (m *rds) Increment(ctx context.Context, k string) (int64, error) {
 	m.Lock()
 	defer m.Unlock()
 	e, err := m.get(ctx, k)

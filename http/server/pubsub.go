@@ -22,7 +22,7 @@ type PubSub interface {
 // PubSubServer implements PubSub.
 type PubSubServer struct {
 	pubSub PubSub
-	mc     MemCache
+	rds    Redis
 	logger Logger
 	nowFn  func() time.Time
 
@@ -30,10 +30,10 @@ type PubSubServer struct {
 }
 
 // NewPubSubServer creates a PubSubServer.
-func NewPubSubServer(pubSub PubSub, mc MemCache, logger Logger) *PubSubServer {
+func NewPubSubServer(pubSub PubSub, rds Redis, logger Logger) *PubSubServer {
 	return &PubSubServer{
 		pubSub: pubSub,
-		mc:     mc,
+		rds:    rds,
 		logger: logger,
 	}
 }
@@ -70,7 +70,7 @@ func (s *PubSubServer) publish(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	_, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.mc)
+	_, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.rds)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}
@@ -123,7 +123,7 @@ var (
 func (s *PubSubServer) subscribe(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	kid, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.mc)
+	kid, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.rds)
 	if err != nil {
 		s.logger.Errorf("Authorize error: %v", err)
 		return ErrResponse(c, status, err.Error())

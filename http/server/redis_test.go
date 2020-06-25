@@ -12,58 +12,58 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMemTestCache(t *testing.T) {
+func TestRedis(t *testing.T) {
 	clock := tsutil.NewClock()
-	mc := server.NewMemTestCache(clock.Now)
+	rds := server.NewRedisTest(clock.Now)
 
 	n1 := encoding.MustEncode(keys.RandBytes(32), encoding.Base62)
-	val, err := mc.Get(context.TODO(), n1)
+	val, err := rds.Get(context.TODO(), n1)
 	require.NoError(t, err)
 	require.Empty(t, val)
 
-	err = mc.Set(context.TODO(), n1, "1")
+	err = rds.Set(context.TODO(), n1, "1")
 	require.NoError(t, err)
 
-	val, err = mc.Get(context.TODO(), n1)
+	val, err = rds.Get(context.TODO(), n1)
 	require.NoError(t, err)
 	require.Equal(t, "1", val)
 
-	n, err := mc.Increment(context.TODO(), n1)
+	n, err := rds.Increment(context.TODO(), n1)
 	require.NoError(t, err)
 	require.Equal(t, int64(2), n)
 
-	val, err = mc.Get(context.TODO(), n1)
+	val, err = rds.Get(context.TODO(), n1)
 	require.NoError(t, err)
 	require.Equal(t, "2", val)
 }
 
-func TestMemTestCacheExpiration(t *testing.T) {
+func TestRedisExpiration(t *testing.T) {
 	// SetLog(newLog(DebugLevel))
 	clock := tsutil.NewClock()
 	clock.SetTick(time.Second)
-	mc := server.NewMemTestCache(clock.Now)
+	rds := server.NewRedisTest(clock.Now)
 
 	n1 := encoding.MustEncode(keys.RandBytes(32), encoding.Base62)
-	val, err := mc.Get(context.TODO(), n1)
+	val, err := rds.Get(context.TODO(), n1)
 	require.NoError(t, err)
 	require.Empty(t, val)
 
-	err = mc.Set(context.TODO(), n1, "1")
+	err = rds.Set(context.TODO(), n1, "1")
 	require.NoError(t, err)
-	err = mc.Expire(context.TODO(), n1, time.Millisecond)
+	err = rds.Expire(context.TODO(), n1, time.Millisecond)
 	require.NoError(t, err)
 
-	val2, err := mc.Get(context.TODO(), n1)
+	val2, err := rds.Get(context.TODO(), n1)
 	require.NoError(t, err)
 	require.Empty(t, val2)
 
 	n2 := encoding.MustEncode(keys.RandBytes(32), encoding.Base62)
-	err = mc.Set(context.TODO(), n2, "2")
+	err = rds.Set(context.TODO(), n2, "2")
 	require.NoError(t, err)
-	err = mc.Expire(context.TODO(), n2, time.Minute)
+	err = rds.Expire(context.TODO(), n2, time.Minute)
 	require.NoError(t, err)
 
-	val3, err := mc.Get(context.TODO(), n2)
+	val3, err := rds.Get(context.TODO(), n2)
 	require.NoError(t, err)
 	require.NotEmpty(t, val3)
 }

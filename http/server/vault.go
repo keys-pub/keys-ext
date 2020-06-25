@@ -2,7 +2,6 @@ package server
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -15,7 +14,7 @@ import (
 func (s *Server) postVault(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	kid, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.mc)
+	kid, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.rds)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}
@@ -37,8 +36,8 @@ func (s *Server) postVault(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	cpath := ds.Path("vaults", kid, "changes")
-	if err := s.fi.ChangesAdd(ctx, cpath, [][]byte{data}); err != nil {
+	cpath := ds.Path("vaults", kid)
+	if _, err := s.fi.EventsAdd(ctx, cpath, [][]byte{data}); err != nil {
 		return s.internalError(c, err)
 	}
 
@@ -49,57 +48,27 @@ func (s *Server) postVault(c echo.Context) error {
 func (s *Server) listVault(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	kid, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.mc)
+	kid, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.rds)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}
 
-	cpath := ds.Path("vaults", kid, "changes")
-	chgs, clientErr, err := s.changes(c, cpath)
-	if err != nil {
-		return s.internalError(c, err)
+	cpath := ds.Path("vaults", kid)
+	resp, respErr := s.events(c, cpath)
+	if respErr != nil {
+		return respErr
 	}
-	if clientErr != nil {
-		return ErrResponse(c, http.StatusBadRequest, clientErr.Error())
-	}
-	if len(chgs.changes) == 0 && chgs.version == 0 {
+	if len(resp.Events) == 0 && resp.Index == 0 {
 		return ErrNotFound(c, errors.Errorf("vault not found"))
 	}
 
-	boxes := make([]*api.VaultBox, 0, len(chgs.changes))
-	for _, chg := range chgs.changes {
-		box, err := s.vaultBoxFromChange(chg)
-		if err != nil {
-			return s.internalError(c, err)
-		}
-		if box == nil {
-			continue
-		}
-		boxes = append(boxes, box)
-	}
-
-	resp := api.VaultResponse{
-		Boxes:   boxes,
-		Version: fmt.Sprintf("%d", chgs.versionNext),
-	}
 	return JSON(c, http.StatusOK, resp)
-}
-
-func (s *Server) vaultBoxFromChange(chg *ds.Change) (*api.VaultBox, error) {
-	if chg == nil {
-		return nil, nil
-	}
-	return &api.VaultBox{
-		Data:      chg.Data,
-		Version:   chg.Version,
-		Timestamp: chg.Timestamp,
-	}, nil
 }
 
 func (s *Server) putVault(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	kid, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.mc)
+	kid, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.rds)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}
@@ -119,18 +88,18 @@ func (s *Server) putVault(c echo.Context) error {
 		return ErrBadRequest(c, errors.Errorf("message too large (greater than 1MiB)"))
 	}
 
-	var vault []*api.VaultBox
-	if err := json.Unmarshal(b, &vault); err != nil {
+	var req []*api.Data
+	if err := json.Unmarshal(b, &req); err != nil {
 		return ErrBadRequest(c, err)
 	}
 
 	ctx := c.Request().Context()
-	cpath := ds.Path("vaults", kid, "changes")
-	data := make([][]byte, 0, len(vault))
-	for _, v := range vault {
-		data = append(data, v.Data)
+	cpath := ds.Path("vaults", kid)
+	data := make([][]byte, 0, len(req))
+	for _, d := range req {
+		data = append(data, d.Data)
 	}
-	if err := s.fi.ChangesAdd(ctx, cpath, data); err != nil {
+	if _, err := s.fi.EventsAdd(ctx, cpath, data); err != nil {
 		return s.internalError(c, err)
 	}
 

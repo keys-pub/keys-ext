@@ -21,7 +21,7 @@ func (s *Server) postInvite(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	kid, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.mc)
+	kid, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.rds)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}
@@ -46,7 +46,7 @@ func (s *Server) postInvite(c echo.Context) error {
 	var code string
 	for i := 0; i < 3; i++ {
 		randWords := keys.RandWords(3)
-		existing, err := s.mc.Get(ctx, code)
+		existing, err := s.rds.Get(ctx, code)
 		if err != nil {
 			return s.internalError(c, err)
 		}
@@ -62,11 +62,11 @@ func (s *Server) postInvite(c echo.Context) error {
 	}
 
 	codeKey := fmt.Sprintf("code %s", code)
-	if err := s.mc.Set(ctx, codeKey, string(ib)); err != nil {
+	if err := s.rds.Set(ctx, codeKey, string(ib)); err != nil {
 		return s.internalError(c, err)
 	}
 	// TODO: Configurable expiry?
-	if err := s.mc.Expire(ctx, codeKey, time.Hour); err != nil {
+	if err := s.rds.Expire(ctx, codeKey, time.Hour); err != nil {
 		return s.internalError(c, err)
 	}
 
@@ -82,14 +82,14 @@ func (s *Server) getInvite(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	kid, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.mc)
+	kid, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.rds)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}
 
 	key := fmt.Sprintf("code %s", c.QueryParam("code"))
 	s.logger.Debugf("Get code: %s", key)
-	out, err := s.mc.Get(ctx, key)
+	out, err := s.rds.Get(ctx, key)
 	if err != nil {
 		return s.internalError(c, err)
 	}
@@ -109,7 +109,7 @@ func (s *Server) getInvite(c echo.Context) error {
 		return ErrNotFound(c, errors.Errorf("code not found"))
 	}
 	// TODO: Remove on access or when it's used?
-	// if err := s.mc.Delete(ctx, key); err != nil {
+	// if err := s.rds.Delete(ctx, key); err != nil {
 	// 	return s.internalError(c, err)
 	// }
 

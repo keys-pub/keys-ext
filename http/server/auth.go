@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func checkAuth(c echo.Context, baseURL string, now time.Time, mc MemCache) (*api.AuthResult, int, error) {
+func checkAuth(c echo.Context, baseURL string, now time.Time, rds Redis) (*api.AuthResult, int, error) {
 	request := c.Request()
 	auth := request.Header.Get("Authorization")
 	if auth == "" {
@@ -19,15 +19,15 @@ func checkAuth(c echo.Context, baseURL string, now time.Time, mc MemCache) (*api
 
 	url := baseURL + c.Request().URL.String()
 
-	authRes, err := api.CheckAuthorization(request.Context(), request.Method, url, auth, mc, now)
+	authRes, err := api.CheckAuthorization(request.Context(), request.Method, url, auth, rds, now)
 	if err != nil {
 		return nil, http.StatusForbidden, err
 	}
 	return authRes, 0, nil
 }
 
-func authorize(c echo.Context, baseURL string, param string, now time.Time, mc MemCache) (keys.ID, int, error) {
-	authRes, status, err := checkAuth(c, baseURL, now, mc)
+func authorize(c echo.Context, baseURL string, param string, now time.Time, rds Redis) (keys.ID, int, error) {
+	authRes, status, err := checkAuth(c, baseURL, now, rds)
 	if err != nil {
 		return "", status, err
 	}

@@ -23,7 +23,7 @@ func (s *Server) check(c echo.Context) error {
 	}
 	now := s.nowFn()
 	url := s.URL + c.Request().URL.String()
-	authRes, err := api.CheckAuthorization(ctx, request.Method, url, auth, s.mc, now)
+	authRes, err := api.CheckAuthorization(ctx, request.Method, url, auth, s.rds, now)
 	if err != nil {
 		return ErrForbidden(c, err)
 	}

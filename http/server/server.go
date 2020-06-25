@@ -20,7 +20,7 @@ import (
 // Server ...
 type Server struct {
 	fi     Fire
-	mc     MemCache
+	rds    Redis
 	nowFn  func() time.Time
 	logger Logger
 
@@ -34,20 +34,23 @@ type Server struct {
 	tasks        Tasks
 	internalAuth string
 
+	inc    int64
+	incMax int64
+
 	admins []keys.ID
 }
 
 // Fire defines interface for remote store (like Firestore).
 type Fire interface {
 	ds.DocumentStore
-	ds.Changes
+	ds.Events
 }
 
 // New creates a Server.
-func New(fi Fire, mc MemCache, users *user.Store, logger Logger) *Server {
+func New(fi Fire, rds Redis, users *user.Store, logger Logger) *Server {
 	return &Server{
 		fi:     fi,
-		mc:     mc,
+		rds:    rds,
 		nowFn:  time.Now,
 		tasks:  newUnsetTasks(),
 		users:  users,
@@ -98,7 +101,7 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 
 	// Tasks
 	e.POST("/task/check/:kid", s.taskCheck)
-	e.POST("/task/expired", s.taskExpired)
+	// e.POST("/task/expired", s.taskExpired)
 	e.GET("/task/create/check/:kid", s.createTaskCheck)
 
 	// Cron

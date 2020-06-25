@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -42,23 +43,23 @@ func TestVault(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	var resp api.VaultResponse
+	var resp api.EventsResponse
 	err = json.Unmarshal([]byte(body), &resp)
 	require.NoError(t, err)
-	require.NotEmpty(t, resp.Version)
-	require.Equal(t, 1, len(resp.Boxes))
-	require.Equal(t, []byte("test1"), resp.Boxes[0].Data)
+	require.Equal(t, int64(1), resp.Index)
+	require.Equal(t, 1, len(resp.Events))
+	require.Equal(t, []byte("test1"), resp.Events[0].Data)
 
-	// GET /vault/:kid?version=next
-	req, err = api.NewRequest("GET", ds.Path("vault", alice.ID())+"?version="+resp.Version, nil, clock.Now(), alice)
+	// GET /vault/:kid?idx=next
+	req, err = api.NewRequest("GET", ds.Path("vault", alice.ID())+"?idx="+strconv.Itoa(int(resp.Index)), nil, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	var resp2 api.MessagesResponse
+	var resp2 api.EventsResponse
 	err = json.Unmarshal([]byte(body), &resp2)
 	require.NoError(t, err)
-	require.Equal(t, 0, len(resp2.Messages))
-	require.Equal(t, resp.Version, resp2.Version)
+	require.Equal(t, 0, len(resp2.Events))
+	require.Equal(t, resp.Index, resp2.Index)
 
 	// POST /vault/:kid
 	req, err = api.NewRequest("POST", ds.Path("vault", alice.ID()), bytes.NewReader([]byte("test2")), clock.Now(), alice)
@@ -73,26 +74,26 @@ func TestVault(t *testing.T) {
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, `{}`, body)
 
-	// GET /vault/:kid?version=next
-	req, err = api.NewRequest("GET", ds.Path("vault", alice.ID())+"?version="+resp.Version, nil, clock.Now(), alice)
+	// GET /vault/:kid?idx=next
+	req, err = api.NewRequest("GET", ds.Path("vault", alice.ID())+"?idx="+strconv.Itoa(int(resp.Index)), nil, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	var resp3 api.VaultResponse
+	var resp3 api.EventsResponse
 	err = json.Unmarshal([]byte(body), &resp3)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(resp3.Boxes))
-	require.Equal(t, []byte("test2"), resp3.Boxes[0].Data)
-	require.Equal(t, []byte("test3"), resp3.Boxes[1].Data)
+	require.Equal(t, 2, len(resp3.Events))
+	require.Equal(t, []byte("test2"), resp3.Events[0].Data)
+	require.Equal(t, []byte("test3"), resp3.Events[1].Data)
 
 	// PUT /vault/:kid
-	vault := []*api.VaultBox{
-		&api.VaultBox{Data: []byte("test4")},
-		&api.VaultBox{Data: []byte("test5")},
-		&api.VaultBox{Data: []byte("test6")},
-		&api.VaultBox{Data: []byte("test7")},
-		&api.VaultBox{Data: []byte("test8")},
-		&api.VaultBox{Data: []byte("test9")},
+	vault := []*api.Data{
+		&api.Data{Data: []byte("test4")},
+		&api.Data{Data: []byte("test5")},
+		&api.Data{Data: []byte("test6")},
+		&api.Data{Data: []byte("test7")},
+		&api.Data{Data: []byte("test8")},
+		&api.Data{Data: []byte("test9")},
 	}
 	data, err := json.Marshal(vault)
 	require.NoError(t, err)
@@ -102,21 +103,21 @@ func TestVault(t *testing.T) {
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, `{}`, body)
 
-	// GET /vault/:kid?version=next
-	req, err = api.NewRequest("GET", ds.Path("vault", alice.ID())+"?version="+resp3.Version, nil, clock.Now(), alice)
+	// GET /vault/:kid?idx=next
+	req, err = api.NewRequest("GET", ds.Path("vault", alice.ID())+"?idx="+strconv.Itoa(int(resp3.Index)), nil, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	var resp4 api.VaultResponse
+	var resp4 api.EventsResponse
 	err = json.Unmarshal([]byte(body), &resp4)
 	require.NoError(t, err)
-	require.Equal(t, 6, len(resp4.Boxes))
-	require.Equal(t, []byte("test4"), resp4.Boxes[0].Data)
-	require.Equal(t, []byte("test5"), resp4.Boxes[1].Data)
-	require.Equal(t, []byte("test6"), resp4.Boxes[2].Data)
-	require.Equal(t, []byte("test7"), resp4.Boxes[3].Data)
-	require.Equal(t, []byte("test8"), resp4.Boxes[4].Data)
-	require.Equal(t, []byte("test9"), resp4.Boxes[5].Data)
+	require.Equal(t, 6, len(resp4.Events))
+	require.Equal(t, []byte("test4"), resp4.Events[0].Data)
+	require.Equal(t, []byte("test5"), resp4.Events[1].Data)
+	require.Equal(t, []byte("test6"), resp4.Events[2].Data)
+	require.Equal(t, []byte("test7"), resp4.Events[3].Data)
+	require.Equal(t, []byte("test8"), resp4.Events[4].Data)
+	require.Equal(t, []byte("test9"), resp4.Events[5].Data)
 }
 
 func TestVaultAuth(t *testing.T) {

@@ -27,7 +27,7 @@ func (s *Server) putDisco(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	kid, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.mc)
+	kid, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.rds)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}
@@ -79,11 +79,11 @@ func (s *Server) putDisco(c echo.Context) error {
 	}
 
 	key := discoKey(kid, rid, typ)
-	if err := s.mc.Set(ctx, key, string(b)); err != nil {
+	if err := s.rds.Set(ctx, key, string(b)); err != nil {
 		return s.internalError(c, err)
 	}
 
-	if err := s.mc.Expire(ctx, key, expire); err != nil {
+	if err := s.rds.Expire(ctx, key, expire); err != nil {
 		return s.internalError(c, err)
 	}
 
@@ -95,7 +95,7 @@ func (s *Server) getDisco(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	rid, status, err := authorize(c, s.URL, "rid", s.nowFn(), s.mc)
+	rid, status, err := authorize(c, s.URL, "rid", s.nowFn(), s.rds)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}
@@ -118,7 +118,7 @@ func (s *Server) getDisco(c echo.Context) error {
 	}
 
 	key := discoKey(kid, rid, typ)
-	out, err := s.mc.Get(ctx, key)
+	out, err := s.rds.Get(ctx, key)
 	if err != nil {
 		return s.internalError(c, err)
 	}
@@ -126,7 +126,7 @@ func (s *Server) getDisco(c echo.Context) error {
 		return ErrNotFound(c, nil)
 	}
 	// Delete after get
-	if err := s.mc.Delete(ctx, key); err != nil {
+	if err := s.rds.Delete(ctx, key); err != nil {
 		return s.internalError(c, err)
 	}
 	return c.Blob(http.StatusOK, echo.MIMEOctetStream, []byte(out))
@@ -136,7 +136,7 @@ func (s *Server) deleteDisco(c echo.Context) error {
 	ctx := c.Request().Context()
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	kid, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.mc)
+	kid, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.rds)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}
@@ -151,11 +151,11 @@ func (s *Server) deleteDisco(c echo.Context) error {
 	}
 
 	okey := discoKey(kid, rid, "offer")
-	if err := s.mc.Delete(ctx, okey); err != nil {
+	if err := s.rds.Delete(ctx, okey); err != nil {
 		return s.internalError(c, err)
 	}
 	akey := discoKey(kid, rid, "answer")
-	if err := s.mc.Delete(ctx, akey); err != nil {
+	if err := s.rds.Delete(ctx, akey); err != nil {
 		return s.internalError(c, err)
 	}
 
