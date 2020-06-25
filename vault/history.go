@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/keys-pub/keys/ds"
+	"github.com/vmihailenco/msgpack/v4"
 )
 
 // ItemHistory returns history of an item.
@@ -25,7 +26,7 @@ func (v *Vault) ItemHistory(id string) ([]*Item, error) {
 		if doc == nil {
 			break
 		}
-		if strings.HasPrefix(ds.PathFrom(doc.Path, 3), ds.Path("item", id)) {
+		if strings.HasPrefix(ds.PathFrom(doc.Path, 2), ds.Path("item", id)) {
 			paths = append(paths, doc.Path)
 		}
 	}
@@ -39,7 +40,11 @@ func (v *Vault) ItemHistory(id string) ([]*Item, error) {
 		if b == nil {
 			continue
 		}
-		item, err := decryptItem(b, v.mk)
+		var event ds.Event
+		if err := msgpack.Unmarshal(b, &event); err != nil {
+			return nil, err
+		}
+		item, err := decryptItem(event.Data, v.mk)
 		if err != nil {
 			return nil, err
 		}

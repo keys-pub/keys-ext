@@ -59,13 +59,8 @@ func newTestEnv(t *testing.T, logger server.Logger) *testEnv {
 	fi := ds.NewMem()
 	fi.SetTimeNow(clock.Now)
 
-	vclock := tsutil.NewClock()
-	fi.SetIncrementFn(func(ctx context.Context) (int64, error) {
-		return tsutil.Millis(vclock.Now()), nil
-	})
-
-	ns := server.NewMemTestCache(clock.Now)
-	srv := server.New(fi, ns, nil, logger)
+	rds := server.NewRedisTest(clock.Now)
+	srv := server.New(fi, rds, nil, logger)
 	srv.SetNowFn(clock.Now)
 	srv.SetInternalAuth("testtoken")
 	srv.SetAccessFn(func(c server.AccessContext, resource server.AccessResource, action server.AccessAction) server.Access {
@@ -232,12 +227,12 @@ func testSync(t *testing.T, st1 vault.Store, st2 vault.Store) {
 	paths, err := vault.Paths(v1.Store(), "/pull")
 	require.NoError(t, err)
 	expected := []string{
-		"/pull/001234567890001/1234567890004/item/key1",
-		"/pull/001234567890002/1234567890012/item/key2",
-		"/pull/001234567890003/1234567890020/item/key1",
-		"/pull/001234567890004/1234567890028/item/key1",
-		"/pull/001234567890005/1234567890039/item/key1",
-		"/pull/001234567890006/1234567890047/item/key1",
+		"/pull/000000000000001/item/key1",
+		"/pull/000000000000002/item/key2",
+		"/pull/000000000000003/item/key1",
+		"/pull/000000000000004/item/key1",
+		"/pull/000000000000005/item/key1",
+		"/pull/000000000000006/item/key1",
 	}
 	require.Equal(t, expected, paths)
 
@@ -526,10 +521,10 @@ func TestAuthPull(t *testing.T) {
 	paths1, err := vault.Paths(v1.Store(), "/pull")
 	require.NoError(t, err)
 	expected := []string{
-		"/pull/001234567890001/1234567890004/config/salt",
-		"/pull/001234567890002/1234567890006/auth/" + provision.ID,
-		"/pull/001234567890003/1234567890008/provision/" + provision.ID,
-		"/pull/001234567890004/1234567890010/item/key1",
+		"/pull/000000000000001/config/salt",
+		"/pull/000000000000002/auth/" + provision.ID,
+		"/pull/000000000000003/provision/" + provision.ID,
+		"/pull/000000000000004/item/key1",
 	}
 	require.Equal(t, expected, paths1)
 

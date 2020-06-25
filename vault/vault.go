@@ -8,11 +8,10 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys/ds"
-	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
+	"github.com/vmihailenco/msgpack/v4"
 )
 
 // Vault stores keys and secrets.
@@ -187,15 +186,16 @@ func (v *Vault) push(ctx context.Context) error {
 	}
 
 	paths := []string{}
-	changes := []*client.VaultChange{}
+	events := []*client.Event{}
 
-	// Get changes from push.
+	// Get events from push.
 	path := ds.Path("push")
 	iter, err := v.store.Documents(ds.Prefix(path))
 	if err != nil {
 		return err
 	}
 	defer iter.Release()
+	var prev *client.Event
 	for {
 		doc, err := iter.Next()
 		if err != nil {
@@ -207,13 +207,14 @@ func (v *Vault) push(ctx context.Context) error {
 		logger.Debugf("Push %s", doc.Path)
 		paths = append(paths, doc.Path)
 		path := ds.PathFrom(doc.Path, 2)
-		change := &client.VaultChange{Path: path, Data: doc.Data, Nonce: api.GenerateNonce()}
-		changes = append(changes, change)
+		event := client.NewEvent(path, doc.Data, prev)
+		events = append(events, event)
+		prev = event
 	}
 
-	if len(changes) > 0 {
-		logger.Infof("Pushing %d vault changes", len(changes))
-		if err := v.remote.VaultChanged(ctx, v.rk, changes); err != nil {
+	if len(events) > 0 {
+		logger.Infof("Pushing %d vault events", len(events))
+		if err := v.remote.VaultSend(ctx, v.rk, events); err != nil {
 			return err
 		}
 		logger.Infof("Removing %d from push", len(paths))
@@ -225,15 +226,7 @@ func (v *Vault) push(ctx context.Context) error {
 	return nil
 }
 
-func (v *Vault) version() (string, error) {
-	b, err := v.store.Get(ds.Path("db", "version"))
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
-}
-
-// Pull changes from remote.
+// Pull events from remote.
 // Does NOT require Unlock.
 func (v *Vault) Pull(ctx context.Context) error {
 	if v.remote == nil {
@@ -243,49 +236,53 @@ func (v *Vault) Pull(ctx context.Context) error {
 		return errors.Errorf("no remote key")
 	}
 
-	version, err := v.version()
+	index, err := v.index()
 	if err != nil {
 		return err
 	}
 
 	logger.Infof("Getting vault items")
-	vault, err := v.remote.Vault(ctx, v.rk, client.VaultVersion(version))
+	vault, err := v.remote.Vault(ctx, v.rk, client.VaultIndex(index))
 	if err != nil {
 		return err
 	}
 
 	if vault != nil {
-		for _, change := range vault.Changes {
-			logger.Debugf("Pull %s", change.Path)
-			if change.Path == "" {
-				return errors.Errorf("invalid change (no path)")
+		for _, event := range vault.Events {
+			logger.Debugf("Pull %s", event.Path)
+			if event.Path == "" {
+				return errors.Errorf("invalid event (no path)")
 			}
-			if err := v.checkNonce(change.Nonce); err != nil {
+			if err := v.checkNonce(event.Nonce); err != nil {
 				return err
 			}
 
-			if len(change.Data) == 0 {
-				if _, err := v.store.Delete(change.Path); err != nil {
+			if len(event.Data) == 0 {
+				if _, err := v.store.Delete(event.Path); err != nil {
 					return err
 				}
 			} else {
-				if err := v.store.Set(change.Path, change.Data); err != nil {
+				if err := v.store.Set(event.Path, event.Data); err != nil {
 					return err
 				}
 			}
 
-			hpath := ds.Path("pull", pad(change.Version), tsutil.Millis(change.Timestamp), change.Path)
-			if err := v.store.Set(hpath, change.Data); err != nil {
+			ppath := ds.Path("pull", pad(event.Index), event.Path)
+			eb, err := msgpack.Marshal(event)
+			if err != nil {
+				return err
+			}
+			if err := v.store.Set(ppath, eb); err != nil {
 				return err
 			}
 
-			if err := v.commitNonce(change.Nonce); err != nil {
+			if err := v.commitNonce(event.Nonce); err != nil {
 				return err
 			}
 		}
 
-		// Update version
-		if err := v.store.Set(ds.Path("db", "version"), []byte(vault.Version)); err != nil {
+		// Update index
+		if err := v.setIndex(vault.Index); err != nil {
 			return err
 		}
 	}
@@ -321,9 +318,6 @@ func (v *Vault) Increment(n int64) (string, error) {
 		v.inc, v.incMax = inc, incMax
 	}
 	v.inc = v.inc + n
-	if v.inc > 999999999999999 {
-		panic("index too large")
-	}
 	// logger.Debugf("Increment(%d) %d", n, v.inc)
 	return pad(v.inc), nil
 }
@@ -336,7 +330,7 @@ func increment(st Store, path string, size int64) (inc int64, incMax int64, rete
 	}
 
 	if b != nil {
-		i, err := strconv.Atoi(string(b))
+		i, err := strconv.ParseInt(string(b), 10, 64)
 		if err != nil {
 			reterr = err
 			return
@@ -344,8 +338,8 @@ func increment(st Store, path string, size int64) (inc int64, incMax int64, rete
 		inc = int64(i)
 	}
 
-	max := int(inc + size)
-	if err := st.Set(path, []byte(strconv.Itoa(max))); err != nil {
+	max := inc + size
+	if err := st.Set(path, []byte(strconv.FormatInt(max, 10))); err != nil {
 		reterr = err
 		return
 	}
@@ -355,6 +349,9 @@ func increment(st Store, path string, size int64) (inc int64, incMax int64, rete
 }
 
 func pad(n int64) string {
+	if n > 999999999999999 {
+		panic("int too large for padding")
+	}
 	return fmt.Sprintf("%015d", n)
 }
 
@@ -373,4 +370,26 @@ func (v *Vault) IsEmpty() (bool, error) {
 		return true, nil
 	}
 	return false, nil
+}
+
+func (v *Vault) index() (int64, error) {
+	b, err := v.store.Get(ds.Path("db", "index"))
+	if err != nil {
+		return 0, err
+	}
+	if b == nil {
+		return 0, nil
+	}
+	n, err := strconv.ParseInt(string(b), 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	return n, nil
+}
+
+func (v *Vault) setIndex(n int64) error {
+	if err := v.store.Set(ds.Path("db", "index"), []byte(strconv.FormatInt(n, 10))); err != nil {
+		return err
+	}
+	return nil
 }
