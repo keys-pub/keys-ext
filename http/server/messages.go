@@ -10,12 +10,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-type message struct {
-	ID     string `json:"id"`
-	Data   []byte `json:"data"`
-	Expire string `json:"exp,omitempty"`
-}
-
 func (s *Server) postMessage(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 

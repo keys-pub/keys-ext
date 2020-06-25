@@ -34,9 +34,6 @@ type Server struct {
 	tasks        Tasks
 	internalAuth string
 
-	inc    int64
-	incMax int64
-
 	admins []keys.ID
 }
 
