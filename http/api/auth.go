@@ -191,8 +191,3 @@ func CheckAuthorization(ctx context.Context, method string, urs string, auth str
 		Timestamp: tm,
 	}, nil
 }
-
-// GenerateNonce creates a nonce.
-func GenerateNonce() string {
-	return encoding.MustEncode(keys.RandBytes(32), encoding.Base62)
-}
