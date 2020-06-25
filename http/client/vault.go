@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
-	"time"
+	"strconv"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
@@ -15,48 +15,31 @@ import (
 	"github.com/vmihailenco/msgpack/v4"
 )
 
-// VaultChange describes a vault item at a point in time.
-type VaultChange struct {
-	// Path for change /{collection}/{id}.
-	Path string `msgpack:"p"`
-	// Data ...
-	Data []byte `msgpack:"dat"`
-	// Nonce to prevent replay.
-	Nonce string `msgpack:"n"`
-
-	// Version is set by clients from remote change API.
-	// This is untrusted.
-	Version int64 `msgpack:"v,omitempty"`
-	// Timestamp is set by clients from the remote change API.
-	// This is untrusted.
-	Timestamp time.Time `msgpack:"ts,omitempty"`
-}
-
-// Vault changes from the remote, decrypted with vault key.
+// Vault events from the remote, decrypted with vault key.
 type Vault struct {
-	Changes []*VaultChange
-	Version string
+	Events []*Event
+	Index  int64
 }
 
-// VaultChanged saves vault changes to the remote.
-// The changes are encrypted with the vault key before being sent to the remote.
-func (c *Client) VaultChanged(ctx context.Context, key *keys.EdX25519Key, changes []*VaultChange) error {
+// VaultSend saves events to the remote vault.
+// The events are encrypted with the vault key before being sent to the remote.
+func (c *Client) VaultSend(ctx context.Context, key *keys.EdX25519Key, events []*Event) error {
 	path := ds.Path("vault", key.ID())
 	vals := url.Values{}
 
-	out := []*api.VaultBox{}
-	for _, change := range changes {
-		if !change.Timestamp.IsZero() {
-			return errors.Errorf("timestamp shouldn't be set for vault save")
+	out := []*api.Data{}
+	for _, event := range events {
+		if !event.Timestamp.IsZero() {
+			return errors.Errorf("timestamp shouldn't be set for vault send")
 		}
-		if change.Nonce == "" {
+		if bytes.Equal(event.Nonce, []byte{}) {
 			return errors.Errorf("nonce isn't set")
 		}
-		b, err := msgpack.Marshal(change)
+		b, err := msgpack.Marshal(event)
 		if err != nil {
 			return err
 		}
-		out = append(out, &api.VaultBox{
+		out = append(out, &api.Data{
 			Data: vaultEncrypt(b, key),
 		})
 	}
@@ -74,8 +57,8 @@ func (c *Client) VaultChanged(ctx context.Context, key *keys.EdX25519Key, change
 
 // VaultOptions options for Vault.
 type VaultOptions struct {
-	// Version to list to/from
-	Version string
+	// Index to list to/from
+	Index int64
 	// Limit by
 	Limit int
 }
@@ -83,10 +66,10 @@ type VaultOptions struct {
 // VaultOption option.
 type VaultOption func(o *VaultOptions)
 
-// VaultVersion ...
-func VaultVersion(version string) VaultOption {
+// VaultIndex ...
+func VaultIndex(index int64) VaultOption {
 	return func(o *VaultOptions) {
-		o.Version = version
+		o.Index = index
 	}
 }
 
@@ -105,15 +88,15 @@ func newVaultOptions(opts ...VaultOption) VaultOptions {
 	return options
 }
 
-// Vault changes.
+// Vault events.
 // Vault data is decrypted using the vault key before being returned.
-// Clients should check for repeated nonces.
+// Callers should check for repeated nonces and event chain ordering.
 func (c *Client) Vault(ctx context.Context, key *keys.EdX25519Key, opt ...VaultOption) (*Vault, error) {
 	opts := newVaultOptions(opt...)
 	path := ds.Path("vault", key.ID())
 	params := url.Values{}
-	if opts.Version != "" {
-		params.Add("version", opts.Version)
+	if opts.Index != 0 {
+		params.Add("idx", strconv.FormatInt(opts.Index, 10))
 	}
 	if opts.Limit != 0 {
 		params.Add("limit", fmt.Sprintf("%d", opts.Limit))
@@ -129,7 +112,7 @@ func (c *Client) Vault(ctx context.Context, key *keys.EdX25519Key, opt ...VaultO
 		return nil, nil
 	}
 
-	var resp api.VaultResponse
+	var resp api.EventsResponse
 	if err := json.Unmarshal(doc.Data, &resp); err != nil {
 		return nil, err
 	}
@@ -137,22 +120,22 @@ func (c *Client) Vault(ctx context.Context, key *keys.EdX25519Key, opt ...VaultO
 	return vaultDecryptResponse(&resp, key)
 }
 
-func vaultDecryptResponse(resp *api.VaultResponse, key *keys.EdX25519Key) (*Vault, error) {
-	out := make([]*VaultChange, 0, len(resp.Boxes))
-	for _, box := range resp.Boxes {
-		decrypted, err := vaultDecrypt(box.Data, key)
+func vaultDecryptResponse(resp *api.EventsResponse, key *keys.EdX25519Key) (*Vault, error) {
+	out := make([]*Event, 0, len(resp.Events))
+	for _, revent := range resp.Events {
+		decrypted, err := vaultDecrypt(revent.Data, key)
 		if err != nil {
 			return nil, err
 		}
-		var chg VaultChange
-		if err := msgpack.Unmarshal(decrypted, &chg); err != nil {
+		var event Event
+		if err := msgpack.Unmarshal(decrypted, &event); err != nil {
 			return nil, err
 		}
-		chg.Timestamp = box.Timestamp
-		chg.Version = box.Version
-		out = append(out, &chg)
+		event.Timestamp = revent.Timestamp
+		event.Index = revent.Index
+		out = append(out, &event)
 	}
-	return &Vault{Changes: out, Version: resp.Version}, nil
+	return &Vault{Events: out, Index: resp.Index}, nil
 }
 
 func vaultEncrypt(b []byte, key *keys.EdX25519Key) []byte {

@@ -1,7 +1,6 @@
 package client_test
 
 import (
-	"context"
 	"net/http/httptest"
 	"testing"
 
@@ -32,27 +31,23 @@ func testEnv(t *testing.T, logger server.Logger) *env {
 	clock := tsutil.NewClock()
 	fi := ds.NewMem()
 	fi.SetTimeNow(clock.Now)
-	vclock := tsutil.NewClock()
-	fi.SetIncrementFn(func(ctx context.Context) (int64, error) {
-		return tsutil.Millis(vclock.Now()), nil
-	})
-	ns := server.NewMemTestCache(clock.Now)
+	rds := server.NewRedisTest(clock.Now)
 	req := request.NewMockRequestor()
 	users := testUserStore(t, fi, req, clock)
 
-	svr := server.New(fi, ns, users, logger)
-	svr.SetNowFn(clock.Now)
-	tasks := server.NewTestTasks(svr)
-	svr.SetTasks(tasks)
-	svr.SetInternalAuth("testtoken")
-	svr.SetAccessFn(func(c server.AccessContext, resource server.AccessResource, action server.AccessAction) server.Access {
+	srv := server.New(fi, rds, users, logger)
+	srv.SetNowFn(clock.Now)
+	tasks := server.NewTestTasks(srv)
+	srv.SetTasks(tasks)
+	srv.SetInternalAuth("testtoken")
+	srv.SetAccessFn(func(c server.AccessContext, resource server.AccessResource, action server.AccessAction) server.Access {
 		return server.AccessAllow()
 	})
-	handler := server.NewHandler(svr)
+	handler := server.NewHandler(srv)
 	httpServer := httptest.NewServer(handler)
-	svr.URL = httpServer.URL
+	srv.URL = httpServer.URL
 
-	return &env{clock, httpServer, svr, fi, users, req, func() { httpServer.Close() }}
+	return &env{clock, httpServer, srv, fi, users, req, func() { httpServer.Close() }}
 }
 
 func testClient(t *testing.T, env *env) *client.Client {

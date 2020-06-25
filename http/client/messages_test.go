@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"testing"
-	"time"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/client"
@@ -28,59 +27,56 @@ func TestMessages(t *testing.T) {
 	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
 
 	// MessageSend #1
-	b1 := []byte("hi alice")
-	resp, err := aliceClient.MessageSend(context.TODO(), alice, bob.ID(), b1, time.Minute)
+	msg1 := client.NewEvent("/msgs/1", []byte("hi alice"), nil)
+	err := aliceClient.MessageSend(context.TODO(), alice, bob.ID(), msg1) // , time.Minute
 	require.NoError(t, err)
-	require.NotEmpty(t, resp.ID)
 
 	// MessageSend #2
-	b2 := []byte("what time we meeting?")
-	resp, err = bobClient.MessageSend(context.TODO(), bob, alice.ID(), b2, time.Minute)
+	msg2 := client.NewEvent("/msgs/2", []byte("what time we meeting?"), msg1)
+	err = bobClient.MessageSend(context.TODO(), bob, alice.ID(), msg2) // , time.Minute
 	require.NoError(t, err)
-	require.NotEmpty(t, resp.ID)
 
 	// Messages #1
-	msgs, version, err := aliceClient.Messages(context.TODO(), alice, bob.ID(), nil)
+	msgs, idx, err := aliceClient.Messages(context.TODO(), alice, bob.ID(), nil)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(msgs))
-	data1, pk1, err := aliceClient.MessageDecrypt(alice, msgs[0])
+	out1, pk1, err := aliceClient.MessageDecrypt(alice, msgs[0])
 	require.NoError(t, err)
-	require.Equal(t, b1, data1)
+	require.Equal(t, msg1.Data, out1.Data)
 	require.Equal(t, alice.ID(), pk1)
-	data2, pk2, err := aliceClient.MessageDecrypt(alice, msgs[1])
+	out2, pk2, err := aliceClient.MessageDecrypt(alice, msgs[1])
 	require.NoError(t, err)
-	require.Equal(t, b2, data2)
+	require.Equal(t, msg2.Data, out2.Data)
 	require.Equal(t, bob.ID(), pk2)
-	require.Equal(t, int64(1234567890004), tsutil.Millis(msgs[0].CreatedAt))
+	require.Equal(t, int64(1234567890004), tsutil.Millis(msgs[0].Timestamp))
 
 	// MessageSend #3
-	b3 := []byte("3pm")
-	resp, err = aliceClient.MessageSend(context.TODO(), alice, bob.ID(), b3, time.Minute)
+	msg3 := client.NewEvent("/msgs/3", []byte("3pm"), msg2)
+	err = aliceClient.MessageSend(context.TODO(), alice, bob.ID(), msg3) // , time.Minute
 	require.NoError(t, err)
-	require.NotEmpty(t, resp.ID)
 
-	// Messages #2 (from version)
-	msgs, _, err = aliceClient.Messages(context.TODO(), alice, bob.ID(), &client.MessagesOpts{Version: version})
+	// Messages #2 (from idx)
+	msgs, _, err = aliceClient.Messages(context.TODO(), alice, bob.ID(), &client.MessagesOpts{Index: idx})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(msgs))
-	data3, pk3, err := aliceClient.MessageDecrypt(alice, msgs[0])
+	out3, pk3, err := aliceClient.MessageDecrypt(alice, msgs[0])
 	require.NoError(t, err)
-	require.Equal(t, b3, data3)
+	require.Equal(t, msg3.Data, out3.Data)
 	require.Equal(t, alice.ID(), pk3)
 
 	// Messages (desc)
 	msgs, _, err = aliceClient.Messages(context.TODO(), alice, bob.ID(), &client.MessagesOpts{Direction: ds.Descending})
 	require.NoError(t, err)
 	require.Equal(t, 3, len(msgs))
-	data1, _, err = aliceClient.MessageDecrypt(alice, msgs[0])
+	out1, _, err = aliceClient.MessageDecrypt(alice, msgs[0])
 	require.NoError(t, err)
-	require.Equal(t, b3, data1)
-	data2, _, err = aliceClient.MessageDecrypt(alice, msgs[1])
+	require.Equal(t, msg3.Data, out1.Data)
+	out2, _, err = aliceClient.MessageDecrypt(alice, msgs[1])
 	require.NoError(t, err)
-	require.Equal(t, b2, data2)
-	data3, _, err = aliceClient.MessageDecrypt(alice, msgs[2])
+	require.Equal(t, msg2.Data, out2.Data)
+	out3, _, err = aliceClient.MessageDecrypt(alice, msgs[2])
 	require.NoError(t, err)
-	require.Equal(t, b1, data3)
+	require.Equal(t, msg1.Data, out3.Data)
 
 	// Messages not found
 	unknown := keys.GenerateEdX25519Key()
@@ -89,7 +85,7 @@ func TestMessages(t *testing.T) {
 	require.Empty(t, msgs)
 
 	// Same sender/recipient
-	resp, err = aliceClient.MessageSend(context.TODO(), alice, alice.ID(), []byte("selfie"), time.Minute)
+	self := client.NewEvent("/msgs/self", []byte("selfie"), nil)
+	err = aliceClient.MessageSend(context.TODO(), alice, alice.ID(), self) // , time.Minute)
 	require.NoError(t, err)
-	require.NotEmpty(t, resp.ID)
 }

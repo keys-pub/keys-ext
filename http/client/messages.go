@@ -6,52 +6,44 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
-	"time"
+	"strconv"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/saltpack"
-	"github.com/pkg/errors"
+	"github.com/vmihailenco/msgpack/v4"
 )
 
-// Message from server.
-type Message struct {
-	ID   string
-	Data []byte
-
-	CreatedAt time.Time
-	UpdatedAt time.Time
-}
-
-// MessageSend posts an encrypted expiring message.
-func (c *Client) MessageSend(ctx context.Context, sender *keys.EdX25519Key, recipient keys.ID, b []byte, expire time.Duration) (*api.CreateMessageResponse, error) {
-	if expire == time.Duration(0) {
-		return nil, errors.Errorf("no expire specified")
+// MessageSend posts an encrypted message.
+// TODO: expire time.Duration
+func (c *Client) MessageSend(ctx context.Context, sender *keys.EdX25519Key, recipient keys.ID, event *Event) error {
+	// if expire == time.Duration(0) {
+	// 	return errors.Errorf("no expire specified")
+	// }
+	b, err := msgpack.Marshal(event)
+	if err != nil {
+		return err
 	}
+
 	encrypted, err := saltpack.Signcrypt(b, sender, recipient, sender.ID())
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	path := ds.Path("msgs", sender.ID(), recipient)
 	vals := url.Values{}
-	vals.Set("expire", expire.String())
-	doc, err := c.postDocument(ctx, path, vals, sender, bytes.NewReader(encrypted))
-	if err != nil {
-		return nil, err
+	// vals.Set("expire", expire.String())
+	if _, err := c.postDocument(ctx, path, vals, sender, bytes.NewReader(encrypted)); err != nil {
+		return err
 	}
-	var resp api.CreateMessageResponse
-	if err := json.Unmarshal(doc.Data, &resp); err != nil {
-		return nil, err
-	}
-	return &resp, nil
+	return nil
 }
 
 // MessagesOpts options for Messages.
 type MessagesOpts struct {
-	// Version to list to/from
-	Version string
+	// Index to list to/from
+	Index int64
 	// Direction ascending or descending
 	Direction ds.Direction
 	// Limit by
@@ -60,7 +52,7 @@ type MessagesOpts struct {
 
 // Messages returns encrypted messages.
 // To decrypt a message, use Client#MessageDecrypt.
-func (c *Client) Messages(ctx context.Context, key *keys.EdX25519Key, from keys.ID, opts *MessagesOpts) ([]*Message, string, error) {
+func (c *Client) Messages(ctx context.Context, key *keys.EdX25519Key, from keys.ID, opts *MessagesOpts) ([]*ds.Event, int64, error) {
 	path := ds.Path("msgs", key.ID(), from)
 	if opts == nil {
 		opts = &MessagesOpts{}
@@ -68,11 +60,11 @@ func (c *Client) Messages(ctx context.Context, key *keys.EdX25519Key, from keys.
 
 	params := url.Values{}
 	params.Add("include", "md")
-	if opts.Version != "" {
-		params.Add("version", opts.Version)
+	if opts.Index != 0 {
+		params.Add("idx", strconv.FormatInt(opts.Index, 10))
 	}
 	if opts.Direction != "" {
-		params.Add("direction", string(opts.Direction))
+		params.Add("dir", string(opts.Direction))
 	}
 	if opts.Limit != 0 {
 		params.Add("limit", fmt.Sprintf("%d", opts.Limit))
@@ -82,35 +74,31 @@ func (c *Client) Messages(ctx context.Context, key *keys.EdX25519Key, from keys.
 
 	doc, err := c.getDocument(ctx, path, params, key)
 	if err != nil {
-		return nil, "", err
+		return nil, 0, err
 	}
 	if doc == nil {
-		return nil, "", nil
+		return nil, 0, nil
 	}
 
-	var resp api.MessagesResponse
+	var resp api.EventsResponse
 	if err := json.Unmarshal(doc.Data, &resp); err != nil {
-		return nil, "", err
+		return nil, 0, err
 	}
 
-	msgs := make([]*Message, 0, len(resp.Messages))
-	for _, msg := range resp.Messages {
-		msgs = append(msgs, &Message{
-			ID:        msg.ID,
-			Data:      msg.Data,
-			CreatedAt: resp.MetadataFor(msg).CreatedAt,
-			UpdatedAt: resp.MetadataFor(msg).UpdatedAt,
-		})
-	}
-
-	return msgs, resp.Version, nil
+	return resp.Events, resp.Index, nil
 }
 
-// MessageDecrypt decrypts a message from Messages.
-func (c *Client) MessageDecrypt(key *keys.EdX25519Key, msg *Message) ([]byte, keys.ID, error) {
-	decrypted, pk, err := saltpack.SigncryptOpen(msg.Data, saltpack.NewKeyStore(key))
+// MessageDecrypt decrypts a remote Event from Messages.
+func (c *Client) MessageDecrypt(key *keys.EdX25519Key, revent *ds.Event) (*Event, keys.ID, error) {
+	decrypted, pk, err := saltpack.SigncryptOpen(revent.Data, saltpack.NewKeyStore(key))
 	if err != nil {
 		return nil, "", err
 	}
-	return decrypted, pk.ID(), nil
+	var event Event
+	if err := msgpack.Unmarshal(decrypted, &event); err != nil {
+		return nil, "", err
+	}
+	event.Index = revent.Index
+	event.Timestamp = revent.Timestamp
+	return &event, pk.ID(), nil
 }
