@@ -32,8 +32,12 @@ func TestEmptyIterator(t *testing.T) {
 	iter.Release()
 }
 
+func testPath() string {
+	return ds.Path("test", time.Now().Format(time.RFC3339Nano))
+}
+
 func testCollection() string {
-	return ds.Path("test", time.Now().Format(time.RFC3339Nano), "docs")
+	return ds.Path("test", time.Now().Format(time.RFC3339Nano), "root")
 }
 
 func TestDocumentStore(t *testing.T) {

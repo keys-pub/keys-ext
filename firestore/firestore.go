@@ -16,13 +16,12 @@ import (
 )
 
 var _ ds.DocumentStore = &Firestore{}
-var _ ds.Changes = &Firestore{}
+var _ ds.Events = &Firestore{}
 
 // Firestore is a DocumentStore implemented on Google Cloud Firestore.
 type Firestore struct {
-	uri         string
-	client      *firestore.Client
-	incrementFn IncrementFn
+	uri    string
+	client *firestore.Client
 }
 
 // New creates a Firestore
@@ -46,14 +45,6 @@ func New(uri string, opts ...option.ClientOption) (*Firestore, error) {
 		client: client,
 	}
 	return fs, nil
-}
-
-// IncrementFn describes an auto increment function.
-type IncrementFn func(ctx context.Context) (int64, error)
-
-// SetIncrementFn sets an auto increment function.
-func (f *Firestore) SetIncrementFn(incrementFn IncrementFn) {
-	f.incrementFn = incrementFn
 }
 
 // URI ...

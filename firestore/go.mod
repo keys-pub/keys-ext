@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go v0.51.0 // indirect
 	cloud.google.com/go/firestore v1.1.0
 	github.com/davecgh/go-spew v1.1.1
-	github.com/keys-pub/keys v0.0.0-20200624005746-a27efaeb8455
+	github.com/keys-pub/keys v0.0.0-20200625223038-ffeaa27b06d8
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.5.1

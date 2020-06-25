@@ -74,13 +74,13 @@ func (i *colsIterator) Release() {
 	// Nothing to do for firestore.CollectionIterator
 }
 
-type changeIterator struct {
+type eventIterator struct {
 	iter  *firestore.DocumentIterator
 	limit int
 	count int
 }
 
-func (i *changeIterator) Next() (*ds.Change, error) {
+func (i *eventIterator) Next() (*ds.Event, error) {
 	if i.iter == nil {
 		return nil, nil
 	}
@@ -94,16 +94,17 @@ func (i *changeIterator) Next() (*ds.Change, error) {
 	if i.count >= i.limit {
 		return nil, nil
 	}
-	var change ds.Change
-	if err := doc.DataTo(&change); err != nil {
+	var event ds.Event
+	if err := doc.DataTo(&event); err != nil {
 		return nil, err
 	}
+	event.Timestamp = doc.CreateTime
 	i.count++
-	return &change, nil
+	return &event, nil
 
 }
 
-func (i *changeIterator) Release() {
+func (i *eventIterator) Release() {
 	if i.iter != nil {
 		i.iter.Stop()
 	}

@@ -107,6 +107,8 @@ github.com/keys-pub/keys v0.0.0-20200612010917-0cf3f60778ea h1:aIBP0C4UKUo3KqrXW
 github.com/keys-pub/keys v0.0.0-20200612010917-0cf3f60778ea/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys v0.0.0-20200624005746-a27efaeb8455 h1:V7si7TrgSMa52RUwao2ne9fkquKhcsSgcMQihIoYhpU=
 github.com/keys-pub/keys v0.0.0-20200624005746-a27efaeb8455/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.0.0-20200625223038-ffeaa27b06d8 h1:R8cLlm9Jv1QjI7pp5qa1nnWIBudd43i4Zp1H0c2plrU=
+github.com/keys-pub/keys v0.0.0-20200625223038-ffeaa27b06d8/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f h1:LLsdI2XManLH0JonKqB6OYmHdHk/WwJByDbHI3hCEcs=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f/go.mod h1:YRHMiVbZqh7u8xRm77CvwJNAZdDlNXwWvQ4DK0N9mYg=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
