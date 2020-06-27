@@ -191,6 +191,10 @@ func (v *Vault) Items() ([]*Item, error) {
 		if err != nil {
 			return nil, err
 		}
+		if len(item.Data) == 0 {
+			// TODO: Deleted item (clean it up by removing?)
+			continue
+		}
 		items = append(items, item)
 	}
 	return items, nil

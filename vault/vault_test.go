@@ -382,6 +382,11 @@ func testUpdate(t *testing.T, vlt *vault.Vault) {
 	ok2, err := vlt.Delete("abc")
 	require.NoError(t, err)
 	require.False(t, ok2)
+
+	items, err = vlt.Items()
+	require.NoError(t, err)
+	require.Equal(t, 1, len(items))
+	require.Equal(t, items[0].ID, "xyz")
 }
 
 func TestSetupUnlockProvision(t *testing.T) {
