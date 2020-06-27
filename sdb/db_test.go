@@ -60,13 +60,19 @@ func TestDB(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	iter, err := dst.Documents(ctx, "test0")
+	iter, err := dst.DocumentIterator(ctx, "test0")
 	require.NoError(t, err)
 	doc, err := iter.Next()
 	require.NoError(t, err)
 	require.Equal(t, "/test0/key10", doc.Path)
 	require.Equal(t, "value10", string(doc.Data))
 	iter.Release()
+
+	docs, err := dst.Documents(ctx, "test0")
+	require.NoError(t, err)
+	require.Equal(t, 3, len(docs))
+	require.Equal(t, "/test0/key10", docs[0].Path)
+	require.Equal(t, "value10", string(docs[0].Data))
 
 	ok, err := dst.Exists(ctx, "/test0/key10")
 	require.NoError(t, err)
@@ -109,14 +115,14 @@ func TestDB(t *testing.T) {
 /test0/key30 value30
 `
 	var b bytes.Buffer
-	iter, err = dst.Documents(context.TODO(), "test0")
+	iter, err = dst.DocumentIterator(context.TODO(), "test0")
 	require.NoError(t, err)
 	err = ds.SpewOut(iter, &b)
 	require.NoError(t, err)
 	require.Equal(t, expected, b.String())
 	iter.Release()
 
-	iter, err = dst.Documents(context.TODO(), "test0")
+	iter, err = dst.DocumentIterator(context.TODO(), "test0")
 	require.NoError(t, err)
 	spew, err := ds.Spew(iter)
 	require.NoError(t, err)
@@ -124,7 +130,7 @@ func TestDB(t *testing.T) {
 	require.Equal(t, expected, spew.String())
 	iter.Release()
 
-	iter, err = dst.Documents(context.TODO(), "test0", ds.Prefix("key1"), ds.NoData())
+	iter, err = dst.DocumentIterator(context.TODO(), "test0", ds.Prefix("key1"), ds.NoData())
 	require.NoError(t, err)
 	doc, err = iter.Next()
 	require.NoError(t, err)
@@ -139,18 +145,10 @@ func TestDB(t *testing.T) {
 	err = dst.Set(ctx, "", []byte{})
 	require.EqualError(t, err, "invalid path /")
 
-	citer, err := dst.Collections(ctx, "")
+	cols, err := dst.Collections(ctx, "")
 	require.NoError(t, err)
-	col, err := citer.Next()
-	require.NoError(t, err)
-	require.Equal(t, "/test0", col.Path)
-	col, err = citer.Next()
-	require.NoError(t, err)
-	require.Equal(t, "/test1", col.Path)
-	col, err = citer.Next()
-	require.NoError(t, err)
-	require.Nil(t, col)
-	citer.Release()
+	require.Equal(t, "/test0", cols[0].Path)
+	require.Equal(t, "/test1", cols[1].Path)
 
 	_, err = dst.Collections(ctx, "/test0")
 	require.EqualError(t, err, "only root collections supported")
@@ -183,17 +181,9 @@ func TestDocumentStorePath(t *testing.T) {
 	require.NotNil(t, doc)
 	require.Equal(t, []byte("value3"), doc.Data)
 
-	citer, err := dst.Collections(ctx, "")
-	require.NoError(t, err)
-	cols, err := ds.CollectionsFromIterator(citer)
+	cols, err := dst.Collections(ctx, "")
 	require.NoError(t, err)
 	require.Equal(t, "/test", cols[0].Path)
-
-	// citer, err = dst.Collections(ctx, "/test/key2")
-	// require.NoError(t, err)
-	// cols, err = ds.CollectionsFromIterator(citer)
-	// require.NoError(t, err)
-	// require.Equal(t, "/test/key2/col2", cols[0].Path)
 }
 
 func TestDBListOptions(t *testing.T) {
@@ -230,7 +220,7 @@ func TestDBListOptions(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	iter, err := dst.Documents(ctx, "test")
+	iter, err := dst.DocumentIterator(ctx, "test")
 	require.NoError(t, err)
 	paths := []string{}
 	for {
@@ -244,7 +234,7 @@ func TestDBListOptions(t *testing.T) {
 	require.Equal(t, []string{"/test/1", "/test/2", "/test/3"}, paths)
 	iter.Release()
 
-	iter, err = dst.Documents(context.TODO(), "test")
+	iter, err = dst.DocumentIterator(context.TODO(), "test")
 	require.NoError(t, err)
 	b, err := ds.Spew(iter)
 	require.NoError(t, err)
@@ -255,7 +245,7 @@ func TestDBListOptions(t *testing.T) {
 	require.Equal(t, expected, b.String())
 	iter.Release()
 
-	iter, err = dst.Documents(ctx, "b", ds.Prefix("eb"))
+	iter, err = dst.DocumentIterator(ctx, "b", ds.Prefix("eb"))
 	require.NoError(t, err)
 	paths = []string{}
 	for {
@@ -385,7 +375,7 @@ func ExampleDB_Set() {
 	// Got hi
 }
 
-func ExampleDB_Documents() {
+func ExampleDB_DocumentIterator() {
 	db := sdb.New()
 	defer db.Close()
 
@@ -405,7 +395,7 @@ func ExampleDB_Documents() {
 		log.Fatal(err)
 	}
 
-	iter, err := db.Documents(context.TODO(), ds.Path("collection1"))
+	iter, err := db.DocumentIterator(context.TODO(), ds.Path("collection1"))
 	if err != nil {
 		log.Fatal(err)
 	}

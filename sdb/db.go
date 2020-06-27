@@ -11,6 +11,7 @@ import (
 	"github.com/keys-pub/keys/ds"
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"github.com/vmihailenco/msgpack/v4"
 )
 
@@ -51,7 +52,7 @@ func (d *DB) OpenAtPath(ctx context.Context, path string, key SecretKey) error {
 		return errors.Errorf("already open")
 	}
 
-	logger.Infof("DB at %s", path)
+	logger.Infof("Open %s", path)
 	d.path = path
 	db, err := leveldb.OpenFile(path, nil)
 	if err != nil {
@@ -199,7 +200,7 @@ func (d *DB) GetAll(ctx context.Context, paths []string) ([]*ds.Document, error)
 }
 
 // Collections ...
-func (d *DB) Collections(ctx context.Context, parent string) (ds.CollectionIterator, error) {
+func (d *DB) Collections(ctx context.Context, parent string) ([]*ds.Collection, error) {
 	if d.sdb == nil {
 		return nil, errors.Errorf("db not open")
 	}
@@ -232,7 +233,7 @@ func (d *DB) Collections(ctx context.Context, parent string) (ds.CollectionItera
 			count[col] = colv + 1
 		}
 	}
-	return ds.NewCollectionIterator(collections), nil
+	return collections, nil
 }
 
 // Delete value at path.
@@ -278,39 +279,90 @@ func (d *DB) document(path string, b []byte) (*ds.Document, error) {
 	return &doc, nil
 }
 
-// Documents ...
-func (d *DB) Documents(ctx context.Context, parent string, opt ...ds.DocumentsOption) (ds.DocumentIterator, error) {
+// DocumentIterator ...
+func (d *DB) DocumentIterator(ctx context.Context, parent string, opt ...ds.DocumentsOption) (ds.DocumentIterator, error) {
 	d.rwmtx.RLock()
 	defer d.rwmtx.RUnlock()
-	opts := ds.NewDocumentsOptions(opt...)
 
 	if d.sdb == nil {
 		return nil, errors.Errorf("db not open")
 	}
 
-	path := ds.Path(parent)
+	opts := ds.NewDocumentsOptions(opt...)
 
-	var prefix string
-	if opts.Prefix != "" {
-		prefix = ds.Path(path, opts.Prefix)
-	} else if path != "/" {
-		prefix = path + "/"
-	} else {
-		prefix = path
-	}
-
-	if path == "/" {
-		return nil, errors.Errorf("list root not supported")
+	iter, err := d.iterator(ctx, parent, opts.Prefix)
+	if err != nil {
+		return nil, err
 	}
 
 	// TODO: Handle context Done()
-	iter := d.sdb.NewIterator(prefix)
 	return &docsIterator{
 		db:    d,
 		iter:  iter,
 		index: opts.Index,
 		limit: opts.Limit,
 	}, nil
+}
+
+func (d *DB) iterator(ctx context.Context, parent string, prefix string) (iterator.Iterator, error) {
+	if d.sdb == nil {
+		return nil, errors.Errorf("db not open")
+	}
+
+	var iterPrefix string
+	if parent != "" {
+		if prefix != "" {
+			iterPrefix = ds.Path(parent, prefix)
+		} else {
+			iterPrefix = ds.Path(parent) + "/"
+		}
+	} else {
+		iterPrefix = prefix
+	}
+
+	// TODO: Handle context Done()
+	return d.sdb.NewIterator(iterPrefix), nil
+}
+
+// Documents ...
+func (d *DB) Documents(ctx context.Context, parent string, opt ...ds.DocumentsOption) ([]*ds.Document, error) {
+	d.rwmtx.RLock()
+	defer d.rwmtx.RUnlock()
+	opts := ds.NewDocumentsOptions(opt...)
+
+	if opts.Index != 0 {
+		return nil, errors.Errorf("index not implemented")
+	}
+
+	iter, err := d.iterator(ctx, parent, opts.Prefix)
+	if err != nil {
+		return nil, err
+	}
+
+	docs := []*ds.Document{}
+	for iter.Next() {
+		if opts.Limit > 0 && len(docs) >= opts.Limit {
+			break
+		}
+		path := string(iter.Key())
+		// Remember that the contents of the returned slice should not be modified, and
+		// only valid until the next call to Next.
+		doc, err := d.document(path, iter.Value())
+		if err != nil {
+			return nil, err
+		}
+		docs = append(docs, doc)
+	}
+	if err := iter.Error(); err != nil {
+		return nil, err
+	}
+	return docs, nil
+}
+
+func copyBytes(source []byte) []byte {
+	dest := make([]byte, len(source))
+	copy(dest, source)
+	return dest
 }
 
 func (d *DB) get(ctx context.Context, path string) (*ds.Document, error) {
