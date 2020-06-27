@@ -10,6 +10,7 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/ds"
 	"github.com/pkg/errors"
+	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -230,8 +231,8 @@ func (f *Firestore) get(ctx context.Context, path string) (*firestore.DocumentSn
 	return doc, nil
 }
 
-// Documents ...
-func (f *Firestore) Documents(ctx context.Context, parent string, opt ...ds.DocumentsOption) (ds.DocumentIterator, error) {
+// DocumentIterator ...
+func (f *Firestore) DocumentIterator(ctx context.Context, parent string, opt ...ds.DocumentsOption) (ds.DocumentIterator, error) {
 	opts := ds.NewDocumentsOptions(opt...)
 
 	// TODO: Handle context Done()
@@ -269,6 +270,11 @@ func (f *Firestore) Documents(ctx context.Context, parent string, opt ...ds.Docu
 	return &docsIterator{iter: iter, parent: path, prefix: opts.Prefix, pathOnly: opts.NoData}, nil
 }
 
+// Documents not implemented on Firestore, use DocumentIterator.
+func (f *Firestore) Documents(ctx context.Context, parent string, opt ...ds.DocumentsOption) ([]*ds.Document, error) {
+	return nil, errors.Errorf("not implemented")
+}
+
 // processError tries to unmarshal Firebase JSON error, if it fails it returns
 // what was passed in.
 func processError(ferr error) error {
@@ -284,13 +290,24 @@ func processError(ferr error) error {
 }
 
 // Collections ...
-func (f *Firestore) Collections(ctx context.Context, parent string) (ds.CollectionIterator, error) {
+func (f *Firestore) Collections(ctx context.Context, parent string) ([]*ds.Collection, error) {
 	if ds.Path(parent) != "/" {
 		return nil, errors.Errorf("only root collections supported")
 	}
 
 	iter := f.client.Collections(ctx)
-	return &colsIterator{iter: iter}, nil
+	cols := []*ds.Collection{}
+	for {
+		col, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		cols = append(cols, &ds.Collection{Path: ds.Path(col.ID)})
+	}
+	return cols, nil
 }
 
 // Delete ...

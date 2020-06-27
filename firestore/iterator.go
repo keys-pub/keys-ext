@@ -55,25 +55,6 @@ func (i *docsIterator) Release() {
 	}
 }
 
-type colsIterator struct {
-	iter *firestore.CollectionIterator
-}
-
-func (i *colsIterator) Next() (*ds.Collection, error) {
-	col, err := i.iter.Next()
-	if err == iterator.Done {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-	return &ds.Collection{Path: ds.Path(col.ID)}, nil
-}
-
-func (i *colsIterator) Release() {
-	// Nothing to do for firestore.CollectionIterator
-}
-
 type eventIterator struct {
 	iter  *firestore.DocumentIterator
 	limit int
