@@ -74,9 +74,6 @@ func (m *mem) Documents(opt ...ds.DocumentsOption) ([]*ds.Document, error) {
 
 	docs := make([]*ds.Document, 0, len(m.items))
 	for path, b := range m.items {
-		if opts.Limit > 0 && len(docs) >= opts.Limit {
-			break
-		}
 		if strings.HasPrefix(path, prefix) {
 			docs = append(docs, &ds.Document{Path: path, Data: b})
 		}
@@ -84,5 +81,8 @@ func (m *mem) Documents(opt ...ds.DocumentsOption) ([]*ds.Document, error) {
 	sort.Slice(docs, func(i, j int) bool {
 		return docs[i].Path < docs[j].Path
 	})
+	if opts.Limit > 0 && len(docs) > opts.Limit {
+		docs = docs[:opts.Limit]
+	}
 	return docs, nil
 }
