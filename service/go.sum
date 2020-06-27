@@ -151,6 +151,8 @@ github.com/keys-pub/keys v0.0.0-20200625223038-ffeaa27b06d8 h1:R8cLlm9Jv1QjI7pp5
 github.com/keys-pub/keys v0.0.0-20200625223038-ffeaa27b06d8/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys v0.0.0-20200627005308-6cb6f26a30a7 h1:UMxBIWw2+5GDf5Y6fXa5ETMsxCBqW7ZT7GzLvd+st28=
 github.com/keys-pub/keys v0.0.0-20200627005308-6cb6f26a30a7/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.0.0-20200627194227-7c5b524e78d6 h1:Saam2LP/qR0ehevURmKhOF+V0mqOZ8xq9i/Ft8WoqLI=
+github.com/keys-pub/keys v0.0.0-20200627194227-7c5b524e78d6/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200613203701-f9bf15538783/go.mod h1:x/G3gwUe4ZbszY+qWXzvsy4nAun2b/ENISACWfwAB04=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200618211325-4c2d562cade7 h1:TuGKplA4KiBtjDBwa/Qi/H3Om0JhhK1cwSMD1917JsU=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200618211325-4c2d562cade7/go.mod h1:zCsXre409myb7Knish8aVBPYWSK96/KazhqYCumI+VA=
@@ -197,6 +199,8 @@ github.com/keys-pub/keys-ext/vault v0.0.0-20200625224459-366a0eafc2bf h1:dcmnXQ9
 github.com/keys-pub/keys-ext/vault v0.0.0-20200625224459-366a0eafc2bf/go.mod h1:WXrd0XX6a28dA3L40mLVAAa4Rh1ZLuOzcMKpF/PqOYQ=
 github.com/keys-pub/keys-ext/vault v0.0.0-20200627005949-f1c64545b8be h1:byCfEYqJkfHRnrNV971jFxXsASYhWWzUqAJAkyNGf2E=
 github.com/keys-pub/keys-ext/vault v0.0.0-20200627005949-f1c64545b8be/go.mod h1:9v0hbMCnowg7jJCbuXfkBjykwF6DvnSwLEaQ2gnswwc=
+github.com/keys-pub/keys-ext/vault v0.0.0-20200627194331-e43a0bfd2a9f h1:LZCnsdjy1jCF68e1G1cjyAxSnBbXEtQDAnO1AXH5wtQ=
+github.com/keys-pub/keys-ext/vault v0.0.0-20200627194331-e43a0bfd2a9f/go.mod h1:9v0hbMCnowg7jJCbuXfkBjykwF6DvnSwLEaQ2gnswwc=
 github.com/keys-pub/keys-ext/wormhole v0.0.0-20200618212723-bf12ba4cbdc4 h1:/y0ZQlDp08ZtHG9VBY1U3E12+lA2HGWYL68OvYoyICU=
 github.com/keys-pub/keys-ext/wormhole v0.0.0-20200618212723-bf12ba4cbdc4/go.mod h1:K0B1oKj4P8UrjMO2bJ4Cp/bxztz5fT6TCXqdYuWEkT0=
 github.com/keys-pub/keys-ext/wormhole v0.0.0-20200624011543-a01a0028982e h1:nSIkQF8qVQFFLrVGNyTS1AlJxQE2eXm32Rr0hC3Wsog=
