@@ -17,17 +17,18 @@ import (
 func TestMessages(t *testing.T) {
 	env := newEnv(t)
 	// env.logLevel = server.DebugLevel
-	testMessages(t, env)
+
+	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
+	charlie := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x03}, 32)))
+
+	testMessages(t, env, alice, charlie)
 }
 
-func testMessages(t *testing.T, env *env) {
+func testMessages(t *testing.T, env *env, alice *keys.EdX25519Key, charlie *keys.EdX25519Key) {
 	// keys.SetLogger(keys.NewLogger(keys.DebugLevel))
 
 	srv := newTestServer(t, env)
 	clock := env.clock
-
-	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
-	charlie := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x03}, 32)))
 
 	// GET /msgs/:kid/:rid
 	req, err := api.NewRequest("GET", ds.Path("msgs", alice.ID(), charlie.ID()), nil, clock.Now(), alice)

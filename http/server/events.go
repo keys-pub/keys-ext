@@ -55,15 +55,23 @@ func (s *Server) events(c echo.Context, path string) (*api.EventsResponse, error
 		return nil, s.internalError(c, err)
 	}
 	defer iter.Release()
-	events, to, err := ds.EventsFromIterator(iter, index)
-	if err != nil {
-		return nil, s.internalError(c, err)
+	to := int64(index)
+	events := []*ds.Event{}
+	for {
+		event, err := iter.Next()
+		if err != nil {
+			return nil, s.internalError(c, err)
+		}
+		if event == nil {
+			break
+		}
+		events = append(events, event)
+		to = event.Index
 	}
-	s.logger.Debugf("Events %s, got %d", path, len(events))
-	s.logger.Infof("Events %s (to=%d)", path, to)
+	s.logger.Infof("Events %s, got %d, (to=%d)", path, len(events), to)
 
 	return &api.EventsResponse{
 		Events: events,
-		Index:  int64(to),
+		Index:  to,
 	}, nil
 }

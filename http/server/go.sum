@@ -123,12 +123,16 @@ github.com/keys-pub/keys v0.0.0-20200624005746-a27efaeb8455/go.mod h1:fp0YtOeEUx
 github.com/keys-pub/keys v0.0.0-20200624013456-2ced2c488d1e/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys v0.0.0-20200625223038-ffeaa27b06d8 h1:R8cLlm9Jv1QjI7pp5qa1nnWIBudd43i4Zp1H0c2plrU=
 github.com/keys-pub/keys v0.0.0-20200625223038-ffeaa27b06d8/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.0.0-20200627005308-6cb6f26a30a7 h1:UMxBIWw2+5GDf5Y6fXa5ETMsxCBqW7ZT7GzLvd+st28=
+github.com/keys-pub/keys v0.0.0-20200627005308-6cb6f26a30a7/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys-ext/firestore v0.0.0-20200612011605-1b8b64293fa0 h1:tlT3r1x0ejXQIqRubcD+QSnoE46E0TjbXwUWIzslUVY=
 github.com/keys-pub/keys-ext/firestore v0.0.0-20200612011605-1b8b64293fa0/go.mod h1:b4zTQwJHqfQ5adqVzfqBI0uPdtm1Y6S9klMf/I1m1s0=
 github.com/keys-pub/keys-ext/firestore v0.0.0-20200624010329-d03428c649d4 h1:pbAr6yfWAk+rz6X96GWxF/vEeIg/shXmZ9vvru0dzsQ=
 github.com/keys-pub/keys-ext/firestore v0.0.0-20200624010329-d03428c649d4/go.mod h1:7/M/3nqiUDOWISgY/iZMXnPxxzKtZOJIGa8jHRAFQ0o=
 github.com/keys-pub/keys-ext/firestore v0.0.0-20200625223334-74da599991bf h1:cRNdl6eI27aUhyHGsRN5OlDBhmaYm5g4DNDEUJMfhMM=
 github.com/keys-pub/keys-ext/firestore v0.0.0-20200625223334-74da599991bf/go.mod h1:d3yO6cLm3mOQqfeeMBGoUTPQIIqaa7zhA01PkoxWEns=
+github.com/keys-pub/keys-ext/firestore v0.0.0-20200627005501-778e6a54f882 h1:CQQ7SJEEitY6tq3Gw/TqYgAgCbgIxzlWHt5OZXq5LmQ=
+github.com/keys-pub/keys-ext/firestore v0.0.0-20200627005501-778e6a54f882/go.mod h1:qOLSBSgf2ZN29uFB2M2N2sw7XJDIKiODJh1jnfyGEso=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20200618211624-e8000cad93a4 h1:e2zZFpwSKoUwe1AqI+gy/hpgwD8RcshBVLj9J7QOkxA=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20200618211624-e8000cad93a4/go.mod h1:V28cd5Upetp5ozlUwDCtKEnFECf915hO3HS/jFAqCxM=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20200624010329-d03428c649d4 h1:fqmbbioMCMWZg0a96VvTygpAKBurYOBwjdCiuNmfVP8=

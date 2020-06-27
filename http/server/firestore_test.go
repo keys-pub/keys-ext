@@ -4,6 +4,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/firestore"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/stretchr/testify/require"
@@ -30,5 +31,7 @@ func TestMessagesFirestore(t *testing.T) {
 	env := newEnvWithFire(t, fs, clock)
 	// env.logLevel = server.DebugLevel
 
-	testMessages(t, env)
+	alice := keys.GenerateEdX25519Key()
+	charlie := keys.GenerateEdX25519Key()
+	testMessages(t, env, alice, charlie)
 }
