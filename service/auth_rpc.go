@@ -66,9 +66,7 @@ func (s *service) AuthVault(ctx context.Context, req *AuthVaultRequest) (*AuthVa
 		return nil, errors.Errorf("not an EdX25519 key")
 	}
 
-	s.vault.SetRemoteKey(rk)
-
-	if err := s.vault.Pull(ctx); err != nil {
+	if err := s.vault.InitRemote(ctx, rk); err != nil {
 		return nil, err
 	}
 

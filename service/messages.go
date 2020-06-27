@@ -188,7 +188,7 @@ func (s *service) messages(ctx context.Context, key *keys.EdX25519Key, recipient
 		return nil, err
 	}
 	path := ds.Path("msgs", addr)
-	iter, iterErr := s.db.Documents(ctx, path, ds.NoData())
+	iter, iterErr := s.db.DocumentIterator(ctx, path, ds.NoData())
 	if iterErr != nil {
 		return nil, iterErr
 	}

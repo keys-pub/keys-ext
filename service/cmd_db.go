@@ -29,7 +29,7 @@ func dbCommands(client *Client) []cli.Command {
 						}
 						path := c.Args().First()
 						req := &CollectionsRequest{
-							Path: path,
+							Parent: path,
 						}
 						resp, err := client.KeysClient().Collections(context.TODO(), req)
 						if err != nil {
@@ -63,7 +63,7 @@ func dbCommands(client *Client) []cli.Command {
 						}
 
 						req := &DocumentsRequest{
-							Path: path,
+							Prefix: path,
 						}
 						resp, err := client.KeysClient().Documents(context.TODO(), req)
 						if err != nil {

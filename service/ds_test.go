@@ -11,6 +11,7 @@ import (
 func TestDocuments(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
 	// keys.SetLogger(NewLogger(DebugLevel))
+	var err error
 
 	env := newTestEnv(t)
 	service, closeFn := newTestService(t, env, "")
@@ -25,19 +26,22 @@ func TestDocuments(t *testing.T) {
 	testUserSetupGithub(t, env, service, bob, "bob")
 	testPush(t, service, bob)
 
+	err = service.db.Set(ctx, "/sigchaintest/test", []byte("testvalue"))
+	require.NoError(t, err)
+
 	respCols, err := service.Collections(ctx, &CollectionsRequest{})
 	require.NoError(t, err)
 
 	expectedCols := []*Collection{
 		&Collection{Path: "/kid"},
 		&Collection{Path: "/sigchain"},
+		&Collection{Path: "/sigchaintest"},
 		&Collection{Path: "/user"},
 	}
 	require.Equal(t, expectedCols, respCols.Collections)
 
-	respDocs, err := service.Documents(ctx, &DocumentsRequest{Path: "/sigchain"})
+	respDocs, err := service.Documents(ctx, &DocumentsRequest{Prefix: "/sigchain/"})
 	require.NoError(t, err)
-
 	require.Equal(t, 2, len(respDocs.Documents))
 	require.Equal(t, fmt.Sprintf("/sigchain/%s-000000000000001", alice.ID()), respDocs.Documents[0].Path)
 	require.Equal(t, fmt.Sprintf("/sigchain/%s-000000000000001", bob.ID()), respDocs.Documents[1].Path)

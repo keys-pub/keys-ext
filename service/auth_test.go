@@ -13,7 +13,7 @@ func TestAuthWithPassword(t *testing.T) {
 	cfg, closeFn := testConfig(t, "KeysTest", "")
 	defer closeFn()
 	auth := newAuth(cfg)
-	vlt := newTestVault(t, false)
+	vlt := newTestVault(t)
 
 	ctx := context.TODO()
 
@@ -55,7 +55,7 @@ func TestAuthorize(t *testing.T) {
 	cfg, closeFn := testConfig(t, "KeysTest", "")
 	defer closeFn()
 	auth := newAuth(cfg)
-	vlt := newTestVault(t, false)
+	vlt := newTestVault(t)
 
 	ctx := metadata.NewIncomingContext(context.TODO(), metadata.MD{})
 	err = auth.authorize(ctx, "/service.Keys/SomeMethod")

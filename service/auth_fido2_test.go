@@ -31,7 +31,7 @@ func TestHMACSecretAuthOnDevice(t *testing.T) {
 	defer closeFn()
 
 	auth := newAuth(cfg)
-	vlt := newTestVault(t, false)
+	vlt := newTestVault(t)
 
 	// Load plugin
 	fido2Plugin, err := fido2.OpenPlugin(filepath.Join(testGoBin(t), "fido2.so"))
@@ -56,7 +56,7 @@ func TestHMACSecretAuth(t *testing.T) {
 	cfg, closeFn := testConfig(t, "KeysTest", "")
 	defer closeFn()
 	auth := newAuth(cfg)
-	vlt := newTestVault(t, false)
+	vlt := newTestVault(t)
 	pin := "12345"
 
 	// Try without plugin

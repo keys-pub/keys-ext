@@ -782,7 +782,10 @@ message Collection {
 }
 
 message CollectionsRequest {
-  string path = 1;
+  string parent = 1;
+
+  // DB is "service" or "vault".
+  string db = 5 [(gogoproto.customname) = "DB"];
 }
 message CollectionsResponse {
   repeated Collection collections = 1;
@@ -791,13 +794,16 @@ message CollectionsResponse {
 message Document {
   string path = 1;
   string value = 2;
+
   int64 createdAt = 10;
   int64 updatedAt = 11;
 }
 
 message DocumentsRequest {
-  string path = 1;
-  string prefix = 2;
+  string prefix = 1;
+
+  // DB is "service" or "vault".
+  string db = 5 [(gogoproto.customname) = "DB"];  
 }
 message DocumentsResponse {
   repeated Document documents = 1;

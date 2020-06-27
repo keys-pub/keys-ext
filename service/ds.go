@@ -5,6 +5,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/keys-pub/keys-ext/vault"
 	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
@@ -12,56 +13,55 @@ import (
 
 // Collections (RPC) ...
 func (s *service) Collections(ctx context.Context, req *CollectionsRequest) (*CollectionsResponse, error) {
-	iter, err := s.db.Collections(ctx, req.Path)
-	if err != nil {
-		return nil, err
+	switch req.DB {
+	case "", "service":
+		return s.serviceCollections(ctx, req.Parent)
+	case "vault":
+		return s.vaultCollections(ctx, req.Parent)
+	default:
+		return nil, errors.Errorf("invalid db %s", req.DB)
 	}
-	defer iter.Release()
-	cols := make([]*Collection, 0, 100)
-	for {
-		col, err := iter.Next()
-		if err != nil {
-			return nil, err
-		}
-		if col == nil {
-			break
-		}
-		// if strings.HasPrefix(col.Path, "/.") {
-		// 	continue
-		// }
-		cols = append(cols, &Collection{
-			Path: col.Path,
-		})
-	}
-	return &CollectionsResponse{
-		Collections: cols,
-	}, nil
 }
 
-// Documents (RPC) lists local document store.
-func (s *service) Documents(ctx context.Context, req *DocumentsRequest) (*DocumentsResponse, error) {
-	if req.Path == "" {
-		return nil, errors.Errorf("no collection specified")
-	}
-	iter, err := s.db.Documents(ctx, req.Path, ds.Prefix(req.Prefix))
+func (s *service) serviceCollections(ctx context.Context, parent string) (*CollectionsResponse, error) {
+	cols, err := s.db.Collections(ctx, parent)
 	if err != nil {
 		return nil, err
 	}
-	defer iter.Release()
+	return &CollectionsResponse{Collections: collectionsToRPC(cols)}, nil
+}
+
+func (s *service) vaultCollections(ctx context.Context, parent string) (*CollectionsResponse, error) {
+	cols, err := vault.Collections(s.vault.Store(), parent)
+	if err != nil {
+		return nil, err
+	}
+	return &CollectionsResponse{Collections: collectionsToRPC(cols)}, nil
+}
+
+func collectionsToRPC(cols []*ds.Collection) []*Collection {
+	out := make([]*Collection, 0, len(cols))
+	for _, c := range cols {
+		out = append(out, &Collection{Path: c.Path})
+	}
+	return out
+}
+
+// Documents (RPC) lists document from db or vault.
+func (s *service) Documents(ctx context.Context, req *DocumentsRequest) (*DocumentsResponse, error) {
+	var docs []*ds.Document
+	var docsErr error
+	switch req.DB {
+	case "", "service":
+		docs, docsErr = s.db.Documents(ctx, "", ds.Prefix(req.Prefix))
+	case "vault":
+		docs, docsErr = s.vault.Store().Documents(ds.Prefix(req.Prefix))
+	}
+	if docsErr != nil {
+		return nil, docsErr
+	}
 	out := make([]*Document, 0, 100)
-	for {
-		doc, err := iter.Next()
-		if err != nil {
-			return nil, err
-		}
-		if doc == nil {
-			break
-		}
-		// if req.Pretty {
-		// 	if pretty := doc.Pretty(); pretty != nil {
-		// 		b = pretty
-		// 	}
-		// }
+	for _, doc := range docs {
 		var val string
 		if !utf8.Valid(doc.Data) {
 			val = string(spew.Sdump(doc.Data))

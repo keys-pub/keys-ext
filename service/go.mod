@@ -7,14 +7,14 @@ require (
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/protobuf v1.4.2
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
-	github.com/keys-pub/keys v0.0.0-20200625223038-ffeaa27b06d8
+	github.com/keys-pub/keys v0.0.0-20200627005308-6cb6f26a30a7
 	github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200618211325-4c2d562cade7
 	github.com/keys-pub/keys-ext/auth/mock v0.0.0-20200618212723-bf12ba4cbdc4
 	github.com/keys-pub/keys-ext/http/api v0.0.0-20200625223334-74da599991bf
 	github.com/keys-pub/keys-ext/http/client v0.0.0-20200625224357-38b58050ef02
-	github.com/keys-pub/keys-ext/http/server v0.0.0-20200625224124-1dd35decc483
-	github.com/keys-pub/keys-ext/sdb v0.0.0-20200624011543-a01a0028982e
-	github.com/keys-pub/keys-ext/vault v0.0.0-20200625224459-366a0eafc2bf
+	github.com/keys-pub/keys-ext/http/server v0.0.0-20200627005809-4b6e75bb8abb
+	github.com/keys-pub/keys-ext/sdb v0.0.0-20200627005809-4b6e75bb8abb
+	github.com/keys-pub/keys-ext/vault v0.0.0-20200627005949-f1c64545b8be
 	github.com/keys-pub/keys-ext/wormhole v0.0.0-20200624011543-a01a0028982e
 	github.com/mercari/go-grpc-interceptor v0.0.0-20180110035004-b8ad3827e82a
 	github.com/mitchellh/go-ps v1.0.0
