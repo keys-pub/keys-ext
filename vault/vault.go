@@ -314,7 +314,9 @@ func (v *Vault) Spew(prefix string, out io.Writer) error {
 	if err != nil {
 		return err
 	}
-	out.Write([]byte(fmt.Sprintf("%s\n", spew.Sdump(docs))))
+	if _, err := out.Write([]byte(fmt.Sprintf("%s\n", spew.Sdump(docs)))); err != nil {
+		return err
+	}
 	return nil
 }
 
