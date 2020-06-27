@@ -359,12 +359,6 @@ func (d *DB) Documents(ctx context.Context, parent string, opt ...ds.DocumentsOp
 	return docs, nil
 }
 
-func copyBytes(source []byte) []byte {
-	dest := make([]byte, len(source))
-	copy(dest, source)
-	return dest
-}
-
 func (d *DB) get(ctx context.Context, path string) (*ds.Document, error) {
 	if d.sdb == nil {
 		return nil, errors.Errorf("db not open")
