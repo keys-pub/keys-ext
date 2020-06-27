@@ -18,11 +18,11 @@ type Provision struct {
 	CreatedAt time.Time `msgpack:"cts"`
 
 	// AAGUID (for FIDO2HMACSecret)
-	AAGUID string `msgpack:"aaguid"`
+	AAGUID string `msgpack:"aaguid,omitempty"`
 	// Salt (for FIDO2HMACSecret)
-	Salt []byte `msgpack:"salt"`
+	Salt []byte `msgpack:"salt,omitempty"`
 	// NoPin (for FIDO2HMACSecret)
-	NoPin bool `msgpack:"nopin"`
+	NoPin bool `msgpack:"nopin,omitempty"`
 }
 
 // NewProvision creates a new provision.
@@ -61,20 +61,12 @@ func (v *Vault) Provision(key *[32]byte, provision *Provision) error {
 // Doesn't require Unlock().
 func (v *Vault) Provisions() ([]*Provision, error) {
 	path := ds.Path("provision")
-	iter, err := v.store.Documents(ds.Prefix(path))
+	docs, err := v.store.Documents(ds.Prefix(path))
 	if err != nil {
 		return nil, err
 	}
-	defer iter.Release()
 	provisions := []*Provision{}
-	for {
-		doc, err := iter.Next()
-		if err != nil {
-			return nil, err
-		}
-		if doc == nil {
-			break
-		}
+	for _, doc := range docs {
 		var provision Provision
 		if err := msgpack.Unmarshal(doc.Data, &provision); err != nil {
 			return nil, err
@@ -140,7 +132,7 @@ func (v *Vault) provisionSave(provision *Provision) error {
 	if err != nil {
 		return err
 	}
-	if err := v.set(ds.Path("provision", provision.ID), b); err != nil {
+	if err := v.set(ds.Path("provision", provision.ID), b, true); err != nil {
 		return err
 	}
 	return nil

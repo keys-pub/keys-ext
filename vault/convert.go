@@ -27,7 +27,7 @@ func ConvertKeyring(kr keyring.Keyring, to *Vault) error {
 
 		// #salt
 		if doc.Path == "#salt" {
-			if err := to.set(ds.Path("config", "salt"), doc.Data); err != nil {
+			if err := to.set(ds.Path("config", "salt"), doc.Data, true); err != nil {
 				return err
 			}
 			continue
@@ -35,7 +35,7 @@ func ConvertKeyring(kr keyring.Keyring, to *Vault) error {
 
 		// #auth
 		if doc.Path == "#auth" {
-			if err := to.set(ds.Path("auth", "v0"), doc.Data); err != nil {
+			if err := to.set(ds.Path("auth", "v0"), doc.Data, true); err != nil {
 				return err
 			}
 			provision := &Provision{
@@ -47,7 +47,7 @@ func ConvertKeyring(kr keyring.Keyring, to *Vault) error {
 			if err != nil {
 				return err
 			}
-			if err := to.set(ds.Path("provision", "v0"), b); err != nil {
+			if err := to.set(ds.Path("provision", "v0"), b, true); err != nil {
 				return err
 			}
 			continue
@@ -61,7 +61,7 @@ func ConvertKeyring(kr keyring.Keyring, to *Vault) error {
 			if len(spl) < 2 {
 				return errors.Errorf("unsupported id %s", doc.Path)
 			}
-			if err := to.set(ds.Path("auth", spl[1]), doc.Data); err != nil {
+			if err := to.set(ds.Path("auth", spl[1]), doc.Data, true); err != nil {
 				return err
 			}
 		// #provision-
@@ -69,7 +69,7 @@ func ConvertKeyring(kr keyring.Keyring, to *Vault) error {
 			if len(spl) < 2 {
 				return errors.Errorf("unsupported id %s", doc.Path)
 			}
-			if err := to.set(ds.Path("provision", spl[1]), doc.Data); err != nil {
+			if err := to.set(ds.Path("provision", spl[1]), doc.Data, true); err != nil {
 				return err
 			}
 		// items
@@ -77,7 +77,7 @@ func ConvertKeyring(kr keyring.Keyring, to *Vault) error {
 			if strings.HasPrefix(doc.Path, "#") {
 				continue
 			}
-			if err := to.set(ds.Path("item", doc.Path), doc.Data); err != nil {
+			if err := to.set(ds.Path("item", doc.Path), doc.Data, true); err != nil {
 				return err
 			}
 		}

@@ -17,7 +17,7 @@ type Store interface {
 	Delete(path string) (bool, error)
 
 	// Documents iterator.
-	Documents(opt ...ds.DocumentsOption) (ds.DocumentIterator, error)
+	Documents(opt ...ds.DocumentsOption) ([]*ds.Document, error)
 
 	// Open store.
 	Open() error
@@ -27,45 +27,16 @@ type Store interface {
 
 // Paths from vault Store.
 func Paths(st Store, prefix string) ([]string, error) {
-	iter, err := st.Documents(ds.Prefix(prefix))
+	docs, err := st.Documents(ds.Prefix(prefix))
 	if err != nil {
 		return nil, err
 	}
-	defer iter.Release()
 	paths := []string{}
-	for {
-		doc, err := iter.Next()
-		if err != nil {
-			return nil, err
-		}
-		if doc == nil {
-			break
-		}
+	for _, doc := range docs {
 		paths = append(paths, doc.Path)
 
 	}
 	return paths, nil
-}
-
-// Documents from vault Store.
-func Documents(st Store, prefix string) ([]*ds.Document, error) {
-	iter, err := st.Documents(ds.Prefix(prefix))
-	if err != nil {
-		return nil, err
-	}
-	defer iter.Release()
-	docs := []*ds.Document{}
-	for {
-		doc, err := iter.Next()
-		if err != nil {
-			return nil, err
-		}
-		if doc == nil {
-			break
-		}
-		docs = append(docs, doc)
-	}
-	return docs, nil
 }
 
 func deleteAll(st Store, paths []string) error {
@@ -75,4 +46,27 @@ func deleteAll(st Store, paths []string) error {
 		}
 	}
 	return nil
+}
+
+// Collections from Store.
+func Collections(st Store, parent string) ([]*ds.Collection, error) {
+	// We iterate over all the paths to build the collections list, this is slow.
+	collections := []*ds.Collection{}
+	docs, err := st.Documents(ds.Prefix(ds.Path(parent)), ds.NoData())
+	if err != nil {
+		return nil, err
+	}
+	count := map[string]int{}
+	for _, doc := range docs {
+		col := ds.PathFirst(doc.Path)
+		colv, ok := count[col]
+		if !ok {
+			collections = append(collections, &ds.Collection{Path: ds.Path(col)})
+			count[col] = 1
+		} else {
+			count[col] = colv + 1
+		}
+	}
+
+	return collections, nil
 }

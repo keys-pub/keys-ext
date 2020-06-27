@@ -44,13 +44,9 @@ func TestBackupRestore(t *testing.T) {
 }
 
 func testEqualStores(t *testing.T, st1 vault.Store, st2 vault.Store) {
-	iter1, err := st1.Documents()
+	docs1, err := st1.Documents()
 	require.NoError(t, err)
-	docs1, err := ds.DocumentsFromIterator(iter1)
-	require.NoError(t, err)
-	iter2, err := st2.Documents()
-	require.NoError(t, err)
-	docs2, err := ds.DocumentsFromIterator(iter2)
+	docs2, err := st2.Documents()
 	require.NoError(t, err)
 
 	require.Equal(t, len(docs1), len(docs2))

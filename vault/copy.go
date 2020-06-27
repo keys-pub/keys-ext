@@ -7,21 +7,13 @@ import "github.com/pkg/errors"
 func Copy(from Store, to Store, opt ...CopyOption) ([]string, error) {
 	opts := newCopyOptions(opt...)
 
-	iter, err := from.Documents()
+	docs, err := from.Documents()
 	if err != nil {
 		return nil, err
 	}
-	defer iter.Release()
 
 	added := []string{}
-	for {
-		doc, err := iter.Next()
-		if err != nil {
-			return nil, err
-		}
-		if doc == nil {
-			break
-		}
+	for _, doc := range docs {
 		path, b := doc.Path, doc.Data
 		data, err := to.Get(path)
 		if err != nil {

@@ -12,20 +12,12 @@ import (
 // This is slow.
 func (v *Vault) ItemHistory(id string) ([]*Item, error) {
 	path := ds.Path("pull")
-	iter, err := v.store.Documents(ds.Prefix(path), ds.NoData())
+	docs, err := v.store.Documents(ds.Prefix(path), ds.NoData())
 	if err != nil {
 		return nil, err
 	}
-	defer iter.Release()
 	paths := []string{}
-	for {
-		doc, err := iter.Next()
-		if err != nil {
-			return nil, err
-		}
-		if doc == nil {
-			break
-		}
+	for _, doc := range docs {
 		if strings.HasPrefix(ds.PathFrom(doc.Path, 2), ds.Path("item", id)) {
 			paths = append(paths, doc.Path)
 		}
@@ -64,20 +56,12 @@ func (v *Vault) ItemHistory(id string) ([]*Item, error) {
 // Requires Unlock.
 func (v *Vault) findPendingItems(id string) ([]*Item, error) {
 	path := ds.Path("push")
-	iter, err := v.store.Documents(ds.Prefix(path))
+	docs, err := v.store.Documents(ds.Prefix(path))
 	if err != nil {
 		return nil, err
 	}
-	defer iter.Release()
 	items := []*Item{}
-	for {
-		doc, err := iter.Next()
-		if err != nil {
-			return nil, err
-		}
-		if doc == nil {
-			break
-		}
+	for _, doc := range docs {
 		pc := ds.PathComponents(doc.Path)
 		if pc[2] != "item" || pc[3] != id {
 			continue

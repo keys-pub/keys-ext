@@ -35,19 +35,17 @@ func (m *mem) Get(path string) ([]byte, error) {
 	if path == "" {
 		return nil, errors.Errorf("invalid path")
 	}
-	// logger.Debugf("Get %s", path)
 	if b, ok := m.items[path]; ok {
 		return b, nil
 	}
 	return nil, nil
 }
 
-func (m *mem) Set(path string, data []byte) error {
+func (m *mem) Set(path string, b []byte) error {
 	if path == "" {
 		return errors.Errorf("invalid path")
 	}
-	// logger.Debugf("Set %s", path)
-	m.items[path] = data
+	m.items[path] = b
 	return nil
 }
 
@@ -70,12 +68,15 @@ func (m *mem) Delete(path string) (bool, error) {
 	return false, nil
 }
 
-func (m *mem) Documents(opt ...ds.DocumentsOption) (ds.DocumentIterator, error) {
+func (m *mem) Documents(opt ...ds.DocumentsOption) ([]*ds.Document, error) {
 	opts := ds.NewDocumentsOptions(opt...)
 	prefix := opts.Prefix
 
 	docs := make([]*ds.Document, 0, len(m.items))
 	for path, b := range m.items {
+		if opts.Limit > 0 && len(docs) >= opts.Limit {
+			break
+		}
 		if strings.HasPrefix(path, prefix) {
 			docs = append(docs, &ds.Document{Path: path, Data: b})
 		}
@@ -83,5 +84,5 @@ func (m *mem) Documents(opt ...ds.DocumentsOption) (ds.DocumentIterator, error) 
 	sort.Slice(docs, func(i, j int) bool {
 		return docs[i].Path < docs[j].Path
 	})
-	return ds.NewDocumentIterator(docs...), nil
+	return docs, nil
 }

@@ -11,7 +11,7 @@ import (
 )
 
 func TestAuth(t *testing.T) {
-	vlt := newTestVault(t, false)
+	vlt := newTestVault(t)
 	testAuth(t, vlt)
 }
 

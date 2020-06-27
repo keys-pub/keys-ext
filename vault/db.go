@@ -36,7 +36,7 @@ func (d *DB) Open() error {
 		return errors.Errorf("invalid path")
 	}
 
-	logger.Infof("DB at %s", d.path)
+	logger.Infof("Open %s", d.path)
 	ldb, err := leveldb.OpenFile(d.path, nil)
 	if err != nil {
 		return err
@@ -100,28 +100,43 @@ func (d *DB) Delete(path string) (bool, error) {
 	return true, nil
 }
 
-// Documents iterator.
-func (d *DB) Documents(opt ...ds.DocumentsOption) (ds.DocumentIterator, error) {
+// Documents ...
+func (d *DB) Documents(opt ...ds.DocumentsOption) ([]*ds.Document, error) {
 	if d.ldb == nil {
 		return nil, errors.Errorf("db not open")
 	}
 	opts := ds.NewDocumentsOptions(opt...)
+
+	if opts.Index != 0 {
+		return nil, errors.Errorf("index not implemented")
+	}
+
 	prefix := opts.Prefix
 	iter := d.ldb.NewIterator(ldbutil.BytesPrefix([]byte(prefix)), nil)
-	return &docsIterator{
-		iter:  iter,
-		index: opts.Index,
-		limit: opts.Limit,
-	}, nil
+	defer iter.Release()
+
+	docs := []*ds.Document{}
+	for iter.Next() {
+		if opts.Limit > 0 && len(docs) >= opts.Limit {
+			break
+		}
+		path := string(iter.Key())
+		// Remember that the contents of the returned slice should not be modified, and
+		// only valid until the next call to Next.
+		b := copyBytes(iter.Value())
+		docs = append(docs, ds.NewDocument(path, b))
+	}
+	if err := iter.Error(); err != nil {
+		return nil, err
+	}
+	return docs, nil
 }
 
-// func (d *DB) Iterator(prefix string) (iterator.Iterator, error) {
-// 	if d.ldb == nil {
-// 		return nil, errors.Errorf("db not open")
-// 	}
-// 	path := ds.Path(prefix)
-// 	return d.ldb.NewIterator(ldbutil.BytesPrefix([]byte(path)), nil), nil
-// }
+func copyBytes(source []byte) []byte {
+	dest := make([]byte, len(source))
+	copy(dest, source)
+	return dest
+}
 
 // Exists if path exists.
 func (d *DB) Exists(path string) (bool, error) {

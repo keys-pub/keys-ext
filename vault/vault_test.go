@@ -20,12 +20,27 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func newTestVault(t *testing.T, unlocked bool) *vault.Vault {
-	v := vault.New(vault.NewMem())
-	if unlocked {
-		v.SetMasterKey(keys.Rand32())
+func newTestVaultKey(t *testing.T, clock *tsutil.Clock) (*[32]byte, *vault.Provision) {
+	key := keys.Bytes32(bytes.Repeat([]byte{0xFF}, 32))
+	id := encoding.MustEncode(bytes.Repeat([]byte{0xFE}, 32), encoding.Base62)
+	provision := &vault.Provision{
+		ID:        id,
+		Type:      vault.UnknownAuth,
+		CreatedAt: clock.Now(),
 	}
-	return v
+	return key, provision
+}
+
+func newTestVault(t *testing.T) *vault.Vault {
+	return vault.New(vault.NewMem())
+}
+
+func newTestVaultUnlocked(t *testing.T, clock *tsutil.Clock) *vault.Vault {
+	vlt := newTestVault(t)
+	key, provision := newTestVaultKey(t, clock)
+	err := vlt.Setup(key, provision)
+	require.NoError(t, err)
+	return vlt
 }
 
 func newTestVaultDB(t *testing.T) (*vault.DB, func()) {
@@ -85,6 +100,15 @@ func testClient(t *testing.T, env *testEnv) *client.Client {
 	return cl
 }
 
+func TestIsEmpty(t *testing.T) {
+	db, closeFn := newTestVaultDB(t)
+	defer closeFn()
+	vlt := vault.New(db)
+	empty, err := vlt.IsEmpty()
+	require.NoError(t, err)
+	require.True(t, empty)
+}
+
 func TestSync(t *testing.T) {
 	db1, closeFn1 := newTestVaultDB(t)
 	defer closeFn1()
@@ -103,17 +127,18 @@ func testSync(t *testing.T, st1 vault.Store, st2 vault.Store) {
 	env := newTestEnv(t, nil) // vault.NewLogger(vault.DebugLevel))
 	defer env.closeFn()
 
-	mk := keys.Rand32()
-	rk := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	ctx := context.TODO()
+	clock := tsutil.NewClock()
 
 	// Client #1
 	client1 := testClient(t, env)
 
 	v1 := vault.New(st1)
 	v1.SetRemote(client1)
-	v1.SetRemoteKey(rk)
-	v1.SetMasterKey(mk)
+
+	key, provision := newTestVaultKey(t, clock)
+	err = v1.Setup(key, provision)
+	require.NoError(t, err)
 
 	err = v1.Set(vault.NewItem("key1", []byte("mysecretdata.1a"), "", time.Now()))
 	require.NoError(t, err)
@@ -131,8 +156,11 @@ func testSync(t *testing.T, st1 vault.Store, st2 vault.Store) {
 
 	v2 := vault.New(st2)
 	v2.SetRemote(client2)
-	v2.SetRemoteKey(rk)
-	v2.SetMasterKey(mk)
+	err = v2.InitRemote(ctx, v1.RemoteKey())
+	require.NoError(t, err)
+	provisionOut, err := v2.Unlock(key)
+	require.NoError(t, err)
+	require.Equal(t, provision.ID, provisionOut.ID)
 
 	err = v2.Set(vault.NewItem("key2", []byte("mysecretdata.2"), "", time.Now()))
 	require.NoError(t, err)
@@ -227,12 +255,14 @@ func testSync(t *testing.T, st1 vault.Store, st2 vault.Store) {
 	paths, err := vault.Paths(v1.Store(), "/pull")
 	require.NoError(t, err)
 	expected := []string{
-		"/pull/000000000000001/item/key1",
-		"/pull/000000000000002/item/key2",
+		"/pull/000000000000001/auth/ySymDh5DDuJo21ydVJdyuxcDTgYUJMin4PZQzSUBums",
+		"/pull/000000000000002/provision/ySymDh5DDuJo21ydVJdyuxcDTgYUJMin4PZQzSUBums",
 		"/pull/000000000000003/item/key1",
-		"/pull/000000000000004/item/key1",
+		"/pull/000000000000004/item/key2",
 		"/pull/000000000000005/item/key1",
 		"/pull/000000000000006/item/key1",
+		"/pull/000000000000007/item/key1",
+		"/pull/000000000000008/item/key1",
 	}
 	require.Equal(t, expected, paths)
 
@@ -243,6 +273,15 @@ func testSync(t *testing.T, st1 vault.Store, st2 vault.Store) {
 		"/item/key2",
 	}
 	require.Equal(t, expected, paths)
+
+	cols, err := vault.Collections(v1.Store(), "")
+	require.NoError(t, err)
+	require.Equal(t, 5, len(cols))
+	require.Equal(t, "/auth", cols[0].Path)
+	require.Equal(t, "/db", cols[1].Path)
+	require.Equal(t, "/item", cols[2].Path)
+	require.Equal(t, "/provision", cols[3].Path)
+	require.Equal(t, "/pull", cols[4].Path)
 }
 
 func TestErrors(t *testing.T) {
@@ -251,17 +290,17 @@ func TestErrors(t *testing.T) {
 	env := newTestEnv(t, nil) // vault.NewLogger(vault.DebugLevel))
 	defer env.closeFn()
 
-	mk := keys.Rand32()
-
 	vlt := vault.New(vault.NewMem())
 
 	err = vlt.Set(vault.NewItem("key1", []byte("mysecretdata"), "", time.Now()))
 	require.EqualError(t, err, "vault is locked")
 
-	vlt.SetMasterKey(mk)
+	err = vlt.Setup(keys.Rand32(), vault.NewProvision(vault.UnknownAuth))
+	require.NoError(t, err)
+
 	err = vlt.Set(vault.NewItem("key1", []byte("mysecretdata"), "", time.Now()))
 	require.NoError(t, err)
-	vlt.SetMasterKey(nil)
+	vlt.Lock()
 
 	_, err = vlt.Get("key1")
 	require.EqualError(t, err, "vault is locked")
@@ -354,11 +393,15 @@ func TestSetupUnlockProvision(t *testing.T) {
 func testSetupUnlockProvision(t *testing.T, vlt *vault.Vault) {
 	var err error
 
-	key := keys.Bytes32(bytes.Repeat([]byte{0x01}, 32))
-	vlt.SetMasterKey(key)
+	clock := tsutil.NewClock()
+	key, provision := newTestVaultKey(t, clock)
+	err = vlt.Setup(key, provision)
+	require.NoError(t, err)
+
 	err = vlt.Set(vault.NewItem("key1", []byte("password"), "", time.Now()))
 	require.NoError(t, err)
-	vlt.SetMasterKey(nil)
+
+	vlt.Lock()
 
 	err = vlt.Set(vault.NewItem("key1", []byte("password"), "", time.Now()))
 	require.EqualError(t, err, "vault is locked")
@@ -369,8 +412,7 @@ func testSetupUnlockProvision(t *testing.T, vlt *vault.Vault) {
 	_, err = vlt.Items()
 	require.EqualError(t, err, "vault is locked")
 
-	provision := vault.NewProvision(vault.UnknownAuth)
-	err = vlt.Setup(key, provision)
+	_, err = vlt.Unlock(key)
 	require.NoError(t, err)
 
 	err = vlt.Set(vault.NewItem("key1", []byte("password"), "", time.Now()))
@@ -417,8 +459,8 @@ func testSetupUnlockProvision(t *testing.T, vlt *vault.Vault) {
 
 func TestSetErrors(t *testing.T) {
 	var err error
-	vlt := vault.New(vault.NewMem())
-	vlt.SetMasterKey(keys.Rand32())
+	clock := tsutil.NewClock()
+	vlt := newTestVaultUnlocked(t, clock)
 
 	err = vlt.Set(vault.NewItem("", nil, "", time.Time{}))
 	require.EqualError(t, err, "invalid id")
@@ -468,67 +510,4 @@ func TestProtocol(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(items))
 	require.Equal(t, "testid1", items[0].ID)
-}
-
-func TestAuthPull(t *testing.T) {
-	// vault.SetLogger(vault.NewLogger(vault.DebugLevel))
-	var err error
-	env := newTestEnv(t, nil) // vault.NewLogger(vault.DebugLevel))
-	defer env.closeFn()
-
-	rk := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
-	ctx := context.TODO()
-
-	// Client #1
-	client1 := testClient(t, env)
-
-	v1 := vault.New(vault.NewMem())
-	v1.SetRemote(client1)
-	v1.SetRemoteKey(rk)
-
-	err = v1.UnlockWithPassword("mypassword", true)
-	require.NoError(t, err)
-
-	provisions, err := v1.Provisions()
-	require.NoError(t, err)
-	require.Equal(t, 1, len(provisions))
-	provision := provisions[0]
-
-	err = v1.Set(vault.NewItem("key1", []byte("value1"), "", time.Now()))
-	require.NoError(t, err)
-
-	err = v1.Sync(ctx)
-	require.NoError(t, err)
-
-	// Client #2
-	client2 := testClient(t, env)
-
-	v2 := vault.New(vault.NewMem())
-	v2.SetRemote(client2)
-	v2.SetRemoteKey(rk)
-
-	err = v2.Pull(ctx)
-	require.NoError(t, err)
-
-	err = v2.UnlockWithPassword("mypassword", false)
-	require.NoError(t, err)
-
-	out, err := v2.Get("key1")
-	require.NoError(t, err)
-	require.Equal(t, "key1", out.ID)
-	require.Equal(t, []byte("value1"), out.Data)
-
-	paths1, err := vault.Paths(v1.Store(), "/pull")
-	require.NoError(t, err)
-	expected := []string{
-		"/pull/000000000000001/config/salt",
-		"/pull/000000000000002/auth/" + provision.ID,
-		"/pull/000000000000003/provision/" + provision.ID,
-		"/pull/000000000000004/item/key1",
-	}
-	require.Equal(t, expected, paths1)
-
-	paths2, err := vault.Paths(v2.Store(), "/pull")
-	require.NoError(t, err)
-	require.Equal(t, expected, paths2)
 }

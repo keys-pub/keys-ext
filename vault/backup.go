@@ -42,24 +42,13 @@ func backup(file *os.File, st Store, now time.Time) error {
 	gz := gzip.NewWriter(file)
 	tw := tar.NewWriter(gz)
 
-	iter, err := st.Documents()
+	docs, err := st.Documents()
 	if err != nil {
 		_ = tw.Close()
 		_ = gz.Close()
 		return err
 	}
-	defer iter.Release()
-	for {
-		doc, err := iter.Next()
-		if err != nil {
-			_ = tw.Close()
-			_ = gz.Close()
-			return err
-		}
-		if doc == nil {
-			break
-		}
-
+	for _, doc := range docs {
 		path := doc.Path
 		b := doc.Data
 		header := new(tar.Header)

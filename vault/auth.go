@@ -28,7 +28,7 @@ func (v *Vault) Salt() ([]byte, error) {
 	}
 	if salt == nil {
 		salt = keys.Rand32()[:]
-		if err := v.set(path, salt); err != nil {
+		if err := v.set(path, salt, true); err != nil {
 			return nil, err
 		}
 	}
@@ -98,13 +98,16 @@ func (v *Vault) Setup(key *[32]byte, provision *Provision) error {
 		return err
 	}
 
+	logger.Infof("Setup with %s", provision.ID)
+	if err := v.setMasterKey(mk); err != nil {
+		return err
+	}
+
 	if provision != nil {
 		if err := v.provisionSave(provision); err != nil {
 			return err
 		}
 	}
-
-	v.mk = mk
 	return nil
 }
 
@@ -117,10 +120,14 @@ func (v *Vault) Unlock(key *[32]byte) (*Provision, error) {
 		return nil, err
 	}
 	if mk == nil {
+		logger.Infof("Unlock failed")
 		return nil, ErrInvalidAuth
 	}
+
 	logger.Infof("Unlocked with %s", id)
-	v.mk = mk
+	if err := v.setMasterKey(mk); err != nil {
+		return nil, err
+	}
 
 	provision, err := v.provision(id)
 	if err != nil {
@@ -129,12 +136,14 @@ func (v *Vault) Unlock(key *[32]byte) (*Provision, error) {
 	if provision == nil {
 		provision = &Provision{ID: id}
 	}
+
 	return provision, nil
 }
 
 // Lock the vault.
 func (v *Vault) Lock() error {
 	v.mk = nil
+	v.rk = nil
 	return nil
 }
 
@@ -164,7 +173,7 @@ func (v *Vault) authCreate(id string, key *[32]byte, mk *[32]byte) error {
 	if err != nil {
 		return err
 	}
-	if err := v.set(ds.Path("auth", id), b); err != nil {
+	if err := v.set(ds.Path("auth", id), b, true); err != nil {
 		return err
 	}
 	return nil
@@ -198,19 +207,11 @@ func (v *Vault) authDelete(id string) (bool, error) {
 
 func (v *Vault) hasAuth() (bool, error) {
 	path := ds.Path("auth")
-	iter, err := v.store.Documents(ds.Prefix(path), ds.NoData())
+	docs, err := v.store.Documents(ds.Prefix(path), ds.NoData(), ds.Limit(1))
 	if err != nil {
 		return false, err
 	}
-	defer iter.Release()
-	doc, err := iter.Next()
-	if err != nil {
-		return false, err
-	}
-	if doc == nil {
-		return false, nil
-	}
-	return true, nil
+	return len(docs) > 0, nil
 }
 
 // authUnlock returns (id, master key) or ("", nil) if a matching auth
@@ -218,19 +219,11 @@ func (v *Vault) hasAuth() (bool, error) {
 // Auth is found by trying to decrypt auth until successful.
 func (v *Vault) authUnlock(key *[32]byte) (string, *[32]byte, error) {
 	path := ds.Path("auth")
-	iter, err := v.store.Documents(ds.Prefix(path))
+	docs, err := v.store.Documents(ds.Prefix(path))
 	if err != nil {
 		return "", nil, err
 	}
-	defer iter.Release()
-	for {
-		doc, err := iter.Next()
-		if err != nil {
-			return "", nil, err
-		}
-		if doc == nil {
-			break
-		}
+	for _, doc := range docs {
 		logger.Debugf("Trying %s", doc.Path)
 		item, err := decryptItem(doc.Data, key)
 		if err != nil {

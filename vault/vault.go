@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys/ds"
@@ -48,37 +49,64 @@ func (v *Vault) SetRemote(remote *client.Client) {
 	v.remote = remote
 }
 
-// SetRemoteKey sets the remote key.
-func (v *Vault) SetRemoteKey(rk *keys.EdX25519Key) {
-	v.rk = rk
-}
+// setMasterKey sets the master key.
+// You should be using Setup or Unlock instead, this is available for testing.
+func (v *Vault) setMasterKey(mk *[32]byte) error {
+	// Derive remote key
+	rs := keys.Bytes32(keys.HKDFSHA256(mk[:], 32, nil, []byte("keys.pub/rk")))
+	rk := keys.NewEdX25519KeyFromSeed(rs)
+	if v.rk != nil {
+		if !v.rk.Equal(rk) {
+			return errors.Errorf("remote key is different than expected")
+		}
+	}
 
-// SetMasterKey sets the master key.
-func (v *Vault) SetMasterKey(mk *[32]byte) {
 	v.mk = mk
+	v.rk = rk
+	return nil
 }
 
 // MasterKey returns master key, if unlocked.
+// The master key is used to encrypt items in the vault.
 // It's not recommended to use this key for anything other than possibly
 // deriving new keys.
+// TODO: Point to spec.
 func (v *Vault) MasterKey() *[32]byte {
 	return v.mk
 }
 
+// RemoteKey returns remote key, if unlocked.
+// The remote key is used to encrypt and verify remote items.
+// This encryption happens on top of encryption using the master key.
+// It's not recommended to use this key for anything other initializing another
+// vault from remote (InitRemote).
+// TODO: Point to spec.
+func (v *Vault) RemoteKey() *keys.EdX25519Key {
+	return v.rk
+}
+
 // Set vault item.
 func (v *Vault) Set(item *Item) error {
+	return v.setItem(item, true)
+}
+
+func (v *Vault) setItem(item *Item, addToPush bool) error {
 	b, err := encryptItem(item, v.mk)
 	if err != nil {
 		return err
 	}
-	return v.set(ds.Path("item", item.ID), b)
+	path := ds.Path("item", item.ID)
+	return v.set(path, b, addToPush)
 }
 
-func (v *Vault) set(path string, b []byte) error {
+func (v *Vault) set(path string, b []byte, addToPush bool) error {
 	if err := v.store.Set(path, b); err != nil {
 		return err
 	}
-	return v.addToPush(path, b)
+	if addToPush {
+		return v.addToPush(path, b)
+	}
+	return nil
 }
 
 func (v *Vault) addToPush(path string, b []byte) error {
@@ -101,11 +129,15 @@ func (v *Vault) Get(id string) (*Item, error) {
 		return nil, err
 	}
 	if b == nil {
+		logger.Debugf("Path not found %s", path)
 		return nil, nil
 	}
 	item, err := decryptItem(b, v.mk)
 	if err != nil {
 		return nil, err
+	}
+	if item == nil {
+		return nil, nil
 	}
 	if item.ID != id {
 		return nil, errors.Errorf("item id mismatch %s != %s", item.ID, id)
@@ -113,7 +145,7 @@ func (v *Vault) Get(id string) (*Item, error) {
 	if len(item.Data) == 0 {
 		return nil, nil
 	}
-	return item, nil
+	return item, err
 }
 
 // Delete vault item.
@@ -128,11 +160,7 @@ func (v *Vault) Delete(id string) (bool, error) {
 
 	// Delete clears bytes
 	item.Data = nil
-	b, err := encryptItem(item, v.mk)
-	if err != nil {
-		return false, err
-	}
-	if err := v.set(ds.Path("item", item.ID), b); err != nil {
+	if err := v.setItem(item, true); err != nil {
 		return false, err
 	}
 
@@ -153,20 +181,12 @@ func (v *Vault) Sync(ctx context.Context) error {
 // Items to list.
 func (v *Vault) Items() ([]*Item, error) {
 	path := ds.Path("item")
-	iter, err := v.store.Documents(ds.Prefix(path))
+	docs, err := v.store.Documents(ds.Prefix(path))
 	if err != nil {
 		return nil, err
 	}
-	defer iter.Release()
 	items := []*Item{}
-	for {
-		doc, err := iter.Next()
-		if err != nil {
-			return nil, err
-		}
-		if doc == nil {
-			break
-		}
+	for _, doc := range docs {
 		item, err := decryptItem(doc.Data, v.mk)
 		if err != nil {
 			return nil, err
@@ -190,20 +210,12 @@ func (v *Vault) push(ctx context.Context) error {
 
 	// Get events from push.
 	path := ds.Path("push")
-	iter, err := v.store.Documents(ds.Prefix(path))
+	docs, err := v.store.Documents(ds.Prefix(path))
 	if err != nil {
 		return err
 	}
-	defer iter.Release()
 	var prev *client.Event
-	for {
-		doc, err := iter.Next()
-		if err != nil {
-			return err
-		}
-		if doc == nil {
-			break
-		}
+	for _, doc := range docs {
 		logger.Debugf("Push %s", doc.Path)
 		paths = append(paths, doc.Path)
 		path := ds.PathFrom(doc.Path, 2)
@@ -241,50 +253,56 @@ func (v *Vault) Pull(ctx context.Context) error {
 		return err
 	}
 
-	logger.Infof("Getting vault items")
+	logger.Infof("Pulling vault items")
 	vault, err := v.remote.Vault(ctx, v.rk, client.VaultIndex(index))
 	if err != nil {
 		return err
 	}
+	return v.saveRemoveVault(vault)
+}
 
-	if vault != nil {
-		for _, event := range vault.Events {
-			logger.Debugf("Pull %s", event.Path)
-			if event.Path == "" {
-				return errors.Errorf("invalid event (no path)")
-			}
-			if err := v.checkNonce(event.Nonce); err != nil {
-				return err
-			}
-
-			if len(event.Data) == 0 {
-				if _, err := v.store.Delete(event.Path); err != nil {
-					return err
-				}
-			} else {
-				if err := v.store.Set(event.Path, event.Data); err != nil {
-					return err
-				}
-			}
-
-			ppath := ds.Path("pull", pad(event.Index), event.Path)
-			eb, err := msgpack.Marshal(event)
-			if err != nil {
-				return err
-			}
-			if err := v.store.Set(ppath, eb); err != nil {
-				return err
-			}
-
-			if err := v.commitNonce(event.Nonce); err != nil {
-				return err
-			}
+func (v *Vault) saveRemoveVault(vault *client.Vault) error {
+	if vault == nil {
+		return errors.Errorf("vault not found")
+	}
+	for _, event := range vault.Events {
+		logger.Debugf("Pull %s", event.Path)
+		if event.Path == "" {
+			return errors.Errorf("invalid event (no path)")
 		}
-
-		// Update index
-		if err := v.setIndex(vault.Index); err != nil {
+		if err := v.checkNonce(event.Nonce); err != nil {
 			return err
 		}
+
+		if len(event.Data) == 0 {
+			logger.Debugf("Deleting %s", event.Path)
+			if _, err := v.store.Delete(event.Path); err != nil {
+				return err
+			}
+		} else {
+			logger.Debugf("Setting %s %s", event.Path, spew.Sdump(event.Data))
+			if err := v.store.Set(event.Path, event.Data); err != nil {
+				return err
+			}
+		}
+
+		ppath := ds.Path("pull", pad(event.Index), event.Path)
+		eb, err := msgpack.Marshal(event)
+		if err != nil {
+			return err
+		}
+		if err := v.store.Set(ppath, eb); err != nil {
+			return err
+		}
+
+		if err := v.commitNonce(event.Nonce); err != nil {
+			return err
+		}
+	}
+
+	// Update index
+	if err := v.setIndex(vault.Index); err != nil {
+		return err
 	}
 
 	return nil
@@ -292,14 +310,11 @@ func (v *Vault) Pull(ctx context.Context) error {
 
 // Spew to out.
 func (v *Vault) Spew(prefix string, out io.Writer) error {
-	iter, err := v.store.Documents(ds.Prefix(prefix))
+	docs, err := v.store.Documents(ds.Prefix(prefix))
 	if err != nil {
 		return err
 	}
-	defer iter.Release()
-	if err := ds.SpewOut(iter, out); err != nil {
-		return err
-	}
+	out.Write([]byte(fmt.Sprintf("%s\n", spew.Sdump(docs))))
 	return nil
 }
 
@@ -357,19 +372,11 @@ func pad(n int64) string {
 
 // IsEmpty returns true if vault is empty.
 func (v *Vault) IsEmpty() (bool, error) {
-	iter, err := v.store.Documents()
+	docs, err := v.store.Documents(ds.Limit(1))
 	if err != nil {
 		return false, err
 	}
-	defer iter.Release()
-	doc, err := iter.Next()
-	if err != nil {
-		return false, err
-	}
-	if doc == nil {
-		return true, nil
-	}
-	return false, nil
+	return len(docs) == 0, nil
 }
 
 func (v *Vault) index() (int64, error) {

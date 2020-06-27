@@ -6,6 +6,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/vault"
+	"github.com/keys-pub/keys/tsutil"
 	"github.com/stretchr/testify/require"
 )
 
@@ -42,7 +43,8 @@ func TestSaveKeyDelete(t *testing.T) {
 	db, closeFn := newTestVaultDB(t)
 	defer closeFn()
 	vlt := vault.New(db)
-	vlt.SetMasterKey(keys.Rand32())
+	err = vlt.Setup(keys.Rand32(), vault.NewProvision(vault.UnknownAuth))
+	require.NoError(t, err)
 
 	sk := keys.GenerateEdX25519Key()
 	err = vlt.SaveKey(sk)
@@ -68,7 +70,8 @@ func TestSaveKeyDelete(t *testing.T) {
 func TestEdX25519Key(t *testing.T) {
 	// keys.SetLogger(keys.NewLogger(keys.DebugLevel))
 	var err error
-	vlt := newTestVault(t, true)
+	clock := tsutil.NewClock()
+	vlt := newTestVaultUnlocked(t, clock)
 	sk := keys.GenerateEdX25519Key()
 
 	err = vlt.SaveKey(sk)
@@ -93,7 +96,8 @@ func TestEdX25519Key(t *testing.T) {
 
 func TestEdX25519PublicKey(t *testing.T) {
 	var err error
-	vlt := newTestVault(t, true)
+	clock := tsutil.NewClock()
+	vlt := newTestVaultUnlocked(t, clock)
 
 	sk := keys.GenerateEdX25519Key()
 	err = vlt.SaveKey(sk)
@@ -114,7 +118,8 @@ func TestEdX25519PublicKey(t *testing.T) {
 
 func TestX25519Key(t *testing.T) {
 	var err error
-	vlt := newTestVault(t, true)
+	clock := tsutil.NewClock()
+	vlt := newTestVaultUnlocked(t, clock)
 
 	bk := keys.GenerateX25519Key()
 	err = vlt.SaveKey(bk)
@@ -135,7 +140,8 @@ func TestX25519Key(t *testing.T) {
 func TestKeys(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
 	var err error
-	vlt := newTestVault(t, true)
+	clock := tsutil.NewClock()
+	vlt := newTestVaultUnlocked(t, clock)
 
 	sk := keys.NewEdX25519KeyFromSeed(testSeed(0x01))
 	err = vlt.SaveKey(sk)
@@ -171,7 +177,8 @@ func TestKeys(t *testing.T) {
 
 func TestStoreConcurrent(t *testing.T) {
 	var err error
-	vlt := newTestVault(t, true)
+	clock := tsutil.NewClock()
+	vlt := newTestVaultUnlocked(t, clock)
 
 	sk := keys.GenerateEdX25519Key()
 	err = vlt.SaveKey(sk)
@@ -201,7 +208,8 @@ func TestStoreConcurrent(t *testing.T) {
 
 func TestExportImportKey(t *testing.T) {
 	var err error
-	vlt := newTestVault(t, true)
+	clock := tsutil.NewClock()
+	vlt := newTestVaultUnlocked(t, clock)
 
 	sk := keys.GenerateEdX25519Key()
 	err = vlt.SaveKey(sk)
@@ -211,7 +219,7 @@ func TestExportImportKey(t *testing.T) {
 	msg, err := vlt.ExportSaltpack(sk.ID(), password)
 	require.NoError(t, err)
 
-	vlt2 := newTestVault(t, true)
+	vlt2 := newTestVaultUnlocked(t, clock)
 
 	key, err := vlt2.ImportSaltpack(msg, "testpassword", false)
 	require.NoError(t, err)
@@ -220,7 +228,8 @@ func TestExportImportKey(t *testing.T) {
 
 func TestUnknownKey(t *testing.T) {
 	var err error
-	vlt := newTestVault(t, true)
+	clock := tsutil.NewClock()
+	vlt := newTestVaultUnlocked(t, clock)
 
 	key, err := vlt.Key(keys.RandID("kex"))
 	require.NoError(t, err)
