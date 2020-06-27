@@ -1,38 +1,33 @@
 package service
 
 import (
-	"bytes"
 	"testing"
 
-	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/vault"
-	"github.com/keys-pub/keys/encoding"
-	"github.com/keys-pub/keys/tsutil"
-	"github.com/stretchr/testify/require"
 )
 
-func newTestVaultKey(t *testing.T, clock *tsutil.Clock) (*[32]byte, *vault.Provision) {
-	key := keys.Bytes32(bytes.Repeat([]byte{0xFF}, 32))
-	id := encoding.MustEncode(bytes.Repeat([]byte{0xFE}, 32), encoding.Base62)
-	provision := &vault.Provision{
-		ID:        id,
-		Type:      vault.UnknownAuth,
-		CreatedAt: clock.Now(),
-	}
-	return key, provision
-}
+// func newTestVaultKey(t *testing.T, clock *tsutil.Clock) (*[32]byte, *vault.Provision) {
+// 	key := keys.Bytes32(bytes.Repeat([]byte{0xFF}, 32))
+// 	id := encoding.MustEncode(bytes.Repeat([]byte{0xFE}, 32), encoding.Base62)
+// 	provision := &vault.Provision{
+// 		ID:        id,
+// 		Type:      vault.UnknownAuth,
+// 		CreatedAt: clock.Now(),
+// 	}
+// 	return key, provision
+// }
 
 func newTestVault(t *testing.T) *vault.Vault {
 	return vault.New(vault.NewMem())
 }
 
-func newTestVaultUnlocked(t *testing.T, clock *tsutil.Clock) *vault.Vault {
-	vlt := newTestVault(t)
-	key, provision := newTestVaultKey(t, clock)
-	err := vlt.Setup(key, provision)
-	require.NoError(t, err)
-	return vlt
-}
+// func newTestVaultUnlocked(t *testing.T, clock *tsutil.Clock) *vault.Vault {
+// 	vlt := newTestVault(t)
+// 	key, provision := newTestVaultKey(t, clock)
+// 	err := vlt.Setup(key, provision)
+// 	require.NoError(t, err)
+// 	return vlt
+// }
 
 // func testVaultPath() string {
 // 	return filepath.Join(os.TempDir(), fmt.Sprintf("%s.vdb", keys.RandFileName()))
