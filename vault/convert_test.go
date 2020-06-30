@@ -139,7 +139,7 @@ func TestConvertID(t *testing.T) {
 	require.Equal(t, "123", vault.ConvertID("123"))
 }
 
-func TestConvertBackup(t *testing.T) {
+func TestConvertBackup37(t *testing.T) {
 	var err error
 
 	// Keyring from version 0.0.37
@@ -165,5 +165,34 @@ func TestConvertBackup(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(secrets))
 	require.Equal(t, "YIb8tyocMVunf9RTuZH36dD08rrMLGcZWGcgS68vZVu", secrets[0].ID)
+	require.Equal(t, "testing", secrets[0].Name)
+}
+
+func TestConvertBackup48(t *testing.T) {
+	var err error
+
+	// Keyring from version 0.0.48
+	path := filepath.Join("testdata", "keyring-backup-1593545106757.tgz")
+	kr := keyring.NewMem()
+	err = keyring.Restore(path, kr)
+	require.NoError(t, err)
+
+	vlt := vault.New(vault.NewMem())
+	err = vault.ConvertKeyring(kr, vlt)
+	require.NoError(t, err)
+
+	err = vlt.UnlockWithPassword("darwin123", false)
+	require.NoError(t, err)
+
+	kys, err := vlt.Keys()
+	require.NoError(t, err)
+	require.Equal(t, 1, len(kys))
+	require.Equal(t, keys.ID("kex1hp7507fxazu3tezfnf6mad7aw0zy5cshnyps2l8u5njqlnhev2ms58c9az"), kys[0].ID())
+	require.Equal(t, "26767983d4f52553906df34729c22510ecf4d6d863f580552bb75cfdafefa7a7b87d47f926e8b915e4499a75beb7dd73c44a62179903057cfca4e40fcef962b7", encoding.EncodeHex(kys[0].Bytes()))
+
+	secrets, err := vlt.Secrets()
+	require.NoError(t, err)
+	require.Equal(t, 1, len(secrets))
+	require.Equal(t, "mcwuNXdxS86VRMcHjd5YrP4aR0IZQqKJfi6GTEt4c57", secrets[0].ID)
 	require.Equal(t, "testing", secrets[0].Name)
 }
