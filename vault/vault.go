@@ -284,7 +284,7 @@ func (v *Vault) saveRemoveVault(vault *client.Vault) error {
 				return err
 			}
 		} else {
-			logger.Debugf("Setting %s %s", event.Path, spew.Sdump(event.Data))
+			logger.Debugf("Setting %s", event.Path)
 			if err := v.store.Set(event.Path, event.Data); err != nil {
 				return err
 			}
