@@ -4,6 +4,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/keys-pub/keys"
 	"github.com/stretchr/testify/require"
 )
 
@@ -30,4 +31,25 @@ func TestConfig(t *testing.T) {
 	require.Equal(t, "https://server.url", cfg2.Server())
 	require.Equal(t, DebugLevel, cfg2.LogLevel())
 	require.True(t, cfg2.GetBool("disableSymlinkCheck"))
+}
+
+func TestSupportPath(t *testing.T) {
+	path, err := SupportPath("KeysTest-"+keys.RandFileName(), "", false)
+	require.NoError(t, err)
+
+	exists, err := pathExists(path)
+	require.NoError(t, err)
+	require.False(t, exists)
+
+	path, err = SupportPath("KeysTest-"+keys.RandFileName(), "", true)
+	require.NoError(t, err)
+	defer func() {
+		removeErr := os.RemoveAll(path)
+		require.NoError(t, removeErr)
+	}()
+
+	exists, err = pathExists(path)
+	require.NoError(t, err)
+	require.True(t, exists)
+
 }

@@ -193,7 +193,7 @@ func configPath(dir string, appName string, fileName string, makeDir bool) (stri
 	if err != nil {
 		return "", err
 	}
-	if !exists {
+	if !exists && makeDir {
 		logger.Infof("Creating directory: %s", dir)
 		err := os.MkdirAll(dir, 0700)
 		if err != nil {
