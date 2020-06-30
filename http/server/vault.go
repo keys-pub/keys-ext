@@ -27,11 +27,6 @@ func (s *Server) postVault(c echo.Context) error {
 		if err != nil {
 			return s.internalError(c, err)
 		}
-
-		if len(b) > 16*1024 {
-			// TODO: Check length before reading data
-			return ErrBadRequest(c, errors.Errorf("message too large (greater than 16KiB)"))
-		}
 		data = b
 	}
 
@@ -81,11 +76,6 @@ func (s *Server) putVault(c echo.Context) error {
 	b, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
 		return s.internalError(c, err)
-	}
-
-	if len(b) > 1024*1024 {
-		// TODO: Check length before reading data
-		return ErrBadRequest(c, errors.Errorf("message too large (greater than 1MiB)"))
 	}
 
 	var req []*api.Data
