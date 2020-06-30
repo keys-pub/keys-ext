@@ -78,6 +78,7 @@ func (s *service) update(ctx context.Context, kid keys.ID) (bool, *user.Result, 
 		if err != nil {
 			return false, nil, err
 		}
+		logger.Debugf("Saving %s %d", st.KID, st.Seq)
 		if err := s.db.Set(ctx, ds.Path("sigchain", st.Key()), b); err != nil {
 			return false, nil, err
 		}
