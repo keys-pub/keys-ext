@@ -68,6 +68,9 @@ func ConvertKeyring(kr keyring.Keyring, to *Vault) error {
 			if strings.HasPrefix(doc.Path, "#") {
 				continue
 			}
+			if strings.HasPrefix(doc.Path, ".") {
+				continue
+			}
 			if err := to.set(ds.Path("item", doc.Path), doc.Data, true); err != nil {
 				return err
 			}

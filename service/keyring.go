@@ -32,6 +32,7 @@ func checkKeyringConvert(cfg *Config, vlt *vault.Vault) error {
 	if err != nil {
 		return err
 	}
+	logger.Infof("Backing up keyring: %s", backupPath)
 	if err := keyring.Backup(backupPath, kr, time.Now()); err != nil {
 		return err
 	}
