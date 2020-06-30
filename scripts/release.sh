@@ -20,5 +20,5 @@ cd ../auth/rpc/plugin
 goreleaser
 
 # Cleanup
-cd $dir
+cd "$dir"
 rm -rf "$tmpdir"

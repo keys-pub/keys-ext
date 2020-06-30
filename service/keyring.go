@@ -1,12 +1,15 @@
 package service
 
 import (
+	"fmt"
 	"os/user"
 	"path/filepath"
 	"runtime"
+	"time"
 
 	"github.com/keys-pub/keys-ext/vault"
 	"github.com/keys-pub/keys/keyring"
+	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
 )
 
@@ -23,6 +26,17 @@ func checkKeyringConvert(cfg *Config, vlt *vault.Vault) error {
 	if err != nil {
 		return err
 	}
+
+	// Backup
+	backupPath, err := cfg.AppPath(fmt.Sprintf("keyring-backup-%d.tgz", tsutil.Millis(time.Now())), false)
+	if err != nil {
+		return err
+	}
+	logger.Infof("Backing up keyring: %s", backupPath)
+	if err := keyring.Backup(backupPath, kr, time.Now()); err != nil {
+		return err
+	}
+
 	if err := vault.ConvertKeyring(kr, vlt); err != nil {
 		return errors.Wrapf(err, "failed to convert keyring")
 	}

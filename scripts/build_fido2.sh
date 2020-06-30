@@ -3,7 +3,7 @@
 set -e -u -o pipefail # Fail on error
 
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-cd $dir
+cd "$dir"
 
 ts=`date +%s`
 date=`date -u +"%Y-%m-%dT%H:%M:%SZ"`

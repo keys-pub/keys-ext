@@ -24,5 +24,5 @@ goreleaser --config=.goreleaser.linux.yml
 $dir/aptly.sh $ver
 
 # Cleanup
-cd $dir
+cd "$dir"
 rm -rf "$tmpdir"
