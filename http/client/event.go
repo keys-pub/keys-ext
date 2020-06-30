@@ -61,13 +61,13 @@ func CheckEventchain(events []*Event) error {
 			if i != 0 {
 				return errors.Errorf("previous event hash is nil")
 			}
-			set.Add(encoding.MustBase64(EventHash(event)[:]))
+			set.Add(encoding.EncodeBase64(EventHash(event)[:]))
 			continue
 		}
-		if !set.Contains(encoding.MustBase64(event.Prev)) {
+		if !set.Contains(encoding.EncodeBase64(event.Prev)) {
 			return errors.Errorf("previous event hash not found")
 		}
-		set.Add(encoding.MustBase64(EventHash(event)[:]))
+		set.Add(encoding.EncodeBase64(EventHash(event)[:]))
 	}
 	return nil
 }
