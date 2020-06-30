@@ -14,7 +14,7 @@ require (
 	github.com/keys-pub/keys-ext/http/client v0.0.0-20200625224357-38b58050ef02
 	github.com/keys-pub/keys-ext/http/server v0.0.0-20200627005809-4b6e75bb8abb
 	github.com/keys-pub/keys-ext/sdb v0.0.0-20200627005809-4b6e75bb8abb
-	github.com/keys-pub/keys-ext/vault v0.0.0-20200627194331-e43a0bfd2a9f
+	github.com/keys-pub/keys-ext/vault v0.0.0-20200630172503-500f8b879a19
 	github.com/keys-pub/keys-ext/wormhole v0.0.0-20200624011543-a01a0028982e
 	github.com/mercari/go-grpc-interceptor v0.0.0-20180110035004-b8ad3827e82a
 	github.com/mitchellh/go-ps v1.0.0
@@ -27,7 +27,7 @@ require (
 	google.golang.org/protobuf v1.24.0
 )
 
-// replace github.com/keys-pub/keys => ../../keys
+replace github.com/keys-pub/keys => ../../keys
 
 // replace github.com/keys-pub/keys-ext/sdb => ../sdb
 
@@ -43,4 +43,4 @@ require (
 
 // replace github.com/keys-pub/keys-ext/wormhole => ../wormhole
 
-// replace github.com/keys-pub/keys-ext/vault => ../vault
+replace github.com/keys-pub/keys-ext/vault => ../vault

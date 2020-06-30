@@ -11,20 +11,11 @@ import (
 
 // ConvertKeyring converts keyring store.
 func ConvertKeyring(kr keyring.Keyring, to *Vault) error {
-	iter, err := kr.Documents()
+	docs, err := kr.Documents()
 	if err != nil {
 		return err
 	}
-	defer iter.Release()
-	for {
-		doc, err := iter.Next()
-		if err != nil {
-			return err
-		}
-		if doc == nil {
-			break
-		}
-
+	for _, doc := range docs {
 		// #salt
 		if doc.Path == "#salt" {
 			if err := to.set(ds.Path("config", "salt"), doc.Data, true); err != nil {

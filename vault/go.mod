@@ -19,7 +19,7 @@ require (
 	google.golang.org/protobuf v1.24.0 // indirect
 )
 
-// replace github.com/keys-pub/keys => ../../keys
+replace github.com/keys-pub/keys => ../../keys
 
 // replace github.com/keys-pub/keys-ext/http/api => ../http/api
 
