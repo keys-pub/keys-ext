@@ -3,7 +3,7 @@
 set -e -u -o pipefail # Fail on error
 
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-cd $dir
+cd "$dir"
 
 tmpdir=`mktemp -d 2>/dev/null || mktemp -d -t 'mytmpdir'`
 

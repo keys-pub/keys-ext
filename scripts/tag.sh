@@ -40,7 +40,7 @@ function incr_semver() {
     echo "$major.$minor.$release"
 }
 
-cd $dir
+cd "$dir"
 ver=`git describe --abbrev=0 --tags`
 echo "Version: $ver"
 
