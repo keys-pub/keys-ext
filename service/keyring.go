@@ -26,7 +26,7 @@ func checkKeyringConvert(cfg *Config, vlt *vault.Vault) error {
 	if err := vault.ConvertKeyring(kr, vlt); err != nil {
 		return errors.Wrapf(err, "failed to convert keyring")
 	}
-	logger.Infof("Resetting keyring...")
+	logger.Infof("Converted keyring, resetting...")
 	if err := kr.Reset(); err != nil {
 		return err
 	}
