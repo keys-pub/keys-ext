@@ -123,10 +123,14 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	e.POST("/invite/:kid/:rid", s.postInvite)
 	e.GET("/invite", s.getInvite)
 
+	// Share
+	e.GET("/share/:kid", s.getShare)
+	e.PUT("/share/:kid", s.putShare)
+
 	// Sigchain (aliases)
-	e.GET("/:kid", s.getSigchain)
-	e.GET("/:kid/:seq", s.getSigchainStatement)
-	e.PUT("/:kid/:seq", s.putSigchainStatement)
+	e.GET("/:kid", s.getSigchainAliased)
+	e.GET("/:kid/:seq", s.getSigchainStatementAliased)
+	e.PUT("/:kid/:seq", s.putSigchainStatementAliased)
 
 	// Admin
 	e.POST("/admin/check/:kid", s.adminCheck)

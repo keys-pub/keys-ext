@@ -231,3 +231,27 @@ func (s *Server) statementFromBytes(ctx context.Context, b []byte) (*keys.Statem
 	}
 	return st, nil
 }
+
+func (s *Server) getSigchainAliased(c echo.Context) error {
+	if c.Request().Host == "sigcha.in" {
+		return s.getSigchain(c)
+	}
+	return ErrNotFound(c, nil)
+
+}
+func (s *Server) getSigchainStatementAliased(c echo.Context) error {
+	if c.Request().Host == "sigcha.in" {
+		return s.getSigchainStatement(c)
+	}
+	return ErrNotFound(c, nil)
+}
+
+func (s *Server) putSigchainStatementAliased(c echo.Context) error {
+	// if c.Request().Host == "sigcha.in" {
+	// 	return s.putSigchainStatement(c)
+	// }
+	// return ErrNotFound(c, nil)
+
+	// http/client doesn't specify /sigchain/:kid/:seq path on earlier versions of the app.
+	return s.putSigchainStatement(c)
+}

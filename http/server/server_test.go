@@ -255,6 +255,7 @@ func TestAccess(t *testing.T) {
 	require.NoError(t, err)
 	req, err = http.NewRequest("PUT", fmt.Sprintf("/%s/1", bob.ID()), bytes.NewReader(bobStBytes))
 	require.NoError(t, err)
+	req.Host = "sigcha.in"
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, "{}", body)

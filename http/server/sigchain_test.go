@@ -147,6 +147,7 @@ func TestSigchains(t *testing.T) {
 	// GET /:kid
 	req, err = http.NewRequest("GET", ds.Path(alice.ID()), nil)
 	require.NoError(t, err)
+	req.Host = "sigcha.in"
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	expectedSigchain = `{"kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","statements":[{".sig":"j5FZVQKWrnclXHHHIVX7JZ0letgR22cGl7ItlAUHqEsW+kCCMZvDBGEunVJScjVphrqGrPb7oCuMZouGv7GwCQ==","data":"dGVzdGluZw==","kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","seq":1,"ts":1234567890001}]}`
@@ -161,6 +162,7 @@ func TestSigchains(t *testing.T) {
 	// GET /:kid/:seq
 	req, err = http.NewRequest("GET", fmt.Sprintf("/%s/1", alice.ID()), nil)
 	require.NoError(t, err)
+	req.Host = "sigcha.in"
 	code, header, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, "Fri, 13 Feb 2009 23:31:30 GMT", header.Get("CreatedAt"))
@@ -175,11 +177,12 @@ func TestSigchains(t *testing.T) {
 	require.NoError(t, err)
 	req, err = http.NewRequest("PUT", fmt.Sprintf("/%s/2", alice.ID()), bytes.NewReader(b))
 	require.NoError(t, err)
+	req.Host = "sigcha.in"
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, "{}", body)
 
-	// PUT /invalidloc/:seq
+	// PUT /invalidloc/1
 	req, err = http.NewRequest("PUT", ds.Path("invalidloc", 1), bytes.NewReader(b))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
@@ -207,12 +210,12 @@ func TestSigchains(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)
-	require.Equal(t, `{"error":{"code":404,"message":"failed to parse id: separator '1' at invalid position: pos=-1, len=3"}}`, body)
+	require.Equal(t, `{"error":{"code":404,"message":"resource not found"}}`, body)
 
 	// GET /:kid/bar
 	req, err = http.NewRequest("GET", ds.Path(alice.ID(), "bar"), nil)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)
-	require.Equal(t, `{"error":{"code":404,"message":"strconv.Atoi: parsing \"bar\": invalid syntax"}}`, body)
+	require.Equal(t, `{"error":{"code":404,"message":"resource not found"}}`, body)
 }
