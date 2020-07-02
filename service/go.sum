@@ -223,6 +223,12 @@ github.com/keys-pub/keys-ext/vault v0.0.0-20200630191411-cd107c0b79b3 h1:wCIIT6W
 github.com/keys-pub/keys-ext/vault v0.0.0-20200630191411-cd107c0b79b3/go.mod h1:02gGMbabaktuPW4lHW09VZnGa67mKyubn8GeVpP6HH4=
 github.com/keys-pub/keys-ext/vault v0.0.0-20200702020925-29ac9e05c6b7 h1:GWfhXEbdS0l7AZXOz8mOezUrKvQ2nh1/KaBCg93BiaU=
 github.com/keys-pub/keys-ext/vault v0.0.0-20200702020925-29ac9e05c6b7/go.mod h1:8w7QueQb2ErD5Tj8zaa8Lm6P7HKBG4p6krXtwMirLwc=
+github.com/keys-pub/keys-ext/vault v0.0.0-20200702193256-8dd2f2f28a12 h1:MjuWUsS74gieD3QSwnWymkraV1B+mcTgZIU/7aafHH8=
+github.com/keys-pub/keys-ext/vault v0.0.0-20200702193256-8dd2f2f28a12/go.mod h1:8w7QueQb2ErD5Tj8zaa8Lm6P7HKBG4p6krXtwMirLwc=
+github.com/keys-pub/keys-ext/vault v0.0.0-20200702194245-ad4934d6d9d3 h1:HUNPTBcV8s2hw96MOGi+V5O1fR2Dnurbajs7Txs8RNQ=
+github.com/keys-pub/keys-ext/vault v0.0.0-20200702194245-ad4934d6d9d3/go.mod h1:8w7QueQb2ErD5Tj8zaa8Lm6P7HKBG4p6krXtwMirLwc=
+github.com/keys-pub/keys-ext/vault v0.0.0-20200702194532-c85448f56a96 h1:OJEoLsskcQw7S0pX8UujN8yyFniMwQhBUFpa92lNhas=
+github.com/keys-pub/keys-ext/vault v0.0.0-20200702194532-c85448f56a96/go.mod h1:8w7QueQb2ErD5Tj8zaa8Lm6P7HKBG4p6krXtwMirLwc=
 github.com/keys-pub/keys-ext/wormhole v0.0.0-20200618212723-bf12ba4cbdc4 h1:/y0ZQlDp08ZtHG9VBY1U3E12+lA2HGWYL68OvYoyICU=
 github.com/keys-pub/keys-ext/wormhole v0.0.0-20200618212723-bf12ba4cbdc4/go.mod h1:K0B1oKj4P8UrjMO2bJ4Cp/bxztz5fT6TCXqdYuWEkT0=
 github.com/keys-pub/keys-ext/wormhole v0.0.0-20200624011543-a01a0028982e h1:nSIkQF8qVQFFLrVGNyTS1AlJxQE2eXm32Rr0hC3Wsog=

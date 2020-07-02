@@ -71,7 +71,7 @@ func newService(cfg *Config, build Build, auth *auth, req request.Requestor, clo
 
 func (s *service) Open() error {
 	logger.Infof("Opening vault...")
-	if err := s.vault.Store().Open(); err != nil {
+	if err := s.vault.Open(); err != nil {
 		return err
 	}
 	if err := checkKeyringConvert(s.cfg, s.vault); err != nil {
@@ -83,7 +83,7 @@ func (s *service) Open() error {
 func (s *service) Close() {
 	logger.Infof("Closing...")
 	s.Lock()
-	if err := s.vault.Store().Close(); err != nil {
+	if err := s.vault.Close(); err != nil {
 		logger.Errorf("Error closing vault db: %v", err)
 	}
 }
@@ -127,7 +127,9 @@ func (s *service) Unlock(ctx context.Context, key *[32]byte) error {
 		}
 	}
 
-	s.startUpdateCheck()
+	s.vault.AutoSync(func() {
+		s.startUpdateCheck()
+	})
 
 	return nil
 }

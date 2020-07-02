@@ -5,7 +5,6 @@ import (
 	"unicode/utf8"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/keys-pub/keys-ext/vault"
 	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
@@ -32,7 +31,7 @@ func (s *service) serviceCollections(ctx context.Context, parent string) (*Colle
 }
 
 func (s *service) vaultCollections(ctx context.Context, parent string) (*CollectionsResponse, error) {
-	cols, err := vault.Collections(s.vault.Store(), parent)
+	cols, err := s.vault.Collections(parent)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +54,7 @@ func (s *service) Documents(ctx context.Context, req *DocumentsRequest) (*Docume
 	case "", "service":
 		docs, docsErr = s.db.Documents(ctx, "", ds.Prefix(req.Prefix))
 	case "vault":
-		docs, docsErr = s.vault.Store().Documents(ds.Prefix(req.Prefix))
+		docs, docsErr = s.vault.Documents(ds.Prefix(req.Prefix))
 	}
 	if docsErr != nil {
 		return nil, docsErr
