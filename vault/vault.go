@@ -31,6 +31,8 @@ type Vault struct {
 	incMax int64
 
 	subs *subscribers
+
+	auto *time.Timer
 }
 
 // New vault.
@@ -53,6 +55,12 @@ func (v *Vault) Open() error {
 
 // Close vault.
 func (v *Vault) Close() error {
+	if v.auto != nil {
+		v.auto.Stop()
+		v.auto = nil
+	}
+	// TODO: Auto sync could still be running when we close, this might be
+	//       ok, as it will error and eventually stop.
 	if err := v.store.Close(); err != nil {
 		return errors.Wrapf(err, "failed to close vault")
 	}
@@ -134,7 +142,11 @@ func (v *Vault) addToPush(path string, b []byte) error {
 		return err
 	}
 
-	time.AfterFunc(time.Second*2, func() {
+	if v.auto != nil {
+		v.auto.Stop()
+		v.auto = nil
+	}
+	v.auto = time.AfterFunc(time.Second*2, func() {
 		v.AutoSync(nil)
 	})
 
