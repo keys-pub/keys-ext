@@ -131,7 +131,7 @@ func testAuthSetup(t *testing.T, service *service) {
 // }
 
 func testImportKey(t *testing.T, service *service, key *keys.EdX25519Key) {
-	saltpack, err := keys.EncodeKeyToSaltpack(key, authPassword)
+	saltpack, err := keys.EncodeSaltpackKey(key, authPassword)
 	require.NoError(t, err)
 	_, err = service.KeyImport(context.TODO(), &KeyImportRequest{
 		In:       []byte(saltpack),

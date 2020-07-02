@@ -21,13 +21,21 @@ func checkKeyringConvert(cfg *Config, vlt *vault.Vault) error {
 	if !empty {
 		return nil
 	}
-	logger.Infof("Checking keyring convert...")
+	logger.Infof("Checking keyring conversion...")
 	kr, err := newKeyring(cfg, "")
 	if err != nil {
 		return err
 	}
 
-	// Backup
+	converted, err := vault.ConvertKeyring(kr, vlt)
+	if err != nil {
+		return errors.Wrapf(err, "failed to convert keyring")
+	}
+	if !converted {
+		return nil
+	}
+
+	// Backup before resetting
 	backupPath, err := cfg.AppPath(fmt.Sprintf("keyring-backup-%d.tgz", tsutil.Millis(time.Now())), false)
 	if err != nil {
 		return err
@@ -37,9 +45,6 @@ func checkKeyringConvert(cfg *Config, vlt *vault.Vault) error {
 		return err
 	}
 
-	if err := vault.ConvertKeyring(kr, vlt); err != nil {
-		return errors.Wrapf(err, "failed to convert keyring")
-	}
 	logger.Infof("Converted keyring, resetting...")
 	if err := kr.Reset(); err != nil {
 		return err
@@ -50,18 +55,18 @@ func checkKeyringConvert(cfg *Config, vlt *vault.Vault) error {
 func newKeyring(cfg *Config, typ string) (keyring.Keyring, error) {
 	switch typ {
 	case "":
-		logger.Infof("Keyring (default)")
+		// logger.Infof("Keyring (default)")
 		st, err := defaultKeyring(cfg)
 		if err != nil {
 			return nil, err
 		}
-		logger.Infof("Keyring using %s", st.Name())
+		logger.Infof("Checking keyring (%s)", st.Name())
 		return st, nil
 	case "sys":
 		service := keyringServiceName(cfg)
 		return keyring.NewSystem(service)
 	case "fs":
-		logger.Infof("Keyring (fs, deprecated)")
+		logger.Infof("Checking keyring (fs, deprecated)")
 		dir, err := fsDir(cfg)
 		if err != nil {
 			return nil, err
@@ -72,7 +77,7 @@ func newKeyring(cfg *Config, typ string) (keyring.Keyring, error) {
 		}
 		return st, nil
 	case "mem":
-		logger.Infof("Keyring (mem)")
+		logger.Infof("Checking keyring (mem)")
 		return keyring.NewMem(), nil
 	default:
 		return nil, errors.Errorf("unknown keyring type %s", typ)

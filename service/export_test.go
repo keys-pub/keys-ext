@@ -21,20 +21,14 @@ func TestKeyExport(t *testing.T) {
 	kid, err := keys.ParseID(genResp.KID)
 	require.NoError(t, err)
 
-	_, err = service.KeyExport(ctx, &KeyExportRequest{
-		KID:      kid.String(),
-		Password: "invalid",
-	})
-	require.EqualError(t, err, "invalid password")
-
 	resp, err := service.KeyExport(ctx, &KeyExportRequest{
 		KID:      kid.String(),
-		Password: authPassword,
+		Password: "testpassword",
 	})
 	require.NoError(t, err)
 	require.NotEmpty(t, resp.Export)
 
-	out, err := keys.DecodeKeyFromSaltpack(string(resp.Export), authPassword, false)
+	out, err := keys.DecodeSaltpackKey(string(resp.Export), "testpassword", false)
 	require.NoError(t, err)
 	require.Equal(t, kid, out.ID())
 }
@@ -53,13 +47,6 @@ func TestKeySSHExport(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = service.KeyExport(ctx, &KeyExportRequest{
-		KID:      kid.String(),
-		Type:     SSHExport,
-		Password: "invalid",
-	})
-	require.EqualError(t, err, "invalid password")
-
-	_, err = service.KeyExport(ctx, &KeyExportRequest{
 		KID:  kid.String(),
 		Type: SSHExport,
 	})
@@ -68,7 +55,7 @@ func TestKeySSHExport(t *testing.T) {
 	resp, err := service.KeyExport(ctx, &KeyExportRequest{
 		KID:      kid.String(),
 		Type:     SSHExport,
-		Password: authPassword,
+		Password: "testpassword",
 	})
 	require.NoError(t, err)
 	require.NotEmpty(t, resp.Export)
@@ -76,15 +63,22 @@ func TestKeySSHExport(t *testing.T) {
 	_, err = keys.ParseSSHKey(resp.Export, nil, false)
 	require.EqualError(t, err, "failed to parse ssh key: ssh: this private key is passphrase protected")
 
-	out, err := keys.ParseSSHKey(resp.Export, []byte(authPassword), false)
+	out, err := keys.ParseSSHKey(resp.Export, []byte("testpassword"), false)
 	require.NoError(t, err)
 	require.Equal(t, kid, out.ID())
 
-	resp, err = service.KeyExport(ctx, &KeyExportRequest{
+	_, err = service.KeyExport(ctx, &KeyExportRequest{
 		KID:      kid.String(),
 		Type:     SSHExport,
-		Password: authPassword,
+		Password: "testpassword",
 		Public:   true,
+	})
+	require.EqualError(t, err, "password not supported when exporting public key")
+
+	resp, err = service.KeyExport(ctx, &KeyExportRequest{
+		KID:    kid.String(),
+		Type:   SSHExport,
+		Public: true,
 	})
 	require.NoError(t, err)
 	require.NotEmpty(t, resp.Export)

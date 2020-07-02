@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/urfave/cli"
 )
@@ -20,6 +21,18 @@ func vaultCommands(client *Client) []cli.Command {
 						if err != nil {
 							return err
 						}
+						return nil
+					},
+				},
+				cli.Command{
+					Name:  "auth",
+					Usage: "Vault auth (single use, expiring)",
+					Action: func(c *cli.Context) error {
+						resp, err := client.KeysClient().VaultAuth(context.TODO(), &VaultAuthRequest{})
+						if err != nil {
+							return err
+						}
+						fmt.Println(resp.Phrase)
 						return nil
 					},
 				},

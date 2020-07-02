@@ -17,7 +17,7 @@ func TestKeyImport(t *testing.T) {
 	testAuthSetup(t, service)
 
 	key := keys.GenerateEdX25519Key()
-	export, err := keys.EncodeKeyToSaltpack(key, "testpassword")
+	export, err := keys.EncodeSaltpackKey(key, "testpassword")
 	require.NoError(t, err)
 
 	// Import

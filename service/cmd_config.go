@@ -23,13 +23,6 @@ func configCommands(client *Client) []cli.Command {
 						}
 						key := c.Args().Get(0)
 						value := c.Args().Get(1)
-						// _, err := client.KeysClient().ConfigSet(context.TODO(), &ConfigSetRequest{
-						// 	Key:   key,
-						// 	Value: value,
-						// })
-						// if err != nil {
-						// 	return err
-						// }
 
 						cfg, err := config(c)
 						if err != nil {
@@ -44,29 +37,17 @@ func configCommands(client *Client) []cli.Command {
 							return err
 						}
 
-						fmt.Printf("Saved config.\n")
-
-						// Stop after config change (if running)
-						if err := stop(cfg); err != nil {
-							if errors.Cause(err) != errNotRunning {
-								return err
-							}
-						} else {
-							fmt.Printf("Service stopped.\n")
+						path, err := cfg.Path(false)
+						if err != nil {
+							return err
 						}
+						fmt.Printf("Saved config %s.\n", path)
+						fmt.Printf("You should restart the service.\n")
 						return nil
 					},
 				},
 			},
 			Action: func(c *cli.Context) error {
-				// configResp, configErr := client.KeysClient().Config(context.TODO(), &ConfigRequest{})
-				// if configErr != nil {
-				// 	return configErr
-				// }
-				// for k, v := range configResp.Config {
-				// 	fmt.Printf("%q: %q", k, v)
-				// }
-				// return nil
 				cfg, err := config(c)
 				if err != nil {
 					return err

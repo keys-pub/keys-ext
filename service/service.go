@@ -35,8 +35,6 @@ const vdbFilename = "vault.vdb"
 // TODO: Remove old db "keys.leveldb"
 
 func newService(cfg *Config, build Build, auth *auth, req request.Requestor, clock func() time.Time) (*service, error) {
-	logger.Debugf("New service: %s", cfg.AppName())
-
 	remote, err := client.New(cfg.Server())
 	if err != nil {
 		return nil, err

@@ -4,11 +4,10 @@ import (
 	"context"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys-ext/vault"
 	"github.com/pkg/errors"
 )
 
-// KeyExport (RPC) returns exports a key.
+// KeyExport (RPC) exports a key.
 func (s *service) KeyExport(ctx context.Context, req *KeyExportRequest) (*KeyExportResponse, error) {
 	id, err := keys.ParseID(req.KID)
 	if err != nil {
@@ -28,91 +27,50 @@ func (s *service) KeyExport(ctx context.Context, req *KeyExportRequest) (*KeyExp
 		return nil, keys.NewErrNotFound(id.String())
 	}
 
-	// TODO: What if we don't have any password auth?
-	if req.Password != "" {
-		if err := s.vault.UnlockWithPassword(req.Password, false); err != nil {
-			if err == vault.ErrInvalidAuth {
-				return nil, errors.Errorf("invalid password")
-			}
-			return nil, err
-		}
-	}
-
 	if req.NoPassword && req.Password != "" {
-		return nil, errors.Errorf("no-password set with password")
+		return nil, errors.Errorf("no password option set with password")
 	}
 
 	if !req.NoPassword && !req.Public && req.Password == "" {
 		return nil, errors.Errorf("password required for export")
 	}
 
-	switch typ {
-	case SaltpackExport:
-		if req.Public {
-			return &KeyExportResponse{Export: []byte(key.ID())}, nil
+	if req.Public {
+		switch k := key.(type) {
+		case *keys.EdX25519Key:
+			key = k.PublicKey()
+		case *keys.X25519Key:
+			key = k.PublicKey()
+		case *keys.EdX25519PublicKey, *keys.X25519PublicKey:
+			// ok
+		default:
+			return nil, errors.Errorf("unsupported public option for key export")
 		}
-		return saltpackExportResponse(key, req.Password)
-	case SSHExport:
-		if key.Type() == keys.EdX25519 {
-			if req.Public {
-				return sshExportResponseForEdX25519PublicKey(key)
-			}
-			return sshExportResponseForEdX25519Key(key, req.Password)
-		} else if key.Type() == keys.EdX25519Public {
-			return sshExportResponseForEdX25519PublicKey(key)
-		}
-
-		return nil, errors.Errorf("unsupported key type for ssh export %s", key.Type())
-
-	default:
-		return nil, errors.Errorf("unrecognized export type")
 	}
-}
 
-func saltpackExportResponse(key keys.Key, password string) (*KeyExportResponse, error) {
-	msg, err := keys.EncodeKeyToSaltpack(key, password)
+	if req.Public && typ != SSHExport {
+		return nil, errors.Errorf("public only supported for ssh export")
+	}
+
+	enc, err := exportTypeFromRPC(typ)
 	if err != nil {
 		return nil, err
 	}
+	msg, err := keys.EncodeKey(key, enc, req.Password)
+	if err != nil {
+		return nil, err
+	}
+
 	return &KeyExportResponse{Export: []byte(msg)}, nil
 }
 
-func sshExportResponseForEdX25519PublicKey(key keys.Key) (*KeyExportResponse, error) {
-	pk, err := edX25519PublicKeyFrom(key)
-	if err != nil {
-		return nil, err
-	}
-	out := pk.EncodeToSSHAuthorized()
-	return &KeyExportResponse{Export: []byte(out)}, nil
-}
-
-func sshExportResponseForEdX25519Key(key keys.Key, password string) (*KeyExportResponse, error) {
-	k, ok := key.(*keys.EdX25519Key)
-	if !ok {
-		return nil, errors.Errorf("key type mismatch")
-	}
-	out, err := k.EncodeToSSH([]byte(password))
-	if err != nil {
-		return nil, err
-	}
-	return &KeyExportResponse{Export: []byte(out)}, nil
-}
-
-func edX25519PublicKeyFrom(key keys.Key) (*keys.EdX25519PublicKey, error) {
-	switch key.Type() {
-	case keys.EdX25519:
-		k, ok := key.(*keys.EdX25519Key)
-		if !ok {
-			return nil, errors.Errorf("key type mismatch")
-		}
-		return k.PublicKey(), nil
-	case keys.EdX25519Public:
-		pk, ok := key.(*keys.EdX25519PublicKey)
-		if !ok {
-			return nil, errors.Errorf("key type mismatch")
-		}
-		return pk, nil
+func exportTypeFromRPC(typ ExportType) (keys.Encoding, error) {
+	switch typ {
+	case SaltpackExport:
+		return keys.SaltpackEncoding, nil
+	case SSHExport:
+		return keys.SSHEncoding, nil
 	default:
-		return nil, errors.Errorf("invalid key type %s", key.Type())
+		return keys.UnknownEncoding, errors.Errorf("unknown export type %s", typ)
 	}
 }

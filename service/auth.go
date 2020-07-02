@@ -34,10 +34,10 @@ func newAuth(cfg *Config) *auth {
 		"/service.Keys/AuthSetup",
 		"/service.Keys/AuthUnlock",
 		"/service.Keys/AuthLock",
-		"/service.Keys/RuntimeStatus",
+		"/service.Keys/AuthVault",
 		"/service.Keys/Rand",
 		"/service.Keys/RandPassword",
-		"/service.Keys/Restore",
+		"/service.Keys/RuntimeStatus",
 	)
 
 	return &auth{

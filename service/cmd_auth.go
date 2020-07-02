@@ -115,17 +115,19 @@ func authCommands(client *Client) []cli.Command {
 func authVaultCommand(client *Client) cli.Command {
 	return cli.Command{
 		Name:  "vault",
-		Usage: "Auth from remote vault",
+		Usage: "Connect to vault",
 		Flags: []cli.Flag{
-			cli.StringFlag{Name: "key", Usage: "Key for remote vault"},
+			cli.StringFlag{Name: "phrase", Usage: "Phrase from vault auth"},
 		},
 		Action: func(c *cli.Context) error {
-			key, err := readPassword("Vault key:", false)
+			reader := bufio.NewReader(os.Stdin)
+			fmt.Fprintf(os.Stderr, "Vault phrase: ")
+			phrase, err := reader.ReadString('\n')
 			if err != nil {
 				return err
 			}
 			if _, err := client.KeysClient().AuthVault(context.TODO(), &AuthVaultRequest{
-				Key: key,
+				Phrase: phrase,
 			}); err != nil {
 				return err
 			}

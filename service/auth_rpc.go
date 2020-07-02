@@ -6,6 +6,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/vault"
+	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
 )
@@ -57,14 +58,23 @@ func (s *service) AuthVault(ctx context.Context, req *AuthVaultRequest) (*AuthVa
 		return nil, errors.Errorf("auth already setup")
 	}
 
-	key, err := keys.ParseKey([]byte(req.Key), "")
+	b, err := encoding.Decode(req.Phrase, encoding.BIP39)
 	if err != nil {
 		return nil, err
 	}
-	rk, ok := key.(*keys.EdX25519Key)
-	if !ok {
-		return nil, errors.Errorf("not an EdX25519 key")
+	if len(b) != 32 {
+		return nil, errors.Errorf("invalid byte length for otk")
 	}
+	otk := keys.NewEdX25519KeyFromSeed(keys.Bytes32(b))
+
+	seed, err := s.remote.ShareOpen(ctx, otk)
+	if err != nil {
+		return nil, err
+	}
+	if len(seed) != 32 {
+		return nil, errors.Errorf("invalid byte length for rk seed %d", len(seed))
+	}
+	rk := keys.NewEdX25519KeyFromSeed(keys.Bytes32(seed))
 
 	if err := s.vault.InitRemote(ctx, rk); err != nil {
 		return nil, err

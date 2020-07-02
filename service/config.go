@@ -218,9 +218,14 @@ func homeDir() (string, error) {
 	return usr.HomeDir, nil
 }
 
+// Path to config file.
+func (c *Config) Path(makeDir bool) (string, error) {
+	return c.AppPath("config.json", makeDir)
+}
+
 // Load ...
 func (c *Config) Load() error {
-	path, err := c.AppPath("config.json", false)
+	path, err := c.Path(false)
 	if err != nil {
 		return err
 	}
@@ -249,7 +254,7 @@ func (c *Config) Load() error {
 
 // Save ...
 func (c *Config) Save() error {
-	path, err := c.AppPath("config.json", true)
+	path, err := c.Path(true)
 	if err != nil {
 		return err
 	}
@@ -265,7 +270,7 @@ func (c *Config) Save() error {
 
 // Reset removes saved values.
 func (c *Config) Reset() error {
-	path, err := c.AppPath("config.json", true)
+	path, err := c.Path(false)
 	if err != nil {
 		return err
 	}

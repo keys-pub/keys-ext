@@ -41,8 +41,8 @@ func importCommands(client *Client) []cli.Command {
 					b = in
 				}
 
-				b, typ := keys.DetectDataType(b)
-				if typ == keys.IDType {
+				b, typ := keys.DetectEncoding(b)
+				if typ == keys.IDEncoding {
 					req := &KeyImportRequest{
 						In: b,
 					}
