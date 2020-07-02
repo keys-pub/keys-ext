@@ -192,7 +192,7 @@ func (v *Vault) EdX25519PublicKey(kid keys.ID) (*keys.EdX25519PublicKey, error) 
 
 // ImportSaltpack imports key into the vault from a Saltpack message.
 func (v *Vault) ImportSaltpack(msg string, password string, isHTML bool) (keys.Key, error) {
-	key, err := keys.DecodeKeyFromSaltpack(msg, password, isHTML)
+	key, err := keys.DecodeSaltpackKey(msg, password, isHTML)
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +208,7 @@ func (v *Vault) ExportSaltpack(id keys.ID, password string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return keys.EncodeKeyToSaltpack(key, password)
+	return keys.EncodeSaltpackKey(key, password)
 }
 
 // x25519KeyForItem returns a X25519Key for a vault Item.

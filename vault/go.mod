@@ -5,7 +5,7 @@ go 1.14
 require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/golang/snappy v0.0.1 // indirect
-	github.com/keys-pub/keys v0.0.0-20200630190925-2c92ea404bb9
+	github.com/keys-pub/keys v0.0.0-20200702020612-6aaea92d6a59
 	github.com/keys-pub/keys-ext/http/api v0.0.0-20200625223334-74da599991bf
 	github.com/keys-pub/keys-ext/http/client v0.0.0-20200630191206-ba6dff93c214
 	github.com/keys-pub/keys-ext/http/server v0.0.0-20200630163632-e64cbb9bc1c1

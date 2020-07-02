@@ -31,8 +31,9 @@ func TestConvertV0(t *testing.T) {
 
 	// Vault with converted store
 	vlt := vault.New(vault.NewMem())
-	err = vault.ConvertKeyring(kr, vlt)
+	converted, err := vault.ConvertKeyring(kr, vlt)
 	require.NoError(t, err)
+	require.True(t, converted)
 
 	// Unlock with key
 	provision, err := vlt.Unlock(key)
@@ -96,8 +97,9 @@ func TestConvertV1(t *testing.T) {
 
 	// Vault with converted store
 	vlt := vault.New(vault.NewMem())
-	err = vault.ConvertKeyring(kr, vlt)
+	converted, err := vault.ConvertKeyring(kr, vlt)
 	require.NoError(t, err)
+	require.True(t, converted)
 
 	// Unlock with old auth
 	provision, err = vlt.Unlock(key)
@@ -149,8 +151,9 @@ func TestConvertBackup37(t *testing.T) {
 	require.NoError(t, err)
 
 	vlt := vault.New(vault.NewMem())
-	err = vault.ConvertKeyring(kr, vlt)
+	converted, err := vault.ConvertKeyring(kr, vlt)
 	require.NoError(t, err)
+	require.True(t, converted)
 
 	err = vlt.UnlockWithPassword("windows123", false)
 	require.NoError(t, err)
@@ -178,8 +181,9 @@ func TestConvertBackup48(t *testing.T) {
 	require.NoError(t, err)
 
 	vlt := vault.New(vault.NewMem())
-	err = vault.ConvertKeyring(kr, vlt)
+	converted, err := vault.ConvertKeyring(kr, vlt)
 	require.NoError(t, err)
+	require.True(t, converted)
 
 	err = vlt.UnlockWithPassword("darwin123", false)
 	require.NoError(t, err)

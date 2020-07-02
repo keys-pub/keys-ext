@@ -135,6 +135,8 @@ github.com/keys-pub/keys v0.0.0-20200627005308-6cb6f26a30a7 h1:UMxBIWw2+5GDf5Y6f
 github.com/keys-pub/keys v0.0.0-20200627005308-6cb6f26a30a7/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys v0.0.0-20200630190925-2c92ea404bb9 h1:YCdCsDFwWlYson1LAX98438LjY1zX8fJtdq+gjnbDMo=
 github.com/keys-pub/keys v0.0.0-20200630190925-2c92ea404bb9/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.0.0-20200702020612-6aaea92d6a59 h1:8GV/vQtPQie2ZlWEgBz/0DHQAAqE290qXPCkYXodxLw=
+github.com/keys-pub/keys v0.0.0-20200702020612-6aaea92d6a59/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys-ext v0.0.47 h1:nHeByV1GKScjFcToMdAuLHupN4Svokjnrx7pMpn6lfI=
 github.com/keys-pub/keys-ext v0.0.48-0.20200627005809-4b6e75bb8abb h1:QGXsc8+fObVkFedxOebDnJr9oNXLQrmE4rIhsmq21YM=
 github.com/keys-pub/keys-ext/firestore v0.0.0-20200612011605-1b8b64293fa0 h1:tlT3r1x0ejXQIqRubcD+QSnoE46E0TjbXwUWIzslUVY=
