@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
@@ -17,6 +18,8 @@ import (
 
 // Vault stores keys and secrets.
 type Vault struct {
+	mtx sync.Mutex
+
 	store  Store
 	remote *client.Client
 	clock  func() time.Time
@@ -26,7 +29,8 @@ type Vault struct {
 
 	inc    int64
 	incMax int64
-	subs   *subscribers
+
+	subs *subscribers
 }
 
 // New vault.
@@ -39,9 +43,20 @@ func New(st Store, opt ...Option) *Vault {
 	}
 }
 
-// Store for vault.
-func (v *Vault) Store() Store {
-	return v.store
+// Open vault.
+func (v *Vault) Open() error {
+	if err := v.store.Open(); err != nil {
+		return errors.Wrapf(err, "failed to open vault")
+	}
+	return nil
+}
+
+// Close vault.
+func (v *Vault) Close() error {
+	if err := v.store.Close(); err != nil {
+		return errors.Wrapf(err, "failed to close vault")
+	}
+	return nil
 }
 
 // SetRemote sets the remote.
@@ -118,6 +133,11 @@ func (v *Vault) addToPush(path string, b []byte) error {
 	if err := v.store.Set(ppath, b); err != nil {
 		return err
 	}
+
+	time.AfterFunc(time.Second*2, func() {
+		v.AutoSync(nil)
+	})
+
 	return nil
 }
 
@@ -169,12 +189,21 @@ func (v *Vault) Delete(id string) (bool, error) {
 
 // Sync vault.
 func (v *Vault) Sync(ctx context.Context) error {
+	v.mtx.Lock()
+	defer v.mtx.Unlock()
+	logger.Infof("Syncing...")
+
 	if err := v.push(ctx); err != nil {
 		return errors.Wrapf(err, "failed to push vault (sync)")
 	}
-	if err := v.Pull(ctx); err != nil {
+	if err := v.pull(ctx); err != nil {
 		return errors.Wrapf(err, "failed to pull vault (sync)")
 	}
+
+	if err := v.setLastSync(time.Now()); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -245,6 +274,12 @@ func (v *Vault) push(ctx context.Context) error {
 // Pull events from remote.
 // Does NOT require Unlock.
 func (v *Vault) Pull(ctx context.Context) error {
+	v.mtx.Lock()
+	defer v.mtx.Unlock()
+	return v.pull(ctx)
+}
+
+func (v *Vault) pull(ctx context.Context) error {
 	if v.remote == nil {
 		return errors.Errorf("no vault remote set")
 	}
@@ -331,6 +366,9 @@ func (v *Vault) Spew(prefix string, out io.Writer) error {
 // gets a new batch.
 // There may be large gaps between increments (of batch size) after re-opens.
 func (v *Vault) Increment(n int64) (string, error) {
+	v.mtx.Lock()
+	defer v.mtx.Unlock()
+
 	if v.inc == 0 || (v.inc+n) >= v.incMax {
 		inc, incMax, err := increment(v.store, ds.Path("db", "increment"), 1000)
 		if err != nil {
@@ -383,26 +421,4 @@ func (v *Vault) IsEmpty() (bool, error) {
 		return false, err
 	}
 	return len(docs) == 0, nil
-}
-
-func (v *Vault) index() (int64, error) {
-	b, err := v.store.Get(ds.Path("db", "index"))
-	if err != nil {
-		return 0, err
-	}
-	if b == nil {
-		return 0, nil
-	}
-	n, err := strconv.ParseInt(string(b), 10, 64)
-	if err != nil {
-		return 0, err
-	}
-	return n, nil
-}
-
-func (v *Vault) setIndex(n int64) error {
-	if err := v.store.Set(ds.Path("db", "index"), []byte(strconv.FormatInt(n, 10))); err != nil {
-		return err
-	}
-	return nil
 }

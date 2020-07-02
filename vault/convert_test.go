@@ -30,7 +30,8 @@ func TestConvertV0(t *testing.T) {
 	require.NoError(t, err)
 
 	// Vault with converted store
-	vlt := vault.New(vault.NewMem())
+	st := vault.NewMem()
+	vlt := vault.New(st)
 	converted, err := vault.ConvertKeyring(kr, vlt)
 	require.NoError(t, err)
 	require.True(t, converted)
@@ -53,7 +54,7 @@ func TestConvertV0(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "000000000000003", inc)
 
-	paths, err := vault.Paths(vlt.Store(), "")
+	paths, err := vlt.Paths("")
 	require.NoError(t, err)
 	expected := []string{
 		"/auth/v0",
@@ -96,7 +97,8 @@ func TestConvertV1(t *testing.T) {
 	require.NoError(t, err)
 
 	// Vault with converted store
-	vlt := vault.New(vault.NewMem())
+	st := vault.NewMem()
+	vlt := vault.New(st)
 	converted, err := vault.ConvertKeyring(kr, vlt)
 	require.NoError(t, err)
 	require.True(t, converted)
@@ -119,7 +121,7 @@ func TestConvertV1(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "000000000000004", inc)
 
-	paths, err := vault.Paths(vlt.Store(), "")
+	paths, err := vlt.Paths("")
 	require.NoError(t, err)
 	expected := []string{
 		"/auth/0El6XFXwsUFD8J2vGxsaboW7rZYnQRBP5d9erwRwd29",

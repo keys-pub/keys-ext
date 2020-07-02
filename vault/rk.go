@@ -2,6 +2,7 @@ package vault
 
 import (
 	"context"
+	"time"
 
 	"github.com/keys-pub/keys"
 	"github.com/pkg/errors"
@@ -31,6 +32,10 @@ func (v *Vault) InitRemote(ctx context.Context, rk *keys.EdX25519Key) error {
 	}
 
 	if err := v.saveRemoveVault(vault); err != nil {
+		return err
+	}
+
+	if err := v.setLastSync(time.Now()); err != nil {
 		return err
 	}
 

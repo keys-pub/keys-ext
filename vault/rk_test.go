@@ -68,7 +68,7 @@ func testInitRemote(t *testing.T, st1 vault.Store, st2 vault.Store) {
 	require.Equal(t, "key1", out.ID)
 	require.Equal(t, []byte("value1"), out.Data)
 
-	paths1, err := vault.Paths(v1.Store(), "/pull")
+	paths1, err := v1.Paths("/pull")
 	require.NoError(t, err)
 	expected := []string{
 		"/pull/000000000000001/config/salt",
@@ -78,7 +78,7 @@ func testInitRemote(t *testing.T, st1 vault.Store, st2 vault.Store) {
 	}
 	require.Equal(t, expected, paths1)
 
-	paths2, err := vault.Paths(v2.Store(), "/pull")
+	paths2, err := v2.Paths("/pull")
 	require.NoError(t, err)
 	require.Equal(t, expected, paths2)
 }

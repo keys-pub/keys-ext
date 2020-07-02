@@ -26,8 +26,8 @@ type Store interface {
 }
 
 // Paths from vault Store.
-func Paths(st Store, prefix string) ([]string, error) {
-	docs, err := st.Documents(ds.Prefix(prefix))
+func (v *Vault) Paths(prefix string) ([]string, error) {
+	docs, err := v.store.Documents(ds.Prefix(prefix))
 	if err != nil {
 		return nil, err
 	}
@@ -49,10 +49,10 @@ func deleteAll(st Store, paths []string) error {
 }
 
 // Collections from Store.
-func Collections(st Store, parent string) ([]*ds.Collection, error) {
+func (v *Vault) Collections(parent string) ([]*ds.Collection, error) {
 	// We iterate over all the paths to build the collections list, this is slow.
 	collections := []*ds.Collection{}
-	docs, err := st.Documents(ds.Prefix(ds.Path(parent)), ds.NoData())
+	docs, err := v.store.Documents(ds.Prefix(ds.Path(parent)), ds.NoData())
 	if err != nil {
 		return nil, err
 	}
@@ -69,4 +69,9 @@ func Collections(st Store, parent string) ([]*ds.Collection, error) {
 	}
 
 	return collections, nil
+}
+
+// Documents from Store.
+func (v *Vault) Documents(opt ...ds.DocumentsOption) ([]*ds.Document, error) {
+	return v.store.Documents(opt...)
 }

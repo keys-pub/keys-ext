@@ -252,7 +252,7 @@ func testSync(t *testing.T, st1 vault.Store, st2 vault.Store) {
 	require.Equal(t, []byte("mysecretdata.1d"), history[3].Data)
 	require.Nil(t, history[4].Data)
 
-	paths, err := vault.Paths(v1.Store(), "/pull")
+	paths, err := v1.Paths("/pull")
 	require.NoError(t, err)
 	expected := []string{
 		"/pull/000000000000001/auth/ySymDh5DDuJo21ydVJdyuxcDTgYUJMin4PZQzSUBums",
@@ -266,7 +266,7 @@ func testSync(t *testing.T, st1 vault.Store, st2 vault.Store) {
 	}
 	require.Equal(t, expected, paths)
 
-	paths, err = vault.Paths(v1.Store(), "/item")
+	paths, err = v1.Paths("/item")
 	require.NoError(t, err)
 	expected = []string{
 		"/item/key1",
@@ -274,7 +274,7 @@ func testSync(t *testing.T, st1 vault.Store, st2 vault.Store) {
 	}
 	require.Equal(t, expected, paths)
 
-	cols, err := vault.Collections(v1.Store(), "")
+	cols, err := v1.Collections("")
 	require.NoError(t, err)
 	require.Equal(t, 5, len(cols))
 	require.Equal(t, "/auth", cols[0].Path)
@@ -392,12 +392,13 @@ func testUpdate(t *testing.T, vlt *vault.Vault) {
 func TestSetupUnlockProvision(t *testing.T) {
 	db, closeFn := newTestVaultDB(t)
 	defer closeFn()
-	vlt := vault.New(db)
-	testSetupUnlockProvision(t, vlt)
+	testSetupUnlockProvision(t, db)
 }
 
-func testSetupUnlockProvision(t *testing.T, vlt *vault.Vault) {
+func testSetupUnlockProvision(t *testing.T, st vault.Store) {
 	var err error
+
+	vlt := vault.New(st)
 
 	clock := tsutil.NewClock()
 	key, provision := newTestVaultKey(t, clock)
@@ -451,7 +452,7 @@ func testSetupUnlockProvision(t *testing.T, vlt *vault.Vault) {
 	require.NoError(t, err)
 	require.True(t, ok)
 
-	paths, err := vault.Paths(vlt.Store(), "/provision")
+	paths, err := vlt.Paths("/provision")
 	require.NoError(t, err)
 	require.Equal(t, []string{"/provision/" + provision2.ID}, paths)
 
@@ -497,7 +498,7 @@ func TestProtocol(t *testing.T) {
 	err = vlt.Set(item)
 	require.NoError(t, err)
 
-	paths, err := vault.Paths(st, "")
+	paths, err := vlt.Paths("")
 	require.NoError(t, err)
 	require.Equal(t, []string{
 		"/auth/0TWD4V5tkyUQGc5qXvlBDd2Fj97aqsMoBGJJjsttG4I",
@@ -509,7 +510,7 @@ func TestProtocol(t *testing.T) {
 		"/push/000000000000003/item/testid1",
 	}, paths)
 
-	paths, err = vault.Paths(st, "/auth")
+	paths, err = vlt.Paths("/auth")
 	require.NoError(t, err)
 	require.Equal(t, []string{"/auth/" + provision.ID}, paths)
 
