@@ -247,11 +247,14 @@ func (s *Server) getSigchainStatementAliased(c echo.Context) error {
 }
 
 func (s *Server) putSigchainStatementAliased(c echo.Context) error {
+	// An earlier <= 0.0.48 just used PUT /:kid/:seq instead of /sigchain/:kid/:seq
+	// for all hosts (including keys.pub), so we need to continue to support
+	// that for awhile so we don't break those clients.
+
 	// if c.Request().Host == "sigcha.in" {
 	// 	return s.putSigchainStatement(c)
 	// }
 	// return ErrNotFound(c, nil)
 
-	// http/client doesn't specify /sigchain/:kid/:seq path on earlier versions of the app.
 	return s.putSigchainStatement(c)
 }

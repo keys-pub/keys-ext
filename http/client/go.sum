@@ -157,6 +157,8 @@ github.com/keys-pub/keys-ext/http/server v0.0.0-20200625224124-1dd35decc483 h1:N
 github.com/keys-pub/keys-ext/http/server v0.0.0-20200625224124-1dd35decc483/go.mod h1:iAqwLeVtOSMnVV2YWjeeXziR0z2DTjsT4b30pXmtF/g=
 github.com/keys-pub/keys-ext/http/server v0.0.0-20200630163632-e64cbb9bc1c1 h1:c6X96B7nSnEa/ToWaOWBtbriBOXpHYkWpZvx1CfIFHk=
 github.com/keys-pub/keys-ext/http/server v0.0.0-20200630163632-e64cbb9bc1c1/go.mod h1:2NJXKrUzBuUP5zQ9MmEUzdLv9HR7id/Yt0k87ntuD04=
+github.com/keys-pub/keys-ext/http/server v0.0.0-20200702005800-080c86002502 h1:KjMepJiA0d+gjLIlme0lYb5Xte+tEjpnBo6AVVBJchI=
+github.com/keys-pub/keys-ext/http/server v0.0.0-20200702005800-080c86002502/go.mod h1:2NJXKrUzBuUP5zQ9MmEUzdLv9HR7id/Yt0k87ntuD04=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f h1:LLsdI2XManLH0JonKqB6OYmHdHk/WwJByDbHI3hCEcs=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f/go.mod h1:YRHMiVbZqh7u8xRm77CvwJNAZdDlNXwWvQ4DK0N9mYg=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=

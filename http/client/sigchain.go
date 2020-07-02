@@ -14,7 +14,7 @@ import (
 
 // SigchainSave ...
 func (c *Client) SigchainSave(ctx context.Context, st *keys.Statement) error {
-	path := ds.Path(st.URL())
+	path := ds.Path("sigchain", st.URL())
 	b, err := st.Bytes()
 	if err != nil {
 		return err
