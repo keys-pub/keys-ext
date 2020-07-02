@@ -21,9 +21,9 @@ func (v *Vault) autoSyncDisabled() (bool, error) {
 	return v.getConfigBool("autoSyncDisabled")
 }
 
-func (v *Vault) setAutoSyncDisabled(b bool) error {
-	return v.setConfigBool("autoSyncDisabled", b)
-}
+// func (v *Vault) setAutoSyncDisabled(b bool) error {
+// 	return v.setConfigBool("autoSyncDisabled", b)
+// }
 
 func (v *Vault) lastSync() (time.Time, error) {
 	return v.getConfigTime("lastSync")

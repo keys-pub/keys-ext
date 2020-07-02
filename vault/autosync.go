@@ -31,6 +31,7 @@ func (v *Vault) autoSync(ctx context.Context) (bool, error) {
 }
 
 // AutoSync will attempt sync (unless disabled or sync has never run).
+// The afterFn always runs no matter what.
 func (v *Vault) AutoSync(afterFn func()) {
 	go func() {
 		synced, err := v.autoSync(context.Background())

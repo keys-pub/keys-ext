@@ -14,6 +14,7 @@ func TestConfig(t *testing.T) {
 	vlt := New(NewMem())
 
 	err = vlt.setIndex(1)
+	require.NoError(t, err)
 	idx, err := vlt.index()
 	require.NoError(t, err)
 	require.Equal(t, int64(1), idx)
@@ -24,6 +25,7 @@ func TestConfig(t *testing.T) {
 	err = vlt.setConfigInt64("testint64", 123)
 	require.NoError(t, err)
 	n, err = vlt.getConfigInt64("testint64")
+	require.NoError(t, err)
 	require.Equal(t, int64(123), n)
 
 	b, err := vlt.getConfigBool("testbool")
@@ -32,6 +34,7 @@ func TestConfig(t *testing.T) {
 	err = vlt.setConfigBool("testbool", true)
 	require.NoError(t, err)
 	b, err = vlt.getConfigBool("testbool")
+	require.NoError(t, err)
 	require.Equal(t, true, b)
 
 	tm, err := vlt.getConfigTime("testtime")
@@ -41,5 +44,6 @@ func TestConfig(t *testing.T) {
 	err = vlt.setConfigTime("testtime", now)
 	require.NoError(t, err)
 	tm, err = vlt.getConfigTime("testtime")
+	require.NoError(t, err)
 	require.Equal(t, now, tm)
 }
