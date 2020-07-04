@@ -31,12 +31,8 @@ github.com/keybase/go-keychain v0.0.0-20200502122510-cda31fe0c86d/go.mod h1:W6Eb
 github.com/keybase/go.dbus v0.0.0-20200324223359-a94be52c0b03/go.mod h1:a8clEhrrGV/d76/f9r2I41BwANMihfZYV9C223vaxqE=
 github.com/keybase/saltpack v0.0.0-20200430135328-e19b1910c0c5 h1:X6nYzCVURqxDv0GuyptaCcRFTXPM0rSGNUrTeQ2NKUQ=
 github.com/keybase/saltpack v0.0.0-20200430135328-e19b1910c0c5/go.mod h1:FNSq71OhXv/Z1W9M37nnHxJVhXitc03z6qshCbAten8=
-github.com/keys-pub/keys v0.0.0-20200618211112-96955ab2a908 h1:Pf+nEkPiftcVoPbBKoLboQcN+D6q+EZh0KjHvyr9lZo=
-github.com/keys-pub/keys v0.0.0-20200618211112-96955ab2a908/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
-github.com/keys-pub/keys v0.0.0-20200624013456-2ced2c488d1e h1:V3qemAAhL9TYvbnH38EFTOndX4DH/4y7PZupijr3Mhk=
-github.com/keys-pub/keys v0.0.0-20200624013456-2ced2c488d1e/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
-github.com/keys-pub/keys v0.0.0-20200625223038-ffeaa27b06d8 h1:R8cLlm9Jv1QjI7pp5qa1nnWIBudd43i4Zp1H0c2plrU=
-github.com/keys-pub/keys v0.0.0-20200625223038-ffeaa27b06d8/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.0.0-20200704210752-498c4412af12 h1:m+4V7IZOp+alE/01SlxbcPqjtGrNycEEX/qfucAK110=
+github.com/keys-pub/keys v0.0.0-20200704210752-498c4412af12/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f h1:LLsdI2XManLH0JonKqB6OYmHdHk/WwJByDbHI3hCEcs=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f/go.mod h1:YRHMiVbZqh7u8xRm77CvwJNAZdDlNXwWvQ4DK0N9mYg=
 github.com/kr/pretty v0.1.0 h1:L/CwN0zerZDmRFUapSPitk6f+Q3+0za1rQkzVuMiMFI=
@@ -58,8 +54,6 @@ github.com/stretchr/testify v1.5.1 h1:nOGnQDM7FYENwehXlg/kFVnos3rEvtKTjRvOWSzb6H
 github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5cxcmMvtA=
 github.com/tyler-smith/go-bip39 v1.0.2 h1:+t3w+KwLXO6154GNJY+qUtIxLTmFjfUmpguQT1OlOT8=
 github.com/tyler-smith/go-bip39 v1.0.2/go.mod h1:sJ5fKU0s6JVwZjjcUEX2zFOnvq0ASQ2K9Zr6cf67kNs=
-github.com/vmihailenco/msgpack v4.0.4+incompatible h1:dSLoQfGFAo3F6OoNhwUmLwVgaUXK79GlxNBwueZn0xI=
-github.com/vmihailenco/msgpack v4.0.4+incompatible/go.mod h1:fy3FlTQTDXWkZ7Bh6AcGMlsjHatGryHQYUTf1ShIgkk=
 github.com/vmihailenco/msgpack/v4 v4.3.11 h1:Q47CePddpNGNhk4GCnAx9DDtASi2rasatE0cd26cZoE=
 github.com/vmihailenco/msgpack/v4 v4.3.11/go.mod h1:gborTTJjAo/GWTqqRjrLCn9pgNN+NXzzngzBKDPIqw4=
 github.com/vmihailenco/tagparser v0.1.1 h1:quXMXlA39OCbd2wAdTsGDlK9RkOk6Wuw+x37wVyIuWY=

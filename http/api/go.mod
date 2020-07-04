@@ -3,10 +3,9 @@ module github.com/keys-pub/keys-ext/http/api
 go 1.12
 
 require (
-	github.com/keys-pub/keys v0.0.0-20200625223038-ffeaa27b06d8
+	github.com/keys-pub/keys v0.0.0-20200704210752-498c4412af12
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.5.1
-	github.com/vmihailenco/msgpack v4.0.4+incompatible
 	golang.org/x/crypto v0.0.0-20200604202706-70a84ac30bf9 // indirect
 	golang.org/x/sys v0.0.0-20200615200032-f1bc736245b1 // indirect
 )
