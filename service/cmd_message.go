@@ -14,6 +14,7 @@ func messageCommands(client *Client) []cli.Command {
 				cli.StringFlag{Name: "sender, s", Usage: "sender"},
 				cli.StringFlag{Name: "recipient, r", Usage: "recipient"},
 			},
+			Hidden: true,
 			Subcommands: []cli.Command{
 				cli.Command{
 					Name:  "send",
