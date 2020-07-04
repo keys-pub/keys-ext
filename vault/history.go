@@ -3,7 +3,8 @@ package vault
 import (
 	"strings"
 
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
+	"github.com/keys-pub/keys/docs/events"
 	"github.com/vmihailenco/msgpack/v4"
 )
 
@@ -11,14 +12,14 @@ import (
 // Items with empty data are deleted items.
 // This is slow.
 func (v *Vault) ItemHistory(id string) ([]*Item, error) {
-	path := ds.Path("pull")
-	docs, err := v.store.Documents(ds.Prefix(path), ds.NoData())
+	path := docs.Path("pull")
+	ds, err := v.store.Documents(docs.Prefix(path), docs.NoData())
 	if err != nil {
 		return nil, err
 	}
 	paths := []string{}
-	for _, doc := range docs {
-		if strings.HasPrefix(ds.PathFrom(doc.Path, 2), ds.Path("item", id)) {
+	for _, doc := range ds {
+		if strings.HasPrefix(docs.PathFrom(doc.Path, 2), docs.Path("item", id)) {
 			paths = append(paths, doc.Path)
 		}
 	}
@@ -32,7 +33,7 @@ func (v *Vault) ItemHistory(id string) ([]*Item, error) {
 		if b == nil {
 			continue
 		}
-		var event ds.Event
+		var event events.Event
 		if err := msgpack.Unmarshal(b, &event); err != nil {
 			return nil, err
 		}
@@ -55,14 +56,14 @@ func (v *Vault) ItemHistory(id string) ([]*Item, error) {
 // findPendingItems returns list of pending items awaiting push.
 // Requires Unlock.
 func (v *Vault) findPendingItems(id string) ([]*Item, error) {
-	path := ds.Path("push")
-	docs, err := v.store.Documents(ds.Prefix(path))
+	path := docs.Path("push")
+	ds, err := v.store.Documents(docs.Prefix(path))
 	if err != nil {
 		return nil, err
 	}
 	items := []*Item{}
-	for _, doc := range docs {
-		pc := ds.PathComponents(doc.Path)
+	for _, doc := range ds {
+		pc := docs.PathComponents(doc.Path)
 		if pc[2] != "item" || pc[3] != id {
 			continue
 		}

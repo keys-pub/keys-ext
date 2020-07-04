@@ -14,7 +14,7 @@ import (
 	"github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys-ext/http/server"
 	"github.com/keys-pub/keys-ext/vault"
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
 	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/stretchr/testify/require"
@@ -71,7 +71,7 @@ func newTestEnv(t *testing.T, logger server.Logger) *testEnv {
 		logger = client.NewLogger(client.ErrLevel)
 	}
 	clock := tsutil.NewClock()
-	fi := ds.NewMem()
+	fi := docs.NewMem()
 	fi.SetTimeNow(clock.Now)
 
 	rds := server.NewRedisTest(clock.Now)

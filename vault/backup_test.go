@@ -7,7 +7,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/vault"
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/stretchr/testify/require"
 )
@@ -23,7 +23,7 @@ func TestBackupRestore(t *testing.T) {
 	require.NoError(t, err)
 
 	for i := 0; i < 10; i++ {
-		err := st.Set(ds.Path("item", i), []byte(fmt.Sprintf("value%d", i)))
+		err := st.Set(docs.Path("item", i), []byte(fmt.Sprintf("value%d", i)))
 		require.NoError(t, err)
 	}
 

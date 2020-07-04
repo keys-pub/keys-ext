@@ -3,7 +3,7 @@ package vault_test
 import (
 	"testing"
 
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
 
 	"github.com/keys-pub/keys-ext/vault"
 	"github.com/stretchr/testify/require"
@@ -35,17 +35,17 @@ func testStore(t *testing.T, st vault.Store) {
 	require.NoError(t, err)
 	require.Equal(t, []byte("val1"), b)
 
-	docs, err := st.Documents(ds.Prefix("/col1"))
+	out, err := st.Documents(docs.Prefix("/col1"))
 	require.NoError(t, err)
-	require.Equal(t, 2, len(docs))
-	require.Equal(t, "/col1/key1", docs[0].Path)
-	require.Equal(t, []byte("val1"), docs[0].Data)
-	require.Equal(t, "/col1/key2", docs[1].Path)
-	require.Equal(t, []byte("val2"), docs[1].Data)
+	require.Equal(t, 2, len(out))
+	require.Equal(t, "/col1/key1", out[0].Path)
+	require.Equal(t, []byte("val1"), out[0].Data)
+	require.Equal(t, "/col1/key2", out[1].Path)
+	require.Equal(t, []byte("val2"), out[1].Data)
 
-	docs, err = st.Documents(ds.Prefix("/col1"), ds.Limit(1))
+	out, err = st.Documents(docs.Prefix("/col1"), docs.Limit(1))
 	require.NoError(t, err)
-	require.Equal(t, 1, len(docs))
-	require.Equal(t, "/col1/key1", docs[0].Path)
-	require.Equal(t, []byte("val1"), docs[0].Data)
+	require.Equal(t, 1, len(out))
+	require.Equal(t, "/col1/key1", out[0].Path)
+	require.Equal(t, []byte("val1"), out[0].Data)
 }

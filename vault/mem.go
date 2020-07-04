@@ -4,7 +4,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
 	"github.com/pkg/errors"
 )
 
@@ -68,21 +68,21 @@ func (m *mem) Delete(path string) (bool, error) {
 	return false, nil
 }
 
-func (m *mem) Documents(opt ...ds.DocumentsOption) ([]*ds.Document, error) {
-	opts := ds.NewDocumentsOptions(opt...)
+func (m *mem) Documents(opt ...docs.Option) ([]*docs.Document, error) {
+	opts := docs.NewOptions(opt...)
 	prefix := opts.Prefix
 
-	docs := make([]*ds.Document, 0, len(m.items))
+	out := make([]*docs.Document, 0, len(m.items))
 	for path, b := range m.items {
 		if strings.HasPrefix(path, prefix) {
-			docs = append(docs, &ds.Document{Path: path, Data: b})
+			out = append(out, &docs.Document{Path: path, Data: b})
 		}
 	}
-	sort.Slice(docs, func(i, j int) bool {
-		return docs[i].Path < docs[j].Path
+	sort.Slice(out, func(i, j int) bool {
+		return out[i].Path < out[j].Path
 	})
-	if opts.Limit > 0 && len(docs) > opts.Limit {
-		docs = docs[:opts.Limit]
+	if opts.Limit > 0 && len(out) > opts.Limit {
+		out = out[:opts.Limit]
 	}
-	return docs, nil
+	return out, nil
 }

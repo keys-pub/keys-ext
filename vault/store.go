@@ -1,7 +1,7 @@
 package vault
 
 import (
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
 )
 
 // Store is the interface used to store data.
@@ -17,7 +17,7 @@ type Store interface {
 	Delete(path string) (bool, error)
 
 	// Documents iterator.
-	Documents(opt ...ds.DocumentsOption) ([]*ds.Document, error)
+	Documents(opt ...docs.Option) ([]*docs.Document, error)
 
 	// Open store.
 	Open() error
@@ -27,7 +27,7 @@ type Store interface {
 
 // Paths from vault Store.
 func (v *Vault) Paths(prefix string) ([]string, error) {
-	docs, err := v.store.Documents(ds.Prefix(prefix))
+	docs, err := v.store.Documents(docs.Prefix(prefix))
 	if err != nil {
 		return nil, err
 	}
@@ -49,19 +49,19 @@ func deleteAll(st Store, paths []string) error {
 }
 
 // Collections from Store.
-func (v *Vault) Collections(parent string) ([]*ds.Collection, error) {
+func (v *Vault) Collections(parent string) ([]*docs.Collection, error) {
 	// We iterate over all the paths to build the collections list, this is slow.
-	collections := []*ds.Collection{}
-	docs, err := v.store.Documents(ds.Prefix(ds.Path(parent)), ds.NoData())
+	collections := []*docs.Collection{}
+	ds, err := v.store.Documents(docs.Prefix(docs.Path(parent)), docs.NoData())
 	if err != nil {
 		return nil, err
 	}
 	count := map[string]int{}
-	for _, doc := range docs {
-		col := ds.PathFirst(doc.Path)
+	for _, doc := range ds {
+		col := docs.PathFirst(doc.Path)
 		colv, ok := count[col]
 		if !ok {
-			collections = append(collections, &ds.Collection{Path: ds.Path(col)})
+			collections = append(collections, &docs.Collection{Path: docs.Path(col)})
 			count[col] = 1
 		} else {
 			count[col] = colv + 1
@@ -72,6 +72,6 @@ func (v *Vault) Collections(parent string) ([]*ds.Collection, error) {
 }
 
 // Documents from Store.
-func (v *Vault) Documents(opt ...ds.DocumentsOption) ([]*ds.Document, error) {
+func (v *Vault) Documents(opt ...docs.Option) ([]*docs.Document, error) {
 	return v.store.Documents(opt...)
 }

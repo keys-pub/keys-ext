@@ -1,7 +1,7 @@
 package vault
 
 import (
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
 	ldbutil "github.com/syndtr/goleveldb/leveldb/util"
@@ -101,11 +101,11 @@ func (d *DB) Delete(path string) (bool, error) {
 }
 
 // Documents ...
-func (d *DB) Documents(opt ...ds.DocumentsOption) ([]*ds.Document, error) {
+func (d *DB) Documents(opt ...docs.Option) ([]*docs.Document, error) {
 	if d.ldb == nil {
 		return nil, errors.Errorf("db not open")
 	}
-	opts := ds.NewDocumentsOptions(opt...)
+	opts := docs.NewOptions(opt...)
 
 	if opts.Index != 0 {
 		return nil, errors.Errorf("index not implemented")
@@ -115,21 +115,21 @@ func (d *DB) Documents(opt ...ds.DocumentsOption) ([]*ds.Document, error) {
 	iter := d.ldb.NewIterator(ldbutil.BytesPrefix([]byte(prefix)), nil)
 	defer iter.Release()
 
-	docs := []*ds.Document{}
+	out := []*docs.Document{}
 	for iter.Next() {
-		if opts.Limit > 0 && len(docs) >= opts.Limit {
+		if opts.Limit > 0 && len(out) >= opts.Limit {
 			break
 		}
 		path := string(iter.Key())
 		// Remember that the contents of the returned slice should not be modified, and
 		// only valid until the next call to Next.
 		b := copyBytes(iter.Value())
-		docs = append(docs, ds.NewDocument(path, b))
+		out = append(out, docs.NewDocument(path, b))
 	}
 	if err := iter.Error(); err != nil {
 		return nil, err
 	}
-	return docs, nil
+	return out, nil
 }
 
 func copyBytes(source []byte) []byte {

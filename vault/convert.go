@@ -3,7 +3,7 @@ package vault
 import (
 	"strings"
 
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
 	"github.com/keys-pub/keys/keyring"
 	"github.com/pkg/errors"
 	"github.com/vmihailenco/msgpack/v4"
@@ -11,17 +11,17 @@ import (
 
 // ConvertKeyring converts keyring store.
 func ConvertKeyring(kr keyring.Keyring, to *Vault) (bool, error) {
-	docs, err := kr.Documents()
+	ds, err := kr.Documents()
 	if err != nil {
 		return false, err
 	}
-	if len(docs) == 0 {
+	if len(ds) == 0 {
 		return false, nil
 	}
-	for _, doc := range docs {
+	for _, doc := range ds {
 		// #salt
 		if doc.Path == "#salt" {
-			if err := to.set(ds.Path("config", "salt"), doc.Data, true); err != nil {
+			if err := to.set(docs.Path("config", "salt"), doc.Data, true); err != nil {
 				return false, err
 			}
 			continue
@@ -29,7 +29,7 @@ func ConvertKeyring(kr keyring.Keyring, to *Vault) (bool, error) {
 
 		// #auth
 		if doc.Path == "#auth" {
-			if err := to.set(ds.Path("auth", "v0"), doc.Data, true); err != nil {
+			if err := to.set(docs.Path("auth", "v0"), doc.Data, true); err != nil {
 				return false, err
 			}
 			provision := &Provision{
@@ -41,7 +41,7 @@ func ConvertKeyring(kr keyring.Keyring, to *Vault) (bool, error) {
 			if err != nil {
 				return false, err
 			}
-			if err := to.set(ds.Path("provision", "v0"), b, true); err != nil {
+			if err := to.set(docs.Path("provision", "v0"), b, true); err != nil {
 				return false, err
 			}
 			continue
@@ -55,7 +55,7 @@ func ConvertKeyring(kr keyring.Keyring, to *Vault) (bool, error) {
 			if len(spl) < 2 {
 				return false, errors.Errorf("unsupported id %s", doc.Path)
 			}
-			if err := to.set(ds.Path("auth", spl[1]), doc.Data, true); err != nil {
+			if err := to.set(docs.Path("auth", spl[1]), doc.Data, true); err != nil {
 				return false, err
 			}
 		// #provision-
@@ -63,7 +63,7 @@ func ConvertKeyring(kr keyring.Keyring, to *Vault) (bool, error) {
 			if len(spl) < 2 {
 				return false, errors.Errorf("unsupported id %s", doc.Path)
 			}
-			if err := to.set(ds.Path("provision", spl[1]), doc.Data, true); err != nil {
+			if err := to.set(docs.Path("provision", spl[1]), doc.Data, true); err != nil {
 				return false, err
 			}
 		// items
@@ -74,7 +74,7 @@ func ConvertKeyring(kr keyring.Keyring, to *Vault) (bool, error) {
 			if strings.HasPrefix(doc.Path, ".") {
 				continue
 			}
-			if err := to.set(ds.Path("item", doc.Path), doc.Data, true); err != nil {
+			if err := to.set(docs.Path("item", doc.Path), doc.Data, true); err != nil {
 				return false, err
 			}
 		}

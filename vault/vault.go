@@ -11,7 +11,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/client"
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
 	"github.com/pkg/errors"
 	"github.com/vmihailenco/msgpack/v4"
 )
@@ -118,7 +118,7 @@ func (v *Vault) setItem(item *Item, addToPush bool) error {
 	if err != nil {
 		return err
 	}
-	path := ds.Path("item", item.ID)
+	path := docs.Path("item", item.ID)
 	return v.set(path, b, addToPush)
 }
 
@@ -137,7 +137,7 @@ func (v *Vault) addToPush(path string, b []byte) error {
 	if err != nil {
 		return err
 	}
-	ppath := ds.Path("push", inc, path)
+	ppath := docs.Path("push", inc, path)
 	if err := v.store.Set(ppath, b); err != nil {
 		return err
 	}
@@ -155,7 +155,7 @@ func (v *Vault) addToPush(path string, b []byte) error {
 
 // Get vault item.
 func (v *Vault) Get(id string) (*Item, error) {
-	path := ds.Path("item", id)
+	path := docs.Path("item", id)
 	b, err := v.store.Get(path)
 	if err != nil {
 		return nil, err
@@ -199,30 +199,10 @@ func (v *Vault) Delete(id string) (bool, error) {
 	return true, nil
 }
 
-// Sync vault.
-func (v *Vault) Sync(ctx context.Context) error {
-	v.mtx.Lock()
-	defer v.mtx.Unlock()
-	logger.Infof("Syncing...")
-
-	if err := v.push(ctx); err != nil {
-		return errors.Wrapf(err, "failed to push vault (sync)")
-	}
-	if err := v.pull(ctx); err != nil {
-		return errors.Wrapf(err, "failed to pull vault (sync)")
-	}
-
-	if err := v.setLastSync(time.Now()); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // Items to list.
 func (v *Vault) Items() ([]*Item, error) {
-	path := ds.Path("item")
-	docs, err := v.store.Documents(ds.Prefix(path))
+	path := docs.Path("item")
+	docs, err := v.store.Documents(docs.Prefix(path))
 	if err != nil {
 		return nil, err
 	}
@@ -254,16 +234,16 @@ func (v *Vault) push(ctx context.Context) error {
 	events := []*client.Event{}
 
 	// Get events from push.
-	path := ds.Path("push")
-	docs, err := v.store.Documents(ds.Prefix(path))
+	path := docs.Path("push")
+	ds, err := v.store.Documents(docs.Prefix(path))
 	if err != nil {
 		return err
 	}
 	var prev *client.Event
-	for _, doc := range docs {
+	for _, doc := range ds {
 		logger.Debugf("Push %s", doc.Path)
 		paths = append(paths, doc.Path)
-		path := ds.PathFrom(doc.Path, 2)
+		path := docs.PathFrom(doc.Path, 2)
 		event := client.NewEvent(path, doc.Data, prev)
 		events = append(events, event)
 		prev = event
@@ -337,7 +317,7 @@ func (v *Vault) saveRemoveVault(vault *client.Vault) error {
 			}
 		}
 
-		ppath := ds.Path("pull", pad(event.Index), event.Path)
+		ppath := docs.Path("pull", pad(event.Index), event.Path)
 		eb, err := msgpack.Marshal(event)
 		if err != nil {
 			return err
@@ -361,7 +341,7 @@ func (v *Vault) saveRemoveVault(vault *client.Vault) error {
 
 // Spew to out.
 func (v *Vault) Spew(prefix string, out io.Writer) error {
-	docs, err := v.store.Documents(ds.Prefix(prefix))
+	docs, err := v.store.Documents(docs.Prefix(prefix))
 	if err != nil {
 		return err
 	}
@@ -382,7 +362,7 @@ func (v *Vault) Increment(n int64) (string, error) {
 	defer v.mtx.Unlock()
 
 	if v.inc == 0 || (v.inc+n) >= v.incMax {
-		inc, incMax, err := increment(v.store, ds.Path("db", "increment"), 1000)
+		inc, incMax, err := increment(v.store, docs.Path("db", "increment"), 1000)
 		if err != nil {
 			return "", err
 		}
@@ -428,7 +408,7 @@ func pad(n int64) string {
 
 // IsEmpty returns true if vault is empty.
 func (v *Vault) IsEmpty() (bool, error) {
-	docs, err := v.store.Documents(ds.Limit(1))
+	docs, err := v.store.Documents(docs.Limit(1))
 	if err != nil {
 		return false, err
 	}

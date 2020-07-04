@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
 	"github.com/pkg/errors"
 )
 
@@ -21,7 +21,7 @@ var ErrAlreadySetup = errors.New("vault is already setup")
 // This salt value is not encrypted.
 // Doesn't require Unlock().
 func (v *Vault) Salt() ([]byte, error) {
-	path := ds.Path("config", "salt")
+	path := docs.Path("config", "salt")
 	salt, err := v.store.Get(path)
 	if err != nil {
 		return nil, err
@@ -173,7 +173,7 @@ func (v *Vault) authCreate(id string, key *[32]byte, mk *[32]byte) error {
 	if err != nil {
 		return err
 	}
-	if err := v.set(ds.Path("auth", id), b, true); err != nil {
+	if err := v.set(docs.Path("auth", id), b, true); err != nil {
 		return err
 	}
 	return nil
@@ -184,7 +184,7 @@ func (v *Vault) authDelete(id string) (bool, error) {
 	if id == "" {
 		return false, errors.Errorf("no auth id")
 	}
-	path := ds.Path("auth", id)
+	path := docs.Path("auth", id)
 	b, err := v.store.Get(path)
 	if err != nil {
 		return false, err
@@ -199,15 +199,15 @@ func (v *Vault) authDelete(id string) (bool, error) {
 	if !ok {
 		return false, nil
 	}
-	if err := v.addToPush(ds.Path("auth", id), nil); err != nil {
+	if err := v.addToPush(docs.Path("auth", id), nil); err != nil {
 		return true, err
 	}
 	return true, nil
 }
 
 func (v *Vault) hasAuth() (bool, error) {
-	path := ds.Path("auth")
-	docs, err := v.store.Documents(ds.Prefix(path), ds.NoData(), ds.Limit(1))
+	path := docs.Path("auth")
+	docs, err := v.store.Documents(docs.Prefix(path), docs.NoData(), docs.Limit(1))
 	if err != nil {
 		return false, err
 	}
@@ -218,8 +218,8 @@ func (v *Vault) hasAuth() (bool, error) {
 // is not found.
 // Auth is found by trying to decrypt auth until successful.
 func (v *Vault) authUnlock(key *[32]byte) (string, *[32]byte, error) {
-	path := ds.Path("auth")
-	docs, err := v.store.Documents(ds.Prefix(path))
+	path := docs.Path("auth")
+	docs, err := v.store.Documents(docs.Prefix(path))
 	if err != nil {
 		return "", nil, err
 	}

@@ -6,7 +6,7 @@ import (
 
 	"github.com/keys-pub/keys/tsutil"
 
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
 )
 
 func (v *Vault) index() (int64, error) {
@@ -34,7 +34,7 @@ func (v *Vault) setLastSync(tm time.Time) error {
 }
 
 func (v *Vault) setConfig(key string, value string) error {
-	if err := v.store.Set(ds.Path("db", key), []byte(value)); err != nil {
+	if err := v.store.Set(docs.Path("db", key), []byte(value)); err != nil {
 		return err
 	}
 	return nil
@@ -57,7 +57,7 @@ func (v *Vault) setConfigTime(key string, t time.Time) error {
 }
 
 func (v *Vault) getConfig(key string) (string, error) {
-	b, err := v.store.Get(ds.Path("db", key))
+	b, err := v.store.Get(docs.Path("db", key))
 	if err != nil {
 		return "", err
 	}

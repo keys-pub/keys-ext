@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
 	"github.com/keys-pub/keys/encoding"
 	"github.com/pkg/errors"
 	"github.com/vmihailenco/msgpack/v4"
@@ -60,8 +60,8 @@ func (v *Vault) Provision(key *[32]byte, provision *Provision) error {
 // Provisions are currently provisioned auth.
 // Doesn't require Unlock().
 func (v *Vault) Provisions() ([]*Provision, error) {
-	path := ds.Path("provision")
-	docs, err := v.store.Documents(ds.Prefix(path))
+	path := docs.Path("provision")
+	docs, err := v.store.Documents(docs.Prefix(path))
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +110,7 @@ func (v *Vault) ProvisionSave(provision *Provision) error {
 // provision loads provision for id.
 func (v *Vault) provision(id string) (*Provision, error) {
 	logger.Debugf("Loading provision %s", id)
-	path := ds.Path("provision", id)
+	path := docs.Path("provision", id)
 	b, err := v.store.Get(path)
 	if err != nil {
 		return nil, err
@@ -132,7 +132,7 @@ func (v *Vault) provisionSave(provision *Provision) error {
 	if err != nil {
 		return err
 	}
-	if err := v.set(ds.Path("provision", provision.ID), b, true); err != nil {
+	if err := v.set(docs.Path("provision", provision.ID), b, true); err != nil {
 		return err
 	}
 	return nil
@@ -141,7 +141,7 @@ func (v *Vault) provisionSave(provision *Provision) error {
 // provisionDelete removes provision.
 func (v *Vault) provisionDelete(id string) (bool, error) {
 	logger.Debugf("Deleting provision %s", id)
-	path := ds.Path("provision", id)
+	path := docs.Path("provision", id)
 	ok, err := v.store.Delete(path)
 	if err != nil {
 		return false, err
@@ -149,7 +149,7 @@ func (v *Vault) provisionDelete(id string) (bool, error) {
 	if !ok {
 		return false, nil
 	}
-	if err := v.addToPush(ds.Path("provision", id), nil); err != nil {
+	if err := v.addToPush(docs.Path("provision", id), nil); err != nil {
 		return true, err
 	}
 	return true, nil
