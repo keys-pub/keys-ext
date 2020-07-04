@@ -5,31 +5,32 @@ import (
 
 	"cloud.google.com/go/firestore"
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
+	"github.com/keys-pub/keys/docs/events"
 	"github.com/keys-pub/keys/encoding"
 	"github.com/pkg/errors"
 )
 
-// eventIdx should also match ds.Event firestore tag.
+// eventIdx should also match Event firestore tag.
 const eventIdxLabel = "idx"
 
 // EventsAdd adds events.
-func (f *Firestore) EventsAdd(ctx context.Context, path string, data [][]byte) ([]*ds.Event, error) {
+func (f *Firestore) EventsAdd(ctx context.Context, path string, data [][]byte) ([]*events.Event, error) {
 	if len(data) > 499 {
 		return nil, errors.Errorf("too many events to batch (max 500)")
 	}
 
 	batch := f.client.Batch()
 
-	idx, err := f.index(ctx, ds.Path(path), int64(len(data)))
+	idx, err := f.index(ctx, docs.Path(path), int64(len(data)))
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to increment index")
 	}
 
-	events := make([]*ds.Event, 0, len(data))
+	out := make([]*events.Event, 0, len(data))
 	for _, b := range data {
 		id := encoding.MustEncode(keys.RandBytes(32), encoding.Base62)
-		path := ds.Path(path, "log", id)
+		path := docs.Path(path, "log", id)
 		logger.Debugf(ctx, "Batching %s (%d)", path, idx)
 
 		// Map should match keys.
@@ -40,7 +41,7 @@ func (f *Firestore) EventsAdd(ctx context.Context, path string, data [][]byte) (
 		doc := f.client.Doc(normalizePath(path))
 		batch.Create(doc, m)
 
-		events = append(events, &ds.Event{
+		out = append(out, &events.Event{
 			Data:  b,
 			Index: idx,
 		})
@@ -52,37 +53,38 @@ func (f *Firestore) EventsAdd(ctx context.Context, path string, data [][]byte) (
 	if err != nil {
 		return nil, err
 	}
-	for i, event := range events {
+	for i, event := range out {
 		event.Timestamp = res[i].UpdateTime
 	}
 
-	return events, nil
+	return out, nil
 }
 
 // Events ...
-func (f *Firestore) Events(ctx context.Context, path string, index int64, limit int, direction ds.Direction) (ds.EventIterator, error) {
-	col := f.client.Collection(normalizePath(ds.Path(path, "log")))
+func (f *Firestore) Events(ctx context.Context, path string, opt ...events.Option) (events.Iterator, error) {
+	opts := events.NewOptions(opt...)
+	col := f.client.Collection(normalizePath(docs.Path(path, "log")))
 	if col == nil {
-		return ds.NewEventIterator([]*ds.Event{}), nil
+		return events.NewIterator([]*events.Event{}), nil
 	}
 
 	var q firestore.Query
-	switch direction {
-	case ds.Ascending:
-		if index == 0 {
+	switch opts.Direction {
+	case events.Ascending:
+		if opts.Index == 0 {
 			logger.Infof(ctx, "List events (asc)...")
 			q = col.OrderBy(eventIdxLabel, firestore.Asc)
 		} else {
-			logger.Infof(ctx, "List events (asc > %d)", index)
-			q = col.OrderBy(eventIdxLabel, firestore.Asc).Where(eventIdxLabel, ">", index)
+			logger.Infof(ctx, "List events (asc > %d)", opts.Index)
+			q = col.OrderBy(eventIdxLabel, firestore.Asc).Where(eventIdxLabel, ">", opts.Index)
 		}
-	case ds.Descending:
-		if index == 0 {
+	case events.Descending:
+		if opts.Index == 0 {
 			logger.Infof(ctx, "List events (desc)...")
 			q = col.OrderBy(eventIdxLabel, firestore.Desc)
 		} else {
-			logger.Infof(ctx, "List events (desc < %d)", index)
-			q = col.OrderBy(eventIdxLabel, firestore.Desc).Where(eventIdxLabel, "<", index)
+			logger.Infof(ctx, "List events (desc < %d)", opts.Index)
+			q = col.OrderBy(eventIdxLabel, firestore.Desc).Where(eventIdxLabel, "<", opts.Index)
 		}
 	}
 
@@ -93,7 +95,25 @@ func (f *Firestore) Events(ctx context.Context, path string, index int64, limit 
 	// 	limit = 100
 	// }
 
-	return &eventIterator{iter: iter, limit: limit}, nil
+	return &eventIterator{iter: iter, limit: opts.Limit}, nil
+}
+
+// EventsDelete removes events.
+func (f *Firestore) EventsDelete(ctx context.Context, path string) (bool, error) {
+	doc := f.client.Doc(normalizePath(path))
+
+	exists, err := f.Exists(ctx, path)
+	if err != nil {
+		return false, err
+	}
+	if !exists {
+		return false, nil
+	}
+
+	if _, err := doc.Delete(ctx); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // index is a very slow increment by. Limited to 1 write a second.

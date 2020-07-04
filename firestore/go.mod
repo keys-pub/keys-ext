@@ -5,10 +5,8 @@ go 1.12
 require (
 	cloud.google.com/go v0.51.0 // indirect
 	cloud.google.com/go/firestore v1.1.0
-	github.com/davecgh/go-spew v1.1.1
-	github.com/keys-pub/keys v0.0.0-20200627005308-6cb6f26a30a7
+	github.com/keys-pub/keys v0.0.0-20200704210752-498c4412af12
 	github.com/pkg/errors v0.9.1
-	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.5.1
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d // indirect
 	golang.org/x/tools v0.0.0-20200410194907-79a7a3126eef // indirect

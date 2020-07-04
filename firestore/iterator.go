@@ -4,7 +4,8 @@ import (
 	"strings"
 
 	"cloud.google.com/go/firestore"
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
+	"github.com/keys-pub/keys/docs/events"
 	"google.golang.org/api/iterator"
 )
 
@@ -15,7 +16,7 @@ type docsIterator struct {
 	pathOnly bool
 }
 
-func (i *docsIterator) Next() (*ds.Document, error) {
+func (i *docsIterator) Next() (*docs.Document, error) {
 	if i.iter == nil {
 		return nil, nil
 	}
@@ -32,10 +33,10 @@ func (i *docsIterator) Next() (*ds.Document, error) {
 		// TODO: Is there a more efficient way to do this in the query?
 		return nil, nil
 	}
-	kp := ds.Path(i.parent, k)
+	kp := docs.Path(i.parent, k)
 
 	if i.pathOnly {
-		out := ds.NewDocument(kp, nil)
+		out := docs.NewDocument(kp, nil)
 		out.CreatedAt = doc.CreateTime
 		out.UpdatedAt = doc.UpdateTime
 		return out, nil
@@ -43,7 +44,7 @@ func (i *docsIterator) Next() (*ds.Document, error) {
 
 	m := doc.Data()
 	b, _ := m["data"].([]byte)
-	out := ds.NewDocument(kp, b)
+	out := docs.NewDocument(kp, b)
 	out.CreatedAt = doc.CreateTime
 	out.UpdatedAt = doc.UpdateTime
 	return out, nil
@@ -57,11 +58,11 @@ func (i *docsIterator) Release() {
 
 type eventIterator struct {
 	iter  *firestore.DocumentIterator
-	limit int
-	count int
+	limit int64
+	count int64
 }
 
-func (i *eventIterator) Next() (*ds.Event, error) {
+func (i *eventIterator) Next() (*events.Event, error) {
 	if i.iter == nil {
 		return nil, nil
 	}
@@ -75,7 +76,7 @@ func (i *eventIterator) Next() (*ds.Event, error) {
 	if i.count >= i.limit {
 		return nil, nil
 	}
-	var event ds.Event
+	var event events.Event
 	if err := doc.DataTo(&event); err != nil {
 		return nil, err
 	}
