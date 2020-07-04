@@ -5,7 +5,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
 )
@@ -38,7 +38,7 @@ func (s *service) vaultCollections(ctx context.Context, parent string) (*Collect
 	return &CollectionsResponse{Collections: collectionsToRPC(cols)}, nil
 }
 
-func collectionsToRPC(cols []*ds.Collection) []*Collection {
+func collectionsToRPC(cols []*docs.Collection) []*Collection {
 	out := make([]*Collection, 0, len(cols))
 	for _, c := range cols {
 		out = append(out, &Collection{Path: c.Path})
@@ -48,19 +48,19 @@ func collectionsToRPC(cols []*ds.Collection) []*Collection {
 
 // Documents (RPC) lists document from db or vault.
 func (s *service) Documents(ctx context.Context, req *DocumentsRequest) (*DocumentsResponse, error) {
-	var docs []*ds.Document
-	var docsErr error
+	var ds []*docs.Document
+	var dsErr error
 	switch req.DB {
 	case "", "service":
-		docs, docsErr = s.db.Documents(ctx, "", ds.Prefix(req.Prefix))
+		ds, dsErr = s.db.Documents(ctx, "", docs.Prefix(req.Prefix))
 	case "vault":
-		docs, docsErr = s.vault.Documents(ds.Prefix(req.Prefix))
+		ds, dsErr = s.vault.Documents(docs.Prefix(req.Prefix))
 	}
-	if docsErr != nil {
-		return nil, docsErr
+	if dsErr != nil {
+		return nil, dsErr
 	}
 	out := make([]*Document, 0, 100)
-	for _, doc := range docs {
+	for _, doc := range ds {
 		var val string
 		if !utf8.Valid(doc.Data) {
 			val = string(spew.Sdump(doc.Data))

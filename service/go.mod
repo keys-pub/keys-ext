@@ -5,26 +5,27 @@ go 1.14
 require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/gogo/protobuf v1.3.1
-	github.com/golang/protobuf v1.4.2
+	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
-	github.com/keys-pub/keys v0.0.0-20200702020612-6aaea92d6a59
+	github.com/keys-pub/keys v0.0.0-20200704210752-498c4412af12
 	github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200618211325-4c2d562cade7
 	github.com/keys-pub/keys-ext/auth/mock v0.0.0-20200618212723-bf12ba4cbdc4
-	github.com/keys-pub/keys-ext/http/api v0.0.0-20200625223334-74da599991bf
-	github.com/keys-pub/keys-ext/http/client v0.0.0-20200702020925-29ac9e05c6b7
-	github.com/keys-pub/keys-ext/http/server v0.0.0-20200702005800-080c86002502
-	github.com/keys-pub/keys-ext/sdb v0.0.0-20200627005809-4b6e75bb8abb
-	github.com/keys-pub/keys-ext/vault v0.0.0-20200702194532-c85448f56a96
+	github.com/keys-pub/keys-ext/http/api v0.0.0-20200704211016-ce8ce10a1087
+	github.com/keys-pub/keys-ext/http/client v0.0.0-20200704211928-ed24b9a14e00
+	github.com/keys-pub/keys-ext/http/server v0.0.0-20200704211557-17fe0a678475
+	github.com/keys-pub/keys-ext/sdb v0.0.0-20200704211703-900392aae3e8
+	github.com/keys-pub/keys-ext/vault v0.0.0-20200704211928-ed24b9a14e00
 	github.com/keys-pub/keys-ext/wormhole v0.0.0-20200624011543-a01a0028982e
 	github.com/mercari/go-grpc-interceptor v0.0.0-20180110035004-b8ad3827e82a
 	github.com/mitchellh/go-ps v1.0.0
+	github.com/olekukonko/tablewriter v0.0.4 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.6.0
 	github.com/stretchr/testify v1.6.1
 	github.com/urfave/cli v1.22.4
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	google.golang.org/grpc v1.29.1
-	google.golang.org/protobuf v1.24.0
+	google.golang.org/protobuf v1.24.0 // indirect
 )
 
 // replace github.com/keys-pub/keys => ../../keys

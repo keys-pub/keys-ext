@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys-ext/auth/fido2"
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
@@ -214,7 +214,7 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 		logger.Debugf("Command: %s", command)
 
 		// Start commands don't connect to the service.
-		skip := ds.NewStringSet("uninstall", "restart", "start", "stop", "config")
+		skip := docs.NewStringSet("uninstall", "restart", "start", "stop", "config")
 		if skip.Contains(command) {
 			return nil
 		}

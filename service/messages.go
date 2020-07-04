@@ -8,7 +8,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/client"
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
 	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/saltpack"
 	"github.com/keys-pub/keys/tsutil"
@@ -131,7 +131,7 @@ func (s *service) messageCreate(ctx context.Context, sender string, recipient st
 		return nil, err
 	}
 
-	event := client.NewEvent(ds.Path("msgs", id), b, nil)
+	event := client.NewEvent(docs.Path("msgs", id), b, nil)
 	if err := s.remote.MessageSend(ctx, key, rid, event); err != nil { //, time.Hour*24)
 		return nil, err
 	}
@@ -187,8 +187,8 @@ func (s *service) messages(ctx context.Context, key *keys.EdX25519Key, recipient
 	if err != nil {
 		return nil, err
 	}
-	path := ds.Path("msgs", addr)
-	iter, iterErr := s.db.DocumentIterator(ctx, path, ds.NoData())
+	path := docs.Path("msgs", addr)
+	iter, iterErr := s.db.DocumentIterator(ctx, path, docs.NoData())
 	if iterErr != nil {
 		return nil, iterErr
 	}

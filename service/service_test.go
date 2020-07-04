@@ -13,7 +13,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/server"
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
 	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keys/user"
@@ -51,7 +51,7 @@ func writeTestFile(t *testing.T) string {
 }
 
 func testFire(t *testing.T, clock *tsutil.Clock) server.Fire {
-	fi := ds.NewMem()
+	fi := docs.NewMem()
 	fi.SetTimeNow(clock.Now)
 	return fi
 }
@@ -76,10 +76,10 @@ func newTestEnv(t *testing.T) *testEnv {
 	}
 }
 
-func testUserStore(t *testing.T, dst ds.DocumentStore, scs keys.SigchainStore, req *request.MockRequestor, clock *tsutil.Clock) *user.Store {
-	ust, err := user.NewStore(dst, scs, req, clock.Now)
+func testUserStore(t *testing.T, ds docs.Documents, scs keys.SigchainStore, req *request.MockRequestor, clock *tsutil.Clock) *user.Store {
+	us, err := user.NewStore(ds, scs, req, clock.Now)
 	require.NoError(t, err)
-	return ust
+	return us
 }
 
 func newTestService(t *testing.T, env *testEnv, appName string) (*service, CloseFn) {
@@ -286,7 +286,7 @@ func newTestServerEnv(t *testing.T, env *testEnv) *serverEnv {
 // func spewService(t *testing.T, service *service) {
 // 	iter, iterErr := service.db.Documents(context.TODO(), "")
 // 	require.NoError(t, iterErr)
-// 	spew, err := ds.Spew(iter)
+// 	spew, err := docs.Spew(iter)
 // 	require.NoError(t, err)
 // 	t.Logf(spew.String())
 // }

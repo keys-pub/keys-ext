@@ -47,3 +47,11 @@ func (s *service) VaultAuth(ctx context.Context, req *VaultAuthRequest) (*VaultA
 		Phrase: out,
 	}, nil
 }
+
+// VaultUnsync (RPC) ...
+func (s *service) VaultUnsync(ctx context.Context, req *VaultUnsyncRequest) (*VaultUnsyncResponse, error) {
+	if err := s.vault.Unsync(ctx); err != nil {
+		return nil, err
+	}
+	return &VaultUnsyncResponse{}, nil
+}

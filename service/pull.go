@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
 	"github.com/keys-pub/keys/user"
 	"github.com/pkg/errors"
 )
@@ -79,7 +79,7 @@ func (s *service) update(ctx context.Context, kid keys.ID) (bool, *user.Result, 
 			return false, nil, err
 		}
 		logger.Debugf("Saving %s %d", st.KID, st.Seq)
-		if err := s.db.Set(ctx, ds.Path("sigchain", st.Key()), b); err != nil {
+		if err := s.db.Set(ctx, docs.Path("sigchain", st.Key()), b); err != nil {
 			return false, nil, err
 		}
 	}

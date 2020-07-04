@@ -96,6 +96,7 @@ service Keys {
   
   rpc VaultSync(VaultSyncRequest) returns (VaultSyncResponse) {}
   rpc VaultAuth(VaultAuthRequest) returns (VaultAuthResponse) {}
+  rpc VaultUnsync(VaultUnsyncRequest) returns (VaultUnsyncResponse) {}
 
   rpc Collections(CollectionsRequest) returns (CollectionsResponse) {}
   rpc Documents(DocumentsRequest) returns (DocumentsResponse) {}
@@ -873,6 +874,9 @@ message SearchResponse {
 
 message VaultSyncRequest {}
 message VaultSyncResponse {}
+
+message VaultUnsyncRequest {}
+message VaultUnsyncResponse {}
 
 message VaultAuthRequest {}
 message VaultAuthResponse {
