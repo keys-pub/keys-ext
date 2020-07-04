@@ -26,9 +26,6 @@ type DB struct {
 	sdb   *sdb
 	path  string
 	clock func() time.Time
-
-	inc    int
-	incMax int
 }
 
 // New creates a DB.
