@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
 	"github.com/pkg/errors"
 )
 
@@ -33,7 +33,7 @@ func (c *Client) DiscoSave(ctx context.Context, sender *keys.EdX25519Key, recipi
 
 	encrypted := keys.BoxSeal([]byte(data), recipientKey, sender.X25519Key())
 
-	path := ds.Path("disco", sender.ID(), recipient, string(typ))
+	path := docs.Path("disco", sender.ID(), recipient, string(typ))
 	vals := url.Values{}
 	vals.Set("expire", expire.String())
 	if _, err := c.putDocument(ctx, path, vals, sender, bytes.NewReader(encrypted)); err != nil {
@@ -49,7 +49,7 @@ func (c *Client) Disco(ctx context.Context, sender keys.ID, recipient *keys.EdX2
 		return "", err
 	}
 
-	path := ds.Path("disco", sender, recipient, string(typ))
+	path := docs.Path("disco", sender, recipient, string(typ))
 	vals := url.Values{}
 	doc, err := c.getDocument(ctx, path, vals, recipient)
 	if err != nil {
@@ -69,7 +69,7 @@ func (c *Client) Disco(ctx context.Context, sender keys.ID, recipient *keys.EdX2
 
 // DiscoDelete removes discovery addresses.
 func (c *Client) DiscoDelete(ctx context.Context, sender *keys.EdX25519Key, recipient keys.ID) error {
-	path := ds.Path("disco", sender.ID(), recipient)
+	path := docs.Path("disco", sender.ID(), recipient)
 	vals := url.Values{}
 	if _, err := c.delete(ctx, path, vals, sender); err != nil {
 		return err

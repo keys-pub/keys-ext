@@ -10,7 +10,8 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
+	"github.com/keys-pub/keys/docs/events"
 	"github.com/keys-pub/keys/saltpack"
 	"github.com/vmihailenco/msgpack/v4"
 )
@@ -31,7 +32,7 @@ func (c *Client) MessageSend(ctx context.Context, sender *keys.EdX25519Key, reci
 		return err
 	}
 
-	path := ds.Path("msgs", sender.ID(), recipient)
+	path := docs.Path("msgs", sender.ID(), recipient)
 	vals := url.Values{}
 	// vals.Set("expire", expire.String())
 	if _, err := c.postDocument(ctx, path, vals, sender, bytes.NewReader(encrypted)); err != nil {
@@ -45,15 +46,15 @@ type MessagesOpts struct {
 	// Index to list to/from
 	Index int64
 	// Direction ascending or descending
-	Direction ds.Direction
+	Direction events.Direction
 	// Limit by
 	Limit int
 }
 
 // Messages returns encrypted messages.
 // To decrypt a message, use Client#MessageDecrypt.
-func (c *Client) Messages(ctx context.Context, key *keys.EdX25519Key, from keys.ID, opts *MessagesOpts) ([]*ds.Event, int64, error) {
-	path := ds.Path("msgs", key.ID(), from)
+func (c *Client) Messages(ctx context.Context, key *keys.EdX25519Key, from keys.ID, opts *MessagesOpts) ([]*events.Event, int64, error) {
+	path := docs.Path("msgs", key.ID(), from)
 	if opts == nil {
 		opts = &MessagesOpts{}
 	}
@@ -89,7 +90,7 @@ func (c *Client) Messages(ctx context.Context, key *keys.EdX25519Key, from keys.
 }
 
 // MessageDecrypt decrypts a remote Event from Messages.
-func (c *Client) MessageDecrypt(key *keys.EdX25519Key, revent *ds.Event) (*Event, keys.ID, error) {
+func (c *Client) MessageDecrypt(key *keys.EdX25519Key, revent *events.Event) (*Event, keys.ID, error) {
 	decrypted, pk, err := saltpack.SigncryptOpen(revent.Data, saltpack.NewKeyStore(key))
 	if err != nil {
 		return nil, "", err

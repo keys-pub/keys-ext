@@ -7,7 +7,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/client"
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs/events"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/stretchr/testify/require"
 )
@@ -65,7 +65,7 @@ func TestMessages(t *testing.T) {
 	require.Equal(t, alice.ID(), pk3)
 
 	// Messages (desc)
-	msgs, _, err = aliceClient.Messages(context.TODO(), alice, bob.ID(), &client.MessagesOpts{Direction: ds.Descending})
+	msgs, _, err = aliceClient.Messages(context.TODO(), alice, bob.ID(), &client.MessagesOpts{Direction: events.Descending})
 	require.NoError(t, err)
 	require.Equal(t, 3, len(msgs))
 	out1, _, err = aliceClient.MessageDecrypt(alice, msgs[0])

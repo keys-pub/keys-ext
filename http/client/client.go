@@ -15,7 +15,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
 )
@@ -144,7 +144,7 @@ func (c *Client) req(ctx context.Context, method string, path string, params url
 	return c.httpClient.Do(req)
 }
 
-func (c *Client) document(path string, resp *http.Response) (*ds.Document, error) {
+func (c *Client) document(path string, resp *http.Response) (*docs.Document, error) {
 	b, readErr := ioutil.ReadAll(resp.Body)
 	if readErr != nil {
 		return nil, readErr
@@ -170,13 +170,13 @@ func (c *Client) document(path string, resp *http.Response) (*ds.Document, error
 		updatedAt = tm
 	}
 
-	doc := ds.NewDocument(path, b)
+	doc := docs.NewDocument(path, b)
 	doc.CreatedAt = createdAt
 	doc.UpdatedAt = updatedAt
 	return doc, nil
 }
 
-func (c *Client) getDocument(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key) (*ds.Document, error) {
+func (c *Client) getDocument(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key) (*docs.Document, error) {
 	resp, err := c.get(ctx, path, params, key)
 	if err != nil {
 		return nil, err
@@ -245,7 +245,7 @@ func (c *Client) put(ctx context.Context, path string, params url.Values, key *k
 	return resp, nil
 }
 
-func (c *Client) putDocument(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key, reader io.Reader) (*ds.Document, error) {
+func (c *Client) putDocument(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key, reader io.Reader) (*docs.Document, error) {
 	resp, err := c.put(ctx, path, params, key, reader)
 	if err != nil {
 		return nil, err
@@ -268,7 +268,7 @@ func (c *Client) post(ctx context.Context, path string, params url.Values, key *
 	return resp, nil
 }
 
-func (c *Client) postDocument(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key, reader io.Reader) (*ds.Document, error) {
+func (c *Client) postDocument(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key, reader io.Reader) (*docs.Document, error) {
 	resp, err := c.post(ctx, path, params, key, reader)
 	if err != nil {
 		return nil, err

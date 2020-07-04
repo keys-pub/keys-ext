@@ -10,7 +10,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
 	"github.com/pkg/errors"
 	"github.com/vmihailenco/msgpack/v4"
 )
@@ -24,7 +24,7 @@ type Vault struct {
 // VaultSend saves events to the remote vault.
 // The events are encrypted with the vault key before being sent to the remote.
 func (c *Client) VaultSend(ctx context.Context, key *keys.EdX25519Key, events []*Event) error {
-	path := ds.Path("vault", key.ID())
+	path := docs.Path("vault", key.ID())
 	vals := url.Values{}
 
 	out := []*api.Data{}
@@ -93,7 +93,7 @@ func newVaultOptions(opts ...VaultOption) VaultOptions {
 // Callers should check for repeated nonces and event chain ordering.
 func (c *Client) Vault(ctx context.Context, key *keys.EdX25519Key, opt ...VaultOption) (*Vault, error) {
 	opts := newVaultOptions(opt...)
-	path := ds.Path("vault", key.ID())
+	path := docs.Path("vault", key.ID())
 	params := url.Values{}
 	if opts.Index != 0 {
 		params.Add("idx", strconv.FormatInt(opts.Index, 10))
@@ -144,4 +144,15 @@ func vaultEncrypt(b []byte, key *keys.EdX25519Key) []byte {
 
 func vaultDecrypt(b []byte, key *keys.EdX25519Key) ([]byte, error) {
 	return keys.BoxOpen(b, key.X25519Key().PublicKey(), key.X25519Key())
+}
+
+// VaultDelete removes a vault.
+func (c *Client) VaultDelete(ctx context.Context, key *keys.EdX25519Key) error {
+	path := docs.Path("vault", key.ID())
+	vals := url.Values{}
+
+	if _, err := c.delete(ctx, path, vals, key); err != nil {
+		return err
+	}
+	return nil
 }

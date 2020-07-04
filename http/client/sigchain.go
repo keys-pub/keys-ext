@@ -8,13 +8,13 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
 	"github.com/pkg/errors"
 )
 
 // SigchainSave ...
 func (c *Client) SigchainSave(ctx context.Context, st *keys.Statement) error {
-	path := ds.Path("sigchain", st.URL())
+	path := docs.Path("sigchain", st.URL())
 	b, err := st.Bytes()
 	if err != nil {
 		return err
@@ -27,7 +27,7 @@ func (c *Client) SigchainSave(ctx context.Context, st *keys.Statement) error {
 
 // Sigchain for KID. If sigchain not found, a nil response is returned.
 func (c *Client) Sigchain(ctx context.Context, kid keys.ID) (*api.SigchainResponse, error) {
-	path := ds.Path("sigchain", kid)
+	path := docs.Path("sigchain", kid)
 
 	params := url.Values{}
 	params.Add("include", "md")

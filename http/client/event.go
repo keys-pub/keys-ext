@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
 	"github.com/keys-pub/keys/encoding"
 	"github.com/pkg/errors"
 	"github.com/vmihailenco/msgpack/v4"
@@ -55,7 +55,7 @@ func EventHash(event *Event) *[32]byte {
 
 // CheckEventchain checks event previous hashes.
 func CheckEventchain(events []*Event) error {
-	set := ds.NewStringSet()
+	set := docs.NewStringSet()
 	for i, event := range events {
 		if event.Prev == nil {
 			if i != 0 {
