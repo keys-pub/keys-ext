@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
 )
 
 // Redis defines interface for memcache.
@@ -63,7 +63,7 @@ func (m *rds) Get(ctx context.Context, k string) (string, error) {
 }
 
 func (m *rds) get(ctx context.Context, k string) (*mcEntry, error) {
-	e, ok := m.kv[ds.Path("memcache", k)]
+	e, ok := m.kv[docs.Path("memcache", k)]
 	if !ok {
 		return nil, nil
 	}
@@ -93,7 +93,7 @@ func (m *rds) Expire(ctx context.Context, k string, dt time.Duration) error {
 func (m *rds) Delete(ctx context.Context, k string) error {
 	m.Lock()
 	defer m.Unlock()
-	delete(m.kv, ds.Path("memcache", k))
+	delete(m.kv, docs.Path("memcache", k))
 	return nil
 }
 
@@ -104,7 +104,7 @@ func (m *rds) Set(ctx context.Context, k string, v string) error {
 }
 
 func (m *rds) set(ctx context.Context, k string, e *mcEntry) error {
-	m.kv[ds.Path("memcache", k)] = e
+	m.kv[docs.Path("memcache", k)] = e
 	return nil
 }
 

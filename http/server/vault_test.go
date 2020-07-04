@@ -10,7 +10,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,23 +23,24 @@ func TestVault(t *testing.T) {
 	clock := env.clock
 
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
+	charlie := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x03}, 32)))
 
 	// GET /vault/:kid (not found)
-	req, err := api.NewRequest("GET", ds.Path("vault", alice.ID()), nil, clock.Now(), alice)
+	req, err := api.NewRequest("GET", docs.Path("vault", alice.ID()), nil, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)
 	require.Equal(t, `{"error":{"code":404,"message":"vault not found"}}`, body)
 
 	// POST /vault/:kid/id1
-	req, err = api.NewRequest("POST", ds.Path("vault", alice.ID()), bytes.NewReader([]byte("test1")), clock.Now(), alice)
+	req, err = api.NewRequest("POST", docs.Path("vault", alice.ID()), bytes.NewReader([]byte("test1")), clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, "{}", body)
 
 	// GET /vault/:kid
-	req, err = api.NewRequest("GET", ds.Path("vault", alice.ID()), nil, clock.Now(), alice)
+	req, err = api.NewRequest("GET", docs.Path("vault", alice.ID()), nil, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
@@ -51,7 +52,7 @@ func TestVault(t *testing.T) {
 	require.Equal(t, []byte("test1"), resp.Events[0].Data)
 
 	// GET /vault/:kid?idx=next
-	req, err = api.NewRequest("GET", ds.Path("vault", alice.ID())+"?idx="+strconv.Itoa(int(resp.Index)), nil, clock.Now(), alice)
+	req, err = api.NewRequest("GET", docs.Path("vault", alice.ID())+"?idx="+strconv.Itoa(int(resp.Index)), nil, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
@@ -62,20 +63,20 @@ func TestVault(t *testing.T) {
 	require.Equal(t, resp.Index, resp2.Index)
 
 	// POST /vault/:kid
-	req, err = api.NewRequest("POST", ds.Path("vault", alice.ID()), bytes.NewReader([]byte("test2")), clock.Now(), alice)
+	req, err = api.NewRequest("POST", docs.Path("vault", alice.ID()), bytes.NewReader([]byte("test2")), clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, `{}`, body)
 	// POST /vault/:kid
-	req, err = api.NewRequest("POST", ds.Path("vault", alice.ID()), bytes.NewReader([]byte("test3")), clock.Now(), alice)
+	req, err = api.NewRequest("POST", docs.Path("vault", alice.ID()), bytes.NewReader([]byte("test3")), clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, `{}`, body)
 
 	// GET /vault/:kid?idx=next
-	req, err = api.NewRequest("GET", ds.Path("vault", alice.ID())+"?idx="+strconv.Itoa(int(resp.Index)), nil, clock.Now(), alice)
+	req, err = api.NewRequest("GET", docs.Path("vault", alice.ID())+"?idx="+strconv.Itoa(int(resp.Index)), nil, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
@@ -97,14 +98,14 @@ func TestVault(t *testing.T) {
 	}
 	data, err := json.Marshal(vault)
 	require.NoError(t, err)
-	req, err = api.NewRequest("PUT", ds.Path("vault", alice.ID()), bytes.NewReader(data), clock.Now(), alice)
+	req, err = api.NewRequest("PUT", docs.Path("vault", alice.ID()), bytes.NewReader(data), clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, `{}`, body)
 
 	// GET /vault/:kid?idx=next
-	req, err = api.NewRequest("GET", ds.Path("vault", alice.ID())+"?idx="+strconv.Itoa(int(resp3.Index)), nil, clock.Now(), alice)
+	req, err = api.NewRequest("GET", docs.Path("vault", alice.ID())+"?idx="+strconv.Itoa(int(resp3.Index)), nil, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
@@ -118,6 +119,27 @@ func TestVault(t *testing.T) {
 	require.Equal(t, []byte("test7"), resp4.Events[3].Data)
 	require.Equal(t, []byte("test8"), resp4.Events[4].Data)
 	require.Equal(t, []byte("test9"), resp4.Events[5].Data)
+
+	// DEL (invalid auth)
+	req, err = api.NewRequest("DELETE", docs.Path("vault", alice.ID()), nil, env.clock.Now(), charlie)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusForbidden, code)
+	require.Equal(t, `{"error":{"code":403,"message":"invalid kid"}}`, body)
+
+	// DEL /vault/:kid
+	req, err = api.NewRequest("DELETE", docs.Path("vault", alice.ID()), nil, env.clock.Now(), alice)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusOK, code)
+	require.Equal(t, `{}`, body)
+
+	// GET /vault/:kid
+	req, err = api.NewRequest("GET", docs.Path("vault", alice.ID()), nil, clock.Now(), alice)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusNotFound, code)
+	require.Equal(t, `{"error":{"code":404,"message":"vault not found"}}`, body)
 }
 
 func TestVaultAuth(t *testing.T) {
@@ -129,28 +151,28 @@ func TestVaultAuth(t *testing.T) {
 	randKey := keys.GenerateEdX25519Key()
 
 	// GET /vault/:kid (no auth)
-	req, err := http.NewRequest("GET", ds.Path("vault", alice.ID()), nil)
+	req, err := http.NewRequest("GET", docs.Path("vault", alice.ID()), nil)
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusUnauthorized, code)
 	require.Equal(t, `{"error":{"code":401,"message":"missing Authorization header"}}`, body)
 
 	// GET /vault/:kid (invalid key)
-	req, err = api.NewRequest("GET", ds.Path("vault", alice.ID()), nil, clock.Now(), randKey)
+	req, err = api.NewRequest("GET", docs.Path("vault", alice.ID()), nil, clock.Now(), randKey)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
 	require.Equal(t, `{"error":{"code":403,"message":"invalid kid"}}`, body)
 
 	// POST /vault/:kid/id1/1 (invalid key)
-	req, err = api.NewRequest("POST", ds.Path("vault", alice.ID()), bytes.NewReader([]byte("test")), clock.Now(), randKey)
+	req, err = api.NewRequest("POST", docs.Path("vault", alice.ID()), bytes.NewReader([]byte("test")), clock.Now(), randKey)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
 	require.Equal(t, `{"error":{"code":403,"message":"invalid kid"}}`, body)
 
 	// GET /vault/:kid
-	req, err = api.NewRequest("GET", ds.Path("vault", alice.ID()), nil, clock.Now(), alice)
+	req, err = api.NewRequest("GET", docs.Path("vault", alice.ID()), nil, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)
@@ -167,7 +189,7 @@ func TestVaultAuth(t *testing.T) {
 	// GET /vault/:kid (invalid authorization)
 	authHeader := req.Header.Get("Authorization")
 	sig := strings.Split(authHeader, ":")[1]
-	req, err = api.NewRequest("GET", ds.Path("vault", alice.ID()), nil, clock.Now(), randKey)
+	req, err = api.NewRequest("GET", docs.Path("vault", alice.ID()), nil, clock.Now(), randKey)
 	require.NoError(t, err)
 	req.Header.Set("Authorization", randKey.ID().String()+":"+sig)
 	code, _, body = srv.Serve(req)

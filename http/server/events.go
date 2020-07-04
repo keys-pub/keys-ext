@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/keys-pub/keys-ext/http/api"
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs/events"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 )
@@ -26,7 +26,7 @@ func (s *Server) events(c echo.Context, path string) (*api.EventsResponse, error
 	if plimit == "" {
 		plimit = "100"
 	}
-	limit, err := strconv.Atoi(plimit)
+	limit, err := strconv.ParseInt(plimit, 10, 64)
 	if err != nil {
 		return nil, ErrResponse(c, http.StatusBadRequest, errors.Wrapf(err, "invalid limit").Error())
 	}
@@ -39,24 +39,24 @@ func (s *Server) events(c echo.Context, path string) (*api.EventsResponse, error
 		pdir = "asc"
 	}
 
-	var dir ds.Direction
+	var dir events.Direction
 	switch pdir {
 	case "asc":
-		dir = ds.Ascending
+		dir = events.Ascending
 	case "desc":
-		dir = ds.Descending
+		dir = events.Descending
 	default:
 		return nil, ErrResponse(c, http.StatusBadRequest, "invalid dir")
 	}
 
 	s.logger.Infof("Events %s (from=%d)", path, index)
-	iter, err := s.fi.Events(ctx, path, index, limit, dir)
+	iter, err := s.fi.Events(ctx, path, events.Index(index), events.Limit(limit), events.WithDirection(dir))
 	if err != nil {
 		return nil, s.internalError(c, err)
 	}
 	defer iter.Release()
 	to := int64(index)
-	events := []*ds.Event{}
+	events := []*events.Event{}
 	for {
 		event, err := iter.Next()
 		if err != nil {

@@ -10,7 +10,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
 	"github.com/stretchr/testify/require"
 )
 
@@ -31,14 +31,14 @@ func testMessages(t *testing.T, env *env, alice *keys.EdX25519Key, charlie *keys
 	clock := env.clock
 
 	// GET /msgs/:kid/:rid
-	req, err := api.NewRequest("GET", ds.Path("msgs", alice.ID(), charlie.ID()), nil, clock.Now(), alice)
+	req, err := api.NewRequest("GET", docs.Path("msgs", alice.ID(), charlie.ID()), nil, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, `{"events":[],"idx":0}`, body)
 
 	// POST /msgs/:kid/:rid (no body)
-	req, err = api.NewRequest("POST", ds.Path("msgs", alice.ID(), charlie.ID()), nil, clock.Now(), alice)
+	req, err = api.NewRequest("POST", docs.Path("msgs", alice.ID(), charlie.ID()), nil, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	expected := `{"error":{"code":400,"message":"missing body"}}`
@@ -46,21 +46,21 @@ func testMessages(t *testing.T, env *env, alice *keys.EdX25519Key, charlie *keys
 	require.Equal(t, http.StatusBadRequest, code)
 
 	// POST /msgs/:kid/:rid
-	req, err = api.NewRequest("POST", ds.Path("msgs", alice.ID(), charlie.ID()), bytes.NewReader([]byte("test1")), clock.Now(), alice)
+	req, err = api.NewRequest("POST", docs.Path("msgs", alice.ID(), charlie.ID()), bytes.NewReader([]byte("test1")), clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, `{}`, body)
 
 	// PUT /msgs/:kid/:rid (invalid method)
-	req, err = api.NewRequest("PUT", ds.Path("msgs", alice.ID(), charlie.ID()), bytes.NewReader([]byte{}), clock.Now(), charlie)
+	req, err = api.NewRequest("PUT", docs.Path("msgs", alice.ID(), charlie.ID()), bytes.NewReader([]byte{}), clock.Now(), charlie)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusMethodNotAllowed, code)
 	require.Equal(t, `{"error":{"code":405,"message":"method not allowed"}}`, body)
 
 	// GET /msgs/:kid/:rid (alice)
-	req, err = api.NewRequest("GET", ds.Path("msgs", alice.ID(), charlie.ID()), nil, clock.Now(), alice)
+	req, err = api.NewRequest("GET", docs.Path("msgs", alice.ID(), charlie.ID()), nil, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
@@ -72,7 +72,7 @@ func testMessages(t *testing.T, env *env, alice *keys.EdX25519Key, charlie *keys
 	require.Equal(t, []byte("test1"), resp.Events[0].Data)
 
 	// GET /msgs/:kid/:rid (charlie)
-	req, err = api.NewRequest("GET", ds.Path("msgs", charlie.ID(), alice.ID()), nil, clock.Now(), charlie)
+	req, err = api.NewRequest("GET", docs.Path("msgs", charlie.ID(), alice.ID()), nil, clock.Now(), charlie)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	// t.Logf("body: %s", body)
@@ -85,7 +85,7 @@ func testMessages(t *testing.T, env *env, alice *keys.EdX25519Key, charlie *keys
 	require.Equal(t, []byte("test1"), charlieResp.Events[0].Data)
 
 	// GET /msgs/:kid/:rid?idx=next
-	req, err = api.NewRequest("GET", ds.Path("msgs", alice.ID(), charlie.ID())+"?idx="+strconv.Itoa(int(charlieResp.Index)), nil, clock.Now(), alice)
+	req, err = api.NewRequest("GET", docs.Path("msgs", alice.ID(), charlie.ID())+"?idx="+strconv.Itoa(int(charlieResp.Index)), nil, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
@@ -96,17 +96,17 @@ func testMessages(t *testing.T, env *env, alice *keys.EdX25519Key, charlie *keys
 	require.Equal(t, charlieResp.Index, resp2.Index)
 
 	// POST /msgs/:kid/:rid
-	req, err = api.NewRequest("POST", ds.Path("msgs", alice.ID(), charlie.ID()), bytes.NewReader([]byte("test2")), clock.Now(), alice)
+	req, err = api.NewRequest("POST", docs.Path("msgs", alice.ID(), charlie.ID()), bytes.NewReader([]byte("test2")), clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, _ = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	req, err = api.NewRequest("POST", ds.Path("msgs", alice.ID(), charlie.ID()), bytes.NewReader([]byte("test3")), clock.Now(), alice)
+	req, err = api.NewRequest("POST", docs.Path("msgs", alice.ID(), charlie.ID()), bytes.NewReader([]byte("test3")), clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, _ = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 
 	// GET /msgs/:kid/:rid (alice)
-	req, err = api.NewRequest("GET", ds.Path("msgs", alice.ID(), charlie.ID()), nil, clock.Now(), alice)
+	req, err = api.NewRequest("GET", docs.Path("msgs", alice.ID(), charlie.ID()), nil, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
@@ -119,7 +119,7 @@ func testMessages(t *testing.T, env *env, alice *keys.EdX25519Key, charlie *keys
 	require.Equal(t, []byte("test3"), resp3.Events[2].Data)
 
 	// GET /msgs/:kid/:rid (charlie)
-	req, err = api.NewRequest("GET", ds.Path("msgs", charlie.ID(), alice.ID()), nil, clock.Now(), charlie)
+	req, err = api.NewRequest("GET", docs.Path("msgs", charlie.ID(), alice.ID()), nil, clock.Now(), charlie)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
@@ -132,7 +132,7 @@ func testMessages(t *testing.T, env *env, alice *keys.EdX25519Key, charlie *keys
 	require.Equal(t, []byte("test3"), charlieResp2.Events[2].Data)
 
 	// GET /msgs/:kid/:rid (descending, limit=2)
-	req, err = api.NewRequest("GET", ds.Path("msgs", alice.ID(), charlie.ID())+"?dir=desc&limit=2", nil, clock.Now(), alice)
+	req, err = api.NewRequest("GET", docs.Path("msgs", alice.ID(), charlie.ID())+"?dir=desc&limit=2", nil, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
@@ -144,21 +144,21 @@ func testMessages(t *testing.T, env *env, alice *keys.EdX25519Key, charlie *keys
 	require.Equal(t, []byte("test2"), resp4.Events[1].Data)
 
 	// POST /msgs/:kid/:rid (self)
-	req, err = api.NewRequest("POST", ds.Path("msgs", alice.ID(), alice.ID()), bytes.NewReader([]byte("hi")), clock.Now(), alice)
+	req, err = api.NewRequest("POST", docs.Path("msgs", alice.ID(), alice.ID()), bytes.NewReader([]byte("hi")), clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	t.Logf(body)
 	require.Equal(t, http.StatusOK, code)
 
 	// GET /msgs/:kid/:rid (charlie, invalid)
-	req, err = api.NewRequest("GET", ds.Path("msgs", charlie.ID(), alice.ID()), nil, clock.Now(), alice)
+	req, err = api.NewRequest("GET", docs.Path("msgs", charlie.ID(), alice.ID()), nil, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, _ = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
 
 	// POST /msgs/:kid/:rid (message too large)
 	large := bytes.Repeat([]byte{0x01}, 17*1024)
-	req, err = api.NewRequest("POST", ds.Path("msgs", alice.ID(), charlie.ID()), bytes.NewReader(large), clock.Now(), alice)
+	req, err = api.NewRequest("POST", docs.Path("msgs", alice.ID(), charlie.ID()), bytes.NewReader(large), clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusBadRequest, code)
@@ -176,14 +176,14 @@ func TestMessagesAuth(t *testing.T) {
 	charlie := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x03}, 32)))
 
 	// GET /msgs/:kid/:rid (no auth)
-	req, err := http.NewRequest("GET", ds.Path("msgs", alice.ID(), charlie.ID()), nil)
+	req, err := http.NewRequest("GET", docs.Path("msgs", alice.ID(), charlie.ID()), nil)
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusUnauthorized, code)
 	require.Equal(t, `{"error":{"code":401,"message":"missing Authorization header"}}`, body)
 
 	// GET /msgs/:kid/:rid
-	req, err = api.NewRequest("GET", ds.Path("msgs", alice.ID(), charlie.ID()), nil, clock.Now(), alice)
+	req, err = api.NewRequest("GET", docs.Path("msgs", alice.ID(), charlie.ID()), nil, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
@@ -201,7 +201,7 @@ func TestMessagesAuth(t *testing.T) {
 	authHeader := req.Header.Get("Authorization")
 	randKey := keys.GenerateEdX25519Key()
 	sig := strings.Split(authHeader, ":")[1]
-	req, err = api.NewRequest("GET", ds.Path("msgs", randKey.ID(), charlie.ID()), nil, clock.Now(), randKey)
+	req, err = api.NewRequest("GET", docs.Path("msgs", randKey.ID(), charlie.ID()), nil, clock.Now(), randKey)
 	require.NoError(t, err)
 	req.Header.Set("Authorization", randKey.ID().String()+":"+sig)
 	code, _, body = srv.Serve(req)
@@ -209,7 +209,7 @@ func TestMessagesAuth(t *testing.T) {
 	require.Equal(t, `{"error":{"code":403,"message":"verify failed"}}`, body)
 
 	// POST /msgs/:kid/:rid (invalid recipient)
-	req, err = api.NewRequest("POST", ds.Path("msgs", bob.ID(), charlie.ID()), bytes.NewReader([]byte("hi")), clock.Now(), alice)
+	req, err = api.NewRequest("POST", docs.Path("msgs", bob.ID(), charlie.ID()), bytes.NewReader([]byte("hi")), clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)

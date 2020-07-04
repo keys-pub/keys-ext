@@ -9,9 +9,9 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/ds"
 	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys-ext/http/server"
+	"github.com/keys-pub/keys/docs"
 	"github.com/stretchr/testify/require"
 )
 
@@ -27,7 +27,7 @@ func TestPubSub(t *testing.T) {
 	defer closeFn()
 
 	// GET /subscribe/:kid (alice)
-	path := ds.Path("subscribe", alice.ID())
+	path := docs.Path("subscribe", alice.ID())
 	conn := srv.WebsocketDial(t, path, clock, alice)
 	defer conn.Close()
 
@@ -42,7 +42,7 @@ func TestPubSub(t *testing.T) {
 	}()
 
 	// POST /publish/:kid/:rid (charlie to alice)
-	req, err := api.NewRequest("POST", ds.Path("publish", charlie.ID(), alice.ID()), bytes.NewReader([]byte("hi")), clock.Now(), charlie)
+	req, err := api.NewRequest("POST", docs.Path("publish", charlie.ID(), alice.ID()), bytes.NewReader([]byte("hi")), clock.Now(), charlie)
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)

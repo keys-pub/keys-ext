@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
 	"github.com/stretchr/testify/require"
 )
 
@@ -114,7 +114,7 @@ func TestSigchains(t *testing.T) {
 	require.Equal(t, expectedSigchain, body)
 
 	// GET /sigchain/:kid (not found)
-	req, err = http.NewRequest("GET", ds.Path("sigchain", keys.RandID("kex")), nil)
+	req, err = http.NewRequest("GET", docs.Path("sigchain", keys.RandID("kex")), nil)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)
@@ -145,7 +145,7 @@ func TestSigchains(t *testing.T) {
 	// require.Equal(t, expectedSigsWithMetadata, body)
 
 	// GET /:kid
-	req, err = http.NewRequest("GET", ds.Path(alice.ID()), nil)
+	req, err = http.NewRequest("GET", docs.Path(alice.ID()), nil)
 	require.NoError(t, err)
 	req.Host = "sigcha.in"
 	code, _, body = srv.Serve(req)
@@ -183,7 +183,7 @@ func TestSigchains(t *testing.T) {
 	require.Equal(t, "{}", body)
 
 	// PUT /invalidloc/1
-	req, err = http.NewRequest("PUT", ds.Path("invalidloc", 1), bytes.NewReader(b))
+	req, err = http.NewRequest("PUT", docs.Path("invalidloc", 1), bytes.NewReader(b))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusBadRequest, code)
@@ -213,7 +213,7 @@ func TestSigchains(t *testing.T) {
 	require.Equal(t, `{"error":{"code":404,"message":"resource not found"}}`, body)
 
 	// GET /:kid/bar
-	req, err = http.NewRequest("GET", ds.Path(alice.ID(), "bar"), nil)
+	req, err = http.NewRequest("GET", docs.Path(alice.ID(), "bar"), nil)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)

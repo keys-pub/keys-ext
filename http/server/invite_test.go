@@ -10,7 +10,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
 	"github.com/stretchr/testify/require"
 )
 
@@ -26,7 +26,7 @@ func TestInvite(t *testing.T) {
 	charlie := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x03}, 32)))
 
 	// POST /invite/:kid/:rid (alice, charlie)
-	req, err := api.NewRequest("POST", ds.Path("invite", alice.ID(), charlie.ID()), nil, env.clock.Now(), alice)
+	req, err := api.NewRequest("POST", docs.Path("invite", alice.ID(), charlie.ID()), nil, env.clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)

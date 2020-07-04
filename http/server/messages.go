@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 )
@@ -68,9 +68,9 @@ func (s *Server) postMessage(c echo.Context) error {
 		if err != nil {
 			return ErrBadRequest(c, errors.Wrapf(err, "invalid address"))
 		}
-		path = ds.Path("msgs", addr)
+		path = docs.Path("msgs", addr)
 	} else {
-		path = ds.Path("msgs", kid)
+		path = docs.Path("msgs", kid)
 	}
 
 	events, err := s.fi.EventsAdd(ctx, path, [][]byte{b})
@@ -108,9 +108,9 @@ func (s *Server) listMessages(c echo.Context) error {
 		if err != nil {
 			return ErrBadRequest(c, errors.Wrapf(err, "invalid address"))
 		}
-		path = ds.Path("msgs", addr)
+		path = docs.Path("msgs", addr)
 	} else {
-		path = ds.Path("msgs", kid)
+		path = docs.Path("msgs", kid)
 	}
 
 	resp, respErr := s.events(c, path)
@@ -121,7 +121,7 @@ func (s *Server) listMessages(c echo.Context) error {
 	return JSON(c, http.StatusOK, resp)
 }
 
-// func (s *Server) checkMessage(msg *message, doc *ds.Document) (bool, error) {
+// func (s *Server) checkMessage(msg *message, doc *docs.Document) (bool, error) {
 // 	if msg.Expire != "" {
 // 		expiry, err := time.ParseDuration(msg.Expire)
 // 		if err != nil {

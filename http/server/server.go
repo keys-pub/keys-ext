@@ -6,7 +6,8 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
+	"github.com/keys-pub/keys/docs/events"
 	"github.com/keys-pub/keys/user"
 	"github.com/labstack/echo/v4"
 
@@ -39,8 +40,8 @@ type Server struct {
 
 // Fire defines interface for remote store (like Firestore).
 type Fire interface {
-	ds.DocumentStore
-	ds.Events
+	docs.Documents
+	events.Events
 }
 
 // New creates a Server.
@@ -113,6 +114,7 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	e.POST("/vault/:kid", s.postVault)
 	e.GET("/vault/:kid", s.listVault)
 	e.PUT("/vault/:kid", s.putVault)
+	e.DELETE("/vault/:kid", s.deleteVault)
 
 	// Disco
 	e.PUT("/disco/:kid/:rid/:type", s.putDisco)
