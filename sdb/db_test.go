@@ -12,7 +12,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/sdb"
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/stretchr/testify/require"
 )
@@ -50,12 +50,12 @@ func TestDB(t *testing.T) {
 	ctx := context.TODO()
 
 	for i := 10; i <= 30; i = i + 10 {
-		p := ds.Path("test1", fmt.Sprintf("key%d", i))
+		p := docs.Path("test1", fmt.Sprintf("key%d", i))
 		err := dst.Create(ctx, p, []byte(fmt.Sprintf("value%d", i)))
 		require.NoError(t, err)
 	}
 	for i := 10; i <= 30; i = i + 10 {
-		p := ds.Path("test0", fmt.Sprintf("key%d", i))
+		p := docs.Path("test0", fmt.Sprintf("key%d", i))
 		err := dst.Create(ctx, p, []byte(fmt.Sprintf("value%d", i)))
 		require.NoError(t, err)
 	}
@@ -68,11 +68,11 @@ func TestDB(t *testing.T) {
 	require.Equal(t, "value10", string(doc.Data))
 	iter.Release()
 
-	docs, err := dst.Documents(ctx, "test0")
+	out, err := dst.Documents(ctx, "test0")
 	require.NoError(t, err)
-	require.Equal(t, 3, len(docs))
-	require.Equal(t, "/test0/key10", docs[0].Path)
-	require.Equal(t, "value10", string(docs[0].Data))
+	require.Equal(t, 3, len(out))
+	require.Equal(t, "/test0/key10", out[0].Path)
+	require.Equal(t, "value10", string(out[0].Data))
 
 	ok, err := dst.Exists(ctx, "/test0/key10")
 	require.NoError(t, err)
@@ -93,7 +93,7 @@ func TestDB(t *testing.T) {
 	require.NotNil(t, doc)
 	require.Equal(t, "overwrite", string(doc.Data))
 
-	out, err := dst.GetAll(ctx, []string{"/test0/key10", "/test0/key20"})
+	out, err = dst.GetAll(ctx, []string{"/test0/key10", "/test0/key20"})
 	require.NoError(t, err)
 	require.Equal(t, 2, len(out))
 	require.Equal(t, "/test0/key10", out[0].Path)
@@ -117,20 +117,20 @@ func TestDB(t *testing.T) {
 	var b bytes.Buffer
 	iter, err = dst.DocumentIterator(context.TODO(), "test0")
 	require.NoError(t, err)
-	err = ds.SpewOut(iter, &b)
+	err = docs.SpewOut(iter, &b)
 	require.NoError(t, err)
 	require.Equal(t, expected, b.String())
 	iter.Release()
 
 	iter, err = dst.DocumentIterator(context.TODO(), "test0")
 	require.NoError(t, err)
-	spew, err := ds.Spew(iter)
+	spew, err := docs.Spew(iter)
 	require.NoError(t, err)
 	require.Equal(t, b.String(), spew.String())
 	require.Equal(t, expected, spew.String())
 	iter.Release()
 
-	iter, err = dst.DocumentIterator(context.TODO(), "test0", ds.Prefix("key1"), ds.NoData())
+	iter, err = dst.DocumentIterator(context.TODO(), "test0", docs.Prefix("key1"), docs.NoData())
 	require.NoError(t, err)
 	doc, err = iter.Next()
 	require.NoError(t, err)
@@ -173,10 +173,10 @@ func TestDocumentStorePath(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, ok)
 
-	err = dst.Create(ctx, ds.Path("test", "key2", "col2", "key3"), []byte("value3"))
+	err = dst.Create(ctx, docs.Path("test", "key2", "col2", "key3"), []byte("value3"))
 	require.NoError(t, err)
 
-	doc, err = dst.Get(ctx, ds.Path("test", "key2", "col2", "key3"))
+	doc, err = dst.Get(ctx, docs.Path("test", "key2", "col2", "key3"))
 	require.NoError(t, err)
 	require.NotNil(t, doc)
 	require.Equal(t, []byte("value3"), doc.Data)
@@ -200,23 +200,23 @@ func TestDBListOptions(t *testing.T) {
 	require.NoError(t, err)
 
 	for i := 1; i < 3; i++ {
-		err := dst.Create(ctx, ds.Path("a", fmt.Sprintf("e%d", i)), []byte("🤓"))
+		err := dst.Create(ctx, docs.Path("a", fmt.Sprintf("e%d", i)), []byte("🤓"))
 		require.NoError(t, err)
 	}
 	for i := 1; i < 3; i++ {
-		err := dst.Create(ctx, ds.Path("b", fmt.Sprintf("ea%d", i)), []byte("😎"))
+		err := dst.Create(ctx, docs.Path("b", fmt.Sprintf("ea%d", i)), []byte("😎"))
 		require.NoError(t, err)
 	}
 	for i := 1; i < 3; i++ {
-		err := dst.Create(ctx, ds.Path("b", fmt.Sprintf("eb%d", i)), []byte("😎"))
+		err := dst.Create(ctx, docs.Path("b", fmt.Sprintf("eb%d", i)), []byte("😎"))
 		require.NoError(t, err)
 	}
 	for i := 1; i < 3; i++ {
-		err := dst.Create(ctx, ds.Path("b", fmt.Sprintf("ec%d", i)), []byte("😎"))
+		err := dst.Create(ctx, docs.Path("b", fmt.Sprintf("ec%d", i)), []byte("😎"))
 		require.NoError(t, err)
 	}
 	for i := 1; i < 3; i++ {
-		err := dst.Create(ctx, ds.Path("c", fmt.Sprintf("e%d", i)), []byte("😎"))
+		err := dst.Create(ctx, docs.Path("c", fmt.Sprintf("e%d", i)), []byte("😎"))
 		require.NoError(t, err)
 	}
 
@@ -236,7 +236,7 @@ func TestDBListOptions(t *testing.T) {
 
 	iter, err = dst.DocumentIterator(context.TODO(), "test")
 	require.NoError(t, err)
-	b, err := ds.Spew(iter)
+	b, err := docs.Spew(iter)
 	require.NoError(t, err)
 	expected := `/test/1 val1
 /test/2 val2
@@ -245,7 +245,7 @@ func TestDBListOptions(t *testing.T) {
 	require.Equal(t, expected, b.String())
 	iter.Release()
 
-	iter, err = dst.DocumentIterator(ctx, "b", ds.Prefix("eb"))
+	iter, err = dst.DocumentIterator(ctx, "b", docs.Prefix("eb"))
 	require.NoError(t, err)
 	paths = []string{}
 	for {
@@ -333,11 +333,11 @@ func ExampleDB_Get() {
 	// Don't remove db in real life
 	defer os.RemoveAll(path)
 
-	if err := db.Set(context.TODO(), ds.Path("collection1", "doc1"), []byte("hi")); err != nil {
+	if err := db.Set(context.TODO(), docs.Path("collection1", "doc1"), []byte("hi")); err != nil {
 		log.Fatal(err)
 	}
 
-	doc, err := db.Get(context.TODO(), ds.Path("collection1", "doc1"))
+	doc, err := db.Get(context.TODO(), docs.Path("collection1", "doc1"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -362,11 +362,11 @@ func ExampleDB_Set() {
 	// Don't remove db in real life
 	defer os.RemoveAll(path)
 
-	if err := db.Set(context.TODO(), ds.Path("collection1", "doc1"), []byte("hi")); err != nil {
+	if err := db.Set(context.TODO(), docs.Path("collection1", "doc1"), []byte("hi")); err != nil {
 		log.Fatal(err)
 	}
 
-	doc, err := db.Get(context.TODO(), ds.Path("collection1", "doc1"))
+	doc, err := db.Get(context.TODO(), docs.Path("collection1", "doc1"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -391,11 +391,11 @@ func ExampleDB_DocumentIterator() {
 	// Don't remove db in real life
 	defer os.RemoveAll(path)
 
-	if err := db.Set(context.TODO(), ds.Path("collection1", "doc1"), []byte("hi")); err != nil {
+	if err := db.Set(context.TODO(), docs.Path("collection1", "doc1"), []byte("hi")); err != nil {
 		log.Fatal(err)
 	}
 
-	iter, err := db.DocumentIterator(context.TODO(), ds.Path("collection1"))
+	iter, err := db.DocumentIterator(context.TODO(), docs.Path("collection1"))
 	if err != nil {
 		log.Fatal(err)
 	}

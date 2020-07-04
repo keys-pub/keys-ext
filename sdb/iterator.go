@@ -1,7 +1,7 @@
 package sdb
 
 import (
-	"github.com/keys-pub/keys/ds"
+	"github.com/keys-pub/keys/docs"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
 )
 
@@ -13,7 +13,7 @@ type docsIterator struct {
 	count int
 }
 
-func (i *docsIterator) Next() (*ds.Document, error) {
+func (i *docsIterator) Next() (*docs.Document, error) {
 	for i.iter.Next() {
 		// Remember that the contents of the returned slice should not be modified, and
 		// only valid until the next call to Next.
