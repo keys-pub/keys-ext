@@ -91,6 +91,9 @@ func checkResponse(resp *http.Response) error {
 	if readErr != nil {
 		return err
 	}
+	if len(b) == 0 {
+		return err
+	}
 	var respVal api.Response
 	if err := json.Unmarshal(b, &respVal); err != nil {
 		if utf8.Valid(b) {
@@ -189,9 +192,24 @@ func (c *Client) getDocument(ctx context.Context, path string, params url.Values
 }
 
 func (c *Client) get(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key) (*http.Response, error) {
-	resp, respErr := c.req(ctx, "GET", path, params, key, nil)
-	if respErr != nil {
-		return nil, respErr
+	resp, err := c.req(ctx, "GET", path, params, key, nil)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to GET")
+	}
+	if resp.StatusCode == 404 {
+		logger.Debugf("Not found %s", path)
+		return nil, nil
+	}
+	if err := checkResponse(resp); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (c *Client) head(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key) (*http.Response, error) {
+	resp, err := c.req(ctx, "HEAD", path, params, key, nil)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to HEAD")
 	}
 	if resp.StatusCode == 404 {
 		logger.Debugf("Not found %s", path)

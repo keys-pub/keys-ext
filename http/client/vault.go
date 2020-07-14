@@ -156,3 +156,18 @@ func (c *Client) VaultDelete(ctx context.Context, key *keys.EdX25519Key) error {
 	}
 	return nil
 }
+
+// VaultExists checks if vault exists.
+func (c *Client) VaultExists(ctx context.Context, key *keys.EdX25519Key) (bool, error) {
+	path := docs.Path("vault", key.ID())
+	params := url.Values{}
+	resp, err := c.head(ctx, path, params, key)
+	if err != nil {
+		return false, err
+	}
+	if resp == nil {
+		return false, nil
+	}
+
+	return true, nil
+}
