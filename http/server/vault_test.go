@@ -32,7 +32,13 @@ func TestVault(t *testing.T) {
 	require.Equal(t, http.StatusNotFound, code)
 	require.Equal(t, `{"error":{"code":404,"message":"vault not found"}}`, body)
 
-	// POST /vault/:kid/id1
+	// HEAD /vault/:kid (not found)
+	req, err = api.NewRequest("HEAD", docs.Path("vault", alice.ID()), nil, clock.Now(), alice)
+	require.NoError(t, err)
+	code, _, _ = srv.Serve(req)
+	require.Equal(t, http.StatusNotFound, code)
+
+	// POST /vault/:kid
 	req, err = api.NewRequest("POST", docs.Path("vault", alice.ID()), bytes.NewReader([]byte("test1")), clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
@@ -50,6 +56,12 @@ func TestVault(t *testing.T) {
 	require.Equal(t, int64(1), resp.Index)
 	require.Equal(t, 1, len(resp.Events))
 	require.Equal(t, []byte("test1"), resp.Events[0].Data)
+
+	// HEAD /vault/:kid
+	req, err = api.NewRequest("HEAD", docs.Path("vault", alice.ID()), nil, clock.Now(), alice)
+	require.NoError(t, err)
+	code, _, _ = srv.Serve(req)
+	require.Equal(t, http.StatusOK, code)
 
 	// GET /vault/:kid?idx=next
 	req, err = api.NewRequest("GET", docs.Path("vault", alice.ID())+"?idx="+strconv.Itoa(int(resp.Index)), nil, clock.Now(), alice)
@@ -134,12 +146,38 @@ func TestVault(t *testing.T) {
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, `{}`, body)
 
+	// DEL /vault/:kid (again)
+	req, err = api.NewRequest("DELETE", docs.Path("vault", alice.ID()), nil, env.clock.Now(), alice)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusNotFound, code)
+	require.Equal(t, `{"error":{"code":404,"message":"vault was deleted"}}`, body)
+
 	// GET /vault/:kid
 	req, err = api.NewRequest("GET", docs.Path("vault", alice.ID()), nil, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)
-	require.Equal(t, `{"error":{"code":404,"message":"vault not found"}}`, body)
+	require.Equal(t, `{"error":{"code":404,"message":"vault was deleted"}}`, body)
+
+	// HEAD /vault/:kid
+	req, err = api.NewRequest("HEAD", docs.Path("vault", alice.ID()), nil, clock.Now(), alice)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusNotFound, code)
+	require.Equal(t, `{"error":{"code":404,"message":"vault was deleted"}}`, body)
+
+	// PUT /vault/:kid (deleted)
+	vault = []*api.Data{
+		&api.Data{Data: []byte("testdeleted")},
+	}
+	data, err = json.Marshal(vault)
+	require.NoError(t, err)
+	req, err = api.NewRequest("PUT", docs.Path("vault", alice.ID()), bytes.NewReader(data), clock.Now(), alice)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusNotFound, code)
+	require.Equal(t, `{"error":{"code":404,"message":"vault was deleted"}}`, body)
 }
 
 func TestVaultAuth(t *testing.T) {

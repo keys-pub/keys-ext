@@ -115,6 +115,7 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	e.GET("/vault/:kid", s.listVault)
 	e.PUT("/vault/:kid", s.putVault)
 	e.DELETE("/vault/:kid", s.deleteVault)
+	e.HEAD("/vault/:kid", s.headVault)
 
 	// Disco
 	e.PUT("/disco/:kid/:rid/:type", s.putDisco)
