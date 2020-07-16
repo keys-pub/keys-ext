@@ -55,7 +55,7 @@ func (s *service) User(ctx context.Context, req *UserRequest) (*UserResponse, er
 		user = userResultToRPC(res)
 	} else {
 		if !req.Local {
-			resp, err := s.remote.User(ctx, kid)
+			resp, err := s.client.User(ctx, kid)
 			if err != nil {
 				return nil, err
 			}
@@ -181,7 +181,7 @@ func (s *service) sigchainUserAdd(ctx context.Context, key *keys.EdX25519Key, se
 	}
 
 	if !localOnly {
-		if err := s.remote.SigchainSave(ctx, st); err != nil {
+		if err := s.client.SigchainSave(ctx, st); err != nil {
 			return nil, nil, err
 		}
 	}
@@ -308,7 +308,7 @@ func (s *service) searchUsersLocal(ctx context.Context, query string, limit int)
 func (s *service) searchUsersRemote(ctx context.Context, query string, limit int) ([]*api.User, error) {
 	query = strings.TrimSpace(query)
 	logger.Infof("Search users remote %q", query)
-	resp, err := s.remote.UserSearch(ctx, query, limit)
+	resp, err := s.client.UserSearch(ctx, query, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -473,7 +473,7 @@ func (s *service) checkForKeyUpdates(ctx context.Context) error {
 	logger.Infof("Checking keys...")
 	pks, err := s.vault.EdX25519PublicKeys()
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to list public keys")
 	}
 	for _, pk := range pks {
 		if err := s.checkForKeyUpdate(ctx, pk.ID(), false); err != nil {

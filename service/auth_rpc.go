@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 
 	"github.com/keys-pub/keys"
@@ -58,25 +59,24 @@ func (s *service) AuthVault(ctx context.Context, req *AuthVaultRequest) (*AuthVa
 		return nil, errors.Errorf("auth already setup")
 	}
 
-	b, err := encoding.Decode(req.Phrase, encoding.BIP39)
+	otkSeed, err := encoding.Decode(req.Phrase, encoding.BIP39)
 	if err != nil {
 		return nil, err
 	}
-	if len(b) != 32 {
+	if len(otkSeed) != 32 {
 		return nil, errors.Errorf("invalid byte length for otk")
 	}
-	otk := keys.NewEdX25519KeyFromSeed(keys.Bytes32(b))
+	otk := keys.NewEdX25519KeyFromSeed(keys.Bytes32(otkSeed))
 
-	seed, err := s.remote.ShareOpen(ctx, otk)
+	remoteBytes, err := s.client.ShareOpen(ctx, otk)
 	if err != nil {
 		return nil, err
 	}
-	if len(seed) != 32 {
-		return nil, errors.Errorf("invalid byte length for rk seed %d", len(seed))
+	var remote vault.Remote
+	if err := json.Unmarshal(remoteBytes, &remote); err != nil {
+		return nil, err
 	}
-	rk := keys.NewEdX25519KeyFromSeed(keys.Bytes32(seed))
-
-	if err := s.vault.InitRemote(ctx, rk); err != nil {
+	if err := s.vault.Clone(ctx, &remote); err != nil {
 		return nil, err
 	}
 

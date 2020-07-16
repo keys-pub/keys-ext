@@ -19,10 +19,13 @@ func dbCommands(client *Client) []cli.Command {
 			Usage: "DB",
 			Subcommands: []cli.Command{
 				cli.Command{
-					Name:      "collections",
-					Usage:     "List collections",
-					Flags:     []cli.Flag{},
+					Name:  "collections",
+					Usage: "List collections",
+					Flags: []cli.Flag{
+						cli.StringFlag{Name: "db", Value: "service", Usage: "db"},
+					},
 					ArgsUsage: "",
+					Hidden:    true,
 					Action: func(c *cli.Context) error {
 						if c.NArg() > 1 {
 							return errors.Errorf("too many arguments")
@@ -30,6 +33,7 @@ func dbCommands(client *Client) []cli.Command {
 						path := c.Args().First()
 						req := &CollectionsRequest{
 							Parent: path,
+							DB:     c.String("db"),
 						}
 						resp, err := client.KeysClient().Collections(context.TODO(), req)
 						if err != nil {
@@ -40,10 +44,13 @@ func dbCommands(client *Client) []cli.Command {
 					},
 				},
 				cli.Command{
-					Name:      "documents",
-					Usage:     "List documents",
-					Flags:     []cli.Flag{},
+					Name:  "documents",
+					Usage: "List documents",
+					Flags: []cli.Flag{
+						cli.StringFlag{Name: "db", Value: "service", Usage: "db"},
+					},
 					ArgsUsage: "collection",
+					Hidden:    true,
 					Subcommands: []cli.Command{
 						documentDeleteCommand(client),
 					},
@@ -54,7 +61,9 @@ func dbCommands(client *Client) []cli.Command {
 						path := strings.TrimSpace(c.Args().First())
 
 						if path == "" {
-							resp, err := client.KeysClient().Collections(context.TODO(), &CollectionsRequest{})
+							resp, err := client.KeysClient().Collections(context.TODO(), &CollectionsRequest{
+								DB: c.String("db"),
+							})
 							if err != nil {
 								return err
 							}
@@ -64,6 +73,7 @@ func dbCommands(client *Client) []cli.Command {
 
 						req := &DocumentsRequest{
 							Prefix: path,
+							DB:     c.String("db"),
 						}
 						resp, err := client.KeysClient().Documents(context.TODO(), req)
 						if err != nil {
@@ -82,8 +92,15 @@ func documentDeleteCommand(client *Client) cli.Command {
 	return cli.Command{
 		Name:  "rm",
 		Usage: "Delete document",
+		Flags: []cli.Flag{
+			cli.StringFlag{Name: "db", Value: "service", Usage: "db"},
+		},
+		Hidden: true,
 		Action: func(c *cli.Context) error {
-			_, err := client.KeysClient().DocumentDelete(context.TODO(), &DocumentDeleteRequest{Path: c.Args().First()})
+			_, err := client.KeysClient().DocumentDelete(context.TODO(), &DocumentDeleteRequest{
+				Path: c.Args().First(),
+				DB:   c.String("db"),
+			})
 			if err != nil {
 				return err
 			}

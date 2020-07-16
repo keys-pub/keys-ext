@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys-ext/http/client"
+	httpclient "github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys-ext/sdb"
 	"github.com/keys-pub/keys-ext/vault"
 	"github.com/keys-pub/keys/request"
@@ -18,7 +18,7 @@ type service struct {
 	build  Build
 	auth   *auth
 	db     *sdb.DB
-	remote *client.Client
+	client *httpclient.Client
 	scs    keys.SigchainStore
 	users  *user.Store
 	clock  func() time.Time
@@ -35,18 +35,18 @@ const vdbFilename = "vault.vdb"
 // TODO: Remove old db "keys.leveldb"
 
 func newService(cfg *Config, build Build, auth *auth, req request.Requestor, clock func() time.Time) (*service, error) {
-	remote, err := client.New(cfg.Server())
+	client, err := httpclient.New(cfg.Server())
 	if err != nil {
 		return nil, err
 	}
-	remote.SetClock(clock)
+	client.SetClock(clock)
 
 	path, err := cfg.AppPath(vdbFilename, true)
 	if err != nil {
 		return nil, err
 	}
 	vlt := vault.New(vault.NewDB(path), vault.WithClock(clock))
-	vlt.SetRemote(remote)
+	vlt.SetClient(client)
 
 	db := sdb.New()
 	db.SetClock(clock)
@@ -63,7 +63,7 @@ func newService(cfg *Config, build Build, auth *auth, req request.Requestor, clo
 		scs:    scs,
 		db:     db,
 		users:  users,
-		remote: remote,
+		client: client,
 		vault:  vlt,
 		clock:  clock,
 	}, nil

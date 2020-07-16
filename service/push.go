@@ -33,7 +33,7 @@ func (s *service) Push(ctx context.Context, req *PushRequest) (*PushResponse, er
 		if key == nil {
 			return nil, keys.NewErrNotFound(kid.String())
 		}
-		if err := s.remote.Check(ctx, key); err != nil {
+		if err := s.client.Check(ctx, key); err != nil {
 			return nil, err
 		}
 	}
@@ -57,7 +57,7 @@ func (s *service) push(ctx context.Context, kid keys.ID) ([]string, error) {
 		return []string{}, nil
 	}
 
-	rsc, rerr := s.remote.Sigchain(ctx, kid)
+	rsc, rerr := s.client.Sigchain(ctx, kid)
 	if rerr != nil {
 		return nil, rerr
 	}
@@ -82,11 +82,11 @@ func (s *service) push(ctx context.Context, kid keys.ID) ([]string, error) {
 				return nil, errors.Errorf("remote and local sigchain statements differ")
 			}
 		} else {
-			if err := s.remote.SigchainSave(ctx, st); err != nil {
+			if err := s.client.SigchainSave(ctx, st); err != nil {
 				return nil, err
 			}
 		}
-		url := s.remote.URL().String() + st.URL()
+		url := s.client.URL().String() + st.URL()
 		urls = append(urls, url)
 	}
 

@@ -84,7 +84,15 @@ func (s *service) DocumentDelete(ctx context.Context, req *DocumentDeleteRequest
 	if req.Path == "" {
 		return nil, errors.Errorf("invalid path")
 	}
-	ok, err := s.db.Delete(ctx, req.Path)
+
+	var err error
+	var ok bool
+	switch req.DB {
+	case "", "service":
+		ok, err = s.db.Delete(ctx, req.Path)
+	case "vault":
+		ok, err = s.vault.DeleteDocument(req.Path)
+	}
 	if err != nil {
 		return nil, err
 	}

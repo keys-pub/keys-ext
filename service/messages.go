@@ -132,7 +132,7 @@ func (s *service) messageCreate(ctx context.Context, sender string, recipient st
 	}
 
 	event := client.NewEvent(docs.Path("msgs", id), b, nil)
-	if err := s.remote.MessageSend(ctx, key, rid, event); err != nil { //, time.Hour*24)
+	if err := s.client.MessageSend(ctx, key, rid, event); err != nil { //, time.Hour*24)
 		return nil, err
 	}
 	// TODO: Sync to local
