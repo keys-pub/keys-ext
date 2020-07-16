@@ -47,11 +47,6 @@ func (v *Vault) Open() error {
 	if err := v.store.Open(); err != nil {
 		return errors.Wrapf(err, "failed to open vault")
 	}
-
-	if err := v.resetPushIndex(); err != nil {
-		return err
-	}
-
 	return nil
 }
 

@@ -153,17 +153,6 @@ func (v *Vault) resetLog() error {
 	return nil
 }
 
-func (v *Vault) resetPushIndex() error {
-	push, err := v.store.Documents(docs.Prefix(docs.Path("push")), docs.NoData())
-	if err != nil {
-		return err
-	}
-	if err := v.setPushIndex(int64(len(push))); err != nil {
-		return err
-	}
-	return nil
-}
-
 func (v *Vault) pullIndex() (int64, error) {
 	return v.getInt64("/sync/pull")
 }
