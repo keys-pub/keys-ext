@@ -92,10 +92,10 @@ func pad(n int64) string {
 	return fmt.Sprintf("%015d", n)
 }
 
-func unpad(s string) (int64, error) {
-	n, err := strconv.ParseInt(s, 10, 64)
-	if err != nil {
-		return 0, err
-	}
-	return int64(n), nil
-}
+// func unpad(s string) (int64, error) {
+// 	n, err := strconv.ParseInt(s, 10, 64)
+// 	if err != nil {
+// 		return 0, err
+// 	}
+// 	return int64(n), nil
+// }
