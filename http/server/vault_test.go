@@ -19,11 +19,16 @@ func TestVault(t *testing.T) {
 	// env.logLevel = server.DebugLevel
 	// keys.SetLogger(keys.NewLogger(keys.DebugLevel))
 
+	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
+
+	testVault(t, env, alice)
+}
+
+func testVault(t *testing.T, env *env, alice *keys.EdX25519Key) {
 	srv := newTestServer(t, env)
 	clock := env.clock
 
-	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
-	charlie := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x03}, 32)))
+	rand := keys.GenerateEdX25519Key()
 
 	// GET /vault/:kid (not found)
 	req, err := api.NewRequest("GET", docs.Path("vault", alice.ID()), nil, clock.Now(), alice)
@@ -133,7 +138,7 @@ func TestVault(t *testing.T) {
 	require.Equal(t, []byte("test9"), resp4.Events[5].Data)
 
 	// DEL (invalid auth)
-	req, err = api.NewRequest("DELETE", docs.Path("vault", alice.ID()), nil, env.clock.Now(), charlie)
+	req, err = api.NewRequest("DELETE", docs.Path("vault", alice.ID()), nil, env.clock.Now(), rand)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
@@ -181,11 +186,19 @@ func TestVault(t *testing.T) {
 }
 
 func TestVaultAuth(t *testing.T) {
+	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
+
 	env := newEnv(t)
+	// env.logLevel = server.DebugLevel
+	// keys.SetLogger(keys.NewLogger(keys.DebugLevel))
+
+	testVaultAuth(t, env, alice)
+}
+
+func testVaultAuth(t *testing.T, env *env, alice *keys.EdX25519Key) {
 	srv := newTestServer(t, env)
 	clock := env.clock
 
-	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	randKey := keys.GenerateEdX25519Key()
 
 	// GET /vault/:kid (no auth)
