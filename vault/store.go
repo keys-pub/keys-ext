@@ -25,20 +25,6 @@ type Store interface {
 	Close() error
 }
 
-// Paths from vault Store.
-func (v *Vault) Paths(prefix string) ([]string, error) {
-	docs, err := v.store.Documents(docs.Prefix(prefix))
-	if err != nil {
-		return nil, err
-	}
-	paths := []string{}
-	for _, doc := range docs {
-		paths = append(paths, doc.Path)
-
-	}
-	return paths, nil
-}
-
 func deleteAll(st Store, paths []string) error {
 	for _, p := range paths {
 		if _, err := st.Delete(p); err != nil {
@@ -48,7 +34,7 @@ func deleteAll(st Store, paths []string) error {
 	return nil
 }
 
-// Collections from Store.
+// Collections from vault db.
 func (v *Vault) Collections(parent string) ([]*docs.Collection, error) {
 	// We iterate over all the paths to build the collections list, this is slow.
 	collections := []*docs.Collection{}
@@ -74,4 +60,9 @@ func (v *Vault) Collections(parent string) ([]*docs.Collection, error) {
 // Documents from Store.
 func (v *Vault) Documents(opt ...docs.Option) ([]*docs.Document, error) {
 	return v.store.Documents(opt...)
+}
+
+// DeleteDocument remotes document from vault.
+func (v *Vault) DeleteDocument(path string) (bool, error) {
+	return v.store.Delete(path)
 }

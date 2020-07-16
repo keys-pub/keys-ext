@@ -50,20 +50,17 @@ func TestConvertV0(t *testing.T) {
 	require.Equal(t, 1, len(provisions))
 	require.Equal(t, "v0", provisions[0].ID)
 
-	inc, err := vlt.Increment(0)
-	require.NoError(t, err)
-	require.Equal(t, "000000000000003", inc)
-
-	paths, err := vlt.Paths("")
+	paths, err := vaultPaths(vlt, "")
 	require.NoError(t, err)
 	expected := []string{
 		"/auth/v0",
 		"/config/salt",
-		"/db/increment",
 		"/provision/v0",
 		"/push/000000000000001/auth/v0",
 		"/push/000000000000002/provision/v0",
 		"/push/000000000000003/config/salt",
+		"/sync/push",
+		"/sync/rsalt",
 	}
 	require.Equal(t, expected, paths)
 }
@@ -117,22 +114,19 @@ func TestConvertV1(t *testing.T) {
 	require.Equal(t, 1, len(provisions))
 	require.Equal(t, "0El6XFXwsUFD8J2vGxsaboW7rZYnQRBP5d9erwRwd29", provisions[0].ID)
 
-	inc, err := vlt.Increment(0)
-	require.NoError(t, err)
-	require.Equal(t, "000000000000004", inc)
-
-	paths, err := vlt.Paths("")
+	paths, err := vaultPaths(vlt, "")
 	require.NoError(t, err)
 	expected := []string{
 		"/auth/0El6XFXwsUFD8J2vGxsaboW7rZYnQRBP5d9erwRwd29",
 		"/config/salt",
-		"/db/increment",
 		"/item/key1",
 		"/provision/0El6XFXwsUFD8J2vGxsaboW7rZYnQRBP5d9erwRwd29",
 		"/push/000000000000001/auth/0El6XFXwsUFD8J2vGxsaboW7rZYnQRBP5d9erwRwd29",
 		"/push/000000000000002/provision/0El6XFXwsUFD8J2vGxsaboW7rZYnQRBP5d9erwRwd29",
 		"/push/000000000000003/config/salt",
 		"/push/000000000000004/item/key1",
+		"/sync/push",
+		"/sync/rsalt",
 	}
 	require.Equal(t, expected, paths)
 }

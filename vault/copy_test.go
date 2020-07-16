@@ -37,12 +37,13 @@ func TestCopy(t *testing.T) {
 	// Copy
 	expected := []string{
 		"/auth/0El6XFXwsUFD8J2vGxsaboW7rZYnQRBP5d9erwRwd29",
-		"/db/increment",
 		"/item/0TWD4V5tkyUQGc5qXvlBDd2Fj97aqsMoBGJJjsttG4I",
 		"/provision/0El6XFXwsUFD8J2vGxsaboW7rZYnQRBP5d9erwRwd29",
 		"/push/000000000000001/auth/0El6XFXwsUFD8J2vGxsaboW7rZYnQRBP5d9erwRwd29",
 		"/push/000000000000002/provision/0El6XFXwsUFD8J2vGxsaboW7rZYnQRBP5d9erwRwd29",
 		"/push/000000000000003/item/0TWD4V5tkyUQGc5qXvlBDd2Fj97aqsMoBGJJjsttG4I",
+		"/sync/push",
+		"/sync/rsalt",
 	}
 	paths, err := vault.Copy(st, st2)
 	require.NoError(t, err)

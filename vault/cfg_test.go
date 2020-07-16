@@ -8,42 +8,51 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestConfig(t *testing.T) {
+func TestSetGetValue(t *testing.T) {
 	var err error
 
 	vlt := New(NewMem())
 
-	err = vlt.setIndex(1)
+	err = vlt.setPullIndex(1)
 	require.NoError(t, err)
-	idx, err := vlt.index()
+	idx, err := vlt.pullIndex()
 	require.NoError(t, err)
 	require.Equal(t, int64(1), idx)
 
-	n, err := vlt.getConfigInt64("testint64")
+	err = vlt.setPushIndex(1)
+	require.NoError(t, err)
+	idx, err = vlt.pushIndex()
+	require.NoError(t, err)
+	require.Equal(t, int64(1), idx)
+	idx, err = vlt.pushIndexNext()
+	require.NoError(t, err)
+	require.Equal(t, int64(2), idx)
+
+	n, err := vlt.getInt64("/test/int64")
 	require.NoError(t, err)
 	require.Equal(t, int64(0), n)
-	err = vlt.setConfigInt64("testint64", 123)
+	err = vlt.setInt64("/test/int64", 123)
 	require.NoError(t, err)
-	n, err = vlt.getConfigInt64("testint64")
+	n, err = vlt.getInt64("/test/int64")
 	require.NoError(t, err)
 	require.Equal(t, int64(123), n)
 
-	b, err := vlt.getConfigBool("testbool")
+	b, err := vlt.getBool("/test/bool")
 	require.NoError(t, err)
 	require.Equal(t, false, b)
-	err = vlt.setConfigBool("testbool", true)
+	err = vlt.setBool("/test/bool", true)
 	require.NoError(t, err)
-	b, err = vlt.getConfigBool("testbool")
+	b, err = vlt.getBool("/test/bool")
 	require.NoError(t, err)
 	require.Equal(t, true, b)
 
-	tm, err := vlt.getConfigTime("testtime")
+	tm, err := vlt.getTime("/test/time")
 	require.NoError(t, err)
 	require.True(t, tm.IsZero())
 	now := tsutil.ParseMillis(tsutil.Millis(time.Now()))
-	err = vlt.setConfigTime("testtime", now)
+	err = vlt.setTime("/test/time", now)
 	require.NoError(t, err)
-	tm, err = vlt.getConfigTime("testtime")
+	tm, err = vlt.getTime("/test/time")
 	require.NoError(t, err)
 	require.Equal(t, now, tm)
 }

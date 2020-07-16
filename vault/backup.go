@@ -9,11 +9,20 @@ import (
 	"os"
 	"time"
 
+	"github.com/keys-pub/keys/docs"
 	"github.com/pkg/errors"
 )
 
-// Backup Store into {path}.tgz.
-func Backup(path string, st Store, now time.Time) error {
+// Backup saves all documents in a Store.
+func Backup(st Store, path string, now time.Time) error {
+	ds, err := st.Documents()
+	if err != nil {
+		return err
+	}
+	return backupDocuments(ds, path, now)
+}
+
+func backupDocuments(ds []*docs.Document, path string, now time.Time) error {
 	tmpPath := path + ".tmp"
 	defer func() { _ = os.Remove(tmpPath) }()
 
@@ -22,7 +31,7 @@ func Backup(path string, st Store, now time.Time) error {
 		return err
 	}
 
-	if err := backup(file, st, now); err != nil {
+	if err := backupDocumentsToFile(ds, file, now); err != nil {
 		_ = file.Close()
 		return err
 	}
@@ -38,17 +47,11 @@ func Backup(path string, st Store, now time.Time) error {
 	return nil
 }
 
-func backup(file *os.File, st Store, now time.Time) error {
+func backupDocumentsToFile(ds []*docs.Document, file *os.File, now time.Time) error {
 	gz := gzip.NewWriter(file)
 	tw := tar.NewWriter(gz)
 
-	docs, err := st.Documents()
-	if err != nil {
-		_ = tw.Close()
-		_ = gz.Close()
-		return err
-	}
-	for _, doc := range docs {
+	for _, doc := range ds {
 		path := doc.Path
 		b := doc.Data
 		header := new(tar.Header)

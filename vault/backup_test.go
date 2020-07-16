@@ -30,7 +30,7 @@ func TestBackupRestore(t *testing.T) {
 	tmpFile := keys.RandTempPath() + ".tgz"
 	defer func() { _ = os.Remove(tmpFile) }()
 
-	err = vault.Backup(tmpFile, st, clock.Now())
+	err = vault.Backup(st, tmpFile, clock.Now())
 	require.NoError(t, err)
 
 	st2 := vault.NewMem()

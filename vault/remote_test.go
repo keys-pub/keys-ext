@@ -9,20 +9,20 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestInitRemoteDB(t *testing.T) {
+func TestCloneDB(t *testing.T) {
 	db1, close1 := newTestVaultDB(t)
 	defer close1()
 	db2, close2 := newTestVaultDB(t)
 	defer close2()
 
-	testInitRemote(t, db1, db2)
+	testClone(t, db1, db2)
 }
 
-func TestInitRemoteMem(t *testing.T) {
-	testInitRemote(t, vault.NewMem(), vault.NewMem())
+func TestCloneMem(t *testing.T) {
+	testClone(t, vault.NewMem(), vault.NewMem())
 }
 
-func testInitRemote(t *testing.T, st1 vault.Store, st2 vault.Store) {
+func testClone(t *testing.T, st1 vault.Store, st2 vault.Store) {
 	// vault.SetLogger(vault.NewLogger(vault.DebugLevel))
 	env := newTestEnv(t, nil) // vault.NewLogger(vault.DebugLevel))
 	defer env.closeFn()
@@ -30,12 +30,12 @@ func testInitRemote(t *testing.T, st1 vault.Store, st2 vault.Store) {
 	// Client #1
 	client1 := testClient(t, env)
 	v1 := vault.New(st1)
-	v1.SetRemote(client1)
+	v1.SetClient(client1)
 
 	// Client #2
 	client2 := testClient(t, env)
 	v2 := vault.New(st2)
-	v2.SetRemote(client2)
+	v2.SetClient(client2)
 
 	var err error
 	ctx := context.TODO()
@@ -55,8 +55,10 @@ func testInitRemote(t *testing.T, st1 vault.Store, st2 vault.Store) {
 	err = v1.Sync(ctx)
 	require.NoError(t, err)
 
+	remote := v1.Remote()
+
 	// Client #2
-	err = v2.InitRemote(ctx, v1.RemoteKey())
+	err = v2.Clone(ctx, remote)
 	require.NoError(t, err)
 
 	err = v2.UnlockWithPassword("mypassword", false)
@@ -68,7 +70,7 @@ func testInitRemote(t *testing.T, st1 vault.Store, st2 vault.Store) {
 	require.Equal(t, "key1", out.ID)
 	require.Equal(t, []byte("value1"), out.Data)
 
-	paths1, err := v1.Paths("/pull")
+	paths1, err := vaultPaths(v1, "/pull")
 	require.NoError(t, err)
 	expected := []string{
 		"/pull/000000000000001/config/salt",
@@ -78,7 +80,7 @@ func testInitRemote(t *testing.T, st1 vault.Store, st2 vault.Store) {
 	}
 	require.Equal(t, expected, paths1)
 
-	paths2, err := v2.Paths("/pull")
+	paths2, err := vaultPaths(v2, "/pull")
 	require.NoError(t, err)
 	require.Equal(t, expected, paths2)
 }

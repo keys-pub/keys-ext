@@ -143,7 +143,7 @@ func (v *Vault) Unlock(key *[32]byte) (*Provision, error) {
 // Lock the vault.
 func (v *Vault) Lock() error {
 	v.mk = nil
-	v.rk = nil
+	v.remote = nil
 	return nil
 }
 

@@ -5,14 +5,15 @@ go 1.14
 require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/golang/snappy v0.0.1 // indirect
-	github.com/keys-pub/keys v0.0.0-20200704210752-498c4412af12
-	github.com/keys-pub/keys-ext/http/client v0.0.0-20200704211703-900392aae3e8
-	github.com/keys-pub/keys-ext/http/server v0.0.0-20200704211557-17fe0a678475
+	github.com/keys-pub/keys v0.1.2-0.20200714015424-b54f7f572bd1
+	github.com/keys-pub/keys-ext/http/client v0.0.0-20200716194119-b796152d6e47
+	github.com/keys-pub/keys-ext/http/server v0.0.0-20200714015603-7e7d65871956
+	github.com/mattn/go-sqlite3 v1.14.0
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.5.1
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/vmihailenco/msgpack/v4 v4.3.12
-	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
+	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899
 	google.golang.org/appengine v1.6.6 // indirect
 	google.golang.org/protobuf v1.24.0 // indirect
 )

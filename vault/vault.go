@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"strconv"
+	"reflect"
 	"sync"
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys-ext/http/client"
+	httpclient "github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys/docs"
 	"github.com/pkg/errors"
 	"github.com/vmihailenco/msgpack/v4"
@@ -21,18 +21,15 @@ type Vault struct {
 	mtx sync.Mutex
 
 	store  Store
-	remote *client.Client
+	client *httpclient.Client
 	clock  func() time.Time
 
-	mk *[32]byte
-	rk *keys.EdX25519Key
-
-	inc    int64
-	incMax int64
-
-	subs *subscribers
+	mk     *[32]byte
+	remote *Remote
 
 	auto *time.Timer
+
+	subs *subscribers
 }
 
 // New vault.
@@ -50,6 +47,11 @@ func (v *Vault) Open() error {
 	if err := v.store.Open(); err != nil {
 		return errors.Wrapf(err, "failed to open vault")
 	}
+
+	if err := v.resetPushIndex(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -67,25 +69,54 @@ func (v *Vault) Close() error {
 	return nil
 }
 
-// SetRemote sets the remote.
-func (v *Vault) SetRemote(remote *client.Client) {
-	v.remote = remote
+// SetClient sets the client.
+func (v *Vault) SetClient(client *httpclient.Client) {
+	v.client = client
 }
 
 // setMasterKey sets the master key.
-// You should be using Setup or Unlock instead, this is available for testing.
 func (v *Vault) setMasterKey(mk *[32]byte) error {
-	// Derive remote key
-	rs := keys.Bytes32(keys.HKDFSHA256(mk[:], 32, nil, []byte("keys.pub/rk")))
-	rk := keys.NewEdX25519KeyFromSeed(rs)
-	if v.rk != nil {
-		if !v.rk.Equal(rk) {
-			return errors.Errorf("remote key is different than expected")
-		}
+	if err := v.setAuthFromMasterKey(mk); err != nil {
+		return err
+	}
+	v.mk = mk
+	return nil
+}
+
+func (v *Vault) setAuthFromMasterKey(mk *[32]byte) error {
+	rsalt, err := v.getRemoteSalt(true)
+	if err != nil {
+		return err
 	}
 
-	v.mk = mk
-	v.rk = rk
+	// Derive remote auth key
+	seed := keys.Bytes32(keys.HKDFSHA256(mk[:], 32, rsalt, []byte("keys.pub/rk")))
+	rk := keys.NewEdX25519KeyFromSeed(seed)
+
+	remote := &Remote{Key: rk, Salt: rsalt}
+
+	// If auth was already set in Clone, we should double check it matches the
+	// auth generated from the master key.
+	if v.remote != nil {
+		if !reflect.DeepEqual(v.remote, remote) {
+			return errors.Errorf("remote auth is different than expected")
+		}
+	}
+	v.remote = remote
+
+	return nil
+}
+
+func (v *Vault) clearRemote() error {
+	v.remote = nil
+	if err := v.setRemoteSalt(nil); err != nil {
+		return err
+	}
+	if v.mk != nil {
+		if err := v.setAuthFromMasterKey(v.mk); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -96,16 +127,6 @@ func (v *Vault) setMasterKey(mk *[32]byte) error {
 // TODO: Point to spec.
 func (v *Vault) MasterKey() *[32]byte {
 	return v.mk
-}
-
-// RemoteKey returns remote key, if unlocked.
-// The remote key is used to encrypt and verify remote items.
-// This encryption happens on top of encryption using the master key.
-// It's not recommended to use this key for anything other initializing another
-// vault from remote (InitRemote).
-// TODO: Point to spec.
-func (v *Vault) RemoteKey() *keys.EdX25519Key {
-	return v.rk
 }
 
 // Set vault item.
@@ -133,12 +154,12 @@ func (v *Vault) set(path string, b []byte, addToPush bool) error {
 }
 
 func (v *Vault) addToPush(path string, b []byte) error {
-	inc, err := v.Increment(1)
+	inc, err := v.pushIndexNext()
 	if err != nil {
 		return err
 	}
-	ppath := docs.Path("push", inc, path)
-	if err := v.store.Set(ppath, b); err != nil {
+	push := docs.Path("push", pad(inc), path)
+	if err := v.store.Set(push, b); err != nil {
 		return err
 	}
 
@@ -222,16 +243,15 @@ func (v *Vault) Items() ([]*Item, error) {
 }
 
 func (v *Vault) push(ctx context.Context) error {
-	if v.remote == nil {
-		return errors.Errorf("no vault remote set")
+	if v.client == nil {
+		return errors.Errorf("no vault client set")
 	}
-
-	if v.rk == nil {
-		return errors.Errorf("no remote key")
+	if v.remote == nil {
+		return errors.Errorf("no remote set")
 	}
 
 	paths := []string{}
-	events := []*client.Event{}
+	events := []*httpclient.Event{}
 
 	// Get events from push.
 	path := docs.Path("push")
@@ -239,19 +259,19 @@ func (v *Vault) push(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	var prev *client.Event
+	var prev *httpclient.Event
 	for _, doc := range ds {
 		logger.Debugf("Push %s", doc.Path)
 		paths = append(paths, doc.Path)
 		path := docs.PathFrom(doc.Path, 2)
-		event := client.NewEvent(path, doc.Data, prev)
+		event := httpclient.NewEvent(path, doc.Data, prev)
 		events = append(events, event)
 		prev = event
 	}
 
 	if len(events) > 0 {
 		logger.Infof("Pushing %d vault events", len(events))
-		if err := v.remote.VaultSend(ctx, v.rk, events); err != nil {
+		if err := v.client.VaultSend(ctx, v.remote.Key, events); err != nil {
 			return err
 		}
 		logger.Infof("Removing %d from push", len(paths))
@@ -272,27 +292,27 @@ func (v *Vault) Pull(ctx context.Context) error {
 }
 
 func (v *Vault) pull(ctx context.Context) error {
-	if v.remote == nil {
-		return errors.Errorf("no vault remote set")
+	if v.client == nil {
+		return errors.Errorf("no vault client set")
 	}
-	if v.rk == nil {
-		return errors.Errorf("no remote key")
+	if v.remote == nil {
+		return errors.Errorf("no remote set")
 	}
 
-	index, err := v.index()
+	index, err := v.pullIndex()
 	if err != nil {
 		return err
 	}
 
 	logger.Infof("Pulling vault items")
-	vault, err := v.remote.Vault(ctx, v.rk, client.VaultIndex(index))
+	vault, err := v.client.Vault(ctx, v.remote.Key, httpclient.VaultIndex(index))
 	if err != nil {
 		return err
 	}
-	return v.saveRemoveVault(vault)
+	return v.saveRemoteVault(vault)
 }
 
-func (v *Vault) saveRemoveVault(vault *client.Vault) error {
+func (v *Vault) saveRemoteVault(vault *httpclient.Vault) error {
 	if vault == nil {
 		return errors.Errorf("vault not found")
 	}
@@ -317,12 +337,12 @@ func (v *Vault) saveRemoveVault(vault *client.Vault) error {
 			}
 		}
 
-		ppath := docs.Path("pull", pad(event.Index), event.Path)
+		pull := docs.Path("pull", pad(event.Index), event.Path)
 		eb, err := msgpack.Marshal(event)
 		if err != nil {
 			return err
 		}
-		if err := v.store.Set(ppath, eb); err != nil {
+		if err := v.store.Set(pull, eb); err != nil {
 			return err
 		}
 
@@ -331,8 +351,8 @@ func (v *Vault) saveRemoveVault(vault *client.Vault) error {
 		}
 	}
 
-	// Update index
-	if err := v.setIndex(vault.Index); err != nil {
+	// Update pull index
+	if err := v.setPullIndex(vault.Index); err != nil {
 		return err
 	}
 
@@ -349,61 +369,6 @@ func (v *Vault) Spew(prefix string, out io.Writer) error {
 		return err
 	}
 	return nil
-}
-
-// Increment returns the current increment as an orderable string that persists
-// across opens at /db/increment.
-// => 000000000000001, 000000000000002 ...
-// This is batched. When the increment runs out for the current batch, it
-// gets a new batch.
-// There may be large gaps between increments (of batch size) after re-opens.
-func (v *Vault) Increment(n int64) (string, error) {
-	v.mtx.Lock()
-	defer v.mtx.Unlock()
-
-	if v.inc == 0 || (v.inc+n) >= v.incMax {
-		inc, incMax, err := increment(v.store, docs.Path("db", "increment"), 1000)
-		if err != nil {
-			return "", err
-		}
-		v.inc, v.incMax = inc, incMax
-	}
-	v.inc = v.inc + n
-	// logger.Debugf("Increment(%d) %d", n, v.inc)
-	return pad(v.inc), nil
-}
-
-func increment(st Store, path string, size int64) (inc int64, incMax int64, reterr error) {
-	b, err := st.Get(path)
-	if err != nil {
-		reterr = err
-		return
-	}
-
-	if b != nil {
-		i, err := strconv.ParseInt(string(b), 10, 64)
-		if err != nil {
-			reterr = err
-			return
-		}
-		inc = int64(i)
-	}
-
-	max := inc + size
-	if err := st.Set(path, []byte(strconv.FormatInt(max, 10))); err != nil {
-		reterr = err
-		return
-	}
-
-	incMax = inc + size - 1
-	return
-}
-
-func pad(n int64) string {
-	if n > 999999999999999 {
-		panic("int too large for padding")
-	}
-	return fmt.Sprintf("%015d", n)
 }
 
 // IsEmpty returns true if vault is empty.
