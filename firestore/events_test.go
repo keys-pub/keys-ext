@@ -12,6 +12,7 @@ import (
 func TestFirestoreEvents(t *testing.T) {
 	var err error
 	// SetContextLogger(NewContextLogger(DebugLevel))
+
 	eds := testFirestore(t)
 	ctx := context.TODO()
 	path := testPath()

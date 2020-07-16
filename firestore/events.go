@@ -9,6 +9,7 @@ import (
 	"github.com/keys-pub/keys/docs/events"
 	"github.com/keys-pub/keys/encoding"
 	"github.com/pkg/errors"
+	"google.golang.org/api/iterator"
 )
 
 // eventIdx should also match Event firestore tag.
@@ -63,7 +64,8 @@ func (f *Firestore) EventsAdd(ctx context.Context, path string, data [][]byte) (
 // Events ...
 func (f *Firestore) Events(ctx context.Context, path string, opt ...events.Option) (events.Iterator, error) {
 	opts := events.NewOptions(opt...)
-	col := f.client.Collection(normalizePath(docs.Path(path, "log")))
+	log := normalizePath(docs.Path(path, "log"))
+	col := f.client.Collection(log)
 	if col == nil {
 		return events.NewIterator([]*events.Event{}), nil
 	}
@@ -72,18 +74,18 @@ func (f *Firestore) Events(ctx context.Context, path string, opt ...events.Optio
 	switch opts.Direction {
 	case events.Ascending:
 		if opts.Index == 0 {
-			logger.Infof(ctx, "List events (asc)...")
+			logger.Infof(ctx, "List events %s (asc)...", log)
 			q = col.OrderBy(eventIdxLabel, firestore.Asc)
 		} else {
-			logger.Infof(ctx, "List events (asc > %d)", opts.Index)
+			logger.Infof(ctx, "List events %s (asc > %d)", log, opts.Index)
 			q = col.OrderBy(eventIdxLabel, firestore.Asc).Where(eventIdxLabel, ">", opts.Index)
 		}
 	case events.Descending:
 		if opts.Index == 0 {
-			logger.Infof(ctx, "List events (desc)...")
+			logger.Infof(ctx, "List events %s (desc)...", log)
 			q = col.OrderBy(eventIdxLabel, firestore.Desc)
 		} else {
-			logger.Infof(ctx, "List events (desc < %d)", opts.Index)
+			logger.Infof(ctx, "List events %s (desc < %d)", log, opts.Index)
 			q = col.OrderBy(eventIdxLabel, firestore.Desc).Where(eventIdxLabel, "<", opts.Index)
 		}
 	}
@@ -100,8 +102,12 @@ func (f *Firestore) Events(ctx context.Context, path string, opt ...events.Optio
 
 // EventsDelete removes events.
 func (f *Firestore) EventsDelete(ctx context.Context, path string) (bool, error) {
-	doc := f.client.Doc(normalizePath(path))
+	log := docs.Path(path, "log")
+	if err := f.deleteCollection(ctx, log, 100); err != nil {
+		return false, err
+	}
 
+	doc := f.client.Doc(normalizePath(path))
 	exists, err := f.Exists(ctx, path)
 	if err != nil {
 		return false, err
@@ -114,6 +120,45 @@ func (f *Firestore) EventsDelete(ctx context.Context, path string) (bool, error)
 		return false, err
 	}
 	return true, nil
+}
+
+func (f *Firestore) deleteCollection(ctx context.Context, path string, batchSize int) error {
+	col := f.client.Collection(normalizePath(path))
+
+	// From https://firebase.google.com/docs/firestore/manage-data/delete-data#go_2
+	for {
+		// Get a batch of documents
+		iter := col.Limit(batchSize).Documents(ctx)
+		numDeleted := 0
+
+		// Iterate through the documents, adding
+		// a delete operation for each one to a
+		// WriteBatch.
+		batch := f.client.Batch()
+		for {
+			doc, err := iter.Next()
+			if err == iterator.Done {
+				break
+			}
+			if err != nil {
+				return err
+			}
+
+			batch.Delete(doc.Ref)
+			numDeleted++
+		}
+
+		// If there are no documents to delete,
+		// the process is over.
+		if numDeleted == 0 {
+			return nil
+		}
+
+		_, err := batch.Commit(ctx)
+		if err != nil {
+			return err
+		}
+	}
 }
 
 // index is a very slow increment by. Limited to 1 write a second.
