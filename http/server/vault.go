@@ -196,10 +196,10 @@ func (s *Server) headVault(c echo.Context) error {
 
 func (s Server) isVaultDeleted(c echo.Context, kid keys.ID) (bool, error) {
 	ctx := c.Request().Context()
-	return s.fi.Exists(ctx, docs.Path("vaults-del", kid))
+	return s.fi.Exists(ctx, docs.Path("vaults-rm", kid))
 }
 
 func (s *Server) setVaultDeleted(c echo.Context, kid keys.ID) error {
 	ctx := c.Request().Context()
-	return s.fi.Set(ctx, docs.Path("vaults-del", kid), []byte("1"))
+	return s.fi.Set(ctx, docs.Path("vaults-rm", kid), []byte{})
 }
