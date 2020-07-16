@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/url"
 	"strconv"
 
@@ -99,10 +98,10 @@ func (c *Client) Vault(ctx context.Context, key *keys.EdX25519Key, opt ...VaultO
 		params.Add("idx", strconv.FormatInt(opts.Index, 10))
 	}
 	if opts.Limit != 0 {
-		params.Add("limit", fmt.Sprintf("%d", opts.Limit))
+		// TODO: What if we hit limit, we won't have all the items
+		//params.Add("limit", fmt.Sprintf("%d", opts.Limit))
+		return nil, errors.Errorf("limit not supported")
 	}
-
-	// TODO: What if we hit limit, we won't have all the items
 
 	doc, err := c.getDocument(ctx, path, params, key)
 	if err != nil {
