@@ -2,9 +2,11 @@ package vault
 
 import (
 	"context"
+	"time"
 )
 
-func (v *Vault) autoSync(ctx context.Context) (bool, error) {
+// AutoSync performs sync unless disabled.
+func (v *Vault) AutoSync(ctx context.Context, stale time.Duration) (bool, error) {
 	// If auto sync disabled, skip...
 	disabled, err := v.autoSyncDisabled()
 	if err != nil {
@@ -19,10 +21,18 @@ func (v *Vault) autoSync(ctx context.Context) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	logger.Debugf("Last synced: %s", last)
 	if last.IsZero() {
+		logger.Debugf("Never synced")
 		return false, nil
 	}
+
+	diff := v.clock().Sub(last)
+	if diff >= 0 && diff < stale {
+		logger.Debugf("Already synced recently")
+		return false, nil
+	}
+
+	logger.Debugf("Last synced: %s", last)
 	if err := v.Sync(ctx); err != nil {
 		return true, err
 	}
@@ -30,11 +40,12 @@ func (v *Vault) autoSync(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-// AutoSync will attempt sync (unless disabled or sync has never run).
+// CheckAutoSync will attempt sync unless disabled and if we haven't synced
+// in a stale duration.
 // The afterFn always runs no matter what.
-func (v *Vault) AutoSync(afterFn func()) {
+func (v *Vault) CheckAutoSync(stale time.Duration, afterFn func()) {
 	go func() {
-		synced, err := v.autoSync(context.Background())
+		synced, err := v.AutoSync(context.Background(), stale)
 		if err != nil {
 			logger.Errorf("Failed to auto sync: %v", err)
 		}

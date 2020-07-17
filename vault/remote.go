@@ -44,13 +44,14 @@ func (v *Vault) Clone(ctx context.Context, remote *Remote) error {
 	if len(remote.Salt[:]) == 0 {
 		return errors.Errorf("no remote salt")
 	}
-	if err := v.setRemoteSalt(remote.Salt[:]); err != nil {
-		return err
-	}
 
 	logger.Infof("Requesting remote vault...")
 	vault, err := v.client.Vault(ctx, remote.Key)
 	if err != nil {
+		return err
+	}
+
+	if err := v.setRemoteSalt(remote.Salt[:]); err != nil {
 		return err
 	}
 
