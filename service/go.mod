@@ -14,7 +14,7 @@ require (
 	github.com/keys-pub/keys-ext/http/client v0.0.0-20200716194119-b796152d6e47
 	github.com/keys-pub/keys-ext/http/server v0.0.0-20200714015603-7e7d65871956
 	github.com/keys-pub/keys-ext/sdb v0.0.0-20200704211703-900392aae3e8
-	github.com/keys-pub/keys-ext/vault v0.0.0-20200716214240-2f8ab4ed91de
+	github.com/keys-pub/keys-ext/vault v0.0.0-20200717024519-2a5ab095f2f1
 	github.com/keys-pub/keys-ext/wormhole v0.0.0-20200624011543-a01a0028982e
 	github.com/mercari/go-grpc-interceptor v0.0.0-20180110035004-b8ad3827e82a
 	github.com/mitchellh/go-ps v1.0.0

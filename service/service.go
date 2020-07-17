@@ -127,7 +127,7 @@ func (s *service) Unlock(ctx context.Context, key *[32]byte) error {
 		}
 	}
 
-	s.vault.AutoSync(func() {
+	s.vault.CheckAutoSync(time.Duration(0), func() {
 		s.startUpdateCheck()
 	})
 

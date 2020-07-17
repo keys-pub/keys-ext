@@ -94,10 +94,10 @@ service Keys {
   rpc AuthProvisions(AuthProvisionsRequest) returns (AuthProvisionsResponse) {}  
   rpc PasswordChange(PasswordChangeRequest) returns (PasswordChangeResponse) {}
   
-  rpc VaultSync(VaultSyncRequest) returns (VaultSyncResponse) {}
   rpc VaultAuth(VaultAuthRequest) returns (VaultAuthResponse) {}
+  rpc VaultSync(VaultSyncRequest) returns (VaultSyncResponse) {}  
   rpc VaultUnsync(VaultUnsyncRequest) returns (VaultUnsyncResponse) {}
-  rpc VaultStatus(VaultStatusRequest) returns (VaultStatusResponse) {}
+  rpc VaultStatus(VaultStatusRequest) returns (VaultStatusResponse) {}  
 
   rpc Collections(CollectionsRequest) returns (CollectionsResponse) {}
   rpc Documents(DocumentsRequest) returns (DocumentsResponse) {}

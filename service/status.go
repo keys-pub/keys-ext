@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"github.com/keys-pub/keys-ext/vault"
 )
@@ -16,6 +17,11 @@ func (s *service) RuntimeStatus(ctx context.Context, req *RuntimeStatusRequest) 
 	status, err := s.vault.Status()
 	if err != nil {
 		return nil, err
+	}
+
+	// Check vault auto sync if unlocked
+	if status == vault.Unlocked {
+		s.vault.CheckAutoSync(time.Minute*5, nil)
 	}
 
 	resp := RuntimeStatusResponse{
