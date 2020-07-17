@@ -72,9 +72,12 @@ func (s *service) AuthVault(ctx context.Context, req *AuthVaultRequest) (*AuthVa
 	if err != nil {
 		return nil, err
 	}
+	if remoteBytes == nil {
+		return nil, errors.Errorf("vault not found")
+	}
 	var remote vault.Remote
 	if err := json.Unmarshal(remoteBytes, &remote); err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "invalid vault remote bytes")
 	}
 	if err := s.vault.Clone(ctx, &remote); err != nil {
 		return nil, err
