@@ -163,7 +163,9 @@ func (v *Vault) addToPush(path string, b []byte) error {
 		v.auto = nil
 	}
 	v.auto = time.AfterFunc(time.Second*2, func() {
-		v.AutoSync(context.TODO(), time.Duration(0))
+		if _, err := v.AutoSync(context.TODO(), time.Duration(0)); err != nil {
+			logger.Errorf("Failed to auto sync: %v", err)
+		}
 	})
 
 	return nil
