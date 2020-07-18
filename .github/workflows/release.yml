@@ -39,7 +39,7 @@ jobs:
         uses: actions/setup-go@v2
       - name: Install dependencies
         run: |
-          curl -sfL https://install.goreleaser.com/github.com/goreleaser/goreleaser.sh | sh
+          BINDIR=$HOME curl -sfL https://install.goreleaser.com/github.com/goreleaser/goreleaser.sh | sh
       - name: Build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -48,6 +48,6 @@ jobs:
           git config --global user.name "keys.pub"
           git tag -a ${GITHUB_REF##*/} -m ${GITHUB_REF##*/}
           cd service
-          ./bin/goreleaser --config=.goreleaser.linux.yml
+          $HOME/goreleaser --config=.goreleaser.linux.yml
           cd ../auth/rpc/plugin
-          ./bin/goreleaser --config=.goreleaser.linux.yml
+          $HOME/goreleaser --config=.goreleaser.linux.yml
