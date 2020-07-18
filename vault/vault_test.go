@@ -19,7 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func newTestVaultKey(t *testing.T, clock *tsutil.Clock) (*[32]byte, *vault.Provision) {
+func newTestVaultKey(t *testing.T, clock tsutil.Clock) (*[32]byte, *vault.Provision) {
 	key := keys.Bytes32(bytes.Repeat([]byte{0xFF}, 32))
 	id := encoding.MustEncode(bytes.Repeat([]byte{0xFE}, 32), encoding.Base62)
 	provision := &vault.Provision{
@@ -34,7 +34,7 @@ func newTestVault(t *testing.T) *vault.Vault {
 	return vault.New(vault.NewMem())
 }
 
-func newTestVaultUnlocked(t *testing.T, clock *tsutil.Clock) *vault.Vault {
+func newTestVaultUnlocked(t *testing.T, clock tsutil.Clock) *vault.Vault {
 	vlt := newTestVault(t)
 	key, provision := newTestVaultKey(t, clock)
 	err := vlt.Setup(key, provision)
@@ -59,7 +59,7 @@ func testSeed(b byte) *[32]byte {
 }
 
 type testEnv struct {
-	clock      *tsutil.Clock
+	clock      tsutil.Clock
 	httpServer *httptest.Server
 	srv        *server.Server
 	closeFn    func()
@@ -69,7 +69,7 @@ func newTestEnv(t *testing.T, logger server.Logger) *testEnv {
 	if logger == nil {
 		logger = client.NewLogger(client.ErrLevel)
 	}
-	clock := tsutil.NewClock()
+	clock := tsutil.NewTestClock()
 	fi := docs.NewMem()
 	fi.SetTimeNow(clock.Now)
 
@@ -224,7 +224,7 @@ func testSetupUnlockProvision(t *testing.T, st vault.Store) {
 
 	vlt := vault.New(st)
 
-	clock := tsutil.NewClock()
+	clock := tsutil.NewTestClock()
 	key, provision := newTestVaultKey(t, clock)
 	err = vlt.Setup(key, provision)
 	require.NoError(t, err)
@@ -291,7 +291,7 @@ func testSetupUnlockProvision(t *testing.T, st vault.Store) {
 
 func TestSetErrors(t *testing.T) {
 	var err error
-	clock := tsutil.NewClock()
+	clock := tsutil.NewTestClock()
 	vlt := newTestVaultUnlocked(t, clock)
 
 	err = vlt.Set(vault.NewItem("", nil, "", time.Time{}))

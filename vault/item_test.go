@@ -14,7 +14,7 @@ import (
 )
 
 func TestItem(t *testing.T) {
-	clock := tsutil.NewClock()
+	clock := tsutil.NewTestClock()
 	item := vault.NewItem("account1", []byte("password"), "passphrase", clock.Now())
 
 	b, err := msgpack.Marshal(item)

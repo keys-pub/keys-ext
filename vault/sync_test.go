@@ -31,7 +31,7 @@ func testSync(t *testing.T, st1 vault.Store, st2 vault.Store) {
 	defer env.closeFn()
 
 	ctx := context.TODO()
-	clock := tsutil.NewClock()
+	clock := tsutil.NewTestClock()
 
 	// Client #1
 	client1 := testClient(t, env)
@@ -203,7 +203,7 @@ func TestUnsync(t *testing.T) {
 	defer env.closeFn()
 
 	ctx := context.TODO()
-	clock := tsutil.NewClock()
+	clock := tsutil.NewTestClock()
 
 	db, closeFn := newTestVaultDB(t)
 	defer closeFn()

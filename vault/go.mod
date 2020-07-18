@@ -5,7 +5,8 @@ go 1.14
 require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/golang/snappy v0.0.1 // indirect
-	github.com/keys-pub/keys v0.1.2-0.20200714015424-b54f7f572bd1
+	github.com/keys-pub/keys v0.1.2-0.20200718011252-5bff924a7b82
+	github.com/keys-pub/keys-ext/http/api v0.0.0-20200718011453-c9ffd4a59862 // indirect
 	github.com/keys-pub/keys-ext/http/client v0.0.0-20200716194119-b796152d6e47
 	github.com/keys-pub/keys-ext/http/server v0.0.0-20200714015603-7e7d65871956
 	github.com/mattn/go-sqlite3 v1.14.0

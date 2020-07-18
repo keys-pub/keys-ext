@@ -70,7 +70,7 @@ func TestSaveKeyDelete(t *testing.T) {
 func TestEdX25519Key(t *testing.T) {
 	// keys.SetLogger(keys.NewLogger(keys.DebugLevel))
 	var err error
-	clock := tsutil.NewClock()
+	clock := tsutil.NewTestClock()
 	vlt := newTestVaultUnlocked(t, clock)
 	sk := keys.GenerateEdX25519Key()
 
@@ -96,7 +96,7 @@ func TestEdX25519Key(t *testing.T) {
 
 func TestEdX25519PublicKey(t *testing.T) {
 	var err error
-	clock := tsutil.NewClock()
+	clock := tsutil.NewTestClock()
 	vlt := newTestVaultUnlocked(t, clock)
 
 	sk := keys.GenerateEdX25519Key()
@@ -118,7 +118,7 @@ func TestEdX25519PublicKey(t *testing.T) {
 
 func TestX25519Key(t *testing.T) {
 	var err error
-	clock := tsutil.NewClock()
+	clock := tsutil.NewTestClock()
 	vlt := newTestVaultUnlocked(t, clock)
 
 	bk := keys.GenerateX25519Key()
@@ -140,7 +140,7 @@ func TestX25519Key(t *testing.T) {
 func TestKeys(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
 	var err error
-	clock := tsutil.NewClock()
+	clock := tsutil.NewTestClock()
 	vlt := newTestVaultUnlocked(t, clock)
 
 	sk := keys.NewEdX25519KeyFromSeed(testSeed(0x01))
@@ -177,7 +177,7 @@ func TestKeys(t *testing.T) {
 
 func TestStoreConcurrent(t *testing.T) {
 	var err error
-	clock := tsutil.NewClock()
+	clock := tsutil.NewTestClock()
 	vlt := newTestVaultUnlocked(t, clock)
 
 	sk := keys.GenerateEdX25519Key()
@@ -208,7 +208,7 @@ func TestStoreConcurrent(t *testing.T) {
 
 func TestExportImportKey(t *testing.T) {
 	var err error
-	clock := tsutil.NewClock()
+	clock := tsutil.NewTestClock()
 	vlt := newTestVaultUnlocked(t, clock)
 
 	sk := keys.GenerateEdX25519Key()
@@ -228,7 +228,7 @@ func TestExportImportKey(t *testing.T) {
 
 func TestUnknownKey(t *testing.T) {
 	var err error
-	clock := tsutil.NewClock()
+	clock := tsutil.NewTestClock()
 	vlt := newTestVaultUnlocked(t, clock)
 
 	key, err := vlt.Key(keys.RandID("kex"))

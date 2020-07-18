@@ -15,7 +15,7 @@ import (
 
 func TestProvisions(t *testing.T) {
 	var err error
-	clock := tsutil.NewClock()
+	clock := tsutil.NewTestClock()
 	vlt := newTestVaultUnlocked(t, clock)
 
 	provisions, err := vlt.Provisions()
@@ -46,7 +46,7 @@ func TestProvisionSave(t *testing.T) {
 func TestProvisionMarshal(t *testing.T) {
 	var err error
 
-	clock := tsutil.NewClock()
+	clock := tsutil.NewTestClock()
 	vlt := newTestVaultUnlocked(t, clock)
 
 	id := encoding.MustEncode(bytes.Repeat([]byte{0x01}, 32), encoding.Base62)

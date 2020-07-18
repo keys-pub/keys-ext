@@ -10,7 +10,7 @@ import (
 )
 
 func TestSecretSave(t *testing.T) {
-	clock := tsutil.NewClock()
+	clock := tsutil.NewTestClock()
 	vlt := newTestVaultUnlocked(t, clock)
 
 	secret := &secret.Secret{
@@ -44,7 +44,7 @@ func TestSecretSave(t *testing.T) {
 
 func TestSecrets(t *testing.T) {
 	var err error
-	clock := tsutil.NewClock()
+	clock := tsutil.NewTestClock()
 	vlt := newTestVaultUnlocked(t, clock)
 
 	gabriel := secret.NewPassword("gabriel", "mypassword", "keys.pub")
