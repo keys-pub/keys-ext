@@ -27,7 +27,7 @@ func TestVaultFirestore(t *testing.T) {
 	firestore.SetContextLogger(firestore.NewContextLogger(firestore.DebugLevel))
 	fs := testFirestore(t)
 
-	clock := tsutil.NewClock()
+	clock := tsutil.NewTestClock()
 	env := newEnvWithFire(t, fs, clock)
 	// env.logLevel = server.DebugLevel
 
@@ -44,7 +44,7 @@ func TestVaultAuthFirestore(t *testing.T) {
 	firestore.SetContextLogger(firestore.NewContextLogger(firestore.DebugLevel))
 	fs := testFirestore(t)
 
-	clock := tsutil.NewClock()
+	clock := tsutil.NewTestClock()
 	env := newEnvWithFire(t, fs, clock)
 	// env.logLevel = server.DebugLevel
 
@@ -60,7 +60,7 @@ func TestMessagesFirestore(t *testing.T) {
 	firestore.SetContextLogger(firestore.NewContextLogger(firestore.DebugLevel))
 	fs := testFirestore(t)
 
-	clock := tsutil.NewClock()
+	clock := tsutil.NewTestClock()
 	env := newEnvWithFire(t, fs, clock)
 	// env.logLevel = server.DebugLevel
 

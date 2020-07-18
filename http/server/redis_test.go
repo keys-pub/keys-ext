@@ -13,7 +13,7 @@ import (
 )
 
 func TestRedis(t *testing.T) {
-	clock := tsutil.NewClock()
+	clock := tsutil.NewTestClock()
 	rds := server.NewRedisTest(clock.Now)
 
 	n1 := encoding.MustEncode(keys.RandBytes(32), encoding.Base62)
@@ -39,8 +39,7 @@ func TestRedis(t *testing.T) {
 
 func TestRedisExpiration(t *testing.T) {
 	// SetLog(newLog(DebugLevel))
-	clock := tsutil.NewClock()
-	clock.SetTick(time.Second)
+	clock := tsutil.NewTestClock()
 	rds := server.NewRedisTest(clock.Now)
 
 	n1 := encoding.MustEncode(keys.RandBytes(32), encoding.Base62)
@@ -65,5 +64,5 @@ func TestRedisExpiration(t *testing.T) {
 
 	val3, err := rds.Get(context.TODO(), n2)
 	require.NoError(t, err)
-	require.NotEmpty(t, val3)
+	require.Equal(t, "2", val3)
 }

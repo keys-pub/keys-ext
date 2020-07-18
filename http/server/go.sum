@@ -129,6 +129,8 @@ github.com/keys-pub/keys v0.0.0-20200704210752-498c4412af12 h1:m+4V7IZOp+alE/01S
 github.com/keys-pub/keys v0.0.0-20200704210752-498c4412af12/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys v0.1.2-0.20200714015424-b54f7f572bd1 h1:AUm44Ls9aMLP0DVlDJldaGik1nStoxfUOSQSENVH85A=
 github.com/keys-pub/keys v0.1.2-0.20200714015424-b54f7f572bd1/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.1.2-0.20200718011252-5bff924a7b82 h1:5+LdrDQrJqSIpQrRbTz9hGaIDsa2WmTS9lgJu/SGWdc=
+github.com/keys-pub/keys v0.1.2-0.20200718011252-5bff924a7b82/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys-ext/firestore v0.0.0-20200612011605-1b8b64293fa0 h1:tlT3r1x0ejXQIqRubcD+QSnoE46E0TjbXwUWIzslUVY=
 github.com/keys-pub/keys-ext/firestore v0.0.0-20200612011605-1b8b64293fa0/go.mod h1:b4zTQwJHqfQ5adqVzfqBI0uPdtm1Y6S9klMf/I1m1s0=
 github.com/keys-pub/keys-ext/firestore v0.0.0-20200624010329-d03428c649d4 h1:pbAr6yfWAk+rz6X96GWxF/vEeIg/shXmZ9vvru0dzsQ=
@@ -151,6 +153,8 @@ github.com/keys-pub/keys-ext/http/api v0.0.0-20200625223334-74da599991bf h1:6VC4
 github.com/keys-pub/keys-ext/http/api v0.0.0-20200625223334-74da599991bf/go.mod h1:/yla6VVEKR5DuP53vW2Dw5DSl8kzhqvEFxNiehJGWP0=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20200704211016-ce8ce10a1087 h1:nrJX/mKqwUpCJOmgoO4jlbHz5e0D3pyMyCtxIYa1igM=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20200704211016-ce8ce10a1087/go.mod h1:/IbO6GxDr8EaHopLJHdeWVeJFphXIuDoN7d6qYdUob4=
+github.com/keys-pub/keys-ext/http/api v0.0.0-20200718011453-c9ffd4a59862 h1:F6MaXEROLmfPJxV2UM8pOslSPaWjqjN5jyJxAO2KkLE=
+github.com/keys-pub/keys-ext/http/api v0.0.0-20200718011453-c9ffd4a59862/go.mod h1:XPOumqF8Z66cFg8Z+bWgiTW9a0BgDeEGyR5x+GbSh0s=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f h1:LLsdI2XManLH0JonKqB6OYmHdHk/WwJByDbHI3hCEcs=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f/go.mod h1:YRHMiVbZqh7u8xRm77CvwJNAZdDlNXwWvQ4DK0N9mYg=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=

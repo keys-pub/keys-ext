@@ -37,14 +37,14 @@ type testServer struct {
 // 	return fs
 // }
 
-func testFire(t *testing.T, clock *tsutil.Clock) server.Fire {
+func testFire(t *testing.T, clock tsutil.Clock) server.Fire {
 	fi := docs.NewMem()
 	fi.SetTimeNow(clock.Now)
 	return fi
 }
 
 func TestFireCreatedAt(t *testing.T) {
-	clock := tsutil.NewClock()
+	clock := tsutil.NewTestClock()
 	fi := testFire(t, clock)
 
 	err := fi.Set(context.TODO(), "/test/a", []byte{0x01})
@@ -60,14 +60,14 @@ func TestFireCreatedAt(t *testing.T) {
 	require.Equal(t, "2009-02-13T23:31:30.001Z", ftime)
 }
 
-func testUserStore(t *testing.T, ds docs.Documents, req request.Requestor, clock *tsutil.Clock) *user.Store {
+func testUserStore(t *testing.T, ds docs.Documents, req request.Requestor, clock tsutil.Clock) *user.Store {
 	us, err := user.NewStore(ds, keys.NewSigchainStore(ds), req, clock.Now)
 	require.NoError(t, err)
 	return us
 }
 
 type env struct {
-	clock    *tsutil.Clock
+	clock    tsutil.Clock
 	fi       server.Fire
 	pubSub   server.PubSub
 	users    *user.Store
@@ -76,12 +76,12 @@ type env struct {
 }
 
 func newEnv(t *testing.T) *env {
-	clock := tsutil.NewClock()
+	clock := tsutil.NewTestClock()
 	fi := testFire(t, clock)
 	return newEnvWithFire(t, fi, clock)
 }
 
-func newEnvWithFire(t *testing.T, fi server.Fire, clock *tsutil.Clock) *env {
+func newEnvWithFire(t *testing.T, fi server.Fire, clock tsutil.Clock) *env {
 	req := request.NewMockRequestor()
 	pubSub := server.NewPubSub()
 	users := testUserStore(t, fi, req, clock)
@@ -151,7 +151,7 @@ func (s *testPubSubServer) Start() (close func()) {
 	}
 }
 
-func (s *testPubSubServer) WebsocketDial(t *testing.T, path string, clock *tsutil.Clock, key *keys.EdX25519Key) *websocket.Conn {
+func (s *testPubSubServer) WebsocketDial(t *testing.T, path string, clock tsutil.Clock, key *keys.EdX25519Key) *websocket.Conn {
 	var wsAddr string
 	header := http.Header{}
 
