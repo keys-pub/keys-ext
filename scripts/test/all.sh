@@ -21,4 +21,6 @@ export KEYS="keys -app Test"
 ./sign.sh
 ./import.sh
 
+echo "Success!"
+
 # TODO: Add to CI
