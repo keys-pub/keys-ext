@@ -3,8 +3,8 @@ module github.com/keys-pub/keys-ext/wormhole
 go 1.14
 
 require (
-	github.com/keys-pub/keys v0.0.0-20200704210752-498c4412af12
-	github.com/keys-pub/keys-ext/http/api v0.0.0-20200704211016-ce8ce10a1087
+	github.com/keys-pub/keys v0.1.2-0.20200718011252-5bff924a7b82
+	github.com/keys-pub/keys-ext/http/api v0.0.0-20200718011453-c9ffd4a59862
 	github.com/keys-pub/keys-ext/http/client v0.0.0-20200704211703-900392aae3e8
 	github.com/keys-pub/keys-ext/http/server v0.0.0-20200704211557-17fe0a678475
 	github.com/pion/logging v0.2.2

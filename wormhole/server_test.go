@@ -15,7 +15,7 @@ import (
 )
 
 type env struct {
-	clock      *tsutil.Clock
+	clock      tsutil.Clock
 	httpServer *httptest.Server
 	srv        *server.Server
 	ds         docs.Documents
@@ -25,7 +25,7 @@ type env struct {
 }
 
 func testEnv(t *testing.T) *env {
-	clock := tsutil.NewClock()
+	clock := tsutil.NewTestClock()
 	fi := docs.NewMem()
 	fi.SetTimeNow(clock.Now)
 	ns := server.NewRedisTest(clock.Now)
@@ -47,7 +47,7 @@ func testEnv(t *testing.T) *env {
 	return &env{clock, httpServer, svr, fi, users, req, func() { httpServer.Close() }}
 }
 
-func testUserStore(t *testing.T, ds docs.Documents, req request.Requestor, clock *tsutil.Clock) *user.Store {
+func testUserStore(t *testing.T, ds docs.Documents, req request.Requestor, clock tsutil.Clock) *user.Store {
 	us, err := user.NewStore(ds, keys.NewSigchainStore(ds), req, clock.Now)
 	require.NoError(t, err)
 	return us
