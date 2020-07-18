@@ -39,7 +39,8 @@ jobs:
         uses: actions/setup-go@v2
       - name: Install dependencies
         run: |
-          BINDIR=$HOME curl -sfL https://install.goreleaser.com/github.com/goreleaser/goreleaser.sh | sh
+          export BINDIR=$HOME
+          curl -sfL https://install.goreleaser.com/github.com/goreleaser/goreleaser.sh | sh
       - name: Build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
