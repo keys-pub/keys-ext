@@ -27,7 +27,7 @@ func testDB(t *testing.T) (*sdb.DB, func()) {
 
 func testDBWithOpts(t *testing.T, path string, key sdb.SecretKey) (*sdb.DB, func()) {
 	db := sdb.New()
-	db.SetClock(tsutil.NewClock().Now)
+	db.SetClock(tsutil.NewTestClock().Now)
 	ctx := context.TODO()
 	err := db.OpenAtPath(ctx, path, key)
 	require.NoError(t, err)

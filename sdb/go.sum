@@ -52,6 +52,8 @@ github.com/keybase/saltpack v0.0.0-20200430135328-e19b1910c0c5 h1:X6nYzCVURqxDv0
 github.com/keybase/saltpack v0.0.0-20200430135328-e19b1910c0c5/go.mod h1:FNSq71OhXv/Z1W9M37nnHxJVhXitc03z6qshCbAten8=
 github.com/keys-pub/keys v0.0.0-20200704210752-498c4412af12 h1:m+4V7IZOp+alE/01SlxbcPqjtGrNycEEX/qfucAK110=
 github.com/keys-pub/keys v0.0.0-20200704210752-498c4412af12/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.1.2-0.20200718011252-5bff924a7b82 h1:5+LdrDQrJqSIpQrRbTz9hGaIDsa2WmTS9lgJu/SGWdc=
+github.com/keys-pub/keys v0.1.2-0.20200718011252-5bff924a7b82/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f h1:LLsdI2XManLH0JonKqB6OYmHdHk/WwJByDbHI3hCEcs=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f/go.mod h1:YRHMiVbZqh7u8xRm77CvwJNAZdDlNXwWvQ4DK0N9mYg=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
