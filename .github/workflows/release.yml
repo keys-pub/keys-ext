@@ -18,7 +18,7 @@ on:
             p12-password: ${{ secrets.CERTIFICATES_P12_PASSWORD }}
         - name: Build
           run: |
-            git tag -a ${GITHUB_REF##*/} ${GITHUB_REF##*/}
+            git tag -a ${GITHUB_REF##*/} -m ${GITHUB_REF##*/}
             cd service
             goreleaser
             cd ../auth/rpc/plugin
