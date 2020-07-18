@@ -13,7 +13,7 @@ import (
 func TestAuth(t *testing.T) {
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 
-	tm := tsutil.ParseMillis(123456789000)
+	tm := tsutil.ConvertMillis(123456789000)
 	nonce := keys.Bytes32(bytes.Repeat([]byte{0x01}, 32))
 	urs := "https://keys.pub/message?version=123456789001"
 	auth, err := newAuth("POST", urs, tm, nonce, alice)

@@ -169,11 +169,11 @@ func CheckAuthorization(ctx context.Context, method string, urs string, auth str
 	if ts == "" {
 		return nil, errors.Errorf("timestamp (ts) is missing")
 	}
-	i, err := strconv.Atoi(ts)
+	i, err := strconv.ParseInt(ts, 10, 64)
 	if err != nil {
 		return nil, err
 	}
-	tm := tsutil.ParseMillis(int64(i))
+	tm := tsutil.ConvertMillis(i)
 	td := now.Sub(tm)
 	if td < 0 {
 		td = td * -1
