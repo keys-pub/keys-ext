@@ -153,6 +153,41 @@ func (v *Vault) resetLog() error {
 	return nil
 }
 
+// CheckSync performs sync unless disabled or already synced in expire duration.
+func (v *Vault) CheckSync(ctx context.Context, expire time.Duration) (bool, error) {
+	// If auto sync disabled, skip...
+	disabled, err := v.autoSyncDisabled()
+	if err != nil {
+		return false, err
+	}
+	if disabled {
+		logger.Debugf("Auto sync disabled")
+		return false, nil
+	}
+	// If we've never synced before, skip...
+	last, err := v.lastSync()
+	if err != nil {
+		return false, err
+	}
+	if last.IsZero() {
+		logger.Debugf("Never synced")
+		return false, nil
+	}
+
+	diff := v.clock().Sub(last)
+	if diff >= 0 && diff < expire {
+		logger.Debugf("Already synced recently")
+		return false, nil
+	}
+
+	logger.Debugf("Last synced: %s", last)
+	if err := v.Sync(ctx); err != nil {
+		return true, err
+	}
+
+	return true, nil
+}
+
 func (v *Vault) pullIndex() (int64, error) {
 	return v.getInt64("/sync/pull")
 }

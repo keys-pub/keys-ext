@@ -56,8 +56,8 @@ func (v *Vault) Close() error {
 		v.auto.Stop()
 		v.auto = nil
 	}
-	// TODO: Auto sync could still be running when we close, this might be
-	//       ok, as it will error and eventually stop.
+	// TODO: Sync could still be running when we close, this might be
+	//       ok, since it will error and eventually stop?
 	if err := v.store.Close(); err != nil {
 		return errors.Wrapf(err, "failed to close vault")
 	}
@@ -163,8 +163,8 @@ func (v *Vault) addToPush(path string, b []byte) error {
 		v.auto = nil
 	}
 	v.auto = time.AfterFunc(time.Second*2, func() {
-		if _, err := v.AutoSync(context.TODO(), time.Duration(0)); err != nil {
-			logger.Errorf("Failed to auto sync: %v", err)
+		if _, err := v.CheckSync(context.TODO(), time.Duration(0)); err != nil {
+			logger.Errorf("Failed to check sync: %v", err)
 		}
 	})
 
