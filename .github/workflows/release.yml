@@ -19,6 +19,8 @@ jobs:
       - name: Install dependencies
         run: |
           brew install goreleaser
+          brew install pkg-config
+          brew install libfido2
       - name: Build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
