@@ -127,9 +127,12 @@ func (s *service) Unlock(ctx context.Context, key *[32]byte) error {
 		}
 	}
 
-	s.vault.CheckAutoSync(time.Duration(0), func() {
+	go func() {
+		if _, err := s.vault.CheckSync(context.Background(), time.Duration(0)); err != nil {
+			logger.Errorf("Failed to check sync: %v", err)
+		}
 		s.startUpdateCheck()
-	})
+	}()
 
 	return nil
 }

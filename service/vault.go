@@ -61,6 +61,25 @@ func (s *service) VaultUnsync(ctx context.Context, req *VaultUnsyncRequest) (*Va
 	return &VaultUnsyncResponse{}, nil
 }
 
+// VaultUpdate (RPC) ...
+func (s *service) VaultUpdate(ctx context.Context, req *VaultUpdateRequest) (*VaultUpdateResponse, error) {
+	if err := s.vaultUpdate(ctx, time.Duration(0)); err != nil {
+		return nil, err
+	}
+	return &VaultUpdateResponse{}, nil
+}
+
+func (s *service) vaultUpdate(ctx context.Context, expire time.Duration) error {
+	synced, err := s.vault.CheckSync(ctx, expire)
+	if err != nil {
+		return err
+	}
+	if synced {
+		return s.checkForKeyUpdates(ctx)
+	}
+	return nil
+}
+
 // VaultStatus (RPC) ...
 func (s *service) VaultStatus(ctx context.Context, req *VaultStatusRequest) (*VaultStatusResponse, error) {
 	status, err := s.vault.SyncStatus()

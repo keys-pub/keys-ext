@@ -19,9 +19,13 @@ func (s *service) RuntimeStatus(ctx context.Context, req *RuntimeStatusRequest) 
 		return nil, err
 	}
 
-	// Check vault auto sync if unlocked
+	// Check vault sync if unlocked
 	if status == vault.Unlocked {
-		s.vault.CheckAutoSync(time.Minute*5, nil)
+		go func() {
+			if err := s.vaultUpdate(context.Background(), time.Minute*5); err != nil {
+				logger.Errorf("Failed to check sync: %v", err)
+			}
+		}()
 	}
 
 	resp := RuntimeStatusResponse{
