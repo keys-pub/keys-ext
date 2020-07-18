@@ -135,10 +135,13 @@ func TestDocumentStore(t *testing.T) {
 
 	cols, err := ds.Collections(ctx, "")
 	require.NoError(t, err)
-	require.Equal(t, 3, len(cols))
-	require.Equal(t, "/msgs", cols[0].Path)
-	require.Equal(t, "/sigchain", cols[1].Path)
-	require.Equal(t, "/test", cols[2].Path)
+	expectedCols := []*docs.Collection{
+		&docs.Collection{Path: "/msgs"},
+		&docs.Collection{Path: "/sigchain"},
+		&docs.Collection{Path: "/test"},
+		&docs.Collection{Path: "/vaults-rm"},
+	}
+	require.Equal(t, expectedCols, cols)
 
 	_, err = ds.Collections(ctx, "/foo")
 	require.EqualError(t, err, "only root collections supported")
@@ -275,7 +278,7 @@ func TestMetadata(t *testing.T) {
 }
 
 func TestSigchains(t *testing.T) {
-	clock := tsutil.NewClock()
+	clock := tsutil.NewTestClock()
 	fs := testFirestore(t)
 	scs := keys.NewSigchainStore(fs)
 
