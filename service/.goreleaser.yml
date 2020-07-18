@@ -43,16 +43,3 @@ changelog:
   skip: true
 snapshot:
   name_template: "{{ .Tag }}-next"
-brews:
-  - name: "keys"
-    homepage: "https://keys.pub"
-    github:
-      owner: keys-pub
-      name: homebrew-tap
-scoop:
-  name: "keys"
-  homepage: "https://keys.pub"
-  license: MIT
-  bucket:
-    owner: keys-pub
-    name: scoop-bucket
