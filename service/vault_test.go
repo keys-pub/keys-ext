@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// func newTestVaultKey(t *testing.T, clock *tsutil.Clock) (*[32]byte, *vault.Provision) {
+// func newTestVaultKey(t *testing.T, clock tsutil.Clock) (*[32]byte, *vault.Provision) {
 // 	key := keys.Bytes32(bytes.Repeat([]byte{0xFF}, 32))
 // 	id := encoding.MustEncode(bytes.Repeat([]byte{0xFE}, 32), encoding.Base62)
 // 	provision := &vault.Provision{
@@ -24,7 +24,7 @@ func newTestVault(t *testing.T) *vault.Vault {
 	return vault.New(vault.NewMem())
 }
 
-// func newTestVaultUnlocked(t *testing.T, clock *tsutil.Clock) *vault.Vault {
+// func newTestVaultUnlocked(t *testing.T, clock tsutil.Clock) *vault.Vault {
 // 	vlt := newTestVault(t)
 // 	key, provision := newTestVaultKey(t, clock)
 // 	err := vlt.Setup(key, provision)

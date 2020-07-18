@@ -50,21 +50,21 @@ func writeTestFile(t *testing.T) string {
 	return inPath
 }
 
-func testFire(t *testing.T, clock *tsutil.Clock) server.Fire {
+func testFire(t *testing.T, clock tsutil.Clock) server.Fire {
 	fi := docs.NewMem()
 	fi.SetTimeNow(clock.Now)
 	return fi
 }
 
 type testEnv struct {
-	clock *tsutil.Clock
+	clock tsutil.Clock
 	fi    server.Fire
 	req   *request.MockRequestor
 	users *user.Store
 }
 
 func newTestEnv(t *testing.T) *testEnv {
-	clock := tsutil.NewClock()
+	clock := tsutil.NewTestClock()
 	fi := testFire(t, clock)
 	req := request.NewMockRequestor()
 	users := testUserStore(t, fi, keys.NewSigchainStore(fi), req, clock)
@@ -76,7 +76,7 @@ func newTestEnv(t *testing.T) *testEnv {
 	}
 }
 
-func testUserStore(t *testing.T, ds docs.Documents, scs keys.SigchainStore, req *request.MockRequestor, clock *tsutil.Clock) *user.Store {
+func testUserStore(t *testing.T, ds docs.Documents, scs keys.SigchainStore, req *request.MockRequestor, clock tsutil.Clock) *user.Store {
 	us, err := user.NewStore(ds, scs, req, clock.Now)
 	require.NoError(t, err)
 	return us

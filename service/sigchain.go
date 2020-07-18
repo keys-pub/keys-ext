@@ -34,7 +34,7 @@ func (s *service) Sigchain(ctx context.Context, req *SigchainRequest) (*Sigchain
 }
 
 func statementFromRPC(st *Statement) (*keys.Statement, error) {
-	ts := tsutil.ParseMillis(int64(st.Timestamp))
+	ts := tsutil.ConvertMillis(st.Timestamp)
 	kid, err := keys.ParseID(st.KID)
 	if err != nil {
 		return nil, err
@@ -63,7 +63,7 @@ func statementToRPC(st *keys.Statement) *Statement {
 		Seq:       int32(st.Seq),
 		Prev:      st.Prev,
 		Revoke:    int32(st.Revoke),
-		Timestamp: int64(tsutil.Millis(st.Timestamp)),
+		Timestamp: tsutil.Millis(st.Timestamp),
 		Type:      st.Type,
 	}
 }

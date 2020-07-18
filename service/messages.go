@@ -147,7 +147,7 @@ func (s *service) fillMessage(ctx context.Context, message *Message, t time.Time
 	}
 
 	message.Sender = key
-	message.CreatedAt = int64(tsutil.Millis(t))
+	message.CreatedAt = tsutil.Millis(t)
 	message.TimeDisplay = timeDisplay(t)
 	message.DateDisplay = dateDisplay(t)
 	return nil

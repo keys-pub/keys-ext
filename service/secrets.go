@@ -114,8 +114,8 @@ func secretToRPC(s *secret.Secret) *Secret {
 		Password:  s.Password,
 		URL:       s.URL,
 		Notes:     s.Notes,
-		CreatedAt: int64(tsutil.Millis(s.CreatedAt)),
-		UpdatedAt: int64(tsutil.Millis(s.UpdatedAt)),
+		CreatedAt: tsutil.Millis(s.CreatedAt),
+		UpdatedAt: tsutil.Millis(s.UpdatedAt),
 	}
 }
 
@@ -128,8 +128,8 @@ func secretFromRPC(s *Secret) *secret.Secret {
 		Password:  s.Password,
 		URL:       s.URL,
 		Notes:     s.Notes,
-		CreatedAt: tsutil.ParseMillis(int64(s.CreatedAt)),
-		UpdatedAt: tsutil.ParseMillis(int64(s.UpdatedAt)),
+		CreatedAt: tsutil.ConvertMillis(s.CreatedAt),
+		UpdatedAt: tsutil.ConvertMillis(s.UpdatedAt),
 	}
 }
 

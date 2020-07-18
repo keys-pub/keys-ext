@@ -170,6 +170,8 @@ github.com/keys-pub/keys v0.1.1 h1:/QeHlzl0fbXuBAnoVvZvSHyJCsRZQOYWbUbjulh/9yk=
 github.com/keys-pub/keys v0.1.1/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys v0.1.2-0.20200714015424-b54f7f572bd1 h1:AUm44Ls9aMLP0DVlDJldaGik1nStoxfUOSQSENVH85A=
 github.com/keys-pub/keys v0.1.2-0.20200714015424-b54f7f572bd1/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.1.2-0.20200718011252-5bff924a7b82 h1:5+LdrDQrJqSIpQrRbTz9hGaIDsa2WmTS9lgJu/SGWdc=
+github.com/keys-pub/keys v0.1.2-0.20200718011252-5bff924a7b82/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200613203701-f9bf15538783/go.mod h1:x/G3gwUe4ZbszY+qWXzvsy4nAun2b/ENISACWfwAB04=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200618211325-4c2d562cade7 h1:TuGKplA4KiBtjDBwa/Qi/H3Om0JhhK1cwSMD1917JsU=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200618211325-4c2d562cade7/go.mod h1:zCsXre409myb7Knish8aVBPYWSK96/KazhqYCumI+VA=
@@ -191,6 +193,8 @@ github.com/keys-pub/keys-ext/http/api v0.0.0-20200625223334-74da599991bf h1:6VC4
 github.com/keys-pub/keys-ext/http/api v0.0.0-20200625223334-74da599991bf/go.mod h1:/yla6VVEKR5DuP53vW2Dw5DSl8kzhqvEFxNiehJGWP0=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20200704211016-ce8ce10a1087 h1:nrJX/mKqwUpCJOmgoO4jlbHz5e0D3pyMyCtxIYa1igM=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20200704211016-ce8ce10a1087/go.mod h1:/IbO6GxDr8EaHopLJHdeWVeJFphXIuDoN7d6qYdUob4=
+github.com/keys-pub/keys-ext/http/api v0.0.0-20200718011453-c9ffd4a59862 h1:F6MaXEROLmfPJxV2UM8pOslSPaWjqjN5jyJxAO2KkLE=
+github.com/keys-pub/keys-ext/http/api v0.0.0-20200718011453-c9ffd4a59862/go.mod h1:XPOumqF8Z66cFg8Z+bWgiTW9a0BgDeEGyR5x+GbSh0s=
 github.com/keys-pub/keys-ext/http/client v0.0.0-20200618212256-3f2428c7a026 h1:vC6T13GhwIwRE62MC+BtQFt5jwRoRwE2b7FkvYzyQtk=
 github.com/keys-pub/keys-ext/http/client v0.0.0-20200618212256-3f2428c7a026/go.mod h1:kpWwsoEawAHdbv3ASiCLhzTlG2+xgjClKuyB8NBxt54=
 github.com/keys-pub/keys-ext/http/client v0.0.0-20200618212627-7af53dede812 h1:lfUX4+ADYnTZODU9OHTm+Afer5eJkfUcaflqwT0fhZg=
@@ -267,6 +271,8 @@ github.com/keys-pub/keys-ext/vault v0.0.0-20200717024519-2a5ab095f2f1 h1:XC/gc4b
 github.com/keys-pub/keys-ext/vault v0.0.0-20200717024519-2a5ab095f2f1/go.mod h1:smBYFIOs98LN353qsDqFFTgXqciYITIzrEobqQ2rm+g=
 github.com/keys-pub/keys-ext/vault v0.0.0-20200718001421-72005ae00680 h1:zs6v7/LOgcrCqkeYGLH2nuYVTVDQrzj0n012pkzdWuA=
 github.com/keys-pub/keys-ext/vault v0.0.0-20200718001421-72005ae00680/go.mod h1:smBYFIOs98LN353qsDqFFTgXqciYITIzrEobqQ2rm+g=
+github.com/keys-pub/keys-ext/vault v0.0.0-20200718012106-a75aa56f1e3a h1:jGeRgFkLmXcyfGt4MvC7sWAoaAXz9xxWgn/tBOZCw60=
+github.com/keys-pub/keys-ext/vault v0.0.0-20200718012106-a75aa56f1e3a/go.mod h1:xZzcrPEiaZwxp3/KqDTvTIpJt/9eoYsV1J8CIB/676s=
 github.com/keys-pub/keys-ext/wormhole v0.0.0-20200618212723-bf12ba4cbdc4 h1:/y0ZQlDp08ZtHG9VBY1U3E12+lA2HGWYL68OvYoyICU=
 github.com/keys-pub/keys-ext/wormhole v0.0.0-20200618212723-bf12ba4cbdc4/go.mod h1:K0B1oKj4P8UrjMO2bJ4Cp/bxztz5fT6TCXqdYuWEkT0=
 github.com/keys-pub/keys-ext/wormhole v0.0.0-20200624011543-a01a0028982e h1:nSIkQF8qVQFFLrVGNyTS1AlJxQE2eXm32Rr0hC3Wsog=

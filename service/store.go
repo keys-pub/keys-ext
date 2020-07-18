@@ -70,8 +70,8 @@ func (s *service) Documents(ctx context.Context, req *DocumentsRequest) (*Docume
 		out = append(out, &Document{
 			Path:      doc.Path,
 			Value:     val,
-			CreatedAt: int64(tsutil.Millis(doc.CreatedAt)),
-			UpdatedAt: int64(tsutil.Millis(doc.UpdatedAt)),
+			CreatedAt: tsutil.Millis(doc.CreatedAt),
+			UpdatedAt: tsutil.Millis(doc.UpdatedAt),
 		})
 	}
 	return &DocumentsResponse{

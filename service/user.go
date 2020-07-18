@@ -244,8 +244,8 @@ func userResultToRPC(result *user.Result) *User {
 		Name:       result.User.Name,
 		URL:        result.User.URL,
 		Status:     userStatus(result.Status),
-		VerifiedAt: int64(result.VerifiedAt),
-		Timestamp:  int64(result.Timestamp),
+		VerifiedAt: result.VerifiedAt,
+		Timestamp:  result.Timestamp,
 		Err:        result.Err,
 	}
 }
@@ -270,8 +270,8 @@ func apiUserToRPC(user *api.User) *User {
 		Name:       user.Name,
 		URL:        user.URL,
 		Status:     userStatus(user.Status),
-		VerifiedAt: int64(user.VerifiedAt),
-		Timestamp:  int64(user.Timestamp),
+		VerifiedAt: user.VerifiedAt,
+		Timestamp:  user.Timestamp,
 		Err:        user.Err,
 	}
 }
