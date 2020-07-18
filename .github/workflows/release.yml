@@ -30,3 +30,24 @@ jobs:
           goreleaser
           cd ../auth/rpc/plugin
           goreleaser
+  release-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Install Go
+        uses: actions/setup-go@v2
+      - name: Install dependencies
+        run: |
+          curl -sfL https://install.goreleaser.com/github.com/goreleaser/goreleaser.sh
+      - name: Build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global user.email "keys.pub"
+          git config --global user.name "keys.pub"
+          git tag -a ${GITHUB_REF##*/} -m ${GITHUB_REF##*/}
+          cd service
+          goreleaser --config=.goreleaser.linux.yml
+          cd ../auth/rpc/plugin
+          goreleaser --config=.goreleaser.linux.yml
