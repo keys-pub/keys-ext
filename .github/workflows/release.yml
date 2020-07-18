@@ -50,6 +50,6 @@ jobs:
           git config --global user.name "keys.pub"
           git tag -a ${GITHUB_REF##*/} -m ${GITHUB_REF##*/}
           cd service
-          ~/bin/goreleaser --config=.goreleaser.linux.yml
+          ./bin/goreleaser --config=.goreleaser.linux.yml
           cd ../auth/rpc/plugin
-          ~/bin/goreleaser --config=.goreleaser.linux.yml
+          ./bin/goreleaser --config=.goreleaser.linux.yml
