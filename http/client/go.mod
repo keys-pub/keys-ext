@@ -3,7 +3,7 @@ module github.com/keys-pub/keys-ext/http/client
 go 1.14
 
 require (
-	github.com/keys-pub/keys v0.1.2-0.20200720190123-59e415d170b7
+	github.com/keys-pub/keys v0.1.2-0.20200720205518-cd96578c836c
 	github.com/keys-pub/keys-ext/http/api v0.0.0-20200720192509-db9723318640
 	github.com/keys-pub/keys-ext/http/server v0.0.0-20200720192738-5f31fdd89b88
 	github.com/pkg/errors v0.9.1

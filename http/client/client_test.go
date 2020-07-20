@@ -59,7 +59,7 @@ func testClient(t *testing.T, env *env) *client.Client {
 }
 
 func testUserStore(t *testing.T, ds docs.Documents, req request.Requestor, clock tsutil.Clock) *user.Store {
-	us, err := user.NewStore(ds, keys.NewSigchainStore(ds), req, clock.Now)
+	us, err := user.NewStore(ds, keys.NewSigchainStore(ds), req, clock)
 	require.NoError(t, err)
 	return us
 }
