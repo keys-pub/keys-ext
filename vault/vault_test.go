@@ -71,7 +71,7 @@ func newTestEnv(t *testing.T, logger server.Logger) *testEnv {
 	}
 	clock := tsutil.NewTestClock()
 	fi := docs.NewMem()
-	fi.SetTimeNow(clock.Now)
+	fi.SetClock(clock)
 
 	rds := server.NewRedisTest(clock.Now)
 	srv := server.New(fi, rds, nil, logger)
@@ -95,7 +95,7 @@ func testClient(t *testing.T, env *testEnv) *client.Client {
 	cl, err := client.New(env.httpServer.URL)
 	require.NoError(t, err)
 	cl.SetHTTPClient(env.httpServer.Client())
-	cl.SetClock(env.clock.Now)
+	cl.SetClock(env.clock)
 	return cl
 }
 

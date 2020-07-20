@@ -12,6 +12,7 @@ import (
 	"github.com/keys-pub/keys"
 	httpclient "github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys/docs"
+	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
 	"github.com/vmihailenco/msgpack/v4"
 )
@@ -22,7 +23,7 @@ type Vault struct {
 
 	store  Store
 	client *httpclient.Client
-	clock  func() time.Time
+	clock  tsutil.Clock
 
 	mk     *[32]byte
 	remote *Remote

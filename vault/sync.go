@@ -174,7 +174,7 @@ func (v *Vault) CheckSync(ctx context.Context, expire time.Duration) (bool, erro
 		return false, nil
 	}
 
-	diff := v.clock().Sub(last)
+	diff := v.clock.Now().Sub(last)
 	if diff >= 0 && diff < expire {
 		logger.Debugf("Already synced recently")
 		return false, nil

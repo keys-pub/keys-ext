@@ -1,14 +1,13 @@
 package vault
 
 import (
-	"time"
-
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/tsutil"
 )
 
 // Options for Vault.
 type Options struct {
-	Clock func() time.Time
+	Clock tsutil.Clock
 }
 
 // Option for Vault.
@@ -16,7 +15,7 @@ type Option func(*Options)
 
 func newOptions(opts ...Option) Options {
 	options := Options{
-		Clock: time.Now,
+		Clock: tsutil.NewClock(),
 	}
 	for _, o := range opts {
 		o(&options)
@@ -25,7 +24,7 @@ func newOptions(opts ...Option) Options {
 }
 
 // WithClock ...
-func WithClock(clock func() time.Time) Option {
+func WithClock(clock tsutil.Clock) Option {
 	return func(o *Options) {
 		o.Clock = clock
 	}

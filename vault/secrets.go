@@ -28,14 +28,14 @@ func (v *Vault) SaveSecret(secret *secret.Secret) (*secret.Secret, bool, error) 
 
 	updated := false
 	if item != nil {
-		secret.UpdatedAt = v.clock()
+		secret.UpdatedAt = v.clock.Now()
 		item.Data = marshalSecret(secret)
 		if err := v.Set(item); err != nil {
 			return nil, false, err
 		}
 		updated = true
 	} else {
-		now := v.clock()
+		now := v.clock.Now()
 		secret.CreatedAt = now
 		secret.UpdatedAt = now
 
