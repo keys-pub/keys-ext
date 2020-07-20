@@ -27,7 +27,7 @@ type env struct {
 func testEnv(t *testing.T) *env {
 	clock := tsutil.NewTestClock()
 	fi := docs.NewMem()
-	fi.SetTimeNow(clock.Now)
+	fi.SetClock(clock)
 	ns := server.NewRedisTest(clock.Now)
 	req := request.NewMockRequestor()
 	users := testUserStore(t, fi, req, clock)

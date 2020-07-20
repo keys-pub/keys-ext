@@ -58,7 +58,7 @@ func testWormhole(t *testing.T, env *env, local bool, alice *keys.EdX25519Key, b
 	wha, err := wormhole.New(server, vlta)
 	require.NoError(t, err)
 	defer wha.Close()
-	wha.SetClock(env.clock.Now)
+	wha.SetClock(env.clock)
 	wha.OnStatus(func(st wormhole.Status) {
 		switch st {
 		case wormhole.Connected:
@@ -91,7 +91,7 @@ func testWormhole(t *testing.T, env *env, local bool, alice *keys.EdX25519Key, b
 	whb, err := wormhole.New(server, vltb)
 	require.NoError(t, err)
 	defer whb.Close()
-	whb.SetClock(env.clock.Now)
+	whb.SetClock(env.clock)
 	whb.OnStatus(func(st wormhole.Status) {
 		switch st {
 		case wormhole.Connected:
@@ -182,7 +182,7 @@ func testWormholeCancel(t *testing.T, env *env, dt time.Duration) {
 	wha, err := wormhole.New(server, vlta)
 	require.NoError(t, err)
 	defer wha.Close()
-	wha.SetClock(env.clock.Now)
+	wha.SetClock(env.clock)
 	ctx, cancel := context.WithTimeout(context.Background(), dt)
 	defer cancel()
 
@@ -210,12 +210,12 @@ func TestWormholeNoRecipient(t *testing.T) {
 	wha, err := wormhole.New(server, vlta)
 	require.NoError(t, err)
 	defer wha.Close()
-	wha.SetClock(env.clock.Now)
+	wha.SetClock(env.clock)
 
 	whb, err := wormhole.New(server, vltb)
 	require.NoError(t, err)
 	defer wha.Close()
-	whb.SetClock(env.clock.Now)
+	whb.SetClock(env.clock)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()

@@ -13,6 +13,7 @@ import (
 	"github.com/keys-pub/keys-ext/wormhole/sctp"
 	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/noise"
+	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
 )
 
@@ -126,7 +127,7 @@ func (w *Wormhole) Close() {
 }
 
 // SetClock sets wormhole clock.
-func (w *Wormhole) SetClock(clock func() time.Time) {
+func (w *Wormhole) SetClock(clock tsutil.Clock) {
 	w.hcl.SetClock(clock)
 }
 
