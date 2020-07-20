@@ -8,6 +8,7 @@ import (
 	"github.com/keys-pub/keys/docs"
 	"github.com/keys-pub/keys/docs/events"
 	"github.com/keys-pub/keys/encoding"
+	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
 	"google.golang.org/api/iterator"
 )
@@ -55,7 +56,7 @@ func (f *Firestore) EventsAdd(ctx context.Context, path string, data [][]byte) (
 		return nil, err
 	}
 	for i, event := range out {
-		event.Timestamp = res[i].UpdateTime
+		event.Timestamp = tsutil.Millis(res[i].UpdateTime)
 	}
 
 	return out, nil

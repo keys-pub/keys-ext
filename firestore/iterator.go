@@ -6,6 +6,7 @@ import (
 	"cloud.google.com/go/firestore"
 	"github.com/keys-pub/keys/docs"
 	"github.com/keys-pub/keys/docs/events"
+	"github.com/keys-pub/keys/tsutil"
 	"google.golang.org/api/iterator"
 )
 
@@ -80,7 +81,7 @@ func (i *eventIterator) Next() (*events.Event, error) {
 	if err := doc.DataTo(&event); err != nil {
 		return nil, err
 	}
-	event.Timestamp = doc.CreateTime
+	event.Timestamp = tsutil.Millis(doc.CreateTime)
 	i.count++
 	return &event, nil
 

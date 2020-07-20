@@ -30,7 +30,7 @@ func TestFirestoreEvents(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 40, len(out))
 	for i, event := range out {
-		require.False(t, event.Timestamp.IsZero())
+		require.NotEmpty(t, event.Timestamp)
 		require.Equal(t, int64(i+1), event.Index)
 	}
 
@@ -45,7 +45,7 @@ func TestFirestoreEvents(t *testing.T) {
 		if event == nil {
 			break
 		}
-		require.False(t, event.Timestamp.IsZero())
+		require.NotEmpty(t, event.Timestamp)
 		require.Equal(t, int64(i+1), event.Index)
 		eventsValues = append(eventsValues, string(event.Data))
 		index = event.Index
