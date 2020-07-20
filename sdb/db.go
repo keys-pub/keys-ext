@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"io"
 	"sync"
-	"time"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/keys-pub/keys/docs"
+	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
@@ -25,19 +25,19 @@ type DB struct {
 	rwmtx *sync.RWMutex
 	sdb   *sdb
 	path  string
-	clock func() time.Time
+	clock tsutil.Clock
 }
 
 // New creates a DB.
 func New() *DB {
 	return &DB{
 		rwmtx: &sync.RWMutex{},
-		clock: time.Now,
+		clock: tsutil.NewClock(),
 	}
 }
 
 // SetClock sets clock.
-func (d *DB) SetClock(clock func() time.Time) {
+func (d *DB) SetClock(clock tsutil.Clock) {
 	d.clock = clock
 }
 
@@ -102,7 +102,7 @@ func (d *DB) Create(ctx context.Context, path string, b []byte) error {
 		return docs.NewErrPathExists(path)
 	}
 
-	now := d.clock()
+	now := d.clock.Now()
 	doc := &docs.Document{
 		Path:      path,
 		Data:      b,
@@ -141,7 +141,7 @@ func (d *DB) set(ctx context.Context, path string, b []byte) error {
 	if err != nil {
 		return err
 	}
-	now := d.clock()
+	now := d.clock.Now()
 	if doc == nil {
 		doc = &docs.Document{
 			Path:      path,
