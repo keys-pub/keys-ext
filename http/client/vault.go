@@ -28,7 +28,7 @@ func (c *Client) VaultSend(ctx context.Context, key *keys.EdX25519Key, events []
 
 	out := []*api.Data{}
 	for _, event := range events {
-		if !event.Timestamp.IsZero() {
+		if event.Timestamp != 0 {
 			return errors.Errorf("timestamp shouldn't be set for vault send")
 		}
 		if bytes.Equal(event.Nonce, []byte{}) {
@@ -111,7 +111,7 @@ func (c *Client) Vault(ctx context.Context, key *keys.EdX25519Key, opt ...VaultO
 		return nil, nil
 	}
 
-	var resp api.EventsResponse
+	var resp api.VaultResponse
 	if err := json.Unmarshal(doc.Data, &resp); err != nil {
 		return nil, err
 	}
@@ -119,9 +119,9 @@ func (c *Client) Vault(ctx context.Context, key *keys.EdX25519Key, opt ...VaultO
 	return vaultDecryptResponse(&resp, key)
 }
 
-func vaultDecryptResponse(resp *api.EventsResponse, key *keys.EdX25519Key) (*Vault, error) {
-	out := make([]*Event, 0, len(resp.Events))
-	for _, revent := range resp.Events {
+func vaultDecryptResponse(resp *api.VaultResponse, key *keys.EdX25519Key) (*Vault, error) {
+	out := make([]*Event, 0, len(resp.Vault))
+	for _, revent := range resp.Vault {
 		decrypted, err := vaultDecrypt(revent.Data, key)
 		if err != nil {
 			return nil, err

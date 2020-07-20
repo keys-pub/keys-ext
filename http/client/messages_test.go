@@ -8,7 +8,6 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys/docs/events"
-	"github.com/keys-pub/keys/tsutil"
 	"github.com/stretchr/testify/require"
 )
 
@@ -48,7 +47,7 @@ func TestMessages(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, msg2.Data, out2.Data)
 	require.Equal(t, bob.ID(), pk2)
-	require.Equal(t, int64(1234567890004), tsutil.Millis(msgs[0].Timestamp))
+	require.Equal(t, int64(1234567890004), msgs[0].Timestamp)
 
 	// MessageSend #3
 	msg3 := client.NewEvent("/msgs/3", []byte("3pm"), msg2)

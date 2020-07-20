@@ -81,12 +81,12 @@ func (c *Client) Messages(ctx context.Context, key *keys.EdX25519Key, from keys.
 		return nil, 0, nil
 	}
 
-	var resp api.EventsResponse
+	var resp api.MessagesResponse
 	if err := json.Unmarshal(doc.Data, &resp); err != nil {
 		return nil, 0, err
 	}
 
-	return resp.Events, resp.Index, nil
+	return resp.Messages, resp.Index, nil
 }
 
 // MessageDecrypt decrypts a remote Event from Messages.

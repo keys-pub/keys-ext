@@ -24,7 +24,7 @@ import (
 type Client struct {
 	url        *url.URL
 	httpClient *http.Client
-	clock      func() time.Time
+	clock      tsutil.Clock
 }
 
 // New creates a Client for an HTTP API.
@@ -37,7 +37,7 @@ func New(urs string) (*Client, error) {
 	return &Client{
 		url:        urp,
 		httpClient: defaultHTTPClient(),
-		clock:      time.Now,
+		clock:      tsutil.NewClock(),
 	}, nil
 }
 
@@ -76,7 +76,7 @@ func (c *Client) URL() *url.URL {
 }
 
 // SetClock sets the clock Now fn.
-func (c *Client) SetClock(clock func() time.Time) {
+func (c *Client) SetClock(clock tsutil.Clock) {
 	c.clock = clock
 }
 
@@ -131,7 +131,7 @@ func (c *Client) req(ctx context.Context, method string, path string, params url
 
 	var req *http.Request
 	if key != nil {
-		r, err := api.NewRequestWithContext(ctx, method, urs, body, c.clock(), key)
+		r, err := api.NewRequestWithContext(ctx, method, urs, body, c.clock.Now(), key)
 		if err != nil {
 			return nil, err
 		}

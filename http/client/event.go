@@ -2,7 +2,6 @@ package client
 
 import (
 	"crypto/sha256"
-	"time"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/docs"
@@ -26,7 +25,7 @@ type Event struct {
 	// Index is set by clients from remote events API (untrusted).
 	Index int64 `msgpack:"idx,omitempty"`
 	// Timestamp is set by clients from the remote events API (untrusted).
-	Timestamp time.Time `msgpack:"ts,omitempty"`
+	Timestamp int64 `msgpack:"ts,omitempty"`
 }
 
 // NewEvent creates a new event.
