@@ -10,6 +10,7 @@ import (
 	"github.com/keys-pub/keys-ext/sdb"
 	"github.com/keys-pub/keys-ext/vault"
 	"github.com/keys-pub/keys/request"
+	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keys/user"
 )
 
@@ -21,7 +22,7 @@ type service struct {
 	client *httpclient.Client
 	scs    keys.SigchainStore
 	users  *user.Store
-	clock  func() time.Time
+	clock  tsutil.Clock
 	vault  *vault.Vault
 
 	stopCh    chan bool
@@ -34,7 +35,7 @@ const vdbFilename = "vault.vdb"
 
 // TODO: Remove old db "keys.leveldb"
 
-func newService(cfg *Config, build Build, auth *auth, req request.Requestor, clock func() time.Time) (*service, error) {
+func newService(cfg *Config, build Build, auth *auth, req request.Requestor, clock tsutil.Clock) (*service, error) {
 	client, err := httpclient.New(cfg.Server())
 	if err != nil {
 		return nil, err

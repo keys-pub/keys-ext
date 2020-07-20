@@ -130,7 +130,7 @@ func (s *service) StatementCreate(ctx context.Context, req *StatementCreateReque
 	if err != nil {
 		return nil, err
 	}
-	st, err := keys.NewSigchainStatement(sc, req.Data, key, "", s.clock())
+	st, err := keys.NewSigchainStatement(sc, req.Data, key, "", s.clock.Now())
 	if err != nil {
 		return nil, err
 	}

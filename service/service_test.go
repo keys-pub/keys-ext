@@ -52,7 +52,7 @@ func writeTestFile(t *testing.T) string {
 
 func testFire(t *testing.T, clock tsutil.Clock) server.Fire {
 	fi := docs.NewMem()
-	fi.SetTimeNow(clock.Now)
+	fi.SetClock(clock)
 	return fi
 }
 
@@ -77,7 +77,7 @@ func newTestEnv(t *testing.T) *testEnv {
 }
 
 func testUserStore(t *testing.T, ds docs.Documents, scs keys.SigchainStore, req *request.MockRequestor, clock tsutil.Clock) *user.Store {
-	us, err := user.NewStore(ds, scs, req, clock.Now)
+	us, err := user.NewStore(ds, scs, req, clock)
 	require.NoError(t, err)
 	return us
 }
@@ -91,7 +91,7 @@ func newTestServiceWithOpts(t *testing.T, env *testEnv, appName string) (*servic
 	cfg, closeCfg := testConfig(t, appName, serverEnv.url)
 	auth := newAuth(cfg)
 
-	svc, err := newService(cfg, Build{Version: "1.2.3", Commit: "deadbeef"}, auth, env.req, env.clock.Now)
+	svc, err := newService(cfg, Build{Version: "1.2.3", Commit: "deadbeef"}, auth, env.req, env.clock)
 	require.NoError(t, err)
 
 	err = svc.Open()

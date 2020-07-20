@@ -11,7 +11,6 @@ import (
 	"runtime"
 	"runtime/debug"
 	"strconv"
-	"time"
 
 	middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
@@ -24,6 +23,7 @@ import (
 	"github.com/keys-pub/keys/link"
 	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/saltpack"
+	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keys/user"
 	"github.com/mercari/go-grpc-interceptor/panichandler"
 	"github.com/pkg/errors"
@@ -35,7 +35,7 @@ import (
 
 func newProtoService(cfg *Config, build Build, auth *auth) (*service, error) {
 	req := request.NewHTTPRequestor()
-	srv, err := newService(cfg, build, auth, req, time.Now)
+	srv, err := newService(cfg, build, auth, req, tsutil.NewClock())
 	if err != nil {
 		return nil, err
 	}

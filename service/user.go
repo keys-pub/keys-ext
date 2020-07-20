@@ -171,7 +171,7 @@ func (s *service) sigchainUserAdd(ctx context.Context, key *keys.EdX25519Key, se
 		return nil, nil, errors.Errorf("user check failed: %s", userResult.Err)
 	}
 
-	st, err := user.NewSigchainStatement(sc, usr, key, s.clock())
+	st, err := user.NewSigchainStatement(sc, usr, key, s.clock.Now())
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "failed to generate user statement")
 	}
@@ -410,7 +410,7 @@ func (s *service) ensureVerifiedResult(ctx context.Context, res *user.Result) er
 	}
 
 	// Verified recently
-	if !res.IsVerifyExpired(s.clock(), userVerifiedExpire) {
+	if !res.IsVerifyExpired(s.clock.Now(), userVerifiedExpire) {
 		return nil
 	}
 
@@ -456,7 +456,7 @@ func (s *service) checkForKeyUpdate(ctx context.Context, kid keys.ID, updateIfMi
 	}
 
 	// If not OK, check every "userCheckFailureExpire", otherwise check every "userCheckExpire"
-	now := s.clock()
+	now := s.clock.Now()
 	if (res.Status != user.StatusOK && res.IsTimestampExpired(now, userCheckFailureExpire)) ||
 		res.IsTimestampExpired(now, userCheckExpire) {
 		if _, _, err := s.update(ctx, kid); err != nil {
