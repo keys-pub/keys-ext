@@ -70,14 +70,18 @@ func (s *Server) listVault(c echo.Context) error {
 	}
 
 	cpath := docs.Path("vaults", kid)
-	resp, err := s.events(c, cpath)
+	eresp, err := s.events(c, cpath)
 	if err != nil {
 		return err
 	}
-	if len(resp.Events) == 0 && resp.Index == 0 {
+	if len(eresp.Events) == 0 && eresp.Index == 0 {
 		return ErrNotFound(c, errVaultNotFound)
 	}
 
+	resp := &api.VaultResponse{
+		Vault: eresp.Events,
+		Index: eresp.Index,
+	}
 	return JSON(c, http.StatusOK, resp)
 }
 

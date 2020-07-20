@@ -35,7 +35,7 @@ func testMessages(t *testing.T, env *env, alice *keys.EdX25519Key, charlie *keys
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, `{"events":[],"idx":0}`, body)
+	require.Equal(t, `{"msgs":[],"idx":0}`, body)
 
 	// POST /msgs/:kid/:rid (no body)
 	req, err = api.NewRequest("POST", docs.Path("msgs", alice.ID(), charlie.ID()), nil, clock.Now(), alice)
@@ -64,12 +64,12 @@ func testMessages(t *testing.T, env *env, alice *keys.EdX25519Key, charlie *keys
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	var resp api.EventsResponse
+	var resp api.MessagesResponse
 	err = json.Unmarshal([]byte(body), &resp)
 	require.NoError(t, err)
 	require.Equal(t, int64(1), resp.Index)
-	require.Equal(t, 1, len(resp.Events))
-	require.Equal(t, []byte("test1"), resp.Events[0].Data)
+	require.Equal(t, 1, len(resp.Messages))
+	require.Equal(t, []byte("test1"), resp.Messages[0].Data)
 
 	// GET /msgs/:kid/:rid (charlie)
 	req, err = api.NewRequest("GET", docs.Path("msgs", charlie.ID(), alice.ID()), nil, clock.Now(), charlie)
@@ -77,22 +77,22 @@ func testMessages(t *testing.T, env *env, alice *keys.EdX25519Key, charlie *keys
 	code, _, body = srv.Serve(req)
 	// t.Logf("body: %s", body)
 	require.Equal(t, http.StatusOK, code)
-	var charlieResp api.EventsResponse
+	var charlieResp api.MessagesResponse
 	err = json.Unmarshal([]byte(body), &charlieResp)
 	require.NoError(t, err)
 	require.Equal(t, int64(1), charlieResp.Index)
-	require.Equal(t, 1, len(charlieResp.Events))
-	require.Equal(t, []byte("test1"), charlieResp.Events[0].Data)
+	require.Equal(t, 1, len(charlieResp.Messages))
+	require.Equal(t, []byte("test1"), charlieResp.Messages[0].Data)
 
 	// GET /msgs/:kid/:rid?idx=next
 	req, err = api.NewRequest("GET", docs.Path("msgs", alice.ID(), charlie.ID())+"?idx="+strconv.Itoa(int(charlieResp.Index)), nil, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	var resp2 api.EventsResponse
+	var resp2 api.MessagesResponse
 	err = json.Unmarshal([]byte(body), &resp2)
 	require.NoError(t, err)
-	require.Equal(t, 0, len(resp2.Events))
+	require.Equal(t, 0, len(resp2.Messages))
 	require.Equal(t, charlieResp.Index, resp2.Index)
 
 	// POST /msgs/:kid/:rid
@@ -110,38 +110,38 @@ func testMessages(t *testing.T, env *env, alice *keys.EdX25519Key, charlie *keys
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	var resp3 api.EventsResponse
+	var resp3 api.MessagesResponse
 	err = json.Unmarshal([]byte(body), &resp3)
 	require.NoError(t, err)
-	require.Equal(t, 3, len(resp3.Events))
-	require.Equal(t, []byte("test1"), resp3.Events[0].Data)
-	require.Equal(t, []byte("test2"), resp3.Events[1].Data)
-	require.Equal(t, []byte("test3"), resp3.Events[2].Data)
+	require.Equal(t, 3, len(resp3.Messages))
+	require.Equal(t, []byte("test1"), resp3.Messages[0].Data)
+	require.Equal(t, []byte("test2"), resp3.Messages[1].Data)
+	require.Equal(t, []byte("test3"), resp3.Messages[2].Data)
 
 	// GET /msgs/:kid/:rid (charlie)
 	req, err = api.NewRequest("GET", docs.Path("msgs", charlie.ID(), alice.ID()), nil, clock.Now(), charlie)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	var charlieResp2 api.EventsResponse
+	var charlieResp2 api.MessagesResponse
 	err = json.Unmarshal([]byte(body), &charlieResp2)
 	require.NoError(t, err)
-	require.Equal(t, 3, len(charlieResp2.Events))
-	require.Equal(t, []byte("test1"), charlieResp2.Events[0].Data)
-	require.Equal(t, []byte("test2"), charlieResp2.Events[1].Data)
-	require.Equal(t, []byte("test3"), charlieResp2.Events[2].Data)
+	require.Equal(t, 3, len(charlieResp2.Messages))
+	require.Equal(t, []byte("test1"), charlieResp2.Messages[0].Data)
+	require.Equal(t, []byte("test2"), charlieResp2.Messages[1].Data)
+	require.Equal(t, []byte("test3"), charlieResp2.Messages[2].Data)
 
 	// GET /msgs/:kid/:rid (descending, limit=2)
 	req, err = api.NewRequest("GET", docs.Path("msgs", alice.ID(), charlie.ID())+"?dir=desc&limit=2", nil, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	var resp4 api.EventsResponse
+	var resp4 api.MessagesResponse
 	err = json.Unmarshal([]byte(body), &resp4)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(resp4.Events))
-	require.Equal(t, []byte("test3"), resp4.Events[0].Data)
-	require.Equal(t, []byte("test2"), resp4.Events[1].Data)
+	require.Equal(t, 2, len(resp4.Messages))
+	require.Equal(t, []byte("test3"), resp4.Messages[0].Data)
+	require.Equal(t, []byte("test2"), resp4.Messages[1].Data)
 
 	// POST /msgs/:kid/:rid (self)
 	req, err = api.NewRequest("POST", docs.Path("msgs", alice.ID(), alice.ID()), bytes.NewReader([]byte("hi")), clock.Now(), alice)
@@ -187,7 +187,7 @@ func TestMessagesAuth(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, `{"events":[],"idx":0}`, body)
+	require.Equal(t, `{"msgs":[],"idx":0}`, body)
 
 	// Replay last request
 	reqReplay, err := http.NewRequest("GET", req.URL.String(), nil)

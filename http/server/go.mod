@@ -4,14 +4,12 @@ go 1.14
 
 require (
 	github.com/gorilla/websocket v1.4.2
-	github.com/keys-pub/keys v0.1.2-0.20200718011252-5bff924a7b82
-	github.com/keys-pub/keys-ext/firestore v0.0.0-20200716020220-b9d81f33ff8c
-	github.com/keys-pub/keys-ext/http/api v0.0.0-20200718011453-c9ffd4a59862
+	github.com/keys-pub/keys v0.1.2-0.20200720190123-59e415d170b7
+	github.com/keys-pub/keys-ext/firestore v0.0.0-20200720191317-d8df837b3bb1
+	github.com/keys-pub/keys-ext/http/api v0.0.0-20200720192509-db9723318640
 	github.com/labstack/echo/v4 v4.1.16
 	github.com/pkg/errors v0.9.1
-	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.5.1
-	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 // indirect
 	golang.org/x/net v0.0.0-20200602114024-627f9648deb9 // indirect
 	golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae // indirect

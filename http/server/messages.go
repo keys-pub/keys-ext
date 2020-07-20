@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/docs"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
@@ -113,9 +114,14 @@ func (s *Server) listMessages(c echo.Context) error {
 		path = docs.Path("msgs", kid)
 	}
 
-	resp, respErr := s.events(c, path)
+	eresp, respErr := s.events(c, path)
 	if respErr != nil {
 		return respErr
+	}
+
+	resp := &api.MessagesResponse{
+		Messages: eresp.Events,
+		Index:    eresp.Index,
 	}
 
 	return JSON(c, http.StatusOK, resp)

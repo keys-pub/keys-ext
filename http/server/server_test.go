@@ -39,7 +39,7 @@ type testServer struct {
 
 func testFire(t *testing.T, clock tsutil.Clock) server.Fire {
 	fi := docs.NewMem()
-	fi.SetTimeNow(clock.Now)
+	fi.SetClock(clock)
 	return fi
 }
 
