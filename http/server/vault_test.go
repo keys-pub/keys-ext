@@ -11,7 +11,6 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/docs"
-	"github.com/keys-pub/keys/encoding"
 	"github.com/stretchr/testify/require"
 )
 
@@ -50,7 +49,7 @@ func testVault(t *testing.T, env *env, alice *keys.EdX25519Key) {
 	}
 	data, err := json.Marshal(vault)
 	require.NoError(t, err)
-	contentHash := encoding.EncodeBase64(keys.SHA256(data))
+	contentHash := api.ContentHash(data)
 	req, err = api.NewRequest("POST", docs.Path("vault", alice.ID()), bytes.NewReader(data), contentHash, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
@@ -93,7 +92,7 @@ func testVault(t *testing.T, env *env, alice *keys.EdX25519Key) {
 	}
 	data2, err := json.Marshal(vault2)
 	require.NoError(t, err)
-	contentHash2 := encoding.EncodeBase64(keys.SHA256(data2))
+	contentHash2 := api.ContentHash(data2)
 	req, err = api.NewRequest("POST", docs.Path("vault", alice.ID()), bytes.NewReader(data2), contentHash2, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
@@ -123,7 +122,7 @@ func testVault(t *testing.T, env *env, alice *keys.EdX25519Key) {
 	}
 	data3, err := json.Marshal(vault3)
 	require.NoError(t, err)
-	contentHash3 := encoding.EncodeBase64(keys.SHA256(data3))
+	contentHash3 := api.ContentHash(data3)
 	req, err = api.NewRequest("POST", docs.Path("vault", alice.ID()), bytes.NewReader(data3), contentHash3, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
@@ -187,7 +186,7 @@ func testVault(t *testing.T, env *env, alice *keys.EdX25519Key) {
 	}
 	data, err = json.Marshal(vault)
 	require.NoError(t, err)
-	contentHash = encoding.EncodeBase64(keys.SHA256(data))
+	contentHash = api.ContentHash(data)
 	req, err = api.NewRequest("POST", docs.Path("vault", alice.ID()), bytes.NewReader(data), contentHash, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
@@ -227,7 +226,7 @@ func testVaultAuth(t *testing.T, env *env, alice *keys.EdX25519Key) {
 
 	// POST /vault/:kid (invalid key)
 	content := []byte(`[{"data":"dGVzdGluZzE="},{"data":"dGVzdGluZzI="}]`)
-	contentHash := encoding.EncodeBase64(keys.SHA256(content))
+	contentHash := api.ContentHash(content)
 	req, err = api.NewRequest("POST", docs.Path("vault", alice.ID()), bytes.NewReader(content), contentHash, clock.Now(), randKey)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)

@@ -6,7 +6,6 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
-	"github.com/keys-pub/keys/encoding"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 )
@@ -19,12 +18,7 @@ func checkAuth(c echo.Context, baseURL string, kid keys.ID, content []byte, now 
 	}
 
 	url := baseURL + c.Request().URL.String()
-
-	contentHash := ""
-	if len(content) > 0 {
-		contentHash = encoding.EncodeBase64(keys.SHA256(content))
-	}
-
+	contentHash := api.ContentHash(content)
 	res, err := api.CheckAuthorization(request.Context(), request.Method, url, kid, auth, contentHash, rds, now)
 	if err != nil {
 		return nil, http.StatusForbidden, err

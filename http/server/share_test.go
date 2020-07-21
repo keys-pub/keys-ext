@@ -9,7 +9,6 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/docs"
-	"github.com/keys-pub/keys/encoding"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,7 +24,7 @@ func TestShare(t *testing.T) {
 
 	// PUT /share/:kid (1m)
 	content := []byte("test1")
-	contentHash := encoding.EncodeBase64(keys.SHA256(content))
+	contentHash := api.ContentHash(content)
 	req, err := api.NewRequest("PUT", docs.Path("share", key.ID())+"?expire=1m", bytes.NewReader(content), contentHash, env.clock.Now(), key)
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)

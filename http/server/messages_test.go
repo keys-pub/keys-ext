@@ -11,7 +11,6 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/docs"
-	"github.com/keys-pub/keys/encoding"
 	"github.com/stretchr/testify/require"
 )
 
@@ -48,7 +47,7 @@ func testMessages(t *testing.T, env *env, alice *keys.EdX25519Key, charlie *keys
 
 	// POST /msgs/:kid/:rid
 	content := []byte("test1")
-	contentHash := encoding.EncodeBase64(keys.SHA256(content))
+	contentHash := api.ContentHash(content)
 	req, err = api.NewRequest("POST", docs.Path("msgs", alice.ID(), charlie.ID()), bytes.NewReader(content), contentHash, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
@@ -100,13 +99,13 @@ func testMessages(t *testing.T, env *env, alice *keys.EdX25519Key, charlie *keys
 
 	// POST /msgs/:kid/:rid
 	content2 := []byte("test2")
-	contentHash2 := encoding.EncodeBase64(keys.SHA256(content2))
+	contentHash2 := api.ContentHash(content2)
 	req, err = api.NewRequest("POST", docs.Path("msgs", alice.ID(), charlie.ID()), bytes.NewReader(content2), contentHash2, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, _ = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	content3 := []byte("test3")
-	contentHash3 := encoding.EncodeBase64(keys.SHA256(content3))
+	contentHash3 := api.ContentHash(content3)
 	req, err = api.NewRequest("POST", docs.Path("msgs", alice.ID(), charlie.ID()), bytes.NewReader(content3), contentHash3, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, _ = srv.Serve(req)
@@ -152,7 +151,7 @@ func testMessages(t *testing.T, env *env, alice *keys.EdX25519Key, charlie *keys
 
 	// POST /msgs/:kid/:rid (self)
 	content4 := []byte("selfie")
-	contentHash4 := encoding.EncodeBase64(keys.SHA256(content4))
+	contentHash4 := api.ContentHash(content4)
 	req, err = api.NewRequest("POST", docs.Path("msgs", alice.ID(), alice.ID()), bytes.NewReader(content4), contentHash4, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
@@ -167,7 +166,7 @@ func testMessages(t *testing.T, env *env, alice *keys.EdX25519Key, charlie *keys
 
 	// POST /msgs/:kid/:rid (message too large)
 	large := bytes.Repeat([]byte{0x01}, 17*1024)
-	largeHash := encoding.EncodeBase64(keys.SHA256(large))
+	largeHash := api.ContentHash(large)
 	req, err = api.NewRequest("POST", docs.Path("msgs", alice.ID(), charlie.ID()), bytes.NewReader(large), largeHash, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
@@ -220,7 +219,7 @@ func TestMessagesAuth(t *testing.T) {
 
 	// POST /msgs/:kid/:rid (invalid recipient)
 	content := []byte("test1")
-	contentHash := encoding.EncodeBase64(keys.SHA256(content))
+	contentHash := api.ContentHash(content)
 	req, err = api.NewRequest("POST", docs.Path("msgs", bob.ID(), charlie.ID()), bytes.NewReader(content), contentHash, clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)

@@ -12,7 +12,6 @@ import (
 	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys-ext/http/server"
 	"github.com/keys-pub/keys/docs"
-	"github.com/keys-pub/keys/encoding"
 	"github.com/stretchr/testify/require"
 )
 
@@ -44,7 +43,7 @@ func TestPubSub(t *testing.T) {
 
 	// POST /publish/:kid/:rid (charlie to alice)
 	content := []byte("test1")
-	contentHash := encoding.EncodeBase64(keys.SHA256(content))
+	contentHash := api.ContentHash(content)
 	req, err := api.NewRequest("POST", docs.Path("publish", charlie.ID(), alice.ID()), bytes.NewReader(content), contentHash, clock.Now(), charlie)
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)

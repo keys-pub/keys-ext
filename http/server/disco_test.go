@@ -9,7 +9,6 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/docs"
-	"github.com/keys-pub/keys/encoding"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,7 +24,7 @@ func TestDisco(t *testing.T) {
 
 	// PUT /disco/:kid/:rid/offer (alice to charlie, 1m)
 	content := []byte("testdata")
-	contentHash := encoding.EncodeBase64(keys.SHA256(content))
+	contentHash := api.ContentHash(content)
 	req, err := api.NewRequest("PUT", docs.Path("disco", alice.ID(), charlie.ID(), "offer")+"?expire=1m", bytes.NewReader(content), contentHash, env.clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
