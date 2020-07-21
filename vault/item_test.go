@@ -31,9 +31,6 @@ func TestItem(t *testing.T) {
 
 func TestLargeItems(t *testing.T) {
 	var err error
-	const maxID = 254
-	const maxType = 32
-	const maxData = 2048
 
 	vlt := vault.New(vault.NewMem())
 
@@ -42,25 +39,15 @@ func TestLargeItems(t *testing.T) {
 	err = vlt.Setup(key, provision)
 	require.NoError(t, err)
 
-	id := string(bytes.Repeat([]byte("a"), maxID))
-	largeID := string(bytes.Repeat([]byte("a"), maxID+1))
-	typ := string(bytes.Repeat([]byte("t"), maxType))
-	largeType := string(bytes.Repeat([]byte("a"), maxType+1))
-
-	large := keys.RandBytes(maxData + 1)
-	err = vlt.Set(vault.NewItem(id, large, typ, time.Now()))
+	large := keys.RandBytes(16 * 1025)
+	err = vlt.Set(vault.NewItem("id", large, "", time.Now()))
 	require.EqualError(t, err, "item value is too large")
 
-	err = vlt.Set(vault.NewItem(largeID, []byte{0x01}, typ, time.Now()))
-	require.EqualError(t, err, "item value is too large")
-	err = vlt.Set(vault.NewItem(id, []byte{0x01}, largeType, time.Now()))
-	require.EqualError(t, err, "item value is too large")
-
-	b := bytes.Repeat([]byte{0x01}, maxData)
-	err = vlt.Set(vault.NewItem(id, b, typ, time.Now()))
+	b := bytes.Repeat([]byte{0x01}, 16*1024)
+	err = vlt.Set(vault.NewItem("id", b, "", time.Now()))
 	require.NoError(t, err)
 
-	item, err := vlt.Get(id)
+	item, err := vlt.Get("id")
 	require.NoError(t, err)
 	require.NotNil(t, item)
 	require.Equal(t, b, item.Data)

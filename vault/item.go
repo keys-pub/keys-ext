@@ -41,18 +41,14 @@ func encryptItem(item *Item, mk *[32]byte) ([]byte, error) {
 	if item.ID == "" {
 		return nil, errors.Errorf("invalid id")
 	}
-	if err := checkItemSize(item); err != nil {
-		return nil, err
+	if len(item.Data) > 16*1024 {
+		return nil, ErrItemValueTooLarge
 	}
 	b, err := msgpack.Marshal(item)
 	if err != nil {
 		return nil, err
 	}
 	out := secretBoxSeal(b, mk)
-
-	if len(out) > maxSize {
-		return nil, ErrItemValueTooLarge
-	}
 
 	return out, nil
 }
@@ -72,28 +68,5 @@ func decryptItem(b []byte, mk *[32]byte) (*Item, error) {
 	return &item, nil
 }
 
-const maxID = 254
-const maxType = 32
-const maxData = 2048
-
-// maxSize (windows credential blob)
-const maxSize = (5 * 512)
-
 // ErrItemValueTooLarge is item value is too large.
-// Item.ID is max of 254 bytes.
-// Item.Type is max of 32 bytes.
-// Item.Data is max of 2048 bytes.
 var ErrItemValueTooLarge = errors.New("item value is too large")
-
-func checkItemSize(item *Item) error {
-	if len(item.ID) > maxID {
-		return ErrItemValueTooLarge
-	}
-	if len(item.Type) > maxType {
-		return ErrItemValueTooLarge
-	}
-	if len(item.Data) > maxData {
-		return ErrItemValueTooLarge
-	}
-	return nil
-}
