@@ -8,7 +8,6 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
-	"github.com/keys-pub/keys/encoding"
 )
 
 func ExampleNewRequest() {
@@ -16,7 +15,7 @@ func ExampleNewRequest() {
 
 	// Vault POST
 	content := []byte(`[{"data":"dGVzdGluZzE="},{"data":"dGVzdGluZzI="}]`)
-	contentHash := encoding.EncodeBase64(keys.SHA256(content))
+	contentHash := api.ContentHash(content)
 	req, err := api.NewRequest("POST", "https://keys.pub/vault/"+key.ID().String(), bytes.NewReader(content), contentHash, time.Now(), key)
 	if err != nil {
 		log.Fatal(err)

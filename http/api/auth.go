@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"crypto/sha256"
 	"fmt"
 	"io"
 	"net/http"
@@ -36,6 +37,15 @@ func (a Auth) Header() string {
 // The url shouldn't have ? or &.
 func NewAuth(method string, urs string, contentHash string, tm time.Time, key *keys.EdX25519Key) (*Auth, error) {
 	return newAuth(method, urs, contentHash, tm, keys.Rand32(), key)
+}
+
+// ContentHash returns base64 encoded sha256 hash.
+func ContentHash(b []byte) string {
+	if len(b) == 0 {
+		return ""
+	}
+	h := sha256.Sum256(b)
+	return encoding.EncodeBase64(h[:])
 }
 
 func newAuth(method string, urs string, contentHash string, tm time.Time, nonce *[32]byte, key *keys.EdX25519Key) (*Auth, error) {

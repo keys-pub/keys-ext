@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/stretchr/testify/require"
 )
@@ -93,7 +92,7 @@ func TestNewRequest(t *testing.T) {
 
 	// POST
 	body := []byte(`{\"test\": 1}`)
-	contentHash := encoding.EncodeBase64(keys.SHA256([]byte(body)))
+	contentHash := ContentHash(body)
 	req, err = NewRequest("POST", "https://keys.pub/test", bytes.NewReader(body), contentHash, clock.Now(), key)
 	require.NoError(t, err)
 	check, err = CheckAuthorization(context.TODO(),
@@ -107,15 +106,14 @@ func TestNewRequest(t *testing.T) {
 	require.Equal(t, key.ID(), check.KID)
 
 	// POST (invalid content hash)
-	contentHash = encoding.EncodeBase64(keys.SHA256([]byte("invalid")))
 	req, err = NewRequest("POST", "https://keys.pub/test", bytes.NewReader([]byte(body)), contentHash, clock.Now(), key)
 	require.NoError(t, err)
-	check, err = CheckAuthorization(context.TODO(),
+	_, err = CheckAuthorization(context.TODO(),
 		"POST",
 		req.URL.String(),
 		key.ID(),
 		req.Header["Authorization"][0],
-		contentHash,
+		ContentHash([]byte("invalid")),
 		rds, clock.Now())
 	require.EqualError(t, err, "verify failed")
 }
