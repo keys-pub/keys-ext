@@ -145,6 +145,8 @@ github.com/keys-pub/keys v0.1.2-0.20200720190123-59e415d170b7 h1:eSMzfZY1eQzdEHn
 github.com/keys-pub/keys v0.1.2-0.20200720190123-59e415d170b7/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys v0.1.2-0.20200720205518-cd96578c836c h1:7D8t8izbG1WZkfPUNexKN4Znv1ERqVZ9/oJdCqhfGdw=
 github.com/keys-pub/keys v0.1.2-0.20200720205518-cd96578c836c/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.1.2-0.20200721203144-73f4a39ee681 h1:WKt+Vyau5+AfGgZjOJlXsU62TN9jDr6ZshYfi+Y4/V4=
+github.com/keys-pub/keys v0.1.2-0.20200721203144-73f4a39ee681/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200613203701-f9bf15538783/go.mod h1:x/G3gwUe4ZbszY+qWXzvsy4nAun2b/ENISACWfwAB04=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200618211325-4c2d562cade7 h1:TuGKplA4KiBtjDBwa/Qi/H3Om0JhhK1cwSMD1917JsU=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200618211325-4c2d562cade7/go.mod h1:zCsXre409myb7Knish8aVBPYWSK96/KazhqYCumI+VA=
@@ -154,10 +156,16 @@ github.com/keys-pub/keys-ext/firestore v0.0.0-20200720191317-d8df837b3bb1 h1:U2g
 github.com/keys-pub/keys-ext/firestore v0.0.0-20200720191317-d8df837b3bb1/go.mod h1:GjeE1G8wiEzCP/Fa4zZt80E3wkpLtL1ICUWNf1zdJuo=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20200720192509-db9723318640 h1:CVD9qZDidg6kzsLNm3Yss9TxjAUfQezuEP+4wncJqwc=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20200720192509-db9723318640/go.mod h1:k0AoOPJxkwgXgQU4Dnt1XOvvg/0zxosxk+8fNvL/A94=
+github.com/keys-pub/keys-ext/http/api v0.0.0-20200721205504-d589cebeca43 h1:gplgfo644tp+XImvw4ktoenVet36qzE+D0WSUMfiwWU=
+github.com/keys-pub/keys-ext/http/api v0.0.0-20200721205504-d589cebeca43/go.mod h1:g0mUKM4vxWR+4hgxyFbM/J7hmDiATAIp0+ryICyD0Us=
 github.com/keys-pub/keys-ext/http/client v0.0.0-20200720192843-3c8c1e04cd87 h1:atkrAFBqlsv3Dmg16ceatXUhEo3ji6M8AfXCP3jdSIU=
 github.com/keys-pub/keys-ext/http/client v0.0.0-20200720192843-3c8c1e04cd87/go.mod h1:HQqqeE0kKYTxNi45uH7W65u2L3DhWbmkpvp+xfBGG/M=
+github.com/keys-pub/keys-ext/http/client v0.0.0-20200721205810-a21e57747ecb h1:CVDnL/MGeZn3LU4aAIwWRc6oLw/vm+YqLude+N7TqFc=
+github.com/keys-pub/keys-ext/http/client v0.0.0-20200721205810-a21e57747ecb/go.mod h1:LjNJtmtN6jttp6abmttEXeyyVsjLfKfl7rkvDA2XuhA=
 github.com/keys-pub/keys-ext/http/server v0.0.0-20200720192738-5f31fdd89b88 h1:uf1OwhIenwQu93k4hvp+Rj02taCMOYPBvvI9zvIIrAQ=
 github.com/keys-pub/keys-ext/http/server v0.0.0-20200720192738-5f31fdd89b88/go.mod h1:UyqGOVQ0fijk4le/2HYsSTS/jYZR6UpCjuMmdW7aFYc=
+github.com/keys-pub/keys-ext/http/server v0.0.0-20200721205647-86df18234737 h1:pmrKOqizwGJo8xdCRBWI2Ed0EOhU/XddNZM12V8NT84=
+github.com/keys-pub/keys-ext/http/server v0.0.0-20200721205647-86df18234737/go.mod h1:/XDqJ+KTdXJSP/iO8S4NPda+dWM1HwyVDoZVcP96kog=
 github.com/keys-pub/keys-ext/sdb v0.0.0-20200720205921-e5e4095869e2 h1:eN02aSGivgQMrc+F0aa01SugHiMJWNik92c8NFN3SPg=
 github.com/keys-pub/keys-ext/sdb v0.0.0-20200720205921-e5e4095869e2/go.mod h1:a2kdlrU3Q860hDBlcpzqEzXMSQPh6C1rXdXmyVP8MGo=
 github.com/keys-pub/keys-ext/vault v0.0.0-20200720210151-bf9666e216d5 h1:RHo2YRQjq9adSji/5Xk7GWfkS6UC4Y90b3H23R5lHCo=

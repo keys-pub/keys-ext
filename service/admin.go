@@ -15,7 +15,7 @@ func (s *service) AdminSignURL(ctx context.Context, req *AdminSignURLRequest) (*
 		return nil, err
 	}
 
-	auth, err := api.NewAuth(req.Method, req.URL, time.Now(), key)
+	auth, err := api.NewAuth(req.Method, req.URL, "", time.Now(), key)
 	if err != nil {
 		return nil, err
 	}

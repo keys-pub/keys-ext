@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys-ext/http/server"
 	"github.com/keys-pub/keys/docs"
 	"github.com/keys-pub/keys/request"
@@ -261,9 +262,9 @@ type serverEnv struct {
 }
 
 func newTestServerEnv(t *testing.T, env *testEnv) *serverEnv {
-	rds := server.NewRedisTest(env.clock.Now)
+	rds := api.NewRedisTest(env.clock)
 	srv := server.New(env.fi, rds, env.users, logger)
-	srv.SetNowFn(env.clock.Now)
+	srv.SetClock(env.clock)
 	tasks := server.NewTestTasks(srv)
 	srv.SetTasks(tasks)
 	srv.SetInternalAuth("testtoken")
