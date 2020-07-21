@@ -16,47 +16,10 @@ import (
 var errVaultNotFound = errors.New("vault not found")
 var errVaultDeleted = errors.New("vault was deleted")
 
-func (s *Server) postVault(c echo.Context) error {
-	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
-
-	kid, status, err := authorize(c, s.URL, "kid", s.clock.Now(), s.rds)
-	if err != nil {
-		return ErrResponse(c, status, err.Error())
-	}
-
-	deleted, err := s.isVaultDeleted(c, kid)
-	if err != nil {
-		return s.internalError(c, err)
-	}
-	if deleted {
-		return ErrNotFound(c, errVaultDeleted)
-	}
-
-	// TODO: max vault size
-
-	var data []byte
-	if c.Request().Body != nil {
-		b, err := ioutil.ReadAll(c.Request().Body)
-		if err != nil {
-			return s.internalError(c, err)
-		}
-		data = b
-	}
-
-	ctx := c.Request().Context()
-	cpath := docs.Path("vaults", kid)
-	if _, err := s.fi.EventsAdd(ctx, cpath, [][]byte{data}); err != nil {
-		return s.internalError(c, err)
-	}
-
-	var resp struct{}
-	return JSON(c, http.StatusOK, resp)
-}
-
 func (s *Server) listVault(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	kid, status, err := authorize(c, s.URL, "kid", s.clock.Now(), s.rds)
+	kid, status, err := authorize(c, s.URL, "kid", nil, s.clock.Now(), s.rds)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}
@@ -85,10 +48,20 @@ func (s *Server) listVault(c echo.Context) error {
 	return JSON(c, http.StatusOK, resp)
 }
 
-func (s *Server) putVault(c echo.Context) error {
+func (s *Server) postVault(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	kid, status, err := authorize(c, s.URL, "kid", s.clock.Now(), s.rds)
+	// TODO: max vault size
+
+	if c.Request().Body == nil {
+		return ErrBadRequest(c, errors.Errorf("no body data"))
+	}
+	b, err := ioutil.ReadAll(c.Request().Body)
+	if err != nil {
+		return s.internalError(c, err)
+	}
+
+	kid, status, err := authorize(c, s.URL, "kid", b, s.clock.Now(), s.rds)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}
@@ -99,16 +72,6 @@ func (s *Server) putVault(c echo.Context) error {
 	}
 	if deleted {
 		return ErrNotFound(c, errVaultDeleted)
-	}
-
-	// TODO: max vault size
-
-	if c.Request().Body == nil {
-		return ErrBadRequest(c, errors.Errorf("no body data"))
-	}
-	b, err := ioutil.ReadAll(c.Request().Body)
-	if err != nil {
-		return s.internalError(c, err)
 	}
 
 	var req []*api.Data
@@ -134,7 +97,7 @@ func (s *Server) deleteVault(c echo.Context) error {
 	ctx := c.Request().Context()
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	kid, status, err := authorize(c, s.URL, "kid", s.clock.Now(), s.rds)
+	kid, status, err := authorize(c, s.URL, "kid", nil, s.clock.Now(), s.rds)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}
@@ -168,7 +131,7 @@ func (s *Server) headVault(c echo.Context) error {
 	ctx := c.Request().Context()
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	kid, status, err := authorize(c, s.URL, "kid", s.clock.Now(), s.rds)
+	kid, status, err := authorize(c, s.URL, "kid", nil, s.clock.Now(), s.rds)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}

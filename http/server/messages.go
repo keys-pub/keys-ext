@@ -14,7 +14,21 @@ import (
 func (s *Server) postMessage(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	kid, status, err := authorize(c, s.URL, "kid", s.clock.Now(), s.rds)
+	if c.Request().Body == nil {
+		return ErrBadRequest(c, errors.Errorf("missing body"))
+	}
+
+	b, err := ioutil.ReadAll(c.Request().Body)
+	if err != nil {
+		return s.internalError(c, err)
+	}
+
+	if len(b) > 16*1024 {
+		// TODO: Check length before reading data
+		return ErrBadRequest(c, errors.Errorf("message too large (greater than 16KiB)"))
+	}
+
+	kid, status, err := authorize(c, s.URL, "kid", b, s.clock.Now(), s.rds)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}
@@ -47,20 +61,6 @@ func (s *Server) postMessage(c echo.Context) error {
 	// 	exp = ""
 	// }
 
-	if c.Request().Body == nil {
-		return ErrBadRequest(c, errors.Errorf("missing body"))
-	}
-
-	b, err := ioutil.ReadAll(c.Request().Body)
-	if err != nil {
-		return s.internalError(c, err)
-	}
-
-	if len(b) > 16*1024 {
-		// TODO: Check length before reading data
-		return ErrBadRequest(c, errors.Errorf("message too large (greater than 16KiB)"))
-	}
-
 	ctx := c.Request().Context()
 
 	var path string
@@ -89,7 +89,7 @@ func (s *Server) postMessage(c echo.Context) error {
 func (s *Server) listMessages(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	kid, status, err := authorize(c, s.URL, "kid", s.clock.Now(), s.rds)
+	kid, status, err := authorize(c, s.URL, "kid", nil, s.clock.Now(), s.rds)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}

@@ -72,20 +72,6 @@ func (s *PubSubServer) publish(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	_, status, err := authorize(c, s.URL, "kid", s.clock.Now(), s.rds)
-	if err != nil {
-		return ErrResponse(c, status, err.Error())
-	}
-
-	recipient := c.Param("rid")
-	if recipient == "" {
-		return ErrBadRequest(c, errors.Errorf("no recipient id"))
-	}
-	rid, err := keys.ParseID(recipient)
-	if err != nil {
-		return ErrBadRequest(c, err)
-	}
-
 	if c.Request().Body == nil {
 		return ErrBadRequest(c, errors.Errorf("missing body"))
 	}
@@ -98,6 +84,20 @@ func (s *PubSubServer) publish(c echo.Context) error {
 	if len(bin) > 16*1024 {
 		// TODO: Check length before reading data
 		return ErrBadRequest(c, errors.Errorf("message too large (greater than 16KiB)"))
+	}
+
+	_, status, err := authorize(c, s.URL, "kid", bin, s.clock.Now(), s.rds)
+	if err != nil {
+		return ErrResponse(c, status, err.Error())
+	}
+
+	recipient := c.Param("rid")
+	if recipient == "" {
+		return ErrBadRequest(c, errors.Errorf("no recipient id"))
+	}
+	rid, err := keys.ParseID(recipient)
+	if err != nil {
+		return ErrBadRequest(c, err)
 	}
 
 	s.logger.Infof("Publish to %s", rid)
@@ -125,7 +125,7 @@ var (
 func (s *PubSubServer) subscribe(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	kid, status, err := authorize(c, s.URL, "kid", s.clock.Now(), s.rds)
+	kid, status, err := authorize(c, s.URL, "kid", nil, s.clock.Now(), s.rds)
 	if err != nil {
 		s.logger.Errorf("Authorize error: %v", err)
 		return ErrResponse(c, status, err.Error())

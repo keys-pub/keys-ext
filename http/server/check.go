@@ -20,7 +20,7 @@ func (s *Server) check(c echo.Context) error {
 	if auth == "" {
 		return ErrUnauthorized(c, errors.Errorf("missing Authorization header"))
 	}
-	res, status, err := checkAuth(c, s.URL, "", s.clock.Now(), s.rds)
+	res, status, err := checkAuth(c, s.URL, "", nil, s.clock.Now(), s.rds)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}

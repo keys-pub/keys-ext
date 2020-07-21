@@ -27,7 +27,21 @@ func (s *Server) putDisco(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	kid, status, err := authorize(c, s.URL, "kid", s.clock.Now(), s.rds)
+	if c.Request().Body == nil {
+		return ErrBadRequest(c, errors.Errorf("missing body"))
+	}
+
+	b, err := ioutil.ReadAll(c.Request().Body)
+	if err != nil {
+		return s.internalError(c, err)
+	}
+
+	if len(b) > 256 {
+		// TODO: Check length before reading data
+		return ErrBadRequest(c, errors.Errorf("message too large (greater than 256 bytes)"))
+	}
+
+	kid, status, err := authorize(c, s.URL, "kid", b, s.clock.Now(), s.rds)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}
@@ -64,20 +78,6 @@ func (s *Server) putDisco(c echo.Context) error {
 		return ErrBadRequest(c, errors.Errorf("max expire is 1m"))
 	}
 
-	if c.Request().Body == nil {
-		return ErrBadRequest(c, errors.Errorf("missing body"))
-	}
-
-	b, err := ioutil.ReadAll(c.Request().Body)
-	if err != nil {
-		return s.internalError(c, err)
-	}
-
-	if len(b) > 256 {
-		// TODO: Check length before reading data
-		return ErrBadRequest(c, errors.Errorf("message too large (greater than 256 bytes)"))
-	}
-
 	key := discoKey(kid, rid, typ)
 	if err := s.rds.Set(ctx, key, string(b)); err != nil {
 		return s.internalError(c, err)
@@ -95,7 +95,7 @@ func (s *Server) getDisco(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	rid, status, err := authorize(c, s.URL, "rid", s.clock.Now(), s.rds)
+	rid, status, err := authorize(c, s.URL, "rid", nil, s.clock.Now(), s.rds)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}
@@ -136,7 +136,7 @@ func (s *Server) deleteDisco(c echo.Context) error {
 	ctx := c.Request().Context()
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	kid, status, err := authorize(c, s.URL, "kid", s.clock.Now(), s.rds)
+	kid, status, err := authorize(c, s.URL, "kid", nil, s.clock.Now(), s.rds)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}

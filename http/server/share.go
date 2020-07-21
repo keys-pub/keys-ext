@@ -14,7 +14,21 @@ func (s *Server) putShare(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	kid, status, err := authorize(c, s.URL, "kid", s.clock.Now(), s.rds)
+	if c.Request().Body == nil {
+		return ErrBadRequest(c, errors.Errorf("missing body"))
+	}
+
+	b, err := ioutil.ReadAll(c.Request().Body)
+	if err != nil {
+		return s.internalError(c, err)
+	}
+
+	if len(b) > 512 {
+		// TODO: Check length before reading data
+		return ErrBadRequest(c, errors.Errorf("message too large (greater than 512 bytes)"))
+	}
+
+	kid, status, err := authorize(c, s.URL, "kid", b, s.clock.Now(), s.rds)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}
@@ -34,20 +48,6 @@ func (s *Server) putShare(c echo.Context) error {
 		return ErrBadRequest(c, errors.Errorf("max expire is 15m"))
 	}
 
-	if c.Request().Body == nil {
-		return ErrBadRequest(c, errors.Errorf("missing body"))
-	}
-
-	b, err := ioutil.ReadAll(c.Request().Body)
-	if err != nil {
-		return s.internalError(c, err)
-	}
-
-	if len(b) > 512 {
-		// TODO: Check length before reading data
-		return ErrBadRequest(c, errors.Errorf("message too large (greater than 512 bytes)"))
-	}
-
 	key := fmt.Sprintf("s-%s", kid)
 	if err := s.rds.Set(ctx, key, string(b)); err != nil {
 		return s.internalError(c, err)
@@ -65,7 +65,7 @@ func (s *Server) getShare(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	kid, status, err := authorize(c, s.URL, "kid", s.clock.Now(), s.rds)
+	kid, status, err := authorize(c, s.URL, "kid", nil, s.clock.Now(), s.rds)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}

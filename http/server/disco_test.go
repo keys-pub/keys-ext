@@ -9,6 +9,7 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/docs"
+	"github.com/keys-pub/keys/encoding"
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,56 +24,58 @@ func TestDisco(t *testing.T) {
 	charlie := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x03}, 32)))
 
 	// PUT /disco/:kid/:rid/offer (alice to charlie, 1m)
-	req, err := api.NewRequest("PUT", docs.Path("disco", alice.ID(), charlie.ID(), "offer")+"?expire=1m", bytes.NewReader([]byte("hi")), env.clock.Now(), alice)
+	content := []byte("testdata")
+	contentHash := encoding.EncodeBase64(keys.SHA256(content))
+	req, err := api.NewRequest("PUT", docs.Path("disco", alice.ID(), charlie.ID(), "offer")+"?expire=1m", bytes.NewReader(content), contentHash, env.clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, `{}`, body)
 	require.Equal(t, http.StatusOK, code)
 
 	// GET /disco/:kid/:rid/offer (charlie from alice)
-	req, err = api.NewRequest("GET", docs.Path("disco", alice.ID(), charlie.ID(), "offer"), nil, env.clock.Now(), charlie)
+	req, err = api.NewRequest("GET", docs.Path("disco", alice.ID(), charlie.ID(), "offer"), nil, "", env.clock.Now(), charlie)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, `hi`, body)
+	require.Equal(t, string(content), body)
 
 	// GET (again)
-	req, err = api.NewRequest("GET", docs.Path("disco", alice.ID(), charlie.ID(), "offer"), nil, env.clock.Now(), charlie)
+	req, err = api.NewRequest("GET", docs.Path("disco", alice.ID(), charlie.ID(), "offer"), nil, "", env.clock.Now(), charlie)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)
 	require.Equal(t, `{"error":{"code":404,"message":"resource not found"}}`, body)
 
 	// PUT /disco/:kid/:rid/offer (alice to charlie, 1m)
-	req, err = api.NewRequest("PUT", docs.Path("disco", alice.ID(), charlie.ID(), "offer")+"?expire=1m", bytes.NewReader([]byte("hi")), env.clock.Now(), alice)
+	req, err = api.NewRequest("PUT", docs.Path("disco", alice.ID(), charlie.ID(), "offer")+"?expire=1m", bytes.NewReader(content), contentHash, env.clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, `{}`, body)
 
 	// DEL (invalid auth)
-	req, err = api.NewRequest("DELETE", docs.Path("disco", alice.ID(), charlie.ID()), nil, env.clock.Now(), charlie)
+	req, err = api.NewRequest("DELETE", docs.Path("disco", alice.ID(), charlie.ID()), nil, "", env.clock.Now(), charlie)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
 	require.Equal(t, `{"error":{"code":403,"message":"invalid kid"}}`, body)
 
 	// DEL /disco/:kid/:rid
-	req, err = api.NewRequest("DELETE", docs.Path("disco", alice.ID(), charlie.ID()), nil, env.clock.Now(), alice)
+	req, err = api.NewRequest("DELETE", docs.Path("disco", alice.ID(), charlie.ID()), nil, "", env.clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, `{}`, body)
 
 	// GET (charlie, after delete)
-	req, err = api.NewRequest("GET", docs.Path("disco", alice.ID(), charlie.ID(), "offer"), nil, env.clock.Now(), charlie)
+	req, err = api.NewRequest("GET", docs.Path("disco", alice.ID(), charlie.ID(), "offer"), nil, "", env.clock.Now(), charlie)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)
 	require.Equal(t, `{"error":{"code":404,"message":"resource not found"}}`, body)
 
 	// PUT /disco/:kid/:rid/offer (expire 1ms)
-	req, err = api.NewRequest("PUT", docs.Path("disco", alice.ID(), charlie.ID(), "offer")+"?expire=1ms", bytes.NewReader([]byte("hi")), env.clock.Now(), alice)
+	req, err = api.NewRequest("PUT", docs.Path("disco", alice.ID(), charlie.ID(), "offer")+"?expire=1ms", bytes.NewReader(content), contentHash, env.clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
@@ -80,28 +83,28 @@ func TestDisco(t *testing.T) {
 	time.Sleep(time.Millisecond)
 
 	// GET (after expire)
-	req, err = api.NewRequest("GET", docs.Path("disco", alice.ID(), charlie.ID(), "offer"), nil, env.clock.Now(), charlie)
+	req, err = api.NewRequest("GET", docs.Path("disco", alice.ID(), charlie.ID(), "offer"), nil, "", env.clock.Now(), charlie)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)
 	require.Equal(t, `{"error":{"code":404,"message":"resource not found"}}`, body)
 
 	// PUT /disco/:kid/:rid/offer (alice to alice, 1m)
-	req, err = api.NewRequest("PUT", docs.Path("disco", alice.ID(), alice.ID(), "offer")+"?expire=1m", bytes.NewReader([]byte("hi")), env.clock.Now(), alice)
+	req, err = api.NewRequest("PUT", docs.Path("disco", alice.ID(), alice.ID(), "offer")+"?expire=1m", bytes.NewReader(content), contentHash, env.clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, `{}`, body)
 	require.Equal(t, http.StatusOK, code)
 
 	// GET /disco/:kid/:rid/offer (alice to alice)
-	req, err = api.NewRequest("GET", docs.Path("disco", alice.ID(), alice.ID(), "offer"), nil, env.clock.Now(), alice)
+	req, err = api.NewRequest("GET", docs.Path("disco", alice.ID(), alice.ID(), "offer"), nil, "", env.clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, `hi`, body)
+	require.Equal(t, string(content), body)
 
 	// DEL /disco/:kid/:rid (alice to alice)
-	req, err = api.NewRequest("DELETE", docs.Path("disco", alice.ID(), alice.ID()), nil, env.clock.Now(), alice)
+	req, err = api.NewRequest("DELETE", docs.Path("disco", alice.ID(), alice.ID()), nil, "", env.clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)

@@ -155,7 +155,7 @@ func (s *testPubSubServer) WebsocketDial(t *testing.T, path string, clock tsutil
 	header := http.Header{}
 
 	if key != nil {
-		auth, err := api.NewAuth("GET", path, clock.Now(), key)
+		auth, err := api.NewAuth("GET", path, "", clock.Now(), key)
 		require.NoError(t, err)
 		wsAddr = fmt.Sprintf("ws://%s%s", s.Addr, auth.URL.String())
 
