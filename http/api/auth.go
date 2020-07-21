@@ -20,11 +20,11 @@ import (
 
 // Auth describes auth for a HTTP request.
 type Auth struct {
-	KID     keys.ID
-	Method  string
-	URL     *url.URL
-	Sig     string
-	Message string
+	KID         keys.ID
+	Method      string
+	URL         *url.URL
+	Sig         string
+	BytesToSign string
 }
 
 // Header is header value.
@@ -34,11 +34,11 @@ func (a Auth) Header() string {
 
 // NewAuth returns auth for an HTTP request.
 // The url shouldn't have ? or &.
-func NewAuth(method string, urs string, tm time.Time, key *keys.EdX25519Key) (*Auth, error) {
-	return newAuth(method, urs, tm, keys.Rand32(), key)
+func NewAuth(method string, urs string, contentHash string, tm time.Time, key *keys.EdX25519Key) (*Auth, error) {
+	return newAuth(method, urs, contentHash, tm, keys.Rand32(), key)
 }
 
-func newAuth(method string, urs string, tm time.Time, nonce *[32]byte, key *keys.EdX25519Key) (*Auth, error) {
+func newAuth(method string, urs string, contentHash string, tm time.Time, nonce *[32]byte, key *keys.EdX25519Key) (*Auth, error) {
 	ur, err := url.Parse(urs)
 	if err != nil {
 		return nil, err
@@ -50,29 +50,27 @@ func newAuth(method string, urs string, tm time.Time, nonce *[32]byte, key *keys
 	q.Set("ts", fmt.Sprintf("%d", ts))
 	ur.RawQuery = q.Encode()
 
-	msg := method + "," + ur.String()
-	logger.Debugf("Signing %s", msg)
-	sb := key.SignDetached([]byte(msg))
-	sig := encoding.MustEncode(sb, encoding.Base62)
-	return &Auth{KID: key.ID(), Method: method, URL: ur, Sig: sig, Message: msg}, nil
+	bytesToSign := method + "," + ur.String() + "," + contentHash
+	sb := key.SignDetached([]byte(bytesToSign))
+	sig := encoding.EncodeBase64(sb)
+	return &Auth{KID: key.ID(), Method: method, URL: ur, Sig: sig, BytesToSign: bytesToSign}, nil
 }
 
 // NewRequest returns new authorized/signed HTTP request.
-func NewRequest(method string, urs string, body io.Reader, tm time.Time, key *keys.EdX25519Key) (*http.Request, error) {
-	return newRequest(context.TODO(), method, urs, body, tm, keys.Rand32(), key)
+func NewRequest(method string, urs string, body io.Reader, contentHash string, tm time.Time, key *keys.EdX25519Key) (*http.Request, error) {
+	return newRequest(context.TODO(), method, urs, body, contentHash, tm, keys.Rand32(), key)
 }
 
 // NewRequestWithContext returns new authorized/signed HTTP request with context.
-func NewRequestWithContext(ctx context.Context, method string, urs string, body io.Reader, tm time.Time, key *keys.EdX25519Key) (*http.Request, error) {
-	return newRequest(ctx, method, urs, body, tm, keys.Rand32(), key)
+func NewRequestWithContext(ctx context.Context, method string, urs string, body io.Reader, contentHash string, tm time.Time, key *keys.EdX25519Key) (*http.Request, error) {
+	return newRequest(ctx, method, urs, body, contentHash, tm, keys.Rand32(), key)
 }
 
-func newRequest(ctx context.Context, method string, urs string, body io.Reader, tm time.Time, nonce *[32]byte, key *keys.EdX25519Key) (*http.Request, error) {
-	auth, err := newAuth(method, urs, tm, nonce, key)
+func newRequest(ctx context.Context, method string, urs string, body io.Reader, contentHash string, tm time.Time, nonce *[32]byte, key *keys.EdX25519Key) (*http.Request, error) {
+	auth, err := newAuth(method, urs, contentHash, tm, nonce, key)
 	if err != nil {
 		return nil, err
 	}
-	logger.Infof("Auth for %s", auth.Message)
 	req, err := http.NewRequestWithContext(ctx, method, auth.URL.String(), body)
 	if err != nil {
 		return nil, err
@@ -91,7 +89,7 @@ type AuthResult struct {
 }
 
 // CheckAuthorization checks auth header.
-func CheckAuthorization(ctx context.Context, method string, urs string, kid keys.ID, auth string, rds Redis, now time.Time) (*AuthResult, error) {
+func CheckAuthorization(ctx context.Context, method string, urs string, kid keys.ID, auth string, contentHash string, rds Redis, now time.Time) (*AuthResult, error) {
 	fields := strings.Split(auth, ":")
 	if len(fields) != 2 {
 		return nil, errors.Errorf("too many fields")
@@ -112,7 +110,7 @@ func CheckAuthorization(ctx context.Context, method string, urs string, kid keys
 		return nil, errors.Errorf("not a valid sign public key")
 	}
 
-	sigBytes, err := encoding.Decode(hsig, encoding.Base62)
+	sigBytes, err := encoding.Decode(hsig, encoding.Base64)
 	if err != nil {
 		return nil, err
 	}
@@ -122,9 +120,8 @@ func CheckAuthorization(ctx context.Context, method string, urs string, kid keys
 		return nil, err
 	}
 
-	msg := method + "," + url.String()
-	logger.Infof("Checking auth for %s %s", msg, auth)
-	if err := spk.VerifyDetached(sigBytes, []byte(msg)); err != nil {
+	bytesToSign := method + "," + url.String() + "," + contentHash
+	if err := spk.VerifyDetached(sigBytes, []byte(bytesToSign)); err != nil {
 		return nil, err
 	}
 
