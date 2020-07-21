@@ -90,38 +90,31 @@ type AuthResult struct {
 	Timestamp time.Time
 }
 
-// MemCache ...
-type MemCache interface {
-	// Get returns value at key.
-	Get(ctx context.Context, k string) (string, error)
-	// Put puts a value at key.
-	Set(ctx context.Context, k string, v string) error
-	// Expire key.
-	Expire(ctx context.Context, k string, dt time.Duration) error
-}
-
 // CheckAuthorization checks auth header.
-func CheckAuthorization(ctx context.Context, method string, urs string, auth string, mc MemCache, now time.Time) (*AuthResult, error) {
+func CheckAuthorization(ctx context.Context, method string, urs string, kid keys.ID, auth string, rds Redis, now time.Time) (*AuthResult, error) {
 	fields := strings.Split(auth, ":")
 	if len(fields) != 2 {
 		return nil, errors.Errorf("too many fields")
 	}
-	skid := fields[0]
-	sig := fields[1]
+	hkid := fields[0]
+	hsig := fields[1]
 
-	kid, err := keys.ParseID(skid)
+	akid, err := keys.ParseID(hkid)
 	if err != nil {
 		return nil, err
 	}
+	if kid != "" && akid != kid {
+		return nil, errors.Errorf("invalid kid")
+	}
 
-	spk, err := keys.StatementPublicKeyFromID(kid)
+	spk, err := keys.StatementPublicKeyFromID(akid)
 	if err != nil {
 		return nil, errors.Errorf("not a valid sign public key")
 	}
 
-	sigBytes, sigerr := encoding.Decode(sig, encoding.Base62)
-	if sigerr != nil {
-		return nil, sigerr
+	sigBytes, err := encoding.Decode(hsig, encoding.Base62)
+	if err != nil {
+		return nil, err
 	}
 
 	url, err := url.Parse(urs)
@@ -150,17 +143,17 @@ func CheckAuthorization(ctx context.Context, method string, urs string, auth str
 	// Check the nonce
 	nonce = fmt.Sprintf("auth-%s", nonce)
 
-	val, err := mc.Get(ctx, nonce)
+	val, err := rds.Get(ctx, nonce)
 	if err != nil {
 		return nil, err
 	}
 	if val != "" {
 		return nil, errors.Errorf("nonce collision")
 	}
-	if err := mc.Set(ctx, nonce, "1"); err != nil {
+	if err := rds.Set(ctx, nonce, "1"); err != nil {
 		return nil, err
 	}
-	if err := mc.Expire(ctx, nonce, time.Hour); err != nil {
+	if err := rds.Expire(ctx, nonce, time.Hour); err != nil {
 		return nil, err
 	}
 
@@ -184,7 +177,7 @@ func CheckAuthorization(ctx context.Context, method string, urs string, auth str
 
 	logger.Infof("Auth OK %s", kid)
 	return &AuthResult{
-		KID:       kid,
+		KID:       akid,
 		Method:    method,
 		URL:       url,
 		Nonce:     nonce,
