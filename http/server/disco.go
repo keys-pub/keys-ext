@@ -27,7 +27,7 @@ func (s *Server) putDisco(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	kid, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.rds)
+	kid, status, err := authorize(c, s.URL, "kid", s.clock.Now(), s.rds)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}
@@ -95,7 +95,7 @@ func (s *Server) getDisco(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	rid, status, err := authorize(c, s.URL, "rid", s.nowFn(), s.rds)
+	rid, status, err := authorize(c, s.URL, "rid", s.clock.Now(), s.rds)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}
@@ -136,7 +136,7 @@ func (s *Server) deleteDisco(c echo.Context) error {
 	ctx := c.Request().Context()
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	kid, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.rds)
+	kid, status, err := authorize(c, s.URL, "kid", s.clock.Now(), s.rds)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}

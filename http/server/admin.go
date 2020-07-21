@@ -16,7 +16,7 @@ func (s *Server) adminCheck(c echo.Context) error {
 	request := c.Request()
 	ctx := request.Context()
 
-	auth, status, err := checkAuth(c, s.URL, s.nowFn(), s.rds)
+	auth, status, err := checkAuth(c, s.URL, "", s.clock.Now(), s.rds)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}

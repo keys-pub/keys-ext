@@ -26,7 +26,7 @@ func TestUserSearch(t *testing.T) {
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 
 	// Alice sign user statement
-	st := userMock(t, alice, "alice", "github", env.req, env.clock.Now)
+	st := userMock(t, alice, "alice", "github", env.req, env.clock)
 	// PUT alice
 	b, err := st.Bytes()
 	require.NoError(t, err)
@@ -92,7 +92,7 @@ func TestUserDuplicate(t *testing.T) {
 	alice2 := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x08}, 32)))
 
 	// PUT /sigchain/alice/1
-	st := userMock(t, alice, "alice", "github", env.req, env.clock.Now)
+	st := userMock(t, alice, "alice", "github", env.req, env.clock)
 	b, err := st.Bytes()
 	require.NoError(t, err)
 	req, err := http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/1", alice.ID()), bytes.NewReader(b))
@@ -109,7 +109,7 @@ func TestUserDuplicate(t *testing.T) {
 	require.Equal(t, `{"users":[{"id":"alice@github","name":"alice","kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","seq":1,"service":"github","url":"https://gist.github.com/alice/1","status":"ok","verifiedAt":1234567890003,"ts":1234567890003}]}`, body)
 
 	// PUT /sigchain/alice2/1
-	st2 := userMock(t, alice2, "alice", "github", env.req, env.clock.Now)
+	st2 := userMock(t, alice2, "alice", "github", env.req, env.clock)
 	b2, err := st2.Bytes()
 	require.NoError(t, err)
 	req, err = http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/1", alice2.ID()), bytes.NewReader(b2))

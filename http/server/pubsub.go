@@ -9,6 +9,8 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/http/api"
+	"github.com/keys-pub/keys/tsutil"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 )
@@ -22,15 +24,15 @@ type PubSub interface {
 // PubSubServer implements PubSub.
 type PubSubServer struct {
 	pubSub PubSub
-	rds    Redis
+	rds    api.Redis
 	logger Logger
-	nowFn  func() time.Time
+	clock  tsutil.Clock
 
 	URL string
 }
 
 // NewPubSubServer creates a PubSubServer.
-func NewPubSubServer(pubSub PubSub, rds Redis, logger Logger) *PubSubServer {
+func NewPubSubServer(pubSub PubSub, rds api.Redis, logger Logger) *PubSubServer {
 	return &PubSubServer{
 		pubSub: pubSub,
 		rds:    rds,
@@ -38,9 +40,9 @@ func NewPubSubServer(pubSub PubSub, rds Redis, logger Logger) *PubSubServer {
 	}
 }
 
-// SetNowFn sets clock Now function.
-func (s *PubSubServer) SetNowFn(nowFn func() time.Time) {
-	s.nowFn = nowFn
+// SetClock sets clock.
+func (s *PubSubServer) SetClock(clock tsutil.Clock) {
+	s.clock = clock
 }
 
 // NewPubSubHandler returns http.Handler for Server.
@@ -70,7 +72,7 @@ func (s *PubSubServer) publish(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	_, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.rds)
+	_, status, err := authorize(c, s.URL, "kid", s.clock.Now(), s.rds)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}
@@ -123,7 +125,7 @@ var (
 func (s *PubSubServer) subscribe(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	kid, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.rds)
+	kid, status, err := authorize(c, s.URL, "kid", s.clock.Now(), s.rds)
 	if err != nil {
 		s.logger.Errorf("Authorize error: %v", err)
 		return ErrResponse(c, status, err.Error())

@@ -21,7 +21,7 @@ func (s *Server) postInvite(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	kid, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.rds)
+	kid, status, err := authorize(c, s.URL, "kid", s.clock.Now(), s.rds)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}
@@ -82,7 +82,7 @@ func (s *Server) getInvite(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	kid, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.rds)
+	res, status, err := checkAuth(c, s.URL, "", s.clock.Now(), s.rds)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}
@@ -104,8 +104,8 @@ func (s *Server) getInvite(c echo.Context) error {
 	// Only allow the sender or recipient to view the invite.
 	// This can happen if client has many keys and is brute forcing to find
 	// which one to use.
-	if inv.Recipient != kid && inv.Sender != kid {
-		s.logger.Debugf("Recipient mistmatch: %s != %s", inv.Recipient, kid)
+	if inv.Recipient != res.KID && inv.Sender != res.KID {
+		s.logger.Debugf("Recipient mistmatch: %s != %s", inv.Recipient, res.KID)
 		return ErrNotFound(c, errors.Errorf("code not found"))
 	}
 	// TODO: Remove on access or when it's used?

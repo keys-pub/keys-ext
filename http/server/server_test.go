@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/keys-pub/keys"
@@ -96,12 +95,12 @@ func newEnvWithFire(t *testing.T, fi server.Fire, clock tsutil.Clock) *env {
 }
 
 func newTestServer(t *testing.T, env *env) *testServer {
-	rds := server.NewRedisTest(env.clock.Now)
+	rds := api.NewRedisTest(env.clock)
 	svr := server.New(env.fi, rds, env.users, server.NewLogger(env.logLevel))
 	tasks := server.NewTestTasks(svr)
 	svr.SetTasks(tasks)
 	svr.SetInternalAuth(encoding.MustEncode(keys.RandBytes(32), encoding.Base62))
-	svr.SetNowFn(env.clock.Now)
+	svr.SetClock(env.clock)
 	svr.SetAccessFn(func(c server.AccessContext, resource server.AccessResource, action server.AccessAction) server.Access {
 		return server.AccessAllow()
 	})
@@ -120,9 +119,9 @@ func (s *testServer) Serve(req *http.Request) (int, http.Header, string) {
 
 func newTestPubSubServer(t *testing.T, env *env) *testPubSubServer {
 	pubSub := server.NewPubSub()
-	rds := server.NewRedisTest(env.clock.Now)
+	rds := api.NewRedisTest(env.clock)
 	svr := server.NewPubSubServer(pubSub, rds, server.NewLogger(server.ErrLevel))
-	svr.SetNowFn(env.clock.Now)
+	svr.SetClock(env.clock)
 	handler := server.NewPubSubHandler(svr)
 	return &testPubSubServer{
 		Server:  svr,
@@ -171,7 +170,7 @@ func (s *testPubSubServer) WebsocketDial(t *testing.T, path string, clock tsutil
 	return conn
 }
 
-func userMock(t *testing.T, key *keys.EdX25519Key, name string, service string, mock *request.MockRequestor, nowFn func() time.Time) *keys.Statement {
+func userMock(t *testing.T, key *keys.EdX25519Key, name string, service string, mock *request.MockRequestor, clock tsutil.Clock) *keys.Statement {
 	url := ""
 	switch service {
 	case "github":
@@ -185,7 +184,7 @@ func userMock(t *testing.T, key *keys.EdX25519Key, name string, service string, 
 	sc := keys.NewSigchain(key.ID())
 	usr, err := user.New(key.ID(), service, name, url, sc.LastSeq()+1)
 	require.NoError(t, err)
-	st, err := user.NewSigchainStatement(sc, usr, key, nowFn())
+	st, err := user.NewSigchainStatement(sc, usr, key, clock.Now())
 	require.NoError(t, err)
 
 	msg, err := usr.Sign(key)

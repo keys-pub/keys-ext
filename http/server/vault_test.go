@@ -245,5 +245,5 @@ func testVaultAuth(t *testing.T, env *env, alice *keys.EdX25519Key) {
 	req.Header.Set("Authorization", randKey.ID().String()+":"+sig)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
-	require.Equal(t, `{"error":{"code":403,"message":"verify failed"}}`, body)
+	require.Equal(t, `{"error":{"code":403,"message":"invalid kid"}}`, body)
 }

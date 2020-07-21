@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func checkAuth(c echo.Context, baseURL string, now time.Time, rds Redis) (*api.AuthResult, int, error) {
+func checkAuth(c echo.Context, baseURL string, kid keys.ID, now time.Time, rds api.Redis) (*api.AuthResult, int, error) {
 	request := c.Request()
 	auth := request.Header.Get("Authorization")
 	if auth == "" {
@@ -19,30 +19,24 @@ func checkAuth(c echo.Context, baseURL string, now time.Time, rds Redis) (*api.A
 
 	url := baseURL + c.Request().URL.String()
 
-	authRes, err := api.CheckAuthorization(request.Context(), request.Method, url, auth, rds, now)
+	res, err := api.CheckAuthorization(request.Context(), request.Method, url, kid, auth, rds, now)
 	if err != nil {
 		return nil, http.StatusForbidden, err
 	}
-	return authRes, 0, nil
+	return res, 0, nil
 }
 
-func authorize(c echo.Context, baseURL string, param string, now time.Time, rds Redis) (keys.ID, int, error) {
-	authRes, status, err := checkAuth(c, baseURL, now, rds)
+func authorize(c echo.Context, baseURL string, param string, now time.Time, rds api.Redis) (keys.ID, int, error) {
+	kid, err := keys.ParseID(c.Param(param))
+	if err != nil {
+		return "", http.StatusBadRequest, err
+	}
+	res, status, err := checkAuth(c, baseURL, kid, now, rds)
 	if err != nil {
 		return "", status, err
 	}
-	kidAuth := authRes.KID
-
-	if c.Param(param) != "" {
-		kid, err := keys.ParseID(c.Param(param))
-		if err != nil {
-			return "", http.StatusBadRequest, err
-		}
-
-		if kid != kidAuth {
-			return "", http.StatusForbidden, errors.Errorf("invalid " + param)
-		}
+	if kid != res.KID {
+		return "", http.StatusForbidden, errors.Errorf("kid mismatch")
 	}
-
-	return kidAuth, 0, nil
+	return kid, 0, nil
 }

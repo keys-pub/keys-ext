@@ -3,11 +3,12 @@ package server
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/docs"
 	"github.com/keys-pub/keys/docs/events"
+	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keys/user"
 	"github.com/labstack/echo/v4"
 
@@ -21,8 +22,8 @@ import (
 // Server ...
 type Server struct {
 	fi     Fire
-	rds    Redis
-	nowFn  func() time.Time
+	rds    api.Redis
+	clock  tsutil.Clock
 	logger Logger
 
 	// URL (base) of form http(s)://host:port with no trailing slash to help
@@ -45,11 +46,11 @@ type Fire interface {
 }
 
 // New creates a Server.
-func New(fi Fire, rds Redis, users *user.Store, logger Logger) *Server {
+func New(fi Fire, rds api.Redis, users *user.Store, logger Logger) *Server {
 	return &Server{
 		fi:     fi,
 		rds:    rds,
-		nowFn:  time.Now,
+		clock:  tsutil.NewClock(),
 		tasks:  newUnsetTasks(),
 		users:  users,
 		logger: logger,
@@ -139,9 +140,9 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	e.POST("/admin/check/:kid", s.adminCheck)
 }
 
-// SetNowFn sets clock Now function.
-func (s *Server) SetNowFn(nowFn func() time.Time) {
-	s.nowFn = nowFn
+// SetClock sets clock.
+func (s *Server) SetClock(clock tsutil.Clock) {
+	s.clock = clock
 }
 
 // JSON response.

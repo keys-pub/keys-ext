@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 )
@@ -21,14 +20,12 @@ func (s *Server) check(c echo.Context) error {
 	if auth == "" {
 		return ErrUnauthorized(c, errors.Errorf("missing Authorization header"))
 	}
-	now := s.nowFn()
-	url := s.URL + c.Request().URL.String()
-	authRes, err := api.CheckAuthorization(ctx, request.Method, url, auth, s.rds, now)
+	res, status, err := checkAuth(c, s.URL, "", s.clock.Now(), s.rds)
 	if err != nil {
-		return ErrForbidden(c, err)
+		return ErrResponse(c, status, err.Error())
 	}
-	kid := authRes.KID
 
+	kid := res.KID
 	if err := s.checkKID(ctx, kid); err != nil {
 		return s.internalError(c, err)
 	}

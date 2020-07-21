@@ -14,7 +14,7 @@ import (
 func (s *Server) postMessage(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	kid, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.rds)
+	kid, status, err := authorize(c, s.URL, "kid", s.clock.Now(), s.rds)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}
@@ -89,7 +89,7 @@ func (s *Server) postMessage(c echo.Context) error {
 func (s *Server) listMessages(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	kid, status, err := authorize(c, s.URL, "kid", s.nowFn(), s.rds)
+	kid, status, err := authorize(c, s.URL, "kid", s.clock.Now(), s.rds)
 	if err != nil {
 		return ErrResponse(c, status, err.Error())
 	}
