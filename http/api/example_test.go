@@ -20,14 +20,12 @@ func ExampleNewRequest() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	curl := `curl -H "Authorization: ` + req.Header["Authorization"][0] + `" -d "` + string(content) + `" ` + req.URL.String()
-	fmt.Println(curl)
+	fmt.Printf("curl -H \"Authorization: %s\" -d %q %q\n", req.Header["Authorization"][0], string(content), req.URL.String())
 
 	// Vault GET
 	req, err = api.NewRequest("GET", "https://keys.pub/vault/"+key.ID().String(), nil, "", time.Now(), key)
 	if err != nil {
 		log.Fatal(err)
 	}
-	curl = `curl -H "Authorization: ` + req.Header["Authorization"][0] + `" ` + req.URL.String()
-	fmt.Println(curl)
+	fmt.Printf("curl -H \"Authorization: %s\" %q\n", req.Header["Authorization"][0], req.URL.String())
 }

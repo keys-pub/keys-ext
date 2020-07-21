@@ -70,6 +70,28 @@ func TestAuth(t *testing.T) {
 		"",
 		rds, clock.Now())
 	require.EqualError(t, err, "invalid kid")
+
+	// No nonce
+	rds = NewRedisTest(tsutil.NewTestClock())
+	_, err = CheckAuthorization(context.TODO(),
+		"GET",
+		"https://keys.pub/vault/kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077?idx=123&ts=1234567890001",
+		"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077",
+		"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077:MVMEa9LTK7LCVkNR3N2CwgXSPdoP2Vf+9F4NYcTzMpe+KbvaiUv73401isKJtgSGppoayJ5xY5uuT1xCE52rAA==",
+		"",
+		rds, clock.Now())
+	require.EqualError(t, err, "nonce is missing")
+
+	// No ts
+	rds = NewRedisTest(tsutil.NewTestClock())
+	_, err = CheckAuthorization(context.TODO(),
+		"GET",
+		"https://keys.pub/vault/kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077?idx=123&nonce=0El6XFXwsUFD8J2vGxsaboW7rZYnQRBP5d9erwRwd29",
+		"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077",
+		"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077:vICq6ygK/KP2i/nsixrcIb+zDETPP1KoDdF3Pjs12EVH/xBAOZr5KwgmHHKrUxq3/AyyFJfgagYyCYdANoarAw==",
+		"",
+		rds, clock.Now())
+	require.EqualError(t, err, "timestamp (ts) is missing")
 }
 
 func TestNewRequest(t *testing.T) {
