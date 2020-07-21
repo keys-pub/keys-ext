@@ -3,9 +3,9 @@ module github.com/keys-pub/keys-ext/http/client
 go 1.14
 
 require (
-	github.com/keys-pub/keys v0.1.2-0.20200720205518-cd96578c836c
-	github.com/keys-pub/keys-ext/http/api v0.0.0-20200720192509-db9723318640
-	github.com/keys-pub/keys-ext/http/server v0.0.0-20200720192738-5f31fdd89b88
+	github.com/keys-pub/keys v0.1.2-0.20200721203144-73f4a39ee681
+	github.com/keys-pub/keys-ext/http/api v0.0.0-20200721205504-d589cebeca43
+	github.com/keys-pub/keys-ext/http/server v0.0.0-20200721205647-86df18234737
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.5.1
 	github.com/vmihailenco/msgpack/v4 v4.3.11

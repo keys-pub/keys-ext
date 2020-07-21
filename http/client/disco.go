@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/docs"
 	"github.com/pkg/errors"
 )
@@ -32,11 +33,12 @@ func (c *Client) DiscoSave(ctx context.Context, sender *keys.EdX25519Key, recipi
 	}
 
 	encrypted := keys.BoxSeal([]byte(data), recipientKey, sender.X25519Key())
+	contentHash := api.ContentHash(encrypted)
 
 	path := docs.Path("disco", sender.ID(), recipient, string(typ))
 	vals := url.Values{}
 	vals.Set("expire", expire.String())
-	if _, err := c.putDocument(ctx, path, vals, sender, bytes.NewReader(encrypted)); err != nil {
+	if _, err := c.putDocument(ctx, path, vals, sender, bytes.NewReader(encrypted), contentHash); err != nil {
 		return err
 	}
 	return nil

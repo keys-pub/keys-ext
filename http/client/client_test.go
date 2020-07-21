@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys-ext/http/server"
 	"github.com/keys-pub/keys/docs"
@@ -31,12 +32,12 @@ func testEnv(t *testing.T, logger server.Logger) *env {
 	clock := tsutil.NewTestClock()
 	fi := docs.NewMem()
 	fi.SetClock(clock)
-	rds := server.NewRedisTest(clock.Now)
+	rds := api.NewRedisTest(clock)
 	req := request.NewMockRequestor()
 	users := testUserStore(t, fi, req, clock)
 
 	srv := server.New(fi, rds, users, logger)
-	srv.SetNowFn(clock.Now)
+	srv.SetClock(clock)
 	tasks := server.NewTestTasks(srv)
 	srv.SetTasks(tasks)
 	srv.SetInternalAuth("testtoken")

@@ -121,7 +121,7 @@ func (c *Client) urlFor(path string, params url.Values) (string, error) {
 	return urs, nil
 }
 
-func (c *Client) req(ctx context.Context, method string, path string, params url.Values, key *keys.EdX25519Key, body io.Reader) (*http.Response, error) {
+func (c *Client) req(ctx context.Context, method string, path string, params url.Values, key *keys.EdX25519Key, body io.Reader, contentHash string) (*http.Response, error) {
 	urs, err := c.urlFor(path, params)
 	if err != nil {
 		return nil, err
@@ -131,7 +131,7 @@ func (c *Client) req(ctx context.Context, method string, path string, params url
 
 	var req *http.Request
 	if key != nil {
-		r, err := api.NewRequestWithContext(ctx, method, urs, body, c.clock.Now(), key)
+		r, err := api.NewRequestWithContext(ctx, method, urs, body, contentHash, c.clock.Now(), key)
 		if err != nil {
 			return nil, err
 		}
@@ -192,7 +192,7 @@ func (c *Client) getDocument(ctx context.Context, path string, params url.Values
 }
 
 func (c *Client) get(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key) (*http.Response, error) {
-	resp, err := c.req(ctx, "GET", path, params, key, nil)
+	resp, err := c.req(ctx, "GET", path, params, key, nil, "")
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to GET")
 	}
@@ -207,7 +207,7 @@ func (c *Client) get(ctx context.Context, path string, params url.Values, key *k
 }
 
 func (c *Client) head(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key) (*http.Response, error) {
-	resp, err := c.req(ctx, "HEAD", path, params, key, nil)
+	resp, err := c.req(ctx, "HEAD", path, params, key, nil, "")
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to HEAD")
 	}
@@ -252,8 +252,8 @@ func (c *Client) head(ctx context.Context, path string, params url.Values, key *
 // 	return conn, nil
 // }
 
-func (c *Client) put(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key, reader io.Reader) (*http.Response, error) {
-	resp, err := c.req(ctx, "PUT", path, params, key, reader)
+func (c *Client) put(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key, reader io.Reader, contentHash string) (*http.Response, error) {
+	resp, err := c.req(ctx, "PUT", path, params, key, reader, contentHash)
 	if err != nil {
 		return nil, err
 	}
@@ -263,8 +263,8 @@ func (c *Client) put(ctx context.Context, path string, params url.Values, key *k
 	return resp, nil
 }
 
-func (c *Client) putDocument(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key, reader io.Reader) (*docs.Document, error) {
-	resp, err := c.put(ctx, path, params, key, reader)
+func (c *Client) putDocument(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key, reader io.Reader, contentHash string) (*docs.Document, error) {
+	resp, err := c.put(ctx, path, params, key, reader, contentHash)
 	if err != nil {
 		return nil, err
 	}
@@ -275,8 +275,8 @@ func (c *Client) putDocument(ctx context.Context, path string, params url.Values
 	return c.document(path, resp)
 }
 
-func (c *Client) post(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key, reader io.Reader) (*http.Response, error) {
-	resp, err := c.req(ctx, "POST", path, params, key, reader)
+func (c *Client) post(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key, reader io.Reader, contentHash string) (*http.Response, error) {
+	resp, err := c.req(ctx, "POST", path, params, key, reader, contentHash)
 	if err != nil {
 		return nil, err
 	}
@@ -286,8 +286,8 @@ func (c *Client) post(ctx context.Context, path string, params url.Values, key *
 	return resp, nil
 }
 
-func (c *Client) postDocument(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key, reader io.Reader) (*docs.Document, error) {
-	resp, err := c.post(ctx, path, params, key, reader)
+func (c *Client) postDocument(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key, reader io.Reader, contentHash string) (*docs.Document, error) {
+	resp, err := c.post(ctx, path, params, key, reader, contentHash)
 	if err != nil {
 		return nil, err
 	}
@@ -299,7 +299,7 @@ func (c *Client) postDocument(ctx context.Context, path string, params url.Value
 }
 
 func (c *Client) delete(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key) (*http.Response, error) {
-	resp, err := c.req(ctx, "DELETE", path, params, key, nil)
+	resp, err := c.req(ctx, "DELETE", path, params, key, nil, "")
 	if err != nil {
 		return nil, err
 	}

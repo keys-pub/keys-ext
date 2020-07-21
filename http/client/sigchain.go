@@ -19,7 +19,7 @@ func (c *Client) SigchainSave(ctx context.Context, st *keys.Statement) error {
 	if err != nil {
 		return err
 	}
-	if _, err = c.put(ctx, path, url.Values{}, nil, bytes.NewReader(b)); err != nil {
+	if _, err = c.put(ctx, path, url.Values{}, nil, bytes.NewReader(b), ""); err != nil {
 		return err
 	}
 	return nil

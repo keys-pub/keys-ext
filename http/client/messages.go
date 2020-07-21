@@ -31,11 +31,12 @@ func (c *Client) MessageSend(ctx context.Context, sender *keys.EdX25519Key, reci
 	if err != nil {
 		return err
 	}
+	contentHash := api.ContentHash(encrypted)
 
 	path := docs.Path("msgs", sender.ID(), recipient)
 	vals := url.Values{}
 	// vals.Set("expire", expire.String())
-	if _, err := c.postDocument(ctx, path, vals, sender, bytes.NewReader(encrypted)); err != nil {
+	if _, err := c.postDocument(ctx, path, vals, sender, bytes.NewReader(encrypted), contentHash); err != nil {
 		return err
 	}
 	return nil

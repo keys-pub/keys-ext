@@ -7,17 +7,19 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/docs"
 )
 
 // ShareSeal saves a secret on remote with expire.
 func (c *Client) ShareSeal(ctx context.Context, key *keys.EdX25519Key, data []byte, expire time.Duration) error {
 	encrypted := keys.BoxSeal(data, key.X25519Key().PublicKey(), key.X25519Key())
+	contentHash := api.ContentHash(encrypted)
 
 	path := docs.Path("share", key.ID())
 	vals := url.Values{}
 	vals.Set("expire", expire.String())
-	if _, err := c.putDocument(ctx, path, vals, key, bytes.NewReader(encrypted)); err != nil {
+	if _, err := c.putDocument(ctx, path, vals, key, bytes.NewReader(encrypted), contentHash); err != nil {
 		return err
 	}
 	return nil

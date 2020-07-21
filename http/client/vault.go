@@ -14,14 +14,13 @@ import (
 	"github.com/vmihailenco/msgpack/v4"
 )
 
-// Vault events from the remote, decrypted with vault key.
+// Vault events from the API, decrypted with vault API key.
 type Vault struct {
 	Events []*Event
 	Index  int64
 }
 
-// VaultSend saves events to the remote vault.
-// The events are encrypted with the vault key before being sent to the remote.
+// VaultSend saves events to the vault API encrypted with key.
 func (c *Client) VaultSend(ctx context.Context, key *keys.EdX25519Key, events []*Event) error {
 	path := docs.Path("vault", key.ID())
 	vals := url.Values{}
@@ -47,8 +46,9 @@ func (c *Client) VaultSend(ctx context.Context, key *keys.EdX25519Key, events []
 	if err != nil {
 		return err
 	}
+	contentHash := api.ContentHash(b)
 
-	if _, err := c.putDocument(ctx, path, vals, key, bytes.NewReader(b)); err != nil {
+	if _, err := c.postDocument(ctx, path, vals, key, bytes.NewReader(b), contentHash); err != nil {
 		return err
 	}
 	return nil

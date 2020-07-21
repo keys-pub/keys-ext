@@ -15,7 +15,7 @@ import (
 func (c *Client) InviteCreate(ctx context.Context, sender *keys.EdX25519Key, recipient keys.ID) (*api.CreateInviteResponse, error) {
 	path := docs.Path("invite", sender.ID(), recipient)
 	vals := url.Values{}
-	doc, err := c.postDocument(ctx, path, vals, sender, nil)
+	doc, err := c.postDocument(ctx, path, vals, sender, nil, "")
 	if err != nil {
 		return nil, err
 	}
