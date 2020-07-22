@@ -13,7 +13,7 @@ function cleanup {
 }
 trap cleanup EXIT
 
-echo "auth"
+echo "- auth"
 eval $(keys -app Test auth -password "testpassword123")
 
 export KEYS="keys -app Test"
