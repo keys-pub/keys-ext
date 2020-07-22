@@ -20,6 +20,7 @@ func importCommands(client *Client) []cli.Command {
 			Flags: []cli.Flag{
 				cli.StringFlag{Name: "in, i", Usage: "file to read"},
 				cli.StringFlag{Name: "password, p", Usage: "password"},
+				cli.BoolFlag{Name: "no-password", Usage: "import without password"},
 			},
 			Action: func(c *cli.Context) error {
 				var b []byte
@@ -55,7 +56,8 @@ func importCommands(client *Client) []cli.Command {
 				}
 
 				password := c.String("password")
-				if len(password) == 0 {
+				noPassword := c.Bool("no-password")
+				if len(password) == 0 && !noPassword {
 					p, err := readPassword("Enter the password:", false)
 					if err != nil {
 						return err
