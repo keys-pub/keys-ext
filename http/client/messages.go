@@ -27,7 +27,7 @@ func (c *Client) MessageSend(ctx context.Context, sender *keys.EdX25519Key, reci
 		return err
 	}
 
-	encrypted, err := saltpack.Signcrypt(b, sender, recipient, sender.ID())
+	encrypted, err := saltpack.Signcrypt(b, false, sender, recipient, sender.ID())
 	if err != nil {
 		return err
 	}
@@ -92,7 +92,7 @@ func (c *Client) Messages(ctx context.Context, key *keys.EdX25519Key, from keys.
 
 // MessageDecrypt decrypts a remote Event from Messages.
 func (c *Client) MessageDecrypt(key *keys.EdX25519Key, revent *events.Event) (*Event, keys.ID, error) {
-	decrypted, pk, err := saltpack.SigncryptOpen(revent.Data, saltpack.NewKeyStore(key))
+	decrypted, pk, err := saltpack.SigncryptOpen(revent.Data, false, saltpack.NewKeyring(key))
 	if err != nil {
 		return nil, "", err
 	}
