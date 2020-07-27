@@ -25,7 +25,7 @@ require (
 	google.golang.org/grpc v1.29.1
 )
 
-replace github.com/keys-pub/keys => ../../keys
+// replace github.com/keys-pub/keys => ../../keys
 
 // replace github.com/keys-pub/keys-ext/sdb => ../sdb
 
@@ -35,7 +35,7 @@ replace github.com/keys-pub/keys => ../../keys
 
 // replace github.com/keys-pub/keys-ext/http/api => ../http/api
 
-replace github.com/keys-pub/keys-ext/http/client => ../http/client
+// replace github.com/keys-pub/keys-ext/http/client => ../http/client
 
 // replace github.com/keys-pub/keys-ext/http/server => ../http/server
 

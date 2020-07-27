@@ -54,7 +54,7 @@ func TestEncryptDecryptCommand(t *testing.T) {
 	in, err := ioutil.ReadFile(inPath)
 	require.NoError(t, err)
 	require.Equal(t, string(in), "test message")
-	require.Equal(t, fmt.Sprintf("out: %s\n", inPath), string(clientOut.Bytes()))
+	require.Equal(t, fmt.Sprintf("out: %s\n", inPath), clientOut.String())
 	clientOut.Reset()
 
 	// Armored
@@ -69,7 +69,7 @@ func TestEncryptDecryptCommand(t *testing.T) {
 	argsDecrypt = append(cmd, "decrypt", "-in", outPath)
 	runClient(build, argsDecrypt, client, errorFn)
 	require.NoError(t, clientErr)
-	require.Equal(t, fmt.Sprintf("out: %s\n", inPath), string(clientOut.Bytes()))
+	require.Equal(t, fmt.Sprintf("out: %s\n", inPath), clientOut.String())
 
 	in, err = ioutil.ReadFile(inPath)
 	require.NoError(t, err)
