@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"io"
 	"net"
 	"testing"
 	"time"
@@ -19,7 +20,7 @@ func (l listener) dial(context.Context, string) (net.Conn, error) {
 	return l.lis.Dial()
 }
 
-func newTestRPCClient(t *testing.T, srvc *service, env *testEnv, appName string) (*Client, func()) {
+func newTestRPCClient(t *testing.T, srvc *service, env *testEnv, appName string, out io.Writer) (*Client, func()) {
 	listener := listener{lis: bufconn.Listen(1024 * 1024)}
 
 	connect := func(cfg *Config, authToken string) (*grpc.ClientConn, error) {
@@ -39,6 +40,9 @@ func newTestRPCClient(t *testing.T, srvc *service, env *testEnv, appName string)
 
 	client := NewClient()
 	client.connectFn = connect
+	if out != nil {
+		client.out = out
+	}
 	cfg, cfgClose := testConfig(t, appName, "")
 	err := client.Connect(cfg, "")
 	require.NoError(t, err)

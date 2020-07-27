@@ -162,7 +162,7 @@ func (s *service) message(ctx context.Context, path string) (*Message, error) {
 		return nil, nil
 	}
 
-	decrypted, sender, err := saltpack.SigncryptOpen(doc.Data, s.vault)
+	decrypted, sender, err := saltpack.SigncryptOpen(doc.Data, false, s.vault)
 	if err != nil {
 		return nil, err
 	}

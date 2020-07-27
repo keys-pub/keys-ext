@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/x509"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -30,6 +31,8 @@ type Client struct {
 	conn        *grpc.ClientConn
 	cfg         *Config
 	connectFn   ClientConnectFn
+
+	out io.Writer
 }
 
 // VersionDev is default for dev environment.
@@ -42,6 +45,7 @@ type ClientConnectFn func(cfg *Config, authToken string) (*grpc.ClientConn, erro
 func NewClient() *Client {
 	return &Client{
 		connectFn: connectLocal,
+		out:       os.Stderr,
 	}
 }
 

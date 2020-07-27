@@ -1,6 +1,7 @@
 package service
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -17,7 +18,8 @@ func TestEncryptDecryptCommand(t *testing.T) {
 	env := newTestEnv(t)
 	appName := "KeysTest-" + randName()
 	service, closeFn := newTestService(t, env, appName)
-	client, closeClFn := newTestRPCClient(t, service, env, appName)
+	var clientOut bytes.Buffer
+	client, closeClFn := newTestRPCClient(t, service, env, appName, &clientOut)
 	defer closeClFn()
 	defer closeFn()
 
@@ -52,6 +54,8 @@ func TestEncryptDecryptCommand(t *testing.T) {
 	in, err := ioutil.ReadFile(inPath)
 	require.NoError(t, err)
 	require.Equal(t, string(in), "test message")
+	require.Equal(t, fmt.Sprintf("out: %s\n", inPath), string(clientOut.Bytes()))
+	clientOut.Reset()
 
 	// Armored
 	argsEncrypt = append(cmd, "encrypt", "-r", alice.ID().String(), "-r", bob.ID().String(), "-a", "-in", inPath)
@@ -62,9 +66,10 @@ func TestEncryptDecryptCommand(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, strings.HasPrefix(string(out), "BEGIN SALTPACK ENCRYPTED MESSAGE"))
 
-	argsDecrypt = append(cmd, "decrypt", "-a", "-in", outPath)
+	argsDecrypt = append(cmd, "decrypt", "-in", outPath)
 	runClient(build, argsDecrypt, client, errorFn)
 	require.NoError(t, clientErr)
+	require.Equal(t, fmt.Sprintf("out: %s\n", inPath), string(clientOut.Bytes()))
 
 	in, err = ioutil.ReadFile(inPath)
 	require.NoError(t, err)
@@ -79,5 +84,11 @@ func TestEncryptDecryptCommand(t *testing.T) {
 	} else {
 		require.EqualError(t, clientErr, fmt.Sprintf("rpc error: code = Unknown desc = open %s: no such file or directory", inPath+".notfound"))
 	}
+	clientErr = nil
+
+	// -out without -in
+	argsEncrypt = append(cmd, "encrypt", "-r", alice.ID().String(), "-out", "test")
+	runClient(build, argsEncrypt, client, errorFn)
+	require.EqualError(t, clientErr, "-out option is unsupported without -in")
 	clientErr = nil
 }

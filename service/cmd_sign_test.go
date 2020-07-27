@@ -15,7 +15,8 @@ func TestSignVerifyCommand(t *testing.T) {
 	env := newTestEnv(t)
 	appName := "KeysTest-" + randName()
 	service, closeFn := newTestService(t, env, appName)
-	client, closeClFn := newTestRPCClient(t, service, env, appName)
+	// TODO: Assert out
+	client, closeClFn := newTestRPCClient(t, service, env, appName, nil)
 	defer closeClFn()
 	defer closeFn()
 
@@ -37,6 +38,7 @@ func TestSignVerifyCommand(t *testing.T) {
 
 	cmd := append(os.Args[0:1], "-app", appName) // , "-log-level=debug")
 
+	// Default: Armored, detached (file)
 	argsSign := append(cmd, "sign", "-s", alice.ID().String(), "-in", inPath)
 	runClient(build, argsSign, client, errorFn)
 	require.NoError(t, clientErr)
@@ -45,7 +47,7 @@ func TestSignVerifyCommand(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, strings.HasPrefix(string(sig), "BEGIN SALTPACK DETACHED SIGNATURE."))
 
-	argsVerify := append(cmd, "verify", "-s", alice.ID().String(), "-in", inPath)
+	argsVerify := append(cmd, "verify", "-s", alice.ID().String(), "-in", inPath, "-x", inPath+".sig")
 	runClient(build, argsVerify, client, errorFn)
 	require.NoError(t, clientErr)
 
@@ -60,11 +62,11 @@ func TestSignVerifyCommand(t *testing.T) {
 	require.NoError(t, clientErr)
 	require.FileExists(t, sigPath)
 
-	argsVerify = append(cmd, "verify", "-m", "binary", "-s", alice.ID().String(), "-in", inPath)
+	argsVerify = append(cmd, "verify", "-s", alice.ID().String(), "-in", inPath, inPath, "-x", inPath+".sig")
 	runClient(build, argsVerify, client, errorFn)
 	require.NoError(t, clientErr)
 
-	// Amrored, attached (file)
+	// Armored, attached (file)
 	inPath = writeTestFile(t)
 	outPath := inPath + ".signed"
 	defer os.Remove(inPath)
@@ -79,7 +81,7 @@ func TestSignVerifyCommand(t *testing.T) {
 	require.True(t, strings.HasPrefix(string(signed), "BEGIN SALTPACK SIGNED MESSAGE."))
 	os.Remove(inPath)
 
-	argsVerify = append(cmd, "verify", "-m", "armor,attached", "-s", alice.ID().String(), "-in", outPath)
+	argsVerify = append(cmd, "verify", "-s", alice.ID().String(), "-in", outPath)
 	runClient(build, argsVerify, client, errorFn)
 	require.NoError(t, clientErr)
 

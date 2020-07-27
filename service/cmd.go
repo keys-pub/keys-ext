@@ -29,7 +29,7 @@ func fmtKeys(keys []*Key) {
 	w := new(tabwriter.Writer)
 	w.Init(out, 0, 8, 1, ' ', 0)
 	for _, key := range keys {
-		fmtKey(w, key, "")
+		fmtKey(w, key)
 	}
 	if err := w.Flush(); err != nil {
 		panic(err)
@@ -54,13 +54,9 @@ func fmtUser(user *User) string {
 	}
 }
 
-func fmtKey(w io.Writer, key *Key, prefix string) {
+func fmtKey(w io.Writer, key *Key) {
 	if key == nil {
-		fmt.Fprintf(w, "∅\n")
 		return
-	}
-	if prefix != "" {
-		fmt.Fprint(w, prefix)
 	}
 	fmt.Fprintf(w, key.ID)
 	if key.User != nil {
@@ -68,6 +64,44 @@ func fmtKey(w io.Writer, key *Key, prefix string) {
 		fmt.Fprint(w, fmtUser(key.User))
 	}
 	fmt.Fprintf(w, "\n")
+}
+
+func fmtVerifiedEncrypt(w io.Writer, key *Key, mode EncryptMode) {
+	if key == nil {
+		return
+	}
+	fmt.Fprint(w, "verified: ")
+	fmt.Fprintf(w, key.ID)
+	fmt.Fprintf(w, " %s", encryptModeToString(mode))
+	if key.User != nil {
+		fmt.Fprint(w, " ")
+		fmt.Fprint(w, fmtUser(key.User))
+	}
+	fmt.Fprintf(w, "\n")
+}
+
+func fmtVerified(w io.Writer, key *Key) {
+	if key == nil {
+		return
+	}
+	fmt.Fprint(w, "verified: ")
+	fmt.Fprintf(w, key.ID)
+	if key.User != nil {
+		fmt.Fprint(w, " ")
+		fmt.Fprint(w, fmtUser(key.User))
+	}
+	fmt.Fprintf(w, "\n")
+}
+
+func encryptModeToString(m EncryptMode) string {
+	switch m {
+	case SaltpackEncrypt:
+		return "saltpack-encrypt"
+	case SaltpackSigncrypt:
+		return "saltpack-signcrypt"
+	default:
+		return "unknown"
+	}
 }
 
 func fmtContent(w io.Writer, content *Content) {

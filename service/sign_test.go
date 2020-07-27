@@ -61,7 +61,7 @@ func TestSignStream(t *testing.T) {
 func testSignStream(t *testing.T, env *testEnv, service *service, plaintext []byte, signer string) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
-	cl, clientCloseFn := newTestRPCClient(t, service, env, "")
+	cl, clientCloseFn := newTestRPCClient(t, service, env, "", nil)
 	defer clientCloseFn()
 
 	streamClient, streamErr := cl.KeysClient().SignStream(ctx)
@@ -113,7 +113,7 @@ func testSignStream(t *testing.T, env *testEnv, service *service, plaintext []by
 
 	// Verify (from Saltpack)
 	data := buf.Bytes()
-	out, sout, err := saltpack.VerifyArmored(string(data))
+	out, sout, err := saltpack.Verify(data)
 	require.NoError(t, err)
 	if signer != "" {
 		require.Equal(t, sout.String(), signer)
@@ -121,7 +121,7 @@ func testSignStream(t *testing.T, env *testEnv, service *service, plaintext []by
 	require.Equal(t, plaintext, out)
 
 	// Verify stream
-	outClient, streamErr := cl.KeysClient().VerifyArmoredStream(ctx)
+	outClient, streamErr := cl.KeysClient().VerifyStream(ctx)
 	require.NoError(t, streamErr)
 
 	go func() {
@@ -183,16 +183,16 @@ func TestSignVerifyAttachedFile(t *testing.T) {
 	writeErr := ioutil.WriteFile(inPath, b, 0644)
 	require.NoError(t, writeErr)
 
-	aliceClient, aliceClientCloseFn := newTestRPCClient(t, aliceService, env, "")
+	aliceClient, aliceClientCloseFn := newTestRPCClient(t, aliceService, env, "", nil)
 	defer aliceClientCloseFn()
 
 	err := signFile(aliceClient, alice.ID().String(), true, false, inPath, outPath)
 	require.NoError(t, err)
 
-	bobClient, bobClientCloseFn := newTestRPCClient(t, bobService, env, "")
+	bobClient, bobClientCloseFn := newTestRPCClient(t, bobService, env, "", nil)
 	defer bobClientCloseFn()
 
-	_, err = verifyFile(bobClient, true, outPath, verifiedPath, alice.ID().String())
+	_, err = verifyFile(bobClient, outPath, verifiedPath, alice.ID().String())
 	require.NoError(t, err)
 
 	bout, err := ioutil.ReadFile(verifiedPath)

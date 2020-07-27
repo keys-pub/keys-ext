@@ -1,11 +1,9 @@
 package service
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"io"
-	"os"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/saltpack"
@@ -19,19 +17,9 @@ func (s *service) Sign(ctx context.Context, req *SignRequest) (*SignResponse, er
 		return nil, err
 	}
 
-	var signed []byte
-	if req.Armored {
-		s, err := saltpack.SignArmored(req.Data, key)
-		if err != nil {
-			return nil, err
-		}
-		signed = []byte(s)
-	} else {
-		s, err := saltpack.Sign(req.Data, key)
-		if err != nil {
-			return nil, err
-		}
-		signed = s
+	signed, err := saltpack.Sign(req.Data, req.Armored, key)
+	if err != nil {
+		return nil, err
 	}
 
 	return &SignResponse{
@@ -64,7 +52,7 @@ func (s *service) SignFile(srv Keys_SignFileServer) error {
 		return err
 	}
 
-	if err := s.signWriteInOut(srv.Context(), in, out, key, req.Armored, req.Detached); err != nil {
+	if err := saltpack.SignFile(in, out, key, req.Armored, req.Detached); err != nil {
 		return err
 	}
 
@@ -110,7 +98,8 @@ func (s *service) SignStream(srv Keys_SignStreamServer) error {
 			if err != nil {
 				return err
 			}
-			s, err := s.signWriter(ctx, &buf, key, req.Armored, req.Detached)
+			logger.Debugf("Sign armored=%t detached=%t", req.Armored, req.Detached)
+			s, err := saltpack.NewSignStream(&buf, req.Armored, req.Detached, key)
 			if err != nil {
 				return err
 			}
@@ -159,73 +148,5 @@ func (s *service) SignStream(srv Keys_SignStreamServer) error {
 		}
 		buf.Reset()
 	}
-	return nil
-}
-
-func (s *service) signWriter(ctx context.Context, w io.Writer, key *keys.EdX25519Key, armored bool, detached bool) (io.WriteCloser, error) {
-	if armored {
-		if detached {
-			logger.Debugf("Signing mode: armored/detached")
-			return saltpack.NewSignArmoredDetachedStream(w, key)
-		}
-		logger.Debugf("Signing mode: armored")
-		return saltpack.NewSignArmoredStream(w, key)
-	}
-	if detached {
-		logger.Debugf("Signing mode: detached")
-		return saltpack.NewSignDetachedStream(w, key)
-	}
-	logger.Debugf("Signing mode: default")
-	return saltpack.NewSignStream(w, key)
-}
-
-func (s *service) signWriteInOut(ctx context.Context, in string, out string, key *keys.EdX25519Key, armored bool, detached bool) error {
-	logger.Infof("Signing %s to %s", in, out)
-
-	outTmp := out + ".tmp"
-	outFile, err := os.Create(outTmp)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		_ = outFile.Close()
-		_ = os.Remove(outTmp)
-	}()
-	writer := bufio.NewWriter(outFile)
-
-	stream, err := s.signWriter(ctx, writer, key, armored, detached)
-	if err != nil {
-		return err
-	}
-
-	inFile, err := os.Open(in) // #nosec
-	if err != nil {
-		return err
-	}
-	defer func() {
-		_ = inFile.Close()
-	}()
-	reader := bufio.NewReader(inFile)
-	if _, err := reader.WriteTo(stream); err != nil {
-		return err
-	}
-
-	if err := stream.Close(); err != nil {
-		return err
-	}
-	if err := writer.Flush(); err != nil {
-		return err
-	}
-	if err := inFile.Close(); err != nil {
-		return err
-	}
-	if err := outFile.Close(); err != nil {
-		return err
-	}
-
-	if err := os.Rename(outTmp, out); err != nil {
-		return err
-	}
-
 	return nil
 }

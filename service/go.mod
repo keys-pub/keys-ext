@@ -6,11 +6,11 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/gogo/protobuf v1.3.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
-	github.com/keys-pub/keys v0.1.2-0.20200722203555-4f5830d303f9
+	github.com/keys-pub/keys v0.1.2-0.20200727004443-4f0acc292c3b
 	github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200618211325-4c2d562cade7
 	github.com/keys-pub/keys-ext/auth/mock v0.0.0-20200618212723-bf12ba4cbdc4
 	github.com/keys-pub/keys-ext/http/api v0.0.0-20200721205504-d589cebeca43
-	github.com/keys-pub/keys-ext/http/client v0.0.0-20200721205810-a21e57747ecb
+	github.com/keys-pub/keys-ext/http/client v0.0.0-20200727004729-8b725d20a3e6
 	github.com/keys-pub/keys-ext/http/server v0.0.0-20200721205647-86df18234737
 	github.com/keys-pub/keys-ext/sdb v0.0.0-20200720205921-e5e4095869e2
 	github.com/keys-pub/keys-ext/vault v0.0.0-20200720210151-bf9666e216d5
@@ -25,7 +25,7 @@ require (
 	google.golang.org/grpc v1.29.1
 )
 
-// replace github.com/keys-pub/keys => ../../keys
+replace github.com/keys-pub/keys => ../../keys
 
 // replace github.com/keys-pub/keys-ext/sdb => ../sdb
 
@@ -35,7 +35,7 @@ require (
 
 // replace github.com/keys-pub/keys-ext/http/api => ../http/api
 
-// replace github.com/keys-pub/keys-ext/http/client => ../http/client
+replace github.com/keys-pub/keys-ext/http/client => ../http/client
 
 // replace github.com/keys-pub/keys-ext/http/server => ../http/server
 

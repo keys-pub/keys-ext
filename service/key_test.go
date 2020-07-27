@@ -54,16 +54,67 @@ func TestFmtKey(t *testing.T) {
 	ak, err := service.keyToRPC(ctx, alice)
 	require.NoError(t, err)
 	var buf bytes.Buffer
-	fmtKey(&buf, ak, "")
+	fmtKey(&buf, ak)
 	require.Equal(t, "kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077\n", buf.String())
 
 	testUserSetupGithub(t, env, service, alice, "alice")
 
 	ak2, err := service.keyToRPC(ctx, alice)
 	require.NoError(t, err)
+
 	var buf2 bytes.Buffer
-	fmtKey(&buf2, ak2, "verified ")
-	require.Equal(t, "verified kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077 alice@github\n", buf2.String())
+	fmtKey(&buf2, ak2)
+	require.Equal(t, "kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077 alice@github\n", buf2.String())
+}
+
+func TestFmtVerifiedEncrypt(t *testing.T) {
+	env := newTestEnv(t)
+	service, closeFn := newTestService(t, env, "")
+	defer closeFn()
+	ctx := context.TODO()
+
+	testAuthSetup(t, service)
+	testImportKey(t, service, alice)
+
+	ak, err := service.keyToRPC(ctx, alice)
+	require.NoError(t, err)
+	var buf bytes.Buffer
+	fmtVerifiedEncrypt(&buf, ak, SaltpackEncrypt)
+	require.Equal(t, "verified: kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077 saltpack-encrypt\n", buf.String())
+
+	testUserSetupGithub(t, env, service, alice, "alice")
+
+	ak2, err := service.keyToRPC(ctx, alice)
+	require.NoError(t, err)
+
+	var buf2 bytes.Buffer
+	fmtVerifiedEncrypt(&buf2, ak2, SaltpackSigncrypt)
+	require.Equal(t, "verified: kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077 saltpack-signcrypt alice@github\n", buf2.String())
+}
+
+func TestFmtVerified(t *testing.T) {
+	env := newTestEnv(t)
+	service, closeFn := newTestService(t, env, "")
+	defer closeFn()
+	ctx := context.TODO()
+
+	testAuthSetup(t, service)
+	testImportKey(t, service, alice)
+
+	ak, err := service.keyToRPC(ctx, alice)
+	require.NoError(t, err)
+	var buf bytes.Buffer
+	fmtVerified(&buf, ak)
+	require.Equal(t, "verified: kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077\n", buf.String())
+
+	testUserSetupGithub(t, env, service, alice, "alice")
+
+	ak2, err := service.keyToRPC(ctx, alice)
+	require.NoError(t, err)
+
+	var buf2 bytes.Buffer
+	fmtVerified(&buf2, ak2)
+	require.Equal(t, "verified: kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077 alice@github\n", buf2.String())
 }
 
 func TestKeyGenerate(t *testing.T) {

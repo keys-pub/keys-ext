@@ -270,9 +270,9 @@ func (s *service) parseKID(kid string) (keys.ID, error) {
 // 	return key, nil
 // }
 
-// convertKey checks if the ID is a X25519 public key, finds the EdX25519 public key
+// convertIfX25519ID checks if the ID is a X25519 public key, finds the EdX25519 public key
 // equivalent if found, otherwise returns itself.
-func (s *service) convertX25519ID(kid keys.ID) (keys.ID, error) {
+func (s *service) convertIfX25519ID(kid keys.ID) (keys.ID, error) {
 	if kid == "" {
 		return "", nil
 	}

@@ -60,13 +60,13 @@ func newKeyring(cfg *Config, typ string) (keyring.Keyring, error) {
 		if err != nil {
 			return nil, err
 		}
-		logger.Infof("Checking keyring (%s)", st.Name())
+		logger.Debugf("Checking keyring (%s)", st.Name())
 		return st, nil
 	case "sys":
 		service := keyringServiceName(cfg)
 		return keyring.NewSystem(service)
 	case "fs":
-		logger.Infof("Checking keyring (fs, deprecated)")
+		logger.Debugf("Checking keyring (fs, deprecated)")
 		dir, err := fsDir(cfg)
 		if err != nil {
 			return nil, err
@@ -77,7 +77,7 @@ func newKeyring(cfg *Config, typ string) (keyring.Keyring, error) {
 		}
 		return st, nil
 	case "mem":
-		logger.Infof("Checking keyring (mem)")
+		logger.Debugf("Checking keyring (mem)")
 		return keyring.NewMem(), nil
 	default:
 		return nil, errors.Errorf("unknown keyring type %s", typ)
