@@ -29,18 +29,18 @@ cat "$infile" | $keycmd sign -s $kid | $keycmd verify > $outfile
 diff "$infile" "$outfile"
 
 echo "- sign/verify (stdin, binary, expected) $kid"
-cat "$infile" | $keycmd sign -m binary -s $kid | $keycmd verify -s $kid > $outfile
+cat "$infile" | $keycmd sign -binary -s $kid | $keycmd verify -s $kid > $outfile
 diff "$infile" "$outfile"
 
 echo "- sign (stdin, detached) $kid"
-cat "$infile" | $keycmd sign -m detached -s $kid > "$outfile"
+cat "$infile" | $keycmd sign -detached -s $kid > "$outfile"
 echo "- verify (stdin, detached)"
 cat "$infile" | $keycmd verify -x "$outfile"
 echo "- verify (stdin, detached, expected)"
 cat "$infile" | $keycmd verify -x "$outfile" -s $kid
 
 echo "- sign (stdin, binary, detached) $kid"
-cat "$infile" | $keycmd sign -m binary,detached -s $kid > "$outfile"
+cat "$infile" | $keycmd sign -binary -detached -s $kid > "$outfile"
 echo "- verify (stdin, binary, detached)"
 cat "$infile" | $keycmd verify -x "$outfile"
 echo "- verify (stdin, binary, detached, expected)"

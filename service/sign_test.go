@@ -3,6 +3,7 @@ package service
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -61,7 +62,8 @@ func TestSignStream(t *testing.T) {
 func testSignStream(t *testing.T, env *testEnv, service *service, plaintext []byte, signer string) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
-	cl, clientCloseFn := newTestRPCClient(t, service, env, "", nil)
+	var clientOut bytes.Buffer
+	cl, clientCloseFn := newTestRPCClient(t, service, env, "", &clientOut)
 	defer clientCloseFn()
 
 	streamClient, streamErr := cl.KeysClient().SignStream(ctx)
@@ -183,13 +185,16 @@ func TestSignVerifyAttachedFile(t *testing.T) {
 	writeErr := ioutil.WriteFile(inPath, b, 0644)
 	require.NoError(t, writeErr)
 
-	aliceClient, aliceClientCloseFn := newTestRPCClient(t, aliceService, env, "", nil)
+	var aliceOut bytes.Buffer
+	aliceClient, aliceClientCloseFn := newTestRPCClient(t, aliceService, env, "", &aliceOut)
 	defer aliceClientCloseFn()
 
 	err := signFile(aliceClient, alice.ID().String(), true, false, inPath, outPath)
 	require.NoError(t, err)
+	require.Equal(t, fmt.Sprintf("out: %s.signed\n", inPath), aliceOut.String())
 
-	bobClient, bobClientCloseFn := newTestRPCClient(t, bobService, env, "", nil)
+	var bobOut bytes.Buffer
+	bobClient, bobClientCloseFn := newTestRPCClient(t, bobService, env, "", &bobOut)
 	defer bobClientCloseFn()
 
 	_, err = verifyFile(bobClient, outPath, verifiedPath, alice.ID().String())

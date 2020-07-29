@@ -3,10 +3,10 @@ package service
 import (
 	"bufio"
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
@@ -19,12 +19,16 @@ func signCommands(client *Client) []cli.Command {
 			Usage: "Sign",
 			Flags: []cli.Flag{
 				cli.StringFlag{Name: "signer, s", Usage: "signer"},
-				cli.StringFlag{Name: "mode, m", Value: "", Usage: "armor, binary, attached, detached"},
 				cli.StringFlag{Name: "in, i", Usage: "file to read"},
 				cli.StringFlag{Name: "out, o", Usage: "file to write, defaults to {in}.sig (detached) or {in}.signed (attached)"},
+
+				cli.BoolFlag{Name: "attached, t", Usage: "output attached signature (.signed)"},
+				cli.BoolFlag{Name: "detached, d", Usage: "output detached signature (.sig)"},
+				cli.BoolFlag{Name: "armor, a", Usage: "armored"},
+				cli.BoolFlag{Name: "binary, b", Usage: "binary"},
 			},
 			Action: func(c *cli.Context) error {
-				mode, err := parseMode(c.String("mode"), false)
+				mode, err := parseMode(c)
 				if err != nil {
 					return err
 				}
@@ -125,7 +129,7 @@ func signFile(client *Client, signer string, armored bool, detached bool, in str
 		return err
 	}
 
-	_, recvErr := signClient.Recv()
+	resp, recvErr := signClient.Recv()
 	if recvErr != nil {
 		// if recvErr == io.EOF {
 		// 	break
@@ -135,6 +139,10 @@ func signFile(client *Client, signer string, armored bool, detached bool, in str
 	// if err := encryptClient.CloseSend(); err != nil {
 	// 	return err
 	// }
+
+	if resp.Out != "" {
+		fmt.Fprintf(client.out, "out: %s\n", resp.Out)
+	}
 
 	return nil
 }
@@ -181,36 +189,31 @@ func (m signMode) isDetached(it inputType) bool {
 	return m.detached == trueOption
 }
 
-func parseMode(s string, sig bool) (signMode, error) {
+func parseMode(c *cli.Context) (signMode, error) {
 	mode := signMode{
 		armored:  defaultOption,
 		detached: defaultOption,
 	}
 
-	if sig {
+	if c.Bool("attached") {
+		mode.detached = falseOption
+	}
+	if c.Bool("detached") {
 		mode.detached = trueOption
 	}
-
-	if s == "" {
-		return mode, nil
+	if c.Bool("armor") {
+		mode.armored = trueOption
+	}
+	if c.Bool("binary") {
+		mode.armored = falseOption
 	}
 
-	// TODO: Error on conflicting options
-
-	strs := strings.Split(s, ",")
-	for _, str := range strs {
-		switch str {
-		case "armor":
-			mode.armored = trueOption
-		case "binary":
-			mode.armored = falseOption
-		case "detached":
-			mode.detached = trueOption
-		case "attached":
-			mode.detached = falseOption
-		default:
-			return mode, errors.Errorf("invalid mode %s", str)
-		}
+	// Check conflicts
+	if c.Bool("attached") && c.Bool("detached") {
+		return mode, errors.Errorf("conflicting attached and detached options")
+	}
+	if c.Bool("armor") && c.Bool("binary") {
+		return mode, errors.Errorf("conflicting armor and binary options")
 	}
 
 	return mode, nil
