@@ -96,15 +96,11 @@ func Uninstall(cfg *Config) error {
 		}
 	}
 
-	logsDir := cfg.LogsDir()
-	logger.Infof("Removing logs directory %s", logsDir)
-	if err := os.RemoveAll(logsDir); err != nil {
-		return err
-	}
-	appDir := cfg.AppDir()
-	logger.Infof("Removing app directory %s", appDir)
-	if err := os.RemoveAll(appDir); err != nil {
-		return err
+	for _, d := range cfg.UninstallDirs() {
+		logger.Infof("Removing %s", d)
+		if err := os.RemoveAll(d); err != nil {
+			return err
+		}
 	}
 
 	fmt.Printf("Uninstalled %q.\n", cfg.AppName())

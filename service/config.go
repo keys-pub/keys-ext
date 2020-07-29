@@ -152,6 +152,41 @@ func SupportPath(appName string, fileName string, makeDir bool) (string, error) 
 	}
 }
 
+// UninstallDirs returns all directories to uninstall.
+func (c *Config) UninstallDirs() []string {
+	dirs := []string{
+		c.AppDir(),
+		c.LogsDir(),
+	}
+	if r := c.configDir(); r != "" {
+		dirs = append(dirs, r)
+	}
+	return dirs
+}
+
+func (c Config) configDir() string {
+	switch runtime.GOOS {
+	case "windows":
+		dir := os.Getenv("APPDATA")
+		if dir == "" {
+			return ""
+		}
+		return filepath.Join(dir, c.AppName())
+	case "linux":
+		dir := os.Getenv("XDG_CONFIG_HOME")
+		if dir == "" {
+			home, err := homeDir()
+			if err != nil {
+				return ""
+			}
+			dir = filepath.Join(home, ".config")
+		}
+		return filepath.Join(dir, c.AppName())
+	default:
+		return ""
+	}
+}
+
 // LogsPath ...
 func LogsPath(appName string, fileName string, makeDir bool) (string, error) {
 	switch runtime.GOOS {
@@ -185,7 +220,7 @@ func LogsPath(appName string, fileName string, makeDir bool) (string, error) {
 
 func configPath(dir string, appName string, fileName string, makeDir bool) (string, error) {
 	if appName == "" {
-		return "", errors.Errorf("appName not specified")
+		return "", errors.Errorf("empty app name")
 	}
 	dir = filepath.Join(dir, appName)
 
