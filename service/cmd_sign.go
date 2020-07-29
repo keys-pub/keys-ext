@@ -141,7 +141,7 @@ func signFile(client *Client, signer string, armored bool, detached bool, in str
 	// }
 
 	if resp.Out != "" {
-		fmt.Fprintf(client.out, fmt.Sprintf("out: %s\n", resp.Out))
+		fmt.Fprintf(client.out, "out: %s\n", resp.Out)
 	}
 
 	return nil
