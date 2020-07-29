@@ -1,6 +1,8 @@
 package service
 
 import (
+	"bytes"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -15,8 +17,8 @@ func TestSignVerifyCommand(t *testing.T) {
 	env := newTestEnv(t)
 	appName := "KeysTest-" + randName()
 	service, closeFn := newTestService(t, env, appName)
-	// TODO: Assert out
-	client, closeClFn := newTestRPCClient(t, service, env, appName, nil)
+	var clientOut bytes.Buffer
+	client, closeClFn := newTestRPCClient(t, service, env, appName, &clientOut)
 	defer closeClFn()
 	defer closeFn()
 
@@ -46,10 +48,14 @@ func TestSignVerifyCommand(t *testing.T) {
 	sig, err := ioutil.ReadFile(sigPath)
 	require.NoError(t, err)
 	require.True(t, strings.HasPrefix(string(sig), "BEGIN SALTPACK DETACHED SIGNATURE."))
+	require.Equal(t, fmt.Sprintf("out: %s\n", sigPath), clientOut.String())
+	clientOut.Reset()
 
 	argsVerify := append(cmd, "verify", "-s", alice.ID().String(), "-in", inPath, "-x", inPath+".sig")
 	runClient(build, argsVerify, client, errorFn)
 	require.NoError(t, clientErr)
+	require.Equal(t, "", clientOut.String())
+	clientOut.Reset()
 
 	// Binary, detached (file)
 	inPath = writeTestFile(t)
@@ -57,14 +63,18 @@ func TestSignVerifyCommand(t *testing.T) {
 	defer os.Remove(inPath)
 	defer os.Remove(sigPath)
 
-	argsSign = append(cmd, "sign", "-m", "binary", "-s", alice.ID().String(), "-in", inPath)
+	argsSign = append(cmd, "sign", "-binary", "-s", alice.ID().String(), "-in", inPath)
 	runClient(build, argsSign, client, errorFn)
 	require.NoError(t, clientErr)
 	require.FileExists(t, sigPath)
+	require.Equal(t, fmt.Sprintf("out: %s\n", sigPath), clientOut.String())
+	clientOut.Reset()
 
 	argsVerify = append(cmd, "verify", "-s", alice.ID().String(), "-in", inPath, inPath, "-x", inPath+".sig")
 	runClient(build, argsVerify, client, errorFn)
 	require.NoError(t, clientErr)
+	require.Equal(t, "", clientOut.String())
+	clientOut.Reset()
 
 	// Armored, attached (file)
 	inPath = writeTestFile(t)
@@ -72,7 +82,7 @@ func TestSignVerifyCommand(t *testing.T) {
 	defer os.Remove(inPath)
 	defer os.Remove(sigPath)
 
-	argsSign = append(cmd, "sign", "-m", "armor,attached", "-s", alice.ID().String(), "-in", inPath)
+	argsSign = append(cmd, "sign", "-armor", "-attached", "-s", alice.ID().String(), "-in", inPath)
 	runClient(build, argsSign, client, errorFn)
 	require.NoError(t, clientErr)
 	require.FileExists(t, outPath)
@@ -80,10 +90,14 @@ func TestSignVerifyCommand(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, strings.HasPrefix(string(signed), "BEGIN SALTPACK SIGNED MESSAGE."))
 	os.Remove(inPath)
+	require.Equal(t, fmt.Sprintf("out: %s\n", outPath), clientOut.String())
+	clientOut.Reset()
 
 	argsVerify = append(cmd, "verify", "-s", alice.ID().String(), "-in", outPath)
 	runClient(build, argsVerify, client, errorFn)
 	require.NoError(t, clientErr)
+	require.Equal(t, "", clientOut.String())
+	clientOut.Reset()
 
 	in, err := ioutil.ReadFile(inPath)
 	require.NoError(t, err)

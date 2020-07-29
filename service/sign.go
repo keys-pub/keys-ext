@@ -58,6 +58,7 @@ func (s *service) SignFile(srv Keys_SignFileServer) error {
 
 	if err := srv.Send(&SignFileOutput{
 		KID: key.ID().String(),
+		Out: out,
 	}); err != nil {
 		return err
 	}
