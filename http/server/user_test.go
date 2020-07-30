@@ -50,6 +50,13 @@ func TestUserSearch(t *testing.T) {
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, `{"users":[{"id":"alice@github","name":"alice","kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","seq":1,"service":"github","url":"https://gist.github.com/alice/1","status":"ok","verifiedAt":1234567890003,"ts":1234567890003}]}`, body)
 
+	// GET /user/search?q=kex132yw8ht5p8cetl2jmvk
+	req, err = http.NewRequest("GET", "/user/search?q=kex132yw8ht5p8cetl2jmvk", nil)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusOK, code)
+	require.Equal(t, `{"users":[{"id":"alice@github","name":"alice","kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","seq":1,"service":"github","url":"https://gist.github.com/alice/1","status":"ok","verifiedAt":1234567890003,"ts":1234567890003,"mf":"kid"}]}`, body)
+
 	// GET /user/search?q=alice@github
 	req, err = http.NewRequest("GET", "/user/search?q=alice@github", nil)
 	require.NoError(t, err)

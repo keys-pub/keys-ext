@@ -5,8 +5,8 @@ import (
 	"strconv"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/user"
 	"github.com/keys-pub/keys-ext/http/api"
+	"github.com/keys-pub/keys/user"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 )
@@ -33,7 +33,7 @@ func (s *Server) getUserSearch(c echo.Context) error {
 
 	users := make([]*api.User, 0, len(results))
 	for _, res := range results {
-		users = append(users, api.UserFromResult(res.Result))
+		users = append(users, api.UserFromSearchResult(res))
 	}
 
 	resp := api.UserSearchResponse{
