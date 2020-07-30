@@ -5,6 +5,18 @@ import (
 	"github.com/keys-pub/keys/user"
 )
 
+// UserFromSearchResult returns User from user.SearchResult.
+func UserFromSearchResult(sr *user.SearchResult) *User {
+	if sr == nil {
+		return nil
+	}
+	user := UserFromResult(sr.Result)
+	if user != nil {
+		user.MatchField = sr.Field
+	}
+	return user
+}
+
 // UserFromResult returns User from user.Result.
 func UserFromResult(result *user.Result) *User {
 	if result == nil {
@@ -35,6 +47,7 @@ type User struct {
 	Status     user.Status `json:"status,omitempty"`
 	VerifiedAt int64       `json:"verifiedAt,omitempty"`
 	Timestamp  int64       `json:"ts,omitempty"`
+	MatchField string      `json:"mf,omitempty"`
 	Err        string      `json:"err,omitempty"`
 }
 
