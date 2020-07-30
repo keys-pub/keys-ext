@@ -75,6 +75,12 @@ func TestUserSearch(t *testing.T) {
 	resp, err = client.UserSearch(context.TODO(), "z", 1)
 	require.NoError(t, err)
 	require.Equal(t, 0, len(resp.Users))
+
+	key1 := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{byte(1)}, 32)))
+	resp, err = client.UserSearch(context.TODO(), key1.ID().String(), 0)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(resp.Users))
+	require.Equal(t, "a1", resp.Users[0].Name)
 }
 
 func TestUser(t *testing.T) {
