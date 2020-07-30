@@ -25,15 +25,29 @@ func TestUserSearch(t *testing.T) {
 	testUserSetupGithub(t, env, service, bob, "bob")
 	testPush(t, service, bob)
 
+	// Search all
 	resp, err := service.UserSearch(ctx, &UserSearchRequest{})
 	require.NoError(t, err)
 	require.Equal(t, 2, len(resp.Users))
-
-	// Alice
 	require.Equal(t, alice.ID().String(), resp.Users[0].KID)
 	require.Equal(t, "alice", resp.Users[0].Name)
-	// Charlie
 	require.Equal(t, bob.ID().String(), resp.Users[1].KID)
+
+	// Search "alice"
+	resp, err = service.UserSearch(ctx, &UserSearchRequest{
+		Query: "alice",
+	})
+	require.NoError(t, err)
+	require.Equal(t, 1, len(resp.Users))
+	require.Equal(t, alice.ID().String(), resp.Users[0].KID)
+
+	// Search "kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077"
+	resp, err = service.UserSearch(ctx, &UserSearchRequest{
+		Query: "kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077",
+	})
+	require.NoError(t, err)
+	require.Equal(t, 1, len(resp.Users))
+	require.Equal(t, alice.ID().String(), resp.Users[0].KID)
 
 	// TODO: Test stale result
 }
