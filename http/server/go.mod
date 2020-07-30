@@ -5,7 +5,7 @@ go 1.14
 require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/gorilla/websocket v1.4.2
-	github.com/keys-pub/keys v0.1.2-0.20200730003445-49f609c7f317
+	github.com/keys-pub/keys v0.1.2-0.20200730035824-3b0ff7805c51
 	github.com/keys-pub/keys-ext/firestore v0.0.0-20200720191317-d8df837b3bb1
 	github.com/keys-pub/keys-ext/http/api v0.0.0-20200730003632-c95092bc23ed
 	github.com/labstack/echo/v4 v4.1.16
