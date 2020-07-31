@@ -20,7 +20,7 @@ func signCommands(client *Client) []cli.Command {
 			Flags: []cli.Flag{
 				cli.StringFlag{Name: "signer, s", Usage: "signer"},
 				cli.StringFlag{Name: "in, i", Usage: "file to read"},
-				cli.StringFlag{Name: "out, o", Usage: "file to write, defaults to {in}.sig (detached) or {in}.signed (attached)"},
+				cli.StringFlag{Name: "out, o", Usage: "file to write, defaults to <in>.sig (detached) or <in>.signed (attached)"},
 
 				cli.BoolFlag{Name: "attached, t", Usage: "output attached signature (.signed)"},
 				cli.BoolFlag{Name: "detached, d", Usage: "output detached signature (.sig)"},
