@@ -77,6 +77,26 @@ func TestUserSearch(t *testing.T) {
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, `{"users":[]}`, body)
+}
+
+func TestUserGet(t *testing.T) {
+	env := newEnv(t)
+	// env.logLevel = server.DebugLevel
+	srv := newTestServer(t, env)
+
+	// Alice
+	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
+
+	// Alice sign user statement
+	st := userMock(t, alice, "alice", "github", env.req, env.clock)
+	// PUT alice
+	b, err := st.Bytes()
+	require.NoError(t, err)
+	req, err := http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/1", alice.ID()), bytes.NewReader(b))
+	require.NoError(t, err)
+	code, _, body := srv.Serve(req)
+	require.Equal(t, http.StatusOK, code)
+	require.Equal(t, "{}", body)
 
 	// GET /user/kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077 (alice)
 	req, err = http.NewRequest("GET", "/user/kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077", nil)
@@ -92,6 +112,13 @@ func TestUserSearch(t *testing.T) {
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)
 	require.Equal(t, `{"error":{"code":404,"message":"user not found"}}`, body)
+
+	// GET /user/kbx1rvd43h2sag2tvrdp0duse5p82nvhpjd6hpjwhv7q7vqklega8atshec5ws
+	req, err = http.NewRequest("GET", "/user/kbx1rvd43h2sag2tvrdp0duse5p82nvhpjd6hpjwhv7q7vqklega8atshec5ws", nil)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusOK, code)
+	require.Equal(t, `{"user":{"id":"alice@github","name":"alice","kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","seq":1,"service":"github","url":"https://gist.github.com/alice/1","status":"ok","verifiedAt":1234567890003,"ts":1234567890003}}`, body)
 }
 
 func TestUserDuplicate(t *testing.T) {

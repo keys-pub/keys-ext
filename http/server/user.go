@@ -51,7 +51,7 @@ func (s *Server) getUser(c echo.Context) error {
 		return ErrNotFound(c, errors.Errorf("kid not found"))
 	}
 
-	userResult, err := s.users.Get(ctx, kid)
+	userResult, err := s.users.Find(ctx, kid)
 	if err != nil {
 		return s.internalError(c, err)
 	}
