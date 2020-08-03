@@ -5,9 +5,10 @@ go 1.14
 require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/golang/snappy v0.0.1 // indirect
-	github.com/keys-pub/keys v0.1.2-0.20200720190123-59e415d170b7
-	github.com/keys-pub/keys-ext/http/client v0.0.0-20200720192843-3c8c1e04cd87
-	github.com/keys-pub/keys-ext/http/server v0.0.0-20200720192738-5f31fdd89b88
+	github.com/keys-pub/keys v0.1.2-0.20200731213842-a306c75de40a
+	github.com/keys-pub/keys-ext/http/api v0.0.0-20200730003632-c95092bc23ed
+	github.com/keys-pub/keys-ext/http/client v0.0.0-20200803194707-448c69038c86
+	github.com/keys-pub/keys-ext/http/server v0.0.0-20200803193934-036dcb4c6007
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.5.1
