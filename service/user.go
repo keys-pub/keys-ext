@@ -342,39 +342,49 @@ func (s *service) loadIdentity(ctx context.Context, identity string, searchRemot
 	return kid, nil
 }
 
+func (s *service) findUser(ctx context.Context, identity string, searchRemote bool) (keys.ID, error) {
+	if searchRemote {
+		user, err := s.searchRemoteCheckUser(ctx, identity)
+		if err != nil {
+			return "", err
+		}
+		if user == nil {
+			return "", keys.NewErrNotFound(identity)
+		}
+		return keys.ID(user.KID), nil
+	}
+	res, err := s.users.User(ctx, identity)
+	if err != nil {
+		return "", err
+	}
+	if res == nil {
+		return "", keys.NewErrNotFound(identity)
+	}
+	return res.User.KID, nil
+}
+
 func (s *service) findIdentity(ctx context.Context, identity string, searchRemote bool) (keys.ID, error) {
 	if identity == "" {
 		return "", errors.Errorf("no identity specified")
 	}
-
 	if strings.Contains(identity, "@") {
-		logger.Infof("Looking for user %q", identity)
-		res, err := s.users.User(ctx, identity)
-		if err != nil {
-			return "", err
-		}
-		if res == nil {
-			logger.Infof("User not found %s", identity)
-			if searchRemote {
-				user, err := s.searchRemoteCheckUser(ctx, identity)
-				if err != nil {
-					return "", err
-				}
-				if user == nil {
-					return "", keys.NewErrNotFound(identity)
-				}
-				return keys.ID(user.KID), nil
-			}
-			return "", keys.NewErrNotFound(identity)
-		}
-		return res.User.KID, nil
+		return s.findUser(ctx, identity, searchRemote)
 	}
 
-	id, err := keys.ParseID(identity)
+	kid, err := keys.ParseID(identity)
 	if err != nil {
 		return "", errors.Errorf("failed to parse id %s", identity)
 	}
-	return id, nil
+	if searchRemote {
+		res, err := s.client.User(ctx, kid)
+		if err != nil {
+			return "", err
+		}
+		if res != nil {
+			return res.User.KID, nil
+		}
+	}
+	return kid, nil
 }
 
 // userVerifiedExpire is how long a verify lasts.

@@ -63,6 +63,7 @@ func (s *service) VaultUnsync(ctx context.Context, req *VaultUnsyncRequest) (*Va
 
 // VaultUpdate (RPC) ...
 func (s *service) VaultUpdate(ctx context.Context, req *VaultUpdateRequest) (*VaultUpdateResponse, error) {
+	// TODO: Add test to ensure syncing isn't accidentally activated
 	if err := s.vaultUpdate(ctx, time.Duration(0)); err != nil {
 		return nil, err
 	}

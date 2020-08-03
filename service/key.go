@@ -10,7 +10,7 @@ import (
 
 // Key (RPC) ...
 func (s *service) Key(ctx context.Context, req *KeyRequest) (*KeyResponse, error) {
-	kid, err := s.parseIdentity(context.TODO(), req.Identity, false)
+	kid, err := s.loadIdentity(context.TODO(), req.Identity, req.Search, false)
 	if err != nil {
 		return nil, err
 	}
