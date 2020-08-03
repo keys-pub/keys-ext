@@ -3,6 +3,7 @@ package client_test
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/keys-pub/keys"
@@ -13,10 +14,10 @@ import (
 func TestVault(t *testing.T) {
 	// api.SetLogger(NewLogger(DebugLevel))
 	var err error
-	env := testEnv(t, nil) // client.NewLogger(client.DebugLevel)
+	env := newEnv(t, nil) // client.NewLogger(client.DebugLevel)
 	defer env.closeFn()
 
-	client := testClient(t, env)
+	client := newTestClient(t, env)
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 
 	exists, err := client.VaultExists(context.TODO(), alice)
@@ -72,4 +73,37 @@ func TestVault(t *testing.T) {
 
 	err = client.VaultDelete(context.TODO(), alice)
 	require.EqualError(t, err, "404 vault was deleted")
+}
+
+func TestVaultMax(t *testing.T) {
+	// api.SetLogger(NewLogger(DebugLevel))
+	env := newEnv(t, nil) // client.NewLogger(client.DebugLevel)
+	defer env.closeFn()
+
+	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
+
+	testVaultMax(t, env, alice)
+}
+
+func testVaultMax(t *testing.T, env *env, key *keys.EdX25519Key) {
+	var err error
+	client := newTestClient(t, env)
+
+	exists, err := client.VaultExists(context.TODO(), key)
+	require.NoError(t, err)
+	require.False(t, exists)
+
+	events := make([]*httpclient.Event, 0, 1000)
+	for i := 0; i < 1000; i++ {
+		event := httpclient.NewEvent(fmt.Sprintf("/col1/key%d", i), []byte(fmt.Sprintf("test%d", i)), nil)
+		events = append(events, event)
+	}
+	err = client.VaultSend(context.TODO(), key, events)
+	require.NoError(t, err)
+
+	vault, err := client.Vault(context.TODO(), key)
+	require.NoError(t, err)
+	require.Equal(t, 1000, len(vault.Events))
+	require.Equal(t, []byte("test0"), vault.Events[0].Data)
+	require.Equal(t, []byte("test999"), vault.Events[999].Data)
 }

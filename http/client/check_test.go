@@ -10,9 +10,9 @@ import (
 )
 
 func TestCheck(t *testing.T) {
-	env := testEnv(t, nil)
+	env := newEnv(t, nil)
 	defer env.closeFn()
-	client := testClient(t, env)
+	client := newTestClient(t, env)
 
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	saveUser(t, env, client, alice, "alice", "github")

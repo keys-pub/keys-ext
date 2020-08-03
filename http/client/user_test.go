@@ -45,10 +45,10 @@ func saveUser(t *testing.T, env *env, cl *client.Client, key *keys.EdX25519Key, 
 func TestUserSearch(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
 	// keys.SetLogger(keys.NewLogger(keys.DebugLevel))
-	env := testEnv(t, nil)
+	env := newEnv(t, nil)
 	defer env.closeFn()
 
-	client := testClient(t, env)
+	client := newTestClient(t, env)
 
 	for i := 0; i < 10; i++ {
 		key := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{byte(i)}, 32)))
@@ -86,10 +86,10 @@ func TestUserSearch(t *testing.T) {
 func TestUser(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
 	// keys.SetLogger(keys.NewLogger(keys.DebugLevel))
-	env := testEnv(t, nil)
+	env := newEnv(t, nil)
 	defer env.closeFn()
 
-	client := testClient(t, env)
+	client := newTestClient(t, env)
 
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	saveUser(t, env, client, alice, "alice", "github")

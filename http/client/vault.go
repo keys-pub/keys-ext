@@ -20,7 +20,8 @@ type Vault struct {
 	Index  int64
 }
 
-// VaultSend saves events to the vault API encrypted with key.
+// VaultSend saves events to the vault API with a key.
+// Events are encrypted with the key before saving.
 func (c *Client) VaultSend(ctx context.Context, key *keys.EdX25519Key, events []*Event) error {
 	path := docs.Path("vault", key.ID())
 	vals := url.Values{}
@@ -30,7 +31,7 @@ func (c *Client) VaultSend(ctx context.Context, key *keys.EdX25519Key, events []
 		if event.Timestamp != 0 {
 			return errors.Errorf("timestamp shouldn't be set for vault send")
 		}
-		if bytes.Equal(event.Nonce, []byte{}) {
+		if len(event.Nonce) == 0 {
 			return errors.Errorf("nonce isn't set")
 		}
 		b, err := msgpack.Marshal(event)
@@ -98,9 +99,8 @@ func (c *Client) Vault(ctx context.Context, key *keys.EdX25519Key, opt ...VaultO
 		params.Add("idx", strconv.FormatInt(opts.Index, 10))
 	}
 	if opts.Limit != 0 {
-		// TODO: What if we hit limit, we won't have all the items
-		//params.Add("limit", fmt.Sprintf("%d", opts.Limit))
-		return nil, errors.Errorf("limit not supported")
+		// TODO: Support limit
+		return nil, errors.Errorf("limit not currently supported")
 	}
 
 	doc, err := c.getDocument(ctx, path, params, key)

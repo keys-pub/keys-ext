@@ -16,13 +16,13 @@ func TestMessages(t *testing.T) {
 	// api.SetLogger(NewLogger(DebugLevel))
 	// server.SetContextLogger(NewContextLogger(DebugLevel))
 
-	env := testEnv(t, nil)
+	env := newEnv(t, nil)
 	defer env.closeFn()
 
-	aliceClient := testClient(t, env)
+	aliceClient := newTestClient(t, env)
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 
-	bobClient := testClient(t, env)
+	bobClient := newTestClient(t, env)
 	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
 
 	// MessageSend #1
