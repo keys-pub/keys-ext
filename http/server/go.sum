@@ -130,6 +130,8 @@ github.com/keys-pub/keys-ext v0.1.4 h1:KkuJQJvAjlQaXUMAuBaNPMHdKw5wkPVl5Rzkpmt/h
 github.com/keys-pub/keys-ext v0.1.5 h1:o302Kkt1yTpNhdBn0dPqdmbTNity9Q9VQRiTVQvM/Ck=
 github.com/keys-pub/keys-ext/firestore v0.0.0-20200720191317-d8df837b3bb1 h1:U2gaH14y6rnjxxqq0Rz8Qs8U9ahqe5eGlOEtsHfJcZ0=
 github.com/keys-pub/keys-ext/firestore v0.0.0-20200720191317-d8df837b3bb1/go.mod h1:GjeE1G8wiEzCP/Fa4zZt80E3wkpLtL1ICUWNf1zdJuo=
+github.com/keys-pub/keys-ext/firestore v0.0.0-20200803193547-52c161dbd094 h1:eEgZ+t6HaFTdxhzubVOUSkMRxZH6blyP3OAN8C44dvI=
+github.com/keys-pub/keys-ext/firestore v0.0.0-20200803193547-52c161dbd094/go.mod h1:GjeE1G8wiEzCP/Fa4zZt80E3wkpLtL1ICUWNf1zdJuo=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20200720192509-db9723318640 h1:CVD9qZDidg6kzsLNm3Yss9TxjAUfQezuEP+4wncJqwc=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20200720192509-db9723318640/go.mod h1:k0AoOPJxkwgXgQU4Dnt1XOvvg/0zxosxk+8fNvL/A94=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20200721165424-64d81b27fc8f h1:ogQpP8rgoZbwubSZpd84q533ToOs4J6MBCAypFSZMHQ=

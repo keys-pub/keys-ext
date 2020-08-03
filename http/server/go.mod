@@ -6,7 +6,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/gorilla/websocket v1.4.2
 	github.com/keys-pub/keys v0.1.2-0.20200731213842-a306c75de40a
-	github.com/keys-pub/keys-ext/firestore v0.0.0-20200720191317-d8df837b3bb1
+	github.com/keys-pub/keys-ext/firestore v0.0.0-20200803193547-52c161dbd094
 	github.com/keys-pub/keys-ext/http/api v0.0.0-20200730003632-c95092bc23ed
 	github.com/labstack/echo/v4 v4.1.16
 	github.com/pkg/errors v0.9.1
