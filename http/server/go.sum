@@ -126,6 +126,10 @@ github.com/keys-pub/keys v0.1.2-0.20200730041549-d3618d12cd00 h1:A7yH5kdff9MA8zz
 github.com/keys-pub/keys v0.1.2-0.20200730041549-d3618d12cd00/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys v0.1.2-0.20200731213842-a306c75de40a h1:eb7K/KYYF2jX5zfFGol5AqbH3+l5KVwQo6sIIApfc0U=
 github.com/keys-pub/keys v0.1.2-0.20200731213842-a306c75de40a/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.1.2-0.20200806182742-570e13a6050a h1:y3MObXfzMcXQ4ACIwyun1z2rlMKrv6C/6Y7vsLnu0wg=
+github.com/keys-pub/keys v0.1.2-0.20200806182742-570e13a6050a/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.1.2-0.20200806185019-616406199bc1 h1:3IDxiWWwdcyvgsCxjC8SA3IP4Ze8ddBGA3d17ReFOGs=
+github.com/keys-pub/keys v0.1.2-0.20200806185019-616406199bc1/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys-ext v0.1.4 h1:KkuJQJvAjlQaXUMAuBaNPMHdKw5wkPVl5Rzkpmt/hbE=
 github.com/keys-pub/keys-ext v0.1.5 h1:o302Kkt1yTpNhdBn0dPqdmbTNity9Q9VQRiTVQvM/Ck=
 github.com/keys-pub/keys-ext/firestore v0.0.0-20200720191317-d8df837b3bb1 h1:U2gaH14y6rnjxxqq0Rz8Qs8U9ahqe5eGlOEtsHfJcZ0=
