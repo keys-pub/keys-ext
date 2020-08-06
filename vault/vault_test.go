@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys-ext/http/server"
 	"github.com/keys-pub/keys-ext/vault"
@@ -73,9 +74,9 @@ func newTestEnv(t *testing.T, logger server.Logger) *testEnv {
 	fi := docs.NewMem()
 	fi.SetClock(clock)
 
-	rds := server.NewRedisTest(clock.Now)
+	rds := api.NewRedisTest(clock)
 	srv := server.New(fi, rds, nil, logger)
-	srv.SetNowFn(clock.Now)
+	srv.SetClock(clock)
 	srv.SetInternalAuth("testtoken")
 	srv.SetAccessFn(func(c server.AccessContext, resource server.AccessResource, action server.AccessAction) server.Access {
 		return server.AccessAllow()

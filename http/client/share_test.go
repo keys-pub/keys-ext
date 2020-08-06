@@ -14,10 +14,10 @@ func TestShare(t *testing.T) {
 	// api.SetLogger(NewLogger(DebugLevel))
 	// logger = NewLogger(DebugLevel)
 
-	env := testEnv(t, nil)
+	env := newEnv(t, nil)
 	defer env.closeFn()
 
-	client := testClient(t, env)
+	client := newTestClient(t, env)
 	key := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 
 	// Put

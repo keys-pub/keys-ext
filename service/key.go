@@ -10,7 +10,7 @@ import (
 
 // Key (RPC) ...
 func (s *service) Key(ctx context.Context, req *KeyRequest) (*KeyResponse, error) {
-	kid, err := s.parseIdentity(context.TODO(), req.Identity, false)
+	kid, err := s.lookup(context.TODO(), req.Key, &LookupOpts{SearchRemote: req.Search})
 	if err != nil {
 		return nil, err
 	}
@@ -20,12 +20,12 @@ func (s *service) Key(ctx context.Context, req *KeyRequest) (*KeyResponse, error
 			return nil, err
 		}
 	} else {
-		if err := s.checkForKeyUpdate(ctx, kid, false); err != nil {
+		if err := s.checkForExpiredKey(ctx, kid); err != nil {
 			return nil, err
 		}
 	}
 
-	key, err := s.loadKey(ctx, kid)
+	key, err := s.key(ctx, kid)
 	if err != nil {
 		return nil, err
 	}
@@ -52,21 +52,10 @@ func Emoji(key keys.Key) string {
 }
 
 func (s *service) verifyKey(ctx context.Context, kid keys.ID) (*Key, error) {
-	if err := s.ensureVerified(ctx, kid); err != nil {
+	if err := s.ensureUserVerified(ctx, kid); err != nil {
 		return nil, err
 	}
-	return s.loadKey(ctx, kid)
-}
-
-func (s *service) loadKey(ctx context.Context, kid keys.ID) (*Key, error) {
-	key, err := s.vault.Key(kid)
-	if err != nil {
-		return nil, err
-	}
-	if key == nil {
-		return s.keyIDToRPC(ctx, kid)
-	}
-	return s.keyToRPC(ctx, key)
+	return s.key(ctx, kid)
 }
 
 var keyTypeStrings = []string{
@@ -139,7 +128,7 @@ func (s *service) keyToRPC(ctx context.Context, key keys.Key) (*Key, error) {
 	return out, nil
 }
 
-func (s *service) keyIDToRPC(ctx context.Context, kid keys.ID) (*Key, error) {
+func (s *service) key(ctx context.Context, kid keys.ID) (*Key, error) {
 	key, err := s.vault.Key(kid)
 	if err != nil {
 		return nil, err
@@ -166,6 +155,8 @@ func (s *service) fillKey(ctx context.Context, kid keys.ID, key *Key) error {
 	if err != nil {
 		return err
 	}
+
+	// TODO: What if user is stale?
 
 	key.User = userResultToRPC(res)
 
@@ -202,7 +193,7 @@ func (s *service) KeyRemove(ctx context.Context, req *KeyRemoveRequest) (*KeyRem
 	}
 
 	if kid.IsEdX25519() {
-		_, err = s.scs.DeleteSigchain(kid)
+		_, err = s.scs.Delete(kid)
 		if err != nil {
 			return nil, err
 		}
@@ -231,10 +222,12 @@ func (s *service) KeyGenerate(ctx context.Context, req *KeyGenerateRequest) (*Ke
 	if err := s.vault.SaveKey(key); err != nil {
 		return nil, err
 	}
-	kid := key.ID()
+	if err := s.scs.Index(key.ID()); err != nil {
+		return nil, err
+	}
 
 	return &KeyGenerateResponse{
-		KID: kid.String(),
+		KID: key.ID().String(),
 	}, nil
 }
 
@@ -248,27 +241,6 @@ func (s *service) parseKID(kid string) (keys.ID, error) {
 	}
 	return id, nil
 }
-
-// func (s *service) parseKey(kid string, required bool) (keys.Key, error) {
-// 	if kid == "" {
-// 		if required {
-// 			return nil, errors.Errorf("no kid specified")
-// 		}
-// 		return nil, nil
-// 	}
-// 	id, err := keys.ParseID(kid)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	key, err := s.vault.Key(id)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	if key == nil && required {
-// 		return nil, keys.NewErrNotFound(kid)
-// 	}
-// 	return key, nil
-// }
 
 // convertIfX25519ID checks if the ID is a X25519 public key, finds the EdX25519 public key
 // equivalent if found, otherwise returns itself.
@@ -293,32 +265,23 @@ func (s *service) convertIfX25519ID(kid keys.ID) (keys.ID, error) {
 	return kid, nil
 }
 
-func (s *service) parseSigner(signer string, required bool) (*keys.EdX25519Key, error) {
-	if signer == "" {
-		if required {
-			return nil, errors.Errorf("no signer specified")
-		}
-		return nil, nil
-	}
-	kid, err := s.parseIdentity(context.TODO(), signer, false)
+func (s *service) edX25519Key(kid keys.ID) (*keys.EdX25519Key, error) {
+	out, err := s.vault.Key(kid)
 	if err != nil {
 		return nil, err
 	}
-	key, err := s.vault.Key(kid)
-	if err != nil {
-		return nil, err
-	}
-	if key == nil {
+	if out == nil {
 		return nil, keys.NewErrNotFound(kid.String())
 	}
-	sk, ok := key.(*keys.EdX25519Key)
-	if !ok {
+	switch k := out.(type) {
+	case *keys.EdX25519Key:
+		return k, nil
+	default:
 		return nil, errors.Errorf("unsupported key type for %s", kid)
 	}
-	return sk, nil
 }
 
-func (s *service) parseBoxKey(kid keys.ID) (*keys.X25519Key, error) {
+func (s *service) x25519Key(kid keys.ID) (*keys.X25519Key, error) {
 	if kid == "" {
 		return nil, nil
 	}
@@ -335,57 +298,3 @@ func (s *service) parseBoxKey(kid keys.ID) (*keys.X25519Key, error) {
 		return nil, errors.Errorf("unsupported key type for %s", kid)
 	}
 }
-
-func (s *service) parseSignKey(id string, required bool) (*keys.EdX25519Key, error) {
-	if id == "" {
-		if required {
-			return nil, errors.Errorf("no kid specified")
-		}
-		return nil, nil
-	}
-	kid, err := keys.ParseID(id)
-	if err != nil {
-		return nil, err
-	}
-	key, err := s.vault.Key(kid)
-	if err != nil {
-		return nil, err
-	}
-	if key == nil && required {
-		return nil, keys.NewErrNotFound(id)
-	}
-	switch k := key.(type) {
-	case *keys.EdX25519Key:
-		return k, nil
-	default:
-		return nil, errors.Errorf("unsupported key type for %s", kid)
-	}
-}
-
-func (s *service) parseIdentityForEdX25519Key(ctx context.Context, identity string) (*keys.EdX25519Key, error) {
-	kid, err := s.parseIdentity(ctx, identity, false)
-	if err != nil {
-		return nil, err
-	}
-	key, err := s.vault.Key(kid)
-	if err != nil {
-		return nil, err
-	}
-	if key == nil {
-		return nil, keys.NewErrNotFound(kid.String())
-	}
-	switch k := key.(type) {
-	case *keys.EdX25519Key:
-		return k, nil
-	default:
-		return nil, errors.Errorf("unsupported key type for %s", kid)
-	}
-}
-
-// func (s *service) parseIdentityForEdX25519PublicKey(ctx context.Context, identity string) (*keys.EdX25519PublicKey, error) {
-// 	kid, err := s.parseIdentity(ctx, identity, false)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return keys.NewEdX25519PublicKeyFromID(kid)
-// }

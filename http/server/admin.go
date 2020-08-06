@@ -43,7 +43,7 @@ func (s *Server) adminCheck(c echo.Context) error {
 			return s.internalError(c, err)
 		}
 	case "expired":
-		if err := s.checkExpired(ctx, time.Hour*6); err != nil {
+		if err := s.checkExpired(ctx, time.Hour*6, time.Hour*24*7); err != nil {
 			return s.internalError(c, err)
 		}
 	default:

@@ -190,6 +190,10 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 		return s.internalError(c, err)
 	}
 
+	if err := s.sigchains.Index(st.KID); err != nil {
+		return s.internalError(c, err)
+	}
+
 	if err := s.tasks.CreateTask(ctx, "POST", "/task/check/"+st.KID.String(), s.internalAuth); err != nil {
 		return s.internalError(c, err)
 	}

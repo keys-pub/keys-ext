@@ -13,12 +13,31 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-// eventIdx should also match Event firestore tag.
+// eventIdxLabel should also match the Event firestore tag.
 const eventIdxLabel = "idx"
 
 // EventsAdd adds events.
 func (f *Firestore) EventsAdd(ctx context.Context, path string, data [][]byte) ([]*events.Event, error) {
-	if len(data) > 499 {
+	pos := 0
+	remaining := len(data)
+	events := make([]*events.Event, 0, len(data))
+	for remaining > 0 {
+		chunk := min(500, remaining)
+		logger.Infof(ctx, "Writing %s (batch %d:%d)", path, pos, pos+chunk)
+		batch, err := f.writeBatch(ctx, path, data[pos:pos+chunk])
+		if err != nil {
+			// TODO: Delete previous batch writes if pos > 0
+			return nil, errors.Wrapf(err, "failed to write batch")
+		}
+		events = append(events, batch...)
+		pos = pos + chunk
+		remaining = remaining - chunk
+	}
+	return events, nil
+}
+
+func (f *Firestore) writeBatch(ctx context.Context, path string, data [][]byte) ([]*events.Event, error) {
+	if len(data) > 500 {
 		return nil, errors.Errorf("too many events to batch (max 500)")
 	}
 
@@ -33,7 +52,7 @@ func (f *Firestore) EventsAdd(ctx context.Context, path string, data [][]byte) (
 	for _, b := range data {
 		id := encoding.MustEncode(keys.RandBytes(32), encoding.Base62)
 		path := docs.Path(path, "log", id)
-		logger.Debugf(ctx, "Batching %s (%d)", path, idx)
+		// logger.Debugf(ctx, "Batching %s (%d)", path, idx)
 
 		// Map should match keys.
 		m := map[string]interface{}{
@@ -92,11 +111,6 @@ func (f *Firestore) Events(ctx context.Context, path string, opt ...events.Optio
 	}
 
 	iter := q.Documents(ctx)
-
-	// TODO: Put limits when clients can handle paging
-	// if limit == 0 {
-	// 	limit = 100
-	// }
 
 	return &eventIterator{iter: iter, limit: opts.Limit}, nil
 }
@@ -192,4 +206,11 @@ func (f *Firestore) index(ctx context.Context, path string, n int64) (int64, err
 	index := res.Data()[eventIdxLabel].(int64)
 
 	return index - n + 1, nil
+}
+
+func min(a int, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }

@@ -76,10 +76,17 @@ func (s *service) User(ctx context.Context, req *UserRequest) (*UserResponse, er
 
 // UserService (RPC) validates a service.
 func (s *service) UserService(ctx context.Context, req *UserServiceRequest) (*UserServiceResponse, error) {
+	if req.KID == "" {
+		return nil, errors.Errorf("no kid specified")
+	}
 	if req.Service == "" {
 		return nil, errors.Errorf("no service specified")
 	}
-	key, err := s.parseSignKey(req.KID, true)
+	kid, err := keys.ParseID(req.KID)
+	if err != nil {
+		return nil, err
+	}
+	key, err := s.edX25519Key(kid)
 	if err != nil {
 		return nil, err
 	}
@@ -92,13 +99,20 @@ func (s *service) UserService(ctx context.Context, req *UserServiceRequest) (*Us
 
 // UserSign (RPC) creates a signed statement about a keys.
 func (s *service) UserSign(ctx context.Context, req *UserSignRequest) (*UserSignResponse, error) {
+	if req.KID == "" {
+		return nil, errors.Errorf("no kid specified")
+	}
 	if req.Name == "" {
 		return nil, errors.Errorf("no username specified")
 	}
 	if req.Service == "" {
 		return nil, errors.Errorf("no service specified")
 	}
-	key, err := s.parseSignKey(req.KID, true)
+	kid, err := keys.ParseID(req.KID)
+	if err != nil {
+		return nil, err
+	}
+	key, err := s.edX25519Key(kid)
 	if err != nil {
 		return nil, err
 	}
@@ -120,6 +134,9 @@ func (s *service) UserSign(ctx context.Context, req *UserSignRequest) (*UserSign
 
 // UserAdd (RPC) adds a signed user statement to the sigchain.
 func (s *service) UserAdd(ctx context.Context, req *UserAddRequest) (*UserAddResponse, error) {
+	if req.KID == "" {
+		return nil, errors.Errorf("no kid specified")
+	}
 	if req.Name == "" {
 		return nil, errors.Errorf("no name specified")
 	}
@@ -129,7 +146,11 @@ func (s *service) UserAdd(ctx context.Context, req *UserAddRequest) (*UserAddRes
 	if req.URL == "" {
 		return nil, errors.Errorf("no URL specified")
 	}
-	key, err := s.parseSignKey(req.KID, true)
+	kid, err := keys.ParseID(req.KID)
+	if err != nil {
+		return nil, err
+	}
+	key, err := s.edX25519Key(kid)
 	if err != nil {
 		return nil, err
 	}
@@ -186,7 +207,7 @@ func (s *service) sigchainUserAdd(ctx context.Context, key *keys.EdX25519Key, se
 		}
 	}
 
-	if err := s.scs.SaveSigchain(sc); err != nil {
+	if err := s.scs.Save(sc); err != nil {
 		return nil, nil, err
 	}
 
@@ -315,66 +336,25 @@ func (s *service) searchUsersRemote(ctx context.Context, query string, limit int
 	return resp.Users, nil
 }
 
-func (s *service) parseIdentity(ctx context.Context, identity string, verify bool) (keys.ID, error) {
-	return s.loadIdentity(ctx, identity, false, verify)
-}
-
-func (s *service) searchIdentity(ctx context.Context, identity string) (keys.ID, error) {
-	return s.loadIdentity(ctx, identity, true, true)
-}
-
-func (s *service) loadIdentity(ctx context.Context, identity string, searchRemote bool, verify bool) (keys.ID, error) {
-	if identity == "" {
-		return "", errors.Errorf("no identity specified")
-	}
-
-	kid, err := s.findIdentity(ctx, identity, searchRemote)
-	if err != nil {
-		return "", err
-	}
-
-	if verify {
-		if err := s.ensureVerified(ctx, kid); err != nil {
-			return "", err
-		}
-	}
-
-	return kid, nil
-}
-
-func (s *service) findIdentity(ctx context.Context, identity string, searchRemote bool) (keys.ID, error) {
-	if identity == "" {
-		return "", errors.Errorf("no identity specified")
-	}
-
-	if strings.Contains(identity, "@") {
-		logger.Infof("Looking for user %q", identity)
-		res, err := s.users.User(ctx, identity)
+func (s *service) lookupUser(ctx context.Context, user string, searchRemote bool) (keys.ID, error) {
+	if searchRemote {
+		result, err := s.searchRemoteCheckUser(ctx, user)
 		if err != nil {
 			return "", err
 		}
-		if res == nil {
-			logger.Infof("User not found %s", identity)
-			if searchRemote {
-				user, err := s.searchRemoteCheckUser(ctx, identity)
-				if err != nil {
-					return "", err
-				}
-				if user == nil {
-					return "", keys.NewErrNotFound(identity)
-				}
-				return keys.ID(user.KID), nil
-			}
-			return "", keys.NewErrNotFound(identity)
+		if result == nil {
+			return "", keys.NewErrNotFound(user)
 		}
-		return res.User.KID, nil
+		return keys.ID(result.KID), nil
 	}
-
-	id, err := keys.ParseID(identity)
+	res, err := s.users.User(ctx, user)
 	if err != nil {
-		return "", errors.Errorf("failed to parse id %s", identity)
+		return "", err
 	}
-	return id, nil
+	if res == nil {
+		return "", keys.NewErrNotFound(user)
+	}
+	return res.User.KID, nil
 }
 
 // userVerifiedExpire is how long a verify lasts.
@@ -389,18 +369,11 @@ const userCheckExpire = time.Hour * 24
 // TODO: Make configurable
 const userCheckFailureExpire = time.Hour * 4
 
-func (s *service) ensureVerified(ctx context.Context, kid keys.ID) error {
+func (s *service) ensureUserVerified(ctx context.Context, kid keys.ID) error {
 	res, err := s.users.Get(ctx, kid)
 	if err != nil {
 		return err
 	}
-	if res == nil {
-		return nil
-	}
-	return s.ensureVerifiedResult(ctx, res)
-}
-
-func (s *service) ensureVerifiedResult(ctx context.Context, res *user.Result) error {
 	if res == nil {
 		return nil
 	}
@@ -409,12 +382,12 @@ func (s *service) ensureVerifiedResult(ctx context.Context, res *user.Result) er
 		return errors.Errorf("user %s has failed status %s", res.User.ID(), res.Status)
 	}
 
-	// Verified recently
+	// Check if verified recently.
 	if !res.IsVerifyExpired(s.clock.Now(), userVerifiedExpire) {
 		return nil
 	}
 
-	// Our verify expired, re-check
+	// Our verify expired, re-check.
 	logger.Infof("Checking user %v", res)
 	ok, resNew, err := s.update(ctx, res.User.KID)
 	if err != nil {
@@ -425,74 +398,6 @@ func (s *service) ensureVerifiedResult(ctx context.Context, res *user.Result) er
 	}
 	if resNew.Status != user.StatusOK {
 		return errors.Errorf("user %s has failed status %s", resNew.User.ID(), resNew.Status)
-	}
-	return nil
-}
-
-func (s *service) parseIdentities(ctx context.Context, recs []string, check bool) ([]keys.ID, error) {
-	ids := make([]keys.ID, 0, len(recs))
-	for _, r := range recs {
-		id, err := s.parseIdentity(ctx, r, check)
-		if err != nil {
-			return nil, err
-		}
-		ids = append(ids, id)
-	}
-	return ids, nil
-}
-
-func (s *service) checkForKeyUpdate(ctx context.Context, kid keys.ID, updateIfMissing bool) error {
-	res, err := s.users.Get(ctx, kid)
-	if err != nil {
-		return err
-	}
-	if res == nil {
-		if updateIfMissing {
-			if _, _, err := s.update(ctx, kid); err != nil {
-				return err
-			}
-		}
-		return nil
-	}
-
-	// If not OK, check every "userCheckFailureExpire", otherwise check every "userCheckExpire"
-	now := s.clock.Now()
-	if (res.Status != user.StatusOK && res.IsTimestampExpired(now, userCheckFailureExpire)) ||
-		res.IsTimestampExpired(now, userCheckExpire) {
-		if _, _, err := s.update(ctx, kid); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// checkForKeyUpdates updates any keys we have in our keystore.
-// This currently only updates keys that have had a user.
-func (s *service) checkForKeyUpdates(ctx context.Context) error {
-	logger.Infof("Checking keys...")
-	pks, err := s.vault.EdX25519PublicKeys()
-	if err != nil {
-		return errors.Wrapf(err, "failed to list public keys")
-	}
-	for _, pk := range pks {
-		if err := s.checkForKeyUpdate(ctx, pk.ID(), false); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (s *service) updateAllKeys(ctx context.Context) error {
-	logger.Infof("Updating keys...")
-	pks, err := s.vault.EdX25519PublicKeys()
-	if err != nil {
-		return err
-	}
-	for _, pk := range pks {
-		if _, _, err := s.update(ctx, pk.ID()); err != nil {
-			return err
-		}
 	}
 	return nil
 }

@@ -25,16 +25,20 @@ type env struct {
 	closeFn    func()
 }
 
-func testEnv(t *testing.T, logger server.Logger) *env {
-	if logger == nil {
-		logger = client.NewLogger(client.ErrLevel)
-	}
+func newEnv(t *testing.T, logger server.Logger) *env {
 	clock := tsutil.NewTestClock()
 	fi := docs.NewMem()
 	fi.SetClock(clock)
+	return newEnvWithFire(t, fi, clock, logger)
+}
+
+func newEnvWithFire(t *testing.T, fi server.Fire, clock tsutil.Clock, logger server.Logger) *env {
+	if logger == nil {
+		logger = client.NewLogger(client.ErrLevel)
+	}
 	rds := api.NewRedisTest(clock)
 	req := request.NewMockRequestor()
-	users := testUserStore(t, fi, req, clock)
+	users := newTestUserStore(t, fi, req, clock)
 
 	srv := server.New(fi, rds, users, logger)
 	srv.SetClock(clock)
@@ -51,7 +55,7 @@ func testEnv(t *testing.T, logger server.Logger) *env {
 	return &env{clock, httpServer, srv, fi, users, req, func() { httpServer.Close() }}
 }
 
-func testClient(t *testing.T, env *env) *client.Client {
+func newTestClient(t *testing.T, env *env) *client.Client {
 	cl, err := client.New(env.httpServer.URL)
 	require.NoError(t, err)
 	cl.SetHTTPClient(env.httpServer.Client())
@@ -59,7 +63,7 @@ func testClient(t *testing.T, env *env) *client.Client {
 	return cl
 }
 
-func testUserStore(t *testing.T, ds docs.Documents, req request.Requestor, clock tsutil.Clock) *user.Store {
+func newTestUserStore(t *testing.T, ds docs.Documents, req request.Requestor, clock tsutil.Clock) *user.Store {
 	us, err := user.NewStore(ds, keys.NewSigchainStore(ds), req, clock)
 	require.NoError(t, err)
 	return us

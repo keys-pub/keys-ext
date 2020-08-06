@@ -15,7 +15,7 @@ func (s *service) Sigchain(ctx context.Context, req *SigchainRequest) (*Sigchain
 		return nil, err
 	}
 
-	key, err := s.loadKey(ctx, kid)
+	key, err := s.key(ctx, kid)
 	if err != nil {
 		return nil, err
 	}
@@ -121,9 +121,19 @@ func (s *service) Statement(ctx context.Context, req *StatementRequest) (*Statem
 
 // StatementCreate (RPC) ...
 func (s *service) StatementCreate(ctx context.Context, req *StatementCreateRequest) (*StatementCreateResponse, error) {
-	key, err := s.parseSignKey(req.KID, true)
+	if req.KID == "" {
+		return nil, errors.Errorf("no kid specified")
+	}
+	kid, err := keys.ParseID(req.KID)
 	if err != nil {
 		return nil, err
+	}
+	key, err := s.edX25519Key(kid)
+	if err != nil {
+		return nil, err
+	}
+	if key == nil {
+		return nil, keys.NewErrNotFound(req.KID)
 	}
 
 	sc, err := s.scs.Sigchain(key.ID())
@@ -144,7 +154,7 @@ func (s *service) StatementCreate(ctx context.Context, req *StatementCreateReque
 		}
 	}
 
-	if err := s.scs.SaveSigchain(sc); err != nil {
+	if err := s.scs.Save(sc); err != nil {
 		return nil, err
 	}
 
@@ -157,7 +167,11 @@ func (s *service) StatementCreate(ctx context.Context, req *StatementCreateReque
 
 // StatementRevoke (RPC) ...
 func (s *service) StatementRevoke(ctx context.Context, req *StatementRevokeRequest) (*StatementRevokeResponse, error) {
-	key, err := s.parseSignKey(req.KID, true)
+	kid, err := keys.ParseID(req.KID)
+	if err != nil {
+		return nil, err
+	}
+	key, err := s.edX25519Key(kid)
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +192,7 @@ func (s *service) StatementRevoke(ctx context.Context, req *StatementRevokeReque
 		}
 	}
 
-	if err := s.scs.SaveSigchain(sc); err != nil {
+	if err := s.scs.Save(sc); err != nil {
 		return nil, err
 	}
 

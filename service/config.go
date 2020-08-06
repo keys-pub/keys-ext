@@ -374,6 +374,26 @@ func (c *Config) Set(key string, value string) {
 	c.values[key] = value
 }
 
+func (c *Config) saveLogLevelFlag(s string) error {
+	if s == "" {
+		return nil
+	}
+	_, ok := parseLogLevel(s)
+	if !ok {
+		return errors.Errorf("invalid log-level")
+	}
+	c.Set(logLevelCfgKey, s)
+	return c.Save()
+}
+
+func (c *Config) savePortFlag(port int) error {
+	if port == 0 {
+		return nil
+	}
+	c.SetInt(portCfgKey, port)
+	return c.Save()
+}
+
 func truthy(s string) (bool, error) {
 	s = strings.TrimSpace(s)
 	switch s {

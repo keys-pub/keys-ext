@@ -170,3 +170,38 @@ func reverseCopy(s []string) []string {
 	}
 	return a
 }
+
+func TestFirestoreBatch(t *testing.T) {
+	var err error
+	// SetContextLogger(NewContextLogger(DebugLevel))
+
+	eds := testFirestore(t)
+	ctx := context.TODO()
+	path := testPath()
+	t.Logf("Path: %s", path)
+
+	values := [][]byte{}
+	length := 1001
+	for i := 0; i < length; i++ {
+		str := fmt.Sprintf("value%d", i)
+		values = append(values, []byte(str))
+	}
+	out, err := eds.EventsAdd(ctx, path, values)
+	require.NoError(t, err)
+	require.Equal(t, length, len(out))
+
+	iter, err := eds.Events(ctx, path)
+	require.NoError(t, err)
+	i := 0
+	for {
+		event, err := iter.Next()
+		require.NoError(t, err)
+		if event == nil {
+			break
+		}
+		require.Equal(t, fmt.Sprintf("value%d", i), string(event.Data))
+		i++
+	}
+	iter.Release()
+	require.Equal(t, length, i)
+}

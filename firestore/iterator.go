@@ -74,7 +74,7 @@ func (i *eventIterator) Next() (*events.Event, error) {
 	if err != nil {
 		return nil, err
 	}
-	if i.count >= i.limit {
+	if i.limit != 0 && i.count >= i.limit {
 		return nil, nil
 	}
 	var event events.Event

@@ -98,8 +98,8 @@ func (s *Server) checkUserStatus(ctx context.Context, status user.Status) error 
 	return nil
 }
 
-func (s *Server) checkExpired(ctx context.Context, dt time.Duration) error {
-	kids, err := s.users.Expired(ctx, dt)
+func (s *Server) checkExpired(ctx context.Context, dt time.Duration, maxAge time.Duration) error {
+	kids, err := s.users.Expired(ctx, dt, maxAge)
 	if err != nil {
 		return err
 	}
@@ -121,7 +121,7 @@ func (s *Server) cronCheck(c echo.Context) error {
 	}
 
 	// Check expired
-	if err := s.checkExpired(ctx, time.Hour*12); err != nil {
+	if err := s.checkExpired(ctx, time.Hour*12, time.Hour*24*60); err != nil {
 		return s.internalError(c, err)
 	}
 

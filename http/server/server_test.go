@@ -59,17 +59,10 @@ func TestFireCreatedAt(t *testing.T) {
 	require.Equal(t, "2009-02-13T23:31:30.001Z", ftime)
 }
 
-func testUserStore(t *testing.T, ds docs.Documents, req request.Requestor, clock tsutil.Clock) *user.Store {
-	us, err := user.NewStore(ds, keys.NewSigchainStore(ds), req, clock)
-	require.NoError(t, err)
-	return us
-}
-
 type env struct {
 	clock    tsutil.Clock
 	fi       server.Fire
 	pubSub   server.PubSub
-	users    *user.Store
 	req      *request.MockRequestor
 	logLevel server.LogLevel
 }
@@ -83,20 +76,18 @@ func newEnv(t *testing.T) *env {
 func newEnvWithFire(t *testing.T, fi server.Fire, clock tsutil.Clock) *env {
 	req := request.NewMockRequestor()
 	pubSub := server.NewPubSub()
-	users := testUserStore(t, fi, req, clock)
 	return &env{
 		clock:    clock,
 		fi:       fi,
 		req:      req,
 		pubSub:   pubSub,
-		users:    users,
 		logLevel: server.ErrLevel,
 	}
 }
 
 func newTestServer(t *testing.T, env *env) *testServer {
 	rds := api.NewRedisTest(env.clock)
-	svr := server.New(env.fi, rds, env.users, server.NewLogger(env.logLevel))
+	svr := server.New(env.fi, rds, env.req, env.clock, server.NewLogger(env.logLevel))
 	tasks := server.NewTestTasks(svr)
 	svr.SetTasks(tasks)
 	svr.SetInternalAuth(encoding.MustEncode(keys.RandBytes(32), encoding.Base62))

@@ -27,6 +27,7 @@ func (c *Client) UserSearch(ctx context.Context, query string, limit int) (*api.
 		return nil, errors.Errorf("/user/search not found")
 	}
 
+	// TODO: Support paging
 	var resp api.UserSearchResponse
 	if err := json.Unmarshal(doc.Data, &resp); err != nil {
 		return nil, err

@@ -20,10 +20,10 @@ func encryptCommands(client *Client) []cli.Command {
 			Usage: "Encrypt",
 			Flags: []cli.Flag{
 				cli.StringSliceFlag{Name: "recipient, r", Usage: "recipients"},
-				cli.StringFlag{Name: "sender, s", Usage: "sender (or anonymous if not specified)"},
+				cli.StringFlag{Name: "sender, signer, s", Usage: "signer (or anonymous if not specified)"},
 				cli.BoolFlag{Name: "armor, a", Usage: "armored"},
 				cli.StringFlag{Name: "in, i", Usage: "file to read"},
-				cli.StringFlag{Name: "out, o", Usage: "file to write (defaults to {in}.enc"},
+				cli.StringFlag{Name: "out, o", Usage: "file to write, defaults to <in>.enc"},
 				cli.StringFlag{Name: "mode, m", Usage: "encryption mode: encrypt (default) or signcrypt"},
 			},
 			Action: func(c *cli.Context) error {

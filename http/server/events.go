@@ -22,16 +22,13 @@ func (s *Server) events(c echo.Context, path string) (*api.EventsResponse, error
 		}
 		index = int64(i)
 	}
-	plimit := c.QueryParam("limit")
-	if plimit == "" {
-		plimit = "100"
-	}
-	limit, err := strconv.ParseInt(plimit, 10, 64)
-	if err != nil {
-		return nil, ErrResponse(c, http.StatusBadRequest, errors.Wrapf(err, "invalid limit").Error())
-	}
-	if limit > 100 {
-		return nil, ErrResponse(c, http.StatusBadRequest, "invalid limit, too large")
+	var limit int64
+	if f := c.QueryParam("limit"); f != "" {
+		n, err := strconv.ParseInt(f, 10, 64)
+		if err != nil {
+			return nil, ErrResponse(c, http.StatusBadRequest, errors.Wrapf(err, "invalid limit").Error())
+		}
+		limit = n
 	}
 
 	pdir := c.QueryParam("dir")

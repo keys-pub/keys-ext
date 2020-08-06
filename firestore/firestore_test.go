@@ -139,6 +139,7 @@ func TestDocumentStore(t *testing.T) {
 		&docs.Collection{Path: "/msgs"},
 		&docs.Collection{Path: "/sigchain"},
 		&docs.Collection{Path: "/test"},
+		&docs.Collection{Path: "/vaults"},
 		&docs.Collection{Path: "/vaults-rm"},
 	}
 	require.Equal(t, expectedCols, cols)

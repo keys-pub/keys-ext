@@ -56,6 +56,8 @@ func Run(build Build) {
 	appName := flag.String("app", "Keys", "app name")
 	logPath := flag.String("log-path", "", "log path")
 	version := flag.Bool("version", false, "print version")
+	port := flag.Int("port", 0, "port to listen")
+	logLevel := flag.String("log-level", "", "log level")
 
 	flag.Parse()
 
@@ -71,6 +73,14 @@ func Run(build Build) {
 
 	if len(flag.Args()) > 0 {
 		logFatal(errors.Errorf("Invalid arguments. Did you mean to run `keys`?"))
+	}
+
+	// Set config from flags
+	if err := cfg.saveLogLevelFlag(*logLevel); err != nil {
+		logFatal(err)
+	}
+	if err := cfg.savePortFlag(*port); err != nil {
+		logFatal(err)
 	}
 
 	// TODO: Disable logging by default

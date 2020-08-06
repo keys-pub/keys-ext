@@ -42,7 +42,11 @@ func (s *service) Messages(ctx context.Context, req *MessagesRequest) (*Messages
 	if req.Sender == "" {
 		return nil, errors.Errorf("no kid specified")
 	}
-	key, err := s.parseSignKey(req.Sender, true)
+	sender, err := s.lookup(ctx, req.Sender, nil)
+	if err != nil {
+		return nil, err
+	}
+	key, err := s.edX25519Key(sender)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +79,11 @@ func (s *service) messagePrepare(ctx context.Context, sender string, recipient s
 	if sender == "" {
 		return nil, errors.Errorf("no sender specified")
 	}
-	key, err := s.parseSignKey(sender, true)
+	kid, err := s.lookup(ctx, sender, nil)
+	if err != nil {
+		return nil, err
+	}
+	key, err := s.edX25519Key(kid)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +115,11 @@ func (s *service) messageCreate(ctx context.Context, sender string, recipient st
 		return nil, errors.Errorf("no recipient specified")
 	}
 
-	key, err := s.parseIdentityForEdX25519Key(ctx, sender)
+	kid, err := s.lookup(ctx, sender, nil)
+	if err != nil {
+		return nil, err
+	}
+	key, err := s.edX25519Key(kid)
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +153,7 @@ func (s *service) messageCreate(ctx context.Context, sender string, recipient st
 }
 
 func (s *service) fillMessage(ctx context.Context, message *Message, t time.Time, sender keys.ID) error {
-	key, err := s.keyIDToRPC(ctx, sender)
+	key, err := s.key(ctx, sender)
 	if err != nil {
 		return err
 	}

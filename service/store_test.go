@@ -26,7 +26,7 @@ func TestDocuments(t *testing.T) {
 	testUserSetupGithub(t, env, service, bob, "bob")
 	testPush(t, service, bob)
 
-	err = service.db.Set(ctx, "/sigchaintest/test", []byte("testvalue"))
+	err = service.db.Set(ctx, "/test/key", []byte("testvalue"))
 	require.NoError(t, err)
 
 	respCols, err := service.Collections(ctx, &CollectionsRequest{})
@@ -34,8 +34,9 @@ func TestDocuments(t *testing.T) {
 
 	expectedCols := []*Collection{
 		&Collection{Path: "/kid"},
+		&Collection{Path: "/rkl"},
 		&Collection{Path: "/sigchain"},
-		&Collection{Path: "/sigchaintest"},
+		&Collection{Path: "/test"},
 		&Collection{Path: "/user"},
 	}
 	require.Equal(t, expectedCols, respCols.Collections)

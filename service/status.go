@@ -51,3 +51,14 @@ func vaultStatusToRPC(st vault.Status) AuthStatus {
 		return AuthUnknown
 	}
 }
+
+func (s *service) ensureUnlocked() error {
+	status, err := s.vault.Status()
+	if err != nil {
+		return err
+	}
+	if status != vault.Unlocked {
+		return vault.ErrLocked
+	}
+	return nil
+}
