@@ -13,11 +13,11 @@ func pullCommands(client *Client) []cli.Command {
 		cli.Command{
 			Name:      "pull",
 			Usage:     "Pull from the key server",
-			ArgsUsage: "kid or user identity",
+			ArgsUsage: "kid or user@service",
 			Action: func(c *cli.Context) error {
-				identity := c.Args().First()
+				key := c.Args().First()
 				req := &PullRequest{
-					Identity: identity,
+					Key: key,
 				}
 				resp, err := client.KeysClient().Pull(context.TODO(), req)
 				if err != nil {
@@ -32,18 +32,18 @@ func pullCommands(client *Client) []cli.Command {
 		cli.Command{
 			Name:      "push",
 			Usage:     "Publish to the key server",
-			ArgsUsage: "kid or user identity",
+			ArgsUsage: "kid or user@service",
 			Aliases:   []string{"publish"},
 			Flags: []cli.Flag{
 				cli.BoolFlag{Name: "check", Usage: "check remote", Hidden: true},
 			},
 			Action: func(c *cli.Context) error {
-				identity := c.Args().First()
-				if identity == "" {
-					return errors.Errorf("specify kid or user")
+				key := c.Args().First()
+				if key == "" {
+					return errors.Errorf("specify kid or user@service")
 				}
 				req := &PushRequest{
-					Identity:    identity,
+					Key:         key,
 					RemoteCheck: c.Bool("check"),
 				}
 				resp, err := client.KeysClient().Push(context.TODO(), req)

@@ -19,7 +19,6 @@ func (s *service) KeyImport(ctx context.Context, req *KeyImportRequest) (*KeyImp
 		return nil, err
 	}
 
-	// TODO: Should this be optional?
 	if _, _, err := s.update(ctx, key.ID()); err != nil {
 		return nil, err
 	}
@@ -38,5 +37,11 @@ func (s *service) importID(id keys.ID) error {
 	if key != nil {
 		return nil
 	}
-	return s.vault.SaveKey(id)
+	if err := s.vault.SaveKey(id); err != nil {
+		return err
+	}
+	if err := s.scs.Index(id); err != nil {
+		return err
+	}
+	return nil
 }

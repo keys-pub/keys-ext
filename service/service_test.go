@@ -61,26 +61,20 @@ type testEnv struct {
 	clock tsutil.Clock
 	fi    server.Fire
 	req   *request.MockRequestor
-	users *user.Store
+	users *user.Users
 }
 
 func newTestEnv(t *testing.T) *testEnv {
 	clock := tsutil.NewTestClock()
 	fi := testFire(t, clock)
 	req := request.NewMockRequestor()
-	users := testUserStore(t, fi, keys.NewSigchainStore(fi), req, clock)
+	users := user.NewUsers(fi, keys.NewSigchains(fi), req, clock)
 	return &testEnv{
 		clock: clock,
 		fi:    fi,
 		req:   req,
 		users: users,
 	}
-}
-
-func testUserStore(t *testing.T, ds docs.Documents, scs keys.SigchainStore, req *request.MockRequestor, clock tsutil.Clock) *user.Store {
-	us, err := user.NewStore(ds, scs, req, clock)
-	require.NoError(t, err)
-	return us
 }
 
 func newTestService(t *testing.T, env *testEnv, appName string) (*service, CloseFn) {
@@ -235,14 +229,14 @@ func mockRedditMessage(author string, msg string, subreddit string) string {
 
 func testPush(t *testing.T, service *service, key *keys.EdX25519Key) {
 	_, err := service.Push(context.TODO(), &PushRequest{
-		Identity: key.ID().String(),
+		Key: key.ID().String(),
 	})
 	require.NoError(t, err)
 }
 
 func testPull(t *testing.T, service *service, kid keys.ID) {
 	_, err := service.Pull(context.TODO(), &PullRequest{
-		Identity: kid.String(),
+		Key: kid.String(),
 	})
 	require.NoError(t, err)
 }
@@ -263,7 +257,7 @@ type serverEnv struct {
 
 func newTestServerEnv(t *testing.T, env *testEnv) *serverEnv {
 	rds := api.NewRedisTest(env.clock)
-	srv := server.New(env.fi, rds, env.users, logger)
+	srv := server.New(env.fi, rds, env.req, env.clock, logger)
 	srv.SetClock(env.clock)
 	tasks := server.NewTestTasks(srv)
 	srv.SetTasks(tasks)
@@ -313,6 +307,6 @@ func TestCheckUpdate(t *testing.T) {
 	testUserSetupGithub(t, env, service, alice, "alice")
 	testPush(t, service, alice)
 
-	err := service.checkForKeyUpdates(context.TODO())
+	err := service.checkKeys(context.TODO())
 	require.NoError(t, err)
 }

@@ -20,8 +20,8 @@ type service struct {
 	auth   *auth
 	db     *sdb.DB
 	client *httpclient.Client
-	scs    keys.SigchainStore
-	users  *user.Store
+	scs    *keys.Sigchains
+	users  *user.Users
 	clock  tsutil.Clock
 	vault  *vault.Vault
 
@@ -51,11 +51,8 @@ func newService(cfg *Config, build Build, auth *auth, req request.Requestor, clo
 
 	db := sdb.New()
 	db.SetClock(clock)
-	scs := keys.NewSigchainStore(db)
-	users, err := user.NewStore(db, scs, req, clock)
-	if err != nil {
-		return nil, err
-	}
+	scs := keys.NewSigchains(db)
+	users := user.NewUsers(db, scs, req, clock)
 
 	return &service{
 		auth:   auth,
@@ -132,7 +129,7 @@ func (s *service) Unlock(ctx context.Context, key *[32]byte) error {
 		if _, err := s.vault.CheckSync(context.Background(), time.Duration(0)); err != nil {
 			logger.Errorf("Failed to check sync: %v", err)
 		}
-		s.startUpdateCheck()
+		s.startCheckKeys()
 	}()
 
 	return nil
@@ -150,27 +147,27 @@ func (s *service) Lock() {
 }
 
 func (s *service) lock() {
-	s.stopUpdateCheck()
+	s.stopCheckKeys()
 	logger.Infof("Closing sdb...")
 	s.db.Close()
 	s.unlocked = false
 }
 
-func (s *service) tryCheckForKeyUpdates(ctx context.Context) {
-	if err := s.checkForKeyUpdates(ctx); err != nil {
+func (s *service) tryCheckKeys(ctx context.Context) {
+	if err := s.checkKeys(ctx); err != nil {
 		logger.Errorf("Failed to check keys: %v", err)
 	}
 }
 
-func (s *service) startUpdateCheck() {
+func (s *service) startCheckKeys() {
 	ticker := time.NewTicker(time.Hour)
 	s.stopCh = make(chan bool)
 	go func() {
-		s.tryCheckForKeyUpdates(context.TODO())
+		s.tryCheckKeys(context.TODO())
 		for {
 			select {
 			case <-ticker.C:
-				s.tryCheckForKeyUpdates(context.TODO())
+				s.tryCheckKeys(context.TODO())
 			case <-s.stopCh:
 				ticker.Stop()
 				return
@@ -179,7 +176,7 @@ func (s *service) startUpdateCheck() {
 	}()
 }
 
-func (s *service) stopUpdateCheck() {
+func (s *service) stopCheckKeys() {
 	if s.stopCh != nil {
 		close(s.stopCh)
 		s.stopCh = nil

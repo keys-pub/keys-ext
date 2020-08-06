@@ -18,12 +18,12 @@ func (s *service) findSender(ctx context.Context, kid keys.ID) (*Key, error) {
 		logger.Infof("No decrypt sender")
 		return nil, nil
 	}
-	k, err := s.convertIfX25519ID(kid)
+	convert, err := s.convertIfX25519ID(kid)
 	if err != nil {
 		return nil, err
 	}
-	kid = k
-	return s.loadKey(ctx, kid)
+	kid = convert
+	return s.key(ctx, kid)
 }
 
 // Decrypt (RPC) data.

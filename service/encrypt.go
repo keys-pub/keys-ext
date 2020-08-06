@@ -24,7 +24,7 @@ func (s *service) newEncrypt(ctx context.Context, recipients []string, sender st
 		return nil, errors.Errorf("no recipients specified")
 	}
 
-	identities, err := s.parseIdentities(ctx, recipients, true)
+	recs, err := s.lookupAll(ctx, recipients, &LookupOpts{Verify: true})
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +35,7 @@ func (s *service) newEncrypt(ctx context.Context, recipients []string, sender st
 
 	var kid keys.ID
 	if sender != "" {
-		s, err := s.parseIdentity(ctx, sender, true)
+		s, err := s.lookup(ctx, sender, &LookupOpts{Verify: true})
 		if err != nil {
 			return nil, err
 		}
@@ -43,7 +43,7 @@ func (s *service) newEncrypt(ctx context.Context, recipients []string, sender st
 	}
 
 	return &encrypt{
-		recipients: identities,
+		recipients: recs,
 		sender:     kid,
 		mode:       mode,
 		armored:    armored,
@@ -60,7 +60,7 @@ func (s *service) Encrypt(ctx context.Context, req *EncryptRequest) (*EncryptRes
 	var out []byte
 	switch enc.mode {
 	case SaltpackEncrypt:
-		sbk, err := s.parseBoxKey(enc.sender)
+		sbk, err := s.x25519Key(enc.sender)
 		if err != nil {
 			return nil, err
 		}
@@ -146,7 +146,7 @@ func (s *service) encryptWriter(ctx context.Context, w io.Writer, enc *encrypt) 
 	var stream io.WriteCloser
 	switch enc.mode {
 	case SaltpackEncrypt:
-		sbk, err := s.parseBoxKey(enc.sender)
+		sbk, err := s.x25519Key(enc.sender)
 		if err != nil {
 			return nil, err
 		}

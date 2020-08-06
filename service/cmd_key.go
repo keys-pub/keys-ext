@@ -39,12 +39,12 @@ func keyCommands(client *Client) []cli.Command {
 			Usage:     "Show key",
 			ArgsUsage: "kid or user",
 			Action: func(c *cli.Context) error {
-				identity := c.Args().First()
-				if identity == "" {
-					return errors.Errorf("specify kid or user")
+				key := c.Args().First()
+				if key == "" {
+					return errors.Errorf("specify kid or user@service")
 				}
 				resp, err := client.KeysClient().Key(context.TODO(), &KeyRequest{
-					Identity: identity,
+					Key: key,
 				})
 				if err != nil {
 					return err
