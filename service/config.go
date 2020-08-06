@@ -5,12 +5,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/user"
-	"path/filepath"
-	"runtime"
 	"strconv"
 	"strings"
 
+	"github.com/keys-pub/keys/env"
 	"github.com/pkg/errors"
 )
 
@@ -105,117 +103,26 @@ func (c Config) LogsDir() string {
 	return p
 }
 
-// TODO: use env package for paths
-
 // AppPath ...
-func (c Config) AppPath(fileName string, makeDir bool) (string, error) {
-	return SupportPath(c.AppName(), fileName, makeDir)
+func (c Config) AppPath(file string, makeDir bool) (string, error) {
+	opts := []env.PathOption{env.Dir(c.AppName()), env.File(file)}
+	if makeDir {
+		opts = append(opts, env.Mkdir())
+	}
+	return env.AppPath(opts...)
 }
 
 // LogsPath ...
-func (c Config) LogsPath(fileName string, makeDir bool) (string, error) {
-	return LogsPath(c.AppName(), fileName, makeDir)
+func (c Config) LogsPath(file string, makeDir bool) (string, error) {
+	opts := []env.PathOption{env.Dir(c.AppName()), env.File(file)}
+	if makeDir {
+		opts = append(opts, env.Mkdir())
+	}
+	return env.LogsPath(opts...)
 }
 
 func (c Config) certPath(makeDir bool) (string, error) {
 	return c.AppPath("ca.pem", makeDir)
-}
-
-// SupportPath ...
-func SupportPath(appName string, fileName string, makeDir bool) (string, error) {
-	switch runtime.GOOS {
-	case "darwin":
-		home, err := homeDir()
-		if err != nil {
-			return "", err
-		}
-		dir := filepath.Join(home, "Library", "Application Support")
-		return configPath(dir, appName, fileName, makeDir)
-	case "windows":
-		dir := os.Getenv("LOCALAPPDATA")
-		if dir == "" {
-			return "", errors.Errorf("LOCALAPPDATA not set")
-		}
-		return configPath(dir, appName, fileName, makeDir)
-	case "linux":
-		dir := os.Getenv("XDG_DATA_HOME")
-		if dir == "" {
-			home, err := homeDir()
-			if err != nil {
-				return "", err
-			}
-			dir = filepath.Join(home, ".local", "share")
-		}
-		return configPath(dir, appName, fileName, makeDir)
-	default:
-		return "", errors.Errorf("unsupported platform %s", runtime.GOOS)
-	}
-}
-
-// LogsPath ...
-func LogsPath(appName string, fileName string, makeDir bool) (string, error) {
-	switch runtime.GOOS {
-	case "darwin":
-		home, err := homeDir()
-		if err != nil {
-			return "", err
-		}
-		dir := filepath.Join(home, "Library", "Logs")
-		return configPath(dir, appName, fileName, makeDir)
-	case "windows":
-		dir := os.Getenv("LOCALAPPDATA")
-		if dir == "" {
-			return "", errors.Errorf("LOCALAPPDATA not set")
-		}
-		return configPath(dir, appName, fileName, makeDir)
-	case "linux":
-		dir := os.Getenv("XDG_CACHE_HOME")
-		if dir == "" {
-			home, err := homeDir()
-			if err != nil {
-				return "", err
-			}
-			dir = filepath.Join(home, ".cache")
-		}
-		return configPath(dir, appName, fileName, makeDir)
-	default:
-		return "", errors.Errorf("unsupported platform %s", runtime.GOOS)
-	}
-}
-
-func configPath(dir string, appName string, fileName string, makeDir bool) (string, error) {
-	if appName == "" {
-		return "", errors.Errorf("appName not specified")
-	}
-	dir = filepath.Join(dir, appName)
-
-	exists, err := pathExists(dir)
-	if err != nil {
-		return "", err
-	}
-	if !exists && makeDir {
-		logger.Infof("Creating directory: %s", dir)
-		err := os.MkdirAll(dir, 0700)
-		if err != nil {
-			return "", err
-		}
-	}
-	path := dir
-	if fileName != "" {
-		path = filepath.Join(path, fileName)
-	}
-	return path, nil
-}
-
-// homeDir returns current user home directory.
-// On linux, when running an AppImage, homeDir can be empty.
-func homeDir() (string, error) {
-	// TODO: Switch to UserHomeDir in go 1.12
-	usr, err := user.Current()
-	if err != nil {
-		return "", err
-	}
-	return usr.HomeDir, nil
 }
 
 // Path to config file.
