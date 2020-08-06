@@ -106,11 +106,11 @@ func (s *service) SignStream(srv Keys_SignStreamServer) error {
 			if stream != nil {
 				return errors.Errorf("stream already initialized")
 			}
-			kid, err := s.lookup(ctx, req.Signer, nil)
+			rkid, err := s.lookup(ctx, req.Signer, nil)
 			if err != nil {
 				return err
 			}
-			key, err := s.edX25519Key(kid)
+			key, err := s.edX25519Key(rkid)
 			if err != nil {
 				return err
 			}
