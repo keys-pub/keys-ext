@@ -26,18 +26,40 @@ func TestKey(t *testing.T) {
 
 	// Alice
 	resp, err := service.Key(ctx, &KeyRequest{
-		Identity: alice.ID().String(),
+		Key: alice.ID().String(),
 	})
 	require.NoError(t, err)
 	require.Equal(t, alice.ID().String(), resp.Key.ID)
 
 	// Alice (user)
 	resp, err = service.Key(ctx, &KeyRequest{
-		Identity: "alice@github",
+		Key: "alice@github",
 	})
 	require.NoError(t, err)
 	require.NotNil(t, resp.Key)
 	require.Equal(t, alice.ID().String(), resp.Key.ID)
+
+	// Alice (X25519)
+	resp, err = service.Key(ctx, &KeyRequest{
+		Key: alice.PublicKey().X25519PublicKey().ID().String(),
+	})
+	require.NoError(t, err)
+	require.Equal(t, alice.ID().String(), resp.Key.ID)
+
+	// Key
+	key := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x03}, 32)))
+	testImportKey(t, service, key)
+
+	resp, err = service.Key(ctx, &KeyRequest{
+		Key: "kex1a4yj333g68pvd6hfqvufqkv4vy54jfe6t33ljd3kc9rpfty8xlgs2u3qxr",
+	})
+	require.NoError(t, err)
+	require.Equal(t, key.ID().String(), resp.Key.ID)
+	resp, err = service.Key(ctx, &KeyRequest{
+		Key: "kbx1wh38phef2tzhh2pk0w5xrrqh37072rdj0xwnqnn5ayvdnptgv9rqae3m96",
+	})
+	require.NoError(t, err)
+	require.Equal(t, key.ID().String(), resp.Key.ID)
 
 	// TODO: Test update
 }
@@ -123,15 +145,37 @@ func TestKeyGenerate(t *testing.T) {
 	defer closeFn()
 	ctx := context.TODO()
 	testAuthSetup(t, service)
-	testImportKey(t, service, alice)
 
+	// Generate EdX25519
 	genResp, err := service.KeyGenerate(ctx, &KeyGenerateRequest{Type: EdX25519})
 	require.NoError(t, err)
 
-	key, err := service.parseSignKey(genResp.KID, true)
+	resp, err := service.Key(ctx, &KeyRequest{
+		Key: genResp.KID,
+	})
 	require.NoError(t, err)
-	require.NotNil(t, key)
-	require.Equal(t, key.ID().String(), genResp.KID)
+	require.Equal(t, genResp.KID, resp.Key.ID)
+
+	// Get EdX25519 key by X25519 ID
+	kid, err := keys.ParseID(genResp.KID)
+	require.NoError(t, err)
+	sk, err := service.vault.EdX25519Key(kid)
+	require.NoError(t, err)
+	bkid := sk.PublicKey().X25519PublicKey().ID()
+	resp, err = service.Key(ctx, &KeyRequest{
+		Key: bkid.String(),
+	})
+	require.NoError(t, err)
+	require.Equal(t, kid.String(), resp.Key.ID)
+
+	// Generate X25519
+	genResp, err = service.KeyGenerate(ctx, &KeyGenerateRequest{Type: X25519})
+	require.NoError(t, err)
+	resp, err = service.Key(ctx, &KeyRequest{
+		Key: genResp.KID,
+	})
+	require.NoError(t, err)
+	require.Equal(t, genResp.KID, resp.Key.ID)
 }
 
 func TestKeyRemove(t *testing.T) {

@@ -156,6 +156,8 @@ github.com/keys-pub/keys v0.1.2-0.20200730041549-d3618d12cd00 h1:A7yH5kdff9MA8zz
 github.com/keys-pub/keys v0.1.2-0.20200730041549-d3618d12cd00/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys v0.1.2-0.20200731213842-a306c75de40a h1:eb7K/KYYF2jX5zfFGol5AqbH3+l5KVwQo6sIIApfc0U=
 github.com/keys-pub/keys v0.1.2-0.20200731213842-a306c75de40a/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.1.2-0.20200806185019-616406199bc1 h1:3IDxiWWwdcyvgsCxjC8SA3IP4Ze8ddBGA3d17ReFOGs=
+github.com/keys-pub/keys v0.1.2-0.20200806185019-616406199bc1/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200613203701-f9bf15538783/go.mod h1:x/G3gwUe4ZbszY+qWXzvsy4nAun2b/ENISACWfwAB04=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200618211325-4c2d562cade7 h1:TuGKplA4KiBtjDBwa/Qi/H3Om0JhhK1cwSMD1917JsU=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200618211325-4c2d562cade7/go.mod h1:zCsXre409myb7Knish8aVBPYWSK96/KazhqYCumI+VA=
@@ -188,6 +190,8 @@ github.com/keys-pub/keys-ext/http/server v0.0.0-20200730041656-8e431c775563 h1:/
 github.com/keys-pub/keys-ext/http/server v0.0.0-20200730041656-8e431c775563/go.mod h1:lVXKjpN3vkB97Cl87c7MiR4dQaY7Ap+rJTDWfBLtYx4=
 github.com/keys-pub/keys-ext/http/server v0.0.0-20200803193934-036dcb4c6007 h1:aMIX67vOPQCI0oznSSG6ZKQBCR4Rp9grFT5TqEo5AkU=
 github.com/keys-pub/keys-ext/http/server v0.0.0-20200803193934-036dcb4c6007/go.mod h1:cIciTZPtDgl7zYKJ2ea/KE1/A6ulB5sQ+jEaTwZl60E=
+github.com/keys-pub/keys-ext/http/server v0.0.0-20200806191006-c5b2599598fc h1:ozuJsiAhIcbANa9SMKGT21DwwVJH4dJyWqHcP3toBbo=
+github.com/keys-pub/keys-ext/http/server v0.0.0-20200806191006-c5b2599598fc/go.mod h1:gyT2511hiCStGmbnKNLwbPTy3wr5l5bEs0nwvrB/yOw=
 github.com/keys-pub/keys-ext/sdb v0.0.0-20200720205921-e5e4095869e2 h1:eN02aSGivgQMrc+F0aa01SugHiMJWNik92c8NFN3SPg=
 github.com/keys-pub/keys-ext/sdb v0.0.0-20200720205921-e5e4095869e2/go.mod h1:a2kdlrU3Q860hDBlcpzqEzXMSQPh6C1rXdXmyVP8MGo=
 github.com/keys-pub/keys-ext/vault v0.0.0-20200720210151-bf9666e216d5 h1:RHo2YRQjq9adSji/5Xk7GWfkS6UC4Y90b3H23R5lHCo=

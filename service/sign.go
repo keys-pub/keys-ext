@@ -12,7 +12,14 @@ import (
 
 // Sign (RPC) ...
 func (s *service) Sign(ctx context.Context, req *SignRequest) (*SignResponse, error) {
-	key, err := s.parseSigner(req.Signer, true)
+	if err := s.ensureUnlocked(); err != nil {
+		return nil, err
+	}
+	kid, err := s.lookup(ctx, req.Signer, nil)
+	if err != nil {
+		return nil, err
+	}
+	key, err := s.edX25519Key(kid)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +54,11 @@ func (s *service) SignFile(srv Keys_SignFileServer) error {
 		}
 	}
 
-	key, err := s.parseSigner(req.Signer, true)
+	kid, err := s.lookup(srv.Context(), req.Signer, nil)
+	if err != nil {
+		return err
+	}
+	key, err := s.edX25519Key(kid)
 	if err != nil {
 		return err
 	}
@@ -95,7 +106,11 @@ func (s *service) SignStream(srv Keys_SignStreamServer) error {
 			if stream != nil {
 				return errors.Errorf("stream already initialized")
 			}
-			key, err := s.parseSigner(req.Signer, true)
+			rkid, err := s.lookup(ctx, req.Signer, nil)
+			if err != nil {
+				return err
+			}
+			key, err := s.edX25519Key(rkid)
 			if err != nil {
 				return err
 			}

@@ -137,20 +137,6 @@ func TestAuthUnlockLock(t *testing.T) {
 	require.EqualError(t, err, "vault is locked")
 }
 
-func TestAuthSetup(t *testing.T) {
-	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env, "")
-	defer closeFn()
-	ctx := context.TODO()
-
-	_, err := service.AuthSetup(ctx, &AuthSetupRequest{Secret: "password123", Type: PasswordAuth})
-	require.NoError(t, err)
-
-	testImportKey(t, service, alice)
-	_, err = service.Sign(context.TODO(), &SignRequest{Data: []byte("test"), Signer: alice.ID().String()})
-	require.NoError(t, err)
-}
-
 func TestPasswordChange(t *testing.T) {
 	var err error
 	env := newTestEnv(t)

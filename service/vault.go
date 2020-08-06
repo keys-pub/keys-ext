@@ -16,8 +16,8 @@ func (s *service) VaultSync(ctx context.Context, req *VaultSyncRequest) (*VaultS
 	if err := s.vault.Sync(ctx); err != nil {
 		return nil, errors.Wrapf(err, "failed to sync")
 	}
-	if err := s.checkForKeyUpdates(ctx); err != nil {
-		return nil, errors.Wrapf(err, "failed to check for key updates")
+	if err := s.checkKeys(ctx); err != nil {
+		return nil, errors.Wrapf(err, "failed to check keys")
 	}
 	return &VaultSyncResponse{}, nil
 }
@@ -76,7 +76,7 @@ func (s *service) vaultUpdate(ctx context.Context, expire time.Duration) error {
 		return err
 	}
 	if synced {
-		return s.checkForKeyUpdates(ctx)
+		return s.checkKeys(ctx)
 	}
 	return nil
 }

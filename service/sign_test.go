@@ -17,34 +17,70 @@ import (
 )
 
 func TestSignVerify(t *testing.T) {
+	var err error
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env, "")
-	defer closeFn()
-	testAuthSetup(t, service)
-	testImportKey(t, service, alice)
+	aliceService, aliceCloseFn := newTestService(t, env, "")
+	defer aliceCloseFn()
+	testAuthSetup(t, aliceService)
+	testImportKey(t, aliceService, alice)
 
+	// Sign with kid (alice)
 	message := "I'm alice"
-	signResp, err := service.Sign(context.TODO(), &SignRequest{Data: []byte(message), Signer: alice.ID().String()})
+	signResp, err := aliceService.Sign(context.TODO(), &SignRequest{Data: []byte(message), Signer: alice.ID().String()})
 	require.NoError(t, err)
 	require.NotEmpty(t, signResp.Data)
 	require.Equal(t, alice.ID().String(), signResp.KID)
 
-	verifyResp, err := service.Verify(context.TODO(), &VerifyRequest{Data: signResp.Data})
+	verifyResp, err := aliceService.Verify(context.TODO(), &VerifyRequest{Data: signResp.Data})
 	require.NoError(t, err)
 	require.Equal(t, message, string(verifyResp.Data))
 	require.Equal(t, alice.ID().String(), verifyResp.Signer.ID)
 
-	testUserSetupGithub(t, env, service, alice, "alice")
+	testUserSetupGithub(t, env, aliceService, alice, "alice")
 
-	signResp, err = service.Sign(context.TODO(), &SignRequest{Data: []byte(message), Signer: "alice@github"})
+	// Sign with alice@github
+	signResp, err = aliceService.Sign(context.TODO(), &SignRequest{Data: []byte(message), Signer: "alice@github"})
 	require.NoError(t, err)
 	require.NotEmpty(t, signResp.Data)
 	require.Equal(t, alice.ID().String(), signResp.KID)
 
-	verifyResp, err = service.Verify(context.TODO(), &VerifyRequest{Data: signResp.Data})
+	verifyResp, err = aliceService.Verify(context.TODO(), &VerifyRequest{Data: signResp.Data})
 	require.NoError(t, err)
 	require.Equal(t, message, string(verifyResp.Data))
+	require.NotNil(t, verifyResp.Signer)
 	require.Equal(t, alice.ID().String(), verifyResp.Signer.ID)
+	require.NotNil(t, verifyResp.Signer.User)
+	require.Equal(t, "alice", verifyResp.Signer.User.Name)
+
+	// Bob
+	bobService, bobCloseFn := newTestService(t, env, "")
+	defer bobCloseFn()
+	testAuthSetup(t, bobService)
+
+	// Verify at bob
+	verifyResp, err = bobService.Verify(context.TODO(), &VerifyRequest{Data: signResp.Data})
+	require.NoError(t, err)
+	require.Equal(t, message, string(verifyResp.Data))
+	require.NotNil(t, verifyResp.Signer)
+	require.Equal(t, alice.ID().String(), verifyResp.Signer.ID)
+	require.Nil(t, verifyResp.Signer.User)
+
+	// View key (do not import)
+	_, err = bobService.Key(context.TODO(), &KeyRequest{Key: alice.ID().String(), Update: true})
+	require.NoError(t, err)
+
+	// Re-verify
+	verifyResp, err = bobService.Verify(context.TODO(), &VerifyRequest{Data: signResp.Data})
+	require.NoError(t, err)
+	require.Equal(t, message, string(verifyResp.Data))
+	require.NotNil(t, verifyResp.Signer)
+	require.Equal(t, alice.ID().String(), verifyResp.Signer.ID)
+	require.Nil(t, verifyResp.Signer.User)
+
+	// Sign (not found)
+	key := keys.GenerateEdX25519Key()
+	_, err = aliceService.Sign(context.TODO(), &SignRequest{Data: []byte(message), Signer: key.ID().String()})
+	require.EqualError(t, err, fmt.Sprintf("not found %s", key.ID()))
 }
 
 func TestSignStream(t *testing.T) {

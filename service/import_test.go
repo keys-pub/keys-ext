@@ -28,7 +28,7 @@ func TestKeyImport(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, key.ID().String(), importResp.KID)
 
-	keyResp, err := service.Key(ctx, &KeyRequest{Identity: key.ID().String()})
+	keyResp, err := service.Key(ctx, &KeyRequest{Key: key.ID().String()})
 	require.NoError(t, err)
 	require.Equal(t, key.ID().String(), keyResp.Key.ID)
 

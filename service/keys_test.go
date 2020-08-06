@@ -120,7 +120,7 @@ func TestKeysMissingSigchain(t *testing.T) {
 	testUserSetupGithub(t, env, service, alice, "alice")
 	testPush(t, service, alice)
 
-	_, err := service.scs.DeleteSigchain(alice.ID())
+	_, err := service.scs.Delete(alice.ID())
 	require.NoError(t, err)
 
 	resp, err := service.Keys(ctx, &KeysRequest{})

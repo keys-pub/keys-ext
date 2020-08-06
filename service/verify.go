@@ -24,6 +24,10 @@ func (s *service) Verify(ctx context.Context, req *VerifyRequest) (*VerifyRespon
 			return nil, err
 		}
 		signer = s
+		// If we don't have the key saved, don't include the user information.
+		if !signer.Saved {
+			signer.User = nil
+		}
 	}
 
 	return &VerifyResponse{Data: verified, Signer: signer}, nil
@@ -76,7 +80,7 @@ func (s *service) VerifyFile(srv Keys_VerifyFileServer) error {
 
 	signer, err := s.verifyWriteInOut(srv.Context(), in, out)
 	if err != nil {
-		return errors.Wrapf(err, "failed to verify")
+		return err
 	}
 
 	if err := srv.Send(&VerifyFileOutput{

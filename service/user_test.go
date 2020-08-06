@@ -296,7 +296,7 @@ func TestSearchUsers(t *testing.T) {
 		require.NoError(t, err)
 
 		_, err = service.Push(context.TODO(), &PushRequest{
-			Identity: kid.String(),
+			Key: kid.String(),
 		})
 		require.NoError(t, err)
 	}

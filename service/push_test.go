@@ -15,7 +15,7 @@ func TestPush(t *testing.T) {
 	testImportKey(t, service, alice)
 	ctx := context.TODO()
 
-	_, err := service.Push(ctx, &PushRequest{Identity: alice.ID().String()})
+	_, err := service.Push(ctx, &PushRequest{Key: alice.ID().String()})
 	require.EqualError(t, err, "nothing to push")
 
 	testUserSetupGithub(t, env, service, alice, "alice")
@@ -25,7 +25,7 @@ func TestPush(t *testing.T) {
 	require.NotNil(t, res)
 	require.Equal(t, alice.ID(), res.User.KID)
 
-	resp, err := service.Push(ctx, &PushRequest{Identity: alice.ID().String()})
+	resp, err := service.Push(ctx, &PushRequest{Key: alice.ID().String()})
 	require.NoError(t, err)
 	require.Equal(t, alice.ID().String(), resp.KID)
 
