@@ -2,6 +2,7 @@ package service
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/keys-pub/keys"
@@ -33,20 +34,22 @@ func TestConfig(t *testing.T) {
 	require.True(t, cfg2.GetBool("disableSymlinkCheck"))
 }
 
-func TestSupportPath(t *testing.T) {
-	path, err := SupportPath("KeysTest-"+keys.RandFileName(), "", false)
+func TestAppPath(t *testing.T) {
+	appName := "KeysTest-" + keys.RandFileName()
+	cfg, err := NewConfig(appName)
+	require.NoError(t, err)
+
+	path, err := cfg.AppPath("", false)
 	require.NoError(t, err)
 
 	exists, err := pathExists(path)
 	require.NoError(t, err)
 	require.False(t, exists)
 
-	path, err = SupportPath("KeysTest-"+keys.RandFileName(), "", true)
+	path, err = cfg.AppPath("", true)
 	require.NoError(t, err)
-	defer func() {
-		removeErr := os.RemoveAll(path)
-		require.NoError(t, removeErr)
-	}()
+	require.True(t, strings.HasSuffix(path, appName))
+	defer func() { _ = os.RemoveAll(path) }()
 
 	exists, err = pathExists(path)
 	require.NoError(t, err)

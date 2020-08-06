@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/keys-pub/keys/env"
 	"github.com/pkg/errors"
 )
 
@@ -96,7 +97,11 @@ func Uninstall(cfg *Config) error {
 		}
 	}
 
-	for _, d := range cfg.UninstallDirs() {
+	dirs, err := env.AllDirs()
+	if err != nil {
+		return err
+	}
+	for _, d := range dirs {
 		logger.Infof("Removing %s", d)
 		if err := os.RemoveAll(d); err != nil {
 			return err
