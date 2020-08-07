@@ -19,10 +19,15 @@ func (s *service) RuntimeStatus(ctx context.Context, req *RuntimeStatusRequest) 
 		return nil, err
 	}
 
+	sync, err := s.vault.SyncEnabled()
+	if err != nil {
+		return nil, err
+	}
+
 	// Check vault sync if unlocked
 	if status == vault.Unlocked {
 		go func() {
-			if err := s.vaultUpdate(context.Background(), time.Minute*5); err != nil {
+			if err := s.vaultUpdate(context.TODO(), time.Minute*5); err != nil {
 				logger.Errorf("Failed to check sync: %v", err)
 			}
 		}()
@@ -33,6 +38,7 @@ func (s *service) RuntimeStatus(ctx context.Context, req *RuntimeStatusRequest) 
 		AppName:    s.cfg.AppName(),
 		Exe:        exe,
 		AuthStatus: vaultStatusToRPC(status),
+		Sync:       sync,
 		FIDO2:      s.auth.fas != nil,
 	}
 	logger.Infof("Runtime status, %s", resp.String())
