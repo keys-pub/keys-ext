@@ -141,10 +141,9 @@ func (v *Vault) Unlock(key *[32]byte) (*Provision, error) {
 }
 
 // Lock the vault.
-func (v *Vault) Lock() error {
+func (v *Vault) Lock() {
 	v.mk = nil
 	v.remote = nil
-	return nil
 }
 
 // authSetup creates master key and encrypts it with the auth key.

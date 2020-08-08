@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	httpclient "github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys/docs"
 	"github.com/keys-pub/keys/docs/events"
 	"github.com/keys-pub/keys/encoding"
@@ -25,8 +26,21 @@ func (v *Vault) Sync(ctx context.Context) error {
 	defer v.mtx.Unlock()
 	logger.Infof("Syncing...")
 
+	// What happens on connection failures, context cancellation?
+	//
+	// If we fail during push, we could push duplicates on the next push, with
+	// different nonces. But the duplicates would only show up in the history.
+	// We could de-dupe on the clients, but this is probably rare enough to
+	// ignore for now (TODO: resolve possible duplicate push events).
+	//
+	// If we fail after pull, we could pull duplicates, but this is ok since
+	// the partial data would be overwritten on the next pull.
+
 	if err := v.push(ctx); err != nil {
 		return errors.Wrapf(err, "failed to push vault")
+	}
+	if err := ctx.Err(); err != nil {
+		return err
 	}
 	if err := v.pull(ctx); err != nil {
 		return errors.Wrapf(err, "failed to pull vault")
@@ -268,22 +282,22 @@ func (v *Vault) getRemoteSalt(init bool) ([]byte, error) {
 	return salt, nil
 }
 
-func (v *Vault) checkNonce(n []byte) error {
-	nb := encoding.MustEncode(n, encoding.Base62)
-	b, err := v.store.Get(docs.Path("sync", "nonces", nb))
+func (v *Vault) checkNonce(n string) error {
+	b, err := v.store.Get(docs.Path("sync", "nonces", n))
 	if err != nil {
 		return err
 	}
 	if b != nil {
-		return errors.Errorf("nonce collision %s", nb)
+		return errors.Errorf("nonce collision %s", n)
 	}
 	return nil
 }
 
-func (v *Vault) commitNonce(n []byte) error {
-	nb := encoding.MustEncode(n, encoding.Base62)
-	if err := v.store.Set(docs.Path("sync", "nonces", nb), []byte{0x01}); err != nil {
-		return err
+func (v *Vault) commitNonces(ns []string) error {
+	for _, n := range ns {
+		if err := v.store.Set(docs.Path("sync", "nonces", n), []byte{0x01}); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -299,4 +313,21 @@ func (v *Vault) clearNonces() error {
 		}
 	}
 	return nil
+}
+
+func (v *Vault) checkEventNonces(events []*httpclient.Event) ([]string, error) {
+	nonces := []string{}
+	for _, event := range events {
+		nb := encoding.MustEncode(event.Nonce, encoding.Base62)
+		if err := v.checkNonce(nb); err != nil {
+			return nil, err
+		}
+		for _, exist := range nonces {
+			if exist == nb {
+				return nil, errors.Errorf("nonce collision %s", nb)
+			}
+		}
+		nonces = append(nonces, nb)
+	}
+	return nonces, nil
 }

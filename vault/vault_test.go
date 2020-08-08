@@ -125,8 +125,7 @@ func TestErrors(t *testing.T) {
 
 	err = vlt.Set(vault.NewItem("key1", []byte("mysecretdata"), "", time.Now()))
 	require.NoError(t, err)
-	err = vlt.Lock()
-	require.NoError(t, err)
+	vlt.Lock()
 
 	_, err = vlt.Get("key1")
 	require.EqualError(t, err, "vault is locked")
@@ -233,8 +232,7 @@ func testSetupUnlockProvision(t *testing.T, st vault.Store) {
 	err = vlt.Set(vault.NewItem("key1", []byte("password"), "", time.Now()))
 	require.NoError(t, err)
 
-	err = vlt.Lock()
-	require.NoError(t, err)
+	vlt.Lock()
 
 	err = vlt.Set(vault.NewItem("key1", []byte("password"), "", time.Now()))
 	require.EqualError(t, err, "vault is locked")
@@ -251,8 +249,7 @@ func testSetupUnlockProvision(t *testing.T, st vault.Store) {
 	err = vlt.Set(vault.NewItem("key1", []byte("password"), "", time.Now()))
 	require.NoError(t, err)
 
-	err = vlt.Lock()
-	require.NoError(t, err)
+	vlt.Lock()
 
 	_, err = vlt.Items()
 	require.EqualError(t, err, "vault is locked")

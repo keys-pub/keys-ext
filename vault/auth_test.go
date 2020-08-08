@@ -47,8 +47,7 @@ func testAuth(t *testing.T, vlt *vault.Vault) {
 	require.EqualError(t, err, "vault is already setup")
 
 	// Lock
-	err = vlt.Lock()
-	require.NoError(t, err)
+	vlt.Lock()
 
 	status, err = vlt.Status()
 	require.NoError(t, err)
@@ -73,8 +72,7 @@ func testAuth(t *testing.T, vlt *vault.Vault) {
 	require.Equal(t, []byte("secret"), item.Data)
 
 	// Lock
-	err = vlt.Lock()
-	require.NoError(t, err)
+	vlt.Lock()
 
 	// Check provisions
 	mds, err := vlt.Provisions()
@@ -94,12 +92,10 @@ func testAuth(t *testing.T, vlt *vault.Vault) {
 	require.NoError(t, err)
 
 	// Test both succeed
-	err = vlt.Lock()
-	require.NoError(t, err)
+	vlt.Lock()
 	_, err = vlt.Unlock(key)
 	require.NoError(t, err)
-	err = vlt.Lock()
-	require.NoError(t, err)
+	vlt.Lock()
 	_, err = vlt.Unlock(key2)
 	require.NoError(t, err)
 

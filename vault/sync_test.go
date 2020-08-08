@@ -6,8 +6,10 @@ import (
 	"testing"
 	"time"
 
+	httpclient "github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys-ext/vault"
 	"github.com/keys-pub/keys/docs"
+	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/stretchr/testify/require"
 )
@@ -309,11 +311,39 @@ func TestNonce(t *testing.T) {
 	var err error
 
 	vlt := vault.New(vault.NewMem())
-	n := bytes.Repeat([]byte{0x01}, 24)
-	err = vlt.CheckNonce(n)
+	n1 := encoding.MustEncode(bytes.Repeat([]byte{0x01}, 24), encoding.Base62)
+	err = vlt.CheckNonce(n1)
 	require.NoError(t, err)
-	err = vlt.CommitNonce(n)
+	err = vlt.CommitNonces([]string{n1})
 	require.NoError(t, err)
-	err = vlt.CheckNonce(n)
+	err = vlt.CheckNonce(n1)
 	require.EqualError(t, err, "nonce collision 00fdQWfEmi1CsDnkmh2kgfFBdcOWBGwvR")
+
+	events := []*httpclient.Event{
+		&httpclient.Event{Nonce: bytes.Repeat([]byte{0x01}, 24)},
+		&httpclient.Event{Nonce: bytes.Repeat([]byte{0x01}, 24)},
+	}
+	_, err = vlt.CheckEventNonces(events)
+	require.EqualError(t, err, "nonce collision 00fdQWfEmi1CsDnkmh2kgfFBdcOWBGwvR")
+
+	n2 := bytes.Repeat([]byte{0x02}, 24)
+	n3 := bytes.Repeat([]byte{0x03}, 24)
+	events = []*httpclient.Event{
+		&httpclient.Event{Nonce: n2},
+		&httpclient.Event{Nonce: n3},
+		&httpclient.Event{Nonce: n2},
+	}
+	_, err = vlt.CheckEventNonces(events)
+	require.EqualError(t, err, "nonce collision 01LGr3KTZQ2PkRbVZO5VNKUNHEn2MXtqs")
+
+	events = []*httpclient.Event{
+		&httpclient.Event{Nonce: n2},
+		&httpclient.Event{Nonce: n3},
+	}
+	nonces, err := vlt.CheckEventNonces(events)
+	require.NoError(t, err)
+	require.Equal(t, []string{
+		"01LGr3KTZQ2PkRbVZO5VNKUNHEn2MXtqs",
+		"020uHZziM83ccfPGM58G3zjYurBYXoqmJ",
+	}, nonces)
 }

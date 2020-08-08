@@ -85,7 +85,7 @@ func (v *Vault) setAuthFromMasterKey(mk *[32]byte) error {
 		return err
 	}
 
-	// Derive remote auth key
+	// Derive API key
 	seed := keys.Bytes32(keys.HKDFSHA256(mk[:], 32, rsalt, []byte("keys.pub/rk")))
 	rk := keys.NewEdX25519KeyFromSeed(seed)
 
@@ -314,13 +314,19 @@ func (v *Vault) saveRemoteVault(vault *httpclient.Vault) error {
 	if vault == nil {
 		return errors.Errorf("vault not found")
 	}
+
+	// Do nonce checks before we write any data to prevent partial writes on
+	// nonce failure. And commit nonces at the end, so if we are interrupted we
+	// can recover without failures next time.
+	nonces, err := v.checkEventNonces(vault.Events)
+	if err != nil {
+		return err
+	}
+
 	for _, event := range vault.Events {
 		logger.Debugf("Pull %s", event.Path)
 		if event.Path == "" {
 			return errors.Errorf("invalid event (no path)")
-		}
-		if err := v.checkNonce(event.Nonce); err != nil {
-			return err
 		}
 
 		if len(event.Data) == 0 {
@@ -343,14 +349,13 @@ func (v *Vault) saveRemoteVault(vault *httpclient.Vault) error {
 		if err := v.store.Set(pull, eb); err != nil {
 			return err
 		}
-
-		if err := v.commitNonce(event.Nonce); err != nil {
-			return err
-		}
 	}
 
-	// Update pull index
+	// Update pull index and commit nonces.
 	if err := v.setPullIndex(vault.Index); err != nil {
+		return err
+	}
+	if err := v.commitNonces(nonces); err != nil {
 		return err
 	}
 
