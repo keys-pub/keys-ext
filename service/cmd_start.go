@@ -96,7 +96,7 @@ func startCommands() []cli.Command {
 					}
 				}
 
-				return Uninstall(cfg)
+				return Uninstall(os.Stderr, cfg)
 			},
 		},
 	}

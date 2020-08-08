@@ -25,9 +25,11 @@ type service struct {
 	clock  tsutil.Clock
 	vault  *vault.Vault
 
-	stopCh    chan bool
 	unlocked  bool
 	unlockMtx sync.Mutex
+
+	checkMtx    sync.Mutex
+	checkStopFn func()
 }
 
 const sdbFilename = "keys.sdb"
@@ -80,38 +82,49 @@ func (s *service) Open() error {
 
 func (s *service) Close() {
 	logger.Infof("Closing...")
-	s.Lock()
+	s.lock()
 	if err := s.vault.Close(); err != nil {
-		logger.Errorf("Error closing vault db: %v", err)
+		logger.Errorf("Error closing vault: %v", err)
 	}
 }
 
-// Unlock the service.
-// If already unlocked, will lock and unlock.
-func (s *service) Unlock(ctx context.Context, key *[32]byte) error {
+func (s *service) unlock(ctx context.Context, secret string, typ AuthType, client string) (string, error) {
 	s.unlockMtx.Lock()
 	defer s.unlockMtx.Unlock()
+	// If already unlocked, will lock and unlock.
 	if s.unlocked {
 		logger.Errorf("Service already unlocked, re-unlocking...")
 		s.lock()
 	}
+
+	// Unlock auth/vault (get token)
+	token, err := s.auth.unlock(ctx, s.vault, secret, typ, client)
+	if err != nil {
+		return "", err
+	}
+
+	// Derive sdb key
+	mk := s.vault.MasterKey()
+	dbkey := keys.Bytes32(keys.HKDFSHA256(mk[:], 32, nil, []byte("keys.pub/ldb")))
+
 	logger.Infof("Opening sdb...")
 	path, err := s.cfg.AppPath(sdbFilename, true)
 	if err != nil {
-		return err
+		return "", err
 	}
 
+	// Open sdb
 	exists, err := pathExists(path)
 	if err != nil {
-		return err
+		return "", err
 	}
 	isNew := false
 	if !exists {
 		isNew = true
 	}
 
-	if err := s.db.OpenAtPath(ctx, path, key); err != nil {
-		return err
+	if err := s.db.OpenAtPath(ctx, path, dbkey); err != nil {
+		return "", err
 	}
 
 	s.unlocked = true
@@ -126,49 +139,56 @@ func (s *service) Unlock(ctx context.Context, key *[32]byte) error {
 	}
 
 	go func() {
-		if _, err := s.vault.CheckSync(context.Background(), time.Duration(0)); err != nil {
-			logger.Errorf("Failed to check sync: %v", err)
-		}
-		s.startCheckKeys()
+		s.startCheck()
 	}()
 
-	return nil
+	return token, nil
 }
 
-// Lock ...
-func (s *service) Lock() {
+func (s *service) lock() {
 	s.unlockMtx.Lock()
 	defer s.unlockMtx.Unlock()
+
 	if !s.unlocked {
 		logger.Infof("Service already locked")
 		return
 	}
-	s.lock()
-}
+	s.stopCheck()
 
-func (s *service) lock() {
-	s.stopCheckKeys()
+	s.auth.lock(s.vault)
+
 	logger.Infof("Closing sdb...")
 	s.db.Close()
 	s.unlocked = false
 }
 
-func (s *service) tryCheckKeys(ctx context.Context) {
+func (s *service) tryCheck(ctx context.Context) {
+	s.checkMtx.Lock()
+	defer s.checkMtx.Unlock()
+
+	if _, err := s.vault.CheckSync(ctx, time.Duration(0)); err != nil {
+		logger.Errorf("Failed to check sync: %v", err)
+	}
+	if ctx.Err() != nil {
+		return
+	}
 	if err := s.checkKeys(ctx); err != nil {
 		logger.Errorf("Failed to check keys: %v", err)
 	}
 }
 
-func (s *service) startCheckKeys() {
+func (s *service) startCheck() {
 	ticker := time.NewTicker(time.Hour)
-	s.stopCh = make(chan bool)
+	ctx, cancel := context.WithCancel(context.Background())
+	s.checkStopFn = cancel
+
 	go func() {
-		s.tryCheckKeys(context.TODO())
+		s.tryCheck(ctx)
 		for {
 			select {
 			case <-ticker.C:
-				s.tryCheckKeys(context.TODO())
-			case <-s.stopCh:
+				s.tryCheck(ctx)
+			case <-ctx.Done():
 				ticker.Stop()
 				return
 			}
@@ -176,9 +196,12 @@ func (s *service) startCheckKeys() {
 	}()
 }
 
-func (s *service) stopCheckKeys() {
-	if s.stopCh != nil {
-		close(s.stopCh)
-		s.stopCh = nil
+func (s *service) stopCheck() {
+	if s.checkStopFn != nil {
+		s.checkStopFn()
+		s.checkStopFn = nil
 	}
+	// If checking, wait for it to finish
+	s.checkMtx.Lock()
+	defer s.checkMtx.Unlock()
 }

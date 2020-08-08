@@ -47,10 +47,6 @@ func newAuth(cfg *Config) *auth {
 	}
 }
 
-func (a *auth) reset() {
-	a.tokens = map[string]string{}
-}
-
 func (a *auth) setup(ctx context.Context, vlt *vault.Vault, secret string, typ AuthType) error {
 	logger.Infof("Setup (%s)", typ)
 	switch typ {
@@ -89,6 +85,11 @@ func (a *auth) unlock(ctx context.Context, vlt *vault.Vault, secret string, typ 
 	logger.Infof("Unlocked (%s)", typ)
 	token := a.registerToken(client)
 	return token, nil
+}
+
+func (a *auth) lock(vlt *vault.Vault) {
+	a.tokens = map[string]string{}
+	vlt.Lock()
 }
 
 func (a *auth) provision(ctx context.Context, vlt *vault.Vault, secret string, typ AuthType, setup bool) (*vault.Provision, error) {

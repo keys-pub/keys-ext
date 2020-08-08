@@ -30,13 +30,14 @@ func TestAuthWithPassword(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, vault.Unlocked, status)
 
+	// Unlock
 	token, err := auth.unlock(ctx, vlt, "password123", PasswordAuth, "test")
 	require.NoError(t, err)
 	require.NotEmpty(t, auth.tokens)
 	require.NotEmpty(t, token)
 
-	// Clear
-	auth.reset()
+	// Lock
+	auth.lock(vlt)
 
 	// Unlock with invalid password
 	_, err = auth.unlock(ctx, vlt, "invalidpassword", PasswordAuth, "test")

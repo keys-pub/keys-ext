@@ -94,7 +94,6 @@ func newTestServiceWithOpts(t *testing.T, env *testEnv, appName string) (*servic
 
 	closeFn := func() {
 		serverEnv.closeFn()
-		svc.Lock()
 		svc.Close()
 		closeCfg()
 	}
@@ -296,7 +295,7 @@ func TestRuntimeStatus(t *testing.T) {
 	require.Equal(t, "1.2.3", resp.Version)
 }
 
-func TestCheckUpdate(t *testing.T) {
+func TestCheckKeys(t *testing.T) {
 	env := newTestEnv(t)
 	service, closeFn := newTestService(t, env, "")
 	defer closeFn()

@@ -15,6 +15,9 @@ func (s *service) checkKeys(ctx context.Context) error {
 		return errors.Wrapf(err, "failed to list public keys")
 	}
 	for _, pk := range pks {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		// We only need to do this on key creation or after a sigchain update,
 		// but old versions have never sigchain indexed before, so we'll do this
 		// here every time.

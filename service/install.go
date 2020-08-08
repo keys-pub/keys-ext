@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -90,25 +91,25 @@ func removeFile(pidPath string) error {
 }
 
 // Uninstall ...
-func Uninstall(cfg *Config) error {
+func Uninstall(out io.Writer, cfg *Config) error {
 	if err := stopProcess(cfg); err != nil {
 		if err != errNotRunning {
 			return err
 		}
 	}
 
-	dirs, err := env.AllDirs()
+	dirs, err := env.AllDirs(cfg.AppName())
 	if err != nil {
 		return err
 	}
 	for _, d := range dirs {
-		logger.Infof("Removing %s", d)
-		if err := os.RemoveAll(d); err != nil {
-			return err
-		}
+		fmt.Fprintf(out, "Removing \"%s\".\n", d)
+		// if err := os.RemoveAll(d); err != nil {
+		// 	return err
+		// }
 	}
 
-	fmt.Printf("Uninstalled %q.\n", cfg.AppName())
+	fmt.Fprintf(out, "Uninstalled %q.\n", cfg.AppName())
 	return nil
 }
 

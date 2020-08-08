@@ -200,6 +200,8 @@ github.com/keys-pub/keys-ext/vault v0.0.0-20200720210151-bf9666e216d5 h1:RHo2YRQ
 github.com/keys-pub/keys-ext/vault v0.0.0-20200720210151-bf9666e216d5/go.mod h1:SRJ4zQYf2T3tnYlTTM0HKbs7XQhT005AzpXSTDCXryk=
 github.com/keys-pub/keys-ext/vault v0.0.0-20200807180934-839ec28949fb h1:0nWZwozIfb4g6gabdabYQZcji0+XhujDruQtrvZgcn8=
 github.com/keys-pub/keys-ext/vault v0.0.0-20200807180934-839ec28949fb/go.mod h1:wxBi9qdjjxW8yZyJjrJPhZxobCia8JVRZBgmKi26J94=
+github.com/keys-pub/keys-ext/vault v0.0.0-20200808005108-46c67a19e234 h1:fbURXOldX5v5fQBppm91ygXWGUvEc7lp9HllzP/BvYE=
+github.com/keys-pub/keys-ext/vault v0.0.0-20200808005108-46c67a19e234/go.mod h1:wxBi9qdjjxW8yZyJjrJPhZxobCia8JVRZBgmKi26J94=
 github.com/keys-pub/keys-ext/wormhole v0.0.0-20200720193342-95c460ab609c h1:KHBfQVcM60FajOhZb5PmPzRB6qb08gHOrUjQTCVz71A=
 github.com/keys-pub/keys-ext/wormhole v0.0.0-20200720193342-95c460ab609c/go.mod h1:ZoIOc0QRxj/yqgyH7Qn5DrvXFGDZ35i2V5Djr+9Weqo=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f h1:LLsdI2XManLH0JonKqB6OYmHdHk/WwJByDbHI3hCEcs=

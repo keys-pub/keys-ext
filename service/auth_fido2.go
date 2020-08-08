@@ -58,6 +58,9 @@ func findDevice(ctx context.Context, auths fido2.AuthServer, provisions []*vault
 }
 
 func setupHMACSecret(ctx context.Context, auths fido2.AuthServer, vlt *vault.Vault, pin string, appName string) (*vault.Provision, error) {
+	if auths == nil {
+		return nil, errors.Errorf("fido2 plugin not available")
+	}
 	cdh := bytes.Repeat([]byte{0x00}, 32) // No client data
 	rp := &fido2.RelyingParty{
 		ID:   "keys.pub",
@@ -115,6 +118,9 @@ func setupHMACSecret(ctx context.Context, auths fido2.AuthServer, vlt *vault.Vau
 }
 
 func hmacSecret(ctx context.Context, auths fido2.AuthServer, vlt *vault.Vault, pin string) ([]byte, *vault.Provision, error) {
+	if auths == nil {
+		return nil, nil, errors.Errorf("fido2 plugin not available")
+	}
 	cdh := bytes.Repeat([]byte{0x00}, 32) // No client data
 	rp := &fido2.RelyingParty{
 		ID:   "keys.pub",

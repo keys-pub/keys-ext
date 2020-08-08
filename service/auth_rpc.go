@@ -88,21 +88,19 @@ func (s *service) AuthVault(ctx context.Context, req *AuthVaultRequest) (*AuthVa
 
 // AuthUnlock (RPC) ...
 func (s *service) AuthUnlock(ctx context.Context, req *AuthUnlockRequest) (*AuthUnlockResponse, error) {
-	token, err := s.auth.unlock(ctx, s.vault, req.Secret, req.Type, req.Client)
+	token, err := s.unlock(ctx, req.Secret, req.Type, req.Client)
 	if err != nil {
 		return nil, err
 	}
-
-	mk := s.vault.MasterKey()
-	// Derive db key
-	key := keys.Bytes32(keys.HKDFSHA256(mk[:], 32, nil, []byte("keys.pub/ldb")))
-	if err := s.Unlock(ctx, key); err != nil {
-		return nil, err
-	}
-
 	return &AuthUnlockResponse{
 		AuthToken: token,
 	}, nil
+}
+
+// AuthLock (RPC) ...
+func (s *service) AuthLock(ctx context.Context, req *AuthLockRequest) (*AuthLockResponse, error) {
+	s.lock()
+	return &AuthLockResponse{}, nil
 }
 
 // AuthProvision (RPC) ...
@@ -146,18 +144,6 @@ func (s *service) AuthProvisions(ctx context.Context, req *AuthProvisionsRequest
 	return &AuthProvisionsResponse{
 		Provisions: out,
 	}, nil
-}
-
-// AuthLock (RPC) ...
-func (s *service) AuthLock(ctx context.Context, req *AuthLockRequest) (*AuthLockResponse, error) {
-	s.auth.reset()
-	if err := s.vault.Lock(); err != nil {
-		return nil, err
-	}
-
-	s.Lock()
-
-	return &AuthLockResponse{}, nil
 }
 
 type testClientAuth struct {

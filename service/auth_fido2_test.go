@@ -78,8 +78,7 @@ func TestHMACSecretAuth(t *testing.T) {
 
 	mk := vlt.MasterKey()
 
-	err = vlt.Lock()
-	require.NoError(t, err)
+	vlt.Lock()
 
 	_, err = auth.unlock(context.TODO(), vlt, pin, FIDO2HMACSecretAuth, "test")
 	require.NoError(t, err)

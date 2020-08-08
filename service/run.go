@@ -216,7 +216,6 @@ func NewServiceFn(cfg *Config, build Build, cert *keys.CertificateKey, lgi LogIn
 	}
 	closeFn := func() {
 		grpcServer.Stop()
-		service.Lock()
 		service.Close()
 	}
 	return serveFn, closeFn, nil
