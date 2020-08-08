@@ -28,8 +28,9 @@ type service struct {
 	unlocked  bool
 	unlockMtx sync.Mutex
 
-	checkMtx    sync.Mutex
-	checkStopFn func()
+	checkMtx      sync.Mutex
+	checking      bool
+	checkCancelFn func()
 }
 
 const sdbFilename = "keys.sdb"
@@ -57,15 +58,16 @@ func newService(cfg *Config, build Build, auth *auth, req request.Requestor, clo
 	users := user.NewUsers(db, scs, req, clock)
 
 	return &service{
-		auth:   auth,
-		build:  build,
-		cfg:    cfg,
-		scs:    scs,
-		db:     db,
-		users:  users,
-		client: client,
-		vault:  vlt,
-		clock:  clock,
+		auth:          auth,
+		build:         build,
+		cfg:           cfg,
+		scs:           scs,
+		db:            db,
+		users:         users,
+		client:        client,
+		vault:         vlt,
+		clock:         clock,
+		checkCancelFn: func() {},
 	}, nil
 }
 
@@ -89,13 +91,13 @@ func (s *service) Close() {
 }
 
 func (s *service) unlock(ctx context.Context, secret string, typ AuthType, client string) (string, error) {
-	s.unlockMtx.Lock()
-	defer s.unlockMtx.Unlock()
 	// If already unlocked, will lock and unlock.
 	if s.unlocked {
-		logger.Errorf("Service already unlocked, re-unlocking...")
+		logger.Warningf("Service already unlocked, re-unlocking...")
 		s.lock()
 	}
+	s.unlockMtx.Lock()
+	defer s.unlockMtx.Unlock()
 
 	// Unlock auth/vault (get token)
 	token, err := s.auth.unlock(ctx, s.vault, secret, typ, client)
@@ -153,7 +155,18 @@ func (s *service) lock() {
 		logger.Infof("Service already locked")
 		return
 	}
-	s.stopCheck()
+
+	s.checkCancelFn()
+	// We should give it little bit of time to finish checking after the cancel
+	// otherwise it might error trying to write to a closed database.
+	// We could use a WaitGroup with a timeout or channels but polling is simple.
+	// This wait isn't strictly required but we do it to be nice.
+	for i := 0; i < 100; i++ {
+		if !s.checking {
+			break
+		}
+		time.Sleep(time.Millisecond * 10)
+	}
 
 	s.auth.lock(s.vault)
 
@@ -165,6 +178,8 @@ func (s *service) lock() {
 func (s *service) tryCheck(ctx context.Context) {
 	s.checkMtx.Lock()
 	defer s.checkMtx.Unlock()
+	s.checking = true
+	defer func() { s.checking = false }()
 
 	if _, err := s.vault.CheckSync(ctx, time.Duration(0)); err != nil {
 		logger.Errorf("Failed to check sync: %v", err)
@@ -180,7 +195,7 @@ func (s *service) tryCheck(ctx context.Context) {
 func (s *service) startCheck() {
 	ticker := time.NewTicker(time.Hour)
 	ctx, cancel := context.WithCancel(context.Background())
-	s.checkStopFn = cancel
+	s.checkCancelFn = cancel
 
 	go func() {
 		s.tryCheck(ctx)
@@ -194,14 +209,4 @@ func (s *service) startCheck() {
 			}
 		}
 	}()
-}
-
-func (s *service) stopCheck() {
-	if s.checkStopFn != nil {
-		s.checkStopFn()
-		s.checkStopFn = nil
-	}
-	// If checking, wait for it to finish
-	s.checkMtx.Lock()
-	defer s.checkMtx.Unlock()
 }

@@ -107,6 +107,7 @@ func TestAuthUnlockLock(t *testing.T) {
 	defer closeFn()
 	ctx := context.TODO()
 
+	// Setup/Unlock
 	var err error
 	password := "password123"
 	_, err = service.AuthSetup(ctx, &AuthSetupRequest{
@@ -114,6 +115,14 @@ func TestAuthUnlockLock(t *testing.T) {
 		Type:   PasswordAuth,
 	})
 	require.NoError(t, err)
+	_, err = service.AuthUnlock(ctx, &AuthUnlockRequest{
+		Secret: password,
+		Type:   PasswordAuth,
+		Client: "test",
+	})
+	require.NoError(t, err)
+
+	// Unlock again
 	_, err = service.AuthUnlock(ctx, &AuthUnlockRequest{
 		Secret: password,
 		Type:   PasswordAuth,
