@@ -159,8 +159,8 @@ func (s *service) lock() {
 	s.checkCancelFn()
 	// We should give it little bit of time to finish checking after the cancel
 	// otherwise it might error trying to write to a closed database.
-	// We could use a WaitGroup with a timeout or channels but polling is simple.
 	// This wait isn't strictly required but we do it to be nice.
+	// TODO: Use a WaitGroup with a timeout or channel
 	for i := 0; i < 100; i++ {
 		if !s.checking {
 			break
