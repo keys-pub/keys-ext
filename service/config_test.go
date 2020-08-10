@@ -54,5 +54,4 @@ func TestAppPath(t *testing.T) {
 	exists, err = pathExists(path)
 	require.NoError(t, err)
 	require.True(t, exists)
-
 }

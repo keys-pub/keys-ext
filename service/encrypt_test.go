@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path"
 	"testing"
 	"time"
 
@@ -421,7 +422,10 @@ func TestEncryptDecryptFile(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, dec.Sender)
 	require.Equal(t, alice.ID().String(), dec.Sender.ID)
-	require.Equal(t, datPath+".dec", dec.Out)
+
+	ext := path.Ext(datPath)
+	noExt := datPath[0 : len(datPath)-len(ext)]
+	require.Equal(t, noExt+"-2.dat", dec.Out)
 }
 
 func TestEncryptUnverified(t *testing.T) {

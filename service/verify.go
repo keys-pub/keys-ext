@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"io"
-	"strings"
 
 	"github.com/keys-pub/keys/saltpack"
 	"github.com/pkg/errors"
@@ -58,27 +57,15 @@ func (s *service) VerifyFile(srv Keys_VerifyFileServer) error {
 	if err != nil {
 		return err
 	}
-	in := req.In
-	if in == "" {
+	if req.In == "" {
 		return errors.Errorf("in not specified")
 	}
-	out := req.Out
-	if out == "" {
-		if strings.HasSuffix(in, ".signed") {
-			out = strings.TrimSuffix(in, ".signed")
-		} else {
-			out = in + ".verified"
-		}
-	}
-	outExists, err := pathExists(out)
+	out, err := resolveOutPath(req.Out, req.In, ".signed")
 	if err != nil {
 		return err
 	}
-	if outExists {
-		return errors.Errorf("file already exists %s", out)
-	}
 
-	signer, err := s.verifyWriteInOut(srv.Context(), in, out)
+	signer, err := s.verifyWriteInOut(srv.Context(), req.In, out)
 	if err != nil {
 		return err
 	}

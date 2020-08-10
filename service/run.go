@@ -237,5 +237,5 @@ func writePID(cfg *Config) error {
 		return err
 	}
 	pid := os.Getpid()
-	return ioutil.WriteFile(path, []byte(strconv.Itoa(pid)), 0600)
+	return ioutil.WriteFile(path, []byte(strconv.Itoa(pid)), filePerms)
 }

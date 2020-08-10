@@ -31,7 +31,7 @@ func saveCertificate(cfg *Config, cert string) error {
 		return err
 	}
 	logger.Infof("Saving certificate PEM %s", certPath)
-	return ioutil.WriteFile(certPath, []byte(cert), 0600)
+	return ioutil.WriteFile(certPath, []byte(cert), filePerms)
 }
 
 // loadCertificate returns public certificate PEM from the filesystem.

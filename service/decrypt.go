@@ -5,7 +5,6 @@ import (
 	"context"
 	"io"
 	"os"
-	"strings"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/saltpack"
@@ -65,20 +64,10 @@ func (s *service) DecryptFile(srv Keys_DecryptFileServer) error {
 	if req.In == "" {
 		return errors.Errorf("in not specified")
 	}
-	out := req.Out
-	if out == "" {
-		if strings.HasSuffix(req.In, ".enc") {
-			out = strings.TrimSuffix(req.In, ".enc")
-		} else {
-			out = req.In + ".dec"
-		}
-	}
-	exists, err := pathExists(out)
+
+	out, err := resolveOutPath(req.Out, req.In, ".enc")
 	if err != nil {
 		return err
-	}
-	if exists {
-		return errors.Errorf("file already exists %s", out)
 	}
 
 	sender, mode, err := s.decryptWriteInOut(srv.Context(), req.In, out)

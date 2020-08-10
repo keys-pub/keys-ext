@@ -201,7 +201,9 @@ func (s *service) EncryptFile(srv Keys_EncryptFileServer) error {
 		return err
 	}
 
-	if err := srv.Send(&EncryptFileOutput{}); err != nil {
+	if err := srv.Send(&EncryptFileOutput{
+		Out: out,
+	}); err != nil {
 		return err
 	}
 

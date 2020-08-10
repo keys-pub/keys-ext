@@ -56,7 +56,7 @@ func setupLogrus(cfg *Config, logPath string) (*logrus.Logger, logrusInterceptor
 	// slog.SetReportCaller(true)
 
 	if logPath != "" {
-		logFile, err := os.OpenFile(logPath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0600) // #nosec
+		logFile, err := os.OpenFile(logPath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, filePerms) // #nosec
 		if err != nil {
 			logFatal(err)
 		}

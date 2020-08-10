@@ -20,19 +20,19 @@ func TestWaitForPID(t *testing.T) {
 	require.EqualError(t, err, "timed out waiting for pid")
 	require.Equal(t, -1, pid)
 
-	err = ioutil.WriteFile(path, []byte("abc"), 0600)
+	err = ioutil.WriteFile(path, []byte("abc"), filePerms)
 	require.NoError(t, err)
 	pid2, err := waitForPID(path, checkNoop, time.Millisecond, time.Second)
 	require.EqualError(t, err, "strconv.Atoi: parsing \"abc\": invalid syntax")
 	require.Equal(t, -1, pid2)
 
-	err = ioutil.WriteFile(path, []byte("-1"), 0600)
+	err = ioutil.WriteFile(path, []byte("-1"), filePerms)
 	require.NoError(t, err)
 	pid3, err := waitForPID(path, checkNoop, time.Millisecond, time.Second)
 	require.EqualError(t, err, "negative pid")
 	require.Equal(t, -1, pid3)
 
-	err = ioutil.WriteFile(path, []byte("123"), 0600)
+	err = ioutil.WriteFile(path, []byte("123"), filePerms)
 	require.NoError(t, err)
 	pid4, err := waitForPID(path, checkNoop, time.Millisecond, time.Second)
 	require.NoError(t, err)
