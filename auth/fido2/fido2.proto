@@ -37,12 +37,6 @@ service Auth {
     rpc HMACSecret(HMACSecretRequest) returns (HMACSecretResponse) {}
 }
 
-message RPCError {
-	int32 code = 1;
-	string message = 2;
-	string details = 3;
-}
-
 message Device {
     string path = 1;
 	int32 productId = 2 [(gogoproto.customname) = "ProductID"];
