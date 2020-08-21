@@ -62,6 +62,7 @@ func start(cfg *Config, wait bool) error {
 }
 
 func stop(cfg *Config) error {
+	// TODO: This stops first process with keysd name
 	if err := stopProcess(cfg); err != nil {
 		return err
 	}
@@ -104,9 +105,9 @@ func Uninstall(out io.Writer, cfg *Config) error {
 	}
 	for _, d := range dirs {
 		fmt.Fprintf(out, "Removing \"%s\".\n", d)
-		// if err := os.RemoveAll(d); err != nil {
-		// 	return err
-		// }
+		if err := os.RemoveAll(d); err != nil {
+			return err
+		}
 	}
 
 	fmt.Fprintf(out, "Uninstalled %q.\n", cfg.AppName())
