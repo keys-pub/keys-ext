@@ -34,12 +34,20 @@ func startCommands() []cli.Command {
 			Usage: "Start the service",
 			Flags: []cli.Flag{
 				cli.StringFlag{Name: "from", Usage: "where we are being started from", Hidden: true},
+				cli.IntFlag{Name: "port", Usage: "port", Hidden: true},
 			},
 			Action: func(c *cli.Context) error {
 				cfg, err := config(c)
 				if err != nil {
 					return err
 				}
+				port := c.Int("port")
+				if port != 0 {
+					if err := cfg.savePortFlag(port); err != nil {
+						return err
+					}
+				}
+
 				// If we start from the app...
 				if c.String("from") == "app" {
 					if err := startFromApp(cfg); err != nil {
