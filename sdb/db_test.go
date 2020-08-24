@@ -375,6 +375,37 @@ func ExampleDB_Set() {
 	// Got hi
 }
 
+func ExampleDB_Documents() {
+	db := sdb.New()
+	defer db.Close()
+
+	key := keys.Rand32()
+	dir, err := ioutil.TempDir("", "")
+	if err != nil {
+		log.Fatal(err)
+	}
+	path := filepath.Join(dir, "my.sdb")
+	if err := db.OpenAtPath(context.TODO(), path, key); err != nil {
+		log.Fatal(err)
+	}
+	// Don't remove db in real life
+	defer os.RemoveAll(path)
+
+	if err := db.Set(context.TODO(), docs.Path("collection1", "doc1"), []byte("hi")); err != nil {
+		log.Fatal(err)
+	}
+
+	docs, err := db.Documents(context.TODO(), docs.Path("collection1"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, doc := range docs {
+		fmt.Printf("%s: %s\n", doc.Path, string(doc.Data))
+	}
+	// Output:
+	// /collection1/doc1: hi
+}
+
 func ExampleDB_DocumentIterator() {
 	db := sdb.New()
 	defer db.Close()

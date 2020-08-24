@@ -23,7 +23,7 @@ if err != nil {
 }
 fmt.Printf("%s: %s\n", doc.Path, string(doc.Data))
 
-iter, err := db.Documents(context.TODO(), ds.Path("collection1"), nil)
+iter, err := db.DocumentIterator(context.TODO(), ds.Path("collection1"))
 if err != nil {
     log.Fatal(err)
 }
