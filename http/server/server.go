@@ -50,7 +50,7 @@ type Fire interface {
 // New creates a Server.
 func New(fi Fire, rds api.Redis, req request.Requestor, clock tsutil.Clock, logger Logger) *Server {
 	sigchains := keys.NewSigchains(fi)
-	users := user.NewUsers(fi, sigchains, req, clock)
+	users := user.NewUsers(fi, sigchains, user.Requestor(req), user.Clock(clock))
 	return &Server{
 		fi:        fi,
 		rds:       rds,
