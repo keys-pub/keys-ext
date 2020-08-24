@@ -89,9 +89,7 @@ func resolveOutPath(out string, in string, inSuffix string) (string, error) {
 		out = in
 	}
 
-	if strings.HasSuffix(out, inSuffix) {
-		out = strings.TrimSuffix(out, inSuffix)
-	}
+	out = strings.TrimSuffix(out, inSuffix)
 
 	if !filepath.IsAbs(out) {
 		inDir, _ := filepath.Split(in)
