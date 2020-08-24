@@ -35,6 +35,8 @@ func TestDocuments(t *testing.T) {
 	expectedCols := []*Collection{
 		&Collection{Path: "/kid"},
 		&Collection{Path: "/rkl"},
+		&Collection{Path: "/search"},
+		&Collection{Path: "/service"},
 		&Collection{Path: "/sigchain"},
 		&Collection{Path: "/test"},
 		&Collection{Path: "/user"},

@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	fmt "fmt"
+	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/keys-pub/keys"
@@ -112,7 +114,12 @@ func TestUserSign(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, resp.Name, "alice")
 
-	usr, err := user.Verify(resp.Message, alice.ID(), nil)
+	usr := &user.User{
+		KID:     alice.ID(),
+		Service: "github",
+		Name:    "alice",
+	}
+	err = user.Verify(resp.Message, usr)
 	require.NoError(t, err)
 
 	require.Equal(t, "alice", usr.Name)
@@ -262,6 +269,40 @@ func TestUserAddReddit(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestUserAddEcho(t *testing.T) {
+	env := newTestEnv(t)
+	service, closeFn := newTestService(t, env, "")
+	defer closeFn()
+	testAuthSetup(t, service)
+
+	testImportKey(t, service, bob)
+
+	signResp, err := service.UserSign(context.TODO(), &UserSignRequest{
+		KID:     bob.ID().String(),
+		Service: "echo",
+		Name:    "bob",
+	})
+	require.NoError(t, err)
+
+	msg := url.QueryEscape(strings.ReplaceAll(signResp.Message, "\n", " "))
+	require.Equal(t, `BEGIN+MESSAGE.+TekiZiJ7UHFcsrE+wEBuLuJgb4FfKzv+dV9Lb2hdVh2owd7+vQv1O19ku8c3wIw+KvH7czoVeRdgZhJ+6J1T6sCluySTCKq+6Xr2MZHgg70jqKK+mDTzoUxf2jtfxAz+fAY1eUMoAR5Dkza+6QbeBrUgPDLCzsB+ypoKGupJeZt3t5K+f9I6diI2kqKmjo1+UKFzfQqTuOyoAsS+BrjFuDwe52ZvqLl+.+END+MESSAGE.`, msg)
+	urs := "test://echo/bob/" + bob.ID().String() + "/" + msg
+
+	addResp, err := service.UserAdd(context.TODO(), &UserAddRequest{
+		KID:     bob.ID().String(),
+		Service: "echo",
+		Name:    "bob",
+		URL:     urs,
+	})
+	require.NoError(t, err)
+	require.Equal(t, "bob@echo", addResp.User.ID)
+
+	searchResp, err := service.UserSearch(context.TODO(), &UserSearchRequest{})
+	require.NoError(t, err)
+	require.Equal(t, 1, len(searchResp.Users))
+	require.Equal(t, "bob@echo", searchResp.Users[0].ID)
+}
+
 func TestSearchUsers(t *testing.T) {
 	env := newTestEnv(t)
 	service, closeFn := newTestService(t, env, "")
@@ -292,11 +333,6 @@ func TestSearchUsers(t *testing.T) {
 			Service: "github",
 			Name:    username,
 			URL:     url,
-		})
-		require.NoError(t, err)
-
-		_, err = service.Push(context.TODO(), &PushRequest{
-			Key: kid.String(),
 		})
 		require.NoError(t, err)
 	}
