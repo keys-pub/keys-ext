@@ -157,7 +157,7 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 		return s.internalError(c, err)
 	}
 
-	if sc.Length() >= 128 {
+	if sc.Length() >= 1024 {
 		// TODO: Increase limits
 		return ErrEntityTooLarge(c, errors.Errorf("sigchain limit reached, contact gabriel@github to bump the limits"))
 	}
