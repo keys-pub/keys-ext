@@ -60,6 +60,11 @@ func (d *DB) OpenAtPath(ctx context.Context, path string, key SecretKey) error {
 	return nil
 }
 
+// IsOpen returns true if open.
+func (d *DB) IsOpen() bool {
+	return d.sdb != nil
+}
+
 // Close the db.
 func (d *DB) Close() {
 	d.rwmtx.Lock()
