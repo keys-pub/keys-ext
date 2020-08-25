@@ -109,6 +109,7 @@ func (a *auth) provision(ctx context.Context, vlt *vault.Vault, secret string, t
 
 func (a *auth) registerToken(client string) string {
 	token := generateToken()
+	logger.Debugf("Auth register client: %s", client)
 	a.tokens[client] = token
 	return token
 }
@@ -144,6 +145,16 @@ func (a *auth) unaryInterceptor(ctx context.Context, req interface{}, info *grpc
 	return handler(ctx, req)
 }
 
+func (a *auth) checkToken(token string) error {
+	for _, t := range a.tokens {
+		if t == token {
+			return nil
+		}
+	}
+	logger.Infof("Invalid auth token")
+	return status.Error(codes.Unauthenticated, "invalid token")
+}
+
 func (a *auth) authorize(ctx context.Context, method string) error {
 	// No authorization needed for allowed methods.
 	if a.allowlist.Contains(method) {
@@ -158,14 +169,7 @@ func (a *auth) authorize(ctx context.Context, method string) error {
 			return status.Error(codes.Unauthenticated, "authorization missing")
 		}
 		token := md["authorization"][0]
-		for _, t := range a.tokens {
-			if t == token {
-				return nil
-			}
-		}
-
-		logger.Infof("Invalid auth token")
-		return status.Error(codes.Unauthenticated, "invalid token")
+		return a.checkToken(token)
 	}
 	return status.Error(codes.Unauthenticated, "no authorization in context")
 }

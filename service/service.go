@@ -91,11 +91,6 @@ func (s *service) Close() {
 }
 
 func (s *service) unlock(ctx context.Context, secret string, typ AuthType, client string) (string, error) {
-	// If already unlocked, will lock and unlock.
-	if s.unlocked {
-		logger.Warningf("Service already unlocked, re-unlocking...")
-		s.lock()
-	}
 	s.unlockMtx.Lock()
 	defer s.unlockMtx.Unlock()
 
@@ -105,28 +100,30 @@ func (s *service) unlock(ctx context.Context, secret string, typ AuthType, clien
 		return "", err
 	}
 
-	// Derive sdb key
-	mk := s.vault.MasterKey()
-	dbkey := keys.Bytes32(keys.HKDFSHA256(mk[:], 32, nil, []byte("keys.pub/ldb")))
-
-	logger.Infof("Opening sdb...")
-	path, err := s.cfg.AppPath(sdbFilename, true)
-	if err != nil {
-		return "", err
-	}
-
-	// Open sdb
-	exists, err := pathExists(path)
-	if err != nil {
-		return "", err
-	}
 	isNew := false
-	if !exists {
-		isNew = true
-	}
+	if !s.db.IsOpen() {
+		logger.Infof("Opening sdb...")
+		path, err := s.cfg.AppPath(sdbFilename, true)
+		if err != nil {
+			return "", err
+		}
 
-	if err := s.db.OpenAtPath(ctx, path, dbkey); err != nil {
-		return "", err
+		// Open sdb
+		exists, err := pathExists(path)
+		if err != nil {
+			return "", err
+		}
+		if !exists {
+			isNew = true
+		}
+
+		// Derive sdb key
+		// TODO: Check if key is wrong
+		mk := s.vault.MasterKey()
+		dbk := keys.Bytes32(keys.HKDFSHA256(mk[:], 32, nil, []byte("keys.pub/ldb")))
+		if err := s.db.OpenAtPath(ctx, path, dbk); err != nil {
+			return "", err
+		}
 	}
 
 	s.unlocked = true

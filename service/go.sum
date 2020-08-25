@@ -200,6 +200,8 @@ github.com/keys-pub/keys-ext/http/server v0.0.0-20200806191006-c5b2599598fc h1:o
 github.com/keys-pub/keys-ext/http/server v0.0.0-20200806191006-c5b2599598fc/go.mod h1:gyT2511hiCStGmbnKNLwbPTy3wr5l5bEs0nwvrB/yOw=
 github.com/keys-pub/keys-ext/sdb v0.0.0-20200720205921-e5e4095869e2 h1:eN02aSGivgQMrc+F0aa01SugHiMJWNik92c8NFN3SPg=
 github.com/keys-pub/keys-ext/sdb v0.0.0-20200720205921-e5e4095869e2/go.mod h1:a2kdlrU3Q860hDBlcpzqEzXMSQPh6C1rXdXmyVP8MGo=
+github.com/keys-pub/keys-ext/sdb v0.0.0-20200825192511-6a7266ee1a89 h1:lqDjjRzzfedN5io40va3Eto2c2n9MDV7uyhi/JCgF2g=
+github.com/keys-pub/keys-ext/sdb v0.0.0-20200825192511-6a7266ee1a89/go.mod h1:a2kdlrU3Q860hDBlcpzqEzXMSQPh6C1rXdXmyVP8MGo=
 github.com/keys-pub/keys-ext/vault v0.0.0-20200720210151-bf9666e216d5 h1:RHo2YRQjq9adSji/5Xk7GWfkS6UC4Y90b3H23R5lHCo=
 github.com/keys-pub/keys-ext/vault v0.0.0-20200720210151-bf9666e216d5/go.mod h1:SRJ4zQYf2T3tnYlTTM0HKbs7XQhT005AzpXSTDCXryk=
 github.com/keys-pub/keys-ext/vault v0.0.0-20200807180934-839ec28949fb h1:0nWZwozIfb4g6gabdabYQZcji0+XhujDruQtrvZgcn8=

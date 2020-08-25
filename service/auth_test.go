@@ -190,3 +190,51 @@ func TestPasswordChange(t *testing.T) {
 	require.NoError(t, err)
 
 }
+
+func TestUnlockMultipleClients(t *testing.T) {
+	env := newTestEnv(t)
+	service, closeFn := newTestService(t, env, "")
+	defer closeFn()
+	ctx := context.TODO()
+
+	var err error
+	password := "password123"
+	_, err = service.AuthSetup(ctx, &AuthSetupRequest{
+		Secret: password,
+		Type:   PasswordAuth,
+	})
+	require.NoError(t, err)
+
+	// Unlock app
+	app, err := service.AuthUnlock(ctx, &AuthUnlockRequest{
+		Secret: password,
+		Type:   PasswordAuth,
+		Client: "app",
+	})
+	require.NoError(t, err)
+
+	// Unlock CLI
+	cli, err := service.AuthUnlock(ctx, &AuthUnlockRequest{
+		Secret: password,
+		Type:   PasswordAuth,
+		Client: "cli",
+	})
+	require.NoError(t, err)
+
+	// Check tokens
+	err = service.auth.checkToken(app.AuthToken)
+	require.NoError(t, err)
+	err = service.auth.checkToken(cli.AuthToken)
+	require.NoError(t, err)
+
+	// Lock
+	_, err = service.AuthLock(ctx, &AuthLockRequest{})
+	require.NoError(t, err)
+
+	err = service.auth.checkToken(app.AuthToken)
+	require.EqualError(t, err, "rpc error: code = Unauthenticated desc = invalid token")
+	err = service.auth.checkToken(cli.AuthToken)
+	require.EqualError(t, err, "rpc error: code = Unauthenticated desc = invalid token")
+
+	require.False(t, service.db.IsOpen())
+}
