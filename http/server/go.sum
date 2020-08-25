@@ -134,6 +134,8 @@ github.com/keys-pub/keys v0.1.4-0.20200824002606-35fcd5447248 h1:3Jtq3456BjLdv7n
 github.com/keys-pub/keys v0.1.4-0.20200824002606-35fcd5447248/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys v0.1.4-0.20200824183835-e1238463fa76 h1:w/thXlIpWyt8DQmnX0D/qwEDSMxO8bjiHw2WHf1J4hE=
 github.com/keys-pub/keys v0.1.4-0.20200824183835-e1238463fa76/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.1.4-0.20200824221332-83e82adbf39d h1:4STlVV+gOlelrH3assWr2Zs7u/xLYL0umfTr+/1yLLo=
+github.com/keys-pub/keys v0.1.4-0.20200824221332-83e82adbf39d/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys-ext v0.1.4 h1:KkuJQJvAjlQaXUMAuBaNPMHdKw5wkPVl5Rzkpmt/hbE=
 github.com/keys-pub/keys-ext v0.1.5 h1:o302Kkt1yTpNhdBn0dPqdmbTNity9Q9VQRiTVQvM/Ck=
 github.com/keys-pub/keys-ext/firestore v0.0.0-20200720191317-d8df837b3bb1 h1:U2gaH14y6rnjxxqq0Rz8Qs8U9ahqe5eGlOEtsHfJcZ0=
