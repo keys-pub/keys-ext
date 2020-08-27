@@ -301,6 +301,10 @@ func TestUserAddEcho(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(searchResp.Users))
 	require.Equal(t, "bob@echo", searchResp.Users[0].ID)
+
+	kid, err := service.lookup(context.TODO(), "bob@echo", &LookupOpts{Verify: true})
+	require.NoError(t, err)
+	require.Equal(t, keys.ID("kex1syuhwr4g05t4744r23nvxnr7en9cmz53knhr0gja7c84hr7fkw2quf6zcg"), kid)
 }
 
 func TestSearchUsers(t *testing.T) {
