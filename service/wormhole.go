@@ -60,7 +60,7 @@ func (s *service) wormholeInit(ctx context.Context, req *WormholeInput, wh *worm
 
 	found, err := wh.FindOffer(ctx, recipient, sender)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to find offer")
 	}
 	if found == nil {
 		initiator = true
@@ -73,7 +73,7 @@ func (s *service) wormholeInit(ctx context.Context, req *WormholeInput, wh *worm
 
 		// Offering
 		if err := srv.Send(&WormholeOutput{Status: WormholeOffering}); err != nil {
-			return err
+			return errors.Wrapf(err, "failed to offer")
 		}
 
 		// TODO: Invite
@@ -81,7 +81,7 @@ func (s *service) wormholeInit(ctx context.Context, req *WormholeInput, wh *worm
 		offer = found
 		// Answering
 		if err := srv.Send(&WormholeOutput{Status: WormholeAnswering}); err != nil {
-			return err
+			return errors.Wrapf(err, "failed to answer")
 		}
 	}
 
