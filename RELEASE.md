@@ -1,5 +1,6 @@
 # How to Release
 
+- Build and test with `./scripts/test/all.sh`.
 - Create branch with version v1.2.3, the github action will build the apps.
 
 ## Test goreleaser

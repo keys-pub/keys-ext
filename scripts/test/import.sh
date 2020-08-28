@@ -58,4 +58,6 @@ cat "$keyfile" | $keycmd import -no-password
 echo "- remove $kid"
 $keycmd remove "$kid"
 
+echo "-"
 echo "- import/export success"
+echo "-"

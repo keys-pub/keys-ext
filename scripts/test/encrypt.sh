@@ -58,4 +58,6 @@ diff $infile "/tmp/test.out"
 echo "- remove $kid"
 $keycmd remove "$kid"
 
+echo "-"
 echo "- encrypt/decrypt success"
+echo "-"

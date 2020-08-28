@@ -49,4 +49,6 @@ cat "$infile" | $keycmd verify -x "$outfile" -s "$kid"
 echo "- remove $kid"
 $keycmd remove "$kid"
 
+echo "-"
 echo "- sign/verify success"
+echo "-"
