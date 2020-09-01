@@ -35,8 +35,8 @@ func (s *service) UserSearch(ctx context.Context, req *UserSearchRequest) (*User
 	}, nil
 }
 
-// User (RPC) lookup user by kid.
-func (s *service) User(ctx context.Context, req *UserRequest) (*UserResponse, error) {
+// Users (RPC) lookup users by kid.
+func (s *service) Users(ctx context.Context, req *UsersRequest) (*UsersResponse, error) {
 	if req.KID == "" {
 		return nil, errors.Errorf("no kid specified")
 	}
@@ -45,32 +45,32 @@ func (s *service) User(ctx context.Context, req *UserRequest) (*UserResponse, er
 		return nil, err
 	}
 
-	var user *User
+	var users []*User
 
-	res, err := s.users.Get(ctx, kid)
+	usg, err := s.users.Get(ctx, kid)
 	if err != nil {
 		return nil, err
 	}
-	if res != nil {
-		user = userResultToRPC(res)
+	if usg != nil {
+		users = userResultsToRPC(usg)
 	} else {
 		if !req.Local {
-			resp, err := s.client.User(ctx, kid)
+			resp, err := s.client.Users(ctx, kid)
 			if err != nil {
 				return nil, err
 			}
-			if resp != nil {
-				_, r, err := s.update(ctx, resp.User.KID)
+			if resp != nil && len(resp.Users) > 0 {
+				_, r, err := s.update(ctx, kid)
 				if err != nil {
 					return nil, err
 				}
-				user = userResultToRPC(r)
+				users = userResultsToRPC(r)
 			}
 		}
 	}
 
-	return &UserResponse{
-		User: user,
+	return &UsersResponse{
+		Users: users,
 	}, nil
 }
 
@@ -253,6 +253,14 @@ func userSearchResultsToRPC(results []*user.SearchResult) []*User {
 	return users
 }
 
+func userResultsToRPC(results []*user.Result) []*User {
+	users := make([]*User, 0, len(results))
+	for _, r := range results {
+		users = append(users, userResultToRPC(r))
+	}
+	return users
+}
+
 func userResultToRPC(result *user.Result) *User {
 	if result == nil {
 		return nil
@@ -297,23 +305,36 @@ func apiUserToRPC(user *api.User) *User {
 	}
 }
 
-func (s *service) searchRemoteCheckUser(ctx context.Context, userID string) (*User, error) {
-	users, err := s.searchUsersRemote(ctx, userID, 1)
+func (s *service) searchRemoteCheckUser(ctx context.Context, query string) (*User, error) {
+	users, err := s.searchUsersRemote(ctx, query, 1)
 	if err != nil {
 		return nil, err
 	}
 	if len(users) == 0 {
 		return nil, nil
 	}
-	user := users[0]
-	if user.ID != userID {
-		return nil, errors.Errorf("user search mismatch %s != %s", user.ID, userID)
+	usr := users[0]
+	if usr.ID != query {
+		return nil, errors.Errorf("user search mismatch %s != %s", usr.ID, query)
 	}
-	_, r, err := s.update(ctx, keys.ID(user.KID))
+	_, res, err := s.update(ctx, usr.KID)
 	if err != nil {
 		return nil, err
 	}
-	return userResultToRPC(r), nil
+	result := findResultForAPIUser(usr, res)
+	if result == nil {
+		return nil, nil
+	}
+	return userResultToRPC(result), nil
+}
+
+func findResultForAPIUser(usr *api.User, results []*user.Result) *user.Result {
+	for _, res := range results {
+		if res.User.ID() == usr.ID {
+			return res
+		}
+	}
+	return nil
 }
 
 func (s *service) searchUsersLocal(ctx context.Context, query string, limit int) ([]*User, error) {
@@ -369,35 +390,41 @@ const userCheckExpire = time.Hour * 24
 // TODO: Make configurable
 const userCheckFailureExpire = time.Hour * 4
 
-func (s *service) ensureUserVerified(ctx context.Context, kid keys.ID) error {
+func (s *service) ensureUsersVerified(ctx context.Context, kid keys.ID) error {
 	res, err := s.users.Get(ctx, kid)
 	if err != nil {
 		return err
 	}
-	if res == nil {
-		return nil
+
+	needsVerify := false
+	for _, r := range res {
+		if r.Status != user.StatusOK && r.Status != user.StatusConnFailure {
+			return errors.Errorf("user %s has failed status %s", r.User.ID(), r.Status)
+		}
+
+		// Check if verified recently.
+		if !r.IsVerifyExpired(s.clock.Now(), userVerifiedExpire) {
+			continue
+		}
+
+		needsVerify = true
+		break
 	}
 
-	if res.Status != user.StatusOK && res.Status != user.StatusConnFailure {
-		return errors.Errorf("user %s has failed status %s", res.User.ID(), res.Status)
-	}
-
-	// Check if verified recently.
-	if !res.IsVerifyExpired(s.clock.Now(), userVerifiedExpire) {
-		return nil
-	}
-
-	// Our verify expired, re-check.
-	logger.Infof("Checking user %v", res)
-	ok, resNew, err := s.update(ctx, res.User.KID)
-	if err != nil {
-		return err
-	}
-	if !ok {
-		return errors.Errorf("failed user update: not found")
-	}
-	if resNew.Status != user.StatusOK {
-		return errors.Errorf("user %s has failed status %s", resNew.User.ID(), resNew.Status)
+	if needsVerify {
+		// Our verify expired, re-check.
+		ok, rup, err := s.update(ctx, kid)
+		if err != nil {
+			return err
+		}
+		if !ok {
+			return errors.Errorf("failed user update: not found")
+		}
+		for _, r := range rup {
+			if r.Status != user.StatusOK {
+				return errors.Errorf("user %s has failed status %s", r.User.ID(), r.Status)
+			}
+		}
 	}
 	return nil
 }

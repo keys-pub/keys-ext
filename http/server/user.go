@@ -42,25 +42,51 @@ func (s *Server) getUserSearch(c echo.Context) error {
 	return JSON(c, http.StatusOK, resp)
 }
 
+func (s *Server) getUsers(c echo.Context) error {
+	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
+	ctx := c.Request().Context()
+
+	kid, err := keys.ParseID(c.Param("kid"))
+	if err != nil {
+		return ErrNotFound(c, errors.Errorf("invalid kid"))
+	}
+
+	results, err := s.users.Find(ctx, kid)
+	if err != nil {
+		return s.internalError(c, err)
+	}
+	if len(results) == 0 {
+		return ErrNotFound(c, errors.Errorf("no users found"))
+	}
+
+	resp := api.UsersResponse{
+		Users: api.UsersFromResults(results),
+	}
+	return JSON(c, http.StatusOK, resp)
+}
+
+// getUser is deprecated
 func (s *Server) getUser(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
 	kid, err := keys.ParseID(c.Param("kid"))
 	if err != nil {
-		return ErrNotFound(c, errors.Errorf("kid not found"))
+		return ErrNotFound(c, errors.Errorf("invalid kid"))
 	}
 
-	userResult, err := s.users.Find(ctx, kid)
+	results, err := s.users.Find(ctx, kid)
 	if err != nil {
 		return s.internalError(c, err)
 	}
-	if userResult == nil {
-		return ErrNotFound(c, errors.Errorf("user not found"))
+	if len(results) == 0 {
+		return ErrNotFound(c, errors.Errorf("no users found"))
 	}
 
-	resp := api.UserResponse{
-		User: api.UserFromResult(userResult),
+	resp := struct {
+		User *api.User `json:"user"`
+	}{
+		User: api.UserFromResult(results[0]),
 	}
 	return JSON(c, http.StatusOK, resp)
 }

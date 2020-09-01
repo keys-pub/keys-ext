@@ -106,7 +106,7 @@ func encryptCommands(client *Client) []cli.Command {
 						return err
 					}
 					if dec.Sender != nil {
-						fmtVerifiedEncrypt(client.out, dec.Sender, dec.Mode)
+						fmtVerified(client.out, dec.Sender)
 					}
 					if dec.Out != c.String("out") {
 						fmt.Fprintf(client.out, "out: %s\n", dec.Out)
@@ -153,7 +153,7 @@ func encryptCommands(client *Client) []cli.Command {
 							break
 						}
 						if showSender && resp.Sender != nil {
-							fmtVerifiedEncrypt(client.out, resp.Sender, resp.Mode)
+							fmtVerified(client.out, resp.Sender)
 							showSender = false
 						}
 						if len(resp.Data) == 0 {

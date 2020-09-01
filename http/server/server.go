@@ -100,6 +100,10 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 
 	e.POST("/check", s.check)
 
+	// Users
+	e.GET("/users/search", s.getUserSearch)
+	e.GET("/users/:kid", s.getUsers)
+	// Deprecated
 	e.GET("/user/search", s.getUserSearch)
 	e.GET("/user/:kid", s.getUser)
 

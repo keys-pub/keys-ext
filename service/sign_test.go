@@ -36,7 +36,7 @@ func TestSignVerify(t *testing.T) {
 	require.Equal(t, message, string(verifyResp.Data))
 	require.Equal(t, alice.ID().String(), verifyResp.Signer.ID)
 
-	testUserSetupGithub(t, env, aliceService, alice, "alice")
+	testUserSetup(t, env, aliceService, alice, "alice", "github")
 
 	// Sign with alice@github
 	signResp, err = aliceService.Sign(context.TODO(), &SignRequest{Data: []byte(message), Signer: "alice@github"})
@@ -49,8 +49,8 @@ func TestSignVerify(t *testing.T) {
 	require.Equal(t, message, string(verifyResp.Data))
 	require.NotNil(t, verifyResp.Signer)
 	require.Equal(t, alice.ID().String(), verifyResp.Signer.ID)
-	require.NotNil(t, verifyResp.Signer.User)
-	require.Equal(t, "alice", verifyResp.Signer.User.Name)
+	require.Equal(t, 1, len(verifyResp.Signer.Users))
+	require.Equal(t, "alice", verifyResp.Signer.Users[0].Name)
 
 	// Bob
 	bobService, bobCloseFn := newTestService(t, env, "")
@@ -63,7 +63,7 @@ func TestSignVerify(t *testing.T) {
 	require.Equal(t, message, string(verifyResp.Data))
 	require.NotNil(t, verifyResp.Signer)
 	require.Equal(t, alice.ID().String(), verifyResp.Signer.ID)
-	require.Nil(t, verifyResp.Signer.User)
+	require.Equal(t, 0, len(verifyResp.Signer.Users))
 
 	// View key (do not import)
 	_, err = bobService.Key(context.TODO(), &KeyRequest{Key: alice.ID().String(), Update: true})
@@ -75,7 +75,7 @@ func TestSignVerify(t *testing.T) {
 	require.Equal(t, message, string(verifyResp.Data))
 	require.NotNil(t, verifyResp.Signer)
 	require.Equal(t, alice.ID().String(), verifyResp.Signer.ID)
-	require.Nil(t, verifyResp.Signer.User)
+	require.Equal(t, 0, len(verifyResp.Signer.Users))
 
 	// Sign (not found)
 	key := keys.GenerateEdX25519Key()
@@ -248,7 +248,7 @@ func TestSignVerifyAttachedFile(t *testing.T) {
 	// os.Remove(out)
 }
 
-func TestVerifyUnverified(t *testing.T) {
+func TestVerifyUserFail(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
 	// keys.SetLogger(NewLogger(DebugLevel))
 	env := newTestEnv(t)
@@ -257,13 +257,13 @@ func TestVerifyUnverified(t *testing.T) {
 	defer aliceCloseFn()
 	testAuthSetup(t, aliceService)
 	testImportKey(t, aliceService, alice)
-	testUserSetupGithub(t, env, aliceService, alice, "alice")
+	testUserSetup(t, env, aliceService, alice, "alice", "github")
 
 	bobService, bobCloseFn := newTestService(t, env, "")
 	defer bobCloseFn()
 	testAuthSetup(t, bobService)
 	testImportKey(t, bobService, bob)
-	testUserSetupGithub(t, env, bobService, bob, "bob")
+	testUserSetup(t, env, bobService, bob, "bob", "github")
 
 	testPull(t, aliceService, bob.ID())
 

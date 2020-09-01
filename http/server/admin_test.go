@@ -8,6 +8,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
+	"github.com/keys-pub/keys/user"
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,7 +23,9 @@ func TestAdminCheck(t *testing.T) {
 	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 
 	// Alice sign user statement
-	st := userMock(t, alice, "alice", "github", env.req, clock)
+	sc := keys.NewSigchain(alice.ID())
+	st, err := user.MockStatement(alice, sc, "alice", "github", env.req, env.clock)
+	require.NoError(t, err)
 
 	// PUT /sigchain/:id/:seq
 	b, err := st.Bytes()

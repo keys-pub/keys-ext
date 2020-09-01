@@ -91,7 +91,7 @@ func verifyCommands(client *Client) []cli.Command {
 						}
 						// TODO: Send expected signer in request
 						if !checked {
-							if err := checkSigner(os.Stderr, resp.Signer, signer); err != nil {
+							if err := ensureSigner(os.Stderr, resp.Signer, signer); err != nil {
 								outErr = err
 								break
 							}
@@ -174,7 +174,7 @@ func verifyFile(client *Client, in string, out string, signer string) (string, e
 	// 	return err
 	// }
 
-	if err := checkSigner(os.Stderr, resp.Signer, signer); err != nil {
+	if err := ensureSigner(os.Stderr, resp.Signer, signer); err != nil {
 		return "", err
 	}
 
@@ -213,7 +213,7 @@ func verifyDetachedFile(client *Client, in string, sigFile string, signer string
 		return recvErr
 	}
 
-	if err := checkSigner(os.Stderr, resp.Signer, signer); err != nil {
+	if err := ensureSigner(os.Stderr, resp.Signer, signer); err != nil {
 		return err
 	}
 
@@ -271,14 +271,14 @@ func verifyDetachedStream(client *Client, reader io.Reader, sigFile string, sign
 	}
 
 	// TODO: Send expected signer in request
-	if err := checkSigner(os.Stderr, resp.Signer, signer); err != nil {
+	if err := ensureSigner(os.Stderr, resp.Signer, signer); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func checkSigner(out io.Writer, signer *Key, expected string) error {
+func ensureSigner(out io.Writer, signer *Key, expected string) error {
 	if signer == nil {
 		return errors.Errorf("no signer")
 	}
@@ -291,11 +291,8 @@ func checkSigner(out io.Writer, signer *Key, expected string) error {
 	}
 
 	if strings.Contains(expected, "@") {
-		if signer.User == nil {
+		if !hasUser(signer, expected) {
 			return errors.Errorf("invalid signer, expected %s, was %s", expected, signer.ID)
-		}
-		if signer.User.ID != expected {
-			return errors.Errorf("invalid signer, expected %s, was %s", expected, signer.User.ID)
 		}
 		return nil
 	}
@@ -305,4 +302,13 @@ func checkSigner(out io.Writer, signer *Key, expected string) error {
 	}
 
 	return nil
+}
+
+func hasUser(signer *Key, expected string) bool {
+	for _, usr := range signer.Users {
+		if usr.ID == expected {
+			return true
+		}
+	}
+	return false
 }

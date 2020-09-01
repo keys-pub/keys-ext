@@ -1,10 +1,8 @@
 package service
 
 import (
-	"bytes"
 	"fmt"
 	"io"
-	"text/tabwriter"
 	"unicode/utf8"
 
 	"github.com/gogo/protobuf/jsonpb"
@@ -24,33 +22,36 @@ func writeAll(writer io.Writer, b []byte) error {
 	return nil
 }
 
-func fmtKeys(keys []*Key) {
-	out := &bytes.Buffer{}
-	w := new(tabwriter.Writer)
-	w.Init(out, 0, 8, 1, ' ', 0)
+func fmtKeys(w io.Writer, keys []*Key) {
 	for _, key := range keys {
 		fmtKey(w, key)
+		fmt.Fprintf(w, "\n")
 	}
-	if err := w.Flush(); err != nil {
-		panic(err)
-	}
-	fmt.Print(out.String())
 }
 
-func fmtUser(user *User) string {
+func fmtUsers(w io.Writer, users []*User, delimeter string) {
+	for i, user := range users {
+		fmtUser(w, user)
+		if i < len(users)-1 {
+			fmt.Fprintf(w, delimeter)
+		}
+	}
+}
+
+func fmtUser(w io.Writer, user *User) {
 	if user == nil {
-		return ""
+		return
 	}
 	s := fmt.Sprintf("%s@%s", user.Name, user.Service)
 	switch user.Status {
 	case UserStatusOK:
-		return s
+		fmt.Fprintf(w, s)
 	case UserStatusUnknown:
-		return fmt.Sprintf("unknown:%s", s)
+		fmt.Fprintf(w, "unknown:%s", s)
 	case UserStatusConnFailure:
-		return fmt.Sprintf("connfail:%s", s)
+		fmt.Fprintf(w, "connfail:%s", s)
 	default:
-		return fmt.Sprintf("failed:%s", s)
+		fmt.Fprintf(w, "failed:%s", s)
 	}
 }
 
@@ -59,25 +60,10 @@ func fmtKey(w io.Writer, key *Key) {
 		return
 	}
 	fmt.Fprintf(w, key.ID)
-	if key.User != nil {
+	if len(key.Users) > 0 {
 		fmt.Fprint(w, " ")
-		fmt.Fprint(w, fmtUser(key.User))
 	}
-	fmt.Fprintf(w, "\n")
-}
-
-func fmtVerifiedEncrypt(w io.Writer, key *Key, mode EncryptMode) {
-	if key == nil {
-		return
-	}
-	fmt.Fprint(w, "verified: ")
-	fmt.Fprintf(w, key.ID)
-	fmt.Fprintf(w, " %s", encryptModeToString(mode))
-	if key.User != nil {
-		fmt.Fprint(w, " ")
-		fmt.Fprint(w, fmtUser(key.User))
-	}
-	fmt.Fprintf(w, "\n")
+	fmtUsers(w, key.Users, ",")
 }
 
 func fmtVerified(w io.Writer, key *Key) {
@@ -85,12 +71,7 @@ func fmtVerified(w io.Writer, key *Key) {
 		return
 	}
 	fmt.Fprint(w, "verified: ")
-	fmt.Fprintf(w, key.ID)
-	if key.User != nil {
-		fmt.Fprint(w, " ")
-		fmt.Fprint(w, fmtUser(key.User))
-	}
-	fmt.Fprintf(w, "\n")
+	fmtKey(w, key)
 }
 
 func encryptModeToString(m EncryptMode) string {
@@ -118,8 +99,8 @@ func fmtContent(w io.Writer, content *Content) {
 }
 
 func identityForKey(k *Key) string {
-	if k.User != nil {
-		return k.User.ID
+	if len(k.Users) > 0 {
+		return k.Users[0].ID
 	}
 	return k.ID
 }

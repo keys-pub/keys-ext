@@ -53,7 +53,7 @@ service Keys {
   rpc StatementCreate(StatementCreateRequest) returns (StatementCreateResponse) {}  
   rpc StatementRevoke(StatementRevokeRequest) returns (StatementRevokeResponse) {}  
 
-  rpc User(UserRequest) returns (UserResponse) {}  
+  rpc Users(UsersRequest) returns (UsersResponse) {}  
   rpc UserSearch(UserSearchRequest) returns (UserSearchResponse) {}
   rpc UserService(UserServiceRequest) returns (UserServiceResponse) {}
   rpc UserSign(UserSignRequest) returns (UserSignResponse) {}
@@ -596,8 +596,8 @@ message Key {
   string id = 1 [(gogoproto.customname) = "ID"];
   // Type of key.
   KeyType type = 3;
-  // User associated with this key.
-  User user = 6;  
+  // Users associated with this key.
+  repeated User users = 6;  
   // Saved if saved locally.
   bool saved = 10;
   
@@ -633,15 +633,10 @@ enum SortDirection {
 
 message KeysRequest {
   string query = 1;
-  repeated KeyType types = 2;  
-  
-  string sortField = 10;
-  SortDirection sortDirection = 11;  
+  repeated KeyType types = 2;
 }
 message KeysResponse {
   repeated Key keys = 1;
-  string sortField = 10;
-  SortDirection sortDirection = 11;
 }
 
 enum SecretType {
@@ -839,12 +834,12 @@ message User {
   string err = 20;
 }
 
-message UserRequest {
+message UsersRequest {
   string kid = 1 [(gogoproto.customname) = "KID"];
   bool local = 4;
 }
-message UserResponse {
-  User user = 1;
+message UsersResponse {
+  repeated User users = 1;
 }
 
 message UserSearchRequest {

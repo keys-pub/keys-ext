@@ -25,7 +25,7 @@ func (s *service) Verify(ctx context.Context, req *VerifyRequest) (*VerifyRespon
 		signer = s
 		// If we don't have the key saved, don't include the user information.
 		if !signer.Saved {
-			signer.User = nil
+			signer.Users = nil
 		}
 	}
 

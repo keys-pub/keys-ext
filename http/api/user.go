@@ -17,6 +17,15 @@ func UserFromSearchResult(sr *user.SearchResult) *User {
 	return user
 }
 
+// UsersFromResults returns []*User from []*user.Result.
+func UsersFromResults(results []*user.Result) []*User {
+	users := make([]*User, 0, len(results))
+	for _, r := range results {
+		users = append(users, UserFromResult(r))
+	}
+	return users
+}
+
 // UserFromResult returns User from user.Result.
 func UserFromResult(result *user.Result) *User {
 	if result == nil {
@@ -51,9 +60,9 @@ type User struct {
 	Err        string      `json:"err,omitempty"`
 }
 
-// UserResponse ...
-type UserResponse struct {
-	User *User `json:"user"`
+// UsersResponse ...
+type UsersResponse struct {
+	Users []*User `json:"users"`
 }
 
 // UserSearchResponse ...

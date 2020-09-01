@@ -32,7 +32,7 @@ func (s *service) lookup(ctx context.Context, key string, opts *LookupOpts) (key
 	}
 
 	if opts.Verify {
-		if err := s.ensureUserVerified(ctx, kid); err != nil {
+		if err := s.ensureUsersVerified(ctx, kid); err != nil {
 			return "", err
 		}
 	}
@@ -70,15 +70,5 @@ func (s *service) lookupKID(ctx context.Context, key string, searchRemote bool) 
 		kid = rkid
 	}
 
-	if searchRemote {
-		res, err := s.client.User(ctx, kid)
-		if err != nil {
-			return "", err
-		}
-		if res != nil {
-			// TODO: We should verify ourselves that the server isn't lying
-			return res.User.KID, nil
-		}
-	}
 	return kid, nil
 }

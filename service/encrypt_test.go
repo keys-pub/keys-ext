@@ -344,13 +344,13 @@ func TestEncryptDecryptByUser(t *testing.T) {
 	defer aliceCloseFn()
 	testAuthSetup(t, aliceService)
 	testImportKey(t, aliceService, alice)
-	testUserSetupGithub(t, env, aliceService, alice, "alice")
+	testUserSetup(t, env, aliceService, alice, "alice", "github")
 
 	bobService, bobCloseFn := newTestService(t, env, "")
 	defer bobCloseFn()
 	testAuthSetup(t, bobService)
 	testImportKey(t, bobService, bob)
-	testUserSetupGithub(t, env, bobService, bob, "bob")
+	testUserSetup(t, env, bobService, bob, "bob", "github")
 
 	testPull(t, aliceService, bob.ID())
 	testPull(t, bobService, alice.ID())
@@ -437,13 +437,13 @@ func TestEncryptUnverified(t *testing.T) {
 	defer aliceCloseFn()
 	testAuthSetup(t, aliceService)
 	testImportKey(t, aliceService, alice)
-	testUserSetupGithub(t, env, aliceService, alice, "alice")
+	testUserSetup(t, env, aliceService, alice, "alice", "github")
 
 	bobService, bobCloseFn := newTestService(t, env, "")
 	defer bobCloseFn()
 	testAuthSetup(t, bobService)
 	testImportKey(t, bobService, bob)
-	testUserSetupGithub(t, env, bobService, bob, "bob")
+	testUserSetup(t, env, bobService, bob, "bob", "github")
 
 	// Encrypt (not found)
 	_, err := aliceService.Encrypt(context.TODO(), &EncryptRequest{

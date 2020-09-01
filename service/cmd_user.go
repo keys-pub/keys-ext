@@ -2,12 +2,10 @@ package service
 
 import (
 	"bufio"
-	"bytes"
 	"context"
 	"fmt"
 	"os"
 	"strings"
-	"text/tabwriter"
 
 	"github.com/urfave/cli"
 )
@@ -16,71 +14,11 @@ func userCommands(client *Client) []cli.Command {
 	return []cli.Command{
 		cli.Command{
 			Name:  "user",
-			Usage: "Link and search users",
+			Usage: "Link user",
 			Subcommands: []cli.Command{
 				cli.Command{
-					Name:  "find",
-					Usage: "Find by kid",
-					Flags: []cli.Flag{
-						cli.StringFlag{Name: "kid, k", Usage: "kid"},
-						cli.BoolFlag{Name: "local", Usage: "search local index only"},
-					},
-					Action: func(c *cli.Context) error {
-						kid, err := argString(c, "kid", false)
-						if err != nil {
-							return err
-						}
-						resp, err := client.KeysClient().User(context.TODO(), &UserRequest{
-							KID:   kid,
-							Local: c.Bool("local"),
-						})
-						if err != nil {
-							return err
-						}
-						if resp.User != nil {
-							fmt.Println(fmtUser(resp.User))
-						}
-						return nil
-					},
-				},
-				cli.Command{
-					Name:  "search",
-					Usage: "Search for users",
-					Flags: []cli.Flag{
-						cli.StringFlag{Name: "query, q", Usage: "query"},
-						cli.IntFlag{Name: "limit, l", Usage: "limit number of results"},
-						cli.BoolFlag{Name: "local", Usage: "search local index only"},
-					},
-					Action: func(c *cli.Context) error {
-						query, err := argString(c, "query", true)
-						if err != nil {
-							return err
-						}
-						searchResp, err := client.KeysClient().UserSearch(context.TODO(), &UserSearchRequest{
-							Query: query,
-							Limit: int32(c.Int("limit")),
-							Local: c.Bool("local"),
-						})
-						if err != nil {
-							return err
-						}
-
-						out := &bytes.Buffer{}
-						w := new(tabwriter.Writer)
-						w.Init(out, 0, 8, 1, ' ', 0)
-						for _, user := range searchResp.Users {
-							fmt.Fprintf(w, "%s\t%s\n", fmtUser(user), user.KID)
-						}
-						if err := w.Flush(); err != nil {
-							return err
-						}
-						fmt.Print(out.String())
-						return nil
-					},
-				},
-				cli.Command{
 					Name:  "setup",
-					Usage: "Link a key to an account on Twitter or Github",
+					Usage: "Link a key to an account on Twitter, Github, Reddit",
 					Flags: []cli.Flag{
 						cli.StringFlag{Name: "kid, k", Usage: "key (defaults to current key)"},
 					},
@@ -89,6 +27,8 @@ func userCommands(client *Client) []cli.Command {
 						if err != nil {
 							return err
 						}
+
+						// TODO: HTTPs
 
 						reader := bufio.NewReader(os.Stdin)
 						fmt.Println("What's the service? ")

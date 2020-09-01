@@ -14,7 +14,7 @@ func (s *service) Search(ctx context.Context, req *SearchRequest) (*SearchRespon
 		typ := keyTypeToRPC(kid.PublicKeyType())
 		key := &Key{
 			ID:   kid.String(),
-			User: apiUserToRPC(u),
+			Users: apiUsersToRPC(res),
 			Type: typ,
 		}
 		keys = append(keys, key)

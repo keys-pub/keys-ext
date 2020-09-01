@@ -39,13 +39,12 @@ func (s *service) checkForExpiredKey(ctx context.Context, kid keys.ID) error {
 	}
 	// Check if expired, and then update.
 	// If we don't have a local result, we don't update.
-	if res != nil {
-		// If not OK, check every "userCheckFailureExpire", otherwise check every "userCheckExpire"
+	for _, r := range res {
+		// If not OK, check every "userCheckFailureExpire", otherwise check every "userCheckExpire".
 		now := s.clock.Now()
-		if (res.Status != user.StatusOK && res.IsTimestampExpired(now, userCheckFailureExpire)) ||
-			res.IsTimestampExpired(now, userCheckExpire) {
-			_, _, err := s.update(ctx, kid)
-			if err != nil {
+		if (r.Status != user.StatusOK && r.IsTimestampExpired(now, userCheckFailureExpire)) ||
+			r.IsTimestampExpired(now, userCheckExpire) {
+			if _, _, err := s.update(ctx, kid); err != nil {
 				return err
 			}
 		}
@@ -67,7 +66,7 @@ func (s *service) updateAllKeys(ctx context.Context) error {
 	return nil
 }
 
-func (s *service) update(ctx context.Context, kid keys.ID) (bool, *user.Result, error) {
+func (s *service) update(ctx context.Context, kid keys.ID) (bool, []*user.Result, error) {
 	logger.Infof("Update %s", kid)
 
 	resp, err := s.client.Sigchain(ctx, kid)

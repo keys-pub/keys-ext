@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/user"
-	"github.com/keys-pub/keys-ext/http/client"
 )
 
 func ExampleClient_Sigchain() {
@@ -31,23 +31,25 @@ func ExampleClient_Sigchain() {
 	fmt.Printf("%s", sc.Spew())
 
 	// Find the user.User in the keys.Sigchain.
-	usr, err := user.FindInSigchain(sc)
+	users, err := user.FindInSigchain(sc)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("%+v\n", usr)
+	fmt.Printf("%+v\n", users)
 
-	// Request the User URL and verify it.
-	result := user.RequestVerify(context.TODO(), request.NewHTTPRequestor(), usr, time.Now())
-	if result.Status != user.StatusOK {
-		log.Fatalf("User check failed: %+v", result)
+	// Request the user statement URL and verify it.
+	for _, usr := range users {
+		result := user.RequestVerify(context.TODO(), request.NewHTTPRequestor(), usr, time.Now())
+		if result.Status != user.StatusOK {
+			log.Fatalf("User check failed: %+v", result)
+		}
+
+		// Check result status.
+		fmt.Printf("%s\n", result.Status)
 	}
-
-	// Check result status.
-	fmt.Printf("%s\n", result.Status)
 
 	// Output:
 	// /sigchain/kex1ydecaulsg5qty2axyy770cjdvqn3ef2qa85xw87p09ydlvs5lurq53x0p3/1 {".sig":"Rf39uRlHXTqmOjcqUs5BTssshRdqpaFfmoYYJuA5rNVGgGd/bRG8p8ZebB8K+w9kozMpnuAoa4lko+oPHcabCQ==","data":"eyJrIjoia2V4MXlkZWNhdWxzZzVxdHkyYXh5eTc3MGNqZHZxbjNlZjJxYTg1eHc4N3AwOXlkbHZzNWx1cnE1M3gwcDMiLCJuIjoia2V5cy5wdWIiLCJzcSI6MSwic3IiOiJodHRwcyIsInUiOiJodHRwczovL2tleXMucHViL2tleXNwdWIudHh0In0=","kid":"kex1ydecaulsg5qty2axyy770cjdvqn3ef2qa85xw87p09ydlvs5lurq53x0p3","seq":1,"ts":1588276919715,"type":"user"}
-	// keys.pub@https!kex1ydecaulsg5qty2axyy770cjdvqn3ef2qa85xw87p09ydlvs5lurq53x0p3-1#https://keys.pub/keyspub.txt
+	// [keys.pub@https!kex1ydecaulsg5qty2axyy770cjdvqn3ef2qa85xw87p09ydlvs5lurq53x0p3-1#https://keys.pub/keyspub.txt]
 	// ok
 }

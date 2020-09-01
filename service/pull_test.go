@@ -16,7 +16,7 @@ func TestPull(t *testing.T) {
 	defer aliceCloseFn()
 	testAuthSetup(t, aliceService)
 	testImportKey(t, aliceService, alice)
-	testUserSetupGithub(t, env, aliceService, alice, "alice")
+	testUserSetup(t, env, aliceService, alice, "alice", "github")
 	testPush(t, aliceService, alice)
 
 	respKeys, err := aliceService.Keys(ctx, &KeysRequest{})
@@ -29,7 +29,7 @@ func TestPull(t *testing.T) {
 	defer bobCloseFn()
 	testAuthSetup(t, bobService)
 	testImportKey(t, bobService, bob)
-	testUserSetupGithub(t, env, bobService, bob, "bob")
+	testUserSetup(t, env, bobService, bob, "bob", "github")
 	testPush(t, bobService, bob)
 
 	// Alice (pull bob)
@@ -48,7 +48,7 @@ func TestPull(t *testing.T) {
 	defer charlieCloseFn()
 	testAuthSetup(t, charlieService)
 	testImportKey(t, charlieService, charlie)
-	testUserSetupGithub(t, env, charlieService, charlie, "charlie")
+	testUserSetup(t, env, charlieService, charlie, "charlie", "github")
 	testPush(t, charlieService, charlie)
 
 	// Charlie (pull alice@github)

@@ -18,6 +18,7 @@ import (
 	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keys/user"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 )
 
@@ -68,7 +69,7 @@ func newTestEnv(t *testing.T) *testEnv {
 	clock := tsutil.NewTestClock()
 	fi := testFire(t, clock)
 	req := request.NewMockRequestor()
-	users := user.NewUsers(fi, keys.NewSigchains(fi), req, clock)
+	users := user.NewUsers(fi, keys.NewSigchains(fi), user.Requestor(req), user.Clock(clock))
 	return &testEnv{
 		clock: clock,
 		fi:    fi,
@@ -141,30 +142,38 @@ func testImportID(t *testing.T, service *service, kid keys.ID) {
 	require.NoError(t, err)
 }
 
-func userSetupGithub(env *testEnv, service *service, key *keys.EdX25519Key, username string) error {
+func userSetup(env *testEnv, service *service, key *keys.EdX25519Key, userName string, userService string) error {
 	resp, err := service.UserSign(context.TODO(), &UserSignRequest{
 		KID:     key.ID().String(),
-		Service: "github",
-		Name:    username,
+		Service: userService,
+		Name:    userName,
 	})
 	if err != nil {
 		return err
 	}
 
-	url := fmt.Sprintf("https://gist.github.com/%s/1", username)
-	env.req.SetResponse(url, []byte(resp.Message))
+	var urs string
+	switch userService {
+	case "github":
+		urs = fmt.Sprintf("https://gist.github.com/%s/1", userName)
+	case "twitter":
+		urs = fmt.Sprintf("https://mobile.twitter.com/%s/status/1", userName)
+	default:
+		return errors.Errorf("unrecognized service name for test")
+	}
+	env.req.SetResponse(urs, []byte(resp.Message))
 
 	_, err = service.UserAdd(context.TODO(), &UserAddRequest{
 		KID:     key.ID().String(),
-		Service: "github",
-		Name:    username,
-		URL:     url,
+		Service: userService,
+		Name:    userName,
+		URL:     urs,
 	})
 	return err
 }
 
-func testUserSetupGithub(t *testing.T, env *testEnv, service *service, key *keys.EdX25519Key, username string) {
-	err := userSetupGithub(env, service, key, username)
+func testUserSetup(t *testing.T, env *testEnv, service *service, key *keys.EdX25519Key, userName string, userService string) {
+	err := userSetup(env, service, key, userName, userService)
 	require.NoError(t, err)
 }
 
@@ -303,7 +312,7 @@ func TestCheckKeys(t *testing.T) {
 	testAuthSetup(t, service)
 
 	testImportKey(t, service, alice)
-	testUserSetupGithub(t, env, service, alice, "alice")
+	testUserSetup(t, env, service, alice, "alice", "github")
 	testPush(t, service, alice)
 
 	err := service.checkKeys(context.TODO())

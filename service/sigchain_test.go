@@ -14,7 +14,7 @@ func TestSigchain(t *testing.T) {
 	defer closeFn()
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
-	testUserSetupGithub(t, env, service, alice, "alice")
+	testUserSetup(t, env, service, alice, "alice", "github")
 
 	sc, err := service.scs.Sigchain(alice.ID())
 	require.NoError(t, err)

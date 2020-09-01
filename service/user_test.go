@@ -20,11 +20,11 @@ func TestUserSearch(t *testing.T) {
 
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
-	testUserSetupGithub(t, env, service, alice, "alice")
+	testUserSetup(t, env, service, alice, "alice", "github")
 	testPush(t, service, alice)
 
 	testImportKey(t, service, bob)
-	testUserSetupGithub(t, env, service, bob, "bob")
+	testUserSetup(t, env, service, bob, "bob", "github")
 	testPush(t, service, bob)
 
 	// Search all
@@ -54,28 +54,28 @@ func TestUserSearch(t *testing.T) {
 	// TODO: Test stale result
 }
 
-func TestUser(t *testing.T) {
+func TestUsers(t *testing.T) {
 	env := newTestEnv(t)
 	service, closeFn := newTestService(t, env, "")
 	defer closeFn()
 	ctx := context.TODO()
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
-	testUserSetupGithub(t, env, service, alice, "alice")
+	testUserSetup(t, env, service, alice, "alice", "github")
 
-	resp, err := service.User(ctx, &UserRequest{
+	resp, err := service.Users(ctx, &UsersRequest{
 		KID: alice.ID().String(),
 	})
 	require.NoError(t, err)
-	require.NotNil(t, resp.User)
-	require.Equal(t, alice.ID().String(), resp.User.KID)
+	require.Equal(t, 1, len(resp.Users))
+	require.Equal(t, alice.ID().String(), resp.Users[0].KID)
 
 	key := keys.GenerateEdX25519Key()
-	resp, err = service.User(ctx, &UserRequest{
+	resp, err = service.Users(ctx, &UsersRequest{
 		KID: key.ID().String(),
 	})
 	require.NoError(t, err)
-	require.Nil(t, resp.User)
+	require.Equal(t, 1, len(resp.Users))
 }
 
 func TestUserService(t *testing.T) {
@@ -137,7 +137,7 @@ func TestUserAdd(t *testing.T) {
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
 
-	testUserSetupGithub(t, env, service, alice, "alice")
+	testUserSetup(t, env, service, alice, "alice", "github")
 	testPush(t, service, alice)
 
 	sc, err := service.scs.Sigchain(alice.ID())
@@ -149,7 +149,7 @@ func TestUserAdd(t *testing.T) {
 	require.Equal(t, 1, len(resp.Users))
 	require.Equal(t, "alice", resp.Users[0].Name)
 
-	err = userSetupGithub(env, service, alice, "alice2")
+	err = userSetup(env, service, alice, "alice2", "github")
 	require.EqualError(t, err, "failed to generate user statement: user set in sigchain already")
 
 	sc2, err := service.scs.Sigchain(alice.ID())

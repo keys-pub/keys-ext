@@ -19,11 +19,11 @@ func TestDocuments(t *testing.T) {
 	ctx := context.TODO()
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
-	testUserSetupGithub(t, env, service, alice, "alice")
+	testUserSetup(t, env, service, alice, "alice", "github")
 	testPush(t, service, alice)
 
 	testImportKey(t, service, bob)
-	testUserSetupGithub(t, env, service, bob, "bob")
+	testUserSetup(t, env, service, bob, "bob", "github")
 	testPush(t, service, bob)
 
 	err = service.db.Set(ctx, "/test/key", []byte("testvalue"))

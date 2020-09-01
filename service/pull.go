@@ -46,7 +46,7 @@ func (s *service) Pull(ctx context.Context, req *PullRequest) (*PullResponse, er
 	return &PullResponse{KIDs: pulled}, nil
 }
 
-func (s *service) pull(ctx context.Context, kid keys.ID) (bool, *user.Result, error) {
+func (s *service) pull(ctx context.Context, kid keys.ID) (bool, []*user.Result, error) {
 	logger.Infof("Pull %s", kid)
 
 	if err := s.importID(kid); err != nil {

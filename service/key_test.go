@@ -22,7 +22,7 @@ func TestKey(t *testing.T) {
 
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
-	testUserSetupGithub(t, env, service, alice, "alice")
+	testUserSetup(t, env, service, alice, "alice", "github")
 
 	// Alice
 	resp, err := service.Key(ctx, &KeyRequest{
@@ -77,41 +77,25 @@ func TestFmtKey(t *testing.T) {
 	require.NoError(t, err)
 	var buf bytes.Buffer
 	fmtKey(&buf, ak)
-	require.Equal(t, "kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077\n", buf.String())
+	require.Equal(t, "kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077", buf.String())
 
-	testUserSetupGithub(t, env, service, alice, "alice")
+	testUserSetup(t, env, service, alice, "alice", "github")
 
 	ak2, err := service.keyToRPC(ctx, alice)
 	require.NoError(t, err)
 
 	var buf2 bytes.Buffer
 	fmtKey(&buf2, ak2)
-	require.Equal(t, "kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077 alice@github\n", buf2.String())
-}
+	require.Equal(t, "kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077 alice@github", buf2.String())
 
-func TestFmtVerifiedEncrypt(t *testing.T) {
-	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env, "")
-	defer closeFn()
-	ctx := context.TODO()
+	testUserSetup(t, env, service, alice, "alice", "twitter")
 
-	testAuthSetup(t, service)
-	testImportKey(t, service, alice)
-
-	ak, err := service.keyToRPC(ctx, alice)
-	require.NoError(t, err)
-	var buf bytes.Buffer
-	fmtVerifiedEncrypt(&buf, ak, SaltpackEncrypt)
-	require.Equal(t, "verified: kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077 saltpack-encrypt\n", buf.String())
-
-	testUserSetupGithub(t, env, service, alice, "alice")
-
-	ak2, err := service.keyToRPC(ctx, alice)
+	ak3, err := service.keyToRPC(ctx, alice)
 	require.NoError(t, err)
 
-	var buf2 bytes.Buffer
-	fmtVerifiedEncrypt(&buf2, ak2, SaltpackSigncrypt)
-	require.Equal(t, "verified: kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077 saltpack-signcrypt alice@github\n", buf2.String())
+	var buf3 bytes.Buffer
+	fmtKey(&buf3, ak3)
+	require.Equal(t, "kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077 alice@github,alice@twitter", buf3.String())
 }
 
 func TestFmtVerified(t *testing.T) {
@@ -127,16 +111,16 @@ func TestFmtVerified(t *testing.T) {
 	require.NoError(t, err)
 	var buf bytes.Buffer
 	fmtVerified(&buf, ak)
-	require.Equal(t, "verified: kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077\n", buf.String())
+	require.Equal(t, "verified: kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077", buf.String())
 
-	testUserSetupGithub(t, env, service, alice, "alice")
+	testUserSetup(t, env, service, alice, "alice", "github")
 
 	ak2, err := service.keyToRPC(ctx, alice)
 	require.NoError(t, err)
 
 	var buf2 bytes.Buffer
 	fmtVerified(&buf2, ak2)
-	require.Equal(t, "verified: kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077 alice@github\n", buf2.String())
+	require.Equal(t, "verified: kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077 alice@github", buf2.String())
 }
 
 func TestKeyGenerate(t *testing.T) {

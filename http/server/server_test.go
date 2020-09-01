@@ -16,7 +16,6 @@ import (
 	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/tsutil"
-	"github.com/keys-pub/keys/user"
 	"github.com/stretchr/testify/require"
 )
 
@@ -159,30 +158,6 @@ func (s *testPubSubServer) WebsocketDial(t *testing.T, path string, clock tsutil
 	require.NoError(t, err)
 
 	return conn
-}
-
-func userMock(t *testing.T, key *keys.EdX25519Key, name string, service string, mock *request.MockRequestor, clock tsutil.Clock) *keys.Statement {
-	url := ""
-	switch service {
-	case "github":
-		url = fmt.Sprintf("https://gist.github.com/%s/1", name)
-	case "twitter":
-		url = fmt.Sprintf("https://twitter.com/%s/status/1", name)
-	default:
-		t.Fatal("unsupported service in test")
-	}
-
-	sc := keys.NewSigchain(key.ID())
-	usr, err := user.New(key.ID(), service, name, url, sc.LastSeq()+1)
-	require.NoError(t, err)
-	st, err := user.NewSigchainStatement(sc, usr, key, clock.Now())
-	require.NoError(t, err)
-
-	msg, err := usr.Sign(key)
-	require.NoError(t, err)
-	mock.SetResponse(url, []byte(msg))
-
-	return st
 }
 
 func TestAccess(t *testing.T) {

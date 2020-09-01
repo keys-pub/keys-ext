@@ -2,22 +2,15 @@ package service
 
 import (
 	"context"
-	"sort"
 	"strings"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/vault"
-	"github.com/pkg/errors"
 )
 
 // Keys (RPC) ...
 func (s *service) Keys(ctx context.Context, req *KeysRequest) (*KeysResponse, error) {
 	query := strings.TrimSpace(req.Query)
-	sortField := req.SortField
-	if sortField == "" {
-		sortField = "user"
-	}
-	sortDirection := req.SortDirection
 
 	types := make([]keys.KeyType, 0, len(req.Types))
 	for _, t := range req.Types {
@@ -28,74 +21,44 @@ func (s *service) Keys(ctx context.Context, req *KeysRequest) (*KeysResponse, er
 		types = append(types, typ)
 	}
 
-	vkeys, err := s.vault.Keys(vault.Keys.Types(types...))
+	ks, err := s.vault.Keys(vault.Keys.Types(types...))
 	if err != nil {
 		return nil, err
 	}
 
-	out, err := s.filterKeys(ctx, vkeys, query, sortField, sortDirection)
+	out, err := s.filterKeys(ctx, ks, query)
 	if err != nil {
 		return nil, err
 	}
 
 	return &KeysResponse{
-		Keys:          out,
-		SortField:     sortField,
-		SortDirection: sortDirection,
+		Keys: out,
 	}, nil
 }
 
-func (s *service) filterKeys(ctx context.Context, ks []keys.Key, query string, sortField string, sortDirection SortDirection) ([]*Key, error) {
+func containsQuery(query string, key *Key) bool {
+	if strings.HasPrefix(key.ID, query) {
+		return true
+	}
+	for _, usr := range key.Users {
+		if strings.HasPrefix(usr.ID, query) {
+			return true
+		}
+	}
+	return false
+}
+
+func (s *service) filterKeys(ctx context.Context, ks []keys.Key, query string) ([]*Key, error) {
 	keys := make([]*Key, 0, len(ks))
 	for _, k := range ks {
 		key, err := s.keyToRPC(ctx, k)
 		if err != nil {
 			return nil, err
 		}
-		if query == "" || (key.User != nil && strings.HasPrefix(key.User.ID, query)) || strings.HasPrefix(key.ID, query) {
+		if query == "" || containsQuery(query, key) {
 			keys = append(keys, key)
 		}
 	}
 
-	switch sortField {
-	case "kid", "user", "type":
-	default:
-		return nil, errors.Errorf("invalid sort field")
-	}
-
-	sort.Slice(keys, func(i, j int) bool {
-		return keysSort(keys, sortField, sortDirection, i, j)
-	})
 	return keys, nil
-}
-
-func keysSort(pks []*Key, sortField string, sortDirection SortDirection, i, j int) bool {
-	switch sortField {
-	case "type":
-		if pks[i].Type == pks[j].Type {
-			return keysSort(pks, "user", sortDirection, i, j)
-		}
-		if sortDirection == SortDesc {
-			return pks[i].Type < pks[j].Type
-		}
-		return pks[i].Type > pks[j].Type
-
-	case "user":
-		if pks[i].User == nil && pks[j].User == nil {
-			return keysSort(pks, "kid", sortDirection, i, j)
-		} else if pks[i].User == nil {
-			return false
-		} else if pks[j].User == nil {
-			return true
-		}
-		if sortDirection == SortDesc {
-			return pks[i].User.Name > pks[j].User.Name
-		}
-		return pks[i].User.Name <= pks[j].User.Name
-	default:
-		if sortDirection == SortDesc {
-			return pks[i].ID > pks[j].ID
-		}
-		return pks[i].ID <= pks[j].ID
-	}
 }

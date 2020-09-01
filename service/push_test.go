@@ -18,7 +18,7 @@ func TestPush(t *testing.T) {
 	_, err := service.Push(ctx, &PushRequest{Key: alice.ID().String()})
 	require.EqualError(t, err, "nothing to push")
 
-	testUserSetupGithub(t, env, service, alice, "alice")
+	testUserSetup(t, env, service, alice, "alice", "github")
 
 	res, err := service.users.User(ctx, "alice@github")
 	require.NoError(t, err)

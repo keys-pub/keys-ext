@@ -52,7 +52,7 @@ func Emoji(key keys.Key) string {
 }
 
 func (s *service) verifyKey(ctx context.Context, kid keys.ID) (*Key, error) {
-	if err := s.ensureUserVerified(ctx, kid); err != nil {
+	if err := s.ensureUsersVerified(ctx, kid); err != nil {
 		return nil, err
 	}
 	return s.key(ctx, kid)
@@ -158,7 +158,7 @@ func (s *service) fillKey(ctx context.Context, kid keys.ID, key *Key) error {
 
 	// TODO: What if user is stale?
 
-	key.User = userResultToRPC(res)
+	key.Users = userResultsToRPC(res)
 
 	// Sigchain info
 	sc, err := s.scs.Sigchain(kid)

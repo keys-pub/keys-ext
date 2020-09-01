@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -30,7 +31,7 @@ func keyCommands(client *Client) []cli.Command {
 				if err != nil {
 					return err
 				}
-				fmtKeys(resp.Keys)
+				fmtKeys(os.Stdout, resp.Keys)
 				return nil
 			},
 		},
