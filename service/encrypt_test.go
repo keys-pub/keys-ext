@@ -164,6 +164,7 @@ func TestEncryptAnonymous(t *testing.T) {
 			Mode: SaltpackSigncrypt,
 		},
 	})
+	require.NoError(t, err)
 	// Decrypt
 	decryptResp, err = bobService.Decrypt(context.TODO(), &DecryptRequest{
 		Data: encryptResp.Data,
@@ -181,6 +182,7 @@ func TestEncryptAnonymous(t *testing.T) {
 			NoSign: true,
 		},
 	})
+	require.NoError(t, err)
 
 	// Decrypt
 	decryptResp, err = bobService.Decrypt(context.TODO(), &DecryptRequest{
