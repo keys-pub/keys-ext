@@ -164,6 +164,9 @@ github.com/keys-pub/keys v0.1.3-0.20200821040616-88d20ddbfb85 h1:zl4H1K6M4Slrg8N
 github.com/keys-pub/keys v0.1.3-0.20200821040616-88d20ddbfb85/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys v0.1.4-0.20200824002606-35fcd5447248 h1:3Jtq3456BjLdv7n8VZdZ51+Uy65a54oJegKH5Kb840k=
 github.com/keys-pub/keys v0.1.4-0.20200824002606-35fcd5447248/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.1.4-0.20200824221332-83e82adbf39d/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.1.5-0.20200902232619-dbce0fb698a8 h1:beb0+lAtBP6KYMNeCR1caW/w/Agk0J1liyQK/unN1Gg=
+github.com/keys-pub/keys v0.1.5-0.20200902232619-dbce0fb698a8/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200613203701-f9bf15538783/go.mod h1:x/G3gwUe4ZbszY+qWXzvsy4nAun2b/ENISACWfwAB04=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200618211325-4c2d562cade7 h1:TuGKplA4KiBtjDBwa/Qi/H3Om0JhhK1cwSMD1917JsU=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200618211325-4c2d562cade7/go.mod h1:zCsXre409myb7Knish8aVBPYWSK96/KazhqYCumI+VA=
@@ -198,6 +201,8 @@ github.com/keys-pub/keys-ext/http/server v0.0.0-20200803193934-036dcb4c6007 h1:a
 github.com/keys-pub/keys-ext/http/server v0.0.0-20200803193934-036dcb4c6007/go.mod h1:cIciTZPtDgl7zYKJ2ea/KE1/A6ulB5sQ+jEaTwZl60E=
 github.com/keys-pub/keys-ext/http/server v0.0.0-20200806191006-c5b2599598fc h1:ozuJsiAhIcbANa9SMKGT21DwwVJH4dJyWqHcP3toBbo=
 github.com/keys-pub/keys-ext/http/server v0.0.0-20200806191006-c5b2599598fc/go.mod h1:gyT2511hiCStGmbnKNLwbPTy3wr5l5bEs0nwvrB/yOw=
+github.com/keys-pub/keys-ext/http/server v0.0.0-20200825192458-6059b7a9e721 h1:/eJoNKBpJgkdqvOZ5DftnBPopJuMF0Bd6dBqdqhwRBI=
+github.com/keys-pub/keys-ext/http/server v0.0.0-20200825192458-6059b7a9e721/go.mod h1:KeIrnZAW+St1mOFWRz+U1gtSv6Ig7GaPfjvLaZdUsEs=
 github.com/keys-pub/keys-ext/sdb v0.0.0-20200720205921-e5e4095869e2 h1:eN02aSGivgQMrc+F0aa01SugHiMJWNik92c8NFN3SPg=
 github.com/keys-pub/keys-ext/sdb v0.0.0-20200720205921-e5e4095869e2/go.mod h1:a2kdlrU3Q860hDBlcpzqEzXMSQPh6C1rXdXmyVP8MGo=
 github.com/keys-pub/keys-ext/sdb v0.0.0-20200825192511-6a7266ee1a89 h1:lqDjjRzzfedN5io40va3Eto2c2n9MDV7uyhi/JCgF2g=

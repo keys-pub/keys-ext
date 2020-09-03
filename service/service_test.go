@@ -68,7 +68,7 @@ func newTestEnv(t *testing.T) *testEnv {
 	clock := tsutil.NewTestClock()
 	fi := testFire(t, clock)
 	req := request.NewMockRequestor()
-	users := user.NewUsers(fi, keys.NewSigchains(fi), req, clock)
+	users := user.NewUsers(fi, keys.NewSigchains(fi), user.Requestor(req), user.Clock(clock))
 	return &testEnv{
 		clock: clock,
 		fi:    fi,

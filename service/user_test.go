@@ -297,10 +297,10 @@ func TestUserAddEcho(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "bob@echo", addResp.User.ID)
 
+	// user@echo should be hidden from search
 	searchResp, err := service.UserSearch(context.TODO(), &UserSearchRequest{})
 	require.NoError(t, err)
-	require.Equal(t, 1, len(searchResp.Users))
-	require.Equal(t, "bob@echo", searchResp.Users[0].ID)
+	require.Equal(t, 0, len(searchResp.Users))
 
 	kid, err := service.lookup(context.TODO(), "bob@echo", &LookupOpts{Verify: true})
 	require.NoError(t, err)

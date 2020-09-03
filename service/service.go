@@ -55,7 +55,7 @@ func newService(cfg *Config, build Build, auth *auth, req request.Requestor, clo
 	db := sdb.New()
 	db.SetClock(clock)
 	scs := keys.NewSigchains(db)
-	users := user.NewUsers(db, scs, req, clock)
+	users := user.NewUsers(db, scs, user.Requestor(req), user.Clock(clock))
 
 	return &service{
 		auth:          auth,
