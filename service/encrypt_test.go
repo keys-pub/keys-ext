@@ -54,9 +54,11 @@ func testEncryptDecrypt(t *testing.T, aliceService *service, bobService *service
 	// Encrypt
 	encryptResp, err := aliceService.Encrypt(context.TODO(), &EncryptRequest{
 		Data:       []byte(message),
+		Recipients: []string{recipient},
 		Sender:     sender,
-		Recipients: []string{recipient, sender},
-		Mode:       mode,
+		Options: &EncryptOptions{
+			Mode: mode,
+		},
 	})
 	require.NoError(t, err)
 	require.NotEmpty(t, encryptResp.Data)
@@ -83,24 +85,25 @@ func testEncryptDecryptErrors(t *testing.T, aliceService *service, bobService *s
 
 	encryptResp, err := aliceService.Encrypt(context.TODO(), &EncryptRequest{
 		Data:       []byte(message),
-		Sender:     alice.ID().String(),
 		Recipients: []string{bob.ID().String()},
-		Mode:       mode,
-		Armored:    armored,
+		Sender:     alice.ID().String(),
+		Options: &EncryptOptions{
+			Mode:              mode,
+			Armored:           armored,
+			NoSenderRecipient: true,
+		},
 	})
 	require.NoError(t, err)
 	require.NotEmpty(t, encryptResp.Data)
 
 	// Alice try to decrypt her own message
-	// TODO: Include alice by default?
 	_, err = aliceService.Decrypt(context.TODO(), &DecryptRequest{
 		Data: encryptResp.Data,
 	})
 	require.EqualError(t, err, "no decryption key found for message")
 
 	_, err = aliceService.Encrypt(context.TODO(), &EncryptRequest{
-		Data:   []byte(message),
-		Sender: alice.ID().String(),
+		Data: []byte(message),
 	})
 	require.EqualError(t, err, "no recipients specified")
 
@@ -135,8 +138,11 @@ func TestEncryptAnonymous(t *testing.T) {
 	// Encrypt
 	encryptResp, err := aliceService.Encrypt(context.TODO(), &EncryptRequest{
 		Data:       []byte(message),
-		Sender:     "",
 		Recipients: []string{bob.ID().String()},
+		Sender:     "",
+		Options: &EncryptOptions{
+			Mode: SaltpackEncrypt,
+		},
 	})
 	require.NoError(t, err)
 	require.NotEmpty(t, encryptResp.Data)
@@ -147,15 +153,42 @@ func TestEncryptAnonymous(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Equal(t, message, string(decryptResp.Data))
+	require.Nil(t, decryptResp.Sender)
 
-	// Encrypt
-	_, err = aliceService.Encrypt(context.TODO(), &EncryptRequest{
+	// Encrypt (signcrypt)
+	encryptResp, err = aliceService.Encrypt(context.TODO(), &EncryptRequest{
 		Data:       []byte(message),
-		Sender:     "",
 		Recipients: []string{bob.ID().String()},
-		Mode:       SaltpackSigncrypt,
+		Sender:     "",
+		Options: &EncryptOptions{
+			Mode: SaltpackSigncrypt,
+		},
 	})
-	require.EqualError(t, err, "no sender specified: sender is required for signcrypt mode")
+	// Decrypt
+	decryptResp, err = bobService.Decrypt(context.TODO(), &DecryptRequest{
+		Data: encryptResp.Data,
+	})
+	require.NoError(t, err)
+	require.Equal(t, message, string(decryptResp.Data))
+	require.Nil(t, decryptResp.Sender)
+
+	// Encrypt (no sign)
+	encryptResp, err = aliceService.Encrypt(context.TODO(), &EncryptRequest{
+		Data:       []byte(message),
+		Recipients: []string{bob.ID().String()},
+		Sender:     alice.ID().String(),
+		Options: &EncryptOptions{
+			NoSign: true,
+		},
+	})
+
+	// Decrypt
+	decryptResp, err = bobService.Decrypt(context.TODO(), &DecryptRequest{
+		Data: encryptResp.Data,
+	})
+	require.NoError(t, err)
+	require.Equal(t, message, string(decryptResp.Data))
+	require.Nil(t, decryptResp.Sender)
 }
 
 func TestEncryptDecryptStream(t *testing.T) {
@@ -198,7 +231,7 @@ func testEncryptDecryptStream(t *testing.T, env *testEnv,
 	require.NoError(t, err)
 	require.Equal(t, plaintext, out)
 	if mode == DefaultEncrypt {
-		require.Equal(t, SaltpackEncrypt, outMode)
+		require.Equal(t, SaltpackSigncrypt, outMode)
 	} else {
 		require.Equal(t, mode, outMode)
 	}
@@ -223,7 +256,9 @@ func testEncryptStream(t *testing.T, env *testEnv, service *service, plaintext [
 		err := streamClient.Send(&EncryptInput{
 			Recipients: recipients,
 			Sender:     sender,
-			Mode:       mode,
+			Options: &EncryptOptions{
+				Mode: mode,
+			},
 		})
 		require.NoError(t, err)
 		for chunk := 0; true; chunk++ {
@@ -392,7 +427,8 @@ func TestEncryptDecryptFile(t *testing.T) {
 	aliceClient, aliceClientCloseFn := newTestRPCClient(t, aliceService, env, "", nil)
 	defer aliceClientCloseFn()
 
-	err := encryptFile(aliceClient, []string{bob.ID().String()}, alice.ID().String(), SaltpackEncrypt, false, inPath, encPath)
+	options := &EncryptOptions{}
+	err := encryptFile(aliceClient, inPath, encPath, []string{bob.ID().String()}, alice.ID().String(), options)
 	require.NoError(t, err)
 
 	// encrypted, err := ioutil.ReadFile(outPath)
@@ -448,9 +484,8 @@ func TestEncryptUnverified(t *testing.T) {
 	// Encrypt (not found)
 	_, err := aliceService.Encrypt(context.TODO(), &EncryptRequest{
 		Data:       []byte("hi"),
-		Sender:     "alice@github",
 		Recipients: []string{"bob@github"},
-		Mode:       SaltpackEncrypt,
+		Sender:     "alice@github",
 	})
 	require.EqualError(t, err, "not found bob@github")
 
@@ -464,9 +499,8 @@ func TestEncryptUnverified(t *testing.T) {
 	// Encrypt (bob, error)
 	_, err = aliceService.Encrypt(context.TODO(), &EncryptRequest{
 		Data:       []byte("hi"),
-		Sender:     "alice@github",
 		Recipients: []string{"bob@github"},
-		Mode:       SaltpackEncrypt,
+		Sender:     "alice@github",
 	})
 	require.EqualError(t, err, "user bob@github has failed status connection-fail")
 }

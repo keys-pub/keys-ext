@@ -20,25 +20,32 @@ func encryptCommands(client *Client) []cli.Command {
 			Usage: "Encrypt",
 			Flags: []cli.Flag{
 				cli.StringSliceFlag{Name: "recipient, r", Usage: "recipients"},
-				cli.StringFlag{Name: "sender, signer, s", Usage: "signer (or anonymous if not specified)"},
+				cli.StringFlag{Name: "sender, signer, s", Usage: "signer (or anonymous)"},
 				cli.BoolFlag{Name: "armor, a", Usage: "armored"},
 				cli.StringFlag{Name: "in, i", Usage: "file to read"},
 				cli.StringFlag{Name: "out, o", Usage: "file to write, defaults to <in>.enc"},
-				cli.StringFlag{Name: "mode, m", Usage: "encryption mode: encrypt (default) or signcrypt"},
+				cli.StringFlag{Name: "mode, m", Usage: "encryption mode: signcrypt, encrypt or default (signcrypt if signing, encrypt otherwise)"},
+				cli.BoolFlag{Hidden: true, Name: "no-signer-recipient", Usage: "don't add signer to recipients"},
 			},
 			Action: func(c *cli.Context) error {
 				if c.String("in") == "" && c.String("out") != "" {
 					return errors.Errorf("-out option is unsupported without -in")
 				}
 
-				if c.String("in") != "" {
-					return encryptFileForCLI(c, client)
-				}
-
 				mode, err := encryptModeFromString(c.String("mode"))
 				if err != nil {
 					return err
 				}
+				options := &EncryptOptions{
+					Mode:              mode,
+					Armored:           c.Bool("armor"),
+					NoSenderRecipient: c.Bool("no-sender-recipient"),
+				}
+
+				if c.String("in") != "" {
+					return encryptFileForCLI(c, client, options)
+				}
+
 				reader := bufio.NewReader(os.Stdin)
 				writer := os.Stdout
 
@@ -50,8 +57,7 @@ func encryptCommands(client *Client) []cli.Command {
 				if err := encryptClient.Send(&EncryptInput{
 					Recipients: c.StringSlice("recipient"),
 					Sender:     c.String("sender"),
-					Mode:       mode,
-					Armored:    c.Bool("armor"),
+					Options:    options,
 				}); err != nil {
 					return err
 				}
@@ -175,15 +181,11 @@ func encryptCommands(client *Client) []cli.Command {
 	}
 }
 
-func encryptFileForCLI(c *cli.Context, client *Client) error {
-	mode, err := encryptModeFromString(c.String("mode"))
-	if err != nil {
-		return err
-	}
-	return encryptFile(client, c.StringSlice("recipient"), c.String("sender"), mode, c.Bool("armor"), c.String("in"), c.String("out"))
+func encryptFileForCLI(c *cli.Context, client *Client, options *EncryptOptions) error {
+	return encryptFile(client, c.String("in"), c.String("out"), c.StringSlice("recipient"), c.String("sender"), options)
 }
 
-func encryptFile(client *Client, recipients []string, sender string, mode EncryptMode, armored bool, in string, out string) error {
+func encryptFile(client *Client, in string, out string, recipients []string, sender string, options *EncryptOptions) error {
 	in, err := filepath.Abs(in)
 	if err != nil {
 		return err
@@ -201,12 +203,11 @@ func encryptFile(client *Client, recipients []string, sender string, mode Encryp
 	}
 
 	if err := encryptClient.Send(&EncryptFileInput{
-		Recipients: recipients,
-		Sender:     sender,
-		Mode:       mode,
-		Armored:    armored,
 		In:         in,
 		Out:        out,
+		Recipients: recipients,
+		Sender:     sender,
+		Options:    options,
 	}); err != nil {
 		return err
 	}
@@ -272,7 +273,9 @@ func decryptFile(client *Client, in string, out string) (*DecryptFileOutput, err
 
 func encryptModeFromString(s string) (EncryptMode, error) {
 	switch s {
-	case "", "encrypt":
+	case "", "default":
+		return DefaultEncrypt, nil
+	case "encrypt":
 		return SaltpackEncrypt, nil
 	case "signcrypt":
 		return SaltpackSigncrypt, nil

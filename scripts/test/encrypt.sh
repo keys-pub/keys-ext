@@ -46,7 +46,7 @@ diff "$infile" "$infile.forig"
 echo "- decrypt (file, unrecognized ext)"
 mv "$infile.enc" "$infile.dat"
 $keycmd decrypt -in "$infile.dat"
-diff "$infile.dat.dec" "$infile"
+diff "$infile-2.dat" "$infile"
 
 echo "- encrypt/decrypt (signcrypt, piped)"
 echo "testing" > $infile

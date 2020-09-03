@@ -19,9 +19,18 @@ type encrypt struct {
 	armored    bool
 }
 
-func (s *service) newEncrypt(ctx context.Context, recipients []string, sender string, mode EncryptMode, armored bool) (*encrypt, error) {
-	if len(recipients) == 0 {
-		return nil, errors.Errorf("no recipients specified")
+func (s *service) newEncrypt(ctx context.Context, recipients []string, sender string, options *EncryptOptions) (*encrypt, error) {
+	if options == nil {
+		options = &EncryptOptions{}
+	}
+
+	var skid keys.ID
+	if sender != "" {
+		s, err := s.lookup(ctx, sender, &LookupOpts{Verify: true})
+		if err != nil {
+			return nil, err
+		}
+		skid = s
 	}
 
 	recs, err := s.lookupAll(ctx, recipients, &LookupOpts{Verify: true})
@@ -29,30 +38,45 @@ func (s *service) newEncrypt(ctx context.Context, recipients []string, sender st
 		return nil, err
 	}
 
-	if mode == DefaultEncrypt {
-		mode = SaltpackEncrypt
+	// Add sender as a recipient (unless options.NoSenderRecipient).
+	recsSet := keys.NewIDSet(recs...)
+	if !options.NoSenderRecipient && skid != "" {
+		recsSet.Add(skid)
 	}
 
-	var kid keys.ID
-	if sender != "" {
-		s, err := s.lookup(ctx, sender, &LookupOpts{Verify: true})
-		if err != nil {
-			return nil, err
+	if recsSet.Size() == 0 {
+		return nil, errors.Errorf("no recipients specified")
+	}
+
+	if skid != "" && options.NoSign && options.NoSenderRecipient {
+		return nil, errors.Errorf("sender specified without signing or adding as a recipient")
+	}
+
+	if options.NoSign {
+		skid = ""
+	}
+
+	// For default mode, if signing, use signcrypt, otherwise use encrypt.
+	mode := options.Mode
+	if mode == DefaultEncrypt {
+		if skid != "" {
+			mode = SaltpackSigncrypt
+		} else {
+			mode = SaltpackEncrypt
 		}
-		kid = s
 	}
 
 	return &encrypt{
-		recipients: recs,
-		sender:     kid,
+		recipients: recsSet.IDs(),
+		sender:     skid,
 		mode:       mode,
-		armored:    armored,
+		armored:    options.Armored,
 	}, nil
 }
 
 // Encrypt (RPC) data.
 func (s *service) Encrypt(ctx context.Context, req *EncryptRequest) (*EncryptResponse, error) {
-	enc, err := s.newEncrypt(ctx, req.Recipients, req.Sender, req.Mode, req.Armored)
+	enc, err := s.newEncrypt(ctx, req.Recipients, req.Sender, req.Options)
 	if err != nil {
 		return nil, err
 	}
@@ -64,22 +88,16 @@ func (s *service) Encrypt(ctx context.Context, req *EncryptRequest) (*EncryptRes
 		if err != nil {
 			return nil, err
 		}
-		out, err = saltpack.Encrypt(req.Data, req.Armored, sbk, enc.recipients...)
+		out, err = saltpack.Encrypt(req.Data, enc.armored, sbk, enc.recipients...)
 		if err != nil {
 			return nil, err
 		}
 	case SaltpackSigncrypt:
-		if enc.sender == "" {
-			return nil, errors.Errorf("no sender specified: sender is required for signcrypt mode")
-		}
 		sk, err := s.vault.EdX25519Key(enc.sender)
 		if err != nil {
 			return nil, err
 		}
-		if sk == nil {
-			return nil, keys.NewErrNotFound(enc.sender.String())
-		}
-		out, err = saltpack.Signcrypt(req.Data, req.Armored, sk, enc.recipients...)
+		out, err = saltpack.Signcrypt(req.Data, enc.armored, sk, enc.recipients...)
 		if err != nil {
 			return nil, err
 		}
@@ -192,7 +210,7 @@ func (s *service) EncryptFile(srv Keys_EncryptFileServer) error {
 		out = in + ".enc"
 	}
 
-	enc, err := s.newEncrypt(srv.Context(), req.Recipients, req.Sender, req.Mode, req.Armored)
+	enc, err := s.newEncrypt(srv.Context(), req.Recipients, req.Sender, req.Options)
 	if err != nil {
 		return err
 	}
@@ -239,7 +257,7 @@ func (s *service) EncryptStream(srv Keys_EncryptStreamServer) error {
 				return errors.Errorf("stream already initialized")
 			}
 
-			enc, err := s.newEncrypt(ctx, req.Recipients, req.Sender, req.Mode, req.Armored)
+			enc, err := s.newEncrypt(ctx, req.Recipients, req.Sender, req.Options)
 			if err != nil {
 				return err
 			}
@@ -252,7 +270,7 @@ func (s *service) EncryptStream(srv Keys_EncryptStreamServer) error {
 
 		} else {
 			// Make sure request only sends data after init
-			if len(req.Recipients) != 0 || req.Sender != "" {
+			if len(req.Recipients) != 0 || req.Sender != "" || req.Options != nil {
 				return errors.Errorf("after stream is initalized, only data should be sent")
 			}
 		}
