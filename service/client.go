@@ -29,7 +29,7 @@ type Client struct {
 	keysClient  KeysClient
 	fido2Client fido2.AuthClient
 	conn        *grpc.ClientConn
-	cfg         *Config
+	env         *Env
 	connectFn   ClientConnectFn
 
 	out io.Writer
@@ -39,7 +39,7 @@ type Client struct {
 const VersionDev = "0.0.0-dev"
 
 // ClientConnectFn describes client connect.
-type ClientConnectFn func(cfg *Config, authToken string) (*grpc.ClientConn, error)
+type ClientConnectFn func(env *Env, authToken string) (*grpc.ClientConn, error)
 
 // NewClient constructs a client.
 func NewClient() *Client {
@@ -50,7 +50,7 @@ func NewClient() *Client {
 }
 
 // Connect ...
-func (c *Client) Connect(cfg *Config, authToken string) error {
+func (c *Client) Connect(env *Env, authToken string) error {
 	c.Lock()
 	defer c.Unlock()
 
@@ -60,8 +60,8 @@ func (c *Client) Connect(cfg *Config, authToken string) error {
 		}
 	}
 
-	c.cfg = cfg
-	conn, err := c.connectFn(cfg, authToken)
+	c.env = env
+	conn, err := c.connectFn(env, authToken)
 	if err != nil {
 		return err
 	}
@@ -71,10 +71,10 @@ func (c *Client) Connect(cfg *Config, authToken string) error {
 	return nil
 }
 
-func connectLocal(cfg *Config, authToken string) (*grpc.ClientConn, error) {
+func connectLocal(env *Env, authToken string) (*grpc.ClientConn, error) {
 	var opts []grpc.DialOption
 
-	certPEM, err := loadCertificate(cfg)
+	certPEM, err := loadCertificate(env)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func connectLocal(cfg *Config, authToken string) (*grpc.ClientConn, error) {
 
 	opts = append(opts, grpc.WithTransportCredentials(creds))
 	opts = append(opts, grpc.WithPerRPCCredentials(newClientAuth(authToken)))
-	addr := fmt.Sprintf("127.0.0.1:%d", cfg.Port())
+	addr := fmt.Sprintf("127.0.0.1:%d", env.Port())
 	logger.Infof("Opening connection: %s", addr)
 	return grpc.Dial(addr, opts...)
 }
@@ -116,14 +116,6 @@ func (c *Client) Close() error {
 	return err
 }
 
-func config(c *cli.Context) (*Config, error) {
-	appName := c.GlobalString("app")
-	if appName == "" {
-		return nil, errors.Errorf("no app name")
-	}
-	return NewConfig(appName)
-}
-
 // RunClient runs the command line client
 func RunClient(build Build) {
 	if err := checkSupportedOS(); err != nil {
@@ -139,6 +131,14 @@ func RunClient(build Build) {
 	client := NewClient()
 	defer client.Close()
 	runClient(build, os.Args, client, clientFatal)
+}
+
+func newClientEnv(c *cli.Context) (*Env, error) {
+	appName := c.GlobalString("app")
+	if appName == "" {
+		return nil, errors.Errorf("no app name")
+	}
+	return NewEnv(appName)
 }
 
 func runClient(build Build, args []string, client *Client, errorFn func(err error)) {
@@ -183,7 +183,7 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 	cmds = append(cmds, otherCommands(client)...)
 	cmds = append(cmds, userCommands(client)...)
 	cmds = append(cmds, keyCommands(client)...)
-	cmds = append(cmds, configCommands(client)...)
+	cmds = append(cmds, envCommands(client)...)
 	cmds = append(cmds, logCommands(client)...)
 	cmds = append(cmds, wormholeCommands(client)...)
 	cmds = append(cmds, fido2Commands(client)...)
@@ -209,7 +209,7 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 		logger.Debugf("UID: %d", os.Getuid())
 		logger.Debugf("OS: %s", runtime.GOOS)
 
-		cfg, err := config(c)
+		env, err := newClientEnv(c)
 		if err != nil {
 			errorFn(err)
 			return err
@@ -225,7 +225,7 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 		}
 
 		if build.Version != VersionDev {
-			if err := autostart(cfg); err != nil {
+			if err := autostart(env); err != nil {
 				errorFn(err)
 				return err
 			}
@@ -233,7 +233,7 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 
 		authToken := os.Getenv("KEYS_AUTH")
 
-		if err := connect(cfg, client, build, authToken, true); err != nil {
+		if err := connect(env, client, build, authToken, true); err != nil {
 			errorFn(err)
 			return err
 		}
@@ -246,9 +246,9 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 	}
 }
 
-func connect(cfg *Config, client *Client, build Build, authToken string, reconnect bool) error {
+func connect(env *Env, client *Client, build Build, authToken string, reconnect bool) error {
 	logger.Debugf("Client connect...")
-	if err := client.Connect(cfg, authToken); err != nil {
+	if err := client.Connect(env, authToken); err != nil {
 		return err
 	}
 
@@ -259,8 +259,8 @@ func connect(cfg *Config, client *Client, build Build, authToken string, reconne
 	}
 
 	// TODO: Does this check happen during auth?
-	if cfg.AppName() != status.AppName {
-		return errServiceRuntime{Reason: fmt.Sprintf("service and client have different app names %s != %s", cfg.AppName(), status.AppName)}
+	if env.AppName() != status.AppName {
+		return errServiceRuntime{Reason: fmt.Sprintf("service and client have different app names %s != %s", env.AppName(), status.AppName)}
 	}
 
 	if build.Version == VersionDev {
@@ -283,11 +283,11 @@ func connect(cfg *Config, client *Client, build Build, authToken string, reconne
 		if reconnect {
 			fmt.Fprintf(os.Stderr, "The keysd (service) is a different version than the client, restarting it...\n")
 			// Try to restart
-			if err := restart(cfg); err != nil {
+			if err := restart(env); err != nil {
 				return errServiceRuntime{Reason: err.Error()}
 			}
 			logger.Infof("Reconnecting...")
-			return connect(cfg, client, build, authToken, false)
+			return connect(env, client, build, authToken, false)
 		}
 
 		return errDifferentVersions{VersionService: status.Version, VersionClient: build.Version}

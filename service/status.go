@@ -35,7 +35,7 @@ func (s *service) RuntimeStatus(ctx context.Context, req *RuntimeStatusRequest) 
 
 	resp := RuntimeStatusResponse{
 		Version:    s.build.Version,
-		AppName:    s.cfg.AppName(),
+		AppName:    s.env.AppName(),
 		Exe:        exe,
 		AuthStatus: vaultStatusToRPC(status),
 		Sync:       sync,

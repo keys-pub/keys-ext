@@ -5,6 +5,8 @@ package service;
 // Proto field names should be snake_case, but some plugins don't convert to 
 // camel like they should, so we use camelCase here.
 
+// import "google/protobuf/any.proto";
+
 // gogo-protobuf is an extension of go-protobuf with more features, see https://github.com/gogo/protobuf
 import "gogoproto/gogo.proto";
 
@@ -71,7 +73,7 @@ service Keys {
 
   rpc Pull(PullRequest) returns (PullResponse) {}
   rpc Push(PushRequest) returns (PushResponse) {}
-  
+
   rpc Wormhole(stream WormholeInput) returns (stream WormholeOutput) {}  
   
   // These requests do not need auth.
@@ -99,6 +101,9 @@ service Keys {
   rpc Collections(CollectionsRequest) returns (CollectionsResponse) {}
   rpc Documents(DocumentsRequest) returns (DocumentsResponse) {}
   rpc DocumentDelete(DocumentDeleteRequest) returns (DocumentDeleteResponse) {}
+
+  rpc ConfigGet(ConfigGetRequest) returns (ConfigGetResponse) {}
+  rpc ConfigSet(ConfigSetRequest) returns (ConfigSetResponse) {}
 
   // Admin
   rpc AdminSignURL(AdminSignURLRequest) returns (AdminSignURLResponse) {}
@@ -1010,3 +1015,25 @@ message AdminCheckRequest {
 
 message AdminCheckResponse {}
 
+
+message ConfigGetRequest {
+  string key = 1;  
+}
+message ConfigGetResponse {
+  // google.protobuf.Any value = 1;
+}
+
+message ConfigSetRequest {
+  string key = 1;
+  // google.protobuf.Any value = 2;
+}
+
+message ConfigSetResponse {}
+
+message ConfigEncrypt {
+  repeated string recipients = 1;
+  string sender = 2;
+    
+  bool addToRecipients = 3;
+  bool sign = 4;
+}

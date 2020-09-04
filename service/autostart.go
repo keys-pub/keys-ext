@@ -27,9 +27,9 @@ func findProcessByName(name string) (ps.Process, error) {
 	return nil, nil
 }
 
-func autostart(cfg *Config) error {
+func autostart(env *Env) error {
 	logger.Infof("Autostart")
-	if err := startProcess(cfg); err != nil {
+	if err := startProcess(env); err != nil {
 		if err == errAlreadyRunning {
 			logger.Debugf("Already running")
 			return nil
@@ -37,11 +37,11 @@ func autostart(cfg *Config) error {
 		return err
 	}
 	logger.Debugf("Autostarted")
-	return waitForStart(cfg)
+	return waitForStart(env)
 }
 
-func waitForStart(cfg *Config) error {
-	pidPath, err := cfg.AppPath("pid", false)
+func waitForStart(env *Env) error {
+	pidPath, err := env.AppPath("pid", false)
 	if err != nil {
 		return err
 	}
@@ -56,7 +56,7 @@ func waitForStart(cfg *Config) error {
 var errNotRunning = errors.New("not running")
 var errAlreadyRunning = errors.New("already running")
 
-func startProcess(cfg *Config) error {
+func startProcess(env *Env) error {
 	logger.Debugf("Start process")
 	ps, err := findProcessByName("keysd")
 	if err != nil {
@@ -67,8 +67,8 @@ func startProcess(cfg *Config) error {
 	}
 
 	binPath := defaultServicePath()
-	appName := cfg.AppName()
-	logPath, err := cfg.LogsPath("keysd.log", true)
+	appName := env.AppName()
+	logPath, err := env.LogsPath("keysd.log", true)
 	if err != nil {
 		return err
 	}
@@ -82,7 +82,7 @@ func startProcess(cfg *Config) error {
 	return cmd.Start()
 }
 
-func stopProcess(cfg *Config) error {
+func stopProcess(env *Env) error {
 	logger.Debugf("Stop process")
 	ps, err := findProcessByName("keysd")
 	if err != nil {

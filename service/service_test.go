@@ -21,19 +21,19 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func testConfig(t *testing.T, appName string, serverURL string) (*Config, CloseFn) {
+func newEnv(t *testing.T, appName string, serverURL string) (*Env, CloseFn) {
 	if appName == "" {
 		appName = "KeysTest-" + randName()
 	}
-	cfg, err := NewConfig(appName)
+	env, err := NewEnv(appName)
 	require.NoError(t, err)
-	cfg.Set(serverCfgKey, serverURL)
+	env.Set(serverCfgKey, serverURL)
 
 	closeFn := func() {
-		removeErr := os.RemoveAll(cfg.AppDir())
+		removeErr := os.RemoveAll(env.AppDir())
 		require.NoError(t, removeErr)
 	}
-	return cfg, closeFn
+	return env, closeFn
 }
 
 func randName() string {
@@ -81,24 +81,24 @@ func newTestService(t *testing.T, env *testEnv, appName string) (*service, Close
 	return newTestServiceWithOpts(t, env, appName)
 }
 
-func newTestServiceWithOpts(t *testing.T, env *testEnv, appName string) (*service, CloseFn) {
-	serverEnv := newTestServerEnv(t, env)
-	cfg, closeCfg := testConfig(t, appName, serverEnv.url)
-	auth := newAuth(cfg)
+func newTestServiceWithOpts(t *testing.T, tenv *testEnv, appName string) (*service, CloseFn) {
+	serverEnv := newTestServerEnv(t, tenv)
+	env, closeFn := newEnv(t, appName, serverEnv.url)
+	auth := newAuth(env)
 
-	svc, err := newService(cfg, Build{Version: "1.2.3", Commit: "deadbeef"}, auth, env.req, env.clock)
+	svc, err := newService(env, Build{Version: "1.2.3", Commit: "deadbeef"}, auth, tenv.req, tenv.clock)
 	require.NoError(t, err)
 
 	err = svc.Open()
 	require.NoError(t, err)
 
-	closeFn := func() {
+	closeServiceFn := func() {
 		serverEnv.closeFn()
 		svc.Close()
-		closeCfg()
+		closeFn()
 	}
 
-	return svc, closeFn
+	return svc, closeServiceFn
 }
 
 var authPassword = "testpassword"

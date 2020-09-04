@@ -45,13 +45,13 @@ func (l logrusInterceptor) Stream() grpc.StreamServerInterceptor {
 	return glogrus.StreamServerInterceptor(l.entry, l.opts...)
 }
 
-func setupLogrus(cfg *Config, logPath string) (*logrus.Logger, logrusInterceptor) {
+func setupLogrus(env *Env, logPath string) (*logrus.Logger, logrusInterceptor) {
 	llog := logrus.StandardLogger()
 	formatter := &logrus.TextFormatter{
 		FullTimestamp:   true,
 		TimestampFormat: time.RFC3339Nano,
 	}
-	llog.SetLevel(logrusFromLevel(cfg.LogLevel()))
+	llog.SetLevel(logrusFromLevel(env.LogLevel()))
 	llog.SetFormatter(formatter)
 	// slog.SetReportCaller(true)
 

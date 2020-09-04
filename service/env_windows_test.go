@@ -7,13 +7,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestConfigDirs(t *testing.T) {
-	cfg, err := NewConfig("KeysTest")
+func TestDirs(t *testing.T) {
+	env, err := NewEnv("KeysTest")
 	require.NoError(t, err)
-	require.Equal(t, "KeysTest", cfg.AppName())
+	require.Equal(t, "KeysTest", env.AppName())
 
-	appDir := cfg.AppDir()
+	appDir := env.AppDir()
 	require.True(t, strings.HasSuffix(appDir, `\AppData\Local\KeysTest`))
-	logsDir := cfg.LogsDir()
+	logsDir := env.LogsDir()
 	require.True(t, strings.HasSuffix(logsDir, `\AppData\Local\KeysTest`))
 }

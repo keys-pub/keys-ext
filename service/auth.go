@@ -21,14 +21,14 @@ import (
 
 type auth struct {
 	sync.Mutex
-	cfg       *Config
+	env       *Env
 	tokens    map[string]string
 	allowlist *docs.StringSet
 
 	fas fido2.AuthServer
 }
 
-func newAuth(cfg *Config) *auth {
+func newAuth(env *Env) *auth {
 	// We don't need auth for the following methods.
 	allowlist := docs.NewStringSet(
 		"/service.Keys/AuthSetup",
@@ -41,7 +41,7 @@ func newAuth(cfg *Config) *auth {
 	)
 
 	return &auth{
-		cfg:       cfg,
+		env:       env,
 		tokens:    map[string]string{},
 		allowlist: allowlist,
 	}
@@ -56,7 +56,7 @@ func (a *auth) setup(ctx context.Context, vlt *vault.Vault, secret string, typ A
 		}
 		return nil
 	case FIDO2HMACSecretAuth:
-		_, err := setupHMACSecret(ctx, a.fas, vlt, secret, a.cfg.AppName())
+		_, err := setupHMACSecret(ctx, a.fas, vlt, secret, a.env.AppName())
 		if err != nil {
 			return authErr(err, typ, "failed to setup")
 		}
@@ -99,7 +99,7 @@ func (a *auth) provision(ctx context.Context, vlt *vault.Vault, secret string, t
 		return provisionPassword(ctx, vlt, secret)
 	case FIDO2HMACSecretAuth:
 		if setup {
-			return setupHMACSecret(ctx, a.fas, vlt, secret, a.cfg.AppName())
+			return setupHMACSecret(ctx, a.fas, vlt, secret, a.env.AppName())
 		}
 		return provisionHMACSecret(ctx, a.fas, vlt, secret)
 	default:

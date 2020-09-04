@@ -1,57 +1,63 @@
-package service
+package service_test
 
 import (
+	"fmt"
 	"os"
-	"strings"
-	"testing"
+	"path/filepath"
 
 	"github.com/keys-pub/keys"
-	"github.com/stretchr/testify/require"
 )
 
-func TestConfig(t *testing.T) {
-	cfg, err := NewConfig("KeysTest")
-	require.NoError(t, err)
-	defer func() {
-		removeErr := os.RemoveAll(cfg.AppDir())
-		require.NoError(t, removeErr)
-	}()
-	require.Equal(t, "KeysTest", cfg.AppName())
-	require.Equal(t, 22405, cfg.Port())
-
-	cfg.SetInt("port", 3001)
-	cfg.Set("server", "https://server.url")
-	cfg.Set("logLevel", "debug")
-	cfg.SetBool("disableSymlinkCheck", true)
-	err = cfg.Save()
-	require.NoError(t, err)
-
-	cfg2, err := NewConfig("KeysTest")
-	require.NoError(t, err)
-	require.Equal(t, 3001, cfg2.Port())
-	require.Equal(t, "https://server.url", cfg2.Server())
-	require.Equal(t, DebugLevel, cfg2.LogLevel())
-	require.True(t, cfg2.GetBool("disableSymlinkCheck"))
+func testPath() string {
+	return filepath.Join(os.TempDir(), fmt.Sprintf("%s.sdb", keys.RandFileName()))
 }
 
-func TestAppPath(t *testing.T) {
-	appName := "KeysTest-" + keys.RandFileName()
-	cfg, err := NewConfig(appName)
-	require.NoError(t, err)
+// func TestConfigServiceNotOpen(t *testing.T) {
+// 	db := sdb.New()
+// 	service := config.NewService(db)
+// 	_, err := service.Get(context.TODO(), &config.GetRequest{Key: "/encrypt"})
+// 	require.EqualError(t, err, "db not open")
+// }
 
-	path, err := cfg.AppPath("", false)
-	require.NoError(t, err)
+// func TestConfigService(t *testing.T) {
+// 	db := sdb.New()
+// 	service := config.NewService(db)
 
-	exists, err := pathExists(path)
-	require.NoError(t, err)
-	require.False(t, exists)
+// 	dbPath := testPath()
+// 	key := keys.Rand32()
+// 	err := db.OpenAtPath(context.TODO(), dbPath, key)
+// 	require.NoError(t, err)
+// 	defer func() {
+// 		db.Close()
+// 		_ = os.RemoveAll(dbPath)
+// 	}()
 
-	path, err = cfg.AppPath("", true)
-	require.NoError(t, err)
-	require.True(t, strings.HasSuffix(path, appName))
-	defer func() { _ = os.RemoveAll(path) }()
+// 	g, err := service.Get(context.TODO(), &config.GetRequest{Key: "/encrypt"})
+// 	require.NoError(t, err)
+// 	require.Nil(t, g.Value)
 
-	exists, err = pathExists(path)
-	require.NoError(t, err)
-	require.True(t, exists)
-}
+// 	val := &config.Encrypt{
+// 		Recipients:      []string{"gabriel@github"},
+// 		Sender:          "gabriel@echo",
+// 		AddToRecipients: true,
+// 		Sign:            true,
+// 	}
+// 	any, err := anypb.New(val)
+// 	require.NoError(t, err)
+// 	_, err = service.Set(context.TODO(), &config.SetRequest{
+// 		Key:   "/encrypt",
+// 		Value: any,
+// 	})
+// 	require.NoError(t, err)
+
+// 	g, err = service.Get(context.TODO(), &config.GetRequest{Key: "/encrypt"})
+// 	require.NoError(t, err)
+// 	require.NotNil(t, g.Value)
+// 	var out config.Encrypt
+// 	err = any.UnmarshalTo(&out)
+// 	require.NoError(t, err)
+// 	require.Equal(t, val.Recipients, out.Recipients)
+// 	require.Equal(t, val.Sender, out.Sender)
+// 	require.Equal(t, val.AddToRecipients, out.AddToRecipients)
+// 	require.Equal(t, val.Sign, out.Sign)
+// }

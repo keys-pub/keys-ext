@@ -17,11 +17,11 @@ func startCommands() []cli.Command {
 			Usage: "Restart the service",
 			Flags: []cli.Flag{},
 			Action: func(c *cli.Context) error {
-				cfg, err := config(c)
+				env, err := newClientEnv(c)
 				if err != nil {
 					return err
 				}
-				restartErr := restart(cfg)
+				restartErr := restart(env)
 				if restartErr != nil {
 					return restartErr
 				}
@@ -37,24 +37,24 @@ func startCommands() []cli.Command {
 				cli.IntFlag{Name: "port", Usage: "port", Hidden: true},
 			},
 			Action: func(c *cli.Context) error {
-				cfg, err := config(c)
+				env, err := newClientEnv(c)
 				if err != nil {
 					return err
 				}
 				port := c.Int("port")
 				if port != 0 {
-					if err := cfg.savePortFlag(port); err != nil {
+					if err := env.savePortFlag(port); err != nil {
 						return err
 					}
 				}
 
 				// If we start from the app...
 				if c.String("from") == "app" {
-					if err := startFromApp(cfg); err != nil {
+					if err := startFromApp(env); err != nil {
 						return err
 					}
 				} else {
-					if err := start(cfg, true); err != nil {
+					if err := start(env, true); err != nil {
 						return err
 					}
 				}
@@ -67,11 +67,11 @@ func startCommands() []cli.Command {
 			Usage: "Stop the service",
 			Flags: []cli.Flag{},
 			Action: func(c *cli.Context) error {
-				cfg, err := config(c)
+				env, err := newClientEnv(c)
 				if err != nil {
 					return err
 				}
-				if err := stop(cfg); err != nil {
+				if err := stop(env); err != nil {
 					return err
 				}
 				fmt.Println("stopped")
@@ -85,7 +85,7 @@ func startCommands() []cli.Command {
 				cli.BoolFlag{Name: "force", Usage: "force"},
 			},
 			Action: func(c *cli.Context) error {
-				cfg, err := config(c)
+				env, err := newClientEnv(c)
 				if err != nil {
 					return err
 				}
@@ -104,7 +104,7 @@ func startCommands() []cli.Command {
 					}
 				}
 
-				return Uninstall(os.Stderr, cfg)
+				return Uninstall(os.Stderr, env)
 			},
 		},
 	}
