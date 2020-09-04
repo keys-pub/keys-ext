@@ -4,7 +4,7 @@ set -e -u -o pipefail # Fail on error
 
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
-"$dir/../../scripts/proto.sh" $dir
+"$dir/../../scripts/proto3.sh" $dir
 
 keysapp="$dir/../../../app"
 
