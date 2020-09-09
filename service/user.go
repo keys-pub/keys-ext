@@ -219,7 +219,7 @@ func (s *service) sigchainUserAdd(ctx context.Context, key *keys.EdX25519Key, se
 }
 
 // SigchainURL is the sigchain URL for the user, or empty string if not set.
-func (u User) SigchainURL() string {
+func (u *User) SigchainURL() string {
 	if u.Seq == 0 {
 		return ""
 	}

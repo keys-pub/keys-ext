@@ -13,11 +13,11 @@ func logCommands(client *Client) []cli.Command {
 			Usage: "Log path",
 			Flags: []cli.Flag{},
 			Action: func(c *cli.Context) error {
-				cfg, err := config(c)
+				env, err := newClientEnv(c)
 				if err != nil {
 					return err
 				}
-				logPath, err := cfg.LogsPath("keysd.log", false)
+				logPath, err := env.LogsPath("keysd.log", false)
 				if err != nil {
 					return err
 				}

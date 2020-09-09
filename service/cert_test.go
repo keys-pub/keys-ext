@@ -8,27 +8,27 @@ import (
 )
 
 func TestCertificate(t *testing.T) {
-	cfg, closeFn := testConfig(t, "KeysTest", "")
+	env, closeFn := newEnv(t, "KeysTest", "")
 	defer closeFn()
 
-	cert, err := loadCertificate(cfg)
+	cert, err := loadCertificate(env)
 	require.NoError(t, err)
 	require.Empty(t, cert)
 
 	certKey, err := keys.GenerateCertificateKey("localhost", true, nil)
 	require.NoError(t, err)
-	err = saveCertificate(cfg, certKey.Public())
+	err = saveCertificate(env, certKey.Public())
 	require.NoError(t, err)
-	defer func() { _ = DeleteCertificate(cfg) }()
+	defer func() { _ = DeleteCertificate(env) }()
 
-	cert, err = loadCertificate(cfg)
+	cert, err = loadCertificate(env)
 	require.NoError(t, err)
 	require.NotEmpty(t, cert)
 
-	err = DeleteCertificate(cfg)
+	err = DeleteCertificate(env)
 	require.NoError(t, err)
 
-	cert, err = loadCertificate(cfg)
+	cert, err = loadCertificate(env)
 	require.NoError(t, err)
 	require.Empty(t, cert)
 }

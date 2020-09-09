@@ -12,7 +12,9 @@ import (
 )
 
 // Server ...
-type Server struct{}
+type Server struct {
+	fido2.UnimplementedAuthServer
+}
 
 // NewAuthServer creates an AuthServer.
 func NewAuthServer() fido2.AuthServer {

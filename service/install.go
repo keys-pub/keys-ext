@@ -9,7 +9,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/keys-pub/keys/env"
+	kenv "github.com/keys-pub/keys/env"
 	"github.com/pkg/errors"
 )
 
@@ -39,34 +39,34 @@ func defaultServicePath() string {
 	return filepath.Join(dir, name)
 }
 
-func restart(cfg *Config) error {
+func restart(env *Env) error {
 	logger.Debugf("Restart process")
-	if err := stop(cfg); err != nil {
+	if err := stop(env); err != nil {
 		if err != errNotRunning {
 			return err
 		}
 	}
-	return autostart(cfg)
+	return autostart(env)
 }
 
-func start(cfg *Config, wait bool) error {
-	if err := startProcess(cfg); err != nil {
+func start(env *Env, wait bool) error {
+	if err := startProcess(env); err != nil {
 		return err
 	}
 	if wait {
-		if err := waitForStart(cfg); err != nil {
+		if err := waitForStart(env); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func stop(cfg *Config) error {
+func stop(env *Env) error {
 	// TODO: This stops first process with keysd name
-	if err := stopProcess(cfg); err != nil {
+	if err := stopProcess(env); err != nil {
 		return err
 	}
-	pidPath, err := cfg.AppPath("pid", false)
+	pidPath, err := env.AppPath("pid", false)
 	if err != nil {
 		return err
 	}
@@ -92,14 +92,14 @@ func removeFile(pidPath string) error {
 }
 
 // Uninstall ...
-func Uninstall(out io.Writer, cfg *Config) error {
-	if err := stopProcess(cfg); err != nil {
+func Uninstall(out io.Writer, env *Env) error {
+	if err := stopProcess(env); err != nil {
 		if err != errNotRunning {
 			return err
 		}
 	}
 
-	dirs, err := env.AllDirs(cfg.AppName())
+	dirs, err := kenv.AllDirs(env.AppName())
 	if err != nil {
 		return err
 	}
@@ -110,24 +110,24 @@ func Uninstall(out io.Writer, cfg *Config) error {
 		}
 	}
 
-	fmt.Fprintf(out, "Uninstalled %q.\n", cfg.AppName())
+	fmt.Fprintf(out, "Uninstalled %q.\n", env.AppName())
 	return nil
 }
 
-func startFromApp(cfg *Config) error {
+func startFromApp(env *Env) error {
 	// TODO: Check/fix symlink if busted
-	if cfg.GetInt("disableSymlinkCheck", 0) < 2 {
+	if env.GetInt("disableSymlinkCheck", 0) < 2 {
 		if err := installSymlink(); err != nil {
 			logger.Infof("Failed to install symlink: %s", err)
 		} else {
 			// Only install once
-			cfg.Set("disableSymlinkCheck", "2")
-			if err := cfg.Save(); err != nil {
+			env.Set("disableSymlinkCheck", "2")
+			if err := env.Save(); err != nil {
 				return err
 			}
 		}
 	}
-	return restart(cfg)
+	return restart(env)
 }
 
 func installSymlink() error {

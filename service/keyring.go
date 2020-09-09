@@ -13,7 +13,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func checkKeyringConvert(cfg *Config, vlt *vault.Vault) error {
+func checkKeyringConvert(env *Env, vlt *vault.Vault) error {
 	empty, err := vlt.IsEmpty()
 	if err != nil {
 		return err
@@ -22,7 +22,7 @@ func checkKeyringConvert(cfg *Config, vlt *vault.Vault) error {
 		return nil
 	}
 	logger.Infof("Checking keyring conversion...")
-	kr, err := newKeyring(cfg, "")
+	kr, err := newKeyring(env, "")
 	if err != nil {
 		return err
 	}
@@ -36,7 +36,7 @@ func checkKeyringConvert(cfg *Config, vlt *vault.Vault) error {
 	}
 
 	// Backup before resetting
-	backupPath, err := cfg.AppPath(fmt.Sprintf("keyring-backup-%d.tgz", tsutil.Millis(time.Now())), false)
+	backupPath, err := env.AppPath(fmt.Sprintf("keyring-backup-%d.tgz", tsutil.Millis(time.Now())), false)
 	if err != nil {
 		return err
 	}
@@ -52,22 +52,22 @@ func checkKeyringConvert(cfg *Config, vlt *vault.Vault) error {
 	return nil
 }
 
-func newKeyring(cfg *Config, typ string) (keyring.Keyring, error) {
+func newKeyring(env *Env, typ string) (keyring.Keyring, error) {
 	switch typ {
 	case "":
 		// logger.Infof("Keyring (default)")
-		st, err := defaultKeyring(cfg)
+		st, err := defaultKeyring(env)
 		if err != nil {
 			return nil, err
 		}
 		logger.Debugf("Checking keyring (%s)", st.Name())
 		return st, nil
 	case "sys":
-		service := keyringServiceName(cfg)
+		service := keyringServiceName(env)
 		return keyring.NewSystem(service)
 	case "fs":
 		logger.Debugf("Checking keyring (fs, deprecated)")
-		dir, err := fsDir(cfg)
+		dir, err := fsDir(env)
 		if err != nil {
 			return nil, err
 		}
@@ -84,27 +84,27 @@ func newKeyring(cfg *Config, typ string) (keyring.Keyring, error) {
 	}
 }
 
-func defaultKeyring(cfg *Config) (keyring.Keyring, error) {
+func defaultKeyring(env *Env) (keyring.Keyring, error) {
 	// Check linux fallback.
 	// We used to support a keyring type config option for "fs".
 	// In earlier version of keyring, we used a fallback for linux at
 	// ~/.keyring/<service>.
-	if cfg.Get("keyring", "") == "fs" {
-		return newKeyring(cfg, "fs")
+	if env.Get("keyring", "") == "fs" {
+		return newKeyring(env, "fs")
 	}
 	if runtime.GOOS == "linux" {
 		if err := keyring.CheckSystem(); err != nil {
-			service := keyringServiceName(cfg)
+			service := keyringServiceName(env)
 			return linuxFallbackFS(service)
 		}
 	}
 
 	// Use system
-	return newKeyring(cfg, "sys")
+	return newKeyring(env, "sys")
 }
 
-func keyringServiceName(cfg *Config) string {
-	return cfg.AppName() + ".keyring"
+func keyringServiceName(env *Env) string {
+	return env.AppName() + ".keyring"
 }
 
 func linuxFallbackFS(service string) (keyring.Keyring, error) {
@@ -116,11 +116,11 @@ func linuxFallbackFS(service string) (keyring.Keyring, error) {
 	return keyring.NewFS(dir)
 }
 
-func fsDir(cfg *Config) (string, error) {
-	dir, err := cfg.AppPath("keyring", false)
+func fsDir(env *Env) (string, error) {
+	dir, err := env.AppPath("keyring", false)
 	if err != nil {
 		return "", err
 	}
-	service := keyringServiceName(cfg)
+	service := keyringServiceName(env)
 	return filepath.Join(dir, service), nil
 }

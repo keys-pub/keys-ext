@@ -27,10 +27,10 @@ func TestHMACSecretAuthOnDevice(t *testing.T) {
 
 	// SetLogger(NewLogger(DebugLevel))
 
-	cfg, closeFn := testConfig(t, "KeysTest", "")
+	env, closeFn := newEnv(t, "KeysTest", "")
 	defer closeFn()
 
-	auth := newAuth(cfg)
+	auth := newAuth(env)
 	vlt := newTestVault(t)
 
 	// Load plugin
@@ -53,9 +53,9 @@ func TestHMACSecretAuth(t *testing.T) {
 	// vault.SetLogger(NewLogger(DebugLevel))
 	var err error
 
-	cfg, closeFn := testConfig(t, "KeysTest", "")
+	env, closeFn := newEnv(t, "KeysTest", "")
 	defer closeFn()
-	auth := newAuth(cfg)
+	auth := newAuth(env)
 	vlt := newTestVault(t)
 	pin := "12345"
 

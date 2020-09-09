@@ -13,6 +13,7 @@ import (
 )
 
 type server struct {
+	fido2.UnimplementedAuthServer
 	devices []*device
 }
 

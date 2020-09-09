@@ -2,15 +2,15 @@ package service
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"text/tabwriter"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/jsonpb"
-	proto "github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
+	"google.golang.org/protobuf/proto"
 )
 
 func writeAll(writer io.Writer, b []byte) error {
@@ -155,10 +155,7 @@ func argString(c *cli.Context, name string, optional bool) (string, error) {
 }
 
 func printMessage(m proto.Message) {
-	marshal := jsonpb.Marshaler{
-		Indent: "  ",
-	}
-	b, err := marshal.MarshalToString(m)
+	b, err := json.MarshalIndent(m, "", "  ")
 	if err != nil {
 		panic(err)
 	}

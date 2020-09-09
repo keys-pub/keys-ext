@@ -10,9 +10,9 @@ import (
 )
 
 func TestAuthWithPassword(t *testing.T) {
-	cfg, closeFn := testConfig(t, "KeysTest", "")
+	env, closeFn := newEnv(t, "KeysTest", "")
 	defer closeFn()
-	auth := newAuth(cfg)
+	auth := newAuth(env)
 	vlt := newTestVault(t)
 
 	ctx := context.TODO()
@@ -53,9 +53,9 @@ func TestAuthWithPassword(t *testing.T) {
 
 func TestAuthorize(t *testing.T) {
 	var err error
-	cfg, closeFn := testConfig(t, "KeysTest", "")
+	env, closeFn := newEnv(t, "KeysTest", "")
 	defer closeFn()
-	auth := newAuth(cfg)
+	auth := newAuth(env)
 	vlt := newTestVault(t)
 
 	ctx := metadata.NewIncomingContext(context.TODO(), metadata.MD{})

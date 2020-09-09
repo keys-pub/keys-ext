@@ -33,17 +33,17 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
-func newProtoService(cfg *Config, build Build, auth *auth) (*service, error) {
+func newProtoService(env *Env, build Build, auth *auth) (*service, error) {
 	req := request.NewHTTPRequestor()
-	srv, err := newService(cfg, build, auth, req, tsutil.NewClock())
+	srv, err := newService(env, build, auth, req, tsutil.NewClock())
 	if err != nil {
 		return nil, err
 	}
 	return srv, nil
 }
 
-func setupLogging(cfg *Config, logPath string) (Logger, LogInterceptor) {
-	return setupLogrus(cfg, logPath)
+func setupLogging(env *Env, logPath string) (Logger, LogInterceptor) {
+	return setupLogrus(env, logPath)
 }
 
 func logFatal(err error) {
@@ -66,7 +66,7 @@ func Run(build Build) {
 		return
 	}
 
-	cfg, err := NewConfig(*appName)
+	env, err := NewEnv(*appName)
 	if err != nil {
 		logFatal(errors.Wrapf(err, "failed to load config"))
 	}
@@ -76,16 +76,16 @@ func Run(build Build) {
 	}
 
 	// Set config from flags
-	if err := cfg.saveLogLevelFlag(*logLevel); err != nil {
+	if err := env.saveLogLevelFlag(*logLevel); err != nil {
 		logFatal(err)
 	}
-	if err := cfg.savePortFlag(*port); err != nil {
+	if err := env.savePortFlag(*port); err != nil {
 		logFatal(err)
 	}
 
 	// TODO: Disable logging by default
 
-	lg, lgi := setupLogging(cfg, *logPath)
+	lg, lgi := setupLogging(env, *logPath)
 	SetLogger(lg)
 	keys.SetLogger(lg)
 	user.SetLogger(lg)
@@ -108,13 +108,13 @@ func Run(build Build) {
 	}
 
 	logger.Infof("Version: %s", build)
-	logger.Infof("Log level: %s", cfg.LogLevel().String())
+	logger.Infof("Log level: %s", env.LogLevel().String())
 
 	panichandler.InstallPanicHandler(func(ctx context.Context, r interface{}) {
 		logrus.Errorf("Panic: %v; %s", r, string(debug.Stack()))
 	})
 
-	if err := runService(cfg, build, lgi); err != nil {
+	if err := runService(env, build, lgi); err != nil {
 		logFatal(err)
 	}
 }
@@ -127,18 +127,18 @@ type CloseFn func()
 
 // TODO: Protect against incompatible downgrades
 
-func runService(cfg *Config, build Build, lgi LogInterceptor) error {
-	if IsPortInUse(cfg.Port()) {
-		return errors.Errorf("port %d in use; is keysd already running?", cfg.Port())
+func runService(env *Env, build Build, lgi LogInterceptor) error {
+	if IsPortInUse(env.Port()) {
+		return errors.Errorf("port %d in use; is keysd already running?", env.Port())
 	}
 
-	cert, err := GenerateCertificate(cfg, true)
+	cert, err := GenerateCertificate(env, true)
 	if err != nil {
 		return err
 	}
-	defer func() { _ = DeleteCertificate(cfg) }()
+	defer func() { _ = DeleteCertificate(env) }()
 
-	serveFn, closeFn, serveErr := NewServiceFn(cfg, build, cert, lgi)
+	serveFn, closeFn, serveErr := NewServiceFn(env, build, cert, lgi)
 	if serveErr != nil {
 		return serveErr
 	}
@@ -147,7 +147,7 @@ func runService(cfg *Config, build Build, lgi LogInterceptor) error {
 }
 
 // NewServiceFn ...
-func NewServiceFn(cfg *Config, build Build, cert *keys.CertificateKey, lgi LogInterceptor) (ServeFn, CloseFn, error) {
+func NewServiceFn(env *Env, build Build, cert *keys.CertificateKey, lgi LogInterceptor) (ServeFn, CloseFn, error) {
 	var opts []grpc.ServerOption
 
 	if cert == nil {
@@ -160,7 +160,7 @@ func NewServiceFn(cfg *Config, build Build, cert *keys.CertificateKey, lgi LogIn
 		grpc.Creds(creds),
 	}
 
-	auth := newAuth(cfg)
+	auth := newAuth(env)
 
 	lgi.Replace()
 
@@ -179,7 +179,7 @@ func NewServiceFn(cfg *Config, build Build, cert *keys.CertificateKey, lgi LogIn
 	)
 	grpcServer := grpc.NewServer(opts...)
 
-	service, err := newProtoService(cfg, build, auth)
+	service, err := newProtoService(env, build, auth)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -202,14 +202,14 @@ func NewServiceFn(cfg *Config, build Build, cert *keys.CertificateKey, lgi LogIn
 		auth.fas = fido2Plugin
 	}
 
-	logger.Infof("Listening for connections on port %d", cfg.Port())
-	lis, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", cfg.Port()))
+	logger.Infof("Listening for connections on port %d", env.Port())
+	lis, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", env.Port()))
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "failed to tcp listen")
 	}
 
 	serveFn := func() error {
-		if err := writePID(cfg); err != nil {
+		if err := writePID(env); err != nil {
 			return err
 		}
 		return grpcServer.Serve(lis)
@@ -231,8 +231,8 @@ func IsPortInUse(port int) bool {
 	return false
 }
 
-func writePID(cfg *Config) error {
-	path, err := cfg.AppPath("pid", false)
+func writePID(env *Env) error {
+	path, err := env.AppPath("pid", false)
 	if err != nil {
 		return err
 	}

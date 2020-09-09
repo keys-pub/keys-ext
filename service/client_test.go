@@ -20,10 +20,10 @@ func (l listener) dial(context.Context, string) (net.Conn, error) {
 	return l.lis.Dial()
 }
 
-func newTestRPCClient(t *testing.T, srvc *service, env *testEnv, appName string, out io.Writer) (*Client, func()) {
+func newTestRPCClient(t *testing.T, srvc *service, tenv *testEnv, appName string, out io.Writer) (*Client, func()) {
 	listener := listener{lis: bufconn.Listen(1024 * 1024)}
 
-	connect := func(cfg *Config, authToken string) (*grpc.ClientConn, error) {
+	connect := func(env *Env, authToken string) (*grpc.ClientConn, error) {
 		logger.Debugf("Test connect %s", authToken)
 		var opts []grpc.DialOption
 		opts = append(opts, grpc.WithContextDialer(listener.dial), grpc.WithInsecure())
@@ -43,17 +43,17 @@ func newTestRPCClient(t *testing.T, srvc *service, env *testEnv, appName string,
 	if out != nil {
 		client.out = out
 	}
-	cfg, cfgClose := testConfig(t, appName, "")
-	err := client.Connect(cfg, "")
+	env, closeFn := newEnv(t, appName, "")
+	err := client.Connect(env, "")
 	require.NoError(t, err)
 
-	closeFn := func() {
+	closeClientFn := func() {
 		// TODO: Remove sleep
 		time.Sleep(time.Millisecond * 100)
 		client.Close()
 		server.Stop()
-		cfgClose()
+		closeFn()
 	}
 
-	return client, closeFn
+	return client, closeClientFn
 }

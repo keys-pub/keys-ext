@@ -10,14 +10,14 @@ import (
 )
 
 // GenerateCertificate generates a certificate key and saves it to the support dir.
-func GenerateCertificate(cfg *Config, save bool) (*keys.CertificateKey, error) {
+func GenerateCertificate(env *Env, save bool) (*keys.CertificateKey, error) {
 	logger.Infof("Generating certificate...")
 	certKey, err := keys.GenerateCertificateKey("localhost", true, nil)
 	if err != nil {
 		return nil, err
 	}
 	if save {
-		if err := saveCertificate(cfg, certKey.Public()); err != nil {
+		if err := saveCertificate(env, certKey.Public()); err != nil {
 			return nil, errors.Wrapf(err, "failed to save cert public key")
 		}
 	}
@@ -25,8 +25,8 @@ func GenerateCertificate(cfg *Config, save bool) (*keys.CertificateKey, error) {
 }
 
 // saveCertificate saves public certificate PEM data to the filesystem.
-func saveCertificate(cfg *Config, cert string) error {
-	certPath, err := cfg.certPath(true)
+func saveCertificate(env *Env, cert string) error {
+	certPath, err := env.certPath(true)
 	if err != nil {
 		return err
 	}
@@ -35,8 +35,8 @@ func saveCertificate(cfg *Config, cert string) error {
 }
 
 // loadCertificate returns public certificate PEM from the filesystem.
-func loadCertificate(cfg *Config) (string, error) {
-	certPath, err := cfg.certPath(false)
+func loadCertificate(env *Env) (string, error) {
+	certPath, err := env.certPath(false)
 	if err != nil {
 		return "", err
 	}
@@ -59,8 +59,8 @@ func loadCertificate(cfg *Config) (string, error) {
 }
 
 // DeleteCertificate removes saved certificate.
-func DeleteCertificate(cfg *Config) error {
-	certPath, err := cfg.certPath(false)
+func DeleteCertificate(env *Env) error {
+	certPath, err := env.certPath(false)
 	if err != nil {
 		return err
 	}

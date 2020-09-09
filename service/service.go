@@ -15,7 +15,9 @@ import (
 )
 
 type service struct {
-	cfg    *Config
+	UnimplementedKeysServer
+
+	env    *Env
 	build  Build
 	auth   *auth
 	db     *sdb.DB
@@ -33,19 +35,19 @@ type service struct {
 	checkCancelFn func()
 }
 
-const sdbFilename = "keys.sdb"
-const vdbFilename = "vault.vdb"
+const kdbPath = "keys.sdb"
+const vdbPath = "vault.vdb"
 
 // TODO: Remove old db "keys.leveldb"
 
-func newService(cfg *Config, build Build, auth *auth, req request.Requestor, clock tsutil.Clock) (*service, error) {
-	client, err := httpclient.New(cfg.Server())
+func newService(env *Env, build Build, auth *auth, req request.Requestor, clock tsutil.Clock) (*service, error) {
+	client, err := httpclient.New(env.Server())
 	if err != nil {
 		return nil, err
 	}
 	client.SetClock(clock)
 
-	path, err := cfg.AppPath(vdbFilename, true)
+	path, err := env.AppPath(vdbPath, true)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +62,7 @@ func newService(cfg *Config, build Build, auth *auth, req request.Requestor, clo
 	return &service{
 		auth:          auth,
 		build:         build,
-		cfg:           cfg,
+		env:           env,
 		scs:           scs,
 		db:            db,
 		users:         users,
@@ -76,7 +78,7 @@ func (s *service) Open() error {
 	if err := s.vault.Open(); err != nil {
 		return err
 	}
-	if err := checkKeyringConvert(s.cfg, s.vault); err != nil {
+	if err := checkKeyringConvert(s.env, s.vault); err != nil {
 		return err
 	}
 	return nil
@@ -101,14 +103,15 @@ func (s *service) unlock(ctx context.Context, secret string, typ AuthType, clien
 	}
 
 	isNew := false
+
+	// DB
 	if !s.db.IsOpen() {
-		logger.Infof("Opening sdb...")
-		path, err := s.cfg.AppPath(sdbFilename, true)
+		logger.Infof("Opening %s...", kdbPath)
+		path, err := s.env.AppPath(kdbPath, true)
 		if err != nil {
 			return "", err
 		}
 
-		// Open sdb
 		exists, err := pathExists(path)
 		if err != nil {
 			return "", err
