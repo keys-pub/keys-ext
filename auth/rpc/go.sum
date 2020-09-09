@@ -41,6 +41,8 @@ github.com/keys-pub/go-libfido2 v1.4.1-0.20200909205858-280a1bda5932 h1:zPpJLxr/
 github.com/keys-pub/go-libfido2 v1.4.1-0.20200909205858-280a1bda5932/go.mod h1:P0V19qHwJNY0htZwZDe9Ilvs/nokGhdFX7faKFyZ6+U=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200909204406-3d7d2bdd32f8 h1:mHaD5dUEv9PKrcO3roJA86VUJJ6Kab+8V31fqvseXXs=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200909204406-3d7d2bdd32f8/go.mod h1:x5+jqBtOoQrmMweyHADA4siypwewxeB93pl4D0n+9q8=
+github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200909213344-503c5123562c h1:qomFu99nguMBBUhTpptPB6Tk5nwX/yO1kdevcX54RBc=
+github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200909213344-503c5123562c/go.mod h1:x5+jqBtOoQrmMweyHADA4siypwewxeB93pl4D0n+9q8=
 github.com/kr/pretty v0.1.0 h1:L/CwN0zerZDmRFUapSPitk6f+Q3+0za1rQkzVuMiMFI=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
