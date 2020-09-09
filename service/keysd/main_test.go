@@ -12,23 +12,22 @@ import (
 
 func TestServiceFn(t *testing.T) {
 	// service.SetLogger(service.NewLogger(service.DebugLevel))
-	cfg, err := service.NewConfig("KeysServiceTest")
+	env, err := service.NewEnv("KeysServiceTest")
 	require.NoError(t, err)
 	defer func() {
-		err := os.RemoveAll(cfg.AppDir())
+		err := os.RemoveAll(env.AppDir())
 		require.NoError(t, err)
 	}()
-	cfg.SetInt("port", 2001)
-	cfg.Set("keyring", "mem")
+	env.SetInt("port", 2001)
 	build := service.Build{
 		Version: version,
 		Commit:  commit,
 		Date:    date,
 	}
 	lgi := service.NewLogrusInterceptor(logrus.StandardLogger())
-	cert, err := service.GenerateCertificate(cfg, false)
+	cert, err := service.GenerateCertificate(env, false)
 	require.NoError(t, err)
-	serveFn, closeFn, serviceErr := service.NewServiceFn(cfg, build, cert, lgi)
+	serveFn, closeFn, serviceErr := service.NewServiceFn(env, build, cert, lgi)
 	require.NoError(t, serviceErr)
 
 	t.Logf("testing")

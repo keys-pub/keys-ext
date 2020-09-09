@@ -8,7 +8,7 @@ require (
 	github.com/golang/protobuf v1.4.2
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
 	github.com/keys-pub/keys v0.1.5-0.20200902232619-dbce0fb698a8
-	github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200618211325-4c2d562cade7
+	github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200909210040-fd6d944acf60
 	github.com/keys-pub/keys-ext/auth/mock v0.0.0-20200618212723-bf12ba4cbdc4
 	github.com/keys-pub/keys-ext/http/api v0.0.0-20200730003632-c95092bc23ed
 	github.com/keys-pub/keys-ext/http/client v0.0.0-20200803194707-448c69038c86
@@ -32,9 +32,9 @@ require (
 
 // replace github.com/keys-pub/keys-ext/sdb => ../sdb
 
-replace github.com/keys-pub/keys-ext/auth/fido2 => ../auth/fido2
+// replace github.com/keys-pub/keys-ext/auth/fido2 => ../auth/fido2
 
-replace github.com/keys-pub/keys-ext/auth/mock => ../auth/mock
+// replace github.com/keys-pub/keys-ext/auth/mock => ../auth/mock
 
 // replace github.com/keys-pub/keys-ext/http/api => ../http/api
 
