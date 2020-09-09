@@ -156,6 +156,8 @@ github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200909204406-3d7d2bdd32f8 h1:mH
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200909204406-3d7d2bdd32f8/go.mod h1:x5+jqBtOoQrmMweyHADA4siypwewxeB93pl4D0n+9q8=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200909210040-fd6d944acf60 h1:60oso3T/m85o7V+ItCycqA+jNMNxpp4RajYNCLEHbsk=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200909210040-fd6d944acf60/go.mod h1:x5+jqBtOoQrmMweyHADA4siypwewxeB93pl4D0n+9q8=
+github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200909213344-503c5123562c h1:qomFu99nguMBBUhTpptPB6Tk5nwX/yO1kdevcX54RBc=
+github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200909213344-503c5123562c/go.mod h1:x5+jqBtOoQrmMweyHADA4siypwewxeB93pl4D0n+9q8=
 github.com/keys-pub/keys-ext/auth/mock v0.0.0-20200618212723-bf12ba4cbdc4 h1:JqRC78K9nrxlaihuHvrmvgJ1oTExOLB6mrx/oZH613o=
 github.com/keys-pub/keys-ext/auth/mock v0.0.0-20200618212723-bf12ba4cbdc4/go.mod h1:Gwznz0oyJacxl7IWVCJbXBHc1uHq0IyFdUZIydEJPmU=
 github.com/keys-pub/keys-ext/auth/mock v0.0.0-20200909210040-fd6d944acf60 h1:vbSJaKIrH7wrdf7StXNH1GzFWY5+PhkS52WNca1vkuk=
