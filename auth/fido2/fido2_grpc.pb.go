@@ -41,7 +41,7 @@ func NewAuthClient(cc grpc.ClientConnInterface) AuthClient {
 
 func (c *authClient) Devices(ctx context.Context, in *DevicesRequest, opts ...grpc.CallOption) (*DevicesResponse, error) {
 	out := new(DevicesResponse)
-	err := c.cc.Invoke(ctx, "/Auth/Devices", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/fido2.Auth/Devices", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (c *authClient) Devices(ctx context.Context, in *DevicesRequest, opts ...gr
 
 func (c *authClient) DeviceInfo(ctx context.Context, in *DeviceInfoRequest, opts ...grpc.CallOption) (*DeviceInfoResponse, error) {
 	out := new(DeviceInfoResponse)
-	err := c.cc.Invoke(ctx, "/Auth/DeviceInfo", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/fido2.Auth/DeviceInfo", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func (c *authClient) DeviceInfo(ctx context.Context, in *DeviceInfoRequest, opts
 
 func (c *authClient) MakeCredential(ctx context.Context, in *MakeCredentialRequest, opts ...grpc.CallOption) (*MakeCredentialResponse, error) {
 	out := new(MakeCredentialResponse)
-	err := c.cc.Invoke(ctx, "/Auth/MakeCredential", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/fido2.Auth/MakeCredential", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func (c *authClient) MakeCredential(ctx context.Context, in *MakeCredentialReque
 
 func (c *authClient) SetPIN(ctx context.Context, in *SetPINRequest, opts ...grpc.CallOption) (*SetPINResponse, error) {
 	out := new(SetPINResponse)
-	err := c.cc.Invoke(ctx, "/Auth/SetPIN", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/fido2.Auth/SetPIN", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func (c *authClient) SetPIN(ctx context.Context, in *SetPINRequest, opts ...grpc
 
 func (c *authClient) Reset(ctx context.Context, in *ResetRequest, opts ...grpc.CallOption) (*ResetResponse, error) {
 	out := new(ResetResponse)
-	err := c.cc.Invoke(ctx, "/Auth/Reset", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/fido2.Auth/Reset", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func (c *authClient) Reset(ctx context.Context, in *ResetRequest, opts ...grpc.C
 
 func (c *authClient) RetryCount(ctx context.Context, in *RetryCountRequest, opts ...grpc.CallOption) (*RetryCountResponse, error) {
 	out := new(RetryCountResponse)
-	err := c.cc.Invoke(ctx, "/Auth/RetryCount", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/fido2.Auth/RetryCount", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +95,7 @@ func (c *authClient) RetryCount(ctx context.Context, in *RetryCountRequest, opts
 
 func (c *authClient) Assertion(ctx context.Context, in *AssertionRequest, opts ...grpc.CallOption) (*AssertionResponse, error) {
 	out := new(AssertionResponse)
-	err := c.cc.Invoke(ctx, "/Auth/Assertion", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/fido2.Auth/Assertion", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (c *authClient) Assertion(ctx context.Context, in *AssertionRequest, opts .
 
 func (c *authClient) CredentialsInfo(ctx context.Context, in *CredentialsInfoRequest, opts ...grpc.CallOption) (*CredentialsInfoResponse, error) {
 	out := new(CredentialsInfoResponse)
-	err := c.cc.Invoke(ctx, "/Auth/CredentialsInfo", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/fido2.Auth/CredentialsInfo", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +113,7 @@ func (c *authClient) CredentialsInfo(ctx context.Context, in *CredentialsInfoReq
 
 func (c *authClient) Credentials(ctx context.Context, in *CredentialsRequest, opts ...grpc.CallOption) (*CredentialsResponse, error) {
 	out := new(CredentialsResponse)
-	err := c.cc.Invoke(ctx, "/Auth/Credentials", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/fido2.Auth/Credentials", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func (c *authClient) Credentials(ctx context.Context, in *CredentialsRequest, op
 
 func (c *authClient) RelyingParties(ctx context.Context, in *RelyingPartiesRequest, opts ...grpc.CallOption) (*RelyingPartiesResponse, error) {
 	out := new(RelyingPartiesResponse)
-	err := c.cc.Invoke(ctx, "/Auth/RelyingParties", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/fido2.Auth/RelyingParties", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +131,7 @@ func (c *authClient) RelyingParties(ctx context.Context, in *RelyingPartiesReque
 
 func (c *authClient) GenerateHMACSecret(ctx context.Context, in *GenerateHMACSecretRequest, opts ...grpc.CallOption) (*GenerateHMACSecretResponse, error) {
 	out := new(GenerateHMACSecretResponse)
-	err := c.cc.Invoke(ctx, "/Auth/GenerateHMACSecret", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/fido2.Auth/GenerateHMACSecret", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +140,7 @@ func (c *authClient) GenerateHMACSecret(ctx context.Context, in *GenerateHMACSec
 
 func (c *authClient) HMACSecret(ctx context.Context, in *HMACSecretRequest, opts ...grpc.CallOption) (*HMACSecretResponse, error) {
 	out := new(HMACSecretResponse)
-	err := c.cc.Invoke(ctx, "/Auth/HMACSecret", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/fido2.Auth/HMACSecret", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -222,7 +222,7 @@ func _Auth_Devices_Handler(srv interface{}, ctx context.Context, dec func(interf
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Auth/Devices",
+		FullMethod: "/fido2.Auth/Devices",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthServer).Devices(ctx, req.(*DevicesRequest))
@@ -240,7 +240,7 @@ func _Auth_DeviceInfo_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Auth/DeviceInfo",
+		FullMethod: "/fido2.Auth/DeviceInfo",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthServer).DeviceInfo(ctx, req.(*DeviceInfoRequest))
@@ -258,7 +258,7 @@ func _Auth_MakeCredential_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Auth/MakeCredential",
+		FullMethod: "/fido2.Auth/MakeCredential",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthServer).MakeCredential(ctx, req.(*MakeCredentialRequest))
@@ -276,7 +276,7 @@ func _Auth_SetPIN_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Auth/SetPIN",
+		FullMethod: "/fido2.Auth/SetPIN",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthServer).SetPIN(ctx, req.(*SetPINRequest))
@@ -294,7 +294,7 @@ func _Auth_Reset_Handler(srv interface{}, ctx context.Context, dec func(interfac
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Auth/Reset",
+		FullMethod: "/fido2.Auth/Reset",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthServer).Reset(ctx, req.(*ResetRequest))
@@ -312,7 +312,7 @@ func _Auth_RetryCount_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Auth/RetryCount",
+		FullMethod: "/fido2.Auth/RetryCount",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthServer).RetryCount(ctx, req.(*RetryCountRequest))
@@ -330,7 +330,7 @@ func _Auth_Assertion_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Auth/Assertion",
+		FullMethod: "/fido2.Auth/Assertion",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthServer).Assertion(ctx, req.(*AssertionRequest))
@@ -348,7 +348,7 @@ func _Auth_CredentialsInfo_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Auth/CredentialsInfo",
+		FullMethod: "/fido2.Auth/CredentialsInfo",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthServer).CredentialsInfo(ctx, req.(*CredentialsInfoRequest))
@@ -366,7 +366,7 @@ func _Auth_Credentials_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Auth/Credentials",
+		FullMethod: "/fido2.Auth/Credentials",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthServer).Credentials(ctx, req.(*CredentialsRequest))
@@ -384,7 +384,7 @@ func _Auth_RelyingParties_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Auth/RelyingParties",
+		FullMethod: "/fido2.Auth/RelyingParties",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthServer).RelyingParties(ctx, req.(*RelyingPartiesRequest))
@@ -402,7 +402,7 @@ func _Auth_GenerateHMACSecret_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Auth/GenerateHMACSecret",
+		FullMethod: "/fido2.Auth/GenerateHMACSecret",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthServer).GenerateHMACSecret(ctx, req.(*GenerateHMACSecretRequest))
@@ -420,7 +420,7 @@ func _Auth_HMACSecret_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Auth/HMACSecret",
+		FullMethod: "/fido2.Auth/HMACSecret",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthServer).HMACSecret(ctx, req.(*HMACSecretRequest))
@@ -429,7 +429,7 @@ func _Auth_HMACSecret_Handler(srv interface{}, ctx context.Context, dec func(int
 }
 
 var _Auth_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "Auth",
+	ServiceName: "fido2.Auth",
 	HandlerType: (*AuthServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

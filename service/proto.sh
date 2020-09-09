@@ -4,10 +4,9 @@ set -e -u -o pipefail # Fail on error
 
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd "$dir"
-
-"$dir/../scripts/proto.sh" $dir
-
 keysapp="$dir/../../app"
+
+"$dir/../scripts/proto3.sh" "$dir"
 
 cp *.proto "$keysapp/src/main/rpc/"
 cp *.d.ts "$keysapp/src/main/rpc/"

@@ -15,11 +15,12 @@ import (
 )
 
 type service struct {
+	UnimplementedKeysServer
+
 	env    *Env
 	build  Build
 	auth   *auth
 	db     *sdb.DB
-	cfg    *sdb.DB
 	client *httpclient.Client
 	scs    *keys.Sigchains
 	users  *user.Users
@@ -35,7 +36,6 @@ type service struct {
 }
 
 const kdbPath = "keys.sdb"
-const cdbPath = "cfg.sdb"
 const vdbPath = "vault.vdb"
 
 // TODO: Remove old db "keys.leveldb"
@@ -59,16 +59,12 @@ func newService(env *Env, build Build, auth *auth, req request.Requestor, clock 
 	scs := keys.NewSigchains(db)
 	users := user.NewUsers(db, scs, user.Requestor(req), user.Clock(clock))
 
-	cfg := sdb.New()
-	cfg.SetClock(clock)
-
 	return &service{
 		auth:          auth,
 		build:         build,
 		env:           env,
 		scs:           scs,
 		db:            db,
-		cfg:           cfg,
 		users:         users,
 		client:        client,
 		vault:         vlt,
@@ -108,7 +104,7 @@ func (s *service) unlock(ctx context.Context, secret string, typ AuthType, clien
 
 	isNew := false
 
-	// Keys DB
+	// DB
 	if !s.db.IsOpen() {
 		logger.Infof("Opening %s...", kdbPath)
 		path, err := s.env.AppPath(kdbPath, true)
@@ -116,7 +112,6 @@ func (s *service) unlock(ctx context.Context, secret string, typ AuthType, clien
 			return "", err
 		}
 
-		// Open sdb
 		exists, err := pathExists(path)
 		if err != nil {
 			return "", err
@@ -130,19 +125,6 @@ func (s *service) unlock(ctx context.Context, secret string, typ AuthType, clien
 		mk := s.vault.MasterKey()
 		dbk := keys.Bytes32(keys.HKDFSHA256(mk[:], 32, nil, []byte("keys.pub/ldb")))
 		if err := s.db.OpenAtPath(ctx, path, dbk); err != nil {
-			return "", err
-		}
-	}
-
-	// Config DB
-	if !s.cfg.IsOpen() {
-		path, err := s.env.AppPath(cdbPath, true)
-		if err != nil {
-			return "", err
-		}
-		mk := s.vault.MasterKey()
-		dbk := keys.Bytes32(keys.HKDFSHA256(mk[:], 32, nil, []byte("keys.pub/cfg")))
-		if err := s.cfg.OpenAtPath(ctx, path, dbk); err != nil {
 			return "", err
 		}
 	}
@@ -190,7 +172,6 @@ func (s *service) lock() {
 
 	logger.Infof("Closing sdb...")
 	s.db.Close()
-	s.cfg.Close()
 	s.unlocked = false
 }
 

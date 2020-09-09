@@ -1,5 +1,6 @@
 syntax = "proto3";
 
+package fido2;
 option go_package=".;fido2";
 
 import "patch/go.proto";

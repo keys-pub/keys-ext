@@ -1,63 +1,46 @@
-package service_test
+package service
 
 import (
-	"fmt"
-	"os"
-	"path/filepath"
+	"context"
+	"testing"
 
-	"github.com/keys-pub/keys"
+	"github.com/stretchr/testify/require"
 )
 
-func testPath() string {
-	return filepath.Join(os.TempDir(), fmt.Sprintf("%s.sdb", keys.RandFileName()))
+func TestConfig(t *testing.T) {
+	env := newTestEnv(t)
+	service, closeFn := newTestService(t, env, "")
+	defer closeFn()
+
+	testAuthSetup(t, service)
+
+	resp, err := service.ConfigGet(context.TODO(), &ConfigGetRequest{Name: "encrypt"})
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.Nil(t, resp.Config)
+
+	config := &Config{
+		Encrypt: &Config_Encrypt{
+			Recipients:        []string{"gabriel@github"},
+			Sender:            "gabriel@echo",
+			NoSenderRecipient: true,
+			NoSign:            true,
+		},
+	}
+	_, err = service.ConfigSet(context.TODO(), &ConfigSetRequest{
+		Name:   "encrypt",
+		Config: config,
+	})
+	require.NoError(t, err)
+
+	resp, err = service.ConfigGet(context.TODO(), &ConfigGetRequest{Name: "encrypt"})
+	require.NoError(t, err)
+	require.NotNil(t, resp.Config)
+	require.NotNil(t, resp.Config.Encrypt)
+	encrypt := config.Encrypt
+	out := resp.Config.Encrypt
+	require.Equal(t, encrypt.Recipients, out.Recipients)
+	require.Equal(t, encrypt.Sender, out.Sender)
+	require.Equal(t, encrypt.NoSenderRecipient, out.NoSenderRecipient)
+	require.Equal(t, encrypt.NoSign, out.NoSign)
 }
-
-// func TestConfigServiceNotOpen(t *testing.T) {
-// 	db := sdb.New()
-// 	service := config.NewService(db)
-// 	_, err := service.Get(context.TODO(), &config.GetRequest{Key: "/encrypt"})
-// 	require.EqualError(t, err, "db not open")
-// }
-
-// func TestConfigService(t *testing.T) {
-// 	db := sdb.New()
-// 	service := config.NewService(db)
-
-// 	dbPath := testPath()
-// 	key := keys.Rand32()
-// 	err := db.OpenAtPath(context.TODO(), dbPath, key)
-// 	require.NoError(t, err)
-// 	defer func() {
-// 		db.Close()
-// 		_ = os.RemoveAll(dbPath)
-// 	}()
-
-// 	g, err := service.Get(context.TODO(), &config.GetRequest{Key: "/encrypt"})
-// 	require.NoError(t, err)
-// 	require.Nil(t, g.Value)
-
-// 	val := &config.Encrypt{
-// 		Recipients:      []string{"gabriel@github"},
-// 		Sender:          "gabriel@echo",
-// 		AddToRecipients: true,
-// 		Sign:            true,
-// 	}
-// 	any, err := anypb.New(val)
-// 	require.NoError(t, err)
-// 	_, err = service.Set(context.TODO(), &config.SetRequest{
-// 		Key:   "/encrypt",
-// 		Value: any,
-// 	})
-// 	require.NoError(t, err)
-
-// 	g, err = service.Get(context.TODO(), &config.GetRequest{Key: "/encrypt"})
-// 	require.NoError(t, err)
-// 	require.NotNil(t, g.Value)
-// 	var out config.Encrypt
-// 	err = any.UnmarshalTo(&out)
-// 	require.NoError(t, err)
-// 	require.Equal(t, val.Recipients, out.Recipients)
-// 	require.Equal(t, val.Sender, out.Sender)
-// 	require.Equal(t, val.AddToRecipients, out.AddToRecipients)
-// 	require.Equal(t, val.Sign, out.Sign)
-// }
