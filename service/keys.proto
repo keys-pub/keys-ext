@@ -53,9 +53,6 @@ service Keys {
   rpc SecretRemove(SecretRemoveRequest) returns (SecretRemoveResponse) {}
   rpc Secrets(SecretsRequest) returns (SecretsResponse) {}
 
-  rpc Item(ItemRequest) returns (ItemResponse) {}
-  rpc Items(ItemsRequest) returns (ItemsResponse) {}  
-
   rpc Pull(PullRequest) returns (PullResponse) {}
   rpc Push(PushRequest) returns (PushResponse) {}
 
@@ -689,25 +686,6 @@ message SecretsResponse {
   repeated Secret secrets = 1;
   string sortField = 10;
   SortDirection sortDirection = 11;  
-}
-
-message ItemRequest {
-  string id = 1 [(go.field) = {name: "ID"}];
-}
-message ItemResponse {
-  Item item = 1;
-}
-
-message ItemsRequest {
-  string query = 1;
-}
-message ItemsResponse {
-  repeated Item items = 1;
-}
-
-message Item {
-  string id = 1 [(go.field) = {name: "ID"}];
-  string type = 2;
 }
 
 enum Encoding {

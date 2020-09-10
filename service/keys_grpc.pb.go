@@ -52,8 +52,6 @@ type KeysClient interface {
 	SecretSave(ctx context.Context, in *SecretSaveRequest, opts ...grpc.CallOption) (*SecretSaveResponse, error)
 	SecretRemove(ctx context.Context, in *SecretRemoveRequest, opts ...grpc.CallOption) (*SecretRemoveResponse, error)
 	Secrets(ctx context.Context, in *SecretsRequest, opts ...grpc.CallOption) (*SecretsResponse, error)
-	Item(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*ItemResponse, error)
-	Items(ctx context.Context, in *ItemsRequest, opts ...grpc.CallOption) (*ItemsResponse, error)
 	Pull(ctx context.Context, in *PullRequest, opts ...grpc.CallOption) (*PullResponse, error)
 	Push(ctx context.Context, in *PushRequest, opts ...grpc.CallOption) (*PushResponse, error)
 	Wormhole(ctx context.Context, opts ...grpc.CallOption) (Keys_WormholeClient, error)
@@ -638,24 +636,6 @@ func (c *keysClient) Secrets(ctx context.Context, in *SecretsRequest, opts ...gr
 	return out, nil
 }
 
-func (c *keysClient) Item(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*ItemResponse, error) {
-	out := new(ItemResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/Item", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *keysClient) Items(ctx context.Context, in *ItemsRequest, opts ...grpc.CallOption) (*ItemsResponse, error) {
-	out := new(ItemsResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/Items", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *keysClient) Pull(ctx context.Context, in *PullRequest, opts ...grpc.CallOption) (*PullResponse, error) {
 	out := new(PullResponse)
 	err := c.cc.Invoke(ctx, "/service.Keys/Pull", in, out, opts...)
@@ -978,8 +958,6 @@ type KeysServer interface {
 	SecretSave(context.Context, *SecretSaveRequest) (*SecretSaveResponse, error)
 	SecretRemove(context.Context, *SecretRemoveRequest) (*SecretRemoveResponse, error)
 	Secrets(context.Context, *SecretsRequest) (*SecretsResponse, error)
-	Item(context.Context, *ItemRequest) (*ItemResponse, error)
-	Items(context.Context, *ItemsRequest) (*ItemsResponse, error)
 	Pull(context.Context, *PullRequest) (*PullResponse, error)
 	Push(context.Context, *PushRequest) (*PushResponse, error)
 	Wormhole(Keys_WormholeServer) error
@@ -1124,12 +1102,6 @@ func (*UnimplementedKeysServer) SecretRemove(context.Context, *SecretRemoveReque
 }
 func (*UnimplementedKeysServer) Secrets(context.Context, *SecretsRequest) (*SecretsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Secrets not implemented")
-}
-func (*UnimplementedKeysServer) Item(context.Context, *ItemRequest) (*ItemResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Item not implemented")
-}
-func (*UnimplementedKeysServer) Items(context.Context, *ItemsRequest) (*ItemsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Items not implemented")
 }
 func (*UnimplementedKeysServer) Pull(context.Context, *PullRequest) (*PullResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Pull not implemented")
@@ -1934,42 +1906,6 @@ func _Keys_Secrets_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Keys_Item_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ItemRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(KeysServer).Item(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.Keys/Item",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(KeysServer).Item(ctx, req.(*ItemRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Keys_Items_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ItemsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(KeysServer).Items(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.Keys/Items",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(KeysServer).Items(ctx, req.(*ItemsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Keys_Pull_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PullRequest)
 	if err := dec(in); err != nil {
@@ -2603,14 +2539,6 @@ var _Keys_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Secrets",
 			Handler:    _Keys_Secrets_Handler,
-		},
-		{
-			MethodName: "Item",
-			Handler:    _Keys_Item_Handler,
-		},
-		{
-			MethodName: "Items",
-			Handler:    _Keys_Items_Handler,
 		},
 		{
 			MethodName: "Pull",
