@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/keys-pub/keys-ext/auth/fido2"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 	"google.golang.org/grpc/codes"
@@ -31,6 +32,7 @@ func authCommands(client *Client) []cli.Command {
 				authDeprovisionCommand(client),
 				authVaultCommand(client),
 				changePasswordCommand(client),
+				authDevicesCommand(client),
 			},
 			Action: func(c *cli.Context) error {
 				if !c.GlobalBool("test") {
@@ -220,6 +222,28 @@ func authProvisionCommand(client *Client) cli.Command {
 				fmt.Println("We successfully provisioned the security key (using FIDO2 hmac-secret).")
 			}
 
+			return nil
+		},
+	}
+}
+
+func authDevicesCommand(client *Client) cli.Command {
+	return cli.Command{
+		Name:  "devices",
+		Usage: "Devices",
+		Flags: []cli.Flag{},
+		Action: func(c *cli.Context) error {
+			resp, err := client.FIDO2Client().Devices(context.TODO(), &fido2.DevicesRequest{})
+			if err != nil {
+				return err
+			}
+			for _, device := range resp.Devices {
+				_, err := client.FIDO2Client().DeviceInfo(context.TODO(), &fido2.DeviceInfoRequest{Device: device.Path})
+				if err != nil {
+					return err
+				}
+				// fmt.Println(infoResp.Info.String())
+			}
 			return nil
 		},
 	}

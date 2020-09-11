@@ -33,9 +33,9 @@ require (
 
 // replace github.com/keys-pub/keys-ext/sdb => ../sdb
 
-// replace github.com/keys-pub/keys-ext/auth/fido2 => ../auth/fido2
+replace github.com/keys-pub/keys-ext/auth/fido2 => ../auth/fido2
 
-// replace github.com/keys-pub/keys-ext/auth/mock => ../auth/mock
+replace github.com/keys-pub/keys-ext/auth/mock => ../auth/mock
 
 // replace github.com/keys-pub/keys-ext/http/api => ../http/api
 
