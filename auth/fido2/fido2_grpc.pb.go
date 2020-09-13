@@ -19,6 +19,7 @@ const _ = grpc.SupportPackageIsVersion6
 type AuthClient interface {
 	Devices(ctx context.Context, in *DevicesRequest, opts ...grpc.CallOption) (*DevicesResponse, error)
 	DeviceInfo(ctx context.Context, in *DeviceInfoRequest, opts ...grpc.CallOption) (*DeviceInfoResponse, error)
+	DeviceType(ctx context.Context, in *DeviceTypeRequest, opts ...grpc.CallOption) (*DeviceTypeResponse, error)
 	MakeCredential(ctx context.Context, in *MakeCredentialRequest, opts ...grpc.CallOption) (*MakeCredentialResponse, error)
 	SetPIN(ctx context.Context, in *SetPINRequest, opts ...grpc.CallOption) (*SetPINResponse, error)
 	Reset(ctx context.Context, in *ResetRequest, opts ...grpc.CallOption) (*ResetResponse, error)
@@ -51,6 +52,15 @@ func (c *authClient) Devices(ctx context.Context, in *DevicesRequest, opts ...gr
 func (c *authClient) DeviceInfo(ctx context.Context, in *DeviceInfoRequest, opts ...grpc.CallOption) (*DeviceInfoResponse, error) {
 	out := new(DeviceInfoResponse)
 	err := c.cc.Invoke(ctx, "/fido2.Auth/DeviceInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authClient) DeviceType(ctx context.Context, in *DeviceTypeRequest, opts ...grpc.CallOption) (*DeviceTypeResponse, error) {
+	out := new(DeviceTypeResponse)
+	err := c.cc.Invoke(ctx, "/fido2.Auth/DeviceType", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -153,6 +163,7 @@ func (c *authClient) HMACSecret(ctx context.Context, in *HMACSecretRequest, opts
 type AuthServer interface {
 	Devices(context.Context, *DevicesRequest) (*DevicesResponse, error)
 	DeviceInfo(context.Context, *DeviceInfoRequest) (*DeviceInfoResponse, error)
+	DeviceType(context.Context, *DeviceTypeRequest) (*DeviceTypeResponse, error)
 	MakeCredential(context.Context, *MakeCredentialRequest) (*MakeCredentialResponse, error)
 	SetPIN(context.Context, *SetPINRequest) (*SetPINResponse, error)
 	Reset(context.Context, *ResetRequest) (*ResetResponse, error)
@@ -175,6 +186,9 @@ func (*UnimplementedAuthServer) Devices(context.Context, *DevicesRequest) (*Devi
 }
 func (*UnimplementedAuthServer) DeviceInfo(context.Context, *DeviceInfoRequest) (*DeviceInfoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeviceInfo not implemented")
+}
+func (*UnimplementedAuthServer) DeviceType(context.Context, *DeviceTypeRequest) (*DeviceTypeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeviceType not implemented")
 }
 func (*UnimplementedAuthServer) MakeCredential(context.Context, *MakeCredentialRequest) (*MakeCredentialResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method MakeCredential not implemented")
@@ -244,6 +258,24 @@ func _Auth_DeviceInfo_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthServer).DeviceInfo(ctx, req.(*DeviceInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Auth_DeviceType_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeviceTypeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServer).DeviceType(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/fido2.Auth/DeviceType",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServer).DeviceType(ctx, req.(*DeviceTypeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -439,6 +471,10 @@ var _Auth_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeviceInfo",
 			Handler:    _Auth_DeviceInfo_Handler,
+		},
+		{
+			MethodName: "DeviceType",
+			Handler:    _Auth_DeviceType_Handler,
 		},
 		{
 			MethodName: "MakeCredential",
