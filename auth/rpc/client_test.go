@@ -35,7 +35,7 @@ func testClient(t *testing.T, addr string) (fido2.AuthClient, func()) {
 	}
 }
 
-func TestInfoClient(t *testing.T) {
+func TestClientDeviceInfo(t *testing.T) {
 	addr := "127.0.0.1:27999"
 	_, serverCloseFn := testServer(t, addr)
 	defer serverCloseFn()
@@ -48,13 +48,20 @@ func TestInfoClient(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("Devices: %+v", resp)
 
-	// for _, device := range resp.Devices {
-	// 	require.NotEmpty(t, device.Path)
+	for _, device := range resp.Devices {
+		require.NotEmpty(t, device.Path)
 
-	// 	infoResp, err := client.DeviceInfo(ctx, &fido2.DeviceInfoRequest{
-	// 		Device: device.Path,
-	// 	})
-	// 	require.NoError(t, err)
-	// 	t.Logf("Info: %+v", infoResp.Info)
-	// }
+		typeResp, err := client.DeviceType(ctx, &fido2.DeviceTypeRequest{
+			Device: device.Path,
+		})
+		if typeResp.Type != fido2.FIDO2 {
+			continue
+		}
+
+		infoResp, err := client.DeviceInfo(ctx, &fido2.DeviceInfoRequest{
+			Device: device.Path,
+		})
+		require.NoError(t, err)
+		t.Logf("Info: %+v", infoResp.Info)
+	}
 }

@@ -20,7 +20,7 @@ jobs:
         run: |
           brew install goreleaser
           brew install pkg-config
-          brew install libfido2
+          brew install keys-pub/tap/libfido2
       - name: Build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
