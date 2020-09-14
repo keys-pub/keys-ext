@@ -37,12 +37,39 @@ func (s *Server) Devices(ctx context.Context, req *fido2.DevicesRequest) (*fido2
 
 // findDevice returns a device from a name.
 // You need to call Device.Close() when done.
-func findDevice(name string) (*libfido2.Device, error) {
-	device, err := libfido2.NewDevice(name)
+func findDevice(path string) (*libfido2.Device, error) {
+	device, err := libfido2.NewDevice(path)
 	if err != nil {
 		return nil, err
 	}
 	return device, nil
+}
+
+// DeviceType ...
+func (s *Server) DeviceType(ctx context.Context, req *fido2.DeviceTypeRequest) (*fido2.DeviceTypeResponse, error) {
+	device, err := findDevice(req.Device)
+	if err != nil {
+		return nil, err
+	}
+
+	typ, err := device.Type()
+	if err != nil {
+		return nil, err
+	}
+
+	var rtyp fido2.DeviceType
+	switch typ {
+	case libfido2.FIDO2:
+		rtyp = fido2.FIDO2
+	case libfido2.U2F:
+		rtyp = fido2.U2F
+	default:
+		rtyp = fido2.UnknownDevice
+	}
+
+	return &fido2.DeviceTypeResponse{
+		Type: rtyp,
+	}, nil
 }
 
 // DeviceInfo ...
@@ -51,7 +78,6 @@ func (s *Server) DeviceInfo(ctx context.Context, req *fido2.DeviceInfoRequest) (
 	if err != nil {
 		return nil, err
 	}
-	defer device.Close()
 
 	info, err := device.Info()
 	if err != nil {
@@ -69,7 +95,6 @@ func (s *Server) MakeCredential(ctx context.Context, req *fido2.MakeCredentialRe
 	if err != nil {
 		return nil, err
 	}
-	defer device.Close()
 
 	typ, err := credentialTypeFromString(req.Type)
 	if err != nil {
@@ -114,7 +139,6 @@ func (s *Server) SetPIN(ctx context.Context, req *fido2.SetPINRequest) (*fido2.S
 	if err != nil {
 		return nil, err
 	}
-	defer device.Close()
 
 	if err := device.SetPIN(req.PIN, req.OldPIN); err != nil {
 		return nil, err
@@ -129,7 +153,6 @@ func (s *Server) Reset(ctx context.Context, req *fido2.ResetRequest) (*fido2.Res
 	if err != nil {
 		return nil, err
 	}
-	defer device.Close()
 
 	if err := device.Reset(); err != nil {
 		return nil, err
@@ -144,7 +167,6 @@ func (s *Server) RetryCount(ctx context.Context, req *fido2.RetryCountRequest) (
 	if err != nil {
 		return nil, err
 	}
-	defer device.Close()
 
 	count, err := device.RetryCount()
 	if err != nil {
@@ -162,7 +184,6 @@ func (s *Server) Assertion(ctx context.Context, req *fido2.AssertionRequest) (*f
 	if err != nil {
 		return nil, err
 	}
-	defer device.Close()
 
 	extensions, err := extensionsFromStrings(req.Extensions)
 	if err != nil {
@@ -193,8 +214,6 @@ func (s *Server) CredentialsInfo(ctx context.Context, req *fido2.CredentialsInfo
 	if err != nil {
 		return nil, err
 	}
-	defer device.Close()
-
 	if req.PIN == "" {
 		return nil, status.Error(codes.InvalidArgument, "pin required")
 	}
@@ -215,7 +234,6 @@ func (s *Server) Credentials(ctx context.Context, req *fido2.CredentialsRequest)
 	if err != nil {
 		return nil, err
 	}
-	defer device.Close()
 
 	if req.PIN == "" {
 		return nil, status.Error(codes.InvalidArgument, "pin required")
@@ -260,7 +278,6 @@ func (s *Server) RelyingParties(ctx context.Context, req *fido2.RelyingPartiesRe
 	if err != nil {
 		return nil, err
 	}
-	defer device.Close()
 
 	if req.PIN == "" {
 		return nil, status.Error(codes.InvalidArgument, "pin required")
@@ -282,7 +299,6 @@ func (s *Server) GenerateHMACSecret(ctx context.Context, req *fido2.GenerateHMAC
 	if err != nil {
 		return nil, err
 	}
-	defer device.Close()
 
 	cdh := req.ClientDataHash
 	if len(cdh) != 32 {
@@ -343,7 +359,6 @@ func (s *Server) HMACSecret(ctx context.Context, req *fido2.HMACSecretRequest) (
 	if err != nil {
 		return nil, err
 	}
-	defer device.Close()
 
 	assertion, err := device.Assertion(
 		req.RPID,

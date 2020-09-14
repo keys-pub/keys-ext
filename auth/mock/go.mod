@@ -13,4 +13,4 @@ require (
 	google.golang.org/appengine v1.6.6 // indirect
 )
 
-// replace github.com/keys-pub/keys-ext/auth/fido2 => ../fido2
+replace github.com/keys-pub/keys-ext/auth/fido2 => ../fido2

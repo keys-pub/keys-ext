@@ -16,7 +16,7 @@ sudo apt install libfido2-dev
 ### macOS
 
 ```shell
-brew install libfido2
+brew install keys-pub/tap/libfido2
 ```
 
 ### Windows
