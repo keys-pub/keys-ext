@@ -54,6 +54,7 @@ func TestClientDeviceInfo(t *testing.T) {
 		typeResp, err := client.DeviceType(ctx, &fido2.DeviceTypeRequest{
 			Device: device.Path,
 		})
+		require.NoError(t, err)
 		if typeResp.Type != fido2.FIDO2 {
 			continue
 		}
