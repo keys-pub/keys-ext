@@ -110,6 +110,11 @@ func Uninstall(out io.Writer, env *Env) error {
 		}
 	}
 
+	ok, err := removeSymlink(env)
+	if ok {
+		fmt.Fprintf(out, "Removed \"%s\".\n", env.linkPath())
+	}
+
 	fmt.Fprintf(out, "Uninstalled %q.\n", env.AppName())
 	return nil
 }
@@ -117,7 +122,7 @@ func Uninstall(out io.Writer, env *Env) error {
 func startFromApp(env *Env) error {
 	// TODO: Check/fix symlink if busted
 	if env.GetInt("disableSymlinkCheck", 0) < 2 {
-		if err := installSymlink(); err != nil {
+		if err := installSymlink(env); err != nil {
 			logger.Infof("Failed to install symlink: %s", err)
 		} else {
 			// Only install once
@@ -130,10 +135,10 @@ func startFromApp(env *Env) error {
 	return restart(env)
 }
 
-func installSymlink() error {
+func installSymlink(env *Env) error {
 	logger.Infof("Install symlink")
-	if runtime.GOOS == "windows" {
-		return errors.Errorf("not implemented on windows")
+	if runtime.GOOS != "darwin" {
+		return errors.Errorf("not implemented on this platform")
 	}
 
 	binPath := defaultBinPath()
@@ -142,19 +147,17 @@ func installSymlink() error {
 		return errors.Errorf("currently running from Volumes")
 	}
 
-	linkDir := "/usr/local/bin"
-	linkPath := filepath.Join(linkDir, "keys")
-
-	logger.Infof("Checking if %s exists", linkDir)
-	linkDirExists, err := pathExists(linkDir)
+	logger.Infof("Checking if %s exists", env.linkDir)
+	linkDirExists, err := pathExists(env.linkDir)
 	if err != nil {
 		return err
 	}
 	// Check if /usr/local/bin directory exists
 	if !linkDirExists {
-		return errors.Errorf("%s does not exist", linkDir)
+		return errors.Errorf("%s does not exist", env.linkDir)
 	}
 
+	linkPath := env.linkPath()
 	logger.Infof("Checking if %s exists", linkPath)
 	linkExists, err := pathExists(linkPath)
 	if err != nil {
@@ -171,6 +174,32 @@ func installSymlink() error {
 
 	logger.Infof("Linking %s to %s", linkPath, binPath)
 	return os.Symlink(binPath, linkPath)
+}
+
+func removeSymlink(env *Env) (bool, error) {
+	if runtime.GOOS != "darwin" {
+		return false, nil
+	}
+
+	binPath := defaultBinPath()
+	linkPath := env.linkPath()
+	fi, err := os.Lstat(linkPath)
+	if err != nil {
+		return false, err
+	}
+	if fi.Mode()&os.ModeSymlink == os.ModeSymlink {
+		path, err := os.Readlink(linkPath)
+		if err != nil {
+			return false, err
+		}
+		if path == binPath {
+			if err := os.Remove(linkPath); err != nil {
+				return false, err
+			}
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 func checkForAppConflict() error {

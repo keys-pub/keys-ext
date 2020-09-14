@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -19,6 +20,7 @@ import (
 type Env struct {
 	appName string
 	values  map[string]string
+	linkDir string
 }
 
 // NewEnv loads the Env.
@@ -28,11 +30,16 @@ func NewEnv(appName string) (*Env, error) {
 	}
 	env := &Env{
 		appName: appName,
+		linkDir: filepath.Join("usr", "local", "bin"),
 	}
 	if err := env.Load(); err != nil {
 		return nil, err
 	}
 	return env, nil
+}
+
+func (c Env) linkPath() string {
+	return filepath.Join(c.linkDir, "keys")
 }
 
 // Env key names
