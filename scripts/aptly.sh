@@ -32,6 +32,11 @@ else
   mkdir -p $HOME/.aptly/public
 fi
 
+# https://github.com/GoogleCloudPlatform/gsutil/issues/961
+if [ -f /usr/bin/python3 ]; then  
+  export CLOUDSDK_PYTHON=/usr/bin/python3
+fi
+
 gsutil -m rsync -r gs://aptly.keys.pub $HOME/.aptly/public
 
 # Get release

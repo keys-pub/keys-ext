@@ -967,6 +967,12 @@ message AdminCheckRequest {
 message AdminCheckResponse {}
 
 message Config {
+  message App {
+    string location = 1;
+    repeated string history = 2;    
+    bool navMinimized = 100;
+  }
+
   message Encrypt {
     repeated string recipients = 1;
     string sender = 2;
@@ -979,8 +985,9 @@ message Config {
     string signer = 1;  
   }
 
-  Encrypt encrypt = 1;
-  Sign sign = 2;
+  App app = 1;
+  Encrypt encrypt = 10;
+  Sign sign = 11;
 }
 
 message ConfigGetRequest {
