@@ -42,6 +42,8 @@ github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200909213344-503c5123562c h1:qo
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200909213344-503c5123562c/go.mod h1:x5+jqBtOoQrmMweyHADA4siypwewxeB93pl4D0n+9q8=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200911204159-4d4aeeb20971 h1:B5FfveQc7DgLUiVtjIlYNAUJh+OoUtGtVa0onYCOBgo=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200911204159-4d4aeeb20971/go.mod h1:x5+jqBtOoQrmMweyHADA4siypwewxeB93pl4D0n+9q8=
+github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200914202754-bd81158f34fd h1:U4OHp0FOoIU9cEkELXcbxp66C0ybsrnfD967Yx4bdMM=
+github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200914202754-bd81158f34fd/go.mod h1:rh4gDJ+fHaj+R2ZFeVmkPJIpZQdhgrF4t9wJbBCq1CE=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
@@ -107,6 +109,7 @@ google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55/go.mod h1:DMBHOl98
 google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013/go.mod h1:NbSheEEYHJ7i3ixzK3sjbqSGDJWnxyFXZblF3eUsNvo=
 google.golang.org/genproto v0.0.0-20200618031413-b414f8b61790 h1:FGjyjrQGURdc98leD1P65IdQD9Zlr4McvRcqIlV6OSs=
 google.golang.org/genproto v0.0.0-20200618031413-b414f8b61790/go.mod h1:jDfRM7FcilCzHH/e9qn6dsT145K34l5v+OpcnNgKAAA=
+google.golang.org/genproto v0.0.0-20200911024640-645f7a48b24f/go.mod h1:FWY/as6DDZQgahTzZj3fqbO1CbirC29ZNUFHwi0/+no=
 google.golang.org/genproto v0.0.0-20200914193844-75d14daec038 h1:SnvTpXhVDJGFxzZiHbMUZTh3VjU2Vx2feJ7Zfl5+OIY=
 google.golang.org/genproto v0.0.0-20200914193844-75d14daec038/go.mod h1:FWY/as6DDZQgahTzZj3fqbO1CbirC29ZNUFHwi0/+no=
 google.golang.org/grpc v1.19.0/go.mod h1:mqu4LbDTu4XGKhr4mRzUsmM4RtVoemTSY81AxZiDr8c=

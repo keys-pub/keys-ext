@@ -9,7 +9,7 @@ import "patch/go.proto";
 // camel like they should, so we use camelCase here.
 
 service Auth {  
-    rpc Devices(DevicesRequest) returns (DevicesResponse) {}    
+    rpc Devices(DevicesRequest) returns (DevicesResponse) {}
     rpc DeviceInfo(DeviceInfoRequest) returns (DeviceInfoResponse) {}
     rpc DeviceType(DeviceTypeRequest) returns (DeviceTypeResponse) {}
     rpc MakeCredential(MakeCredentialRequest) returns (MakeCredentialResponse) {}
