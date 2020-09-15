@@ -26,7 +26,7 @@ func (i *docsIterator) Next() (*docs.Document, error) {
 		if i.limit != 0 && i.count > i.limit {
 			return nil, nil
 		}
-		return i.db.document(path, i.iter.Value())
+		return i.db.unmarshal(path, i.iter.Value())
 	}
 	if err := i.iter.Error(); err != nil {
 		return nil, err

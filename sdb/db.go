@@ -270,11 +270,12 @@ func (d *DB) DeleteAll(ctx context.Context, paths []string) error {
 	return nil
 }
 
-func (d *DB) document(path string, b []byte) (*docs.Document, error) {
+func (d *DB) unmarshal(path string, b []byte) (*docs.Document, error) {
 	var doc docs.Document
 	if err := msgpack.Unmarshal(b, &doc); err != nil {
 		return nil, err
 	}
+	// Check the path requested with decrypted document path (associated data).
 	if doc.Path != path {
 		return nil, errors.Errorf("document path mismatch %s != %s", doc.Path, path)
 	}
@@ -349,7 +350,7 @@ func (d *DB) Documents(ctx context.Context, parent string, opt ...docs.Option) (
 		path := string(iter.Key())
 		// Remember that the contents of the returned slice should not be modified, and
 		// only valid until the next call to Next.
-		doc, err := d.document(path, iter.Value())
+		doc, err := d.unmarshal(path, iter.Value())
 		if err != nil {
 			return nil, err
 		}
@@ -373,7 +374,7 @@ func (d *DB) get(ctx context.Context, path string) (*docs.Document, error) {
 		return nil, nil
 	}
 
-	return d.document(path, b)
+	return d.unmarshal(path, b)
 }
 
 // Last returns last item with key prefix.
