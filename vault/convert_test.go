@@ -31,6 +31,9 @@ func TestConvertV0(t *testing.T) {
 
 	// Vault with converted store
 	st := vault.NewMem()
+	err = st.Open()
+	require.NoError(t, err)
+	defer st.Close()
 	vlt := vault.New(st)
 	converted, err := vault.ConvertKeyring(kr, vlt)
 	require.NoError(t, err)
@@ -96,6 +99,9 @@ func TestConvertV1(t *testing.T) {
 	// Vault with converted store
 	st := vault.NewMem()
 	vlt := vault.New(st)
+	err = vlt.Open()
+	require.NoError(t, err)
+	defer vlt.Close()
 	converted, err := vault.ConvertKeyring(kr, vlt)
 	require.NoError(t, err)
 	require.True(t, converted)
@@ -147,6 +153,9 @@ func TestConvertBackup37(t *testing.T) {
 	require.NoError(t, err)
 
 	vlt := vault.New(vault.NewMem())
+	err = vlt.Open()
+	require.NoError(t, err)
+	defer vlt.Close()
 	converted, err := vault.ConvertKeyring(kr, vlt)
 	require.NoError(t, err)
 	require.True(t, converted)
@@ -177,6 +186,9 @@ func TestConvertBackup48(t *testing.T) {
 	require.NoError(t, err)
 
 	vlt := vault.New(vault.NewMem())
+	err = vlt.Open()
+	require.NoError(t, err)
+	defer vlt.Close()
 	converted, err := vault.ConvertKeyring(kr, vlt)
 	require.NoError(t, err)
 	require.True(t, converted)

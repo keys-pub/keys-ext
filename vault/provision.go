@@ -13,16 +13,16 @@ import (
 
 // Provision is unencrypted provision and parameters used by client auth.
 type Provision struct {
-	ID        string    `msgpack:"id"`
-	Type      AuthType  `msgpack:"type"`
-	CreatedAt time.Time `msgpack:"cts"`
+	ID        string    `msgpack:"id" json:"id"`
+	Type      AuthType  `msgpack:"type" json:"type"`
+	CreatedAt time.Time `msgpack:"cts" json:"cts"`
 
 	// AAGUID (for FIDO2HMACSecret)
-	AAGUID string `msgpack:"aaguid,omitempty"`
+	AAGUID string `msgpack:"aaguid,omitempty" json:"aaguid"`
 	// Salt (for FIDO2HMACSecret)
-	Salt []byte `msgpack:"salt,omitempty"`
+	Salt []byte `msgpack:"salt,omitempty" json:"salt"`
 	// NoPin (for FIDO2HMACSecret)
-	NoPin bool `msgpack:"nopin,omitempty"`
+	NoPin bool `msgpack:"nopin,omitempty" json:"nopin"`
 }
 
 // NewProvision creates a new provision.

@@ -11,7 +11,8 @@ import (
 )
 
 func TestAuth(t *testing.T) {
-	vlt := newTestVault(t)
+	vlt, closeFn := newTestVault(t, nil)
+	defer closeFn()
 	testAuth(t, vlt)
 }
 
@@ -20,7 +21,7 @@ func testAuth(t *testing.T, vlt *vault.Vault) {
 
 	status, err := vlt.Status()
 	require.NoError(t, err)
-	require.Equal(t, vault.Setup, status)
+	require.Equal(t, vault.SetupNeeded, status)
 
 	salt := bytes.Repeat([]byte{0x01}, 32)
 	key, err := keys.KeyForPassword("password123", salt)
@@ -28,7 +29,7 @@ func testAuth(t *testing.T, vlt *vault.Vault) {
 
 	// Unlock (error)
 	_, err = vlt.Unlock(key)
-	require.EqualError(t, err, "invalid vault auth")
+	require.EqualError(t, err, "invalid auth")
 
 	_, err = keys.KeyForPassword("", salt)
 	require.EqualError(t, err, "empty password")
@@ -40,18 +41,11 @@ func testAuth(t *testing.T, vlt *vault.Vault) {
 
 	status, err = vlt.Status()
 	require.NoError(t, err)
-	require.Equal(t, vault.Unlocked, status)
+	require.Equal(t, vault.Locked, status)
 
 	// Setup (again)
 	err = vlt.Setup(key, provision)
 	require.EqualError(t, err, "vault is already setup")
-
-	// Lock
-	vlt.Lock()
-
-	status, err = vlt.Status()
-	require.NoError(t, err)
-	require.Equal(t, vault.Locked, status)
 
 	_, err = vlt.Unlock(key)
 	require.NoError(t, err)
@@ -105,11 +99,11 @@ func testAuth(t *testing.T, vlt *vault.Vault) {
 	require.True(t, ok)
 
 	_, err = vlt.Unlock(key2)
-	require.EqualError(t, err, "invalid vault auth")
+	require.EqualError(t, err, "invalid auth")
 
 	// Test wrong password
 	wrongpass, err := keys.KeyForPassword("invalidpassword", salt)
 	require.NoError(t, err)
 	_, err = vlt.Unlock(wrongpass)
-	require.EqualError(t, err, "invalid vault auth")
+	require.EqualError(t, err, "invalid auth")
 }

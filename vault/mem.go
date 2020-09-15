@@ -16,6 +16,7 @@ func NewMem() Store {
 }
 
 type mem struct {
+	open  bool
 	items map[string][]byte
 }
 
@@ -24,14 +25,27 @@ func (m *mem) Name() string {
 }
 
 func (m *mem) Open() error {
+	if m.open {
+		return ErrAlreadyOpen
+	}
+	m.open = true
 	return nil
 }
 
 func (m *mem) Close() error {
+	m.open = false
+	return nil
+}
+
+func (m *mem) Reset() error {
+	m.items = map[string][]byte{}
 	return nil
 }
 
 func (m *mem) Get(path string) ([]byte, error) {
+	if !m.open {
+		return nil, ErrNotOpen
+	}
 	if path == "" {
 		return nil, errors.Errorf("invalid path")
 	}
@@ -42,6 +56,9 @@ func (m *mem) Get(path string) ([]byte, error) {
 }
 
 func (m *mem) Set(path string, b []byte) error {
+	if !m.open {
+		return ErrNotOpen
+	}
 	if path == "" {
 		return errors.Errorf("invalid path")
 	}
@@ -50,6 +67,9 @@ func (m *mem) Set(path string, b []byte) error {
 }
 
 func (m *mem) Exists(path string) (bool, error) {
+	if !m.open {
+		return false, ErrNotOpen
+	}
 	if path == "" {
 		return false, errors.Errorf("invalid path")
 	}
@@ -58,6 +78,9 @@ func (m *mem) Exists(path string) (bool, error) {
 }
 
 func (m *mem) Delete(path string) (bool, error) {
+	if !m.open {
+		return false, ErrNotOpen
+	}
 	if path == "" {
 		return false, errors.Errorf("invalid path")
 	}
@@ -69,6 +92,9 @@ func (m *mem) Delete(path string) (bool, error) {
 }
 
 func (m *mem) Documents(opt ...docs.Option) ([]*docs.Document, error) {
+	if !m.open {
+		return nil, ErrNotOpen
+	}
 	opts := docs.NewOptions(opt...)
 	prefix := opts.Prefix
 

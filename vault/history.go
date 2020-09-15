@@ -37,7 +37,8 @@ func (v *Vault) ItemHistory(id string) ([]*Item, error) {
 		if err := msgpack.Unmarshal(b, &event); err != nil {
 			return nil, err
 		}
-		item, err := decryptItem(event.Data, v.mk)
+		id := docs.PathLast(p)
+		item, err := decryptItem(event.Data, v.mk, id)
 		if err != nil {
 			return nil, err
 		}
@@ -67,7 +68,7 @@ func (v *Vault) findPendingItems(id string) ([]*Item, error) {
 		if pc[2] != "item" || pc[3] != id {
 			continue
 		}
-		item, err := decryptItem(doc.Data, v.mk)
+		item, err := decryptItem(doc.Data, v.mk, id)
 		if err != nil {
 			return nil, err
 		}

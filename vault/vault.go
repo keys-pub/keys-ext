@@ -17,6 +17,12 @@ import (
 	"github.com/vmihailenco/msgpack/v4"
 )
 
+// ErrNotOpen if try to use vault when it isn't open.
+var ErrNotOpen = errors.Errorf("vault not open")
+
+// ErrAlreadyOpen if you try to open when it is already open.
+var ErrAlreadyOpen = errors.Errorf("vault already open")
+
 // Vault stores keys and secrets.
 type Vault struct {
 	mtx sync.Mutex
@@ -61,6 +67,21 @@ func (v *Vault) Close() error {
 	//       ok, since it will error and eventually stop?
 	if err := v.store.Close(); err != nil {
 		return errors.Wrapf(err, "failed to close vault")
+	}
+	return nil
+}
+
+// Reset vault.
+func (v *Vault) Reset() error {
+	status, err := v.Status()
+	if err != nil {
+		return err
+	}
+	if status == Unlocked {
+		return errors.Errorf("failed to reset: vault is unlocked")
+	}
+	if err := v.store.Reset(); err != nil {
+		return errors.Wrapf(err, "failed to reset vault")
 	}
 	return nil
 }
@@ -183,7 +204,7 @@ func (v *Vault) Get(id string) (*Item, error) {
 		logger.Debugf("Path not found %s", path)
 		return nil, nil
 	}
-	item, err := decryptItem(b, v.mk)
+	item, err := decryptItem(b, v.mk, id)
 	if err != nil {
 		return nil, err
 	}
@@ -221,13 +242,14 @@ func (v *Vault) Delete(id string) (bool, error) {
 // Items to list.
 func (v *Vault) Items() ([]*Item, error) {
 	path := docs.Path("item")
-	docs, err := v.store.Documents(docs.Prefix(path))
+	ds, err := v.store.Documents(docs.Prefix(path))
 	if err != nil {
 		return nil, err
 	}
 	items := []*Item{}
-	for _, doc := range docs {
-		item, err := decryptItem(doc.Data, v.mk)
+	for _, doc := range ds {
+		id := docs.PathLast(doc.Path)
+		item, err := decryptItem(doc.Data, v.mk, id)
 		if err != nil {
 			return nil, err
 		}

@@ -15,15 +15,19 @@ import (
 )
 
 func TestSync(t *testing.T) {
-	db1, closeFn1 := newTestVaultDB(t)
+	db1, closeFn1 := newTestDB(t)
 	defer closeFn1()
-	db2, closeFn2 := newTestVaultDB(t)
+	db2, closeFn2 := newTestDB(t)
 	defer closeFn2()
 	testSync(t, db1, db2)
 }
 
 func TestSyncMem(t *testing.T) {
-	testSync(t, vault.NewMem(), vault.NewMem())
+	mem1, closeFn1 := newTestMem(t)
+	defer closeFn1()
+	mem2, closeFn2 := newTestMem(t)
+	defer closeFn2()
+	testSync(t, mem1, mem2)
 }
 
 func testSync(t *testing.T, st1 vault.Store, st2 vault.Store) {
@@ -47,6 +51,8 @@ func testSync(t *testing.T, st1 vault.Store, st2 vault.Store) {
 
 	key, provision := newTestVaultKey(t, clock)
 	err = v1.Setup(key, provision)
+	require.NoError(t, err)
+	_, err = v1.Unlock(key)
 	require.NoError(t, err)
 
 	err = v1.Set(vault.NewItem("key1", []byte("mysecretdata.1a"), "", time.Now()))
@@ -207,7 +213,7 @@ func TestUnsync(t *testing.T) {
 	ctx := context.TODO()
 	clock := tsutil.NewTestClock()
 
-	db, closeFn := newTestVaultDB(t)
+	db, closeFn := newTestDB(t)
 	defer closeFn()
 
 	client := testClient(t, env)
@@ -217,6 +223,8 @@ func TestUnsync(t *testing.T) {
 
 	key, provision := newTestVaultKey(t, clock)
 	err = vlt.Setup(key, provision)
+	require.NoError(t, err)
+	_, err = vlt.Unlock(key)
 	require.NoError(t, err)
 
 	err = vlt.Set(vault.NewItem("key1", []byte("mysecretdata.1a"), "", time.Now()))
@@ -310,7 +318,8 @@ func TestUnsync(t *testing.T) {
 func TestNonce(t *testing.T) {
 	var err error
 
-	vlt := vault.New(vault.NewMem())
+	vlt, closeFn := newTestVault(t, &testVaultOptions{unlock: true})
+	defer closeFn()
 	n1 := encoding.MustEncode(bytes.Repeat([]byte{0x01}, 24), encoding.Base62)
 	err = vlt.CheckNonce(n1)
 	require.NoError(t, err)

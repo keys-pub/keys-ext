@@ -1,6 +1,8 @@
 package vault
 
 import (
+	"os"
+
 	"github.com/keys-pub/keys/docs"
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
@@ -30,7 +32,7 @@ func (d *DB) Name() string {
 // Open db.
 func (d *DB) Open() error {
 	if d.ldb != nil {
-		return errors.Errorf("already open")
+		return ErrAlreadyOpen
 	}
 	if d.path == "" || d.path == "/" || d.path == `\` {
 		return errors.Errorf("invalid path")
@@ -56,10 +58,30 @@ func (d *DB) Close() error {
 	return nil
 }
 
+// Reset db.
+func (d *DB) Reset() error {
+	wasOpen := false
+	if d.ldb != nil {
+		wasOpen = true
+		if err := d.Close(); err != nil {
+			return err
+		}
+	}
+	if err := os.RemoveAll(d.path); err != nil {
+		return err
+	}
+	if wasOpen {
+		if err := d.Open(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // Set in DB.
 func (d *DB) Set(path string, b []byte) error {
 	if d.ldb == nil {
-		return errors.Errorf("db not open")
+		return ErrNotOpen
 	}
 	if err := d.ldb.Put([]byte(path), b, nil); err != nil {
 		return err
@@ -70,7 +92,7 @@ func (d *DB) Set(path string, b []byte) error {
 // Get from DB.
 func (d *DB) Get(path string) ([]byte, error) {
 	if d.ldb == nil {
-		return nil, errors.Errorf("db not open")
+		return nil, ErrNotOpen
 	}
 	b, err := d.ldb.Get([]byte(path), nil)
 	if err != nil {
@@ -85,7 +107,7 @@ func (d *DB) Get(path string) ([]byte, error) {
 // Delete from DB.
 func (d *DB) Delete(path string) (bool, error) {
 	if d.ldb == nil {
-		return false, errors.Errorf("db not open")
+		return false, ErrNotOpen
 	}
 	exists, err := d.ldb.Has([]byte(path), nil)
 	if err != nil {
@@ -103,7 +125,7 @@ func (d *DB) Delete(path string) (bool, error) {
 // Documents ...
 func (d *DB) Documents(opt ...docs.Option) ([]*docs.Document, error) {
 	if d.ldb == nil {
-		return nil, errors.Errorf("db not open")
+		return nil, ErrNotOpen
 	}
 	opts := docs.NewOptions(opt...)
 
@@ -141,7 +163,7 @@ func copyBytes(source []byte) []byte {
 // Exists if path exists.
 func (d *DB) Exists(path string) (bool, error) {
 	if d.ldb == nil {
-		return false, errors.Errorf("db not open")
+		return false, ErrNotOpen
 	}
 	return d.ldb.Has([]byte(path), nil)
 }

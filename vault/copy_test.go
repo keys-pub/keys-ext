@@ -17,13 +17,18 @@ func TestCopy(t *testing.T) {
 	// Vault #1 (mem)
 	st := vault.NewMem()
 	vlt := vault.New(st)
+	err = vlt.Open()
 	require.NoError(t, err)
+	defer vlt.Close()
+
 	key := keys.Rand32()
 	id := encoding.MustEncode(bytes.Repeat([]byte{0x01}, 32), encoding.Base62)
 	provision := &vault.Provision{
 		ID: id,
 	}
 	err = vlt.Setup(key, provision)
+	require.NoError(t, err)
+	_, err = vlt.Unlock(key)
 	require.NoError(t, err)
 
 	item := vault.NewItem(encoding.MustEncode(bytes.Repeat([]byte{0x02}, 32), encoding.Base62), []byte("testpassword"), "", time.Now())
@@ -33,6 +38,9 @@ func TestCopy(t *testing.T) {
 	// Vault #2 (mem)
 	st2 := vault.NewMem()
 	vlt2 := vault.New(st2)
+	err = vlt2.Open()
+	require.NoError(t, err)
+	defer vlt2.Close()
 
 	// Copy
 	expected := []string{
@@ -69,6 +77,9 @@ func TestCopy(t *testing.T) {
 	// Copy (dry-run)
 	st3 := vault.NewMem()
 	require.NoError(t, err)
+	err = st3.Open()
+	require.NoError(t, err)
+	defer st3.Close()
 	paths, err = vault.Copy(st, st3, vault.DryRun())
 	require.NoError(t, err)
 	require.Equal(t, expected, paths)

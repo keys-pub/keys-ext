@@ -32,14 +32,10 @@ func TestItem(t *testing.T) {
 func TestLargeItems(t *testing.T) {
 	var err error
 
-	vlt := vault.New(vault.NewMem())
+	vlt, closeFn := newTestVault(t, &testVaultOptions{unlock: true})
+	defer closeFn()
 
-	key := keys.Bytes32(bytes.Repeat([]byte{0x01}, 32))
-	provision := vault.NewProvision(vault.UnknownAuth)
-	err = vlt.Setup(key, provision)
-	require.NoError(t, err)
-
-	large := keys.RandBytes(16 * 1025)
+	large := keys.RandBytes(32 * 1025)
 	err = vlt.Set(vault.NewItem("id", large, "", time.Now()))
 	require.EqualError(t, err, "item value is too large")
 

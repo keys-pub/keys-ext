@@ -12,6 +12,10 @@ func ExampleNew() {
 	// New vault.
 	// You can use vault.NewDB or keyring.NewSystem for vault.Store.
 	vlt := vault.New(vault.NewMem())
+	if err := vlt.Open(); err != nil {
+		log.Fatal(err)
+	}
+	defer vlt.Close()
 
 	// Setup auth.
 	if err := vlt.UnlockWithPassword("mypassword", true); err != nil {
