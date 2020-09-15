@@ -110,7 +110,7 @@ func Uninstall(out io.Writer, env *Env) error {
 		}
 	}
 
-	ok, err := removeSymlink(env)
+	ok, _ := removeSymlink(env)
 	if ok {
 		fmt.Fprintf(out, "Removed \"%s\".\n", env.linkPath())
 	}
