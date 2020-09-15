@@ -23,6 +23,8 @@ type Store interface {
 	Open() error
 	// Close store.
 	Close() error
+	// Reset store.
+	Reset() error
 }
 
 func deleteAll(st Store, paths []string) error {

@@ -10,16 +10,21 @@ import (
 )
 
 func TestCloneDB(t *testing.T) {
-	db1, close1 := newTestVaultDB(t)
+	db1, close1 := newTestDB(t)
 	defer close1()
-	db2, close2 := newTestVaultDB(t)
+	db2, close2 := newTestDB(t)
 	defer close2()
 
 	testClone(t, db1, db2)
 }
 
 func TestCloneMem(t *testing.T) {
-	testClone(t, vault.NewMem(), vault.NewMem())
+	mem1, closeFn1 := newTestMem(t)
+	defer closeFn1()
+	mem2, closeFn2 := newTestMem(t)
+	defer closeFn2()
+
+	testClone(t, mem1, mem2)
 }
 
 func testClone(t *testing.T, st1 vault.Store, st2 vault.Store) {

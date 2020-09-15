@@ -31,27 +31,71 @@ func newTestVaultKey(t *testing.T, clock tsutil.Clock) (*[32]byte, *vault.Provis
 	return key, provision
 }
 
-func newTestVault(t *testing.T) *vault.Vault {
-	return vault.New(vault.NewMem())
+type storeType string
+
+const (
+	db  storeType = "db"
+	mem storeType = "mem"
+)
+
+type testVaultOptions struct {
+	unlock bool
+	typ    storeType
+	clock  tsutil.Clock
 }
 
-func newTestVaultUnlocked(t *testing.T, clock tsutil.Clock) *vault.Vault {
-	vlt := newTestVault(t)
-	key, provision := newTestVaultKey(t, clock)
-	err := vlt.Setup(key, provision)
+func newTestVault(t *testing.T, opts *testVaultOptions) (*vault.Vault, func()) {
+	if opts == nil {
+		opts = &testVaultOptions{}
+	}
+	if opts.typ == "" {
+		opts.typ = mem
+	}
+	if opts.clock == nil {
+		opts.clock = tsutil.NewTestClock()
+	}
+
+	var st vault.Store
+	var closeFn func()
+	switch opts.typ {
+	case mem:
+		st, closeFn = newTestMem(t)
+	case db:
+		st, closeFn = newTestDB(t)
+	}
+
+	vlt := vault.New(st, vault.WithClock(opts.clock))
+
+	if opts.unlock {
+		key, provision := newTestVaultKey(t, opts.clock)
+		err := vlt.Setup(key, provision)
+		require.NoError(t, err)
+		_, err = vlt.Unlock(key)
+		require.NoError(t, err)
+	}
+	return vlt, closeFn
+}
+
+func newTestMem(t *testing.T) (vault.Store, func()) {
+	mem := vault.NewMem()
+	err := mem.Open()
 	require.NoError(t, err)
-	return vlt
+	closeFn := func() {
+		mem.Close()
+	}
+	return mem, closeFn
 }
 
-func newTestVaultDB(t *testing.T) (*vault.DB, func()) {
+func newTestDB(t *testing.T) (vault.Store, func()) {
 	path := testPath()
 	db := vault.NewDB(path)
-	close := func() {
-		db.Close()
-		_ = os.RemoveAll(path)
-	}
 	err := db.Open()
 	require.NoError(t, err)
+	close := func() {
+		err := db.Close()
+		require.NoError(t, err)
+		_ = os.RemoveAll(path)
+	}
 	return db, close
 }
 
@@ -101,7 +145,7 @@ func testClient(t *testing.T, env *testEnv) *client.Client {
 }
 
 func TestIsEmpty(t *testing.T) {
-	db, closeFn := newTestVaultDB(t)
+	db, closeFn := newTestDB(t)
 	defer closeFn()
 	vlt := vault.New(db)
 	empty, err := vlt.IsEmpty()
@@ -115,12 +159,16 @@ func TestErrors(t *testing.T) {
 	env := newTestEnv(t, nil) // vault.NewLogger(vault.DebugLevel))
 	defer env.closeFn()
 
-	vlt := vault.New(vault.NewMem())
+	vlt, closeFn := newTestVault(t, nil)
+	defer closeFn()
 
 	err = vlt.Set(vault.NewItem("key1", []byte("mysecretdata"), "", time.Now()))
 	require.EqualError(t, err, "vault is locked")
 
-	err = vlt.Setup(keys.Rand32(), vault.NewProvision(vault.UnknownAuth))
+	key := keys.Rand32()
+	err = vlt.Setup(key, vault.NewProvision(vault.UnknownAuth))
+	require.NoError(t, err)
+	_, err = vlt.Unlock(key)
 	require.NoError(t, err)
 
 	err = vlt.Set(vault.NewItem("key1", []byte("mysecretdata"), "", time.Now()))
@@ -137,7 +185,7 @@ func TestErrors(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
-	db, closeFn := newTestVaultDB(t)
+	db, closeFn := newTestDB(t)
 	defer closeFn()
 	vlt := vault.New(db)
 	testUpdate(t, vlt)
@@ -148,6 +196,8 @@ func testUpdate(t *testing.T, vlt *vault.Vault) {
 	key := keys.Rand32()
 	provision := vault.NewProvision(vault.UnknownAuth)
 	err = vlt.Setup(key, provision)
+	require.NoError(t, err)
+	_, err = vlt.Unlock(key)
 	require.NoError(t, err)
 
 	items, err := vlt.Items()
@@ -214,7 +264,7 @@ func testUpdate(t *testing.T, vlt *vault.Vault) {
 }
 
 func TestSetupUnlockProvision(t *testing.T) {
-	db, closeFn := newTestVaultDB(t)
+	db, closeFn := newTestDB(t)
 	defer closeFn()
 	testSetupUnlockProvision(t, db)
 }
@@ -227,6 +277,8 @@ func testSetupUnlockProvision(t *testing.T, st vault.Store) {
 	clock := tsutil.NewTestClock()
 	key, provision := newTestVaultKey(t, clock)
 	err = vlt.Setup(key, provision)
+	require.NoError(t, err)
+	_, err = vlt.Unlock(key)
 	require.NoError(t, err)
 
 	err = vlt.Set(vault.NewItem("key1", []byte("password"), "", time.Now()))
@@ -259,7 +311,7 @@ func testSetupUnlockProvision(t *testing.T, st vault.Store) {
 
 	key2 := keys.Bytes32(bytes.Repeat([]byte{0x02}, 32))
 	_, err = vlt.Unlock(key2)
-	require.EqualError(t, err, "invalid vault auth")
+	require.EqualError(t, err, "invalid auth")
 
 	// Unlock
 	_, err = vlt.Unlock(key)
@@ -289,15 +341,15 @@ func testSetupUnlockProvision(t *testing.T, st vault.Store) {
 
 func TestSetErrors(t *testing.T) {
 	var err error
-	clock := tsutil.NewTestClock()
-	vlt := newTestVaultUnlocked(t, clock)
+	vlt, closeFn := newTestVault(t, &testVaultOptions{unlock: true})
+	defer closeFn()
 
 	err = vlt.Set(vault.NewItem("", nil, "", time.Time{}))
 	require.EqualError(t, err, "invalid id")
 }
 
 func TestProtocol(t *testing.T) {
-	st, closeFn := newTestVaultDB(t)
+	st, closeFn := newTestDB(t)
 	defer closeFn()
 	vlt := vault.New(st)
 
@@ -313,6 +365,8 @@ func TestProtocol(t *testing.T) {
 		CreatedAt: time.Now(),
 	}
 	err = vlt.Setup(key, provision)
+	require.NoError(t, err)
+	_, err = vlt.Unlock(key)
 	require.NoError(t, err)
 
 	// Create item

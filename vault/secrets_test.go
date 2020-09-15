@@ -5,13 +5,12 @@ import (
 
 	"github.com/keys-pub/keys-ext/vault"
 	"github.com/keys-pub/keys/secret"
-	"github.com/keys-pub/keys/tsutil"
 	"github.com/stretchr/testify/require"
 )
 
 func TestSecretSave(t *testing.T) {
-	clock := tsutil.NewTestClock()
-	vlt := newTestVaultUnlocked(t, clock)
+	vlt, closeFn := newTestVault(t, &testVaultOptions{unlock: true})
+	defer closeFn()
 
 	secret := &secret.Secret{
 		ID:       "Ibgoe3sXvdpxFUeR1hSUriTRdxvcoWjou80WnPiFcPC",
@@ -44,8 +43,8 @@ func TestSecretSave(t *testing.T) {
 
 func TestSecrets(t *testing.T) {
 	var err error
-	clock := tsutil.NewTestClock()
-	vlt := newTestVaultUnlocked(t, clock)
+	vlt, closeFn := newTestVault(t, &testVaultOptions{unlock: true})
+	defer closeFn()
 
 	gabriel := secret.NewPassword("gabriel", "mypassword", "keys.pub")
 	out, updated, err := vlt.SaveSecret(gabriel)

@@ -41,7 +41,7 @@ func encryptItem(item *Item, mk *[32]byte) ([]byte, error) {
 	if item.ID == "" {
 		return nil, errors.Errorf("invalid id")
 	}
-	if len(item.Data) > 16*1024 {
+	if len(item.Data) > 32*1024 {
 		return nil, ErrItemValueTooLarge
 	}
 	b, err := msgpack.Marshal(item)
@@ -53,7 +53,7 @@ func encryptItem(item *Item, mk *[32]byte) ([]byte, error) {
 	return out, nil
 }
 
-func decryptItem(b []byte, mk *[32]byte) (*Item, error) {
+func decryptItem(b []byte, mk *[32]byte, ad string) (*Item, error) {
 	if mk == nil {
 		return nil, ErrLocked
 	}
@@ -64,6 +64,9 @@ func decryptItem(b []byte, mk *[32]byte) (*Item, error) {
 	var item Item
 	if err := msgpack.Unmarshal(decrypted, &item); err != nil {
 		return nil, err
+	}
+	if ad != "" && item.ID != ad {
+		return nil, errors.Errorf("invalid associated data")
 	}
 	return &item, nil
 }

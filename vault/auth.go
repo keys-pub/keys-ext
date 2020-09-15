@@ -9,7 +9,7 @@ import (
 )
 
 // ErrInvalidAuth if auth is invalid.
-var ErrInvalidAuth = errors.New("invalid vault auth")
+var ErrInvalidAuth = errors.New("invalid auth")
 
 // ErrLocked if no vault key is set.
 var ErrLocked = errors.New("vault is locked")
@@ -53,8 +53,8 @@ type Status string
 const (
 	// Unknown status.
 	Unknown Status = ""
-	// Setup if setup needed.
-	Setup Status = "setup"
+	// SetupNeeded if setup needed.
+	SetupNeeded Status = "setup-needed"
 	// Unlocked if unlocked.
 	Unlocked Status = "unlocked"
 	// Locked if locked.
@@ -74,7 +74,7 @@ func (v *Vault) Status() (Status, error) {
 		return Unknown, err
 	}
 	if !authed {
-		return Setup, nil
+		return SetupNeeded, nil
 	}
 	return Locked, nil
 }
@@ -87,27 +87,19 @@ func (v *Vault) Setup(key *[32]byte, provision *Provision) error {
 	if err != nil {
 		return err
 	}
-	if status != Setup {
+	if status != SetupNeeded {
 		return ErrAlreadySetup
 	}
 	if provision == nil {
 		return errors.Errorf("no provision")
 	}
-	mk, err := v.authSetup(provision.ID, key)
-	if err != nil {
+	if _, err := v.authSetup(provision.ID, key); err != nil {
 		return err
 	}
-
-	logger.Infof("Setup with %s", provision.ID)
-	if err := v.setMasterKey(mk); err != nil {
+	if err := v.provisionSave(provision); err != nil {
 		return err
 	}
-
-	if provision != nil {
-		if err := v.provisionSave(provision); err != nil {
-			return err
-		}
-	}
+	logger.Infof("Vault auth setup with %s", provision.ID)
 	return nil
 }
 
@@ -218,13 +210,13 @@ func (v *Vault) hasAuth() (bool, error) {
 // Auth is found by trying to decrypt auth until successful.
 func (v *Vault) authUnlock(key *[32]byte) (string, *[32]byte, error) {
 	path := docs.Path("auth")
-	docs, err := v.store.Documents(docs.Prefix(path))
+	ds, err := v.store.Documents(docs.Prefix(path))
 	if err != nil {
 		return "", nil, err
 	}
-	for _, doc := range docs {
+	for _, doc := range ds {
 		logger.Debugf("Trying %s", doc.Path)
-		item, err := decryptItem(doc.Data, key)
+		item, err := decryptItem(doc.Data, key, "")
 		if err != nil {
 			continue
 		}
@@ -260,7 +252,6 @@ func (v *Vault) UnlockWithPassword(password string, setup bool) error {
 		if err := v.Setup(key, provision); err != nil {
 			return err
 		}
-		return nil
 	}
 
 	if _, err := v.Unlock(key); err != nil {

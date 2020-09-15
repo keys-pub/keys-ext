@@ -2,6 +2,7 @@ package vault_test
 
 import (
 	"bytes"
+	"encoding/json"
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
@@ -15,8 +16,8 @@ import (
 
 func TestProvisions(t *testing.T) {
 	var err error
-	clock := tsutil.NewTestClock()
-	vlt := newTestVaultUnlocked(t, clock)
+	vlt, closeFn := newTestVault(t, &testVaultOptions{unlock: true})
+	defer closeFn()
 
 	provisions, err := vlt.Provisions()
 	require.NoError(t, err)
@@ -28,7 +29,8 @@ func TestProvisions(t *testing.T) {
 
 func TestProvisionSave(t *testing.T) {
 	var err error
-	vlt := newTestVault(t)
+	vlt, closeFn := newTestVault(t, nil)
+	defer closeFn()
 
 	id := encoding.MustEncode(bytes.Repeat([]byte{0x01}, 32), encoding.Base62)
 	provision := &vault.Provision{
@@ -47,7 +49,8 @@ func TestProvisionMarshal(t *testing.T) {
 	var err error
 
 	clock := tsutil.NewTestClock()
-	vlt := newTestVaultUnlocked(t, clock)
+	vlt, closeFn := newTestVault(t, &testVaultOptions{clock: clock, unlock: true})
+	defer closeFn()
 
 	id := encoding.MustEncode(bytes.Repeat([]byte{0x01}, 32), encoding.Base62)
 	salt := bytes.Repeat([]byte{0x02}, 32)
@@ -89,4 +92,16 @@ func TestProvisionMarshal(t *testing.T) {
 }
 `
 	require.Equal(t, expected, spew.Sdump(b))
+
+	b, err = json.MarshalIndent(provision, "", "  ")
+	require.NoError(t, err)
+	expectedJSON := `{
+  "id": "0El6XFXwsUFD8J2vGxsaboW7rZYnQRBP5d9erwRwd29",
+  "type": "password",
+  "cts": "2009-02-13T23:31:30.002Z",
+  "aaguid": "123",
+  "salt": "AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI=",
+  "nopin": true
+}`
+	require.Equal(t, expectedJSON, string(b))
 }

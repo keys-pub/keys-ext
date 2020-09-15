@@ -12,6 +12,9 @@ func TestSetGetValue(t *testing.T) {
 	var err error
 
 	vlt := New(NewMem())
+	err = vlt.Open()
+	require.NoError(t, err)
+	defer vlt.Close()
 
 	err = vlt.setPullIndex(1)
 	require.NoError(t, err)
