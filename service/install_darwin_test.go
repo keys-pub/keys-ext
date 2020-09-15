@@ -34,7 +34,8 @@ func TestUninstallSymlink(t *testing.T) {
 	require.NoError(t, err)
 
 	env.linkDir = filepath.Join(os.TempDir())
-	installSymlink(env)
+	err = installSymlink(env)
+	require.NoError(t, err)
 
 	err = Uninstall(&out, env)
 	require.NoError(t, err)
