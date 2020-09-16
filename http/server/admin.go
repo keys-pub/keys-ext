@@ -52,7 +52,7 @@ func (s *Server) adminCheck(c echo.Context) error {
 			return ErrNotFound(c, errors.Errorf("invalid kid"))
 		}
 		s.logger.Infof("Checking %s", kid)
-		if err := s.checkKID(ctx, kid); err != nil {
+		if err := s.checkKID(ctx, kid, HighPriority); err != nil {
 			return s.internalError(c, err)
 		}
 	}

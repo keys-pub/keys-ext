@@ -15,8 +15,18 @@ import (
 // Tasks ..
 type Tasks interface {
 	// CreateTask ...
-	CreateTask(ctx context.Context, method string, url string, authToken string) error
+	CreateTask(ctx context.Context, method string, url string, authToken string, priority TaskPriority) error
 }
+
+// TaskPriority suggests a higher priority queue.
+type TaskPriority int
+
+const (
+	// HighPriority ...
+	HighPriority TaskPriority = 1
+	// LowPriority ...
+	LowPriority TaskPriority = 100
+)
 
 type testTasks struct {
 	svr *Server
@@ -29,7 +39,7 @@ func NewTestTasks(svr *Server) Tasks {
 	}
 }
 
-func (t testTasks) CreateTask(ctx context.Context, method string, url string, authToken string) error {
+func (t testTasks) CreateTask(ctx context.Context, method string, url string, authToken string, priority TaskPriority) error {
 	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
 		return err
@@ -50,21 +60,8 @@ func newUnsetTasks() Tasks {
 	return &noTasks{}
 }
 
-func (t noTasks) CreateTask(ctx context.Context, method string, url string, authToken string) error {
+func (t noTasks) CreateTask(ctx context.Context, method string, url string, authToken string, priority TaskPriority) error {
 	return errors.Errorf("no server tasks set")
-}
-
-func (s *Server) createTaskCheck(c echo.Context) error {
-	ctx := c.Request().Context()
-	kid, err := keys.ParseID(c.Param("kid"))
-	if err != nil {
-		return ErrBadRequest(c, err)
-	}
-
-	if err := s.tasks.CreateTask(ctx, "POST", "/task/check/"+kid.String(), s.internalAuth); err != nil {
-		return s.internalError(c, err)
-	}
-	return c.String(http.StatusOK, "")
 }
 
 func (s *Server) taskCheck(c echo.Context) error {
@@ -134,63 +131,9 @@ func (s *Server) checkKeys(ctx context.Context, kids []keys.ID) error {
 	}
 
 	for _, kid := range kids {
-		if err := s.tasks.CreateTask(ctx, "POST", "/task/check/"+kid.String(), s.internalAuth); err != nil {
+		if err := s.tasks.CreateTask(ctx, "POST", "/task/check/"+kid.String(), s.internalAuth, LowPriority); err != nil {
 			return err
 		}
 	}
 	return nil
-}
-
-// func (s *Server) taskExpired(c echo.Context) error {
-// 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
-// 	ctx := c.Request().Context()
-
-// 	if err := s.checkInternalAuth(c); err != nil {
-// 		return err
-// 	}
-
-// 	iter, err := s.fi.Documents(ctx, ds.Path("msgs"))
-// 	if err != nil {
-// 		return s.internalError(c, err)
-// 	}
-// 	defer iter.Release()
-// 	paths := []string{}
-// 	for {
-// 		doc, err := iter.Next()
-// 		if err != nil {
-// 			return s.internalError(c, err)
-// 		}
-// 		if doc == nil {
-// 			break
-// 		}
-// 		var msg message
-// 		if err := json.Unmarshal(doc.Data, &msg); err != nil {
-// 			return s.internalError(c, err)
-// 		}
-
-// 		ok, err := s.checkMessage(&msg, doc)
-// 		if err != nil {
-// 			return s.internalError(c, err)
-// 		}
-// 		if !ok {
-// 			paths = append(paths, doc.Path)
-// 		}
-// 	}
-
-// 	if err := s.fi.DeleteAll(ctx, paths); err != nil {
-// 		return s.internalError(c, err)
-// 	}
-
-// 	return c.String(http.StatusOK, "")
-// }
-
-func (s *Server) cronExpired(c echo.Context) error {
-	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
-	ctx := c.Request().Context()
-
-	if err := s.tasks.CreateTask(ctx, "POST", "/task/expired", s.internalAuth); err != nil {
-		return s.internalError(c, err)
-	}
-
-	return c.String(http.StatusOK, "")
 }

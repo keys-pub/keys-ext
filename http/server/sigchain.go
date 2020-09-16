@@ -179,7 +179,7 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 		return s.internalError(c, err)
 	}
 	if existing != "" {
-		if err := s.checkKID(ctx, st.KID); err != nil {
+		if err := s.checkKID(ctx, existing, HighPriority); err != nil {
 			return s.internalError(c, err)
 		}
 		return ErrResponse(c, http.StatusConflict, fmt.Sprintf("user already exists with key %s, if you removed or revoked the previous statement you may need to wait briefly for search to update", existing))
@@ -194,7 +194,7 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 		return s.internalError(c, err)
 	}
 
-	if err := s.tasks.CreateTask(ctx, "POST", "/task/check/"+st.KID.String(), s.internalAuth); err != nil {
+	if err := s.checkKID(ctx, st.KID, HighPriority); err != nil {
 		return s.internalError(c, err)
 	}
 

@@ -105,12 +105,9 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 
 	// Tasks
 	e.POST("/task/check/:kid", s.taskCheck)
-	// e.POST("/task/expired", s.taskExpired)
-	e.GET("/task/create/check/:kid", s.createTaskCheck)
 
 	// Cron
 	e.POST("/cron/check", s.cronCheck)
-	e.POST("/cron/expired", s.cronExpired)
 
 	// Messages
 	e.POST("/msgs/:kid/:rid", s.postMessage)

@@ -26,7 +26,7 @@ func (s *Server) check(c echo.Context) error {
 	}
 
 	kid := res.KID
-	if err := s.checkKID(ctx, kid); err != nil {
+	if err := s.checkKID(ctx, kid, HighPriority); err != nil {
 		return s.internalError(c, err)
 	}
 
@@ -34,6 +34,6 @@ func (s *Server) check(c echo.Context) error {
 	return JSON(c, http.StatusOK, resp)
 }
 
-func (s *Server) checkKID(ctx context.Context, kid keys.ID) error {
-	return s.tasks.CreateTask(ctx, "POST", "/task/check/"+kid.String(), s.internalAuth)
+func (s *Server) checkKID(ctx context.Context, kid keys.ID, priority TaskPriority) error {
+	return s.tasks.CreateTask(ctx, "POST", "/task/check/"+kid.String(), s.internalAuth, priority)
 }
