@@ -4,12 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/request"
-	"github.com/keys-pub/keys/user"
 	"github.com/keys-pub/keys-ext/http/client"
+	"github.com/keys-pub/keys/user"
 )
 
 func ExampleClient_Sigchain() {
@@ -38,7 +36,7 @@ func ExampleClient_Sigchain() {
 	fmt.Printf("%+v\n", usr)
 
 	// Request the User URL and verify it.
-	result := user.RequestVerify(context.TODO(), request.NewHTTPRequestor(), usr, time.Now())
+	result := usr.RequestVerify(context.TODO())
 	if result.Status != user.StatusOK {
 		log.Fatalf("User check failed: %+v", result)
 	}

@@ -12,14 +12,14 @@ import (
 	"github.com/keys-pub/keys/docs"
 	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/tsutil"
-	"github.com/keys-pub/keys/user"
+	"github.com/keys-pub/keys/users"
 	"github.com/stretchr/testify/require"
 )
 
 type env struct {
 	clock      tsutil.Clock
 	fi         server.Fire
-	users      *user.Users
+	users      *users.Users
 	req        *request.MockRequestor
 	logger     server.Logger
 	srv        *server.Server
@@ -68,7 +68,7 @@ func newEnvWithOptions(t *testing.T, opts *envOptions) (*env, func()) {
 	}
 	rds := api.NewRedisTest(opts.clock)
 	req := request.NewMockRequestor()
-	users := user.NewUsers(opts.fi, keys.NewSigchains(opts.fi), user.Requestor(req), user.Clock(opts.clock))
+	usrs := users.New(opts.fi, keys.NewSigchains(opts.fi), users.Requestor(req), users.Clock(opts.clock))
 
 	srv := server.New(opts.fi, rds, req, opts.clock, opts.logger)
 	srv.SetClock(opts.clock)
@@ -94,7 +94,7 @@ func newEnvWithOptions(t *testing.T, opts *envOptions) (*env, func()) {
 	return &env{
 		clock:      opts.clock,
 		fi:         opts.fi,
-		users:      users,
+		users:      usrs,
 		req:        req,
 		logger:     opts.logger,
 		srv:        srv,
