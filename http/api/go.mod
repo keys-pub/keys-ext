@@ -3,7 +3,7 @@ module github.com/keys-pub/keys-ext/http/api
 go 1.12
 
 require (
-	github.com/keys-pub/keys v0.1.2-0.20200730003445-49f609c7f317
+	github.com/keys-pub/keys v0.1.6-0.20200917180900-68c62e67b737
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.5.1
 	golang.org/x/crypto v0.0.0-20200604202706-70a84ac30bf9 // indirect

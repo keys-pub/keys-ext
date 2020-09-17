@@ -3,10 +3,11 @@ package api
 import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/user"
+	"github.com/keys-pub/keys/users"
 )
 
 // UserFromSearchResult returns User from user.SearchResult.
-func UserFromSearchResult(sr *user.SearchResult) *User {
+func UserFromSearchResult(sr *users.SearchResult) *User {
 	if sr == nil {
 		return nil
 	}
