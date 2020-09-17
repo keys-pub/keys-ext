@@ -58,13 +58,6 @@ func (s *service) verifyKey(ctx context.Context, kid keys.ID) (*Key, error) {
 	return s.key(ctx, kid)
 }
 
-var keyTypeStrings = []string{
-	string(keys.EdX25519),
-	string(keys.EdX25519Public),
-	string(keys.X25519),
-	string(keys.X25519Public),
-}
-
 func parseKeyType(s string) (KeyType, error) {
 	switch s {
 	case string(keys.EdX25519):

@@ -17,7 +17,7 @@ import (
 	"github.com/keys-pub/keys/docs"
 	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/tsutil"
-	"github.com/keys-pub/keys/user"
+	"github.com/keys-pub/keys/users"
 	"github.com/stretchr/testify/require"
 )
 
@@ -61,28 +61,30 @@ type testEnv struct {
 	clock tsutil.Clock
 	fi    server.Fire
 	req   *request.MockRequestor
-	users *user.Users
+	users *users.Users
 }
 
 func newTestEnv(t *testing.T) *testEnv {
 	clock := tsutil.NewTestClock()
 	fi := testFire(t, clock)
 	req := request.NewMockRequestor()
-	users := user.NewUsers(fi, keys.NewSigchains(fi), user.Requestor(req), user.Clock(clock))
+	usrs := users.New(fi, keys.NewSigchains(fi), users.Requestor(req), users.Clock(clock))
 	return &testEnv{
 		clock: clock,
 		fi:    fi,
 		req:   req,
-		users: users,
+		users: usrs,
 	}
 }
 
-func newTestService(t *testing.T, env *testEnv, appName string) (*service, CloseFn) {
-	return newTestServiceWithOpts(t, env, appName)
+func newTestService(t *testing.T, env *testEnv) (*service, CloseFn) {
+	return newTestServiceWithOpts(t, env)
 }
 
-func newTestServiceWithOpts(t *testing.T, tenv *testEnv, appName string) (*service, CloseFn) {
+func newTestServiceWithOpts(t *testing.T, tenv *testEnv) (*service, CloseFn) {
 	serverEnv := newTestServerEnv(t, tenv)
+	appName := "KeysTest-" + randName()
+
 	env, closeFn := newEnv(t, appName, serverEnv.url)
 	auth := newAuth(env)
 
@@ -287,7 +289,7 @@ func newTestServerEnv(t *testing.T, env *testEnv) *serverEnv {
 
 func TestRuntimeStatus(t *testing.T) {
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env, "")
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
 
 	resp, err := service.RuntimeStatus(context.TODO(), &RuntimeStatusRequest{})
@@ -297,7 +299,7 @@ func TestRuntimeStatus(t *testing.T) {
 
 func TestCheckKeys(t *testing.T) {
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env, "")
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
 
 	testAuthSetup(t, service)
@@ -308,4 +310,10 @@ func TestCheckKeys(t *testing.T) {
 
 	err := service.checkKeys(context.TODO())
 	require.NoError(t, err)
+}
+
+func TestVaultOpen(t *testing.T) {
+	env := newTestEnv(t)
+	_, closeFn := newTestServiceWithOpts(t, env)
+	defer closeFn()
 }

@@ -3,10 +3,12 @@ package service
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
 
+	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/auth/fido2"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
@@ -33,6 +35,7 @@ func authCommands(client *Client) []cli.Command {
 				authVaultCommand(client),
 				changePasswordCommand(client),
 				authDevicesCommand(client),
+				authResetCommand(client),
 			},
 			Action: func(c *cli.Context) error {
 				if !c.GlobalBool("test") {
@@ -45,7 +48,7 @@ func authCommands(client *Client) []cli.Command {
 				if err != nil {
 					return err
 				}
-				setupNeeded := status.AuthStatus == AuthSetup
+				setupNeeded := status.AuthStatus == AuthSetupNeeded
 				logger.Infof("Auth setup needed: %t", setupNeeded)
 
 				clientName := c.String("client")
@@ -178,7 +181,7 @@ func authProvisionCommand(client *Client) cli.Command {
 				return err
 			}
 			switch rts.AuthStatus {
-			case AuthSetup:
+			case AuthSetupNeeded:
 				return status.Error(codes.Unauthenticated, "auth setup needed")
 			case AuthLocked:
 				return status.Error(codes.Unauthenticated, "auth locked")
@@ -238,12 +241,68 @@ func authDevicesCommand(client *Client) cli.Command {
 				return err
 			}
 			for _, device := range resp.Devices {
-				_, err := client.FIDO2Client().DeviceInfo(context.TODO(), &fido2.DeviceInfoRequest{Device: device.Path})
+				typeResp, err := client.FIDO2Client().DeviceType(context.TODO(), &fido2.DeviceTypeRequest{Device: device.Path})
 				if err != nil {
 					return err
 				}
-				// fmt.Println(infoResp.Info.String())
+				if typeResp.Type != fido2.FIDO2 {
+					continue
+				}
+
+				infoResp, err := client.FIDO2Client().DeviceInfo(context.TODO(), &fido2.DeviceInfoRequest{Device: device.Path})
+				if err != nil {
+					return err
+				}
+
+				out := struct {
+					Device *fido2.Device     `json:"device"`
+					Info   *fido2.DeviceInfo `json:"info"`
+				}{
+					Device: device,
+					Info:   infoResp.Info,
+				}
+
+				b, err := json.Marshal(out)
+				if err != nil {
+					return err
+				}
+				fmt.Println(string(b))
 			}
+			return nil
+		},
+	}
+}
+
+func authResetCommand(client *Client) cli.Command {
+	return cli.Command{
+		Name:  "reset",
+		Usage: "Reset",
+		Flags: []cli.Flag{
+			cli.BoolFlag{Name: "force", Usage: "force"},
+			cli.StringFlag{Hidden: true, Name: "app", Value: "Keys"},
+		},
+		Action: func(c *cli.Context) error {
+			if !c.Bool("force") {
+				reader := bufio.NewReader(os.Stdin)
+				words := keys.RandWords(6)
+				fmt.Printf("Are you sure you want to reset auth and remove your vault?\n")
+				fmt.Printf("If so enter this phrase: %s\n\n", words)
+				text, _ := reader.ReadString('\n')
+				text = strings.Trim(text, "\r\n")
+				fmt.Println("")
+				if text != words {
+					fmt.Println("Phrase doesn't match.")
+					os.Exit(1)
+				}
+			}
+
+			_, err := client.KeysClient().AuthReset(context.TODO(), &AuthResetRequest{
+				AppName: c.String("app"),
+			})
+			if err != nil {
+				return err
+			}
+			fmt.Println("Auth reset.")
 			return nil
 		},
 	}

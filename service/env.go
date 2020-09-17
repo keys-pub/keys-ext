@@ -45,9 +45,8 @@ func (c Env) linkPath() string {
 // Env key names
 const serverCfgKey = "server"
 const portCfgKey = "port"
-const logLevelCfgKey = "logLevel"
 
-var configKeys = []string{serverCfgKey, portCfgKey, logLevelCfgKey}
+var configKeys = []string{serverCfgKey, portCfgKey}
 
 // IsKey returns true if config key is recognized.
 func (c Env) IsKey(s string) bool {
@@ -59,21 +58,16 @@ func (c Env) IsKey(s string) bool {
 	return false
 }
 
+const defaultPort = 22405
+
 // Port to connect.
 func (c Env) Port() int {
-	return c.GetInt(portCfgKey, 22405)
+	return c.GetInt(portCfgKey, defaultPort)
 }
 
 // Server to connect to.
 func (c Env) Server() string {
 	return c.Get(serverCfgKey, "https://keys.pub")
-}
-
-// LogLevel for logging.
-func (c *Env) LogLevel() LogLevel {
-	ll := c.Get(logLevelCfgKey, "")
-	l, _ := parseLogLevel(ll)
-	return l
 }
 
 // Build describes build flags.
@@ -251,18 +245,6 @@ func (c *Env) SetInt(key string, n int) {
 // Set value.
 func (c *Env) Set(key string, value string) {
 	c.values[key] = value
-}
-
-func (c *Env) saveLogLevelFlag(s string) error {
-	if s == "" {
-		return nil
-	}
-	_, ok := parseLogLevel(s)
-	if !ok {
-		return errors.Errorf("invalid log-level")
-	}
-	c.Set(logLevelCfgKey, s)
-	return c.Save()
 }
 
 func (c *Env) savePortFlag(port int) error {

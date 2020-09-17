@@ -185,8 +185,11 @@ func unlockHMACSecret(ctx context.Context, auths fido2.AuthServer, vlt *vault.Va
 	if err != nil {
 		return err
 	}
-	if status == vault.Setup {
+	if status == vault.SetupNeeded {
 		if err := vlt.Setup(key, provision); err != nil {
+			return err
+		}
+		if _, err := vlt.Unlock(key); err != nil {
 			return err
 		}
 	} else {

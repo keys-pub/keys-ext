@@ -42,8 +42,8 @@ func newProtoService(env *Env, build Build, auth *auth) (*service, error) {
 	return srv, nil
 }
 
-func setupLogging(env *Env, logPath string) (Logger, LogInterceptor) {
-	return setupLogrus(env, logPath)
+func setupLogging(logLevel LogLevel, logPath string) (Logger, LogInterceptor) {
+	return setupLogrus(logLevel, logPath)
 }
 
 func logFatal(err error) {
@@ -51,22 +51,36 @@ func logFatal(err error) {
 	os.Exit(1)
 }
 
+type args struct {
+	appName  *string
+	logPath  *string
+	version  *bool
+	port     *int
+	logLevel *string
+}
+
 // Run the service.
 func Run(build Build) {
-	appName := flag.String("app", "Keys", "app name")
-	logPath := flag.String("log-path", "", "log path")
-	version := flag.Bool("version", false, "print version")
-	port := flag.Int("port", 0, "port to listen")
-	logLevel := flag.String("log-level", "", "log level")
+	args := args{}
+	args.appName = flag.String("app", "Keys", "app name")
+	args.logPath = flag.String("log-path", "", "log path")
+	args.version = flag.Bool("version", false, "print version")
+	args.port = flag.Int("port", defaultPort, "port to listen")
+	args.logLevel = flag.String("log-level", "", "log level")
 
 	flag.Parse()
 
-	if *version {
+	if *args.version {
 		fmt.Printf("%s\n", build)
 		return
 	}
 
-	env, err := NewEnv(*appName)
+	logLevel, ok := parseLogLevel(*args.logLevel)
+	if !ok {
+		logFatal(errors.Errorf("invalid log level"))
+	}
+
+	env, err := NewEnv(*args.appName)
 	if err != nil {
 		logFatal(errors.Wrapf(err, "failed to load config"))
 	}
@@ -75,17 +89,14 @@ func Run(build Build) {
 		logFatal(errors.Errorf("Invalid arguments. Did you mean to run `keys`?"))
 	}
 
-	// Set config from flags
-	if err := env.saveLogLevelFlag(*logLevel); err != nil {
-		logFatal(err)
-	}
-	if err := env.savePortFlag(*port); err != nil {
+	// Save env
+	if err := env.savePortFlag(*args.port); err != nil {
 		logFatal(err)
 	}
 
 	// TODO: Disable logging by default
 
-	lg, lgi := setupLogging(env, *logPath)
+	lg, lgi := setupLogging(logLevel, *args.logPath)
 	SetLogger(lg)
 	keys.SetLogger(lg)
 	user.SetLogger(lg)
@@ -108,7 +119,7 @@ func Run(build Build) {
 	}
 
 	logger.Infof("Version: %s", build)
-	logger.Infof("Log level: %s", env.LogLevel().String())
+	logger.Infof("Log level: %s", logLevel.String())
 
 	panichandler.InstallPanicHandler(func(ctx context.Context, r interface{}) {
 		logrus.Errorf("Panic: %v; %s", r, string(debug.Stack()))

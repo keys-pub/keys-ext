@@ -21,6 +21,9 @@ func (l listener) dial(context.Context, string) (net.Conn, error) {
 }
 
 func newTestRPCClient(t *testing.T, srvc *service, tenv *testEnv, appName string, out io.Writer) (*Client, func()) {
+	if appName == "" {
+		appName = "KeysTest-" + randName()
+	}
 	listener := listener{lis: bufconn.Listen(1024 * 1024)}
 
 	connect := func(env *Env, authToken string) (*grpc.ClientConn, error) {

@@ -5,9 +5,15 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/keys-pub/keys"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
+
+var genTypes = strings.Join([]string{
+	string(keys.EdX25519),
+	string(keys.X25519),
+}, ", ")
 
 func keyCommands(client *Client) []cli.Command {
 	return []cli.Command{
@@ -15,7 +21,7 @@ func keyCommands(client *Client) []cli.Command {
 			Name:  "list",
 			Usage: "List keys",
 			Flags: []cli.Flag{
-				cli.StringSliceFlag{Name: "type, t", Usage: "only these types (" + strings.Join(keyTypeStrings, ", ") + ")"},
+				cli.StringSliceFlag{Name: "type, t", Usage: "only these types (" + genTypes + ")"},
 			},
 			Action: func(c *cli.Context) error {
 				types := []KeyType{}

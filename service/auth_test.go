@@ -10,17 +10,21 @@ import (
 )
 
 func TestAuthWithPassword(t *testing.T) {
-	env, closeFn := newEnv(t, "KeysTest", "")
+	var err error
+	env, closeFn := newEnv(t, "", "")
 	defer closeFn()
 	auth := newAuth(env)
 	vlt := newTestVault(t)
+	err = vlt.Open()
+	require.NoError(t, err)
+	defer vlt.Close()
 
 	ctx := context.TODO()
 
 	// Setup needed
 	status, err := vlt.Status()
 	require.NoError(t, err)
-	require.Equal(t, vault.Setup, status)
+	require.Equal(t, vault.SetupNeeded, status)
 
 	// Setup
 	err = auth.setup(ctx, vlt, "password123", PasswordAuth)
@@ -28,7 +32,7 @@ func TestAuthWithPassword(t *testing.T) {
 
 	status, err = vlt.Status()
 	require.NoError(t, err)
-	require.Equal(t, vault.Unlocked, status)
+	require.Equal(t, vault.Locked, status)
 
 	// Unlock
 	token, err := auth.unlock(ctx, vlt, "password123", PasswordAuth, "test")
@@ -53,10 +57,13 @@ func TestAuthWithPassword(t *testing.T) {
 
 func TestAuthorize(t *testing.T) {
 	var err error
-	env, closeFn := newEnv(t, "KeysTest", "")
+	env, closeFn := newEnv(t, "", "")
 	defer closeFn()
 	auth := newAuth(env)
 	vlt := newTestVault(t)
+	err = vlt.Open()
+	require.NoError(t, err)
+	defer vlt.Close()
 
 	ctx := metadata.NewIncomingContext(context.TODO(), metadata.MD{})
 	err = auth.authorize(ctx, "/service.Keys/SomeMethod")
@@ -103,7 +110,7 @@ func TestGenerateToken(t *testing.T) {
 
 func TestAuthUnlockLock(t *testing.T) {
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env, "")
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	ctx := context.TODO()
 
@@ -150,7 +157,7 @@ func TestAuthUnlockLock(t *testing.T) {
 func TestPasswordChange(t *testing.T) {
 	var err error
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env, "")
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	ctx := context.TODO()
 
@@ -193,7 +200,7 @@ func TestPasswordChange(t *testing.T) {
 
 func TestUnlockMultipleClients(t *testing.T) {
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env, "")
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	ctx := context.TODO()
 
@@ -237,4 +244,62 @@ func TestUnlockMultipleClients(t *testing.T) {
 	require.EqualError(t, err, "rpc error: code = Unauthenticated desc = invalid token")
 
 	require.False(t, service.db.IsOpen())
+}
+
+func TestAuthReset(t *testing.T) {
+	var err error
+	env := newTestEnv(t)
+	service, closeFn := newTestService(t, env)
+	defer closeFn()
+	ctx := context.TODO()
+
+	_, err = service.AuthSetup(ctx, &AuthSetupRequest{Secret: "password123", Type: PasswordAuth})
+	require.NoError(t, err)
+	_, err = service.AuthUnlock(ctx, &AuthUnlockRequest{Secret: "password123", Type: PasswordAuth})
+	require.NoError(t, err)
+
+	_, err = service.KeyGenerate(ctx, &KeyGenerateRequest{Type: EdX25519})
+	require.NoError(t, err)
+
+	keysResp, err := service.Keys(ctx, &KeysRequest{})
+	require.NoError(t, err)
+	require.Equal(t, 1, len(keysResp.Keys))
+
+	_, err = service.AuthReset(ctx, &AuthResetRequest{AppName: service.env.AppName()})
+	require.EqualError(t, err, "failed to reset: auth is unlocked")
+
+	_, err = service.AuthLock(ctx, &AuthLockRequest{})
+	require.NoError(t, err)
+
+	_, err = service.AuthReset(ctx, &AuthResetRequest{AppName: "InvalidAppName"})
+	require.EqualError(t, err, "failed to reset: invalid app name")
+
+	_, err = service.AuthReset(ctx, &AuthResetRequest{AppName: service.env.AppName()})
+	require.NoError(t, err)
+
+	_, err = service.AuthSetup(ctx, &AuthSetupRequest{Secret: "password12345", Type: PasswordAuth})
+	require.NoError(t, err)
+	_, err = service.AuthUnlock(ctx, &AuthUnlockRequest{Secret: "password12345", Type: PasswordAuth})
+	require.NoError(t, err)
+
+	_, err = service.KeyGenerate(ctx, &KeyGenerateRequest{Type: EdX25519})
+	require.NoError(t, err)
+
+	keysResp, err = service.Keys(ctx, &KeysRequest{})
+	require.NoError(t, err)
+	require.Equal(t, 1, len(keysResp.Keys))
+}
+
+func TestAuthSetupLocked(t *testing.T) {
+	var err error
+	env := newTestEnv(t)
+	service, closeFn := newTestService(t, env)
+	defer closeFn()
+	ctx := context.TODO()
+
+	_, err = service.AuthSetup(ctx, &AuthSetupRequest{Secret: "password123", Type: PasswordAuth})
+	require.NoError(t, err)
+
+	_, err = service.KeyGenerate(ctx, &KeyGenerateRequest{Type: EdX25519})
+	require.EqualError(t, err, "vault is locked")
 }

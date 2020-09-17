@@ -19,7 +19,7 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 	if err != nil {
 		return nil, err
 	}
-	if status != vault.Setup {
+	if status != vault.SetupNeeded {
 		return nil, errors.Errorf("auth already setup")
 	}
 
@@ -55,7 +55,7 @@ func (s *service) AuthVault(ctx context.Context, req *AuthVaultRequest) (*AuthVa
 	if err != nil {
 		return nil, err
 	}
-	if status != vault.Setup {
+	if status != vault.SetupNeeded {
 		return nil, errors.Errorf("auth already setup")
 	}
 
@@ -196,4 +196,54 @@ func matchAAGUID(provisions []*vault.Provision, aaguid string) *vault.Provision 
 		}
 	}
 	return nil
+}
+
+func (s *service) AuthRecover(ctx context.Context, req *AuthRecoverRequest) (*AuthRecoverResponse, error) {
+	if req.KeyPhrase == "" {
+		return nil, errors.Errorf("no key phrase specified")
+	}
+	if req.NewPassword == "" {
+		return nil, errors.Errorf("no password specified")
+	}
+	unlockResp, err := s.AuthUnlock(ctx, &AuthUnlockRequest{
+		Secret: req.KeyPhrase,
+		Type:   KeyPhraseAuth,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if _, err := s.AuthProvision(ctx, &AuthProvisionRequest{
+		Secret: req.NewPassword,
+		Type:   PasswordAuth,
+	}); err != nil {
+		return nil, err
+	}
+
+	return &AuthRecoverResponse{
+		AuthToken: unlockResp.AuthToken,
+	}, nil
+}
+
+func (s *service) AuthReset(ctx context.Context, req *AuthResetRequest) (*AuthResetResponse, error) {
+	if s.unlocked {
+		return nil, errors.Wrapf(errors.Errorf("auth is unlocked"), "failed to reset")
+	}
+
+	if req.AppName != s.env.AppName() {
+		return nil, errors.Wrapf(errors.Errorf("invalid app name"), "failed to reset")
+	}
+
+	if err := s.vault.Reset(); err != nil {
+		return nil, err
+	}
+
+	path, err := s.env.AppPath(kdbPath, false)
+	if err != nil {
+		return nil, err
+	}
+	if err := os.RemoveAll(path); err != nil {
+		return nil, err
+	}
+
+	return &AuthResetResponse{}, nil
 }

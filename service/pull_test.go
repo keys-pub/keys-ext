@@ -12,7 +12,7 @@ func TestPull(t *testing.T) {
 	env := newTestEnv(t)
 
 	// Alice
-	aliceService, aliceCloseFn := newTestService(t, env, "")
+	aliceService, aliceCloseFn := newTestService(t, env)
 	defer aliceCloseFn()
 	testAuthSetup(t, aliceService)
 	testImportKey(t, aliceService, alice)
@@ -25,7 +25,7 @@ func TestPull(t *testing.T) {
 	require.Equal(t, alice.ID().String(), respKeys.Keys[0].ID)
 
 	// Bob
-	bobService, bobCloseFn := newTestService(t, env, "")
+	bobService, bobCloseFn := newTestService(t, env)
 	defer bobCloseFn()
 	testAuthSetup(t, bobService)
 	testImportKey(t, bobService, bob)
@@ -44,7 +44,7 @@ func TestPull(t *testing.T) {
 	require.Equal(t, bob.ID().String(), respKeys.Keys[1].ID)
 
 	// Charlie
-	charlieService, charlieCloseFn := newTestService(t, env, "")
+	charlieService, charlieCloseFn := newTestService(t, env)
 	defer charlieCloseFn()
 	testAuthSetup(t, charlieService)
 	testImportKey(t, charlieService, charlie)

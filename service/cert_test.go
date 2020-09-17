@@ -8,7 +8,7 @@ import (
 )
 
 func TestCertificate(t *testing.T) {
-	env, closeFn := newEnv(t, "KeysTest", "")
+	env, closeFn := newEnv(t, "", "")
 	defer closeFn()
 
 	cert, err := loadCertificate(env)

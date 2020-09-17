@@ -35,6 +35,8 @@ func newAuth(env *Env) *auth {
 		"/service.Keys/AuthUnlock",
 		"/service.Keys/AuthLock",
 		"/service.Keys/AuthVault",
+		"/service.Keys/AuthReset",
+		"/service.Keys/AuthRecover",
 		"/service.Keys/Rand",
 		"/service.Keys/RandPassword",
 		"/service.Keys/RuntimeStatus",

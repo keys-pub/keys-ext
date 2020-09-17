@@ -3,14 +3,19 @@ package service
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
+	"github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys/link"
 	"github.com/keys-pub/keys/user"
+	"github.com/keys-pub/keys/users"
 	"github.com/pkg/errors"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // UserSearch (RPC) ...
@@ -202,7 +207,13 @@ func (s *service) sigchainUserAdd(ctx context.Context, key *keys.EdX25519Key, se
 	}
 
 	if !localOnly {
-		if err := s.client.SigchainSave(ctx, st); err != nil {
+		err := s.client.SigchainSave(ctx, st)
+		if err != nil {
+			// TODO: Test this error response
+			var rerr client.Error
+			if errors.As(err, &rerr) && rerr.StatusCode == http.StatusConflict {
+				return nil, nil, status.Error(codes.AlreadyExists, rerr.Message)
+			}
 			return nil, nil, err
 		}
 	}
@@ -245,7 +256,7 @@ func userStatus(s user.Status) UserStatus {
 	}
 }
 
-func userSearchResultsToRPC(results []*user.SearchResult) []*User {
+func userSearchResultsToRPC(results []*users.SearchResult) []*User {
 	users := make([]*User, 0, len(results))
 	for _, r := range results {
 		users = append(users, userResultToRPC(r.Result))
@@ -319,7 +330,7 @@ func (s *service) searchRemoteCheckUser(ctx context.Context, userID string) (*Us
 func (s *service) searchUsersLocal(ctx context.Context, query string, limit int) ([]*User, error) {
 	query = strings.TrimSpace(query)
 	logger.Infof("Search users local %q", query)
-	res, err := s.users.Search(ctx, &user.SearchRequest{Query: query, Limit: limit})
+	res, err := s.users.Search(ctx, &users.SearchRequest{Query: query, Limit: limit})
 	if err != nil {
 		return nil, err
 	}
