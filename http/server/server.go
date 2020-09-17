@@ -10,7 +10,7 @@ import (
 	"github.com/keys-pub/keys/docs/events"
 	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/tsutil"
-	"github.com/keys-pub/keys/user"
+	"github.com/keys-pub/keys/users"
 	"github.com/labstack/echo/v4"
 
 	"github.com/pkg/errors"
@@ -33,7 +33,7 @@ type Server struct {
 
 	accessFn AccessFn
 
-	users        *user.Users
+	users        *users.Users
 	sigchains    *keys.Sigchains
 	tasks        Tasks
 	internalAuth string
@@ -50,14 +50,14 @@ type Fire interface {
 // New creates a Server.
 func New(fi Fire, rds api.Redis, req request.Requestor, clock tsutil.Clock, logger Logger) *Server {
 	sigchains := keys.NewSigchains(fi)
-	users := user.NewUsers(fi, sigchains, user.Requestor(req), user.Clock(clock))
+	usrs := users.New(fi, sigchains, users.Requestor(req), users.Clock(clock))
 	return &Server{
 		fi:        fi,
 		rds:       rds,
 		clock:     tsutil.NewClock(),
 		tasks:     newUnsetTasks(),
 		sigchains: sigchains,
-		users:     users,
+		users:     usrs,
 		logger:    logger,
 		accessFn: func(c AccessContext, resource AccessResource, action AccessAction) Access {
 			return AccessDeny("no access set")
