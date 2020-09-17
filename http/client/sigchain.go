@@ -1,10 +1,10 @@
 package client
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"net/url"
+	"time"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
@@ -19,9 +19,11 @@ func (c *Client) SigchainSave(ctx context.Context, st *keys.Statement) error {
 	if err != nil {
 		return err
 	}
-	if _, err = c.put(ctx, path, url.Values{}, nil, bytes.NewReader(b), ""); err != nil {
+	_, err = c.putRetryOnConflict(ctx, path, url.Values{}, nil, b, "", 1, 3, 2*time.Second)
+	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

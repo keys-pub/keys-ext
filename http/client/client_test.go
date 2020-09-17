@@ -1,6 +1,7 @@
 package client_test
 
 import (
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -17,42 +18,89 @@ import (
 
 type env struct {
 	clock      tsutil.Clock
-	httpServer *httptest.Server
-	srv        *server.Server
-	ds         docs.Documents
-	users      *user.Store
+	fi         server.Fire
+	users      *user.Users
 	req        *request.MockRequestor
-	closeFn    func()
+	logger     server.Logger
+	srv        *server.Server
+	httpServer *httptest.Server
+	handler    http.Handler
 }
 
-func newEnv(t *testing.T, logger server.Logger) *env {
-	clock := tsutil.NewTestClock()
-	fi := docs.NewMem()
-	fi.SetClock(clock)
-	return newEnvWithFire(t, fi, clock, logger)
+func newEnv(t *testing.T) (*env, func()) {
+	return newEnvWithOptions(t, nil)
 }
 
-func newEnvWithFire(t *testing.T, fi server.Fire, clock tsutil.Clock, logger server.Logger) *env {
-	if logger == nil {
-		logger = client.NewLogger(client.ErrLevel)
+type handlerFn func(w http.ResponseWriter, req *http.Request) bool
+
+type proxyHandler struct {
+	handlerFn handlerFn
+	handler   http.Handler
+}
+
+func (p proxyHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	if !p.handlerFn(w, req) {
+		p.handler.ServeHTTP(w, req)
 	}
-	rds := api.NewRedisTest(clock)
-	req := request.NewMockRequestor()
-	users := newTestUserStore(t, fi, req, clock)
+}
 
-	srv := server.New(fi, rds, users, logger)
-	srv.SetClock(clock)
+type envOptions struct {
+	fi        server.Fire
+	clock     tsutil.Clock
+	logger    server.Logger
+	handlerFn handlerFn
+}
+
+func newEnvWithOptions(t *testing.T, opts *envOptions) (*env, func()) {
+	if opts == nil {
+		opts = &envOptions{}
+	}
+	if opts.clock == nil {
+		opts.clock = tsutil.NewTestClock()
+	}
+	if opts.fi == nil {
+		mem := docs.NewMem()
+		mem.SetClock(opts.clock)
+		opts.fi = mem
+	}
+	if opts.logger == nil {
+		opts.logger = client.NewLogger(client.ErrLevel)
+	}
+	rds := api.NewRedisTest(opts.clock)
+	req := request.NewMockRequestor()
+	users := user.NewUsers(opts.fi, keys.NewSigchains(opts.fi), user.Requestor(req), user.Clock(opts.clock))
+
+	srv := server.New(opts.fi, rds, req, opts.clock, opts.logger)
+	srv.SetClock(opts.clock)
 	tasks := server.NewTestTasks(srv)
 	srv.SetTasks(tasks)
 	srv.SetInternalAuth("testtoken")
 	srv.SetAccessFn(func(c server.AccessContext, resource server.AccessResource, action server.AccessAction) server.Access {
 		return server.AccessAllow()
 	})
+
 	handler := server.NewHandler(srv)
+	if opts.handlerFn != nil {
+		handler = proxyHandler{
+			handlerFn: opts.handlerFn,
+			handler:   server.NewHandler(srv),
+		}
+	}
+
 	httpServer := httptest.NewServer(handler)
 	srv.URL = httpServer.URL
+	closeFn := func() { httpServer.Close() }
 
-	return &env{clock, httpServer, srv, fi, users, req, func() { httpServer.Close() }}
+	return &env{
+		clock:      opts.clock,
+		fi:         opts.fi,
+		users:      users,
+		req:        req,
+		logger:     opts.logger,
+		srv:        srv,
+		httpServer: httpServer,
+		handler:    handler,
+	}, closeFn
 }
 
 func newTestClient(t *testing.T, env *env) *client.Client {
@@ -61,10 +109,4 @@ func newTestClient(t *testing.T, env *env) *client.Client {
 	cl.SetHTTPClient(env.httpServer.Client())
 	cl.SetClock(env.clock)
 	return cl
-}
-
-func newTestUserStore(t *testing.T, ds docs.Documents, req request.Requestor, clock tsutil.Clock) *user.Store {
-	us, err := user.NewStore(ds, keys.NewSigchainStore(ds), req, clock)
-	require.NoError(t, err)
-	return us
 }

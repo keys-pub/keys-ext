@@ -28,7 +28,11 @@ func TestVaultFirestore(t *testing.T) {
 	fs := testFirestore(t)
 
 	clock := tsutil.NewTestClock()
-	env := newEnvWithFire(t, fs, clock, nil)
+	env, closeFn := newEnvWithOptions(t, &envOptions{
+		fi:    fs,
+		clock: clock,
+	})
+	defer closeFn()
 	// env.logLevel = server.DebugLevel
 
 	alice := keys.GenerateEdX25519Key()

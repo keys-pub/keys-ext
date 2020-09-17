@@ -14,8 +14,8 @@ import (
 func TestVault(t *testing.T) {
 	// api.SetLogger(NewLogger(DebugLevel))
 	var err error
-	env := newEnv(t, nil) // client.NewLogger(client.DebugLevel)
-	defer env.closeFn()
+	env, closeFn := newEnv(t) // client.NewLogger(client.DebugLevel)
+	defer closeFn()
 
 	client := newTestClient(t, env)
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
@@ -69,16 +69,16 @@ func TestVault(t *testing.T) {
 	require.False(t, exists)
 
 	err = client.VaultSend(context.TODO(), alice, events)
-	require.EqualError(t, err, "404 vault was deleted")
+	require.EqualError(t, err, "vault was deleted (404)")
 
 	err = client.VaultDelete(context.TODO(), alice)
-	require.EqualError(t, err, "404 vault was deleted")
+	require.EqualError(t, err, "vault was deleted (404)")
 }
 
 func TestVaultMax(t *testing.T) {
 	// api.SetLogger(NewLogger(DebugLevel))
-	env := newEnv(t, nil) // client.NewLogger(client.DebugLevel)
-	defer env.closeFn()
+	env, closeFn := newEnv(t) // client.NewLogger(client.DebugLevel)
+	defer closeFn()
 
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 

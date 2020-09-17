@@ -3,6 +3,7 @@ package client_test
 import (
 	"bytes"
 	"context"
+	"net/http"
 	"testing"
 
 	"github.com/keys-pub/keys"
@@ -10,8 +11,8 @@ import (
 )
 
 func TestSigchain(t *testing.T) {
-	env := newEnv(t, nil)
-	defer env.closeFn()
+	env, closeFn := newEnv(t)
+	defer closeFn()
 
 	client := newTestClient(t, env)
 
@@ -53,4 +54,28 @@ func TestSigchain(t *testing.T) {
 
 	spew := sc.Spew()
 	t.Logf(spew.String())
+}
+
+func TestSigchainRetryOnConflict(t *testing.T) {
+	attempt := 0
+	// TODO: shorten retry delay for test
+	handlerFn := func(w http.ResponseWriter, req *http.Request) bool {
+		if attempt == 0 {
+			attempt++
+			w.WriteHeader(http.StatusConflict)
+			return true
+		}
+		return false
+	}
+
+	env, closeFn := newEnvWithOptions(t, &envOptions{
+		handlerFn: handlerFn,
+	})
+	defer closeFn()
+
+	cl := newTestClient(t, env)
+
+	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
+	saveUser(t, env, cl, alice, "alice", "github")
+
 }

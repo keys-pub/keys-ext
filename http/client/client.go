@@ -1,6 +1,7 @@
 package client
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -59,15 +60,15 @@ func defaultHTTPClient() *http.Client {
 	}
 }
 
-// ErrResponse ...
-type ErrResponse struct {
+// Error ...
+type Error struct {
 	StatusCode int
 	Message    string
 	URL        *url.URL
 }
 
-func (e ErrResponse) Error() string {
-	return fmt.Sprintf("%d %s", e.StatusCode, e.Message)
+func (e Error) Error() string {
+	return fmt.Sprintf("%s (%d)", e.Message, e.StatusCode)
 }
 
 // URL ...
@@ -85,7 +86,7 @@ func checkResponse(resp *http.Response) error {
 		return nil
 	}
 	// Default error
-	err := ErrResponse{StatusCode: resp.StatusCode, URL: resp.Request.URL}
+	err := Error{StatusCode: resp.StatusCode, URL: resp.Request.URL}
 
 	b, readErr := ioutil.ReadAll(resp.Body)
 	if readErr != nil {
@@ -258,6 +259,26 @@ func (c *Client) put(ctx context.Context, path string, params url.Values, key *k
 		return nil, err
 	}
 	if err := checkResponse(resp); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (c *Client) putRetryOnConflict(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key, b []byte, contentHash string, attempt int, maxAttempts int, delay time.Duration) (*http.Response, error) {
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+	resp, err := c.put(ctx, path, params, key, bytes.NewReader(b), contentHash)
+	if err != nil {
+		var rerr Error
+		if attempt < maxAttempts && errors.As(err, &rerr) && rerr.StatusCode == http.StatusConflict {
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			case <-time.After(delay):
+			}
+			return c.putRetryOnConflict(ctx, path, params, key, b, contentHash, attempt+1, maxAttempts, delay)
+		}
 		return nil, err
 	}
 	return resp, nil

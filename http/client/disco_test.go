@@ -15,8 +15,8 @@ func TestDisco(t *testing.T) {
 	// api.SetLogger(NewLogger(DebugLevel))
 	// logger = NewLogger(DebugLevel)
 
-	env := newEnv(t, nil)
-	defer env.closeFn()
+	env, closeFn := newEnv(t)
+	defer closeFn()
 
 	aliceClient := newTestClient(t, env)
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))

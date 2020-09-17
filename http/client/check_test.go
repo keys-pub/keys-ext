@@ -10,8 +10,8 @@ import (
 )
 
 func TestCheck(t *testing.T) {
-	env := newEnv(t, nil)
-	defer env.closeFn()
+	env, closeFn := newEnv(t)
+	defer closeFn()
 	client := newTestClient(t, env)
 
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
