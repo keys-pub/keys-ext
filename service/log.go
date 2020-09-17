@@ -57,6 +57,8 @@ func parseLogLevel(s string) (LogLevel, bool) {
 		return WarnLevel, true
 	case "err":
 		return ErrLevel, true
+	case "":
+		return InfoLevel, true
 	default:
 		return InfoLevel, false
 	}

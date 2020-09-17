@@ -13,7 +13,7 @@ func TestSecrets(t *testing.T) {
 	ctx := context.TODO()
 
 	// Alice
-	service, closeFn := newTestService(t, env, "")
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
 
 	testAuthSetup(t, service)

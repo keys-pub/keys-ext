@@ -11,7 +11,7 @@ import (
 	"github.com/keys-pub/keys-ext/vault"
 	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/tsutil"
-	"github.com/keys-pub/keys/user"
+	"github.com/keys-pub/keys/users"
 )
 
 type service struct {
@@ -23,7 +23,7 @@ type service struct {
 	db     *sdb.DB
 	client *httpclient.Client
 	scs    *keys.Sigchains
-	users  *user.Users
+	users  *users.Users
 	clock  tsutil.Clock
 	vault  *vault.Vault
 
@@ -37,8 +37,6 @@ type service struct {
 
 const kdbPath = "keys.sdb"
 const vdbPath = "vault.vdb"
-
-// TODO: Remove old db "keys.leveldb"
 
 func newService(env *Env, build Build, auth *auth, req request.Requestor, clock tsutil.Clock) (*service, error) {
 	client, err := httpclient.New(env.Server())
@@ -57,7 +55,7 @@ func newService(env *Env, build Build, auth *auth, req request.Requestor, clock 
 	db := sdb.New()
 	db.SetClock(clock)
 	scs := keys.NewSigchains(db)
-	users := user.NewUsers(db, scs, user.Requestor(req), user.Clock(clock))
+	usrs := users.New(db, scs, users.Requestor(req), users.Clock(clock))
 
 	return &service{
 		auth:          auth,
@@ -65,7 +63,7 @@ func newService(env *Env, build Build, auth *auth, req request.Requestor, clock 
 		env:           env,
 		scs:           scs,
 		db:            db,
-		users:         users,
+		users:         usrs,
 		client:        client,
 		vault:         vlt,
 		clock:         clock,

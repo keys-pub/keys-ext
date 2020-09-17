@@ -22,12 +22,12 @@ func TestEncryptDecrypt(t *testing.T) {
 	// saltpack.SetLogger(NewLogger(DebugLevel))
 	env := newTestEnv(t)
 
-	aliceService, aliceCloseFn := newTestService(t, env, "")
+	aliceService, aliceCloseFn := newTestService(t, env)
 	defer aliceCloseFn()
 	testAuthSetup(t, aliceService)
 	testImportKey(t, aliceService, alice)
 
-	bobService, bobCloseFn := newTestService(t, env, "")
+	bobService, bobCloseFn := newTestService(t, env)
 	defer bobCloseFn()
 	testAuthSetup(t, bobService)
 	testImportKey(t, bobService, bob)
@@ -123,12 +123,12 @@ func testEncryptDecryptErrors(t *testing.T, aliceService *service, bobService *s
 func TestEncryptAnonymous(t *testing.T) {
 	env := newTestEnv(t)
 
-	aliceService, aliceCloseFn := newTestService(t, env, "")
+	aliceService, aliceCloseFn := newTestService(t, env)
 	defer aliceCloseFn()
 	testAuthSetup(t, aliceService)
 	testImportKey(t, aliceService, alice)
 
-	bobService, bobCloseFn := newTestService(t, env, "")
+	bobService, bobCloseFn := newTestService(t, env)
 	defer bobCloseFn()
 	testAuthSetup(t, bobService)
 	testImportKey(t, bobService, bob)
@@ -197,12 +197,12 @@ func TestEncryptDecryptStream(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
 
 	env := newTestEnv(t)
-	aliceService, aliceCloseFn := newTestService(t, env, "")
+	aliceService, aliceCloseFn := newTestService(t, env)
 	defer aliceCloseFn()
 	testAuthSetup(t, aliceService)
 	testImportKey(t, aliceService, alice)
 
-	bobService, bobCloseFn := newTestService(t, env, "")
+	bobService, bobCloseFn := newTestService(t, env)
 	defer bobCloseFn()
 	testAuthSetup(t, bobService)
 	testImportKey(t, bobService, bob)
@@ -361,7 +361,7 @@ func testDecryptStream(t *testing.T, env *testEnv, service *service, b []byte) (
 
 func TestDecryptStreamInvalid(t *testing.T) {
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env, "")
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
@@ -377,13 +377,13 @@ func TestDecryptStreamInvalid(t *testing.T) {
 func TestEncryptDecryptByUser(t *testing.T) {
 	env := newTestEnv(t)
 
-	aliceService, aliceCloseFn := newTestService(t, env, "")
+	aliceService, aliceCloseFn := newTestService(t, env)
 	defer aliceCloseFn()
 	testAuthSetup(t, aliceService)
 	testImportKey(t, aliceService, alice)
 	testUserSetupGithub(t, env, aliceService, alice, "alice")
 
-	bobService, bobCloseFn := newTestService(t, env, "")
+	bobService, bobCloseFn := newTestService(t, env)
 	defer bobCloseFn()
 	testAuthSetup(t, bobService)
 	testImportKey(t, bobService, bob)
@@ -402,12 +402,12 @@ func TestEncryptDecryptByUser(t *testing.T) {
 func TestEncryptDecryptFile(t *testing.T) {
 	env := newTestEnv(t)
 
-	aliceService, aliceCloseFn := newTestService(t, env, "")
+	aliceService, aliceCloseFn := newTestService(t, env)
 	defer aliceCloseFn()
 	testAuthSetup(t, aliceService)
 	testImportKey(t, aliceService, alice)
 
-	bobService, bobCloseFn := newTestService(t, env, "")
+	bobService, bobCloseFn := newTestService(t, env)
 	defer bobCloseFn()
 	testAuthSetup(t, bobService)
 	testImportKey(t, bobService, bob)
@@ -471,13 +471,13 @@ func TestEncryptUnverified(t *testing.T) {
 	// keys.SetLogger(NewLogger(DebugLevel))
 	env := newTestEnv(t)
 
-	aliceService, aliceCloseFn := newTestService(t, env, "")
+	aliceService, aliceCloseFn := newTestService(t, env)
 	defer aliceCloseFn()
 	testAuthSetup(t, aliceService)
 	testImportKey(t, aliceService, alice)
 	testUserSetupGithub(t, env, aliceService, alice, "alice")
 
-	bobService, bobCloseFn := newTestService(t, env, "")
+	bobService, bobCloseFn := newTestService(t, env)
 	defer bobCloseFn()
 	testAuthSetup(t, bobService)
 	testImportKey(t, bobService, bob)

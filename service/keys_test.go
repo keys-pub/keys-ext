@@ -13,7 +13,7 @@ func TestKeys(t *testing.T) {
 	ctx := context.TODO()
 
 	// Alice
-	service, closeFn := newTestService(t, env, "")
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
 
 	testAuthSetup(t, service)
@@ -111,7 +111,7 @@ func TestKeys(t *testing.T) {
 
 func TestKeysMissingSigchain(t *testing.T) {
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env, "")
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	ctx := context.TODO()
 

@@ -51,8 +51,8 @@ func vaultStatusToRPC(st vault.Status) AuthStatus {
 		return AuthLocked
 	case vault.Unlocked:
 		return AuthUnlocked
-	case vault.Setup:
-		return AuthSetup
+	case vault.SetupNeeded:
+		return AuthSetupNeeded
 	default:
 		return AuthUnknown
 	}

@@ -15,8 +15,8 @@ func TestSignVerifyCommand(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
 
 	env := newTestEnv(t)
-	appName := "KeysTest-" + randName()
-	service, closeFn := newTestService(t, env, appName)
+	service, closeFn := newTestService(t, env)
+	appName := service.env.AppName()
 	var clientOut bytes.Buffer
 	client, closeClFn := newTestRPCClient(t, service, env, appName, &clientOut)
 	defer closeClFn()

@@ -14,7 +14,7 @@ import (
 
 func TestUserSearch(t *testing.T) {
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env, "")
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	ctx := context.TODO()
 
@@ -56,7 +56,7 @@ func TestUserSearch(t *testing.T) {
 
 func TestUser(t *testing.T) {
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env, "")
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	ctx := context.TODO()
 	testAuthSetup(t, service)
@@ -80,7 +80,7 @@ func TestUser(t *testing.T) {
 
 func TestUserService(t *testing.T) {
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env, "")
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	ctx := context.TODO()
 	testAuthSetup(t, service)
@@ -100,7 +100,7 @@ func TestUserService(t *testing.T) {
 
 func TestUserSign(t *testing.T) {
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env, "")
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	ctx := context.TODO()
 	testAuthSetup(t, service)
@@ -119,7 +119,7 @@ func TestUserSign(t *testing.T) {
 		Service: "github",
 		Name:    "alice",
 	}
-	err = user.Verify(resp.Message, usr)
+	err = usr.Verify(resp.Message)
 	require.NoError(t, err)
 
 	require.Equal(t, "alice", usr.Name)
@@ -131,7 +131,7 @@ func TestUserAdd(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
 	// keys.SetLogger(NewLogger(DebugLevel))
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env, "")
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	ctx := context.TODO()
 	testAuthSetup(t, service)
@@ -185,7 +185,7 @@ func TestUserAdd(t *testing.T) {
 
 func TestUserAddGithub(t *testing.T) {
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env, "")
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	testAuthSetup(t, service)
 
@@ -218,7 +218,7 @@ func TestUserAddGithub(t *testing.T) {
 
 func TestUserAddReddit(t *testing.T) {
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env, "")
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	testAuthSetup(t, service)
 
@@ -271,7 +271,7 @@ func TestUserAddReddit(t *testing.T) {
 
 func TestUserAddEcho(t *testing.T) {
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env, "")
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	testAuthSetup(t, service)
 
@@ -309,7 +309,7 @@ func TestUserAddEcho(t *testing.T) {
 
 func TestSearchUsers(t *testing.T) {
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env, "")
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	ctx := context.TODO()
 	testAuthSetup(t, service)

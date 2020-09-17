@@ -61,6 +61,8 @@ type KeysClient interface {
 	AuthVault(ctx context.Context, in *AuthVaultRequest, opts ...grpc.CallOption) (*AuthVaultResponse, error)
 	AuthUnlock(ctx context.Context, in *AuthUnlockRequest, opts ...grpc.CallOption) (*AuthUnlockResponse, error)
 	AuthLock(ctx context.Context, in *AuthLockRequest, opts ...grpc.CallOption) (*AuthLockResponse, error)
+	AuthReset(ctx context.Context, in *AuthResetRequest, opts ...grpc.CallOption) (*AuthResetResponse, error)
+	AuthRecover(ctx context.Context, in *AuthRecoverRequest, opts ...grpc.CallOption) (*AuthRecoverResponse, error)
 	RuntimeStatus(ctx context.Context, in *RuntimeStatusRequest, opts ...grpc.CallOption) (*RuntimeStatusResponse, error)
 	Rand(ctx context.Context, in *RandRequest, opts ...grpc.CallOption) (*RandResponse, error)
 	RandPassword(ctx context.Context, in *RandPasswordRequest, opts ...grpc.CallOption) (*RandPasswordResponse, error)
@@ -721,6 +723,24 @@ func (c *keysClient) AuthLock(ctx context.Context, in *AuthLockRequest, opts ...
 	return out, nil
 }
 
+func (c *keysClient) AuthReset(ctx context.Context, in *AuthResetRequest, opts ...grpc.CallOption) (*AuthResetResponse, error) {
+	out := new(AuthResetResponse)
+	err := c.cc.Invoke(ctx, "/service.Keys/AuthReset", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *keysClient) AuthRecover(ctx context.Context, in *AuthRecoverRequest, opts ...grpc.CallOption) (*AuthRecoverResponse, error) {
+	out := new(AuthRecoverResponse)
+	err := c.cc.Invoke(ctx, "/service.Keys/AuthRecover", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *keysClient) RuntimeStatus(ctx context.Context, in *RuntimeStatusRequest, opts ...grpc.CallOption) (*RuntimeStatusResponse, error) {
 	out := new(RuntimeStatusResponse)
 	err := c.cc.Invoke(ctx, "/service.Keys/RuntimeStatus", in, out, opts...)
@@ -967,6 +987,8 @@ type KeysServer interface {
 	AuthVault(context.Context, *AuthVaultRequest) (*AuthVaultResponse, error)
 	AuthUnlock(context.Context, *AuthUnlockRequest) (*AuthUnlockResponse, error)
 	AuthLock(context.Context, *AuthLockRequest) (*AuthLockResponse, error)
+	AuthReset(context.Context, *AuthResetRequest) (*AuthResetResponse, error)
+	AuthRecover(context.Context, *AuthRecoverRequest) (*AuthRecoverResponse, error)
 	RuntimeStatus(context.Context, *RuntimeStatusRequest) (*RuntimeStatusResponse, error)
 	Rand(context.Context, *RandRequest) (*RandResponse, error)
 	RandPassword(context.Context, *RandPasswordRequest) (*RandPasswordResponse, error)
@@ -1123,6 +1145,12 @@ func (*UnimplementedKeysServer) AuthUnlock(context.Context, *AuthUnlockRequest) 
 }
 func (*UnimplementedKeysServer) AuthLock(context.Context, *AuthLockRequest) (*AuthLockResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AuthLock not implemented")
+}
+func (*UnimplementedKeysServer) AuthReset(context.Context, *AuthResetRequest) (*AuthResetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthReset not implemented")
+}
+func (*UnimplementedKeysServer) AuthRecover(context.Context, *AuthRecoverRequest) (*AuthRecoverResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthRecover not implemented")
 }
 func (*UnimplementedKeysServer) RuntimeStatus(context.Context, *RuntimeStatusRequest) (*RuntimeStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RuntimeStatus not implemented")
@@ -2040,6 +2068,42 @@ func _Keys_AuthLock_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Keys_AuthReset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthResetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KeysServer).AuthReset(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/service.Keys/AuthReset",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KeysServer).AuthReset(ctx, req.(*AuthResetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Keys_AuthRecover_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthRecoverRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KeysServer).AuthRecover(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/service.Keys/AuthRecover",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KeysServer).AuthRecover(ctx, req.(*AuthRecoverRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Keys_RuntimeStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RuntimeStatusRequest)
 	if err := dec(in); err != nil {
@@ -2563,6 +2627,14 @@ var _Keys_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AuthLock",
 			Handler:    _Keys_AuthLock_Handler,
+		},
+		{
+			MethodName: "AuthReset",
+			Handler:    _Keys_AuthReset_Handler,
+		},
+		{
+			MethodName: "AuthRecover",
+			Handler:    _Keys_AuthRecover_Handler,
 		},
 		{
 			MethodName: "RuntimeStatus",

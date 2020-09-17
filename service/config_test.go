@@ -9,7 +9,7 @@ import (
 
 func TestConfig(t *testing.T) {
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env, "")
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
 
 	testAuthSetup(t, service)

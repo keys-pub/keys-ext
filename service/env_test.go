@@ -21,7 +21,6 @@ func TestEnv(t *testing.T) {
 
 	env.SetInt("port", 3001)
 	env.Set("server", "https://server.url")
-	env.Set("logLevel", "debug")
 	env.SetBool("disableSymlinkCheck", true)
 	err = env.Save()
 	require.NoError(t, err)
@@ -30,7 +29,6 @@ func TestEnv(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 3001, env2.Port())
 	require.Equal(t, "https://server.url", env2.Server())
-	require.Equal(t, DebugLevel, env2.LogLevel())
 	require.True(t, env2.GetBool("disableSymlinkCheck"))
 }
 

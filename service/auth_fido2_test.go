@@ -27,11 +27,14 @@ func TestHMACSecretAuthOnDevice(t *testing.T) {
 
 	// SetLogger(NewLogger(DebugLevel))
 
-	env, closeFn := newEnv(t, "KeysTest", "")
+	env, closeFn := newEnv(t, "", "")
 	defer closeFn()
 
 	auth := newAuth(env)
 	vlt := newTestVault(t)
+	err = vlt.Open()
+	require.NoError(t, err)
+	defer vlt.Close()
 
 	// Load plugin
 	fido2Plugin, err := fido2.OpenPlugin(filepath.Join(testGoBin(t), "fido2.so"))
@@ -53,10 +56,13 @@ func TestHMACSecretAuth(t *testing.T) {
 	// vault.SetLogger(NewLogger(DebugLevel))
 	var err error
 
-	env, closeFn := newEnv(t, "KeysTest", "")
+	env, closeFn := newEnv(t, "", "")
 	defer closeFn()
 	auth := newAuth(env)
 	vlt := newTestVault(t)
+	err = vlt.Open()
+	require.NoError(t, err)
+	defer vlt.Close()
 	pin := "12345"
 
 	// Try without plugin
@@ -77,6 +83,7 @@ func TestHMACSecretAuth(t *testing.T) {
 	require.NotEmpty(t, token)
 
 	mk := vlt.MasterKey()
+	require.NotEmpty(t, mk)
 
 	vlt.Lock()
 

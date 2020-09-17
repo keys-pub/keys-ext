@@ -19,7 +19,7 @@ import (
 func TestSignVerify(t *testing.T) {
 	var err error
 	env := newTestEnv(t)
-	aliceService, aliceCloseFn := newTestService(t, env, "")
+	aliceService, aliceCloseFn := newTestService(t, env)
 	defer aliceCloseFn()
 	testAuthSetup(t, aliceService)
 	testImportKey(t, aliceService, alice)
@@ -53,7 +53,7 @@ func TestSignVerify(t *testing.T) {
 	require.Equal(t, "alice", verifyResp.Signer.User.Name)
 
 	// Bob
-	bobService, bobCloseFn := newTestService(t, env, "")
+	bobService, bobCloseFn := newTestService(t, env)
 	defer bobCloseFn()
 	testAuthSetup(t, bobService)
 
@@ -85,7 +85,7 @@ func TestSignVerify(t *testing.T) {
 
 func TestSignStream(t *testing.T) {
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env, "")
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
@@ -199,12 +199,12 @@ func testSignStream(t *testing.T, env *testEnv, service *service, plaintext []by
 func TestSignVerifyAttachedFile(t *testing.T) {
 	env := newTestEnv(t)
 
-	aliceService, aliceCloseFn := newTestService(t, env, "")
+	aliceService, aliceCloseFn := newTestService(t, env)
 	defer aliceCloseFn()
 	testAuthSetup(t, aliceService)
 	testImportKey(t, aliceService, alice)
 
-	bobService, bobCloseFn := newTestService(t, env, "")
+	bobService, bobCloseFn := newTestService(t, env)
 	defer bobCloseFn()
 	testAuthSetup(t, bobService)
 	testImportKey(t, bobService, bob)
@@ -253,13 +253,13 @@ func TestVerifyUnverified(t *testing.T) {
 	// keys.SetLogger(NewLogger(DebugLevel))
 	env := newTestEnv(t)
 
-	aliceService, aliceCloseFn := newTestService(t, env, "")
+	aliceService, aliceCloseFn := newTestService(t, env)
 	defer aliceCloseFn()
 	testAuthSetup(t, aliceService)
 	testImportKey(t, aliceService, alice)
 	testUserSetupGithub(t, env, aliceService, alice, "alice")
 
-	bobService, bobCloseFn := newTestService(t, env, "")
+	bobService, bobCloseFn := newTestService(t, env)
 	defer bobCloseFn()
 	testAuthSetup(t, bobService)
 	testImportKey(t, bobService, bob)

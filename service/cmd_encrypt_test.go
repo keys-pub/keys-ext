@@ -16,10 +16,9 @@ func TestEncryptDecryptCommand(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
 
 	env := newTestEnv(t)
-	appName := "KeysTest-" + randName()
-	service, closeFn := newTestService(t, env, appName)
+	service, closeFn := newTestService(t, env)
 	var clientOut bytes.Buffer
-	client, closeClFn := newTestRPCClient(t, service, env, appName, &clientOut)
+	client, closeClFn := newTestRPCClient(t, service, env, service.env.AppName(), &clientOut)
 	defer closeClFn()
 	defer closeFn()
 
@@ -32,7 +31,7 @@ func TestEncryptDecryptCommand(t *testing.T) {
 	defer os.Remove(inPath)
 	defer os.Remove(outPath)
 
-	cmd := append(os.Args[0:1], "-app", appName) // "-log-level=debug"
+	cmd := append(os.Args[0:1], "-app", service.env.AppName()) // "-log-level=debug"
 
 	var clientErr error
 	errorFn := func(err error) {

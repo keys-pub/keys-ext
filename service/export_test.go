@@ -11,7 +11,7 @@ import (
 func TestKeyExport(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env, "")
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	ctx := context.TODO()
 	testAuthSetup(t, service)
@@ -36,7 +36,7 @@ func TestKeyExport(t *testing.T) {
 func TestKeySSHExport(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
 	env := newTestEnv(t)
-	service, closeFn := newTestService(t, env, "")
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
 	ctx := context.TODO()
 	testAuthSetup(t, service)
