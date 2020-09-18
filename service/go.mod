@@ -10,14 +10,14 @@ require (
 	github.com/golang/protobuf v1.4.2
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/keys-pub/keys v0.1.6-0.20200917203958-7a0a1f05c988
-	github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200913225123-a7320bbf5a79
+	github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200917215110-bda938100d21
 	github.com/keys-pub/keys-ext/auth/mock v0.0.0-20200909210040-fd6d944acf60
-	github.com/keys-pub/keys-ext/http/api v0.0.0-20200917181034-847212d96be0
-	github.com/keys-pub/keys-ext/http/client v0.0.0-20200917183732-707b83c90b21
+	github.com/keys-pub/keys-ext/http/api v0.0.0-20200917215110-bda938100d21
+	github.com/keys-pub/keys-ext/http/client v0.0.0-20200917215110-bda938100d21
 	github.com/keys-pub/keys-ext/http/server v0.0.0-20200917181212-27ed87b9c3b2
-	github.com/keys-pub/keys-ext/sdb v0.0.0-20200911204159-4d4aeeb20971
-	github.com/keys-pub/keys-ext/vault v0.0.0-20200917183732-707b83c90b21
-	github.com/keys-pub/keys-ext/wormhole v0.0.0-20200911204159-4d4aeeb20971
+	github.com/keys-pub/keys-ext/sdb v0.0.0-20200917215110-bda938100d21
+	github.com/keys-pub/keys-ext/vault v0.0.0-20200917215110-bda938100d21
+	github.com/keys-pub/keys-ext/wormhole v0.0.0-20200917215110-bda938100d21
 	github.com/mercari/go-grpc-interceptor v0.0.0-20180110035004-b8ad3827e82a
 	github.com/mitchellh/go-ps v1.0.0
 	github.com/pion/sctp v1.7.10 // indirect
@@ -26,6 +26,7 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/urfave/cli v1.22.4
 	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a
+	google.golang.org/genproto v0.0.0-20200917134801-bb4cff56e0d0 // indirect
 	google.golang.org/grpc v1.32.0
 	google.golang.org/protobuf v1.25.0
 )
