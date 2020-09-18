@@ -33,8 +33,9 @@ else
 fi
 
 # https://github.com/GoogleCloudPlatform/gsutil/issues/961
-if [ -f /usr/bin/python3 ]; then  
-  export CLOUDSDK_PYTHON=/usr/bin/python3
+if [ -f "/usr/bin/python2" ]; then  
+  export CLOUDSDK_PYTHON=/usr/bin/python2
+  echo "CLOUDSDK_PYTHON: $CLOUDSDK_PYTHON"
 fi
 
 gsutil -m rsync -r gs://aptly.keys.pub $HOME/.aptly/public
