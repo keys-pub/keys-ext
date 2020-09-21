@@ -61,8 +61,11 @@ func (a *auth) setup(ctx context.Context, vlt *vault.Vault, req *AuthSetupReques
 		// TODO: Implement
 		return errors.Errorf("setup with paper key not supported")
 	case FIDO2HMACSecretAuth:
-		// TODO: Implement
-		return errors.Errorf("setup with fido2 key not supported")
+		_, err := generateHMACSecret(ctx, a.fas, vlt, req.Secret, req.Device, a.env.AppName())
+		if err != nil {
+			return authErr(err, req.Type, "failed to setup")
+		}
+		return nil
 	default:
 		return errors.Errorf("unsupported auth type")
 	}
