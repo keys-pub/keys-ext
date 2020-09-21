@@ -36,7 +36,7 @@ func unlockPassword(vlt *vault.Vault, password string) (*vault.Provision, error)
 	return vlt.Unlock(key)
 }
 
-func provisionPassword(ctx context.Context, vlt *vault.Vault, password string) (*vault.Provision, error) {
+func provisionPassword(vlt *vault.Vault, password string) (*vault.Provision, error) {
 	salt, err := vlt.Salt()
 	if err != nil {
 		return nil, err
@@ -64,7 +64,7 @@ func (s *service) PasswordChange(ctx context.Context, req *PasswordChangeRequest
 		return nil, err
 	}
 
-	if _, err := provisionPassword(ctx, s.vault, req.New); err != nil {
+	if _, err := provisionPassword(s.vault, req.New); err != nil {
 		return nil, err
 	}
 

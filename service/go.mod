@@ -8,6 +8,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/protobuf v1.4.2
+	github.com/google/uuid v1.1.2 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/keys-pub/keys v0.1.6-0.20200917203958-7a0a1f05c988
 	github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200917215110-bda938100d21
@@ -16,7 +17,7 @@ require (
 	github.com/keys-pub/keys-ext/http/client v0.0.0-20200917215110-bda938100d21
 	github.com/keys-pub/keys-ext/http/server v0.0.0-20200917181212-27ed87b9c3b2
 	github.com/keys-pub/keys-ext/sdb v0.0.0-20200917215110-bda938100d21
-	github.com/keys-pub/keys-ext/vault v0.0.0-20200917215110-bda938100d21
+	github.com/keys-pub/keys-ext/vault v0.0.0-20200920213226-5e4918a2add8
 	github.com/keys-pub/keys-ext/wormhole v0.0.0-20200917215110-bda938100d21
 	github.com/mercari/go-grpc-interceptor v0.0.0-20180110035004-b8ad3827e82a
 	github.com/mitchellh/go-ps v1.0.0

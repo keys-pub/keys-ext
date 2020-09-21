@@ -23,7 +23,7 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 		return nil, errors.Errorf("auth already setup")
 	}
 
-	if err := s.auth.setup(ctx, s.vault, req.Secret, req.Type); err != nil {
+	if err := s.auth.setup(ctx, s.vault, req); err != nil {
 		return nil, err
 	}
 
@@ -88,7 +88,7 @@ func (s *service) AuthVault(ctx context.Context, req *AuthVaultRequest) (*AuthVa
 
 // AuthUnlock (RPC) ...
 func (s *service) AuthUnlock(ctx context.Context, req *AuthUnlockRequest) (*AuthUnlockResponse, error) {
-	token, err := s.unlock(ctx, req.Secret, req.Type, req.Client)
+	token, err := s.unlock(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +105,7 @@ func (s *service) AuthLock(ctx context.Context, req *AuthLockRequest) (*AuthLock
 
 // AuthProvision (RPC) ...
 func (s *service) AuthProvision(ctx context.Context, req *AuthProvisionRequest) (*AuthProvisionResponse, error) {
-	provision, err := s.auth.provision(ctx, s.vault, req.Secret, req.Type, req.Setup)
+	provision, err := s.auth.provision(ctx, s.vault, req)
 	if err != nil {
 		return nil, err
 	}
@@ -182,6 +182,8 @@ func authTypeToRPC(t vault.AuthType) AuthType {
 	switch t {
 	case vault.PasswordAuth:
 		return PasswordAuth
+	case vault.PaperKeyAuth:
+		return PaperKeyAuth
 	case vault.FIDO2HMACSecretAuth:
 		return FIDO2HMACSecretAuth
 	default:
@@ -199,15 +201,15 @@ func matchAAGUID(provisions []*vault.Provision, aaguid string) *vault.Provision 
 }
 
 func (s *service) AuthRecover(ctx context.Context, req *AuthRecoverRequest) (*AuthRecoverResponse, error) {
-	if req.KeyPhrase == "" {
-		return nil, errors.Errorf("no key phrase specified")
+	if req.PaperKey == "" {
+		return nil, errors.Errorf("no paper key specified")
 	}
 	if req.NewPassword == "" {
 		return nil, errors.Errorf("no password specified")
 	}
 	unlockResp, err := s.AuthUnlock(ctx, &AuthUnlockRequest{
-		Secret: req.KeyPhrase,
-		Type:   KeyPhraseAuth,
+		Secret: req.PaperKey,
+		Type:   PaperKeyAuth,
 	})
 	if err != nil {
 		return nil, err

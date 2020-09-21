@@ -49,43 +49,47 @@ func newAuth(env *Env) *auth {
 	}
 }
 
-func (a *auth) setup(ctx context.Context, vlt *vault.Vault, secret string, typ AuthType) error {
-	logger.Infof("Setup (%s)", typ)
-	switch typ {
+func (a *auth) setup(ctx context.Context, vlt *vault.Vault, req *AuthSetupRequest) error {
+	logger.Infof("Setup (%s)", req.Type)
+	switch req.Type {
 	case PasswordAuth:
-		if err := setupPassword(vlt, secret); err != nil {
-			return authErr(err, typ, "failed to setup")
+		if err := setupPassword(vlt, req.Secret); err != nil {
+			return authErr(err, req.Type, "failed to setup")
 		}
 		return nil
+	case PaperKeyAuth:
+		// TODO: Implement
+		return errors.Errorf("setup with paper key not supported")
 	case FIDO2HMACSecretAuth:
-		_, err := setupHMACSecret(ctx, a.fas, vlt, secret, a.env.AppName())
-		if err != nil {
-			return authErr(err, typ, "failed to setup")
-		}
-		return nil
+		// TODO: Implement
+		return errors.Errorf("setup with fido2 key not supported")
 	default:
 		return errors.Errorf("unsupported auth type")
 	}
 }
 
-func (a *auth) unlock(ctx context.Context, vlt *vault.Vault, secret string, typ AuthType, client string) (string, error) {
-	logger.Infof("Unlock (%s)", typ)
+func (a *auth) unlock(ctx context.Context, vlt *vault.Vault, req *AuthUnlockRequest) (string, error) {
+	logger.Infof("Unlock (%s)", req.Type)
 
-	switch typ {
+	switch req.Type {
 	case PasswordAuth:
-		if _, err := unlockPassword(vlt, secret); err != nil {
-			return "", authErr(err, typ, "failed to unlock")
+		if _, err := unlockPassword(vlt, req.Secret); err != nil {
+			return "", authErr(err, req.Type, "failed to unlock")
+		}
+	case PaperKeyAuth:
+		if _, err := unlockPaperKey(vlt, req.Secret); err != nil {
+			return "", authErr(err, req.Type, "failed to unlock")
 		}
 	case FIDO2HMACSecretAuth:
-		if err := unlockHMACSecret(ctx, a.fas, vlt, secret); err != nil {
-			return "", authErr(err, typ, "failed to unlock")
+		if err := unlockHMACSecret(ctx, a.fas, vlt, req.Secret); err != nil {
+			return "", authErr(err, req.Type, "failed to unlock")
 		}
 	default:
 		return "", errors.Errorf("unsupported auth type")
 	}
 
-	logger.Infof("Unlocked (%s)", typ)
-	token := a.registerToken(client)
+	logger.Infof("Unlocked (%s)", req.Type)
+	token := a.registerToken(req.Client)
 	return token, nil
 }
 
@@ -94,16 +98,20 @@ func (a *auth) lock(vlt *vault.Vault) {
 	vlt.Lock()
 }
 
-func (a *auth) provision(ctx context.Context, vlt *vault.Vault, secret string, typ AuthType, setup bool) (*vault.Provision, error) {
-	logger.Infof("Provision (%s)", typ)
-	switch typ {
+func (a *auth) provision(ctx context.Context, vlt *vault.Vault, req *AuthProvisionRequest) (*vault.Provision, error) {
+	logger.Infof("Provision (%s)", req.Type)
+	switch req.Type {
 	case PasswordAuth:
-		return provisionPassword(ctx, vlt, secret)
+		return provisionPassword(vlt, req.Secret)
+	case PaperKeyAuth:
+		return provisionPaperKey(vlt, req.Secret)
 	case FIDO2HMACSecretAuth:
-		if setup {
-			return setupHMACSecret(ctx, a.fas, vlt, secret, a.env.AppName())
+		if req.Generate {
+			logger.Infof("Generate FIDO2 HMAC-Secret with device ", req.Device)
+			return generateHMACSecret(ctx, a.fas, vlt, req.Secret, req.Device, a.env.AppName())
 		}
-		return provisionHMACSecret(ctx, a.fas, vlt, secret)
+		logger.Infof("Provision FIDO2 HMAC-Secret...")
+		return provisionHMACSecret(ctx, a.fas, vlt, req.Secret)
 	default:
 		return nil, errors.Errorf("unknown auth type")
 	}
