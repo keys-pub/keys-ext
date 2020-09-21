@@ -23,7 +23,7 @@ func TestHMACSecretAuthOnDevice(t *testing.T) {
 		t.Skip()
 	}
 	pin := os.Getenv("FIDO2_PIN")
-	product := os.Getenv("FIDO2_PRODUCT")
+	device := os.Getenv("FIDO2_DEVICE")
 
 	var err error
 
@@ -43,7 +43,7 @@ func TestHMACSecretAuthOnDevice(t *testing.T) {
 	require.NoError(t, err)
 	auth.fas = fido2Plugin
 
-	dev, err := findDevice(context.TODO(), fido2Plugin, product)
+	dev, err := findDevice(context.TODO(), fido2Plugin, device)
 	require.NoError(t, err)
 	require.NotNil(t, dev)
 
