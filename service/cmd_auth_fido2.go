@@ -14,7 +14,7 @@ import (
 
 func fido2AuthSetup(ctx context.Context, client *Client, clientName string, device string, pin string) (string, error) {
 	if device == "" {
-		d, err := selectDevice(context.TODO(), client)
+		d, err := selectDevice(ctx, client)
 		if err != nil {
 			return "", err
 		}
@@ -33,6 +33,7 @@ func fido2AuthSetup(ctx context.Context, client *Client, clientName string, devi
 	if _, err := client.KeysClient().AuthSetup(ctx, &AuthSetupRequest{
 		Secret: pin,
 		Type:   FIDO2HMACSecretAuth,
+		Device: device,
 	}); err != nil {
 		return "", err
 	}
@@ -73,7 +74,7 @@ func fido2AuthUnlock(ctx context.Context, client *Client, clientName string, pin
 
 func fido2AuthProvision(ctx context.Context, client *Client, device string, pin string) error {
 	if device == "" {
-		d, err := selectDevice(context.TODO(), client)
+		d, err := selectDevice(ctx, client)
 		if err != nil {
 			return err
 		}
@@ -89,11 +90,11 @@ func fido2AuthProvision(ctx context.Context, client *Client, device string, pin 
 	}
 
 	// Generate
-	if err := fido2AuthGenerate(context.TODO(), client, pin, device); err != nil {
+	if err := fido2AuthGenerate(ctx, client, pin, device); err != nil {
 		return err
 	}
 	// Credential
-	if err := fido2AuthCredential(context.TODO(), client, pin, device); err != nil {
+	if err := fido2AuthCredential(ctx, client, pin, device); err != nil {
 		return err
 	}
 
