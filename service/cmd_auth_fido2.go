@@ -12,8 +12,16 @@ import (
 	"github.com/pkg/errors"
 )
 
-func fido2AuthSetup(ctx context.Context, client *Client, clientName string, pin string) (string, error) {
-	if len(pin) == 0 {
+func fido2AuthSetup(ctx context.Context, client *Client, clientName string, device string, pin string) (string, error) {
+	if device == "" {
+		d, err := selectDevice(context.TODO(), client)
+		if err != nil {
+			return "", err
+		}
+		device = d
+	}
+
+	if pin == "" {
 		p, err := readPassword("Enter your PIN:", true)
 		if err != nil {
 			return "", err
@@ -43,7 +51,7 @@ func fido2AuthSetup(ctx context.Context, client *Client, clientName string, pin 
 }
 
 func fido2AuthUnlock(ctx context.Context, client *Client, clientName string, pin string) (string, error) {
-	if len(pin) == 0 {
+	if pin == "" {
 		p, err := readPassword("Enter your PIN:", true)
 		if err != nil {
 			return "", err
@@ -63,6 +71,36 @@ func fido2AuthUnlock(ctx context.Context, client *Client, clientName string, pin
 	return unlock.AuthToken, nil
 }
 
+func fido2AuthProvision(ctx context.Context, client *Client, device string, pin string) error {
+	if device == "" {
+		d, err := selectDevice(context.TODO(), client)
+		if err != nil {
+			return err
+		}
+		device = d
+	}
+
+	if pin == "" {
+		p, err := readPassword("Enter your PIN:", true)
+		if err != nil {
+			return err
+		}
+		pin = p
+	}
+
+	// Generate
+	if err := fido2AuthGenerate(context.TODO(), client, pin, device); err != nil {
+		return err
+	}
+	// Credential
+	if err := fido2AuthCredential(context.TODO(), client, pin, device); err != nil {
+		return err
+	}
+
+	fmt.Fprintln(os.Stderr, "Successfully provisioned (FIDO2 HMAC-Secret).")
+	return nil
+}
+
 func fido2AuthGenerate(ctx context.Context, client *Client, pin string, device string) error {
 	fmt.Fprintln(os.Stderr, "Let's create a credential, you may need to interact with the key...")
 	if _, err := client.KeysClient().AuthProvision(ctx, &AuthProvisionRequest{
@@ -76,7 +114,7 @@ func fido2AuthGenerate(ctx context.Context, client *Client, pin string, device s
 	return nil
 }
 
-func fido2AuthProvision(ctx context.Context, client *Client, pin string, device string) error {
+func fido2AuthCredential(ctx context.Context, client *Client, pin string, device string) error {
 	fmt.Fprintln(os.Stderr, "Getting the credential, you may need to interact with the key (again)...")
 	if _, err := client.KeysClient().AuthProvision(ctx, &AuthProvisionRequest{
 		Device: device,

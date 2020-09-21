@@ -26,6 +26,7 @@ func authCommands(client *Client) []cli.Command {
 				cli.BoolFlag{Name: "token", Usage: "output token only"},
 				cli.StringFlag{Name: "type, t", Usage: "auth type: password, fido2-hmac-secret", Value: "password"},
 				cli.StringFlag{Name: "client", Value: "cli", Hidden: true},
+				cli.StringFlag{Name: "device", Value: "device path or product name (for FIDO2)"},
 			},
 			Aliases: []string{"unlock"},
 			Subcommands: []cli.Command{
@@ -69,7 +70,7 @@ func authCommands(client *Client) []cli.Command {
 					case PasswordAuth:
 						authToken, authErr = passwordAuthSetup(context.TODO(), client, clientName, c.String("password"))
 					case FIDO2HMACSecretAuth:
-						authToken, authErr = fido2AuthSetup(context.TODO(), client, clientName, c.String("pin"))
+						authToken, authErr = fido2AuthSetup(context.TODO(), client, clientName, c.String("device"), c.String("pin"))
 					}
 				} else {
 					logger.Infof("Auth unlock...")
@@ -199,34 +200,9 @@ func authProvisionCommand(client *Client) cli.Command {
 					return err
 				}
 			case FIDO2HMACSecretAuth:
-				device := c.String("device")
-				if device == "" {
-					d, err := selectDevice(context.TODO(), client)
-					if err != nil {
-						return err
-					}
-					device = d
-				}
-
-				pin := c.String("pin")
-				if pin == "" {
-					p, err := readPassword("Enter your PIN:", true)
-					if err != nil {
-						return err
-					}
-					pin = p
-				}
-
-				// Generate
-				if err := fido2AuthGenerate(context.TODO(), client, pin, device); err != nil {
+				if err := fido2AuthProvision(context.TODO(), client, c.String("device"), c.String("pin")); err != nil {
 					return err
 				}
-				// Provision
-				if err := fido2AuthProvision(context.TODO(), client, pin, device); err != nil {
-					return err
-				}
-
-				fmt.Fprintln(os.Stderr, "Successfully provisioned (FIDO2 HMAC-Secret).")
 			}
 
 			return nil
