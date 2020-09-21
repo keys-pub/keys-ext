@@ -63,21 +63,28 @@ func fido2AuthUnlock(ctx context.Context, client *Client, clientName string, pin
 	return unlock.AuthToken, nil
 }
 
-func fido2AuthProvision(ctx context.Context, client *Client, clientName string, pin string, device string, generate bool) error {
-	if generate {
-		fmt.Fprintln(os.Stderr, "Let's create a credential, you may need to interact with the key...")
-	} else {
-		fmt.Fprintln(os.Stderr, "Getting the credential, you may need to interact with the key (again)...")
-	}
+func fido2AuthGenerate(ctx context.Context, client *Client, pin string, device string) error {
+	fmt.Fprintln(os.Stderr, "Let's create a credential, you may need to interact with the key...")
 	if _, err := client.KeysClient().AuthProvision(ctx, &AuthProvisionRequest{
 		Device:   device,
 		Secret:   pin,
 		Type:     FIDO2HMACSecretAuth,
-		Generate: generate,
+		Generate: true,
 	}); err != nil {
 		return err
 	}
+	return nil
+}
 
+func fido2AuthProvision(ctx context.Context, client *Client, pin string, device string) error {
+	fmt.Fprintln(os.Stderr, "Getting the credential, you may need to interact with the key (again)...")
+	if _, err := client.KeysClient().AuthProvision(ctx, &AuthProvisionRequest{
+		Device: device,
+		Secret: pin,
+		Type:   FIDO2HMACSecretAuth,
+	}); err != nil {
+		return err
+	}
 	return nil
 }
 

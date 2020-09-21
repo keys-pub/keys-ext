@@ -90,6 +90,9 @@ func (s *service) AuthVault(ctx context.Context, req *AuthVaultRequest) (*AuthVa
 func (s *service) AuthUnlock(ctx context.Context, req *AuthUnlockRequest) (*AuthUnlockResponse, error) {
 	token, err := s.unlock(ctx, req)
 	if err != nil {
+		// if errors.Cause(err).Error() == "pin required" {
+		// 	return nil, status.Error(codes.FailedPrecondition, "pin required")
+		// }
 		return nil, err
 	}
 	return &AuthUnlockResponse{

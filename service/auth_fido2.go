@@ -33,7 +33,9 @@ func findDevice(ctx context.Context, auths fido2.AuthServer, query string) (*aut
 		if device.Path == query || device.Product == query {
 			infoResp, err := auths.DeviceInfo(ctx, &fido2.DeviceInfoRequest{Device: device.Path})
 			if err != nil {
-				return nil, err
+				// TODO: Test not a FIDO2 device
+				logger.Infof("Failed to get device info: %s", err)
+				continue
 			}
 			return &authDevice{
 				Device:     device,
@@ -64,7 +66,9 @@ func findDeviceProvision(ctx context.Context, auths fido2.AuthServer, provisions
 	for _, device := range devicesResp.Devices {
 		infoResp, err := auths.DeviceInfo(ctx, &fido2.DeviceInfoRequest{Device: device.Path})
 		if err != nil {
-			return nil, err
+			// TODO: Test not a FIDO2 device
+			logger.Infof("Failed to get device info: %s", err)
+			continue
 		}
 		deviceInfo := infoResp.Info
 		logger.Debugf("Checking device: %v", deviceInfo)
