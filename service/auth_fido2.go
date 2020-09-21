@@ -217,7 +217,7 @@ func unlockHMACSecret(ctx context.Context, auths fido2.AuthServer, vlt *vault.Va
 	// which usually requires user presence (touching the device). Unlock also
 	// usually requires user presence so we split up these blocking calls into
 	// two requests. The first request doesn't give us the auth, so we do the
-	// setup of first unlock instead of during setup.
+	// setup of first unlock.
 	status, err := vlt.Status()
 	if err != nil {
 		return err
