@@ -156,7 +156,7 @@ func changePasswordCommand(client *Client) cli.Command {
 			if err != nil {
 				return err
 			}
-			if _, err := client.KeysClient().PasswordChange(context.TODO(), &PasswordChangeRequest{
+			if _, err := client.KeysClient().AuthPasswordChange(context.TODO(), &AuthPasswordChangeRequest{
 				Old: old,
 				New: new,
 			}); err != nil {

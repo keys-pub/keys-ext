@@ -54,8 +54,8 @@ func provisionPassword(vlt *vault.Vault, password string) (*vault.Provision, err
 	return provision, nil
 }
 
-// PasswordChange (RPC) ...
-func (s *service) PasswordChange(ctx context.Context, req *PasswordChangeRequest) (*PasswordChangeResponse, error) {
+// AuthPasswordChange (RPC) ...
+func (s *service) AuthPasswordChange(ctx context.Context, req *AuthPasswordChangeRequest) (*AuthPasswordChangeResponse, error) {
 	old, err := unlockPassword(s.vault, req.Old)
 	if err != nil {
 		if errors.Cause(err) == vault.ErrInvalidAuth {
@@ -75,5 +75,5 @@ func (s *service) PasswordChange(ctx context.Context, req *PasswordChangeRequest
 	if !ok {
 		return nil, errors.Errorf("failed to deprovision, password not found (new password was provisioned)")
 	}
-	return &PasswordChangeResponse{}, nil
+	return &AuthPasswordChangeResponse{}, nil
 }

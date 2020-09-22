@@ -69,7 +69,7 @@ type KeysClient interface {
 	AuthProvision(ctx context.Context, in *AuthProvisionRequest, opts ...grpc.CallOption) (*AuthProvisionResponse, error)
 	AuthDeprovision(ctx context.Context, in *AuthDeprovisionRequest, opts ...grpc.CallOption) (*AuthDeprovisionResponse, error)
 	AuthProvisions(ctx context.Context, in *AuthProvisionsRequest, opts ...grpc.CallOption) (*AuthProvisionsResponse, error)
-	PasswordChange(ctx context.Context, in *PasswordChangeRequest, opts ...grpc.CallOption) (*PasswordChangeResponse, error)
+	AuthPasswordChange(ctx context.Context, in *AuthPasswordChangeRequest, opts ...grpc.CallOption) (*AuthPasswordChangeResponse, error)
 	VaultAuth(ctx context.Context, in *VaultAuthRequest, opts ...grpc.CallOption) (*VaultAuthResponse, error)
 	VaultSync(ctx context.Context, in *VaultSyncRequest, opts ...grpc.CallOption) (*VaultSyncResponse, error)
 	VaultUnsync(ctx context.Context, in *VaultUnsyncRequest, opts ...grpc.CallOption) (*VaultUnsyncResponse, error)
@@ -795,9 +795,9 @@ func (c *keysClient) AuthProvisions(ctx context.Context, in *AuthProvisionsReque
 	return out, nil
 }
 
-func (c *keysClient) PasswordChange(ctx context.Context, in *PasswordChangeRequest, opts ...grpc.CallOption) (*PasswordChangeResponse, error) {
-	out := new(PasswordChangeResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/PasswordChange", in, out, opts...)
+func (c *keysClient) AuthPasswordChange(ctx context.Context, in *AuthPasswordChangeRequest, opts ...grpc.CallOption) (*AuthPasswordChangeResponse, error) {
+	out := new(AuthPasswordChangeResponse)
+	err := c.cc.Invoke(ctx, "/service.Keys/AuthPasswordChange", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -995,7 +995,7 @@ type KeysServer interface {
 	AuthProvision(context.Context, *AuthProvisionRequest) (*AuthProvisionResponse, error)
 	AuthDeprovision(context.Context, *AuthDeprovisionRequest) (*AuthDeprovisionResponse, error)
 	AuthProvisions(context.Context, *AuthProvisionsRequest) (*AuthProvisionsResponse, error)
-	PasswordChange(context.Context, *PasswordChangeRequest) (*PasswordChangeResponse, error)
+	AuthPasswordChange(context.Context, *AuthPasswordChangeRequest) (*AuthPasswordChangeResponse, error)
 	VaultAuth(context.Context, *VaultAuthRequest) (*VaultAuthResponse, error)
 	VaultSync(context.Context, *VaultSyncRequest) (*VaultSyncResponse, error)
 	VaultUnsync(context.Context, *VaultUnsyncRequest) (*VaultUnsyncResponse, error)
@@ -1170,8 +1170,8 @@ func (*UnimplementedKeysServer) AuthDeprovision(context.Context, *AuthDeprovisio
 func (*UnimplementedKeysServer) AuthProvisions(context.Context, *AuthProvisionsRequest) (*AuthProvisionsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AuthProvisions not implemented")
 }
-func (*UnimplementedKeysServer) PasswordChange(context.Context, *PasswordChangeRequest) (*PasswordChangeResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method PasswordChange not implemented")
+func (*UnimplementedKeysServer) AuthPasswordChange(context.Context, *AuthPasswordChangeRequest) (*AuthPasswordChangeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthPasswordChange not implemented")
 }
 func (*UnimplementedKeysServer) VaultAuth(context.Context, *VaultAuthRequest) (*VaultAuthResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method VaultAuth not implemented")
@@ -2212,20 +2212,20 @@ func _Keys_AuthProvisions_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Keys_PasswordChange_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PasswordChangeRequest)
+func _Keys_AuthPasswordChange_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthPasswordChangeRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(KeysServer).PasswordChange(ctx, in)
+		return srv.(KeysServer).AuthPasswordChange(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/PasswordChange",
+		FullMethod: "/service.Keys/AuthPasswordChange",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(KeysServer).PasswordChange(ctx, req.(*PasswordChangeRequest))
+		return srv.(KeysServer).AuthPasswordChange(ctx, req.(*AuthPasswordChangeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2661,8 +2661,8 @@ var _Keys_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Keys_AuthProvisions_Handler,
 		},
 		{
-			MethodName: "PasswordChange",
-			Handler:    _Keys_PasswordChange_Handler,
+			MethodName: "AuthPasswordChange",
+			Handler:    _Keys_AuthPasswordChange_Handler,
 		},
 		{
 			MethodName: "VaultAuth",

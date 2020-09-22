@@ -155,6 +155,7 @@ func TestAuthUnlockLock(t *testing.T) {
 }
 
 func TestPasswordChange(t *testing.T) {
+	// vault.SetLogger(NewLogger(DebugLevel))
 	var err error
 	env := newTestEnv(t)
 	service, closeFn := newTestService(t, env)
@@ -164,19 +165,29 @@ func TestPasswordChange(t *testing.T) {
 	_, err = service.AuthSetup(ctx, &AuthSetupRequest{Secret: "password123", Type: PasswordAuth})
 	require.NoError(t, err)
 
-	_, err = service.PasswordChange(ctx, &PasswordChangeRequest{
+	_, err = service.AuthUnlock(ctx, &AuthUnlockRequest{
+		Secret: "password123",
+		Type:   PasswordAuth,
+		Client: "test",
+	})
+	require.NoError(t, err)
+
+	// _, err = service.VaultSync(context.TODO(), &VaultSyncRequest{})
+	// require.NoError(t, err)
+
+	_, err = service.AuthPasswordChange(ctx, &AuthPasswordChangeRequest{
 		Old: "invalid",
 		New: "newpassword",
 	})
 	require.EqualError(t, err, "invalid password")
 
-	_, err = service.PasswordChange(ctx, &PasswordChangeRequest{
+	_, err = service.AuthPasswordChange(ctx, &AuthPasswordChangeRequest{
 		Old: "",
 		New: "newpassword",
 	})
 	require.EqualError(t, err, "empty password")
 
-	_, err = service.PasswordChange(ctx, &PasswordChangeRequest{
+	_, err = service.AuthPasswordChange(ctx, &AuthPasswordChangeRequest{
 		Old: "password123",
 		New: "password1234",
 	})
