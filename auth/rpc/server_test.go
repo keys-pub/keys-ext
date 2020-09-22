@@ -4,6 +4,7 @@ import (
 	context "context"
 	"log"
 	"os"
+	"sync"
 	"testing"
 
 	"github.com/keys-pub/keys-ext/auth/fido2"
@@ -37,6 +38,48 @@ func TestInfo(t *testing.T) {
 		t.Logf("Info: %+v", infoResp.Info)
 		require.NotEmpty(t, infoResp.Info.AAGUID)
 	}
+}
+
+func TestConcurrent(t *testing.T) {
+	ctx := context.TODO()
+	server := rpc.NewAuthServer()
+
+	resp, err := server.Devices(ctx, &fido2.DevicesRequest{})
+	require.NoError(t, err)
+
+	wg := &sync.WaitGroup{}
+
+	fn := func() {
+		defer wg.Done()
+		for _, device := range resp.Devices {
+			t.Logf("Device: %+v", device.Path)
+			require.NotEmpty(t, device.Path)
+
+			typeResp, err := server.DeviceType(ctx, &fido2.DeviceTypeRequest{
+				Device: device.Path,
+			})
+			require.NoError(t, err)
+			if typeResp.Type != fido2.FIDO2 {
+				continue
+			}
+
+			infoResp, err := server.DeviceInfo(ctx, &fido2.DeviceInfoRequest{
+				Device: device.Path,
+			})
+			require.NoError(t, err)
+			t.Logf("Info: %+v", infoResp.Info)
+			require.NotEmpty(t, infoResp.Info.AAGUID)
+		}
+	}
+
+	wg.Add(5)
+	go fn()
+	go fn()
+	go fn()
+	go fn()
+	go fn()
+
+	wg.Wait()
 }
 
 func ExampleAuthServer_SetPIN() {

@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 	"sort"
+	"sync"
 
 	"github.com/keys-pub/go-libfido2"
 	"github.com/keys-pub/keys-ext/auth/fido2"
@@ -14,6 +15,7 @@ import (
 // Server ...
 type Server struct {
 	fido2.UnimplementedAuthServer
+	sync.Mutex
 }
 
 // NewAuthServer creates an AuthServer.
@@ -23,6 +25,9 @@ func NewAuthServer() fido2.AuthServer {
 
 // Devices ...
 func (s *Server) Devices(ctx context.Context, req *fido2.DevicesRequest) (*fido2.DevicesResponse, error) {
+	s.Lock()
+	defer s.Unlock()
+
 	devices, err := libfido2.DeviceLocations()
 	if err != nil {
 		return nil, err
@@ -47,6 +52,9 @@ func findDevice(path string) (*libfido2.Device, error) {
 
 // DeviceType ...
 func (s *Server) DeviceType(ctx context.Context, req *fido2.DeviceTypeRequest) (*fido2.DeviceTypeResponse, error) {
+	s.Lock()
+	defer s.Unlock()
+
 	device, err := findDevice(req.Device)
 	if err != nil {
 		return nil, err
@@ -74,6 +82,9 @@ func (s *Server) DeviceType(ctx context.Context, req *fido2.DeviceTypeRequest) (
 
 // DeviceInfo ...
 func (s *Server) DeviceInfo(ctx context.Context, req *fido2.DeviceInfoRequest) (*fido2.DeviceInfoResponse, error) {
+	s.Lock()
+	defer s.Unlock()
+
 	device, err := findDevice(req.Device)
 	if err != nil {
 		return nil, err
@@ -91,6 +102,9 @@ func (s *Server) DeviceInfo(ctx context.Context, req *fido2.DeviceInfoRequest) (
 
 // MakeCredential ...
 func (s *Server) MakeCredential(ctx context.Context, req *fido2.MakeCredentialRequest) (*fido2.MakeCredentialResponse, error) {
+	s.Lock()
+	defer s.Unlock()
+
 	device, err := findDevice(req.Device)
 	if err != nil {
 		return nil, err
@@ -135,6 +149,9 @@ func (s *Server) MakeCredential(ctx context.Context, req *fido2.MakeCredentialRe
 
 // SetPIN ...
 func (s *Server) SetPIN(ctx context.Context, req *fido2.SetPINRequest) (*fido2.SetPINResponse, error) {
+	s.Lock()
+	defer s.Unlock()
+
 	device, err := findDevice(req.Device)
 	if err != nil {
 		return nil, err
@@ -149,6 +166,9 @@ func (s *Server) SetPIN(ctx context.Context, req *fido2.SetPINRequest) (*fido2.S
 
 // Reset ...
 func (s *Server) Reset(ctx context.Context, req *fido2.ResetRequest) (*fido2.ResetResponse, error) {
+	s.Lock()
+	defer s.Unlock()
+
 	device, err := findDevice(req.Device)
 	if err != nil {
 		return nil, err
@@ -163,6 +183,9 @@ func (s *Server) Reset(ctx context.Context, req *fido2.ResetRequest) (*fido2.Res
 
 // RetryCount ...
 func (s *Server) RetryCount(ctx context.Context, req *fido2.RetryCountRequest) (*fido2.RetryCountResponse, error) {
+	s.Lock()
+	defer s.Unlock()
+
 	device, err := findDevice(req.Device)
 	if err != nil {
 		return nil, err
@@ -180,6 +203,9 @@ func (s *Server) RetryCount(ctx context.Context, req *fido2.RetryCountRequest) (
 
 // Assertion ...
 func (s *Server) Assertion(ctx context.Context, req *fido2.AssertionRequest) (*fido2.AssertionResponse, error) {
+	s.Lock()
+	defer s.Unlock()
+
 	device, err := findDevice(req.Device)
 	if err != nil {
 		return nil, err
@@ -210,6 +236,9 @@ func (s *Server) Assertion(ctx context.Context, req *fido2.AssertionRequest) (*f
 
 // CredentialsInfo ...
 func (s *Server) CredentialsInfo(ctx context.Context, req *fido2.CredentialsInfoRequest) (*fido2.CredentialsInfoResponse, error) {
+	s.Lock()
+	defer s.Unlock()
+
 	device, err := findDevice(req.Device)
 	if err != nil {
 		return nil, err
@@ -230,6 +259,9 @@ func (s *Server) CredentialsInfo(ctx context.Context, req *fido2.CredentialsInfo
 
 // Credentials ...
 func (s *Server) Credentials(ctx context.Context, req *fido2.CredentialsRequest) (*fido2.CredentialsResponse, error) {
+	s.Lock()
+	defer s.Unlock()
+
 	device, err := findDevice(req.Device)
 	if err != nil {
 		return nil, err
@@ -274,6 +306,9 @@ func (s *Server) Credentials(ctx context.Context, req *fido2.CredentialsRequest)
 
 // RelyingParties ...
 func (s *Server) RelyingParties(ctx context.Context, req *fido2.RelyingPartiesRequest) (*fido2.RelyingPartiesResponse, error) {
+	s.Lock()
+	defer s.Unlock()
+
 	device, err := findDevice(req.Device)
 	if err != nil {
 		return nil, err
@@ -355,6 +390,9 @@ func (s *Server) GenerateHMACSecret(ctx context.Context, req *fido2.GenerateHMAC
 
 // HMACSecret ...
 func (s *Server) HMACSecret(ctx context.Context, req *fido2.HMACSecretRequest) (*fido2.HMACSecretResponse, error) {
+	s.Lock()
+	defer s.Unlock()
+
 	device, err := findDevice(req.Device)
 	if err != nil {
 		return nil, err
