@@ -120,6 +120,8 @@ github.com/google/pprof v0.0.0-20200229191704-1ebb73c60ed3/go.mod h1:ZgVRPoUq/hf
 github.com/google/renameio v0.1.0/go.mod h1:KWCgfxg9yswjAJkECMjeO8J8rahYeXnNhOm40UhjYkI=
 github.com/google/uuid v1.1.1 h1:Gkbcsh/GbpXz7lPftLA3P6TYMwjCLYm83jiFQZF/3gY=
 github.com/google/uuid v1.1.1/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+github.com/google/uuid v1.1.2 h1:EVhdT+1Kseyi1/pUmXKaFxYsDNy9RQYkMWRH68J/W7Y=
+github.com/google/uuid v1.1.2/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/googleapis/gax-go/v2 v2.0.4/go.mod h1:0Wqv26UfaUD9n4G6kQubkQ+KchISgw+vpHVxEJEs9eg=
 github.com/googleapis/gax-go/v2 v2.0.5 h1:sjZBwGj9Jlw33ImPtvFviGYvseOtDM7hkSKB7+Tv3SM=
 github.com/googleapis/gax-go/v2 v2.0.5/go.mod h1:DWXyrwAJ9X0FpwwEdw+IPEYBICEFu5mhpdKc/us6bOk=
@@ -186,6 +188,8 @@ github.com/keys-pub/keys-ext/vault v0.0.0-20200917183732-707b83c90b21 h1:pPtLhJS
 github.com/keys-pub/keys-ext/vault v0.0.0-20200917183732-707b83c90b21/go.mod h1:wxBi9qdjjxW8yZyJjrJPhZxobCia8JVRZBgmKi26J94=
 github.com/keys-pub/keys-ext/vault v0.0.0-20200917215110-bda938100d21 h1:6OICUB6DSSAsxCuC8CdQUx8rLZK01zbe+vzeCzvk/LE=
 github.com/keys-pub/keys-ext/vault v0.0.0-20200917215110-bda938100d21/go.mod h1:wxBi9qdjjxW8yZyJjrJPhZxobCia8JVRZBgmKi26J94=
+github.com/keys-pub/keys-ext/vault v0.0.0-20200920213226-5e4918a2add8 h1:tm6E3PqbVG/59Q/LQNJ1oXVnSr2KGq0gsSDnTLg+BjY=
+github.com/keys-pub/keys-ext/vault v0.0.0-20200920213226-5e4918a2add8/go.mod h1:wxBi9qdjjxW8yZyJjrJPhZxobCia8JVRZBgmKi26J94=
 github.com/keys-pub/keys-ext/wormhole v0.0.0-20200911204159-4d4aeeb20971 h1:fpxcic0oxi4fSwMI1E1M3NodC2Ao5GqOqD6TUTDjZvk=
 github.com/keys-pub/keys-ext/wormhole v0.0.0-20200911204159-4d4aeeb20971/go.mod h1:ZoIOc0QRxj/yqgyH7Qn5DrvXFGDZ35i2V5Djr+9Weqo=
 github.com/keys-pub/keys-ext/wormhole v0.0.0-20200917215110-bda938100d21 h1:Z7w1JWqdDjyhzHDKHQwEqK9wUyJ0OPNNg6kTQUQsIfE=

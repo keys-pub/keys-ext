@@ -18,11 +18,41 @@ type authDevice struct {
 	Provision  *vault.Provision
 }
 
-// findDevice returns supported device.
-// If infos is specified we try to find the device matching the auth credentials (aaguid).
-func findDevice(ctx context.Context, auths fido2.AuthServer, provisions []*vault.Provision) (*authDevice, error) {
+func findDevice(ctx context.Context, auths fido2.AuthServer, query string) (*authDevice, error) {
 	if auths == nil {
 		return nil, errors.Errorf("fido2 plugin not available")
+	}
+	if query == "" {
+		return nil, errors.Errorf("no device specified")
+	}
+	devicesResp, err := auths.Devices(ctx, &fido2.DevicesRequest{})
+	if err != nil {
+		return nil, err
+	}
+	for _, device := range devicesResp.Devices {
+		if device.Path == query || device.Product == query {
+			infoResp, err := auths.DeviceInfo(ctx, &fido2.DeviceInfoRequest{Device: device.Path})
+			if err != nil {
+				// TODO: Test not a FIDO2 device
+				logger.Infof("Failed to get device info: %s", err)
+				continue
+			}
+			return &authDevice{
+				Device:     device,
+				DeviceInfo: infoResp.Info,
+			}, nil
+		}
+	}
+	return nil, nil
+}
+
+// findDeviceProvision returns a device with matching the auth credentials (aaguid).
+func findDeviceProvision(ctx context.Context, auths fido2.AuthServer, provisions []*vault.Provision) (*authDevice, error) {
+	if auths == nil {
+		return nil, errors.Errorf("fido2 plugin not available")
+	}
+	if len(provisions) == 0 {
+		return nil, errors.Errorf("no provisions specified")
 	}
 
 	devicesResp, err := auths.Devices(ctx, &fido2.DevicesRequest{})
@@ -30,21 +60,21 @@ func findDevice(ctx context.Context, auths fido2.AuthServer, provisions []*vault
 		return nil, err
 	}
 	if len(devicesResp.Devices) == 0 {
-		return nil, errors.Errorf("no device found")
+		return nil, errors.Errorf("no devices found")
 	}
-
-	// TODO: We return first device found, but we might want the user to choose instead.
 
 	for _, device := range devicesResp.Devices {
 		infoResp, err := auths.DeviceInfo(ctx, &fido2.DeviceInfoRequest{Device: device.Path})
 		if err != nil {
-			return nil, err
+			// TODO: Test not a FIDO2 device
+			logger.Infof("Failed to get device info: %s", err)
+			continue
 		}
 		deviceInfo := infoResp.Info
 		logger.Debugf("Checking device: %v", deviceInfo)
 		if deviceInfo.HasExtension(fido2.HMACSecretExtension) {
 			provision := matchAAGUID(provisions, deviceInfo.AAGUID)
-			if len(provisions) == 0 || provision != nil {
+			if provision != nil {
 				logger.Debugf("Found device: %v", device.Path)
 				return &authDevice{
 					Device:     device,
@@ -57,20 +87,27 @@ func findDevice(ctx context.Context, auths fido2.AuthServer, provisions []*vault
 	return nil, errors.Errorf("no devices found matching our credentials")
 }
 
-func setupHMACSecret(ctx context.Context, auths fido2.AuthServer, vlt *vault.Vault, pin string, appName string) (*vault.Provision, error) {
+func generateHMACSecret(ctx context.Context, auths fido2.AuthServer, vlt *vault.Vault, pin string, device string, appName string) (*vault.Provision, error) {
 	if auths == nil {
 		return nil, errors.Errorf("fido2 plugin not available")
 	}
+	if device == "" {
+		return nil, errors.Errorf("no device specified")
+	}
+
 	cdh := bytes.Repeat([]byte{0x00}, 32) // No client data
 	rp := &fido2.RelyingParty{
 		ID:   "keys.pub",
 		Name: "keys.pub",
 	}
 
-	logger.Debugf("Auth setup hmac-secret, looking for supported devices...")
-	authDevice, err := findDevice(ctx, auths, nil)
+	logger.Debugf("Auth setup hmac-secret...")
+	dev, err := findDevice(ctx, auths, device)
 	if err != nil {
 		return nil, err
+	}
+	if dev == nil {
+		return nil, errors.Errorf("device not found: %s", device)
 	}
 
 	userID := keys.Rand16()[:]
@@ -79,7 +116,7 @@ func setupHMACSecret(ctx context.Context, auths fido2.AuthServer, vlt *vault.Vau
 
 	logger.Debugf("Generating hmac-secret...")
 	resp, err := auths.GenerateHMACSecret(ctx, &fido2.GenerateHMACSecretRequest{
-		Device:         authDevice.Device.Path,
+		Device:         dev.Device.Path,
 		PIN:            pin,
 		ClientDataHash: cdh[:],
 		RP:             rp,
@@ -103,7 +140,7 @@ func setupHMACSecret(ctx context.Context, auths fido2.AuthServer, vlt *vault.Vau
 	provision := &vault.Provision{
 		ID:        id,
 		Type:      vault.FIDO2HMACSecretAuth,
-		AAGUID:    authDevice.DeviceInfo.AAGUID,
+		AAGUID:    dev.DeviceInfo.AAGUID,
 		Salt:      salt[:],
 		NoPin:     noPin,
 		CreatedAt: time.Now(),
@@ -136,12 +173,12 @@ func hmacSecret(ctx context.Context, auths fido2.AuthServer, vlt *vault.Vault, p
 	}
 
 	logger.Debugf("Looking for device with a matching credential...")
-	authDevice, err := findDevice(ctx, auths, provisions)
+	authDevice, err := findDeviceProvision(ctx, auths, provisions)
 	if err != nil {
 		return nil, nil, err
 	}
 	if authDevice.Provision == nil {
-		return nil, nil, errors.Errorf("device has no provision")
+		return nil, nil, errors.Errorf("device has no matching provision")
 	}
 
 	credID, err := encoding.Decode(authDevice.Provision.ID, encoding.Base62)
@@ -149,7 +186,7 @@ func hmacSecret(ctx context.Context, auths fido2.AuthServer, vlt *vault.Vault, p
 		return nil, nil, errors.Wrapf(err, "credential (provision) id was invalid")
 	}
 
-	logger.Debugf("Getting hmac-secret...")
+	logger.Debugf("Getting HMAC-Secret...")
 	secretResp, err := auths.HMACSecret(ctx, &fido2.HMACSecretRequest{
 		Device:         authDevice.Device.Path,
 		PIN:            pin,
@@ -180,7 +217,7 @@ func unlockHMACSecret(ctx context.Context, auths fido2.AuthServer, vlt *vault.Va
 	// which usually requires user presence (touching the device). Unlock also
 	// usually requires user presence so we split up these blocking calls into
 	// two requests. The first request doesn't give us the auth, so we do the
-	// setup of first unlock instead of during setup.
+	// setup of first unlock.
 	status, err := vlt.Status()
 	if err != nil {
 		return err

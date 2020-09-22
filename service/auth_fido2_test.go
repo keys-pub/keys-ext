@@ -23,6 +23,8 @@ func TestHMACSecretAuthOnDevice(t *testing.T) {
 		t.Skip()
 	}
 	pin := os.Getenv("FIDO2_PIN")
+	device := os.Getenv("FIDO2_DEVICE")
+
 	var err error
 
 	// SetLogger(NewLogger(DebugLevel))
@@ -41,12 +43,24 @@ func TestHMACSecretAuthOnDevice(t *testing.T) {
 	require.NoError(t, err)
 	auth.fas = fido2Plugin
 
-	t.Logf("Setup")
-	err = auth.setup(context.TODO(), vlt, pin, FIDO2HMACSecretAuth)
+	dev, err := findDevice(context.TODO(), fido2Plugin, device)
+	require.NoError(t, err)
+	require.NotNil(t, dev)
+
+	// Setup
+	err = auth.setup(context.TODO(), vlt, &AuthSetupRequest{
+		Device: dev.Device.Path,
+		Secret: pin,
+		Type:   FIDO2HMACSecretAuth,
+	})
 	require.NoError(t, err)
 
-	t.Logf("Unlock")
-	token, err := auth.unlock(context.TODO(), vlt, pin, FIDO2HMACSecretAuth, "test")
+	// Unlock
+	token, err := auth.unlock(context.TODO(), vlt, &AuthUnlockRequest{
+		Secret: pin,
+		Type:   FIDO2HMACSecretAuth,
+		Client: "test",
+	})
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 }
@@ -66,19 +80,30 @@ func TestHMACSecretAuth(t *testing.T) {
 	pin := "12345"
 
 	// Try without plugin
-	err = auth.setup(context.TODO(), vlt, pin, FIDO2HMACSecretAuth)
+	err = auth.setup(context.TODO(), vlt, &AuthSetupRequest{Secret: pin, Type: FIDO2HMACSecretAuth})
 	require.EqualError(t, err, "failed to setup: fido2 plugin not available")
+
+	_, err = auth.unlock(context.TODO(), vlt, &AuthUnlockRequest{Secret: pin, Type: FIDO2HMACSecretAuth, Client: "test"})
+	require.EqualError(t, err, "failed to unlock: fido2 plugin not available")
 
 	// Set mock plugin
 	auths := mock.NewAuthServer()
 	auth.fas = auths
 
-	t.Logf("Setup")
-	err = auth.setup(context.TODO(), vlt, pin, FIDO2HMACSecretAuth)
+	// No device
+	err = auth.setup(context.TODO(), vlt, &AuthSetupRequest{Secret: pin, Type: FIDO2HMACSecretAuth})
+	require.EqualError(t, err, "failed to setup: no device specified")
+
+	// Device not found
+	err = auth.setup(context.TODO(), vlt, &AuthSetupRequest{Device: "/notfound", Secret: pin, Type: FIDO2HMACSecretAuth})
+	require.EqualError(t, err, "failed to setup: device not found: /notfound")
+
+	// Setup
+	err = auth.setup(context.TODO(), vlt, &AuthSetupRequest{Device: "/dev/test", Secret: pin, Type: FIDO2HMACSecretAuth})
 	require.NoError(t, err)
 
-	t.Logf("Unlock")
-	token, err := auth.unlock(context.TODO(), vlt, pin, FIDO2HMACSecretAuth, "test")
+	// Unlock
+	token, err := auth.unlock(context.TODO(), vlt, &AuthUnlockRequest{Secret: pin, Type: FIDO2HMACSecretAuth, Client: "test"})
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 
@@ -87,14 +112,7 @@ func TestHMACSecretAuth(t *testing.T) {
 
 	vlt.Lock()
 
-	_, err = auth.unlock(context.TODO(), vlt, pin, FIDO2HMACSecretAuth, "test")
+	_, err = auth.unlock(context.TODO(), vlt, &AuthUnlockRequest{Secret: pin, Type: FIDO2HMACSecretAuth, Client: "test"})
 	require.NoError(t, err)
 	require.Equal(t, mk, vlt.MasterKey())
-
-	// Unset plugin
-	auth.fas = nil
-
-	_, err = auth.unlock(context.TODO(), vlt, pin, FIDO2HMACSecretAuth, "test")
-	require.EqualError(t, err, "failed to unlock: fido2 plugin not available")
-
 }

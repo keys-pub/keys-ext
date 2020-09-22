@@ -55,7 +55,7 @@ func passwordAuthUnlock(ctx context.Context, client *Client, clientName string, 
 	return unlock.AuthToken, nil
 }
 
-func passwordAuthProvision(ctx context.Context, client *Client, clientName string, password string) error {
+func passwordAuthProvision(ctx context.Context, client *Client, password string) error {
 	if len(password) == 0 {
 		fmt.Fprintf(os.Stderr, "OK, let's create a password.\n")
 		p, err := readVerifyPassword("Create a password:")

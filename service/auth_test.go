@@ -27,7 +27,7 @@ func TestAuthWithPassword(t *testing.T) {
 	require.Equal(t, vault.SetupNeeded, status)
 
 	// Setup
-	err = auth.setup(ctx, vlt, "password123", PasswordAuth)
+	err = auth.setup(ctx, vlt, &AuthSetupRequest{Secret: "password123", Type: PasswordAuth})
 	require.NoError(t, err)
 
 	status, err = vlt.Status()
@@ -35,7 +35,7 @@ func TestAuthWithPassword(t *testing.T) {
 	require.Equal(t, vault.Locked, status)
 
 	// Unlock
-	token, err := auth.unlock(ctx, vlt, "password123", PasswordAuth, "test")
+	token, err := auth.unlock(ctx, vlt, &AuthUnlockRequest{Secret: "password123", Type: PasswordAuth, Client: "test"})
 	require.NoError(t, err)
 	require.NotEmpty(t, auth.tokens)
 	require.NotEmpty(t, token)
@@ -44,12 +44,12 @@ func TestAuthWithPassword(t *testing.T) {
 	auth.lock(vlt)
 
 	// Unlock with invalid password
-	_, err = auth.unlock(ctx, vlt, "invalidpassword", PasswordAuth, "test")
+	_, err = auth.unlock(ctx, vlt, &AuthUnlockRequest{Secret: "invalidpassword", Type: PasswordAuth, Client: "test"})
 	require.EqualError(t, err, "rpc error: code = Unauthenticated desc = invalid password")
 	require.Empty(t, auth.tokens)
 
 	// Unlock
-	token, err = auth.unlock(ctx, vlt, "password123", PasswordAuth, "test")
+	token, err = auth.unlock(ctx, vlt, &AuthUnlockRequest{Secret: "password123", Type: PasswordAuth, Client: "test"})
 	require.NoError(t, err)
 	require.NotEmpty(t, auth.tokens)
 	require.NotEmpty(t, token)
@@ -82,10 +82,10 @@ func TestAuthorize(t *testing.T) {
 	require.EqualError(t, err, "rpc error: code = Unauthenticated desc = invalid token")
 
 	// Setup
-	err = auth.setup(ctx, vlt, "password123", PasswordAuth)
+	err = auth.setup(ctx, vlt, &AuthSetupRequest{Secret: "password123", Type: PasswordAuth})
 	require.NoError(t, err)
 
-	token, err := auth.unlock(ctx, vlt, "password123", PasswordAuth, "test")
+	token, err := auth.unlock(ctx, vlt, &AuthUnlockRequest{Secret: "password123", Type: PasswordAuth, Client: "test"})
 	require.NoError(t, err)
 	require.NotEmpty(t, auth.tokens)
 	require.NotEmpty(t, token)

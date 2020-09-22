@@ -90,12 +90,12 @@ func (s *service) Close() {
 	}
 }
 
-func (s *service) unlock(ctx context.Context, secret string, typ AuthType, client string) (string, error) {
+func (s *service) unlock(ctx context.Context, req *AuthUnlockRequest) (string, error) {
 	s.unlockMtx.Lock()
 	defer s.unlockMtx.Unlock()
 
 	// Unlock auth/vault (get token)
-	token, err := s.auth.unlock(ctx, s.vault, secret, typ, client)
+	token, err := s.auth.unlock(ctx, s.vault, req)
 	if err != nil {
 		return "", err
 	}
