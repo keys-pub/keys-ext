@@ -63,6 +63,11 @@ func testSync(t *testing.T, st1 vault.Store, st2 vault.Store) {
 	require.Equal(t, "key1", out.ID)
 	require.Equal(t, []byte("mysecretdata.1a"), out.Data)
 
+	// CheckSync not enabled
+	synced, err := v1.CheckSync(ctx, time.Duration(0))
+	require.NoError(t, err)
+	require.False(t, synced)
+
 	err = v1.Sync(ctx)
 	require.NoError(t, err)
 
@@ -163,6 +168,20 @@ func testSync(t *testing.T, st1 vault.Store, st2 vault.Store) {
 	out, err = v1.Get("key1")
 	require.NoError(t, err)
 	require.Nil(t, out)
+
+	// CheckSync
+	synced, err = v1.CheckSync(ctx, time.Duration(0))
+	require.NoError(t, err)
+	require.True(t, synced)
+
+	synced, err = v1.CheckSync(ctx, time.Duration(time.Second))
+	require.NoError(t, err)
+	require.False(t, synced)
+
+	time.Sleep(time.Millisecond)
+	synced, err = v1.CheckSync(ctx, time.Duration(time.Millisecond))
+	require.NoError(t, err)
+	require.True(t, synced)
 
 	history, err = v1.ItemHistory("key1")
 	require.NoError(t, err)

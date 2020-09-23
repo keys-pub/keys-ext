@@ -81,6 +81,10 @@ func (v *Vault) SyncStatus() (*SyncStatus, error) {
 // - Clear status (last synced, push, pull, nonces, rsalt)
 // - Clear remote
 func (v *Vault) Unsync(ctx context.Context) error {
+	v.mtx.Lock()
+	defer v.mtx.Unlock()
+	logger.Infof("Unsyncing...")
+
 	if v.remote == nil {
 		return errors.Errorf("no remote set")
 	}
@@ -192,8 +196,10 @@ func (v *Vault) SyncEnabled() (bool, error) {
 	return true, nil
 }
 
-// CheckSync performs sync unless disabled or already synced recently (within expire duration).
-func (v *Vault) CheckSync(ctx context.Context, expire time.Duration) (bool, error) {
+func (v *Vault) shouldCheck(expire time.Duration) (bool, error) {
+	v.checkMtx.Lock()
+	defer v.checkMtx.Unlock()
+
 	enabled, err := v.SyncEnabled()
 	if err != nil {
 		return false, err
@@ -202,17 +208,37 @@ func (v *Vault) CheckSync(ctx context.Context, expire time.Duration) (bool, erro
 		return false, nil
 	}
 
+	diffCheck := v.clock.Now().Sub(v.checkedAt)
+	if diffCheck >= 0 && diffCheck < expire {
+		logger.Debugf("Already checked recently")
+		return false, nil
+	}
+	v.checkedAt = v.clock.Now()
+
 	last, err := v.lastSync()
 	if err != nil {
 		return false, err
 	}
-	diff := v.clock.Now().Sub(last)
-	if diff >= 0 && diff < expire {
+	logger.Debugf("Last synced: %s", last)
+	diffLast := v.clock.Now().Sub(last)
+	if diffLast >= 0 && diffLast < expire {
 		logger.Debugf("Already synced recently")
 		return false, nil
 	}
 
-	logger.Debugf("Last synced: %s", last)
+	return true, nil
+}
+
+// CheckSync performs sync unless disabled or already synced recently (within expire duration).
+func (v *Vault) CheckSync(ctx context.Context, expire time.Duration) (bool, error) {
+	enabled, err := v.shouldCheck(expire)
+	if err != nil {
+		return false, err
+	}
+	if !enabled {
+		return false, nil
+	}
+
 	if err := v.Sync(ctx); err != nil {
 		return true, err
 	}

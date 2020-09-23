@@ -36,6 +36,9 @@ type Vault struct {
 
 	auto *time.Timer
 
+	checkedAt time.Time
+	checkMtx  sync.Mutex
+
 	subs *subscribers
 }
 
