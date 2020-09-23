@@ -179,7 +179,7 @@ func (s *service) tryCheck(ctx context.Context) {
 	s.checking = true
 	defer func() { s.checking = false }()
 
-	if _, err := s.vault.CheckSync(ctx, time.Duration(0)); err != nil {
+	if _, err := s.vault.CheckSync(ctx, time.Duration(time.Minute)); err != nil {
 		logger.Errorf("Failed to check sync: %v", err)
 	}
 	if ctx.Err() != nil {
