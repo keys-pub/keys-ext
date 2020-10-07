@@ -29,6 +29,8 @@ cloud.google.com/go/storage v1.5.0/go.mod h1:tpKbwo567HUNpVclU5sGELwQWBDZ8gh0Zeo
 cloud.google.com/go/storage v1.6.0 h1:UDpwYIwla4jHGzZJaEJYx1tOejbgSoNqsAfHAUYe2r8=
 cloud.google.com/go/storage v1.6.0/go.mod h1:N7U0C8pVQ/+NIKOBQyamJIeKQKkZ+mxpohlUTyfDhBk=
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
+github.com/766b/godox v0.0.0-20180305221205-0a7d8c138ed1 h1:om6Lc/eCaTTwRZWQ1j7rKH8PjRNHbbydlcDpi0u589s=
+github.com/766b/godox v0.0.0-20180305221205-0a7d8c138ed1/go.mod h1:q93Xfc+MLl84Nf18C3GLoA/3WnCqEN7vYW7LbwgLv7k=
 github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
@@ -190,6 +192,10 @@ github.com/keys-pub/keys-ext/vault v0.0.0-20200917215110-bda938100d21 h1:6OICUB6
 github.com/keys-pub/keys-ext/vault v0.0.0-20200917215110-bda938100d21/go.mod h1:wxBi9qdjjxW8yZyJjrJPhZxobCia8JVRZBgmKi26J94=
 github.com/keys-pub/keys-ext/vault v0.0.0-20200920213226-5e4918a2add8 h1:tm6E3PqbVG/59Q/LQNJ1oXVnSr2KGq0gsSDnTLg+BjY=
 github.com/keys-pub/keys-ext/vault v0.0.0-20200920213226-5e4918a2add8/go.mod h1:wxBi9qdjjxW8yZyJjrJPhZxobCia8JVRZBgmKi26J94=
+github.com/keys-pub/keys-ext/vault v0.0.0-20200923155759-5322c0329a55 h1:+YPn+C6Fe+kVHY3Bto/L1D6M3RyD7nCGp98KjDa+pgs=
+github.com/keys-pub/keys-ext/vault v0.0.0-20200923155759-5322c0329a55/go.mod h1:wxBi9qdjjxW8yZyJjrJPhZxobCia8JVRZBgmKi26J94=
+github.com/keys-pub/keys-ext/vault v0.0.0-20201007235316-50960dd278a9 h1:bKNlcN6rEBQicJLR1VFg7ca9tbBAO2kxtYMOfztciHU=
+github.com/keys-pub/keys-ext/vault v0.0.0-20201007235316-50960dd278a9/go.mod h1:wxBi9qdjjxW8yZyJjrJPhZxobCia8JVRZBgmKi26J94=
 github.com/keys-pub/keys-ext/wormhole v0.0.0-20200911204159-4d4aeeb20971 h1:fpxcic0oxi4fSwMI1E1M3NodC2Ao5GqOqD6TUTDjZvk=
 github.com/keys-pub/keys-ext/wormhole v0.0.0-20200911204159-4d4aeeb20971/go.mod h1:ZoIOc0QRxj/yqgyH7Qn5DrvXFGDZ35i2V5Djr+9Weqo=
 github.com/keys-pub/keys-ext/wormhole v0.0.0-20200917215110-bda938100d21 h1:Z7w1JWqdDjyhzHDKHQwEqK9wUyJ0OPNNg6kTQUQsIfE=

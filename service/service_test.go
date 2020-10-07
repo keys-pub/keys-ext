@@ -77,11 +77,7 @@ func newTestEnv(t *testing.T) *testEnv {
 	}
 }
 
-func newTestService(t *testing.T, env *testEnv) (*service, CloseFn) {
-	return newTestServiceWithOpts(t, env)
-}
-
-func newTestServiceWithOpts(t *testing.T, tenv *testEnv) (*service, CloseFn) {
+func newTestService(t *testing.T, tenv *testEnv) (*service, CloseFn) {
 	serverEnv := newTestServerEnv(t, tenv)
 	appName := "KeysTest-" + randName()
 
@@ -112,6 +108,20 @@ func testAuthSetup(t *testing.T, service *service) {
 	})
 	require.NoError(t, err)
 	_, err = service.AuthUnlock(context.TODO(), &AuthUnlockRequest{
+		Secret: authPassword,
+		Type:   PasswordAuth,
+		Client: "test",
+	})
+	require.NoError(t, err)
+}
+
+func testAuthLock(t *testing.T, service *service) {
+	_, err := service.AuthLock(context.TODO(), &AuthLockRequest{})
+	require.NoError(t, err)
+}
+
+func testAuthUnlock(t *testing.T, service *service) {
+	_, err := service.AuthUnlock(context.TODO(), &AuthUnlockRequest{
 		Secret: authPassword,
 		Type:   PasswordAuth,
 		Client: "test",
@@ -312,8 +322,27 @@ func TestCheckKeys(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestVaultOpen(t *testing.T) {
+func TestServiceCheck(t *testing.T) {
+	var err error
+
+	// SetLogger(NewLogger(DebugLevel))
+	// vault.SetLogger(NewLogger(DebugLevel))
 	env := newTestEnv(t)
-	_, closeFn := newTestServiceWithOpts(t, env)
+	service, closeFn := newTestService(t, env)
 	defer closeFn()
+
+	testAuthSetup(t, service)
+	require.True(t, service.checking)
+
+	_, err = service.VaultSync(context.TODO(), &VaultSyncRequest{})
+	require.NoError(t, err)
+
+	testAuthLock(t, service)
+	require.False(t, service.checking)
+
+	testAuthUnlock(t, service)
+	require.True(t, service.checking)
+
+	testAuthLock(t, service)
+	require.False(t, service.checking)
 }

@@ -13,6 +13,7 @@ import (
 
 // VaultSync (RPC) ...
 func (s *service) VaultSync(ctx context.Context, req *VaultSyncRequest) (*VaultSyncResponse, error) {
+	logger.Infof("Vault sync...")
 	if err := s.vault.Sync(ctx); err != nil {
 		return nil, errors.Wrapf(err, "failed to sync")
 	}
@@ -63,6 +64,7 @@ func (s *service) VaultUnsync(ctx context.Context, req *VaultUnsyncRequest) (*Va
 
 // VaultUpdate (RPC) ...
 func (s *service) VaultUpdate(ctx context.Context, req *VaultUpdateRequest) (*VaultUpdateResponse, error) {
+	logger.Infof("Vault update...")
 	// TODO: Add test to ensure syncing isn't accidentally activated
 	if err := s.vaultUpdate(ctx, time.Duration(0)); err != nil {
 		return nil, err
