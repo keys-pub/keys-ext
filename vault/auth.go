@@ -108,6 +108,8 @@ func (v *Vault) Setup(key *[32]byte, provision *Provision) error {
 // Unlock with auth.
 // Returns provision used to unlock.
 func (v *Vault) Unlock(key *[32]byte) (*Provision, error) {
+	// TODO: This can be called while already unlocked, which should be ok,
+	// but maybe be more explicit about it?
 	logger.Infof("Unlocking...")
 	id, mk, err := v.authUnlock(key)
 	if err != nil {
