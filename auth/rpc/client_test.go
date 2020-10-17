@@ -13,7 +13,7 @@ import (
 
 func testServer(t *testing.T, addr string) (*grpc.Server, func()) {
 	grpcServer := grpc.NewServer()
-	fido2.RegisterAuthServer(grpcServer, rpc.NewAuthServer())
+	fido2.RegisterFIDO2Server(grpcServer, rpc.NewFIDO2Server())
 
 	lis, err := net.Listen("tcp", addr)
 	require.NoError(t, err)
@@ -26,10 +26,10 @@ func testServer(t *testing.T, addr string) (*grpc.Server, func()) {
 	}
 }
 
-func testClient(t *testing.T, addr string) (fido2.AuthClient, func()) {
+func testClient(t *testing.T, addr string) (fido2.FIDO2Client, func()) {
 	conn, err := grpc.Dial(addr, grpc.WithInsecure())
 	require.NoError(t, err)
-	client := fido2.NewAuthClient(conn)
+	client := fido2.NewFIDO2Client(conn)
 	return client, func() {
 		conn.Close()
 	}
@@ -55,7 +55,7 @@ func TestClientDeviceInfo(t *testing.T) {
 			Device: device.Path,
 		})
 		require.NoError(t, err)
-		if typeResp.Type != fido2.FIDO2 {
+		if typeResp.Type != fido2.FIDO2Device {
 			continue
 		}
 

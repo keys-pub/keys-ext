@@ -14,12 +14,12 @@ import (
 
 // Server ...
 type Server struct {
-	fido2.UnimplementedAuthServer
+	fido2.UnimplementedFIDO2Server
 	sync.Mutex
 }
 
-// NewAuthServer creates an AuthServer.
-func NewAuthServer() fido2.AuthServer {
+// NewFIDO2Server creates an FIDO2Server.
+func NewFIDO2Server() fido2.FIDO2Server {
 	return &Server{}
 }
 
@@ -68,9 +68,9 @@ func (s *Server) DeviceType(ctx context.Context, req *fido2.DeviceTypeRequest) (
 	var rtyp fido2.DeviceType
 	switch typ {
 	case libfido2.FIDO2:
-		rtyp = fido2.FIDO2
+		rtyp = fido2.FIDO2Device
 	case libfido2.U2F:
-		rtyp = fido2.U2F
+		rtyp = fido2.U2FDevice
 	default:
 		rtyp = fido2.UnknownDevice
 	}

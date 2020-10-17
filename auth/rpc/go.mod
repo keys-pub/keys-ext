@@ -6,7 +6,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/google/uuid v1.1.2
 	github.com/keys-pub/go-libfido2 v1.4.1-0.20200914200216-8e225f5fe92e
-	github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200917215110-bda938100d21
+	github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20201017235523-afa75b9040f2
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.5.1

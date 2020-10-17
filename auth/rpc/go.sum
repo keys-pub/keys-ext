@@ -46,6 +46,10 @@ github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200914202754-bd81158f34fd h1:U4
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200914202754-bd81158f34fd/go.mod h1:rh4gDJ+fHaj+R2ZFeVmkPJIpZQdhgrF4t9wJbBCq1CE=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200917215110-bda938100d21 h1:T892S0VVQ2ohzV+Re62VsmnjC0xRueYSvEbf7Q5AnFA=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20200917215110-bda938100d21/go.mod h1:rh4gDJ+fHaj+R2ZFeVmkPJIpZQdhgrF4t9wJbBCq1CE=
+github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20201017235306-6d0bd399b4b7 h1:ojaMWcAfannVGyirMZLldPEgpddG7vWRSoq3sfZbvlM=
+github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20201017235306-6d0bd399b4b7/go.mod h1:rh4gDJ+fHaj+R2ZFeVmkPJIpZQdhgrF4t9wJbBCq1CE=
+github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20201017235523-afa75b9040f2 h1:W0vhNtpW0mysGzs26td//jSvW92rBvblyC6aDVR1rck=
+github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20201017235523-afa75b9040f2/go.mod h1:rh4gDJ+fHaj+R2ZFeVmkPJIpZQdhgrF4t9wJbBCq1CE=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=

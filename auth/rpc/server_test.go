@@ -14,7 +14,7 @@ import (
 
 func TestInfo(t *testing.T) {
 	ctx := context.TODO()
-	server := rpc.NewAuthServer()
+	server := rpc.NewFIDO2Server()
 
 	resp, err := server.Devices(ctx, &fido2.DevicesRequest{})
 	require.NoError(t, err)
@@ -27,7 +27,7 @@ func TestInfo(t *testing.T) {
 			Device: device.Path,
 		})
 		require.NoError(t, err)
-		if typeResp.Type != fido2.FIDO2 {
+		if typeResp.Type != fido2.FIDO2Device {
 			continue
 		}
 
@@ -42,7 +42,7 @@ func TestInfo(t *testing.T) {
 
 func TestConcurrent(t *testing.T) {
 	ctx := context.TODO()
-	server := rpc.NewAuthServer()
+	server := rpc.NewFIDO2Server()
 
 	resp, err := server.Devices(ctx, &fido2.DevicesRequest{})
 	require.NoError(t, err)
@@ -59,7 +59,7 @@ func TestConcurrent(t *testing.T) {
 				Device: device.Path,
 			})
 			require.NoError(t, err)
-			if typeResp.Type != fido2.FIDO2 {
+			if typeResp.Type != fido2.FIDO2Device {
 				continue
 			}
 
@@ -82,13 +82,13 @@ func TestConcurrent(t *testing.T) {
 	wg.Wait()
 }
 
-func ExampleAuthServer_SetPIN() {
+func ExampleFIDO2Server_SetPIN() {
 	if os.Getenv("FIDO2_EXAMPLES") != "1" {
 		return
 	}
 
 	ctx := context.TODO()
-	server := rpc.NewAuthServer()
+	server := rpc.NewFIDO2Server()
 
 	resp, err := server.Devices(ctx, &fido2.DevicesRequest{})
 	if err != nil {
@@ -115,13 +115,13 @@ func ExampleAuthServer_SetPIN() {
 	//
 }
 
-func ExampleAuthServer_Credentials() {
+func ExampleFIDO2Server_Credentials() {
 	if os.Getenv("FIDO2_EXAMPLES") != "1" {
 		return
 	}
 
 	ctx := context.TODO()
-	server := rpc.NewAuthServer()
+	server := rpc.NewFIDO2Server()
 
 	dresp, err := server.Devices(ctx, &fido2.DevicesRequest{})
 	if err != nil {
@@ -150,13 +150,13 @@ func ExampleAuthServer_Credentials() {
 	//
 }
 
-func ExampleAuthServer_Reset() {
+func ExampleFIDO2Server_Reset() {
 	if os.Getenv("FIDO2_EXAMPLES_RESET") != "1" {
 		return
 	}
 
 	ctx := context.TODO()
-	server := rpc.NewAuthServer()
+	server := rpc.NewFIDO2Server()
 
 	dr, err := server.Devices(ctx, &fido2.DevicesRequest{})
 	if err != nil {
