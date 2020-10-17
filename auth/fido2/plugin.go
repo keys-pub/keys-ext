@@ -7,19 +7,19 @@ import (
 )
 
 // OpenPlugin returns AuthServer from shared library.
-func OpenPlugin(path string) (AuthServer, error) {
+func OpenPlugin(path string) (FIDO2Server, error) {
 	plug, err := plugin.Open(path)
 	if err != nil {
 		return nil, err
 	}
-	symLibrary, err := plug.Lookup("AuthServer")
+	symLibrary, err := plug.Lookup("FIDO2Server")
 	if err != nil {
 		return nil, err
 	}
 
-	lib, ok := symLibrary.(AuthServer)
+	lib, ok := symLibrary.(FIDO2Server)
 	if !ok {
-		return nil, errors.Errorf("not AuthServer library")
+		return nil, errors.Errorf("not FIDO2Server library")
 	}
 	return lib, nil
 }
