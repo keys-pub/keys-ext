@@ -8,7 +8,7 @@ import "patch/go.proto";
 // Proto field names should be snake_case, but some plugins don't convert to 
 // camel like they should, so we use camelCase here.
 
-service Auth {  
+service FIDO2 {  
     rpc Devices(DevicesRequest) returns (DevicesResponse) {}
     rpc DeviceInfo(DeviceInfoRequest) returns (DeviceInfoResponse) {}
     rpc DeviceType(DeviceTypeRequest) returns (DeviceTypeResponse) {}
@@ -54,8 +54,8 @@ enum DeviceType {
   option (go.enum) = {name: "DeviceType"};
   
   UNKNOWN_DEVICE = 0 [(go.value) = {name: "UnknownDevice"}];
-  U2F = 1 [(go.value) = {name: "U2F"}];
-  FIDO2 = 2 [(go.value) = {name: "FIDO2"}];  
+  U2F_DEVICE = 1 [(go.value) = {name: "U2FDevice"}];
+  FIDO2_DEVICE = 2 [(go.value) = {name: "FIDO2Device"}];  
 }
 
 message User {

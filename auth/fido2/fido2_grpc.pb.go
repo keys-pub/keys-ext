@@ -13,10 +13,10 @@ import (
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion6
 
-// AuthClient is the client API for Auth service.
+// FIDO2Client is the client API for FIDO2 service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type AuthClient interface {
+type FIDO2Client interface {
 	Devices(ctx context.Context, in *DevicesRequest, opts ...grpc.CallOption) (*DevicesResponse, error)
 	DeviceInfo(ctx context.Context, in *DeviceInfoRequest, opts ...grpc.CallOption) (*DeviceInfoResponse, error)
 	DeviceType(ctx context.Context, in *DeviceTypeRequest, opts ...grpc.CallOption) (*DeviceTypeResponse, error)
@@ -32,135 +32,135 @@ type AuthClient interface {
 	HMACSecret(ctx context.Context, in *HMACSecretRequest, opts ...grpc.CallOption) (*HMACSecretResponse, error)
 }
 
-type authClient struct {
+type fIDO2Client struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewAuthClient(cc grpc.ClientConnInterface) AuthClient {
-	return &authClient{cc}
+func NewFIDO2Client(cc grpc.ClientConnInterface) FIDO2Client {
+	return &fIDO2Client{cc}
 }
 
-func (c *authClient) Devices(ctx context.Context, in *DevicesRequest, opts ...grpc.CallOption) (*DevicesResponse, error) {
+func (c *fIDO2Client) Devices(ctx context.Context, in *DevicesRequest, opts ...grpc.CallOption) (*DevicesResponse, error) {
 	out := new(DevicesResponse)
-	err := c.cc.Invoke(ctx, "/fido2.Auth/Devices", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/fido2.FIDO2/Devices", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *authClient) DeviceInfo(ctx context.Context, in *DeviceInfoRequest, opts ...grpc.CallOption) (*DeviceInfoResponse, error) {
+func (c *fIDO2Client) DeviceInfo(ctx context.Context, in *DeviceInfoRequest, opts ...grpc.CallOption) (*DeviceInfoResponse, error) {
 	out := new(DeviceInfoResponse)
-	err := c.cc.Invoke(ctx, "/fido2.Auth/DeviceInfo", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/fido2.FIDO2/DeviceInfo", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *authClient) DeviceType(ctx context.Context, in *DeviceTypeRequest, opts ...grpc.CallOption) (*DeviceTypeResponse, error) {
+func (c *fIDO2Client) DeviceType(ctx context.Context, in *DeviceTypeRequest, opts ...grpc.CallOption) (*DeviceTypeResponse, error) {
 	out := new(DeviceTypeResponse)
-	err := c.cc.Invoke(ctx, "/fido2.Auth/DeviceType", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/fido2.FIDO2/DeviceType", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *authClient) MakeCredential(ctx context.Context, in *MakeCredentialRequest, opts ...grpc.CallOption) (*MakeCredentialResponse, error) {
+func (c *fIDO2Client) MakeCredential(ctx context.Context, in *MakeCredentialRequest, opts ...grpc.CallOption) (*MakeCredentialResponse, error) {
 	out := new(MakeCredentialResponse)
-	err := c.cc.Invoke(ctx, "/fido2.Auth/MakeCredential", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/fido2.FIDO2/MakeCredential", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *authClient) SetPIN(ctx context.Context, in *SetPINRequest, opts ...grpc.CallOption) (*SetPINResponse, error) {
+func (c *fIDO2Client) SetPIN(ctx context.Context, in *SetPINRequest, opts ...grpc.CallOption) (*SetPINResponse, error) {
 	out := new(SetPINResponse)
-	err := c.cc.Invoke(ctx, "/fido2.Auth/SetPIN", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/fido2.FIDO2/SetPIN", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *authClient) Reset(ctx context.Context, in *ResetRequest, opts ...grpc.CallOption) (*ResetResponse, error) {
+func (c *fIDO2Client) Reset(ctx context.Context, in *ResetRequest, opts ...grpc.CallOption) (*ResetResponse, error) {
 	out := new(ResetResponse)
-	err := c.cc.Invoke(ctx, "/fido2.Auth/Reset", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/fido2.FIDO2/Reset", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *authClient) RetryCount(ctx context.Context, in *RetryCountRequest, opts ...grpc.CallOption) (*RetryCountResponse, error) {
+func (c *fIDO2Client) RetryCount(ctx context.Context, in *RetryCountRequest, opts ...grpc.CallOption) (*RetryCountResponse, error) {
 	out := new(RetryCountResponse)
-	err := c.cc.Invoke(ctx, "/fido2.Auth/RetryCount", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/fido2.FIDO2/RetryCount", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *authClient) Assertion(ctx context.Context, in *AssertionRequest, opts ...grpc.CallOption) (*AssertionResponse, error) {
+func (c *fIDO2Client) Assertion(ctx context.Context, in *AssertionRequest, opts ...grpc.CallOption) (*AssertionResponse, error) {
 	out := new(AssertionResponse)
-	err := c.cc.Invoke(ctx, "/fido2.Auth/Assertion", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/fido2.FIDO2/Assertion", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *authClient) CredentialsInfo(ctx context.Context, in *CredentialsInfoRequest, opts ...grpc.CallOption) (*CredentialsInfoResponse, error) {
+func (c *fIDO2Client) CredentialsInfo(ctx context.Context, in *CredentialsInfoRequest, opts ...grpc.CallOption) (*CredentialsInfoResponse, error) {
 	out := new(CredentialsInfoResponse)
-	err := c.cc.Invoke(ctx, "/fido2.Auth/CredentialsInfo", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/fido2.FIDO2/CredentialsInfo", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *authClient) Credentials(ctx context.Context, in *CredentialsRequest, opts ...grpc.CallOption) (*CredentialsResponse, error) {
+func (c *fIDO2Client) Credentials(ctx context.Context, in *CredentialsRequest, opts ...grpc.CallOption) (*CredentialsResponse, error) {
 	out := new(CredentialsResponse)
-	err := c.cc.Invoke(ctx, "/fido2.Auth/Credentials", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/fido2.FIDO2/Credentials", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *authClient) RelyingParties(ctx context.Context, in *RelyingPartiesRequest, opts ...grpc.CallOption) (*RelyingPartiesResponse, error) {
+func (c *fIDO2Client) RelyingParties(ctx context.Context, in *RelyingPartiesRequest, opts ...grpc.CallOption) (*RelyingPartiesResponse, error) {
 	out := new(RelyingPartiesResponse)
-	err := c.cc.Invoke(ctx, "/fido2.Auth/RelyingParties", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/fido2.FIDO2/RelyingParties", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *authClient) GenerateHMACSecret(ctx context.Context, in *GenerateHMACSecretRequest, opts ...grpc.CallOption) (*GenerateHMACSecretResponse, error) {
+func (c *fIDO2Client) GenerateHMACSecret(ctx context.Context, in *GenerateHMACSecretRequest, opts ...grpc.CallOption) (*GenerateHMACSecretResponse, error) {
 	out := new(GenerateHMACSecretResponse)
-	err := c.cc.Invoke(ctx, "/fido2.Auth/GenerateHMACSecret", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/fido2.FIDO2/GenerateHMACSecret", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *authClient) HMACSecret(ctx context.Context, in *HMACSecretRequest, opts ...grpc.CallOption) (*HMACSecretResponse, error) {
+func (c *fIDO2Client) HMACSecret(ctx context.Context, in *HMACSecretRequest, opts ...grpc.CallOption) (*HMACSecretResponse, error) {
 	out := new(HMACSecretResponse)
-	err := c.cc.Invoke(ctx, "/fido2.Auth/HMACSecret", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/fido2.FIDO2/HMACSecret", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// AuthServer is the server API for Auth service.
-// All implementations must embed UnimplementedAuthServer
+// FIDO2Server is the server API for FIDO2 service.
+// All implementations must embed UnimplementedFIDO2Server
 // for forward compatibility
-type AuthServer interface {
+type FIDO2Server interface {
 	Devices(context.Context, *DevicesRequest) (*DevicesResponse, error)
 	DeviceInfo(context.Context, *DeviceInfoRequest) (*DeviceInfoResponse, error)
 	DeviceType(context.Context, *DeviceTypeRequest) (*DeviceTypeResponse, error)
@@ -174,347 +174,347 @@ type AuthServer interface {
 	RelyingParties(context.Context, *RelyingPartiesRequest) (*RelyingPartiesResponse, error)
 	GenerateHMACSecret(context.Context, *GenerateHMACSecretRequest) (*GenerateHMACSecretResponse, error)
 	HMACSecret(context.Context, *HMACSecretRequest) (*HMACSecretResponse, error)
-	mustEmbedUnimplementedAuthServer()
+	mustEmbedUnimplementedFIDO2Server()
 }
 
-// UnimplementedAuthServer must be embedded to have forward compatible implementations.
-type UnimplementedAuthServer struct {
+// UnimplementedFIDO2Server must be embedded to have forward compatible implementations.
+type UnimplementedFIDO2Server struct {
 }
 
-func (*UnimplementedAuthServer) Devices(context.Context, *DevicesRequest) (*DevicesResponse, error) {
+func (*UnimplementedFIDO2Server) Devices(context.Context, *DevicesRequest) (*DevicesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Devices not implemented")
 }
-func (*UnimplementedAuthServer) DeviceInfo(context.Context, *DeviceInfoRequest) (*DeviceInfoResponse, error) {
+func (*UnimplementedFIDO2Server) DeviceInfo(context.Context, *DeviceInfoRequest) (*DeviceInfoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeviceInfo not implemented")
 }
-func (*UnimplementedAuthServer) DeviceType(context.Context, *DeviceTypeRequest) (*DeviceTypeResponse, error) {
+func (*UnimplementedFIDO2Server) DeviceType(context.Context, *DeviceTypeRequest) (*DeviceTypeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeviceType not implemented")
 }
-func (*UnimplementedAuthServer) MakeCredential(context.Context, *MakeCredentialRequest) (*MakeCredentialResponse, error) {
+func (*UnimplementedFIDO2Server) MakeCredential(context.Context, *MakeCredentialRequest) (*MakeCredentialResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method MakeCredential not implemented")
 }
-func (*UnimplementedAuthServer) SetPIN(context.Context, *SetPINRequest) (*SetPINResponse, error) {
+func (*UnimplementedFIDO2Server) SetPIN(context.Context, *SetPINRequest) (*SetPINResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetPIN not implemented")
 }
-func (*UnimplementedAuthServer) Reset(context.Context, *ResetRequest) (*ResetResponse, error) {
+func (*UnimplementedFIDO2Server) Reset(context.Context, *ResetRequest) (*ResetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Reset not implemented")
 }
-func (*UnimplementedAuthServer) RetryCount(context.Context, *RetryCountRequest) (*RetryCountResponse, error) {
+func (*UnimplementedFIDO2Server) RetryCount(context.Context, *RetryCountRequest) (*RetryCountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RetryCount not implemented")
 }
-func (*UnimplementedAuthServer) Assertion(context.Context, *AssertionRequest) (*AssertionResponse, error) {
+func (*UnimplementedFIDO2Server) Assertion(context.Context, *AssertionRequest) (*AssertionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Assertion not implemented")
 }
-func (*UnimplementedAuthServer) CredentialsInfo(context.Context, *CredentialsInfoRequest) (*CredentialsInfoResponse, error) {
+func (*UnimplementedFIDO2Server) CredentialsInfo(context.Context, *CredentialsInfoRequest) (*CredentialsInfoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CredentialsInfo not implemented")
 }
-func (*UnimplementedAuthServer) Credentials(context.Context, *CredentialsRequest) (*CredentialsResponse, error) {
+func (*UnimplementedFIDO2Server) Credentials(context.Context, *CredentialsRequest) (*CredentialsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Credentials not implemented")
 }
-func (*UnimplementedAuthServer) RelyingParties(context.Context, *RelyingPartiesRequest) (*RelyingPartiesResponse, error) {
+func (*UnimplementedFIDO2Server) RelyingParties(context.Context, *RelyingPartiesRequest) (*RelyingPartiesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RelyingParties not implemented")
 }
-func (*UnimplementedAuthServer) GenerateHMACSecret(context.Context, *GenerateHMACSecretRequest) (*GenerateHMACSecretResponse, error) {
+func (*UnimplementedFIDO2Server) GenerateHMACSecret(context.Context, *GenerateHMACSecretRequest) (*GenerateHMACSecretResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GenerateHMACSecret not implemented")
 }
-func (*UnimplementedAuthServer) HMACSecret(context.Context, *HMACSecretRequest) (*HMACSecretResponse, error) {
+func (*UnimplementedFIDO2Server) HMACSecret(context.Context, *HMACSecretRequest) (*HMACSecretResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HMACSecret not implemented")
 }
-func (*UnimplementedAuthServer) mustEmbedUnimplementedAuthServer() {}
+func (*UnimplementedFIDO2Server) mustEmbedUnimplementedFIDO2Server() {}
 
-func RegisterAuthServer(s *grpc.Server, srv AuthServer) {
-	s.RegisterService(&_Auth_serviceDesc, srv)
+func RegisterFIDO2Server(s *grpc.Server, srv FIDO2Server) {
+	s.RegisterService(&_FIDO2_serviceDesc, srv)
 }
 
-func _Auth_Devices_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FIDO2_Devices_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DevicesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServer).Devices(ctx, in)
+		return srv.(FIDO2Server).Devices(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/fido2.Auth/Devices",
+		FullMethod: "/fido2.FIDO2/Devices",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).Devices(ctx, req.(*DevicesRequest))
+		return srv.(FIDO2Server).Devices(ctx, req.(*DevicesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Auth_DeviceInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FIDO2_DeviceInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeviceInfoRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServer).DeviceInfo(ctx, in)
+		return srv.(FIDO2Server).DeviceInfo(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/fido2.Auth/DeviceInfo",
+		FullMethod: "/fido2.FIDO2/DeviceInfo",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).DeviceInfo(ctx, req.(*DeviceInfoRequest))
+		return srv.(FIDO2Server).DeviceInfo(ctx, req.(*DeviceInfoRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Auth_DeviceType_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FIDO2_DeviceType_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeviceTypeRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServer).DeviceType(ctx, in)
+		return srv.(FIDO2Server).DeviceType(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/fido2.Auth/DeviceType",
+		FullMethod: "/fido2.FIDO2/DeviceType",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).DeviceType(ctx, req.(*DeviceTypeRequest))
+		return srv.(FIDO2Server).DeviceType(ctx, req.(*DeviceTypeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Auth_MakeCredential_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FIDO2_MakeCredential_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MakeCredentialRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServer).MakeCredential(ctx, in)
+		return srv.(FIDO2Server).MakeCredential(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/fido2.Auth/MakeCredential",
+		FullMethod: "/fido2.FIDO2/MakeCredential",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).MakeCredential(ctx, req.(*MakeCredentialRequest))
+		return srv.(FIDO2Server).MakeCredential(ctx, req.(*MakeCredentialRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Auth_SetPIN_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FIDO2_SetPIN_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SetPINRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServer).SetPIN(ctx, in)
+		return srv.(FIDO2Server).SetPIN(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/fido2.Auth/SetPIN",
+		FullMethod: "/fido2.FIDO2/SetPIN",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).SetPIN(ctx, req.(*SetPINRequest))
+		return srv.(FIDO2Server).SetPIN(ctx, req.(*SetPINRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Auth_Reset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FIDO2_Reset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ResetRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServer).Reset(ctx, in)
+		return srv.(FIDO2Server).Reset(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/fido2.Auth/Reset",
+		FullMethod: "/fido2.FIDO2/Reset",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).Reset(ctx, req.(*ResetRequest))
+		return srv.(FIDO2Server).Reset(ctx, req.(*ResetRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Auth_RetryCount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FIDO2_RetryCount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RetryCountRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServer).RetryCount(ctx, in)
+		return srv.(FIDO2Server).RetryCount(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/fido2.Auth/RetryCount",
+		FullMethod: "/fido2.FIDO2/RetryCount",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).RetryCount(ctx, req.(*RetryCountRequest))
+		return srv.(FIDO2Server).RetryCount(ctx, req.(*RetryCountRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Auth_Assertion_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FIDO2_Assertion_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AssertionRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServer).Assertion(ctx, in)
+		return srv.(FIDO2Server).Assertion(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/fido2.Auth/Assertion",
+		FullMethod: "/fido2.FIDO2/Assertion",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).Assertion(ctx, req.(*AssertionRequest))
+		return srv.(FIDO2Server).Assertion(ctx, req.(*AssertionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Auth_CredentialsInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FIDO2_CredentialsInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CredentialsInfoRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServer).CredentialsInfo(ctx, in)
+		return srv.(FIDO2Server).CredentialsInfo(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/fido2.Auth/CredentialsInfo",
+		FullMethod: "/fido2.FIDO2/CredentialsInfo",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).CredentialsInfo(ctx, req.(*CredentialsInfoRequest))
+		return srv.(FIDO2Server).CredentialsInfo(ctx, req.(*CredentialsInfoRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Auth_Credentials_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FIDO2_Credentials_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CredentialsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServer).Credentials(ctx, in)
+		return srv.(FIDO2Server).Credentials(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/fido2.Auth/Credentials",
+		FullMethod: "/fido2.FIDO2/Credentials",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).Credentials(ctx, req.(*CredentialsRequest))
+		return srv.(FIDO2Server).Credentials(ctx, req.(*CredentialsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Auth_RelyingParties_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FIDO2_RelyingParties_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RelyingPartiesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServer).RelyingParties(ctx, in)
+		return srv.(FIDO2Server).RelyingParties(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/fido2.Auth/RelyingParties",
+		FullMethod: "/fido2.FIDO2/RelyingParties",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).RelyingParties(ctx, req.(*RelyingPartiesRequest))
+		return srv.(FIDO2Server).RelyingParties(ctx, req.(*RelyingPartiesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Auth_GenerateHMACSecret_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FIDO2_GenerateHMACSecret_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GenerateHMACSecretRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServer).GenerateHMACSecret(ctx, in)
+		return srv.(FIDO2Server).GenerateHMACSecret(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/fido2.Auth/GenerateHMACSecret",
+		FullMethod: "/fido2.FIDO2/GenerateHMACSecret",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).GenerateHMACSecret(ctx, req.(*GenerateHMACSecretRequest))
+		return srv.(FIDO2Server).GenerateHMACSecret(ctx, req.(*GenerateHMACSecretRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Auth_HMACSecret_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FIDO2_HMACSecret_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(HMACSecretRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServer).HMACSecret(ctx, in)
+		return srv.(FIDO2Server).HMACSecret(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/fido2.Auth/HMACSecret",
+		FullMethod: "/fido2.FIDO2/HMACSecret",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).HMACSecret(ctx, req.(*HMACSecretRequest))
+		return srv.(FIDO2Server).HMACSecret(ctx, req.(*HMACSecretRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _Auth_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "fido2.Auth",
-	HandlerType: (*AuthServer)(nil),
+var _FIDO2_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "fido2.FIDO2",
+	HandlerType: (*FIDO2Server)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Devices",
-			Handler:    _Auth_Devices_Handler,
+			Handler:    _FIDO2_Devices_Handler,
 		},
 		{
 			MethodName: "DeviceInfo",
-			Handler:    _Auth_DeviceInfo_Handler,
+			Handler:    _FIDO2_DeviceInfo_Handler,
 		},
 		{
 			MethodName: "DeviceType",
-			Handler:    _Auth_DeviceType_Handler,
+			Handler:    _FIDO2_DeviceType_Handler,
 		},
 		{
 			MethodName: "MakeCredential",
-			Handler:    _Auth_MakeCredential_Handler,
+			Handler:    _FIDO2_MakeCredential_Handler,
 		},
 		{
 			MethodName: "SetPIN",
-			Handler:    _Auth_SetPIN_Handler,
+			Handler:    _FIDO2_SetPIN_Handler,
 		},
 		{
 			MethodName: "Reset",
-			Handler:    _Auth_Reset_Handler,
+			Handler:    _FIDO2_Reset_Handler,
 		},
 		{
 			MethodName: "RetryCount",
-			Handler:    _Auth_RetryCount_Handler,
+			Handler:    _FIDO2_RetryCount_Handler,
 		},
 		{
 			MethodName: "Assertion",
-			Handler:    _Auth_Assertion_Handler,
+			Handler:    _FIDO2_Assertion_Handler,
 		},
 		{
 			MethodName: "CredentialsInfo",
-			Handler:    _Auth_CredentialsInfo_Handler,
+			Handler:    _FIDO2_CredentialsInfo_Handler,
 		},
 		{
 			MethodName: "Credentials",
-			Handler:    _Auth_Credentials_Handler,
+			Handler:    _FIDO2_Credentials_Handler,
 		},
 		{
 			MethodName: "RelyingParties",
-			Handler:    _Auth_RelyingParties_Handler,
+			Handler:    _FIDO2_RelyingParties_Handler,
 		},
 		{
 			MethodName: "GenerateHMACSecret",
-			Handler:    _Auth_GenerateHMACSecret_Handler,
+			Handler:    _FIDO2_GenerateHMACSecret_Handler,
 		},
 		{
 			MethodName: "HMACSecret",
-			Handler:    _Auth_HMACSecret_Handler,
+			Handler:    _FIDO2_HMACSecret_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
