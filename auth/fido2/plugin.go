@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// OpenPlugin returns AuthServer from shared library.
+// OpenPlugin returns FIDO2Server from shared library.
 func OpenPlugin(path string) (FIDO2Server, error) {
 	plug, err := plugin.Open(path)
 	if err != nil {
