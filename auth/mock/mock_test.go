@@ -11,7 +11,7 @@ import (
 
 func TestInfo(t *testing.T) {
 	ctx := context.TODO()
-	server := mock.NewAuthServer()
+	server := mock.NewFIDO2Server()
 
 	resp, err := server.Devices(ctx, &fido2.DevicesRequest{})
 	require.NoError(t, err)

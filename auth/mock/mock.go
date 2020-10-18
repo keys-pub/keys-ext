@@ -13,12 +13,12 @@ import (
 )
 
 type server struct {
-	fido2.UnimplementedAuthServer
+	fido2.UnimplementedFIDO2Server
 	devices []*device
 }
 
-// NewAuthServer creates an AuthServer.
-func NewAuthServer() fido2.AuthServer {
+// NewFIDO2Server creates an FIDO2Server.
+func NewFIDO2Server() fido2.FIDO2Server {
 	devices := []*device{
 		newDevice("/dev/test", nil),
 	}
