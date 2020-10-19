@@ -10,12 +10,12 @@ require (
 	github.com/golang/protobuf v1.4.2
 	github.com/google/uuid v1.1.2 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
-	github.com/keys-pub/keys v0.1.6-0.20200917203958-7a0a1f05c988
+	github.com/keys-pub/keys v0.1.7-0.20201019222734-27495f7e1624
 	github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20201017235523-afa75b9040f2
 	github.com/keys-pub/keys-ext/auth/mock v0.0.0-20201018000238-7b6186f1fe97
-	github.com/keys-pub/keys-ext/http/api v0.0.0-20200917215110-bda938100d21
-	github.com/keys-pub/keys-ext/http/client v0.0.0-20200917215110-bda938100d21
-	github.com/keys-pub/keys-ext/http/server v0.0.0-20200917181212-27ed87b9c3b2
+	github.com/keys-pub/keys-ext/http/api v0.0.0-20201019222921-495773d46954
+	github.com/keys-pub/keys-ext/http/client v0.0.0-20201019223330-fac0ac0e3560
+	github.com/keys-pub/keys-ext/http/server v0.0.0-20201019223330-fac0ac0e3560
 	github.com/keys-pub/keys-ext/sdb v0.0.0-20200917215110-bda938100d21
 	github.com/keys-pub/keys-ext/vault v0.0.0-20201007235316-50960dd278a9
 	github.com/keys-pub/keys-ext/wormhole v0.0.0-20200917215110-bda938100d21

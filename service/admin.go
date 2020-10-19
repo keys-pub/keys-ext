@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/keys-pub/keys-ext/http/api"
+	"github.com/keys-pub/keys/http"
 )
 
 // AdminSignURL ...
@@ -19,7 +19,7 @@ func (s *service) AdminSignURL(ctx context.Context, req *AdminSignURLRequest) (*
 		return nil, err
 	}
 
-	auth, err := api.NewAuth(req.Method, req.URL, "", time.Now(), key)
+	auth, err := http.NewAuth(req.Method, req.URL, "", time.Now(), key)
 	if err != nil {
 		return nil, err
 	}
