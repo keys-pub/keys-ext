@@ -40,7 +40,7 @@ func otherCommands(client *Client) []cli.Command {
 					Name:  "password",
 					Usage: "Generate random password",
 					Flags: []cli.Flag{
-						cli.IntFlag{Name: "length, l", Usage: "length of password", Value: 12},
+						cli.IntFlag{Name: "length, l", Usage: "length of password", Value: 16},
 					},
 					Action: func(c *cli.Context) error {
 						rand, err := client.KeysClient().RandPassword(context.TODO(), &RandPasswordRequest{

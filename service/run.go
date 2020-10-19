@@ -209,7 +209,7 @@ func NewServiceFn(env *Env, build Build, cert *keys.CertificateKey, lgi LogInter
 		logger.Errorf("fido2 plugin is not available: %v", err)
 	} else {
 		logger.Infof("Registering FIDO2 plugin...")
-		fido2.RegisterAuthServer(grpcServer, fido2Plugin)
+		fido2.RegisterFIDO2Server(grpcServer, fido2Plugin)
 		auth.fas = fido2Plugin
 	}
 

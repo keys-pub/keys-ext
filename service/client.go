@@ -27,7 +27,7 @@ import (
 type Client struct {
 	sync.Mutex
 	keysClient  KeysClient
-	fido2Client fido2.AuthClient
+	fido2Client fido2.FIDO2Client
 	conn        *grpc.ClientConn
 	env         *Env
 	connectFn   ClientConnectFn
@@ -67,7 +67,7 @@ func (c *Client) Connect(env *Env, authToken string) error {
 	}
 	c.conn = conn
 	c.keysClient = NewKeysClient(conn)
-	c.fido2Client = fido2.NewAuthClient(conn)
+	c.fido2Client = fido2.NewFIDO2Client(conn)
 	return nil
 }
 
@@ -100,7 +100,7 @@ func (c *Client) KeysClient() KeysClient {
 }
 
 // FIDO2Client returns FIDO2 Authenticators RPC client.
-func (c *Client) FIDO2Client() fido2.AuthClient {
+func (c *Client) FIDO2Client() fido2.FIDO2Client {
 	return c.fido2Client
 }
 

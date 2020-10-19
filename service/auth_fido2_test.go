@@ -87,7 +87,7 @@ func TestHMACSecretAuth(t *testing.T) {
 	require.EqualError(t, err, "failed to unlock: fido2 plugin not available")
 
 	// Set mock plugin
-	auths := mock.NewAuthServer()
+	auths := mock.NewFIDO2Server()
 	auth.fas = auths
 
 	// No device

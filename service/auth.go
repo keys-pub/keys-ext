@@ -25,21 +25,21 @@ type auth struct {
 	tokens    map[string]string
 	allowlist *docs.StringSet
 
-	fas fido2.AuthServer
+	fas fido2.FIDO2Server
 }
 
 func newAuth(env *Env) *auth {
 	// We don't need auth for the following methods.
 	allowlist := docs.NewStringSet(
-		"/service.Keys/AuthSetup",
-		"/service.Keys/AuthUnlock",
-		"/service.Keys/AuthLock",
-		"/service.Keys/AuthVault",
-		"/service.Keys/AuthReset",
-		"/service.Keys/AuthRecover",
-		"/service.Keys/Rand",
-		"/service.Keys/RandPassword",
-		"/service.Keys/RuntimeStatus",
+		"/keys.Keys/AuthSetup",
+		"/keys.Keys/AuthUnlock",
+		"/keys.Keys/AuthLock",
+		"/keys.Keys/AuthVault",
+		"/keys.Keys/AuthReset",
+		"/keys.Keys/AuthRecover",
+		"/keys.Keys/Rand",
+		"/keys.Keys/RandPassword",
+		"/keys.Keys/RuntimeStatus",
 	)
 
 	return &auth{
@@ -171,6 +171,7 @@ func (a *auth) checkToken(token string) error {
 func (a *auth) authorize(ctx context.Context, method string) error {
 	// No authorization needed for allowed methods.
 	if a.allowlist.Contains(method) {
+		// TODO: Auth token could be set and invalid here
 		logger.Infof("Authorization is not required for %s", method)
 		return nil
 	}

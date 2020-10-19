@@ -99,7 +99,7 @@ func NewKeysClient(cc grpc.ClientConnInterface) KeysClient {
 
 func (c *keysClient) KeyGenerate(ctx context.Context, in *KeyGenerateRequest, opts ...grpc.CallOption) (*KeyGenerateResponse, error) {
 	out := new(KeyGenerateResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/KeyGenerate", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/KeyGenerate", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +108,7 @@ func (c *keysClient) KeyGenerate(ctx context.Context, in *KeyGenerateRequest, op
 
 func (c *keysClient) Keys(ctx context.Context, in *KeysRequest, opts ...grpc.CallOption) (*KeysResponse, error) {
 	out := new(KeysResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/Keys", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/Keys", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func (c *keysClient) Keys(ctx context.Context, in *KeysRequest, opts ...grpc.Cal
 
 func (c *keysClient) Key(ctx context.Context, in *KeyRequest, opts ...grpc.CallOption) (*KeyResponse, error) {
 	out := new(KeyResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/Key", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/Key", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +126,7 @@ func (c *keysClient) Key(ctx context.Context, in *KeyRequest, opts ...grpc.CallO
 
 func (c *keysClient) KeyImport(ctx context.Context, in *KeyImportRequest, opts ...grpc.CallOption) (*KeyImportResponse, error) {
 	out := new(KeyImportResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/KeyImport", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/KeyImport", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +135,7 @@ func (c *keysClient) KeyImport(ctx context.Context, in *KeyImportRequest, opts .
 
 func (c *keysClient) KeyExport(ctx context.Context, in *KeyExportRequest, opts ...grpc.CallOption) (*KeyExportResponse, error) {
 	out := new(KeyExportResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/KeyExport", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/KeyExport", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func (c *keysClient) KeyExport(ctx context.Context, in *KeyExportRequest, opts .
 
 func (c *keysClient) KeyRemove(ctx context.Context, in *KeyRemoveRequest, opts ...grpc.CallOption) (*KeyRemoveResponse, error) {
 	out := new(KeyRemoveResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/KeyRemove", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/KeyRemove", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +153,7 @@ func (c *keysClient) KeyRemove(ctx context.Context, in *KeyRemoveRequest, opts .
 
 func (c *keysClient) Sign(ctx context.Context, in *SignRequest, opts ...grpc.CallOption) (*SignResponse, error) {
 	out := new(SignResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/Sign", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/Sign", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +161,7 @@ func (c *keysClient) Sign(ctx context.Context, in *SignRequest, opts ...grpc.Cal
 }
 
 func (c *keysClient) SignFile(ctx context.Context, opts ...grpc.CallOption) (Keys_SignFileClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[0], "/service.Keys/SignFile", opts...)
+	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[0], "/keys.Keys/SignFile", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -192,7 +192,7 @@ func (x *keysSignFileClient) Recv() (*SignFileOutput, error) {
 }
 
 func (c *keysClient) SignStream(ctx context.Context, opts ...grpc.CallOption) (Keys_SignStreamClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[1], "/service.Keys/SignStream", opts...)
+	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[1], "/keys.Keys/SignStream", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -224,7 +224,7 @@ func (x *keysSignStreamClient) Recv() (*SignOutput, error) {
 
 func (c *keysClient) Verify(ctx context.Context, in *VerifyRequest, opts ...grpc.CallOption) (*VerifyResponse, error) {
 	out := new(VerifyResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/Verify", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/Verify", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -232,7 +232,7 @@ func (c *keysClient) Verify(ctx context.Context, in *VerifyRequest, opts ...grpc
 }
 
 func (c *keysClient) VerifyFile(ctx context.Context, opts ...grpc.CallOption) (Keys_VerifyFileClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[2], "/service.Keys/VerifyFile", opts...)
+	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[2], "/keys.Keys/VerifyFile", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -263,7 +263,7 @@ func (x *keysVerifyFileClient) Recv() (*VerifyFileOutput, error) {
 }
 
 func (c *keysClient) VerifyStream(ctx context.Context, opts ...grpc.CallOption) (Keys_VerifyStreamClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[3], "/service.Keys/VerifyStream", opts...)
+	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[3], "/keys.Keys/VerifyStream", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -295,7 +295,7 @@ func (x *keysVerifyStreamClient) Recv() (*VerifyOutput, error) {
 
 func (c *keysClient) VerifyDetached(ctx context.Context, in *VerifyDetachedRequest, opts ...grpc.CallOption) (*VerifyDetachedResponse, error) {
 	out := new(VerifyDetachedResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/VerifyDetached", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/VerifyDetached", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -303,7 +303,7 @@ func (c *keysClient) VerifyDetached(ctx context.Context, in *VerifyDetachedReque
 }
 
 func (c *keysClient) VerifyDetachedFile(ctx context.Context, opts ...grpc.CallOption) (Keys_VerifyDetachedFileClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[4], "/service.Keys/VerifyDetachedFile", opts...)
+	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[4], "/keys.Keys/VerifyDetachedFile", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -337,7 +337,7 @@ func (x *keysVerifyDetachedFileClient) CloseAndRecv() (*VerifyDetachedResponse, 
 }
 
 func (c *keysClient) VerifyDetachedStream(ctx context.Context, opts ...grpc.CallOption) (Keys_VerifyDetachedStreamClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[5], "/service.Keys/VerifyDetachedStream", opts...)
+	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[5], "/keys.Keys/VerifyDetachedStream", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -372,7 +372,7 @@ func (x *keysVerifyDetachedStreamClient) CloseAndRecv() (*VerifyDetachedResponse
 
 func (c *keysClient) Encrypt(ctx context.Context, in *EncryptRequest, opts ...grpc.CallOption) (*EncryptResponse, error) {
 	out := new(EncryptResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/Encrypt", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/Encrypt", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -380,7 +380,7 @@ func (c *keysClient) Encrypt(ctx context.Context, in *EncryptRequest, opts ...gr
 }
 
 func (c *keysClient) EncryptStream(ctx context.Context, opts ...grpc.CallOption) (Keys_EncryptStreamClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[6], "/service.Keys/EncryptStream", opts...)
+	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[6], "/keys.Keys/EncryptStream", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -411,7 +411,7 @@ func (x *keysEncryptStreamClient) Recv() (*EncryptOutput, error) {
 }
 
 func (c *keysClient) EncryptFile(ctx context.Context, opts ...grpc.CallOption) (Keys_EncryptFileClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[7], "/service.Keys/EncryptFile", opts...)
+	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[7], "/keys.Keys/EncryptFile", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -443,7 +443,7 @@ func (x *keysEncryptFileClient) Recv() (*EncryptFileOutput, error) {
 
 func (c *keysClient) Decrypt(ctx context.Context, in *DecryptRequest, opts ...grpc.CallOption) (*DecryptResponse, error) {
 	out := new(DecryptResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/Decrypt", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/Decrypt", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -451,7 +451,7 @@ func (c *keysClient) Decrypt(ctx context.Context, in *DecryptRequest, opts ...gr
 }
 
 func (c *keysClient) DecryptStream(ctx context.Context, opts ...grpc.CallOption) (Keys_DecryptStreamClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[8], "/service.Keys/DecryptStream", opts...)
+	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[8], "/keys.Keys/DecryptStream", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -482,7 +482,7 @@ func (x *keysDecryptStreamClient) Recv() (*DecryptOutput, error) {
 }
 
 func (c *keysClient) DecryptFile(ctx context.Context, opts ...grpc.CallOption) (Keys_DecryptFileClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[9], "/service.Keys/DecryptFile", opts...)
+	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[9], "/keys.Keys/DecryptFile", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -514,7 +514,7 @@ func (x *keysDecryptFileClient) Recv() (*DecryptFileOutput, error) {
 
 func (c *keysClient) Sigchain(ctx context.Context, in *SigchainRequest, opts ...grpc.CallOption) (*SigchainResponse, error) {
 	out := new(SigchainResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/Sigchain", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/Sigchain", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -523,7 +523,7 @@ func (c *keysClient) Sigchain(ctx context.Context, in *SigchainRequest, opts ...
 
 func (c *keysClient) Statement(ctx context.Context, in *StatementRequest, opts ...grpc.CallOption) (*StatementResponse, error) {
 	out := new(StatementResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/Statement", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/Statement", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -532,7 +532,7 @@ func (c *keysClient) Statement(ctx context.Context, in *StatementRequest, opts .
 
 func (c *keysClient) StatementCreate(ctx context.Context, in *StatementCreateRequest, opts ...grpc.CallOption) (*StatementCreateResponse, error) {
 	out := new(StatementCreateResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/StatementCreate", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/StatementCreate", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -541,7 +541,7 @@ func (c *keysClient) StatementCreate(ctx context.Context, in *StatementCreateReq
 
 func (c *keysClient) StatementRevoke(ctx context.Context, in *StatementRevokeRequest, opts ...grpc.CallOption) (*StatementRevokeResponse, error) {
 	out := new(StatementRevokeResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/StatementRevoke", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/StatementRevoke", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -550,7 +550,7 @@ func (c *keysClient) StatementRevoke(ctx context.Context, in *StatementRevokeReq
 
 func (c *keysClient) User(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*UserResponse, error) {
 	out := new(UserResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/User", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/User", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -559,7 +559,7 @@ func (c *keysClient) User(ctx context.Context, in *UserRequest, opts ...grpc.Cal
 
 func (c *keysClient) UserSearch(ctx context.Context, in *UserSearchRequest, opts ...grpc.CallOption) (*UserSearchResponse, error) {
 	out := new(UserSearchResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/UserSearch", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/UserSearch", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -568,7 +568,7 @@ func (c *keysClient) UserSearch(ctx context.Context, in *UserSearchRequest, opts
 
 func (c *keysClient) UserService(ctx context.Context, in *UserServiceRequest, opts ...grpc.CallOption) (*UserServiceResponse, error) {
 	out := new(UserServiceResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/UserService", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/UserService", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -577,7 +577,7 @@ func (c *keysClient) UserService(ctx context.Context, in *UserServiceRequest, op
 
 func (c *keysClient) UserSign(ctx context.Context, in *UserSignRequest, opts ...grpc.CallOption) (*UserSignResponse, error) {
 	out := new(UserSignResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/UserSign", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/UserSign", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -586,7 +586,7 @@ func (c *keysClient) UserSign(ctx context.Context, in *UserSignRequest, opts ...
 
 func (c *keysClient) UserAdd(ctx context.Context, in *UserAddRequest, opts ...grpc.CallOption) (*UserAddResponse, error) {
 	out := new(UserAddResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/UserAdd", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/UserAdd", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -595,7 +595,7 @@ func (c *keysClient) UserAdd(ctx context.Context, in *UserAddRequest, opts ...gr
 
 func (c *keysClient) Search(ctx context.Context, in *SearchRequest, opts ...grpc.CallOption) (*SearchResponse, error) {
 	out := new(SearchResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/Search", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/Search", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -604,7 +604,7 @@ func (c *keysClient) Search(ctx context.Context, in *SearchRequest, opts ...grpc
 
 func (c *keysClient) Secret(ctx context.Context, in *SecretRequest, opts ...grpc.CallOption) (*SecretResponse, error) {
 	out := new(SecretResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/Secret", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/Secret", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -613,7 +613,7 @@ func (c *keysClient) Secret(ctx context.Context, in *SecretRequest, opts ...grpc
 
 func (c *keysClient) SecretSave(ctx context.Context, in *SecretSaveRequest, opts ...grpc.CallOption) (*SecretSaveResponse, error) {
 	out := new(SecretSaveResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/SecretSave", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/SecretSave", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -622,7 +622,7 @@ func (c *keysClient) SecretSave(ctx context.Context, in *SecretSaveRequest, opts
 
 func (c *keysClient) SecretRemove(ctx context.Context, in *SecretRemoveRequest, opts ...grpc.CallOption) (*SecretRemoveResponse, error) {
 	out := new(SecretRemoveResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/SecretRemove", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/SecretRemove", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -631,7 +631,7 @@ func (c *keysClient) SecretRemove(ctx context.Context, in *SecretRemoveRequest, 
 
 func (c *keysClient) Secrets(ctx context.Context, in *SecretsRequest, opts ...grpc.CallOption) (*SecretsResponse, error) {
 	out := new(SecretsResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/Secrets", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/Secrets", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -640,7 +640,7 @@ func (c *keysClient) Secrets(ctx context.Context, in *SecretsRequest, opts ...gr
 
 func (c *keysClient) Pull(ctx context.Context, in *PullRequest, opts ...grpc.CallOption) (*PullResponse, error) {
 	out := new(PullResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/Pull", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/Pull", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -649,7 +649,7 @@ func (c *keysClient) Pull(ctx context.Context, in *PullRequest, opts ...grpc.Cal
 
 func (c *keysClient) Push(ctx context.Context, in *PushRequest, opts ...grpc.CallOption) (*PushResponse, error) {
 	out := new(PushResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/Push", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/Push", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -657,7 +657,7 @@ func (c *keysClient) Push(ctx context.Context, in *PushRequest, opts ...grpc.Cal
 }
 
 func (c *keysClient) Wormhole(ctx context.Context, opts ...grpc.CallOption) (Keys_WormholeClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[10], "/service.Keys/Wormhole", opts...)
+	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[10], "/keys.Keys/Wormhole", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -689,7 +689,7 @@ func (x *keysWormholeClient) Recv() (*WormholeOutput, error) {
 
 func (c *keysClient) AuthSetup(ctx context.Context, in *AuthSetupRequest, opts ...grpc.CallOption) (*AuthSetupResponse, error) {
 	out := new(AuthSetupResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/AuthSetup", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/AuthSetup", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -698,7 +698,7 @@ func (c *keysClient) AuthSetup(ctx context.Context, in *AuthSetupRequest, opts .
 
 func (c *keysClient) AuthVault(ctx context.Context, in *AuthVaultRequest, opts ...grpc.CallOption) (*AuthVaultResponse, error) {
 	out := new(AuthVaultResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/AuthVault", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/AuthVault", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -707,7 +707,7 @@ func (c *keysClient) AuthVault(ctx context.Context, in *AuthVaultRequest, opts .
 
 func (c *keysClient) AuthUnlock(ctx context.Context, in *AuthUnlockRequest, opts ...grpc.CallOption) (*AuthUnlockResponse, error) {
 	out := new(AuthUnlockResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/AuthUnlock", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/AuthUnlock", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -716,7 +716,7 @@ func (c *keysClient) AuthUnlock(ctx context.Context, in *AuthUnlockRequest, opts
 
 func (c *keysClient) AuthLock(ctx context.Context, in *AuthLockRequest, opts ...grpc.CallOption) (*AuthLockResponse, error) {
 	out := new(AuthLockResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/AuthLock", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/AuthLock", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -725,7 +725,7 @@ func (c *keysClient) AuthLock(ctx context.Context, in *AuthLockRequest, opts ...
 
 func (c *keysClient) AuthReset(ctx context.Context, in *AuthResetRequest, opts ...grpc.CallOption) (*AuthResetResponse, error) {
 	out := new(AuthResetResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/AuthReset", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/AuthReset", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -734,7 +734,7 @@ func (c *keysClient) AuthReset(ctx context.Context, in *AuthResetRequest, opts .
 
 func (c *keysClient) AuthRecover(ctx context.Context, in *AuthRecoverRequest, opts ...grpc.CallOption) (*AuthRecoverResponse, error) {
 	out := new(AuthRecoverResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/AuthRecover", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/AuthRecover", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -743,7 +743,7 @@ func (c *keysClient) AuthRecover(ctx context.Context, in *AuthRecoverRequest, op
 
 func (c *keysClient) RuntimeStatus(ctx context.Context, in *RuntimeStatusRequest, opts ...grpc.CallOption) (*RuntimeStatusResponse, error) {
 	out := new(RuntimeStatusResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/RuntimeStatus", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/RuntimeStatus", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -752,7 +752,7 @@ func (c *keysClient) RuntimeStatus(ctx context.Context, in *RuntimeStatusRequest
 
 func (c *keysClient) Rand(ctx context.Context, in *RandRequest, opts ...grpc.CallOption) (*RandResponse, error) {
 	out := new(RandResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/Rand", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/Rand", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -761,7 +761,7 @@ func (c *keysClient) Rand(ctx context.Context, in *RandRequest, opts ...grpc.Cal
 
 func (c *keysClient) RandPassword(ctx context.Context, in *RandPasswordRequest, opts ...grpc.CallOption) (*RandPasswordResponse, error) {
 	out := new(RandPasswordResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/RandPassword", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/RandPassword", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -770,7 +770,7 @@ func (c *keysClient) RandPassword(ctx context.Context, in *RandPasswordRequest, 
 
 func (c *keysClient) AuthProvision(ctx context.Context, in *AuthProvisionRequest, opts ...grpc.CallOption) (*AuthProvisionResponse, error) {
 	out := new(AuthProvisionResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/AuthProvision", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/AuthProvision", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -779,7 +779,7 @@ func (c *keysClient) AuthProvision(ctx context.Context, in *AuthProvisionRequest
 
 func (c *keysClient) AuthDeprovision(ctx context.Context, in *AuthDeprovisionRequest, opts ...grpc.CallOption) (*AuthDeprovisionResponse, error) {
 	out := new(AuthDeprovisionResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/AuthDeprovision", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/AuthDeprovision", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -788,7 +788,7 @@ func (c *keysClient) AuthDeprovision(ctx context.Context, in *AuthDeprovisionReq
 
 func (c *keysClient) AuthProvisions(ctx context.Context, in *AuthProvisionsRequest, opts ...grpc.CallOption) (*AuthProvisionsResponse, error) {
 	out := new(AuthProvisionsResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/AuthProvisions", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/AuthProvisions", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -797,7 +797,7 @@ func (c *keysClient) AuthProvisions(ctx context.Context, in *AuthProvisionsReque
 
 func (c *keysClient) AuthPasswordChange(ctx context.Context, in *AuthPasswordChangeRequest, opts ...grpc.CallOption) (*AuthPasswordChangeResponse, error) {
 	out := new(AuthPasswordChangeResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/AuthPasswordChange", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/AuthPasswordChange", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -806,7 +806,7 @@ func (c *keysClient) AuthPasswordChange(ctx context.Context, in *AuthPasswordCha
 
 func (c *keysClient) VaultAuth(ctx context.Context, in *VaultAuthRequest, opts ...grpc.CallOption) (*VaultAuthResponse, error) {
 	out := new(VaultAuthResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/VaultAuth", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/VaultAuth", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -815,7 +815,7 @@ func (c *keysClient) VaultAuth(ctx context.Context, in *VaultAuthRequest, opts .
 
 func (c *keysClient) VaultSync(ctx context.Context, in *VaultSyncRequest, opts ...grpc.CallOption) (*VaultSyncResponse, error) {
 	out := new(VaultSyncResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/VaultSync", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/VaultSync", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -824,7 +824,7 @@ func (c *keysClient) VaultSync(ctx context.Context, in *VaultSyncRequest, opts .
 
 func (c *keysClient) VaultUnsync(ctx context.Context, in *VaultUnsyncRequest, opts ...grpc.CallOption) (*VaultUnsyncResponse, error) {
 	out := new(VaultUnsyncResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/VaultUnsync", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/VaultUnsync", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -833,7 +833,7 @@ func (c *keysClient) VaultUnsync(ctx context.Context, in *VaultUnsyncRequest, op
 
 func (c *keysClient) VaultStatus(ctx context.Context, in *VaultStatusRequest, opts ...grpc.CallOption) (*VaultStatusResponse, error) {
 	out := new(VaultStatusResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/VaultStatus", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/VaultStatus", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -842,7 +842,7 @@ func (c *keysClient) VaultStatus(ctx context.Context, in *VaultStatusRequest, op
 
 func (c *keysClient) VaultUpdate(ctx context.Context, in *VaultUpdateRequest, opts ...grpc.CallOption) (*VaultUpdateResponse, error) {
 	out := new(VaultUpdateResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/VaultUpdate", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/VaultUpdate", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -851,7 +851,7 @@ func (c *keysClient) VaultUpdate(ctx context.Context, in *VaultUpdateRequest, op
 
 func (c *keysClient) Collections(ctx context.Context, in *CollectionsRequest, opts ...grpc.CallOption) (*CollectionsResponse, error) {
 	out := new(CollectionsResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/Collections", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/Collections", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -860,7 +860,7 @@ func (c *keysClient) Collections(ctx context.Context, in *CollectionsRequest, op
 
 func (c *keysClient) Documents(ctx context.Context, in *DocumentsRequest, opts ...grpc.CallOption) (*DocumentsResponse, error) {
 	out := new(DocumentsResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/Documents", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/Documents", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -869,7 +869,7 @@ func (c *keysClient) Documents(ctx context.Context, in *DocumentsRequest, opts .
 
 func (c *keysClient) DocumentDelete(ctx context.Context, in *DocumentDeleteRequest, opts ...grpc.CallOption) (*DocumentDeleteResponse, error) {
 	out := new(DocumentDeleteResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/DocumentDelete", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/DocumentDelete", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -878,7 +878,7 @@ func (c *keysClient) DocumentDelete(ctx context.Context, in *DocumentDeleteReque
 
 func (c *keysClient) ConfigGet(ctx context.Context, in *ConfigGetRequest, opts ...grpc.CallOption) (*ConfigGetResponse, error) {
 	out := new(ConfigGetResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/ConfigGet", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/ConfigGet", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -887,7 +887,7 @@ func (c *keysClient) ConfigGet(ctx context.Context, in *ConfigGetRequest, opts .
 
 func (c *keysClient) ConfigSet(ctx context.Context, in *ConfigSetRequest, opts ...grpc.CallOption) (*ConfigSetResponse, error) {
 	out := new(ConfigSetResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/ConfigSet", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/ConfigSet", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -896,7 +896,7 @@ func (c *keysClient) ConfigSet(ctx context.Context, in *ConfigSetRequest, opts .
 
 func (c *keysClient) AdminSignURL(ctx context.Context, in *AdminSignURLRequest, opts ...grpc.CallOption) (*AdminSignURLResponse, error) {
 	out := new(AdminSignURLResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/AdminSignURL", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/AdminSignURL", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -905,7 +905,7 @@ func (c *keysClient) AdminSignURL(ctx context.Context, in *AdminSignURLRequest, 
 
 func (c *keysClient) AdminCheck(ctx context.Context, in *AdminCheckRequest, opts ...grpc.CallOption) (*AdminCheckResponse, error) {
 	out := new(AdminCheckResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/AdminCheck", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/AdminCheck", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -914,7 +914,7 @@ func (c *keysClient) AdminCheck(ctx context.Context, in *AdminCheckRequest, opts
 
 func (c *keysClient) MessagePrepare(ctx context.Context, in *MessagePrepareRequest, opts ...grpc.CallOption) (*MessagePrepareResponse, error) {
 	out := new(MessagePrepareResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/MessagePrepare", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/MessagePrepare", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -923,7 +923,7 @@ func (c *keysClient) MessagePrepare(ctx context.Context, in *MessagePrepareReque
 
 func (c *keysClient) MessageCreate(ctx context.Context, in *MessageCreateRequest, opts ...grpc.CallOption) (*MessageCreateResponse, error) {
 	out := new(MessageCreateResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/MessageCreate", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/MessageCreate", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -932,7 +932,7 @@ func (c *keysClient) MessageCreate(ctx context.Context, in *MessageCreateRequest
 
 func (c *keysClient) Messages(ctx context.Context, in *MessagesRequest, opts ...grpc.CallOption) (*MessagesResponse, error) {
 	out := new(MessagesResponse)
-	err := c.cc.Invoke(ctx, "/service.Keys/Messages", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/keys.Keys/Messages", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1234,7 +1234,7 @@ func _Keys_KeyGenerate_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/KeyGenerate",
+		FullMethod: "/keys.Keys/KeyGenerate",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).KeyGenerate(ctx, req.(*KeyGenerateRequest))
@@ -1252,7 +1252,7 @@ func _Keys_Keys_Handler(srv interface{}, ctx context.Context, dec func(interface
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/Keys",
+		FullMethod: "/keys.Keys/Keys",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).Keys(ctx, req.(*KeysRequest))
@@ -1270,7 +1270,7 @@ func _Keys_Key_Handler(srv interface{}, ctx context.Context, dec func(interface{
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/Key",
+		FullMethod: "/keys.Keys/Key",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).Key(ctx, req.(*KeyRequest))
@@ -1288,7 +1288,7 @@ func _Keys_KeyImport_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/KeyImport",
+		FullMethod: "/keys.Keys/KeyImport",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).KeyImport(ctx, req.(*KeyImportRequest))
@@ -1306,7 +1306,7 @@ func _Keys_KeyExport_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/KeyExport",
+		FullMethod: "/keys.Keys/KeyExport",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).KeyExport(ctx, req.(*KeyExportRequest))
@@ -1324,7 +1324,7 @@ func _Keys_KeyRemove_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/KeyRemove",
+		FullMethod: "/keys.Keys/KeyRemove",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).KeyRemove(ctx, req.(*KeyRemoveRequest))
@@ -1342,7 +1342,7 @@ func _Keys_Sign_Handler(srv interface{}, ctx context.Context, dec func(interface
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/Sign",
+		FullMethod: "/keys.Keys/Sign",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).Sign(ctx, req.(*SignRequest))
@@ -1412,7 +1412,7 @@ func _Keys_Verify_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/Verify",
+		FullMethod: "/keys.Keys/Verify",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).Verify(ctx, req.(*VerifyRequest))
@@ -1482,7 +1482,7 @@ func _Keys_VerifyDetached_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/VerifyDetached",
+		FullMethod: "/keys.Keys/VerifyDetached",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).VerifyDetached(ctx, req.(*VerifyDetachedRequest))
@@ -1552,7 +1552,7 @@ func _Keys_Encrypt_Handler(srv interface{}, ctx context.Context, dec func(interf
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/Encrypt",
+		FullMethod: "/keys.Keys/Encrypt",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).Encrypt(ctx, req.(*EncryptRequest))
@@ -1622,7 +1622,7 @@ func _Keys_Decrypt_Handler(srv interface{}, ctx context.Context, dec func(interf
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/Decrypt",
+		FullMethod: "/keys.Keys/Decrypt",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).Decrypt(ctx, req.(*DecryptRequest))
@@ -1692,7 +1692,7 @@ func _Keys_Sigchain_Handler(srv interface{}, ctx context.Context, dec func(inter
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/Sigchain",
+		FullMethod: "/keys.Keys/Sigchain",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).Sigchain(ctx, req.(*SigchainRequest))
@@ -1710,7 +1710,7 @@ func _Keys_Statement_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/Statement",
+		FullMethod: "/keys.Keys/Statement",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).Statement(ctx, req.(*StatementRequest))
@@ -1728,7 +1728,7 @@ func _Keys_StatementCreate_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/StatementCreate",
+		FullMethod: "/keys.Keys/StatementCreate",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).StatementCreate(ctx, req.(*StatementCreateRequest))
@@ -1746,7 +1746,7 @@ func _Keys_StatementRevoke_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/StatementRevoke",
+		FullMethod: "/keys.Keys/StatementRevoke",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).StatementRevoke(ctx, req.(*StatementRevokeRequest))
@@ -1764,7 +1764,7 @@ func _Keys_User_Handler(srv interface{}, ctx context.Context, dec func(interface
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/User",
+		FullMethod: "/keys.Keys/User",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).User(ctx, req.(*UserRequest))
@@ -1782,7 +1782,7 @@ func _Keys_UserSearch_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/UserSearch",
+		FullMethod: "/keys.Keys/UserSearch",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).UserSearch(ctx, req.(*UserSearchRequest))
@@ -1800,7 +1800,7 @@ func _Keys_UserService_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/UserService",
+		FullMethod: "/keys.Keys/UserService",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).UserService(ctx, req.(*UserServiceRequest))
@@ -1818,7 +1818,7 @@ func _Keys_UserSign_Handler(srv interface{}, ctx context.Context, dec func(inter
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/UserSign",
+		FullMethod: "/keys.Keys/UserSign",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).UserSign(ctx, req.(*UserSignRequest))
@@ -1836,7 +1836,7 @@ func _Keys_UserAdd_Handler(srv interface{}, ctx context.Context, dec func(interf
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/UserAdd",
+		FullMethod: "/keys.Keys/UserAdd",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).UserAdd(ctx, req.(*UserAddRequest))
@@ -1854,7 +1854,7 @@ func _Keys_Search_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/Search",
+		FullMethod: "/keys.Keys/Search",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).Search(ctx, req.(*SearchRequest))
@@ -1872,7 +1872,7 @@ func _Keys_Secret_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/Secret",
+		FullMethod: "/keys.Keys/Secret",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).Secret(ctx, req.(*SecretRequest))
@@ -1890,7 +1890,7 @@ func _Keys_SecretSave_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/SecretSave",
+		FullMethod: "/keys.Keys/SecretSave",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).SecretSave(ctx, req.(*SecretSaveRequest))
@@ -1908,7 +1908,7 @@ func _Keys_SecretRemove_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/SecretRemove",
+		FullMethod: "/keys.Keys/SecretRemove",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).SecretRemove(ctx, req.(*SecretRemoveRequest))
@@ -1926,7 +1926,7 @@ func _Keys_Secrets_Handler(srv interface{}, ctx context.Context, dec func(interf
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/Secrets",
+		FullMethod: "/keys.Keys/Secrets",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).Secrets(ctx, req.(*SecretsRequest))
@@ -1944,7 +1944,7 @@ func _Keys_Pull_Handler(srv interface{}, ctx context.Context, dec func(interface
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/Pull",
+		FullMethod: "/keys.Keys/Pull",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).Pull(ctx, req.(*PullRequest))
@@ -1962,7 +1962,7 @@ func _Keys_Push_Handler(srv interface{}, ctx context.Context, dec func(interface
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/Push",
+		FullMethod: "/keys.Keys/Push",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).Push(ctx, req.(*PushRequest))
@@ -2006,7 +2006,7 @@ func _Keys_AuthSetup_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/AuthSetup",
+		FullMethod: "/keys.Keys/AuthSetup",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).AuthSetup(ctx, req.(*AuthSetupRequest))
@@ -2024,7 +2024,7 @@ func _Keys_AuthVault_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/AuthVault",
+		FullMethod: "/keys.Keys/AuthVault",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).AuthVault(ctx, req.(*AuthVaultRequest))
@@ -2042,7 +2042,7 @@ func _Keys_AuthUnlock_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/AuthUnlock",
+		FullMethod: "/keys.Keys/AuthUnlock",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).AuthUnlock(ctx, req.(*AuthUnlockRequest))
@@ -2060,7 +2060,7 @@ func _Keys_AuthLock_Handler(srv interface{}, ctx context.Context, dec func(inter
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/AuthLock",
+		FullMethod: "/keys.Keys/AuthLock",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).AuthLock(ctx, req.(*AuthLockRequest))
@@ -2078,7 +2078,7 @@ func _Keys_AuthReset_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/AuthReset",
+		FullMethod: "/keys.Keys/AuthReset",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).AuthReset(ctx, req.(*AuthResetRequest))
@@ -2096,7 +2096,7 @@ func _Keys_AuthRecover_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/AuthRecover",
+		FullMethod: "/keys.Keys/AuthRecover",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).AuthRecover(ctx, req.(*AuthRecoverRequest))
@@ -2114,7 +2114,7 @@ func _Keys_RuntimeStatus_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/RuntimeStatus",
+		FullMethod: "/keys.Keys/RuntimeStatus",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).RuntimeStatus(ctx, req.(*RuntimeStatusRequest))
@@ -2132,7 +2132,7 @@ func _Keys_Rand_Handler(srv interface{}, ctx context.Context, dec func(interface
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/Rand",
+		FullMethod: "/keys.Keys/Rand",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).Rand(ctx, req.(*RandRequest))
@@ -2150,7 +2150,7 @@ func _Keys_RandPassword_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/RandPassword",
+		FullMethod: "/keys.Keys/RandPassword",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).RandPassword(ctx, req.(*RandPasswordRequest))
@@ -2168,7 +2168,7 @@ func _Keys_AuthProvision_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/AuthProvision",
+		FullMethod: "/keys.Keys/AuthProvision",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).AuthProvision(ctx, req.(*AuthProvisionRequest))
@@ -2186,7 +2186,7 @@ func _Keys_AuthDeprovision_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/AuthDeprovision",
+		FullMethod: "/keys.Keys/AuthDeprovision",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).AuthDeprovision(ctx, req.(*AuthDeprovisionRequest))
@@ -2204,7 +2204,7 @@ func _Keys_AuthProvisions_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/AuthProvisions",
+		FullMethod: "/keys.Keys/AuthProvisions",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).AuthProvisions(ctx, req.(*AuthProvisionsRequest))
@@ -2222,7 +2222,7 @@ func _Keys_AuthPasswordChange_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/AuthPasswordChange",
+		FullMethod: "/keys.Keys/AuthPasswordChange",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).AuthPasswordChange(ctx, req.(*AuthPasswordChangeRequest))
@@ -2240,7 +2240,7 @@ func _Keys_VaultAuth_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/VaultAuth",
+		FullMethod: "/keys.Keys/VaultAuth",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).VaultAuth(ctx, req.(*VaultAuthRequest))
@@ -2258,7 +2258,7 @@ func _Keys_VaultSync_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/VaultSync",
+		FullMethod: "/keys.Keys/VaultSync",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).VaultSync(ctx, req.(*VaultSyncRequest))
@@ -2276,7 +2276,7 @@ func _Keys_VaultUnsync_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/VaultUnsync",
+		FullMethod: "/keys.Keys/VaultUnsync",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).VaultUnsync(ctx, req.(*VaultUnsyncRequest))
@@ -2294,7 +2294,7 @@ func _Keys_VaultStatus_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/VaultStatus",
+		FullMethod: "/keys.Keys/VaultStatus",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).VaultStatus(ctx, req.(*VaultStatusRequest))
@@ -2312,7 +2312,7 @@ func _Keys_VaultUpdate_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/VaultUpdate",
+		FullMethod: "/keys.Keys/VaultUpdate",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).VaultUpdate(ctx, req.(*VaultUpdateRequest))
@@ -2330,7 +2330,7 @@ func _Keys_Collections_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/Collections",
+		FullMethod: "/keys.Keys/Collections",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).Collections(ctx, req.(*CollectionsRequest))
@@ -2348,7 +2348,7 @@ func _Keys_Documents_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/Documents",
+		FullMethod: "/keys.Keys/Documents",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).Documents(ctx, req.(*DocumentsRequest))
@@ -2366,7 +2366,7 @@ func _Keys_DocumentDelete_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/DocumentDelete",
+		FullMethod: "/keys.Keys/DocumentDelete",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).DocumentDelete(ctx, req.(*DocumentDeleteRequest))
@@ -2384,7 +2384,7 @@ func _Keys_ConfigGet_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/ConfigGet",
+		FullMethod: "/keys.Keys/ConfigGet",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).ConfigGet(ctx, req.(*ConfigGetRequest))
@@ -2402,7 +2402,7 @@ func _Keys_ConfigSet_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/ConfigSet",
+		FullMethod: "/keys.Keys/ConfigSet",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).ConfigSet(ctx, req.(*ConfigSetRequest))
@@ -2420,7 +2420,7 @@ func _Keys_AdminSignURL_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/AdminSignURL",
+		FullMethod: "/keys.Keys/AdminSignURL",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).AdminSignURL(ctx, req.(*AdminSignURLRequest))
@@ -2438,7 +2438,7 @@ func _Keys_AdminCheck_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/AdminCheck",
+		FullMethod: "/keys.Keys/AdminCheck",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).AdminCheck(ctx, req.(*AdminCheckRequest))
@@ -2456,7 +2456,7 @@ func _Keys_MessagePrepare_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/MessagePrepare",
+		FullMethod: "/keys.Keys/MessagePrepare",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).MessagePrepare(ctx, req.(*MessagePrepareRequest))
@@ -2474,7 +2474,7 @@ func _Keys_MessageCreate_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/MessageCreate",
+		FullMethod: "/keys.Keys/MessageCreate",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).MessageCreate(ctx, req.(*MessageCreateRequest))
@@ -2492,7 +2492,7 @@ func _Keys_Messages_Handler(srv interface{}, ctx context.Context, dec func(inter
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Keys/Messages",
+		FullMethod: "/keys.Keys/Messages",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KeysServer).Messages(ctx, req.(*MessagesRequest))
@@ -2501,7 +2501,7 @@ func _Keys_Messages_Handler(srv interface{}, ctx context.Context, dec func(inter
 }
 
 var _Keys_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "service.Keys",
+	ServiceName: "keys.Keys",
 	HandlerType: (*KeysServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

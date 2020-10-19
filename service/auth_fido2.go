@@ -18,7 +18,7 @@ type authDevice struct {
 	Provision  *vault.Provision
 }
 
-func findDevice(ctx context.Context, auths fido2.AuthServer, query string) (*authDevice, error) {
+func findDevice(ctx context.Context, auths fido2.FIDO2Server, query string) (*authDevice, error) {
 	if auths == nil {
 		return nil, errors.Errorf("fido2 plugin not available")
 	}
@@ -47,7 +47,7 @@ func findDevice(ctx context.Context, auths fido2.AuthServer, query string) (*aut
 }
 
 // findDeviceProvision returns a device with matching the auth credentials (aaguid).
-func findDeviceProvision(ctx context.Context, auths fido2.AuthServer, provisions []*vault.Provision) (*authDevice, error) {
+func findDeviceProvision(ctx context.Context, auths fido2.FIDO2Server, provisions []*vault.Provision) (*authDevice, error) {
 	if auths == nil {
 		return nil, errors.Errorf("fido2 plugin not available")
 	}
@@ -87,7 +87,7 @@ func findDeviceProvision(ctx context.Context, auths fido2.AuthServer, provisions
 	return nil, errors.Errorf("no devices found matching our credentials")
 }
 
-func generateHMACSecret(ctx context.Context, auths fido2.AuthServer, vlt *vault.Vault, pin string, device string, appName string) (*vault.Provision, error) {
+func generateHMACSecret(ctx context.Context, auths fido2.FIDO2Server, vlt *vault.Vault, pin string, device string, appName string) (*vault.Provision, error) {
 	if auths == nil {
 		return nil, errors.Errorf("fido2 plugin not available")
 	}
@@ -154,7 +154,7 @@ func generateHMACSecret(ctx context.Context, auths fido2.AuthServer, vlt *vault.
 	return provision, nil
 }
 
-func hmacSecret(ctx context.Context, auths fido2.AuthServer, vlt *vault.Vault, pin string) ([]byte, *vault.Provision, error) {
+func hmacSecret(ctx context.Context, auths fido2.FIDO2Server, vlt *vault.Vault, pin string) ([]byte, *vault.Provision, error) {
 	if auths == nil {
 		return nil, nil, errors.Errorf("fido2 plugin not available")
 	}
@@ -202,7 +202,7 @@ func hmacSecret(ctx context.Context, auths fido2.AuthServer, vlt *vault.Vault, p
 	return secretResp.HMACSecret, authDevice.Provision, nil
 }
 
-func unlockHMACSecret(ctx context.Context, auths fido2.AuthServer, vlt *vault.Vault, pin string) error {
+func unlockHMACSecret(ctx context.Context, auths fido2.FIDO2Server, vlt *vault.Vault, pin string) error {
 	secret, provision, err := hmacSecret(ctx, auths, vlt, pin)
 	if err != nil {
 		return err
@@ -237,7 +237,7 @@ func unlockHMACSecret(ctx context.Context, auths fido2.AuthServer, vlt *vault.Va
 	return nil
 }
 
-func provisionHMACSecret(ctx context.Context, auths fido2.AuthServer, vlt *vault.Vault, pin string) (*vault.Provision, error) {
+func provisionHMACSecret(ctx context.Context, auths fido2.FIDO2Server, vlt *vault.Vault, pin string) (*vault.Provision, error) {
 	secret, provision, err := hmacSecret(ctx, auths, vlt, pin)
 	if err != nil {
 		return nil, err

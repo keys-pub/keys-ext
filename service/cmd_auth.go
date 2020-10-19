@@ -225,7 +225,7 @@ func authDevicesCommand(client *Client) cli.Command {
 				if err != nil {
 					return err
 				}
-				if typeResp.Type != fido2.FIDO2 {
+				if typeResp.Type != fido2.FIDO2Device {
 					continue
 				}
 

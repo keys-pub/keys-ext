@@ -3,7 +3,7 @@ syntax = "proto3";
 // Proto field names should be snake_case, but some plugins don't convert to 
 // camel like they should, so we use camelCase here.
 
-package service;
+package keys;
 option go_package=".;service";
 
 import "patch/go.proto";

@@ -66,19 +66,19 @@ func TestAuthorize(t *testing.T) {
 	defer vlt.Close()
 
 	ctx := metadata.NewIncomingContext(context.TODO(), metadata.MD{})
-	err = auth.authorize(ctx, "/service.Keys/SomeMethod")
+	err = auth.authorize(ctx, "/keys.Keys/SomeMethod")
 	require.EqualError(t, err, "rpc error: code = Unauthenticated desc = authorization missing")
 
 	ctx2 := metadata.NewIncomingContext(context.TODO(), metadata.MD{
 		"authorization": []string{""},
 	})
-	err = auth.authorize(ctx2, "/service.Keys/SomeMethod")
+	err = auth.authorize(ctx2, "/keys.Keys/SomeMethod")
 	require.EqualError(t, err, "rpc error: code = Unauthenticated desc = invalid token")
 
 	ctx3 := metadata.NewIncomingContext(context.TODO(), metadata.MD{
 		"authorization": []string{"badtoken"},
 	})
-	err = auth.authorize(ctx3, "/service.Keys/SomeMethod")
+	err = auth.authorize(ctx3, "/keys.Keys/SomeMethod")
 	require.EqualError(t, err, "rpc error: code = Unauthenticated desc = invalid token")
 
 	// Setup
@@ -93,13 +93,13 @@ func TestAuthorize(t *testing.T) {
 	ctx4 := metadata.NewIncomingContext(context.TODO(), metadata.MD{
 		"authorization": []string{token},
 	})
-	err = auth.authorize(ctx4, "/service.Keys/SomeMethod")
+	err = auth.authorize(ctx4, "/keys.Keys/SomeMethod")
 	require.NoError(t, err)
 
 	ctx5 := metadata.NewIncomingContext(context.TODO(), metadata.MD{
 		"authorization": []string{"badtoken"},
 	})
-	err = auth.authorize(ctx5, "/service.Keys/SomeMethod")
+	err = auth.authorize(ctx5, "/keys.Keys/SomeMethod")
 	require.EqualError(t, err, "rpc error: code = Unauthenticated desc = invalid token")
 }
 
