@@ -4,16 +4,15 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/gorilla/websocket"
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys-ext/http/server"
 	"github.com/keys-pub/keys/docs"
 	"github.com/keys-pub/keys/encoding"
+	"github.com/keys-pub/keys/http"
 	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keys/user"
@@ -86,7 +85,7 @@ func newEnvWithFire(t *testing.T, fi server.Fire, clock tsutil.Clock) *env {
 }
 
 func newTestServer(t *testing.T, env *env) *testServer {
-	rds := api.NewRedisTest(env.clock)
+	rds := server.NewRedisTest(env.clock)
 	svr := server.New(env.fi, rds, env.req, env.clock, server.NewLogger(env.logLevel))
 	tasks := server.NewTestTasks(svr)
 	svr.SetTasks(tasks)
@@ -110,7 +109,7 @@ func (s *testServer) Serve(req *http.Request) (int, http.Header, string) {
 
 func newTestPubSubServer(t *testing.T, env *env) *testPubSubServer {
 	pubSub := server.NewPubSub()
-	rds := api.NewRedisTest(env.clock)
+	rds := server.NewRedisTest(env.clock)
 	svr := server.NewPubSubServer(pubSub, rds, server.NewLogger(server.ErrLevel))
 	svr.SetClock(env.clock)
 	handler := server.NewPubSubHandler(svr)
@@ -146,7 +145,7 @@ func (s *testPubSubServer) WebsocketDial(t *testing.T, path string, clock tsutil
 	header := http.Header{}
 
 	if key != nil {
-		auth, err := api.NewAuth("GET", path, "", clock.Now(), key)
+		auth, err := http.NewAuth("GET", path, "", clock.Now(), key)
 		require.NoError(t, err)
 		wsAddr = fmt.Sprintf("ws://%s%s", s.Addr, auth.URL.String())
 

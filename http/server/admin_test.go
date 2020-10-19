@@ -3,11 +3,10 @@ package server_test
 import (
 	"bytes"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys-ext/http/api"
+	"github.com/keys-pub/keys/http"
 	"github.com/stretchr/testify/require"
 )
 
@@ -34,14 +33,14 @@ func TestAdminCheck(t *testing.T) {
 	require.Equal(t, "{}", body)
 
 	// POST /admin/check/:kid
-	req, err = api.NewRequest("POST", "/admin/check/"+alice.ID().String(), nil, "", clock.Now(), bob)
+	req, err = http.NewAuthRequest("POST", "/admin/check/"+alice.ID().String(), nil, "", clock.Now(), bob)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
 	require.Equal(t, `{"error":{"code":403,"message":"not authorized"}}`, body)
 
 	// POST /admin/check/all
-	req, err = api.NewRequest("POST", "/admin/check/"+alice.ID().String(), nil, "", clock.Now(), bob)
+	req, err = http.NewAuthRequest("POST", "/admin/check/"+alice.ID().String(), nil, "", clock.Now(), bob)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
@@ -51,14 +50,14 @@ func TestAdminCheck(t *testing.T) {
 	srv.Server.SetAdmins([]keys.ID{bob.ID()})
 
 	// POST /admin/check/:kid
-	req, err = api.NewRequest("POST", "/admin/check/"+alice.ID().String(), nil, "", clock.Now(), bob)
+	req, err = http.NewAuthRequest("POST", "/admin/check/"+alice.ID().String(), nil, "", clock.Now(), bob)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, `{}`, body)
 
 	// POST /admin/check/all
-	req, err = api.NewRequest("POST", "/admin/check/all", nil, "", clock.Now(), bob)
+	req, err = http.NewAuthRequest("POST", "/admin/check/all", nil, "", clock.Now(), bob)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)

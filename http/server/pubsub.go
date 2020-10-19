@@ -9,7 +9,6 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
@@ -24,7 +23,7 @@ type PubSub interface {
 // PubSubServer implements PubSub.
 type PubSubServer struct {
 	pubSub PubSub
-	rds    api.Redis
+	rds    Redis
 	logger Logger
 	clock  tsutil.Clock
 
@@ -32,7 +31,7 @@ type PubSubServer struct {
 }
 
 // NewPubSubServer creates a PubSubServer.
-func NewPubSubServer(pubSub PubSub, rds api.Redis, logger Logger) *PubSubServer {
+func NewPubSubServer(pubSub PubSub, rds Redis, logger Logger) *PubSubServer {
 	return &PubSubServer{
 		pubSub: pubSub,
 		rds:    rds,

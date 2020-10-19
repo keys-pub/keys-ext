@@ -3,15 +3,14 @@ package server_test
 import (
 	"bytes"
 	"context"
-	"net/http"
 	"sync"
 	"testing"
 
 	"github.com/gorilla/websocket"
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys-ext/http/server"
 	"github.com/keys-pub/keys/docs"
+	"github.com/keys-pub/keys/http"
 	"github.com/stretchr/testify/require"
 )
 
@@ -43,8 +42,8 @@ func TestPubSub(t *testing.T) {
 
 	// POST /publish/:kid/:rid (charlie to alice)
 	content := []byte("test1")
-	contentHash := api.ContentHash(content)
-	req, err := api.NewRequest("POST", docs.Path("publish", charlie.ID(), alice.ID()), bytes.NewReader(content), contentHash, clock.Now(), charlie)
+	contentHash := http.ContentHash(content)
+	req, err := http.NewAuthRequest("POST", docs.Path("publish", charlie.ID(), alice.ID()), bytes.NewReader(content), contentHash, clock.Now(), charlie)
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)

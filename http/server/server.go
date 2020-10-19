@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/docs"
 	"github.com/keys-pub/keys/docs/events"
 	"github.com/keys-pub/keys/request"
@@ -23,7 +22,7 @@ import (
 // Server ...
 type Server struct {
 	fi     Fire
-	rds    api.Redis
+	rds    Redis
 	clock  tsutil.Clock
 	logger Logger
 
@@ -48,7 +47,7 @@ type Fire interface {
 }
 
 // New creates a Server.
-func New(fi Fire, rds api.Redis, req request.Requestor, clock tsutil.Clock, logger Logger) *Server {
+func New(fi Fire, rds Redis, req request.Requestor, clock tsutil.Clock, logger Logger) *Server {
 	sigchains := keys.NewSigchains(fi)
 	usrs := users.New(fi, sigchains, users.Requestor(req), users.Clock(clock))
 	return &Server{

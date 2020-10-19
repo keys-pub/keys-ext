@@ -3,11 +3,10 @@ package server_test
 import (
 	"bytes"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys-ext/http/api"
+	"github.com/keys-pub/keys/http"
 	"github.com/stretchr/testify/require"
 )
 
@@ -33,7 +32,7 @@ func TestCheck(t *testing.T) {
 	require.Equal(t, "{}", body)
 
 	// POST /check
-	req, err = api.NewRequest("POST", "/check", nil, "", clock.Now(), alice)
+	req, err = http.NewAuthRequest("POST", "/check", nil, "", clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
