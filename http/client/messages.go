@@ -12,6 +12,7 @@ import (
 	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/docs"
 	"github.com/keys-pub/keys/docs/events"
+	"github.com/keys-pub/keys/http"
 	"github.com/keys-pub/keys/saltpack"
 	"github.com/vmihailenco/msgpack/v4"
 )
@@ -31,7 +32,7 @@ func (c *Client) MessageSend(ctx context.Context, sender *keys.EdX25519Key, reci
 	if err != nil {
 		return err
 	}
-	contentHash := api.ContentHash(encrypted)
+	contentHash := http.ContentHash(encrypted)
 
 	path := docs.Path("msgs", sender.ID(), recipient)
 	vals := url.Values{}

@@ -8,7 +8,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net"
-	"net/http"
 	"net/url"
 	"strings"
 	"time"
@@ -17,6 +16,7 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/docs"
+	"github.com/keys-pub/keys/http"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
 )
@@ -132,7 +132,7 @@ func (c *Client) req(ctx context.Context, method string, path string, params url
 
 	var req *http.Request
 	if key != nil {
-		r, err := api.NewRequestWithContext(ctx, method, urs, body, contentHash, c.clock.Now(), key)
+		r, err := http.NewAuthRequestWithContext(ctx, method, urs, body, contentHash, c.clock.Now(), key)
 		if err != nil {
 			return nil, err
 		}

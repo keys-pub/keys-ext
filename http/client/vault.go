@@ -10,6 +10,7 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/docs"
+	"github.com/keys-pub/keys/http"
 	"github.com/pkg/errors"
 	"github.com/vmihailenco/msgpack/v4"
 )
@@ -47,7 +48,7 @@ func (c *Client) VaultSend(ctx context.Context, key *keys.EdX25519Key, events []
 	if err != nil {
 		return err
 	}
-	contentHash := api.ContentHash(b)
+	contentHash := http.ContentHash(b)
 
 	if _, err := c.postDocument(ctx, path, vals, key, bytes.NewReader(b), contentHash); err != nil {
 		return err

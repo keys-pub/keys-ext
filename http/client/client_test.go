@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys-ext/http/server"
 	"github.com/keys-pub/keys/docs"
@@ -66,7 +65,7 @@ func newEnvWithOptions(t *testing.T, opts *envOptions) (*env, func()) {
 	if opts.logger == nil {
 		opts.logger = client.NewLogger(client.ErrLevel)
 	}
-	rds := api.NewRedisTest(opts.clock)
+	rds := server.NewRedisTest(opts.clock)
 	req := request.NewMockRequestor()
 	usrs := users.New(opts.fi, keys.NewSigchains(opts.fi), users.Requestor(req), users.Clock(opts.clock))
 

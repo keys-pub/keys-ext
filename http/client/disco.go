@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/docs"
+	"github.com/keys-pub/keys/http"
 	"github.com/pkg/errors"
 )
 
@@ -33,7 +33,7 @@ func (c *Client) DiscoSave(ctx context.Context, sender *keys.EdX25519Key, recipi
 	}
 
 	encrypted := keys.BoxSeal([]byte(data), recipientKey, sender.X25519Key())
-	contentHash := api.ContentHash(encrypted)
+	contentHash := http.ContentHash(encrypted)
 
 	path := docs.Path("disco", sender.ID(), recipient, string(typ))
 	vals := url.Values{}
