@@ -99,9 +99,9 @@ func newTestDB(t *testing.T) (vault.Store, func()) {
 	return db, close
 }
 
-func testSeed(b byte) *[32]byte {
-	return keys.Bytes32(bytes.Repeat([]byte{b}, 32))
-}
+// func testSeed(b byte) *[32]byte {
+// 	return keys.Bytes32(bytes.Repeat([]byte{b}, 32))
+// }
 
 type testEnv struct {
 	clock      tsutil.Clock
