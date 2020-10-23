@@ -52,6 +52,11 @@ func New(st Store, opt ...Option) *Vault {
 	}
 }
 
+// Now is current time.
+func (v *Vault) Now() time.Time {
+	return v.clock.Now()
+}
+
 // Open vault.
 func (v *Vault) Open() error {
 	if err := v.store.Open(); err != nil {

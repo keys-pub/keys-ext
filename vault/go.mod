@@ -4,19 +4,22 @@ go 1.14
 
 require (
 	github.com/davecgh/go-spew v1.1.1
+	github.com/golang/protobuf v1.4.3 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
-	github.com/keys-pub/keys v0.1.2-0.20200731213842-a306c75de40a
-	github.com/keys-pub/keys-ext/http/api v0.0.0-20200730003632-c95092bc23ed
-	github.com/keys-pub/keys-ext/http/client v0.0.0-20200803194707-448c69038c86
-	github.com/keys-pub/keys-ext/http/server v0.0.0-20200803193934-036dcb4c6007
+	github.com/keys-pub/keys v0.1.7-0.20201022162733-140ebabc2075
+	github.com/keys-pub/keys-ext/http/api v0.0.0-20201020191314-a11edd4d5ac7
+	github.com/keys-pub/keys-ext/http/client v0.0.0-20201020191314-a11edd4d5ac7
+	github.com/keys-pub/keys-ext/http/server v0.0.0-20201019223136-6de853aa20e6
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.5.1
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/vmihailenco/msgpack/v4 v4.3.12
-	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899
-	google.golang.org/appengine v1.6.6 // indirect
-	google.golang.org/protobuf v1.24.0 // indirect
+	github.com/vmihailenco/tagparser v0.1.2 // indirect
+	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897
+	golang.org/x/net v0.0.0-20201020065357-d65d470038a5 // indirect
+	golang.org/x/sys v0.0.0-20201018230417-eeed37f84f13 // indirect
+	google.golang.org/appengine v1.6.7 // indirect
 )
 
 // replace github.com/keys-pub/keys => ../../keys

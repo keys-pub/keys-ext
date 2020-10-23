@@ -8,6 +8,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/vault"
+	"github.com/keys-pub/keys-ext/vault/secrets"
 	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/keyring"
 	"github.com/stretchr/testify/require"
@@ -163,13 +164,13 @@ func TestConvertBackup37(t *testing.T) {
 	err = vlt.UnlockWithPassword("windows123", false)
 	require.NoError(t, err)
 
-	kys, err := vlt.Keys()
+	out, err := vlt.Keys()
 	require.NoError(t, err)
-	require.Equal(t, 1, len(kys))
-	require.Equal(t, keys.ID("kex1kt0wmstr4craw8d5h03uhvpyuzxudr9zypw9uzgq9nks007vy3jsasxz73"), kys[0].ID())
-	require.Equal(t, "0479c4a84a474d16249dd9fba24c0ab5303a38fd62fea98c9489f7eaf71c42ebb2deedc163ae07d71db4bbe3cbb024e08dc68ca2205c5e09002ced07bfcc2465", encoding.EncodeHex(kys[0].Bytes()))
+	require.Equal(t, 1, len(out))
+	require.Equal(t, keys.ID("kex1kt0wmstr4craw8d5h03uhvpyuzxudr9zypw9uzgq9nks007vy3jsasxz73"), out[0].ID)
+	require.Equal(t, "0479c4a84a474d16249dd9fba24c0ab5303a38fd62fea98c9489f7eaf71c42ebb2deedc163ae07d71db4bbe3cbb024e08dc68ca2205c5e09002ced07bfcc2465", encoding.EncodeHex(out[0].Data))
 
-	secrets, err := vlt.Secrets()
+	secrets, err := secrets.List(vlt)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(secrets))
 	require.Equal(t, "YIb8tyocMVunf9RTuZH36dD08rrMLGcZWGcgS68vZVu", secrets[0].ID)
@@ -196,13 +197,13 @@ func TestConvertBackup48(t *testing.T) {
 	err = vlt.UnlockWithPassword("darwin123", false)
 	require.NoError(t, err)
 
-	kys, err := vlt.Keys()
+	out, err := vlt.Keys()
 	require.NoError(t, err)
-	require.Equal(t, 1, len(kys))
-	require.Equal(t, keys.ID("kex1hp7507fxazu3tezfnf6mad7aw0zy5cshnyps2l8u5njqlnhev2ms58c9az"), kys[0].ID())
-	require.Equal(t, "26767983d4f52553906df34729c22510ecf4d6d863f580552bb75cfdafefa7a7b87d47f926e8b915e4499a75beb7dd73c44a62179903057cfca4e40fcef962b7", encoding.EncodeHex(kys[0].Bytes()))
+	require.Equal(t, 1, len(out))
+	require.Equal(t, keys.ID("kex1hp7507fxazu3tezfnf6mad7aw0zy5cshnyps2l8u5njqlnhev2ms58c9az"), out[0].ID)
+	require.Equal(t, "26767983d4f52553906df34729c22510ecf4d6d863f580552bb75cfdafefa7a7b87d47f926e8b915e4499a75beb7dd73c44a62179903057cfca4e40fcef962b7", encoding.EncodeHex(out[0].Data))
 
-	secrets, err := vlt.Secrets()
+	secrets, err := secrets.List(vlt)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(secrets))
 	require.Equal(t, "mcwuNXdxS86VRMcHjd5YrP4aR0IZQqKJfi6GTEt4c57", secrets[0].ID)

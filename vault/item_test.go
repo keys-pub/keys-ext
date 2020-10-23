@@ -32,7 +32,7 @@ func TestItem(t *testing.T) {
 func TestLargeItems(t *testing.T) {
 	var err error
 
-	vlt, closeFn := newTestVault(t, &testVaultOptions{unlock: true})
+	vlt, closeFn := NewTestVault(t, &TestVaultOptions{Unlock: true})
 	defer closeFn()
 
 	large := keys.RandBytes(32 * 1025)

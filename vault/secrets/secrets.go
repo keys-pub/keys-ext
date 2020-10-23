@@ -1,4 +1,4 @@
-package vault
+package secrets
 
 import (
 	"encoding/json"
@@ -6,19 +6,71 @@ import (
 	"strings"
 	"time"
 
-	"github.com/keys-pub/keys/secret"
+	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/vault"
+	"github.com/keys-pub/keys/encoding"
 	"github.com/pkg/errors"
 )
 
-// SaveSecret saves a secret.
+// Secret to keep.
+type Secret struct {
+	ID   string `json:"id"`
+	Type Type   `json:"type"`
+
+	Name string `json:"name"`
+
+	Username string `json:"username,omitempty"`
+	Password string `json:"password,omitempty"`
+
+	URL   string `json:"url,omitempty"`
+	Notes string `json:"notes,omitempty"`
+
+	CreatedAt time.Time `json:"createdAt,omitempty"`
+	UpdatedAt time.Time `json:"updatedAt,omitempty"`
+}
+
+// Type types for secret.
+type Type string
+
+// Types for Secret.
+const (
+	UnknownType  Type = ""
+	PasswordType Type = "password"
+	NoteType     Type = "note"
+)
+
+func newSecretID() string {
+	return encoding.MustEncode(keys.RandBytes(32), encoding.Base62)
+}
+
+func newSecret() *Secret {
+	return &Secret{
+		ID:        newSecretID(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+}
+
+// NewPassword creates a new password secret.
+func NewPassword(name string, username string, password string, url string) *Secret {
+	secret := newSecret()
+	secret.Type = PasswordType
+	secret.Name = name
+	secret.Username = username
+	secret.Password = password
+	secret.URL = url
+	return secret
+}
+
+// Save a secret.
 // Returns true if secret was updated.
-func (v *Vault) SaveSecret(secret *secret.Secret) (*secret.Secret, bool, error) {
+func Save(v *vault.Vault, secret *Secret) (*Secret, bool, error) {
 	if secret == nil {
-		return nil, false, errors.Errorf("no secret")
+		return nil, false, errors.Errorf("nil secret")
 	}
 
-	if strings.TrimSpace(secret.ID) == "" {
-		return nil, false, errors.Errorf("no secret id")
+	if secret.ID == "" {
+		secret.ID = newSecretID()
 	}
 
 	item, err := v.Get(secret.ID)
@@ -28,14 +80,14 @@ func (v *Vault) SaveSecret(secret *secret.Secret) (*secret.Secret, bool, error) 
 
 	updated := false
 	if item != nil {
-		secret.UpdatedAt = v.clock.Now()
+		secret.UpdatedAt = v.Now()
 		item.Data = marshalSecret(secret)
 		if err := v.Set(item); err != nil {
 			return nil, false, err
 		}
 		updated = true
 	} else {
-		now := v.clock.Now()
+		now := v.Now()
 		secret.CreatedAt = now
 		secret.UpdatedAt = now
 
@@ -51,8 +103,8 @@ func (v *Vault) SaveSecret(secret *secret.Secret) (*secret.Secret, bool, error) 
 	return secret, updated, nil
 }
 
-// Secret for ID.
-func (v *Vault) Secret(id string) (*secret.Secret, error) {
+// Get a secret.
+func Get(v *vault.Vault, id string) (*Secret, error) {
 	item, err := v.Get(id)
 	if err != nil {
 		return nil, err
@@ -63,15 +115,43 @@ func (v *Vault) Secret(id string) (*secret.Secret, error) {
 	return asSecret(item)
 }
 
-// Secrets ...
-func (v *Vault) Secrets(opt ...SecretsOption) ([]*secret.Secret, error) {
+// SortDirection direction for sorting.
+type SortDirection string
+
+const (
+	// Ascending direction.
+	Ascending SortDirection = "asc"
+	// Descending direction.
+	Descending SortDirection = "desc"
+)
+
+// Options ...
+type Options struct {
+	Query         string
+	Sort          string
+	SortDirection SortDirection
+}
+
+// Option ...
+type Option func(*Options)
+
+func newSecretsOptions(opts ...Option) Options {
+	var options Options
+	for _, o := range opts {
+		o(&options)
+	}
+	return options
+}
+
+// List ...
+func List(v *vault.Vault, opt ...Option) ([]*Secret, error) {
 	opts := newSecretsOptions(opt...)
 	items, err := v.Items()
 	if err != nil {
 		return nil, err
 	}
 	query := strings.TrimSpace(opts.Query)
-	out := make([]*secret.Secret, 0, len(items))
+	out := make([]*Secret, 0, len(items))
 	for _, item := range items {
 		if item.Type != secretItemType {
 			continue
@@ -89,7 +169,6 @@ func (v *Vault) Secrets(opt ...SecretsOption) ([]*secret.Secret, error) {
 			out = append(out, secret)
 		}
 	}
-	logger.Debugf("Found %d secrets", len(out))
 
 	sortField := opts.Sort
 	if sortField == "" {
@@ -111,22 +190,22 @@ func (v *Vault) Secrets(opt ...SecretsOption) ([]*secret.Secret, error) {
 	return out, nil
 }
 
-// Secrets options.
-var Secrets = secrets{}
-
-type secrets struct{}
-
-func (s secrets) Query(q string) SecretsOption {
-	return func(o *SecretsOptions) { o.Query = q }
-}
-func (s secrets) Sort(sort string) SecretsOption {
-	return func(o *SecretsOptions) { o.Sort = sort }
-}
-func (s secrets) SortDirection(d SortDirection) SecretsOption {
-	return func(o *SecretsOptions) { o.SortDirection = d }
+// WithQuery ...
+func WithQuery(q string) Option {
+	return func(o *Options) { o.Query = q }
 }
 
-func secretsSort(secrets []*secret.Secret, sortField string, sortDirection SortDirection, i, j int) bool {
+// WithSort ...
+func WithSort(sort string) Option {
+	return func(o *Options) { o.Sort = sort }
+}
+
+// WithSortDirection ...
+func WithSortDirection(d SortDirection) Option {
+	return func(o *Options) { o.SortDirection = d }
+}
+
+func secretsSort(secrets []*Secret, sortField string, sortDirection SortDirection, i, j int) bool {
 	switch sortField {
 	case "id":
 		if sortDirection == Descending {
@@ -155,11 +234,11 @@ func secretsSort(secrets []*secret.Secret, sortField string, sortDirection SortD
 }
 
 // asSecret returns Secret for Item.
-func asSecret(item *Item) (*secret.Secret, error) {
+func asSecret(item *vault.Item) (*Secret, error) {
 	if item.Type != secretItemType {
 		return nil, errors.Errorf("item type %s != %s", item.Type, secretItemType)
 	}
-	var secret secret.Secret
+	var secret Secret
 	if err := json.Unmarshal(item.Data, &secret); err != nil {
 		return nil, err
 	}
@@ -170,15 +249,15 @@ func asSecret(item *Item) (*secret.Secret, error) {
 const secretItemType string = "secret"
 
 // newItem creates vault item for a secret.
-func newItemForSecret(secret *secret.Secret) (*Item, error) {
+func newItemForSecret(secret *Secret) (*vault.Item, error) {
 	if secret.ID == "" {
 		return nil, errors.Errorf("no secret id")
 	}
 	b := marshalSecret(secret)
-	return NewItem(secret.ID, b, secretItemType, time.Now()), nil
+	return vault.NewItem(secret.ID, b, secretItemType, secret.CreatedAt), nil
 }
 
-func marshalSecret(secret *secret.Secret) []byte {
+func marshalSecret(secret *Secret) []byte {
 	b, err := json.Marshal(secret)
 	if err != nil {
 		panic(err)

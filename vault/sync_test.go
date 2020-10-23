@@ -49,7 +49,7 @@ func testSync(t *testing.T, st1 vault.Store, st2 vault.Store) {
 	require.NoError(t, err)
 	require.Nil(t, status)
 
-	key, provision := newTestVaultKey(t, clock)
+	key, provision := NewTestVaultKey(t, clock)
 	err = v1.Setup(key, provision)
 	require.NoError(t, err)
 	_, err = v1.Unlock(key)
@@ -240,7 +240,7 @@ func TestUnsync(t *testing.T) {
 	vlt := vault.New(db)
 	vlt.SetClient(client)
 
-	key, provision := newTestVaultKey(t, clock)
+	key, provision := NewTestVaultKey(t, clock)
 	err = vlt.Setup(key, provision)
 	require.NoError(t, err)
 	_, err = vlt.Unlock(key)
@@ -337,7 +337,7 @@ func TestUnsync(t *testing.T) {
 func TestNonce(t *testing.T) {
 	var err error
 
-	vlt, closeFn := newTestVault(t, &testVaultOptions{unlock: true})
+	vlt, closeFn := NewTestVault(t, &TestVaultOptions{Unlock: true})
 	defer closeFn()
 	n1 := encoding.MustEncode(bytes.Repeat([]byte{0x01}, 24), encoding.Base62)
 	err = vlt.CheckNonce(n1)

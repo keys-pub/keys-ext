@@ -11,7 +11,7 @@ import (
 )
 
 func TestAuth(t *testing.T) {
-	vlt, closeFn := newTestVault(t, nil)
+	vlt, closeFn := NewTestVault(t, nil)
 	defer closeFn()
 	testAuth(t, vlt)
 }

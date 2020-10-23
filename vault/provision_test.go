@@ -16,7 +16,7 @@ import (
 
 func TestProvisions(t *testing.T) {
 	var err error
-	vlt, closeFn := newTestVault(t, &testVaultOptions{unlock: true})
+	vlt, closeFn := NewTestVault(t, &TestVaultOptions{Unlock: true})
 	defer closeFn()
 
 	provisions, err := vlt.Provisions()
@@ -29,7 +29,7 @@ func TestProvisions(t *testing.T) {
 
 func TestProvisionSave(t *testing.T) {
 	var err error
-	vlt, closeFn := newTestVault(t, nil)
+	vlt, closeFn := NewTestVault(t, nil)
 	defer closeFn()
 
 	id := encoding.MustEncode(bytes.Repeat([]byte{0x01}, 32), encoding.Base62)
@@ -49,7 +49,7 @@ func TestProvisionMarshal(t *testing.T) {
 	var err error
 
 	clock := tsutil.NewTestClock()
-	vlt, closeFn := newTestVault(t, &testVaultOptions{clock: clock, unlock: true})
+	vlt, closeFn := NewTestVault(t, &TestVaultOptions{Clock: clock, Unlock: true})
 	defer closeFn()
 
 	id := encoding.MustEncode(bytes.Repeat([]byte{0x01}, 32), encoding.Base62)

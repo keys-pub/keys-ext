@@ -10,17 +10,17 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys-ext/http/server"
 	"github.com/keys-pub/keys-ext/vault"
 	"github.com/keys-pub/keys/docs"
 	"github.com/keys-pub/keys/encoding"
+	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/stretchr/testify/require"
 )
 
-func newTestVaultKey(t *testing.T, clock tsutil.Clock) (*[32]byte, *vault.Provision) {
+func NewTestVaultKey(t *testing.T, clock tsutil.Clock) (*[32]byte, *vault.Provision) {
 	key := keys.Bytes32(bytes.Repeat([]byte{0xFF}, 32))
 	id := encoding.MustEncode(bytes.Repeat([]byte{0xFE}, 32), encoding.Base62)
 	provision := &vault.Provision{
@@ -31,43 +31,43 @@ func newTestVaultKey(t *testing.T, clock tsutil.Clock) (*[32]byte, *vault.Provis
 	return key, provision
 }
 
-type storeType string
+type StoreType string
 
 const (
-	db  storeType = "db"
-	mem storeType = "mem"
+	DB  StoreType = "db"
+	Mem StoreType = "mem"
 )
 
-type testVaultOptions struct {
-	unlock bool
-	typ    storeType
-	clock  tsutil.Clock
+type TestVaultOptions struct {
+	Unlock bool
+	Type   StoreType
+	Clock  tsutil.Clock
 }
 
-func newTestVault(t *testing.T, opts *testVaultOptions) (*vault.Vault, func()) {
+func NewTestVault(t *testing.T, opts *TestVaultOptions) (*vault.Vault, func()) {
 	if opts == nil {
-		opts = &testVaultOptions{}
+		opts = &TestVaultOptions{}
 	}
-	if opts.typ == "" {
-		opts.typ = mem
+	if opts.Type == "" {
+		opts.Type = Mem
 	}
-	if opts.clock == nil {
-		opts.clock = tsutil.NewTestClock()
+	if opts.Clock == nil {
+		opts.Clock = tsutil.NewTestClock()
 	}
 
 	var st vault.Store
 	var closeFn func()
-	switch opts.typ {
-	case mem:
+	switch opts.Type {
+	case Mem:
 		st, closeFn = newTestMem(t)
-	case db:
+	case DB:
 		st, closeFn = newTestDB(t)
 	}
 
-	vlt := vault.New(st, vault.WithClock(opts.clock))
+	vlt := vault.New(st, vault.WithClock(opts.Clock))
 
-	if opts.unlock {
-		key, provision := newTestVaultKey(t, opts.clock)
+	if opts.Unlock {
+		key, provision := NewTestVaultKey(t, opts.Clock)
 		err := vlt.Setup(key, provision)
 		require.NoError(t, err)
 		_, err = vlt.Unlock(key)
@@ -117,9 +117,10 @@ func newTestEnv(t *testing.T, logger server.Logger) *testEnv {
 	clock := tsutil.NewTestClock()
 	fi := docs.NewMem()
 	fi.SetClock(clock)
+	req := request.NewMockRequestor()
 
-	rds := api.NewRedisTest(clock)
-	srv := server.New(fi, rds, nil, logger)
+	rds := server.NewRedisTest(clock)
+	srv := server.New(fi, rds, req, clock, logger)
 	srv.SetClock(clock)
 	srv.SetInternalAuth("testtoken")
 	srv.SetAccessFn(func(c server.AccessContext, resource server.AccessResource, action server.AccessAction) server.Access {
@@ -159,7 +160,7 @@ func TestErrors(t *testing.T) {
 	env := newTestEnv(t, nil) // vault.NewLogger(vault.DebugLevel))
 	defer env.closeFn()
 
-	vlt, closeFn := newTestVault(t, nil)
+	vlt, closeFn := NewTestVault(t, nil)
 	defer closeFn()
 
 	err = vlt.Set(vault.NewItem("key1", []byte("mysecretdata"), "", time.Now()))
@@ -275,7 +276,7 @@ func testSetupUnlockProvision(t *testing.T, st vault.Store) {
 	vlt := vault.New(st)
 
 	clock := tsutil.NewTestClock()
-	key, provision := newTestVaultKey(t, clock)
+	key, provision := NewTestVaultKey(t, clock)
 	err = vlt.Setup(key, provision)
 	require.NoError(t, err)
 	_, err = vlt.Unlock(key)
@@ -341,7 +342,7 @@ func testSetupUnlockProvision(t *testing.T, st vault.Store) {
 
 func TestSetErrors(t *testing.T) {
 	var err error
-	vlt, closeFn := newTestVault(t, &testVaultOptions{unlock: true})
+	vlt, closeFn := NewTestVault(t, &TestVaultOptions{Unlock: true})
 	defer closeFn()
 
 	err = vlt.Set(vault.NewItem("", nil, "", time.Time{}))
