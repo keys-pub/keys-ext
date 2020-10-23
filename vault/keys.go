@@ -18,7 +18,7 @@ type Key struct {
 	Data []byte  `json:"data" msgpack:"dat,omitempty"`
 	Type string  `json:"type" msgpack:"typ,omitempty"`
 
-	Notes string `json:"notes,omitempty" msgpack:"nt,omitempty"`
+	Notes string `json:"notes,omitempty" msgpack:"notes,omitempty"`
 
 	CreatedAt time.Time `json:"createdAt,omitempty" msgpack:"cts,omitempty"`
 	UpdatedAt time.Time `json:"updatedAt,omitempty" msgpack:"uts,omitempty"`
@@ -31,6 +31,7 @@ func NewKey(k keys.Key, createdAt time.Time) *Key {
 		Data:      k.Bytes(),
 		Type:      string(k.Type()),
 		CreatedAt: createdAt,
+		UpdatedAt: createdAt,
 	}
 }
 
