@@ -33,7 +33,7 @@ func TestKeyExport(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, kid, out.ID())
 
-	export, err = service.KeyExport(ctx, &KeyExportRequest{
+	_, err = service.KeyExport(ctx, &KeyExportRequest{
 		KID:      kid.String(),
 		Password: "testpassword",
 		Public:   true,
@@ -55,7 +55,7 @@ func TestKeyExport(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, strings.HasPrefix(string(export.Export), "ssh-ed25519 "))
 
-	export, err = service.KeyExport(ctx, &KeyExportRequest{
+	_, err = service.KeyExport(ctx, &KeyExportRequest{
 		KID:      pk.String(),
 		Type:     SSHExport,
 		Public:   true,

@@ -24,6 +24,9 @@ func (s *service) KeyExport(ctx context.Context, req *KeyExportRequest) (*KeyExp
 	}
 
 	key, err := s.vault.Key(id)
+	if err != nil {
+		return nil, err
+	}
 	if key == nil {
 		return nil, keys.NewErrNotFound(id.String())
 	}

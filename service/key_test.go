@@ -184,7 +184,7 @@ func TestKeyGenerate(t *testing.T) {
 	require.Equal(t, genResp.KID, resp.Key.ID)
 
 	// Generate invalid
-	genResp, err = service.KeyGenerate(ctx, &KeyGenerateRequest{Type: "invalidkeytype"})
+	_, err = service.KeyGenerate(ctx, &KeyGenerateRequest{Type: "invalidkeytype"})
 	require.EqualError(t, err, "unknown key type invalidkeytype")
 }
 
