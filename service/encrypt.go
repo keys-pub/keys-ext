@@ -93,7 +93,7 @@ func (s *service) Encrypt(ctx context.Context, req *EncryptRequest) (*EncryptRes
 			return nil, err
 		}
 	case SaltpackSigncrypt:
-		sk, err := s.vault.EdX25519Key(enc.sender)
+		sk, err := s.edx25519Key(enc.sender)
 		if err != nil {
 			return nil, err
 		}
@@ -177,7 +177,7 @@ func (s *service) encryptWriter(ctx context.Context, w io.Writer, enc *encrypt) 
 		if enc.sender == "" {
 			return nil, errors.Errorf("no sender specified")
 		}
-		sk, err := s.vault.EdX25519Key(enc.sender)
+		sk, err := s.edx25519Key(enc.sender)
 		if err != nil {
 			return nil, err
 		}

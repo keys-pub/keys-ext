@@ -46,7 +46,7 @@ func (s *service) Messages(ctx context.Context, req *MessagesRequest) (*Messages
 	if err != nil {
 		return nil, err
 	}
-	key, err := s.edX25519Key(sender)
+	key, err := s.edx25519Key(sender)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func (s *service) messagePrepare(ctx context.Context, sender string, recipient s
 	if err != nil {
 		return nil, err
 	}
-	key, err := s.edX25519Key(kid)
+	key, err := s.edx25519Key(kid)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +119,7 @@ func (s *service) messageCreate(ctx context.Context, sender string, recipient st
 	if err != nil {
 		return nil, err
 	}
-	key, err := s.edX25519Key(kid)
+	key, err := s.edx25519Key(kid)
 	if err != nil {
 		return nil, err
 	}

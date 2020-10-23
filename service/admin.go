@@ -14,7 +14,7 @@ func (s *service) AdminSignURL(ctx context.Context, req *AdminSignURLRequest) (*
 	if err != nil {
 		return nil, err
 	}
-	key, err := s.edX25519Key(kid)
+	key, err := s.edx25519Key(kid)
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +38,7 @@ func (s *service) AdminCheck(ctx context.Context, req *AdminCheckRequest) (*Admi
 	if err != nil {
 		return nil, err
 	}
-	key, err := s.edX25519Key(kid)
+	key, err := s.edx25519Key(kid)
 	if err != nil {
 		return nil, err
 	}

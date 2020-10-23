@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/keys-pub/keys"
@@ -16,21 +17,51 @@ func TestKeyExport(t *testing.T) {
 	ctx := context.TODO()
 	testAuthSetup(t, service)
 
-	genResp, err := service.KeyGenerate(ctx, &KeyGenerateRequest{Type: EdX25519})
+	genResp, err := service.KeyGenerate(ctx, &KeyGenerateRequest{Type: string(keys.EdX25519)})
 	require.NoError(t, err)
 	kid, err := keys.ParseID(genResp.KID)
 	require.NoError(t, err)
 
-	resp, err := service.KeyExport(ctx, &KeyExportRequest{
+	export, err := service.KeyExport(ctx, &KeyExportRequest{
 		KID:      kid.String(),
 		Password: "testpassword",
 	})
 	require.NoError(t, err)
-	require.NotEmpty(t, resp.Export)
+	require.NotEmpty(t, export.Export)
 
-	out, err := keys.DecodeSaltpackKey(string(resp.Export), "testpassword", false)
+	out, err := keys.DecodeSaltpackKey(string(export.Export), "testpassword", false)
 	require.NoError(t, err)
 	require.Equal(t, kid, out.ID())
+
+	export, err = service.KeyExport(ctx, &KeyExportRequest{
+		KID:      kid.String(),
+		Password: "testpassword",
+		Public:   true,
+	})
+	require.EqualError(t, err, "public key only supported for ssh export")
+
+	// Export public key (SSH)
+	pk := keys.GenerateEdX25519Key().PublicKey()
+	_, err = service.KeyImport(ctx, &KeyImportRequest{
+		In: []byte(pk.ID().String()),
+	})
+	require.NoError(t, err)
+
+	export, err = service.KeyExport(ctx, &KeyExportRequest{
+		KID:    pk.String(),
+		Type:   SSHExport,
+		Public: true,
+	})
+	require.NoError(t, err)
+	require.True(t, strings.HasPrefix(string(export.Export), "ssh-ed25519 "))
+
+	export, err = service.KeyExport(ctx, &KeyExportRequest{
+		KID:      pk.String(),
+		Type:     SSHExport,
+		Public:   true,
+		Password: "testpassword",
+	})
+	require.EqualError(t, err, "password not supported when exporting public key")
 }
 
 func TestKeySSHExport(t *testing.T) {
@@ -41,7 +72,7 @@ func TestKeySSHExport(t *testing.T) {
 	ctx := context.TODO()
 	testAuthSetup(t, service)
 
-	genResp, err := service.KeyGenerate(ctx, &KeyGenerateRequest{Type: EdX25519})
+	genResp, err := service.KeyGenerate(ctx, &KeyGenerateRequest{Type: string(keys.EdX25519)})
 	require.NoError(t, err)
 	kid, err := keys.ParseID(genResp.KID)
 	require.NoError(t, err)

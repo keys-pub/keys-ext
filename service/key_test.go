@@ -5,8 +5,10 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/vault"
 	"github.com/stretchr/testify/require"
 )
 
@@ -73,7 +75,9 @@ func TestFmtKey(t *testing.T) {
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
 
-	ak, err := service.keyToRPC(ctx, alice)
+	aliceVk := vault.NewKey(alice, time.Now())
+
+	ak, err := service.keyToRPC(ctx, aliceVk)
 	require.NoError(t, err)
 	var buf bytes.Buffer
 	fmtKey(&buf, ak)
@@ -81,7 +85,7 @@ func TestFmtKey(t *testing.T) {
 
 	testUserSetupGithub(t, env, service, alice, "alice")
 
-	ak2, err := service.keyToRPC(ctx, alice)
+	ak2, err := service.keyToRPC(ctx, aliceVk)
 	require.NoError(t, err)
 
 	var buf2 bytes.Buffer
@@ -98,7 +102,8 @@ func TestFmtVerifiedEncrypt(t *testing.T) {
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
 
-	ak, err := service.keyToRPC(ctx, alice)
+	aliceVk := vault.NewKey(alice, time.Now())
+	ak, err := service.keyToRPC(ctx, aliceVk)
 	require.NoError(t, err)
 	var buf bytes.Buffer
 	fmtVerifiedEncrypt(&buf, ak, SaltpackEncrypt)
@@ -106,7 +111,7 @@ func TestFmtVerifiedEncrypt(t *testing.T) {
 
 	testUserSetupGithub(t, env, service, alice, "alice")
 
-	ak2, err := service.keyToRPC(ctx, alice)
+	ak2, err := service.keyToRPC(ctx, aliceVk)
 	require.NoError(t, err)
 
 	var buf2 bytes.Buffer
@@ -123,7 +128,8 @@ func TestFmtVerified(t *testing.T) {
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
 
-	ak, err := service.keyToRPC(ctx, alice)
+	aliceVk := vault.NewKey(alice, time.Now())
+	ak, err := service.keyToRPC(ctx, aliceVk)
 	require.NoError(t, err)
 	var buf bytes.Buffer
 	fmtVerified(&buf, ak)
@@ -131,7 +137,7 @@ func TestFmtVerified(t *testing.T) {
 
 	testUserSetupGithub(t, env, service, alice, "alice")
 
-	ak2, err := service.keyToRPC(ctx, alice)
+	ak2, err := service.keyToRPC(ctx, aliceVk)
 	require.NoError(t, err)
 
 	var buf2 bytes.Buffer
@@ -147,7 +153,7 @@ func TestKeyGenerate(t *testing.T) {
 	testAuthSetup(t, service)
 
 	// Generate EdX25519
-	genResp, err := service.KeyGenerate(ctx, &KeyGenerateRequest{Type: EdX25519})
+	genResp, err := service.KeyGenerate(ctx, &KeyGenerateRequest{Type: string(keys.EdX25519)})
 	require.NoError(t, err)
 
 	resp, err := service.Key(ctx, &KeyRequest{
@@ -169,13 +175,17 @@ func TestKeyGenerate(t *testing.T) {
 	require.Equal(t, kid.String(), resp.Key.ID)
 
 	// Generate X25519
-	genResp, err = service.KeyGenerate(ctx, &KeyGenerateRequest{Type: X25519})
+	genResp, err = service.KeyGenerate(ctx, &KeyGenerateRequest{Type: string(keys.X25519)})
 	require.NoError(t, err)
 	resp, err = service.Key(ctx, &KeyRequest{
 		Key: genResp.KID,
 	})
 	require.NoError(t, err)
 	require.Equal(t, genResp.KID, resp.Key.ID)
+
+	// Generate invalid
+	genResp, err = service.KeyGenerate(ctx, &KeyGenerateRequest{Type: "invalidkeytype"})
+	require.EqualError(t, err, "unknown key type invalidkeytype")
 }
 
 func TestKeyRemove(t *testing.T) {
@@ -187,7 +197,7 @@ func TestKeyRemove(t *testing.T) {
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
 
-	genResp, err := service.KeyGenerate(ctx, &KeyGenerateRequest{Type: EdX25519})
+	genResp, err := service.KeyGenerate(ctx, &KeyGenerateRequest{Type: string(keys.EdX25519)})
 	require.NoError(t, err)
 	kid, err := keys.ParseID(genResp.KID)
 	require.NoError(t, err)
@@ -200,7 +210,7 @@ func TestKeyRemove(t *testing.T) {
 	require.NoError(t, err)
 
 	// Remove (X25519)
-	genResp, err = service.KeyGenerate(ctx, &KeyGenerateRequest{Type: X25519})
+	genResp, err = service.KeyGenerate(ctx, &KeyGenerateRequest{Type: string(keys.X25519)})
 	require.NoError(t, err)
 	_, err = service.KeyRemove(ctx, &KeyRemoveRequest{KID: genResp.KID})
 	require.NoError(t, err)

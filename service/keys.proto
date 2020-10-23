@@ -507,7 +507,7 @@ message AuthRecoverResponse {
 }
 
 message KeyGenerateRequest {
-  KeyType type = 1;
+  string type = 1;
 }
 message KeyGenerateResponse {
   string kid = 1 [(go.field) = {name: "KID"}];  
@@ -590,23 +590,11 @@ message KeyRemoveRequest {
 }
 message KeyRemoveResponse {}
 
-enum KeyType {
-  option (go.enum) = {name: "KeyType"};
-  
-  UNKNOWN_KEY_TYPE = 0 [(go.value) = {name: "UnknownKeyType"}];
-  
-  EDX25519 = 10 [(go.value) = {name: "EdX25519"}];
-  EDX25519_PUBLIC = 11 [(go.value) = {name: "EdX25519Public"}];
-
-  X25519 = 20 [(go.value) = {name: "X25519"}];  
-  X25519_PUBLIC = 21 [(go.value) = {name: "X25519Public"}];  
-}
-
 message Key {
   // ID identifier.
   string id = 1 [(go.field) = {name: "ID"}];
   // Type of key.
-  KeyType type = 3;
+  string type = 3;
   // User associated with this key.
   User user = 6;  
   // Saved if saved locally.
@@ -640,7 +628,7 @@ enum SortDirection {
 
 message KeysRequest {
   string query = 1;
-  repeated KeyType types = 2;  
+  repeated string types = 2;  
   
   string sortField = 10;
   SortDirection sortDirection = 11;  

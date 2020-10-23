@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/vault"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/metadata"
@@ -269,7 +270,7 @@ func TestAuthReset(t *testing.T) {
 	_, err = service.AuthUnlock(ctx, &AuthUnlockRequest{Secret: "password123", Type: PasswordAuth})
 	require.NoError(t, err)
 
-	_, err = service.KeyGenerate(ctx, &KeyGenerateRequest{Type: EdX25519})
+	_, err = service.KeyGenerate(ctx, &KeyGenerateRequest{Type: string(keys.EdX25519)})
 	require.NoError(t, err)
 
 	keysResp, err := service.Keys(ctx, &KeysRequest{})
@@ -293,7 +294,7 @@ func TestAuthReset(t *testing.T) {
 	_, err = service.AuthUnlock(ctx, &AuthUnlockRequest{Secret: "password12345", Type: PasswordAuth})
 	require.NoError(t, err)
 
-	_, err = service.KeyGenerate(ctx, &KeyGenerateRequest{Type: EdX25519})
+	_, err = service.KeyGenerate(ctx, &KeyGenerateRequest{Type: string(keys.EdX25519)})
 	require.NoError(t, err)
 
 	keysResp, err = service.Keys(ctx, &KeysRequest{})
@@ -311,6 +312,6 @@ func TestAuthSetupLocked(t *testing.T) {
 	_, err = service.AuthSetup(ctx, &AuthSetupRequest{Secret: "password123", Type: PasswordAuth})
 	require.NoError(t, err)
 
-	_, err = service.KeyGenerate(ctx, &KeyGenerateRequest{Type: EdX25519})
+	_, err = service.KeyGenerate(ctx, &KeyGenerateRequest{Type: string(keys.EdX25519)})
 	require.EqualError(t, err, "vault is locked")
 }

@@ -5,7 +5,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/vault"
 	"github.com/pkg/errors"
 )
@@ -19,21 +18,12 @@ func (s *service) Keys(ctx context.Context, req *KeysRequest) (*KeysResponse, er
 	}
 	sortDirection := req.SortDirection
 
-	types := make([]keys.KeyType, 0, len(req.Types))
-	for _, t := range req.Types {
-		typ, err := keyTypeFromRPC(t)
-		if err != nil {
-			return nil, err
-		}
-		types = append(types, typ)
-	}
-
-	vkeys, err := s.vault.Keys(vault.Keys.Types(types...))
+	vkeys, err := s.vault.Keys()
 	if err != nil {
 		return nil, err
 	}
 
-	out, err := s.filterKeys(ctx, vkeys, query, sortField, sortDirection)
+	out, err := s.filterKeys(ctx, vkeys, query, req.Types, sortField, sortDirection)
 	if err != nil {
 		return nil, err
 	}
@@ -45,9 +35,21 @@ func (s *service) Keys(ctx context.Context, req *KeysRequest) (*KeysResponse, er
 	}, nil
 }
 
-func (s *service) filterKeys(ctx context.Context, ks []keys.Key, query string, sortField string, sortDirection SortDirection) ([]*Key, error) {
+func hasType(k *vault.Key, types []string) bool {
+	for _, t := range types {
+		if k.Type == t {
+			return true
+		}
+	}
+	return false
+}
+
+func (s *service) filterKeys(ctx context.Context, ks []*vault.Key, query string, types []string, sortField string, sortDirection SortDirection) ([]*Key, error) {
 	keys := make([]*Key, 0, len(ks))
 	for _, k := range ks {
+		if len(types) != 0 && !hasType(k, types) {
+			continue
+		}
 		key, err := s.keyToRPC(ctx, k)
 		if err != nil {
 			return nil, err

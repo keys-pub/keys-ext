@@ -128,7 +128,7 @@ func (s *service) StatementCreate(ctx context.Context, req *StatementCreateReque
 	if err != nil {
 		return nil, err
 	}
-	key, err := s.edX25519Key(kid)
+	key, err := s.edx25519Key(kid)
 	if err != nil {
 		return nil, err
 	}
@@ -171,7 +171,7 @@ func (s *service) StatementRevoke(ctx context.Context, req *StatementRevokeReque
 	if err != nil {
 		return nil, err
 	}
-	key, err := s.edX25519Key(kid)
+	key, err := s.edx25519Key(kid)
 	if err != nil {
 		return nil, err
 	}

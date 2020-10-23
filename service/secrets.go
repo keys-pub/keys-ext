@@ -5,14 +5,13 @@ import (
 	"strings"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys-ext/vault"
-	"github.com/keys-pub/keys/secret"
+	"github.com/keys-pub/keys-ext/vault/secrets"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
 )
 
 func (s *service) Secret(ctx context.Context, req *SecretRequest) (*SecretResponse, error) {
-	secret, err := s.vault.Secret(req.ID)
+	secret, err := secrets.Get(s.vault, req.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -25,21 +24,17 @@ func (s *service) Secret(ctx context.Context, req *SecretRequest) (*SecretRespon
 }
 
 func (s *service) SecretSave(ctx context.Context, req *SecretSaveRequest) (*SecretSaveResponse, error) {
-	sec := secretFromRPC(req.Secret)
-	if sec.ID == "" {
-		sec.ID = secret.RandID()
-	}
-
-	if sec.Type == secret.UnknownType {
+	secret := secretFromRPC(req.Secret)
+	if secret.Type == secrets.UnknownType {
 		return nil, errors.Errorf("unknown secret type")
 	}
 
-	name := strings.TrimSpace(sec.Name)
+	name := strings.TrimSpace(secret.Name)
 	if name == "" {
-		return nil, errors.Errorf("name not specified")
+		return nil, errors.Errorf("no name specified")
 	}
 
-	out, _, err := s.vault.SaveSecret(sec)
+	out, _, err := secrets.Save(s.vault, secret)
 	if err != nil {
 		return nil, err
 	}
@@ -69,10 +64,10 @@ func (s *service) Secrets(ctx context.Context, req *SecretsRequest) (*SecretsRes
 		req.SortField = "name"
 	}
 
-	secrets, err := s.vault.Secrets(
-		vault.Secrets.Query(req.Query),
-		vault.Secrets.Sort(req.SortField),
-		vault.Secrets.SortDirection(sortDirectionToVault(req.SortDirection)),
+	secrets, err := secrets.List(s.vault,
+		secrets.WithQuery(req.Query),
+		secrets.WithSort(req.SortField),
+		secrets.WithSortDirection(sortDirectionToVault(req.SortDirection)),
 	)
 	if err != nil {
 		return nil, err
@@ -86,18 +81,18 @@ func (s *service) Secrets(ctx context.Context, req *SecretsRequest) (*SecretsRes
 	}, nil
 }
 
-func sortDirectionToVault(d SortDirection) vault.SortDirection {
+func sortDirectionToVault(d SortDirection) secrets.SortDirection {
 	switch d {
 	case SortAsc:
-		return vault.Ascending
+		return secrets.Ascending
 	case SortDesc:
-		return vault.Descending
+		return secrets.Descending
 	default:
-		return vault.Ascending
+		return secrets.Ascending
 	}
 }
 
-func secretsToRPC(ss []*secret.Secret) []*Secret {
+func secretsToRPC(ss []*secrets.Secret) []*Secret {
 	out := make([]*Secret, 0, len(ss))
 	for _, s := range ss {
 		out = append(out, secretToRPC(s))
@@ -105,7 +100,7 @@ func secretsToRPC(ss []*secret.Secret) []*Secret {
 	return out
 }
 
-func secretToRPC(s *secret.Secret) *Secret {
+func secretToRPC(s *secrets.Secret) *Secret {
 	return &Secret{
 		ID:        s.ID,
 		Name:      s.Name,
@@ -119,8 +114,8 @@ func secretToRPC(s *secret.Secret) *Secret {
 	}
 }
 
-func secretFromRPC(s *Secret) *secret.Secret {
-	return &secret.Secret{
+func secretFromRPC(s *Secret) *secrets.Secret {
+	return &secrets.Secret{
 		ID:        s.ID,
 		Name:      s.Name,
 		Type:      secretTypeFromRPC(s.Type),
@@ -133,32 +128,24 @@ func secretFromRPC(s *Secret) *secret.Secret {
 	}
 }
 
-func secretTypeToRPC(t secret.Type) SecretType {
+func secretTypeToRPC(t secrets.Type) SecretType {
 	switch t {
-	case secret.PasswordType:
+	case secrets.PasswordType:
 		return PasswordSecret
-	case secret.ContactType:
-		return ContactSecret
-	case secret.CardType:
-		return CardSecret
-	case secret.NoteType:
+	case secrets.NoteType:
 		return NoteSecret
 	default:
 		return UnknownSecret
 	}
 }
 
-func secretTypeFromRPC(s SecretType) secret.Type {
+func secretTypeFromRPC(s SecretType) secrets.Type {
 	switch s {
 	case PasswordSecret:
-		return secret.PasswordType
-	case ContactSecret:
-		return secret.ContactType
-	case CardSecret:
-		return secret.CardType
+		return secrets.PasswordType
 	case NoteSecret:
-		return secret.NoteType
+		return secrets.NoteType
 	default:
-		return secret.UnknownType
+		return secrets.UnknownType
 	}
 }

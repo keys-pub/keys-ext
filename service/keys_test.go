@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/keys-pub/keys"
 	"github.com/stretchr/testify/require"
 )
 
@@ -38,7 +39,7 @@ func TestKeys(t *testing.T) {
 	require.Equal(t, alice.ID().String(), resp.Keys[0].ID)
 	require.NotNil(t, resp.Keys[0].User)
 	require.Equal(t, "alice", resp.Keys[0].User.Name)
-	require.Equal(t, EdX25519, resp.Keys[0].Type)
+	require.Equal(t, string(keys.EdX25519), resp.Keys[0].Type)
 	require.Equal(t, bob.ID().String(), resp.Keys[1].ID)
 	require.NotNil(t, resp.Keys[1].User)
 	require.Equal(t, "bob", resp.Keys[1].User.Name)

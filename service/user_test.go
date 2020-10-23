@@ -316,7 +316,7 @@ func TestSearchUsers(t *testing.T) {
 	testImportKey(t, service, alice)
 
 	for i := 0; i < 3; i++ {
-		keyResp, err := service.KeyGenerate(ctx, &KeyGenerateRequest{Type: EdX25519})
+		keyResp, err := service.KeyGenerate(ctx, &KeyGenerateRequest{Type: string(keys.EdX25519)})
 		require.NoError(t, err)
 		username := fmt.Sprintf("username%d", i)
 		kid, err := keys.ParseID(keyResp.KID)

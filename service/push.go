@@ -26,14 +26,18 @@ func (s *service) Push(ctx context.Context, req *PushRequest) (*PushResponse, er
 
 	// TODO: Is remote check appropriate here?
 	if req.RemoteCheck {
-		key, err := s.vault.EdX25519Key(kid)
+		key, err := s.vault.Key(kid)
 		if err != nil {
 			return nil, err
 		}
 		if key == nil {
 			return nil, keys.NewErrNotFound(kid.String())
 		}
-		if err := s.client.Check(ctx, key); err != nil {
+		sk, err := key.AsEdX25519()
+		if err != nil {
+			return nil, err
+		}
+		if err := s.client.Check(ctx, sk); err != nil {
 			return nil, err
 		}
 	}

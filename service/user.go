@@ -91,7 +91,7 @@ func (s *service) UserService(ctx context.Context, req *UserServiceRequest) (*Us
 	if err != nil {
 		return nil, err
 	}
-	key, err := s.edX25519Key(kid)
+	key, err := s.edx25519Key(kid)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func (s *service) UserSign(ctx context.Context, req *UserSignRequest) (*UserSign
 	if err != nil {
 		return nil, err
 	}
-	key, err := s.edX25519Key(kid)
+	key, err := s.edx25519Key(kid)
 	if err != nil {
 		return nil, err
 	}
@@ -155,7 +155,7 @@ func (s *service) UserAdd(ctx context.Context, req *UserAddRequest) (*UserAddRes
 	if err != nil {
 		return nil, err
 	}
-	key, err := s.edX25519Key(kid)
+	key, err := s.edx25519Key(kid)
 	if err != nil {
 		return nil, err
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/vault"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
 )
@@ -58,63 +59,17 @@ func (s *service) verifyKey(ctx context.Context, kid keys.ID) (*Key, error) {
 	return s.key(ctx, kid)
 }
 
-func parseKeyType(s string) (KeyType, error) {
-	switch s {
-	case string(keys.EdX25519):
-		return EdX25519, nil
-	case string(keys.EdX25519Public):
-		return EdX25519Public, nil
-	case string(keys.X25519):
-		return X25519, nil
-	case string(keys.X25519Public):
-		return X25519Public, nil
-	default:
-		return UnknownKeyType, errors.Errorf("unsupported key type %s", s)
-	}
-}
-
-func keyTypeFromRPC(t KeyType) (keys.KeyType, error) {
-	switch t {
-	case EdX25519:
-		return keys.EdX25519, nil
-	case EdX25519Public:
-		return keys.EdX25519Public, nil
-	case X25519:
-		return keys.X25519, nil
-	case X25519Public:
-		return keys.X25519Public, nil
-	default:
-		return "", errors.Errorf("unsupported key type")
-	}
-}
-
-func keyTypeToRPC(t keys.KeyType) KeyType {
-	switch t {
-	case keys.EdX25519:
-		return EdX25519
-	case keys.EdX25519Public:
-		return EdX25519Public
-	case keys.X25519:
-		return X25519
-	case keys.X25519Public:
-		return X25519Public
-	default:
-		return UnknownKeyType
-	}
-}
-
-func (s *service) keyToRPC(ctx context.Context, key keys.Key) (*Key, error) {
+func (s *service) keyToRPC(ctx context.Context, key *vault.Key) (*Key, error) {
 	if key == nil {
 		return nil, nil
 	}
-	typ := keyTypeToRPC(key.Type())
 	out := &Key{
-		ID:    key.ID().String(),
-		Type:  typ,
+		ID:    key.ID.String(),
+		Type:  key.Type,
 		Saved: true,
 	}
 
-	if err := s.fillKey(ctx, key.ID(), out); err != nil {
+	if err := s.fillKey(ctx, key.ID, out); err != nil {
 		return nil, err
 	}
 
@@ -130,11 +85,9 @@ func (s *service) key(ctx context.Context, kid keys.ID) (*Key, error) {
 		return s.keyToRPC(ctx, key)
 	}
 
-	typ := keyTypeToRPC(kid.PublicKeyType())
-
 	out := &Key{
 		ID:    kid.String(),
-		Type:  typ,
+		Type:  string(kid.PublicKeyType()),
 		Saved: false,
 	}
 	if err := s.fillKey(ctx, kid, out); err != nil {
@@ -200,27 +153,29 @@ func (s *service) KeyRemove(ctx context.Context, req *KeyRemoveRequest) (*KeyRem
 
 // KeyGenerate (RPC) creates a key.
 func (s *service) KeyGenerate(ctx context.Context, req *KeyGenerateRequest) (*KeyGenerateResponse, error) {
-	if req.Type == UnknownKeyType {
+	if req.Type == "" {
 		return nil, errors.Errorf("no key type specified")
 	}
 	var key keys.Key
 	switch req.Type {
-	case EdX25519:
+	case string(keys.EdX25519):
 		key = keys.GenerateEdX25519Key()
-	case X25519:
+	case string(keys.X25519):
 		key = keys.GenerateX25519Key()
 	default:
 		return nil, errors.Errorf("unknown key type %s", req.Type)
 	}
-	if err := s.vault.SaveKey(key); err != nil {
+	vk := vault.NewKey(key, s.clock.Now())
+	out, _, err := s.vault.SaveKey(vk)
+	if err != nil {
 		return nil, err
 	}
-	if err := s.scs.Index(key.ID()); err != nil {
+	if err := s.scs.Index(out.ID); err != nil {
 		return nil, err
 	}
 
 	return &KeyGenerateResponse{
-		KID: key.ID().String(),
+		KID: out.ID.String(),
 	}, nil
 }
 
@@ -243,7 +198,7 @@ func (s *service) convertIfX25519ID(kid keys.ID) (keys.ID, error) {
 	}
 	if kid.IsX25519() {
 		logger.Debugf("Convert sender %s", kid)
-		spk, err := s.vault.EdX25519PublicKey(kid)
+		spk, err := s.vault.FindEdX25519PublicKey(kid)
 		if err != nil {
 			return "", err
 		}
@@ -258,20 +213,18 @@ func (s *service) convertIfX25519ID(kid keys.ID) (keys.ID, error) {
 	return kid, nil
 }
 
-func (s *service) edX25519Key(kid keys.ID) (*keys.EdX25519Key, error) {
-	out, err := s.vault.Key(kid)
+func (s *service) edx25519Key(kid keys.ID) (*keys.EdX25519Key, error) {
+	if kid == "" {
+		return nil, nil
+	}
+	key, err := s.vault.Key(kid)
 	if err != nil {
 		return nil, err
 	}
-	if out == nil {
+	if key == nil {
 		return nil, keys.NewErrNotFound(kid.String())
 	}
-	switch k := out.(type) {
-	case *keys.EdX25519Key:
-		return k, nil
-	default:
-		return nil, errors.Errorf("unsupported key type for %s", kid)
-	}
+	return key.AsEdX25519()
 }
 
 func (s *service) x25519Key(kid keys.ID) (*keys.X25519Key, error) {
@@ -282,12 +235,8 @@ func (s *service) x25519Key(kid keys.ID) (*keys.X25519Key, error) {
 	if err != nil {
 		return nil, err
 	}
-	switch k := key.(type) {
-	case *keys.EdX25519Key:
-		return k.X25519Key(), nil
-	case *keys.X25519Key:
-		return k, nil
-	default:
-		return nil, errors.Errorf("unsupported key type for %s", kid)
+	if key == nil {
+		return nil, keys.NewErrNotFound(kid.String())
 	}
+	return key.AsX25519()
 }

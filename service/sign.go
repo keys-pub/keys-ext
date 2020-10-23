@@ -19,7 +19,7 @@ func (s *service) Sign(ctx context.Context, req *SignRequest) (*SignResponse, er
 	if err != nil {
 		return nil, err
 	}
-	key, err := s.edX25519Key(kid)
+	key, err := s.edx25519Key(kid)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func (s *service) SignFile(srv Keys_SignFileServer) error {
 	if err != nil {
 		return err
 	}
-	key, err := s.edX25519Key(kid)
+	key, err := s.edx25519Key(kid)
 	if err != nil {
 		return err
 	}
@@ -110,7 +110,7 @@ func (s *service) SignStream(srv Keys_SignStreamServer) error {
 			if err != nil {
 				return err
 			}
-			key, err := s.edX25519Key(rkid)
+			key, err := s.edx25519Key(rkid)
 			if err != nil {
 				return err
 			}

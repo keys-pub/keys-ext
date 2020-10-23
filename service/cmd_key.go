@@ -24,15 +24,7 @@ func keyCommands(client *Client) []cli.Command {
 				cli.StringSliceFlag{Name: "type, t", Usage: "only these types (" + genTypes + ")"},
 			},
 			Action: func(c *cli.Context) error {
-				types := []KeyType{}
-				for _, t := range c.StringSlice("type") {
-					typ, err := parseKeyType(t)
-					if err != nil {
-						return err
-					}
-					types = append(types, typ)
-				}
-				resp, err := client.KeysClient().Keys(context.TODO(), &KeysRequest{Types: types})
+				resp, err := client.KeysClient().Keys(context.TODO(), &KeysRequest{Types: c.StringSlice("type")})
 				if err != nil {
 					return err
 				}
@@ -66,21 +58,11 @@ func keyCommands(client *Client) []cli.Command {
 			Name:  "generate",
 			Usage: "Generate a key",
 			Flags: []cli.Flag{
-				cli.StringFlag{Name: "type, t", Usage: "type (edx25519, x25519)"},
+				cli.StringFlag{Name: "type, t", Value: "edx25519", Usage: "type (edx25519, x25519)"},
 			},
 			Action: func(c *cli.Context) error {
-				var typ KeyType
-				switch c.String("type") {
-				case "", "edx25519":
-					typ = EdX25519
-				case "x25519":
-					typ = X25519
-				default:
-					return errors.Errorf("unrecognized key type")
-				}
-
 				req := &KeyGenerateRequest{
-					Type: typ,
+					Type: c.String("type"),
 				}
 				resp, err := client.KeysClient().KeyGenerate(context.TODO(), req)
 				if err != nil {
