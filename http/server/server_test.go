@@ -86,17 +86,17 @@ func newEnvWithFire(t *testing.T, fi server.Fire, clock tsutil.Clock) *env {
 
 func newTestServer(t *testing.T, env *env) *testServer {
 	rds := server.NewRedisTest(env.clock)
-	svr := server.New(env.fi, rds, env.req, env.clock, server.NewLogger(env.logLevel))
-	tasks := server.NewTestTasks(svr)
-	svr.SetTasks(tasks)
-	svr.SetInternalAuth(encoding.MustEncode(keys.RandBytes(32), encoding.Base62))
-	svr.SetClock(env.clock)
-	svr.SetAccessFn(func(c server.AccessContext, resource server.AccessResource, action server.AccessAction) server.Access {
+	srv := server.New(env.fi, rds, env.req, env.clock, server.NewLogger(env.logLevel))
+	tasks := server.NewTestTasks(srv)
+	srv.SetTasks(tasks)
+	srv.SetInternalAuth(encoding.MustEncode(keys.RandBytes(32), encoding.Base62))
+	srv.SetClock(env.clock)
+	srv.SetAccessFn(func(c server.AccessContext, resource server.AccessResource, action server.AccessAction) server.Access {
 		return server.AccessAllow()
 	})
-	handler := server.NewHandler(svr)
+	handler := server.NewHandler(srv)
 	return &testServer{
-		Server:  svr,
+		Server:  srv,
 		Handler: handler,
 	}
 }
