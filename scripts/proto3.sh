@@ -2,6 +2,8 @@
 
 set -e -u -o pipefail # Fail on error
 
+dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
 cd "$1"
 
 # protoc-gen-go
@@ -32,3 +34,11 @@ protoc \
   --go-patch_out=plugin=go,paths=source_relative:. \
   --go-patch_out=plugin=go-grpc,paths=source_relative:. \
 	*.proto
+
+tsclient="$dir/../../tsclient"
+if [ -d "$tsclient" ]; then
+    echo "Copying proto to $tsclient"
+    cp *.proto "$tsclient/proto/"
+    echo "Building tsclient..."
+    (cd "$tsclient" && yarn build)
+fi
