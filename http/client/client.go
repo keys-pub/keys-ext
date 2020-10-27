@@ -28,8 +28,9 @@ type Client struct {
 	clock      tsutil.Clock
 }
 
-// New creates a Client for an HTTP API.
+// New creates a Client for the keys.pub Web API.
 func New(urs string) (*Client, error) {
+	urs = strings.TrimSuffix(urs, "/")
 	urp, err := url.Parse(urs)
 	if err != nil {
 		return nil, err
@@ -82,7 +83,7 @@ func (c *Client) SetClock(clock tsutil.Clock) {
 }
 
 func checkResponse(resp *http.Response) error {
-	if resp.StatusCode == 200 {
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 		return nil
 	}
 	// Default error
