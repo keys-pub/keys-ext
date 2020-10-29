@@ -18,81 +18,29 @@ service Matter {
 
 message Channel {
     string id = 1 [(go.field) = {name: "ID"}];
-	int64 create_at = 2;
-	int64 update_at = 3;
-	int64 delete_at = 4;
-    string team_id = 5 [(go.field) = {name: "TeamID"}];
-    string type = 6;
-    string display_name = 7;
-    string name = 8;	
-}
-
-message Post {
-	string id = 1 [(go.field) = {name: "ID"}];
-	int64 create_at = 2;
-	int64 update_at = 3;
-	int64 edit_at = 4;
-	int64 delete_at = 5;
-    string user_id = 7 [(go.field) = {name: "UserID"}];
-	string channel_id = 8 [(go.field) = {name: "ChannelID"}];
-	string message = 12;
-	string type = 14;	
-}
-
-message PostList {
-	repeated string order = 1;
-	map<string, Post> posts = 2;
-	string next_post_id = 3 [(go.field) = {name: "NextPostID"}];
-	string prev_post_id = 4 [(go.field) = {name: "PrevPostID"}];	
+    string name = 2;
 }
 
 message Team {
-	string id = 1 [(go.field) = {name: "ID"}];
-	int64 create_at = 2;
-	int64 update_at = 3;
-	int64 delete_at = 4;
-	string display_name = 5;
-	string name = 6;
-	string type = 9;
-	bool allow_open_invite = 13;
+    string id = 1 [(go.field) = {name: "ID"}];
+    string name = 2;    
 }
 
-message TeamPatch {
-	string display_name = 1;
-	string description = 2;
-	string company_name = 3;
-	string allowed_domains = 4;
-	bool allow_open_invite = 5;
-	bool group_constrained = 6;	
-}
-
-// User ...
-message User {
-	string id = 1 [(go.field) = {name: "ID"}];
-	int64 create_at = 2;
-	int64 update_at = 3;
-	int64 delete_at = 4;
-	string username = 5;
-	string password = 6;
-	string email = 9;	
-	bool email_verified = 10;
-	string nickname = 11;
-	string first_name = 12;
-	string last_name = 13;
-	string position = 14;
-	string roles = 15;	
+message Post {
+    string id = 1;
+    string message = 2;
 }
 
 message LoginRequest {
 	string kid = 1 [(go.field) = {name: "KID"}];
 }
-message LoginResponse {
-	User user = 1;
-}
+message LoginResponse {}
 
 message CreateChannelRequest {
     string name = 1;
     string teamId = 2 [(go.field) = {name: "TeamID"}];
+
+
 }
 message CreateChannelResponse {
     Channel channel = 1;
@@ -113,7 +61,8 @@ message ChannelsForUserResponse {
 	repeated Channel channels = 1;
 }
 
-message ListenRequest {}
+message ListenRequest {
+}
 
 message ListenEvent {
 	Post post = 1;

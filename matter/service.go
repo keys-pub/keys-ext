@@ -7,13 +7,14 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/matter/client"
 )
 
 var _ MatterServer = &service{}
 
 type service struct {
 	UnimplementedMatterServer
-	client *Client
+	client *client.Client
 	kr     Keyring
 }
 
@@ -23,11 +24,15 @@ type Keyring interface {
 }
 
 // NewService is a service for Matter.
-func NewService(client *Client, kr Keyring) MatterServer {
+func NewService(urs string, kr Keyring) (MatterServer, error) {
+	client, err := client.NewClient(urs)
+	if err != nil {
+		return nil, err
+	}
 	return &service{
 		client: client,
 		kr:     kr,
-	}
+	}, nil
 }
 
 func (s *service) Login(ctx context.Context, req *LoginRequest) (*LoginResponse, error) {
@@ -39,42 +44,47 @@ func (s *service) Login(ctx context.Context, req *LoginRequest) (*LoginResponse,
 	if err != nil {
 		return nil, err
 	}
-	user, err := s.client.LoginWithKey(ctx, key)
-	if err != nil {
+	if _, err := s.client.LoginWithKey(ctx, key); err != nil {
 		return nil, err
 	}
-	return &LoginResponse{
-		User: user,
-	}, nil
+	return &LoginResponse{}, nil
 }
 
 func (s *service) CreateChannel(ctx context.Context, req *CreateChannelRequest) (*CreateChannelResponse, error) {
-	channel, err := s.client.CreateChannel(ctx, req.Name, req.TeamID)
+
+	create := &client.Channel{
+		TeamID: req.TeamID,
+		Name:   "",
+		Header: "",
+		Type:   client.ChannelPrivate,
+	}
+
+	_, err := s.client.CreateChannel(ctx, create)
 	if err != nil {
 		return nil, err
 	}
 	return &CreateChannelResponse{
-		Channel: channel,
+		// Channel: channel,
 	}, nil
 }
 
 func (s *service) TeamsForUser(ctx context.Context, req *TeamsForUserRequest) (*TeamsForUserResponse, error) {
-	teams, err := s.client.TeamsForUser(ctx, req.UserID)
+	_, err := s.client.TeamsForUser(ctx, req.UserID)
 	if err != nil {
 		return nil, err
 	}
 	return &TeamsForUserResponse{
-		Teams: teams,
+		// Teams: teams,
 	}, nil
 }
 
 func (s *service) ChannelsForUser(ctx context.Context, req *ChannelsForUserRequest) (*ChannelsForUserResponse, error) {
-	channels, err := s.client.ChannelsForUser(ctx, req.UserID, req.TeamID)
+	_, err := s.client.ChannelsForUser(ctx, req.UserID, req.TeamID)
 	if err != nil {
 		return nil, err
 	}
 	return &ChannelsForUserResponse{
-		Channels: channels,
+		// Channels: channels,
 	}, nil
 }
 

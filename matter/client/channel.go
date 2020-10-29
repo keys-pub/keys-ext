@@ -1,4 +1,4 @@
-package matter
+package client
 
 import (
 	"bytes"
@@ -15,7 +15,7 @@ const (
 	ChannelGroup   = "G"
 	// CHANNEL_GROUP_MAX_USERS        = 8
 	// CHANNEL_GROUP_MIN_USERS        = 3
-	DefaultChannel = "town-square"
+	// DefaultChannel = "town-square"
 	// CHANNEL_DISPLAY_NAME_MAX_RUNES = 64
 	// CHANNEL_NAME_MIN_LENGTH        = 2
 	// CHANNEL_NAME_MAX_LENGTH        = 64
@@ -28,11 +28,7 @@ const (
 )
 
 // CreateChannel creates a channel.
-func (c *Client) CreateChannel(ctx context.Context, name string, teamID string) (*Channel, error) {
-	channel := &Channel{
-		TeamID: teamID,
-		Name:   name,
-	}
+func (c *Client) CreateChannel(ctx context.Context, channel *Channel) (*Channel, error) {
 	b, err := json.Marshal(channel)
 	if err != nil {
 		return nil, err

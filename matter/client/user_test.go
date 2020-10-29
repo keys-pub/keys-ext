@@ -1,4 +1,4 @@
-package matter_test
+package client_test
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys-ext/matter"
+	"github.com/keys-pub/keys-ext/matter/client"
 	"github.com/stretchr/testify/require"
 )
 
@@ -15,14 +15,12 @@ func TestCreateUser(t *testing.T) {
 	var err error
 	ctx := context.TODO()
 
-	matter.SetLogger(matter.NewLogger(matter.DebugLevel))
-
-	client, err := matter.NewClient("http://localhost:8065/")
+	cl, err := client.NewClient("http://localhost:8065/")
 	require.NoError(t, err)
 
 	username := keys.RandUsername(8)
 
-	created, err := client.CreateUser(ctx, &matter.User{
+	created, err := cl.CreateUser(ctx, &client.User{
 		Username: username,
 		Password: "password",
 		Email:    fmt.Sprintf("%s@test.com", username),
@@ -31,27 +29,27 @@ func TestCreateUser(t *testing.T) {
 	require.NotNil(t, created)
 
 	// Admin
-	_, err = client.LoginWithPassword(ctx, "gabriel", "testpassword")
+	_, err = cl.LoginWithPassword(ctx, "gabriel", "testpassword")
 	require.NoError(t, err)
 
-	team, err := client.TeamByName(ctx, "test")
+	team, err := cl.TeamByName(ctx, "test")
 	require.NoError(t, err)
 	require.NotNil(t, team)
 
-	err = client.AddUserToTeam(ctx, created.ID, team.ID)
+	err = cl.AddUserToTeam(ctx, created.ID, team.ID)
 	require.NoError(t, err)
 
-	channel, err := client.ChannelByName(ctx, team.ID, "town-square")
+	channel, err := cl.ChannelByName(ctx, team.ID, "town-square")
 	require.NoError(t, err)
 
-	err = client.AddUserToChannel(ctx, created.ID, channel.ID)
+	err = cl.AddUserToChannel(ctx, created.ID, channel.ID)
 	require.NoError(t, err)
 
 	// User
-	_, err = client.LoginWithPassword(ctx, username, "password")
+	_, err = cl.LoginWithPassword(ctx, username, "password")
 	require.NoError(t, err)
 
-	teams, err := client.TeamsForUser(ctx, "")
+	teams, err := cl.TeamsForUser(ctx, "")
 	require.NoError(t, err)
 	require.NotEmpty(t, len(teams))
 	spew.Dump(teams)
@@ -61,47 +59,45 @@ func TestCreateUserWithKey(t *testing.T) {
 	var err error
 	ctx := context.TODO()
 
-	matter.SetLogger(matter.NewLogger(matter.DebugLevel))
-
-	client, err := matter.NewClient("http://localhost:8065/")
+	cl, err := client.NewClient("http://localhost:8065/")
 	require.NoError(t, err)
 
-	_, err = client.LoginWithPassword(ctx, "gabriel", "testpassword")
+	_, err = cl.LoginWithPassword(ctx, "gabriel", "testpassword")
 	require.NoError(t, err)
 
-	team, err := client.TeamByName(ctx, "test")
+	team, err := cl.TeamByName(ctx, "test")
 	require.NoError(t, err)
 	require.NotNil(t, team)
 
 	key := keys.GenerateEdX25519Key()
-	created, err := client.CreateUserWithKey(ctx, key)
+	created, err := cl.CreateUserWithKey(ctx, key)
 	require.NoError(t, err)
 
-	err = client.AddUserToTeam(ctx, created.ID, team.ID)
+	err = cl.AddUserToTeam(ctx, created.ID, team.ID)
 	require.NoError(t, err)
 
-	channel, err := client.ChannelByName(ctx, team.ID, "town-square")
+	channel, err := cl.ChannelByName(ctx, team.ID, "town-square")
 	require.NoError(t, err)
 
-	err = client.AddUserToChannel(ctx, created.ID, channel.ID)
+	err = cl.AddUserToChannel(ctx, created.ID, channel.ID)
 	require.NoError(t, err)
 
-	client.Logout()
+	cl.Logout()
 
-	user, err := client.LoginWithKey(ctx, key)
+	user, err := cl.LoginWithKey(ctx, key)
 	require.NoError(t, err)
 	require.Equal(t, created.ID, user.ID)
 
-	channels, err := client.ChannelsForUser(ctx, "", team.ID)
+	channels, err := cl.ChannelsForUser(ctx, "", team.ID)
 	require.NoError(t, err)
 	require.True(t, len(channels) > 0)
 
-	posts, err := client.PostsForChannel(ctx, channel.ID)
+	posts, err := cl.PostsForChannel(ctx, channel.ID)
 	require.NoError(t, err)
 	require.True(t, len(posts.Order) > 0)
 	// spew.Dump(posts.Posts[posts.Order[0]])
 
-	post, err := client.CreatePost(ctx, channel.ID, "test message")
+	post, err := cl.CreatePost(ctx, channel.ID, "test message")
 	require.NoError(t, err)
 	require.NotNil(t, post)
 	// t.Logf("post: %+v", post)
@@ -111,16 +107,14 @@ func TestTeamsForUser(t *testing.T) {
 	var err error
 	ctx := context.TODO()
 
-	matter.SetLogger(matter.NewLogger(matter.DebugLevel))
-
-	client, err := matter.NewClient("http://localhost:8065/")
+	cl, err := client.NewClient("http://localhost:8065/")
 	require.NoError(t, err)
 
-	user, err := client.LoginWithPassword(ctx, "testuser2", "testuser2password")
+	user, err := cl.LoginWithPassword(ctx, "testuser2", "testuser2password")
 	require.NoError(t, err)
 	require.NotNil(t, user)
 
-	teams, err := client.TeamsForUser(ctx, "")
+	teams, err := cl.TeamsForUser(ctx, "")
 	require.NoError(t, err)
 	require.NotEmpty(t, len(teams))
 	spew.Dump(teams)
@@ -130,18 +124,16 @@ func TestTeams(t *testing.T) {
 	var err error
 	ctx := context.TODO()
 
-	matter.SetLogger(matter.NewLogger(matter.DebugLevel))
-
-	client, err := matter.NewClient("http://localhost:8065/")
+	cl, err := client.NewClient("http://localhost:8065/")
 	require.NoError(t, err)
 
 	// Admin
-	admin, err := client.LoginWithPassword(ctx, "gabriel", "testpassword")
+	admin, err := cl.LoginWithPassword(ctx, "gabriel", "testpassword")
 	require.NoError(t, err)
 	require.NotNil(t, admin)
 	spew.Dump(admin)
 
-	teams, err := client.Teams(ctx)
+	teams, err := cl.Teams(ctx)
 	require.NoError(t, err)
 	require.NotEmpty(t, len(teams))
 	spew.Dump(teams)

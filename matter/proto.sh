@@ -7,4 +7,3 @@ cd "$dir"
 
 "$dir/../scripts/proto3.sh" "$dir"
 
-

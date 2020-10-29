@@ -1,4 +1,4 @@
-package matter
+package client
 
 import (
 	"bytes"
@@ -29,6 +29,7 @@ func (c *Client) CreateUser(ctx context.Context, user *User) (*User, error) {
 // CreateUserWithKey creates a user with a key.
 func (c *Client) CreateUserWithKey(ctx context.Context, key *keys.EdX25519Key) (*User, error) {
 	user := &User{
+		ID:       key.ID().String(),
 		Username: key.ID().String(),
 		Password: keys.RandPassword(16),
 		Email:    key.ID().String() + "@keys.pub",
