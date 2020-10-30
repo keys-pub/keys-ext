@@ -15,9 +15,10 @@ func readiness(w http.ResponseWriter, r *http.Request) {
 }
 
 // ListenAndServe starts the server.
-func ListenAndServe(addr string) error {
-	hub := NewHub()
+func ListenAndServe(addr string, host string) error {
+	hub := NewHub(host)
 	rds := NewRedis(hub)
+	hub.nonces = rds
 
 	go func() {
 		for {
