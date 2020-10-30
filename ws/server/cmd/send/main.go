@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"log"
 
@@ -25,14 +26,14 @@ func main() {
 		return nil
 	}
 
-	aid := keys.ID("kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077")
-	if err := send(&api.Message{KID: aid}); err != nil {
-		log.Fatal(err)
+	for i := 0; i < 100; i = i + 10 {
+		key := keys.NewEdX25519KeyFromSeed(testSeed(byte(i)))
+		if err := send(&api.Message{KID: key.ID()}); err != nil {
+			log.Fatal(err)
+		}
 	}
+}
 
-	bid := keys.ID("kex1syuhwr4g05t4744r23nvxnr7en9cmz53knhr0gja7c84hr7fkw2quf6zcg")
-	if err := send(&api.Message{KID: bid}); err != nil {
-		log.Fatal(err)
-	}
-
+func testSeed(b byte) *[32]byte {
+	return keys.Bytes32(bytes.Repeat([]byte{b}, 32))
 }

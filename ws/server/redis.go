@@ -1,9 +1,11 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"os"
+	"time"
 
 	"github.com/gomodule/redigo/redis"
 	"github.com/keys-pub/keys-ext/ws/api"
@@ -72,4 +74,59 @@ func (r *Redis) Subscribe() error {
 			return v
 		}
 	}
+}
+
+// Get value.
+func (r *Redis) Get(ctx context.Context, k string) (string, error) {
+	redisConn := r.redisPool.Get()
+	defer redisConn.Close()
+	s, err := redis.String(redisConn.Do("GET", k))
+	if err == redis.ErrNil {
+		return "", nil
+	} else if err != nil {
+		return "", err
+	}
+	return s, nil
+}
+
+// Expire value.
+func (r *Redis) Expire(ctx context.Context, k string, dt time.Duration) error {
+	redisConn := r.redisPool.Get()
+	defer redisConn.Close()
+	seconds := int64(dt / time.Second)
+	if _, err := redisConn.Do("EXPIRE", k, seconds); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Increment value.
+func (r *Redis) Increment(ctx context.Context, k string) (int64, error) {
+	redisConn := r.redisPool.Get()
+	defer redisConn.Close()
+	n, err := redis.Int64(redisConn.Do("INCR", k))
+	if err != nil {
+		return 0, err
+	}
+	return n, nil
+}
+
+// Set value.
+func (r *Redis) Set(ctx context.Context, k string, v string) error {
+	redisConn := r.redisPool.Get()
+	defer redisConn.Close()
+	if _, err := redisConn.Do("SET", k, v); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Delete value.
+func (r *Redis) Delete(ctx context.Context, k string) error {
+	redisConn := r.redisPool.Get()
+	defer redisConn.Close()
+	if _, err := redisConn.Do("DEL", k); err != nil {
+		return err
+	}
+	return nil
 }

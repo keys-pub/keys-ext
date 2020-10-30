@@ -7,5 +7,5 @@ import (
 )
 
 func main() {
-	log.Fatal(server.ListenAndServe(":8080"))
+	log.Fatal(server.ListenAndServe(":8080", "localhost"))
 }

@@ -10,6 +10,9 @@ import (
 // Hub maintains the set of active clients and broadcasts messages to the
 // clients.
 type Hub struct {
+	host   string
+	nonces api.Nonces
+
 	// Registered clients.
 	clients map[string]*client
 
@@ -35,8 +38,9 @@ type authClient struct {
 }
 
 // NewHub ...
-func NewHub() *Hub {
+func NewHub(host string) *Hub {
 	return &Hub{
+		host:          host,
 		broadcast:     make(chan *api.Message),
 		auth:          make(chan *authClient),
 		register:      make(chan *client),
@@ -61,12 +65,13 @@ func (h *Hub) Run() {
 			}
 		case auth := <-h.auth:
 			h.registerAuth(auth)
+			auth.client.send <- &api.Message{KID: auth.kid, Type: api.Hello}
 		case message := <-h.broadcast:
 			clients := h.findClients(message.KID)
 			for _, client := range clients {
 				select {
 				case client.send <- message:
-					log.Printf("send %s => %s\n", client.id, message.KID)
+					// log.Printf("send %s => %s\n", client.id, message.KID)
 				default:
 					close(client.send)
 					h.unregisterAuth(client)
@@ -77,7 +82,7 @@ func (h *Hub) Run() {
 }
 
 func (h *Hub) registerAuth(auth *authClient) {
-	log.Printf("auth %s => %s\n", auth.client.id, auth.kid)
+	// log.Printf("auth %s => %s\n", auth.client.id, auth.kid)
 	if auth.client.kids == nil {
 		auth.client.kids = []keys.ID{}
 	}
@@ -91,12 +96,12 @@ func (h *Hub) registerAuth(auth *authClient) {
 }
 
 func (h *Hub) unregisterAuth(cl *client) {
-	log.Printf("deauth %s\n", cl.id)
 	for _, kid := range cl.kids {
 		clientsForKey, ok := h.clientsForKey[kid]
 		if !ok {
 			continue
 		}
+		// log.Printf("deauth %s => %s\n", cl.id, kid)
 		if _, ok := clientsForKey[cl.id]; ok {
 			delete(clientsForKey, cl.id)
 		}

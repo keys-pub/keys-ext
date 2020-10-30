@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -70,7 +71,7 @@ func (c *client) readPump() {
 	c.conn.SetReadDeadline(time.Now().Add(pongWait))
 	c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	for {
-		_, message, err := c.conn.ReadMessage()
+		_, data, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("read error: %v", err)
@@ -79,7 +80,7 @@ func (c *client) readPump() {
 		}
 		// log.Printf("read: %s\n", message)
 
-		kid, err := api.CheckAuth(message)
+		kid, err := api.CheckAuth(context.TODO(), data, time.Now(), c.hub.host, c.hub.nonces)
 		if err != nil {
 			log.Printf("auth err: %v\n", err)
 			break

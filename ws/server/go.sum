@@ -35,6 +35,8 @@ github.com/keys-pub/keys v0.1.18-0.20201029233150-785ac922181d h1:B3jWHrOLZsXR16
 github.com/keys-pub/keys v0.1.18-0.20201029233150-785ac922181d/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys-ext/ws/api v0.0.0-20201029233258-c8bcb7e97c61 h1:f+bEgjBi13RWmNrasQShOw9j9hejz4pENBO8UtbbsoI=
 github.com/keys-pub/keys-ext/ws/api v0.0.0-20201029233258-c8bcb7e97c61/go.mod h1:Hj+BPWhDdvWwe3D3GvWtVSVXPxgAb1Th/U8gwhiGrNE=
+github.com/keys-pub/keys-ext/ws/api v0.0.0-20201030201518-8a43008be509 h1:0K6wAyTFfNVxwT+8dBsICXBSknBqrdIY6XDfLWKwZaM=
+github.com/keys-pub/keys-ext/ws/api v0.0.0-20201030201518-8a43008be509/go.mod h1:K41OgD6x/MGJfkpC3fmGxBbvhVbiRqMTeNh8DQ+CJ44=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f/go.mod h1:YRHMiVbZqh7u8xRm77CvwJNAZdDlNXwWvQ4DK0N9mYg=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
