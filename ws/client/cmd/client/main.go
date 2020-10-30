@@ -3,13 +3,13 @@ package main
 import (
 	"bytes"
 	"flag"
-	"log"
 	"os"
 	"os/signal"
 	"time"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/ws/client"
+	log "github.com/sirupsen/logrus"
 )
 
 func testSeed(b byte) *[32]byte {
@@ -18,14 +18,17 @@ func testSeed(b byte) *[32]byte {
 
 func main() {
 	flag.Parse()
-	log.SetFlags(0)
+
+	lg := log.New()
+	lg.SetFormatter(&log.TextFormatter{FullTimestamp: true})
+	client.SetLogger(lg)
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
 	alice := keys.NewEdX25519KeyFromSeed(testSeed(0x01))
 
-	urs := "ws://localhost:8080/ws"
+	urs := "wss://relay.keys.pub/ws"
 	cl := client.New(urs)
 	cl.Register(alice)
 
@@ -33,10 +36,10 @@ func main() {
 		for {
 			msg, err := cl.ReadMessage()
 			if err != nil {
-				log.Printf("read err: %v", err)
+				log.Errorf("read err: %v", err)
 				time.Sleep(time.Second * 2) // TODO: Backoff
 			} else {
-				log.Printf("%+v\n", msg)
+				log.Infof("%+v\n", msg)
 			}
 		}
 	}()
