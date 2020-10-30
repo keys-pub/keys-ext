@@ -15,7 +15,7 @@ func readiness(w http.ResponseWriter, r *http.Request) {
 }
 
 // ListenAndServe starts the server.
-func ListenAndServe(addr string) {
+func ListenAndServe(addr string) error {
 	hub := NewHub()
 	rds := NewRedis(hub)
 
@@ -35,8 +35,5 @@ func ListenAndServe(addr string) {
 		Serve(hub, w, r)
 	})
 	log.Printf("listen on %s\n", addr)
-	err := http.ListenAndServe(addr, nil)
-	if err != nil {
-		log.Fatalf("error in ListenAndServe: %v", err)
-	}
+	return http.ListenAndServe(addr, nil)
 }

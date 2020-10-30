@@ -1,9 +1,11 @@
 package main
 
 import (
+	"log"
+
 	"github.com/keys-pub/keys-ext/ws/server"
 )
 
 func main() {
-	server.ListenAndServe(":8080")
+	log.Fatal(server.ListenAndServe(":8080"))
 }
