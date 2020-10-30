@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -16,7 +15,7 @@ func readiness(w http.ResponseWriter, r *http.Request) {
 }
 
 // ListenAndServe starts the server.
-func ListenAndServe(port int) {
+func ListenAndServe(addr string) {
 	hub := NewHub()
 	rds := NewRedis(hub)
 
@@ -35,7 +34,6 @@ func ListenAndServe(port int) {
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		Serve(hub, w, r)
 	})
-	addr := fmt.Sprintf(":%d", port)
 	log.Printf("listen on %s\n", addr)
 	err := http.ListenAndServe(addr, nil)
 	if err != nil {
