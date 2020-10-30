@@ -9,28 +9,30 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/ws/client"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
-func testSeed(b byte) *[32]byte {
-	return keys.Bytes32(bytes.Repeat([]byte{b}, 32))
-}
+var urs = flag.String("url", "wss://relay.keys.pub/ws", "connect using url")
 
 func main() {
 	flag.Parse()
 
-	lg := log.New()
-	lg.SetFormatter(&log.TextFormatter{FullTimestamp: true})
-	client.SetLogger(lg)
+	log := logrus.New()
+	log.SetFormatter(&logrus.TextFormatter{FullTimestamp: true})
+	client.SetLogger(log)
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
-	alice := keys.NewEdX25519KeyFromSeed(testSeed(0x01))
+	cl, err := client.New(*urs)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	urs := "wss://relay.keys.pub/ws"
-	cl := client.New(urs)
-	cl.Register(alice)
+	for i := 0; i < 100; i++ {
+		key := keys.NewEdX25519KeyFromSeed(testSeed(byte(i)))
+		cl.Register(key)
+	}
 
 	go func() {
 		for {
@@ -39,13 +41,17 @@ func main() {
 				log.Errorf("read err: %v", err)
 				time.Sleep(time.Second * 2) // TODO: Backoff
 			} else {
-				log.Infof("%+v\n", msg)
+				log.Infof("%s (%s)\n", msg.KID, msg.Type)
 			}
 		}
 	}()
 
 	select {
 	case <-interrupt:
-		cl.Close(true)
+		cl.Close()
 	}
+}
+
+func testSeed(b byte) *[32]byte {
+	return keys.Bytes32(bytes.Repeat([]byte{b}, 32))
 }
