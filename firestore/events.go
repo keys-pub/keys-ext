@@ -5,8 +5,8 @@ import (
 
 	"cloud.google.com/go/firestore"
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/docs"
-	"github.com/keys-pub/keys/docs/events"
+	"github.com/keys-pub/keys/dstore"
+	"github.com/keys-pub/keys/dstore/events"
 	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
@@ -43,7 +43,7 @@ func (f *Firestore) writeBatch(ctx context.Context, path string, data [][]byte) 
 
 	batch := f.client.Batch()
 
-	idx, err := f.index(ctx, docs.Path(path), int64(len(data)))
+	idx, err := f.index(ctx, dstore.Path(path), int64(len(data)))
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to increment index")
 	}
@@ -51,7 +51,7 @@ func (f *Firestore) writeBatch(ctx context.Context, path string, data [][]byte) 
 	out := make([]*events.Event, 0, len(data))
 	for _, b := range data {
 		id := encoding.MustEncode(keys.RandBytes(32), encoding.Base62)
-		path := docs.Path(path, "log", id)
+		path := dstore.Path(path, "log", id)
 		// logger.Debugf(ctx, "Batching %s (%d)", path, idx)
 
 		// Map should match keys.
@@ -84,7 +84,7 @@ func (f *Firestore) writeBatch(ctx context.Context, path string, data [][]byte) 
 // Events ...
 func (f *Firestore) Events(ctx context.Context, path string, opt ...events.Option) (events.Iterator, error) {
 	opts := events.NewOptions(opt...)
-	log := normalizePath(docs.Path(path, "log"))
+	log := normalizePath(dstore.Path(path, "log"))
 	col := f.client.Collection(log)
 	if col == nil {
 		return events.NewIterator([]*events.Event{}), nil
@@ -117,7 +117,7 @@ func (f *Firestore) Events(ctx context.Context, path string, opt ...events.Optio
 
 // EventsDelete removes events.
 func (f *Firestore) EventsDelete(ctx context.Context, path string) (bool, error) {
-	log := docs.Path(path, "log")
+	log := dstore.Path(path, "log")
 	if err := f.deleteCollection(ctx, log, 100); err != nil {
 		return false, err
 	}

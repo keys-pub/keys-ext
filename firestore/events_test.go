@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/keys-pub/keys/docs/events"
+	"github.com/keys-pub/keys/dstore"
+	"github.com/keys-pub/keys/dstore/events"
 	"github.com/stretchr/testify/require"
 )
 
-func TestFirestoreEvents(t *testing.T) {
+func TestEvents(t *testing.T) {
 	var err error
 	// SetContextLogger(NewContextLogger(DebugLevel))
 
@@ -204,4 +205,41 @@ func TestFirestoreBatch(t *testing.T) {
 	}
 	iter.Release()
 	require.Equal(t, length, i)
+}
+
+func TestUpdateWithEvents(t *testing.T) {
+	ds := testFirestore(t)
+	ctx := context.TODO()
+	collection := testCollection()
+
+	path := dstore.Path(collection, "key1")
+
+	_, err := ds.EventsAdd(ctx, path, [][]byte{[]byte("test1"), []byte("test2")})
+	require.NoError(t, err)
+
+	err = ds.Set(ctx, path, map[string]interface{}{"info": "testinfo", "data": []byte("val1")}, dstore.MergeAll())
+	require.NoError(t, err)
+
+	doc, err := ds.Get(ctx, path)
+	require.NoError(t, err)
+	require.NotNil(t, doc)
+
+	b := doc.Bytes("data")
+	require.Equal(t, []byte("val1"), b)
+
+	index, _ := doc.Int("idx") // From events
+	require.Equal(t, 2, index)
+
+	info, _ := doc.String("info")
+	require.Equal(t, "testinfo", info)
+
+	// Events
+	iter, err := ds.Events(ctx, path, events.Limit(10))
+	require.NoError(t, err)
+	event1, err := iter.Next()
+	require.NoError(t, err)
+	require.Equal(t, []byte("test1"), event1.Data)
+	event2, err := iter.Next()
+	require.NoError(t, err)
+	require.Equal(t, []byte("test2"), event2.Data)
 }

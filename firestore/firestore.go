@@ -1,3 +1,4 @@
+// Package firestore implements dstore.Documents backed by firestore.
 package firestore
 
 import (
@@ -8,8 +9,8 @@ import (
 
 	"cloud.google.com/go/firestore"
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/docs"
-	"github.com/keys-pub/keys/docs/events"
+	"github.com/keys-pub/keys/dstore"
+	"github.com/keys-pub/keys/dstore/events"
 	"github.com/pkg/errors"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
@@ -17,7 +18,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-var _ docs.Documents = &Firestore{}
+var _ dstore.Documents = &Firestore{}
 var _ events.Events = &Firestore{}
 
 // Firestore is a DocumentStore implemented on Google Cloud Firestore.
@@ -64,12 +65,13 @@ func (f *Firestore) URI() string {
 //   collection1 (INVALID)
 //   collection1/key1/collection2 (INVALID)
 //
-func (f *Firestore) Create(ctx context.Context, path string, b []byte) error {
-	fn := func() error { return f.create(ctx, path, b) }
+func (f *Firestore) Create(ctx context.Context, path string, values map[string]interface{}) error {
+	fn := func() error { return f.create(ctx, path, values) }
 	return keys.RetryE(fn)
 }
 
 // Set document.
+// Will create or set, overwriting any existing data.
 //
 // Paths can be nested as long as they are even length components.
 // For example,
@@ -79,18 +81,19 @@ func (f *Firestore) Create(ctx context.Context, path string, b []byte) error {
 //   collection1 (INVALID)
 //   collection1/key1/collection2 (INVALID)
 //
-func (f *Firestore) Set(ctx context.Context, path string, b []byte) error {
-	fn := func() error { return f.set(ctx, path, b) }
+func (f *Firestore) Set(ctx context.Context, path string, values map[string]interface{}, opt ...dstore.SetOption) error {
+	opts := dstore.NewSetOptions(opt...)
+	fn := func() error { return f.set(ctx, path, values, opts) }
 	return keys.RetryE(fn)
 }
 
 func normalizePath(p string) string {
-	path := docs.Path(p)
+	path := dstore.Path(p)
 	path = strings.TrimPrefix(path, "/")
 	return path
 }
 
-func (f *Firestore) create(ctx context.Context, path string, b []byte) error {
+func (f *Firestore) create(ctx context.Context, path string, values map[string]interface{}) error {
 	logger.Infof(ctx, "Create (Firestore) %s", path)
 	path, err := checkPath(path)
 	if err != nil {
@@ -98,28 +101,25 @@ func (f *Firestore) create(ctx context.Context, path string, b []byte) error {
 	}
 
 	doc := f.client.Doc(normalizePath(path))
-	m := map[string]interface{}{
-		"data": b,
-	}
 
-	if _, err := doc.Create(ctx, m); err != nil {
+	if _, err := doc.Create(ctx, values); err != nil {
 		st, ok := status.FromError(err)
 		if !ok {
 			return errors.Wrapf(processError(err), "failed to create firestore value")
 		}
 		switch st.Code() {
 		case codes.AlreadyExists:
-			return docs.NewErrPathExists(path)
+			return dstore.NewErrPathExists(path)
 		default:
-			return errors.Wrapf(processError(err), "failed to create firestore value")
+			return errors.Wrapf(processError(err), "failed to create firestore document")
 		}
 	}
 	return nil
 }
 
 func checkPath(path string) (string, error) {
-	path = docs.Path(path)
-	if len(docs.PathComponents(path))%2 != 0 {
+	path = dstore.Path(path)
+	if len(dstore.PathComponents(path))%2 != 0 {
 		return "", errors.Errorf("invalid path %s", path)
 	}
 	if path == "/" {
@@ -128,25 +128,25 @@ func checkPath(path string) (string, error) {
 	return path, nil
 }
 
-func (f *Firestore) set(ctx context.Context, path string, b []byte) error {
+func (f *Firestore) set(ctx context.Context, path string, values map[string]interface{}, opts dstore.SetOptions) error {
 	logger.Infof(ctx, "Set (Firestore) %s", path)
 	path, err := checkPath(path)
 	if err != nil {
 		return err
 	}
-	doc := f.client.Doc(normalizePath(path))
-	m := map[string]interface{}{
-		"data": b,
+	fopts := []firestore.SetOption{}
+	if opts.MergeAll {
+		fopts = append(fopts, firestore.MergeAll)
 	}
-
-	if _, err := doc.Set(ctx, m); err != nil {
-		return errors.Wrapf(processError(err), "failed to set firestore value")
+	doc := f.client.Doc(normalizePath(path))
+	if _, err := doc.Set(ctx, values, fopts...); err != nil {
+		return errors.Wrapf(processError(err), "failed to set firestore document")
 	}
 	return nil
 }
 
 // GetAll paths.
-func (f *Firestore) GetAll(ctx context.Context, paths []string) ([]*docs.Document, error) {
+func (f *Firestore) GetAll(ctx context.Context, paths []string) ([]*dstore.Document, error) {
 	refs := make([]*firestore.DocumentRef, 0, len(paths))
 	for _, p := range paths {
 		p = normalizePath(p)
@@ -158,21 +158,16 @@ func (f *Firestore) GetAll(ctx context.Context, paths []string) ([]*docs.Documen
 	if err != nil {
 		return nil, err
 	}
-	out := make([]*docs.Document, 0, len(res))
+	out := make([]*dstore.Document, 0, len(res))
 	for _, doc := range res {
 		if !doc.Exists() {
 			continue
 		}
 
-		pc := docs.PathComponents(doc.Ref.Path)
-		path := docs.Path(pc[5:])
-		m := doc.Data()
-		b, ok := m["data"].([]byte)
-		if !ok {
-			logger.Warningf(ctx, "firestore value missing data at %s", path)
-		}
-		// Is there an easier way to get the path?
-		newDoc := docs.NewDocument(path, b)
+		pc := dstore.PathComponents(doc.Ref.Path)
+		// TODO: Is there an easier way to get the path?
+		path := dstore.Path(pc[5:])
+		newDoc := dstore.NewDocument(path).With(doc.Data())
 		newDoc.CreatedAt = doc.CreateTime
 		newDoc.UpdatedAt = doc.UpdateTime
 		out = append(out, newDoc)
@@ -182,7 +177,7 @@ func (f *Firestore) GetAll(ctx context.Context, paths []string) ([]*docs.Documen
 }
 
 // Get ...
-func (f *Firestore) Get(ctx context.Context, path string) (*docs.Document, error) {
+func (f *Firestore) Get(ctx context.Context, path string) (*dstore.Document, error) {
 	logger.Infof(ctx, "Get (Firestore) %s", path)
 	path, err := checkPath(path)
 	if err != nil {
@@ -196,16 +191,10 @@ func (f *Firestore) Get(ctx context.Context, path string) (*docs.Document, error
 	if doc == nil {
 		return nil, nil
 	}
-	m := doc.Data()
-	b, ok := m["data"].([]byte)
-	if !ok {
-		logger.Warningf(ctx, "firestore value missing data at %s", path)
-	}
-
 	logger.Debugf(ctx, "Create time %s", doc.CreateTime)
 	logger.Debugf(ctx, "Update time %s", doc.UpdateTime)
 
-	out := docs.NewDocument(path, b)
+	out := dstore.NewDocument(path).With(doc.Data())
 	out.CreatedAt = doc.CreateTime
 	out.UpdatedAt = doc.UpdateTime
 	return out, nil
@@ -233,8 +222,8 @@ func (f *Firestore) get(ctx context.Context, path string) (*firestore.DocumentSn
 }
 
 // DocumentIterator ...
-func (f *Firestore) DocumentIterator(ctx context.Context, parent string, opt ...docs.Option) (docs.Iterator, error) {
-	opts := docs.NewOptions(opt...)
+func (f *Firestore) DocumentIterator(ctx context.Context, parent string, opt ...dstore.Option) (dstore.Iterator, error) {
+	opts := dstore.NewOptions(opt...)
 
 	// TODO: Handle context Done()
 	path := normalizePath(parent)
@@ -272,8 +261,8 @@ func (f *Firestore) DocumentIterator(ctx context.Context, parent string, opt ...
 }
 
 // Documents not implemented on Firestore, use DocumentIterator.
-func (f *Firestore) Documents(ctx context.Context, parent string, opt ...docs.Option) ([]*docs.Document, error) {
-	return nil, errors.Errorf("not implemented")
+func (f *Firestore) Documents(ctx context.Context, parent string, opt ...dstore.Option) ([]*dstore.Document, error) {
+	return nil, errors.Errorf("not use DocumentIterator instead")
 }
 
 // processError tries to unmarshal Firebase JSON error, if it fails it returns
@@ -291,13 +280,13 @@ func processError(ferr error) error {
 }
 
 // Collections ...
-func (f *Firestore) Collections(ctx context.Context, parent string) ([]*docs.Collection, error) {
-	if docs.Path(parent) != "/" {
+func (f *Firestore) Collections(ctx context.Context, parent string) ([]*dstore.Collection, error) {
+	if dstore.Path(parent) != "/" {
 		return nil, errors.Errorf("only root collections supported")
 	}
 
 	iter := f.client.Collections(ctx)
-	cols := []*docs.Collection{}
+	cols := []*dstore.Collection{}
 	for {
 		col, err := iter.Next()
 		if err == iterator.Done {
@@ -306,7 +295,7 @@ func (f *Firestore) Collections(ctx context.Context, parent string) ([]*docs.Col
 		if err != nil {
 			return nil, err
 		}
-		cols = append(cols, &docs.Collection{Path: docs.Path(col.ID)})
+		cols = append(cols, &dstore.Collection{Path: dstore.Path(col.ID)})
 	}
 	return cols, nil
 }
@@ -318,7 +307,7 @@ func (f *Firestore) Delete(ctx context.Context, path string) (bool, error) {
 
 func (f *Firestore) delete(ctx context.Context, path string) (bool, error) {
 	path = normalizePath(path)
-	if len(docs.PathComponents(path))%2 != 0 {
+	if len(dstore.PathComponents(path))%2 != 0 {
 		return false, errors.Errorf("invalid path %s", path)
 	}
 

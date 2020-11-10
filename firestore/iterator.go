@@ -4,8 +4,8 @@ import (
 	"strings"
 
 	"cloud.google.com/go/firestore"
-	"github.com/keys-pub/keys/docs"
-	"github.com/keys-pub/keys/docs/events"
+	"github.com/keys-pub/keys/dstore"
+	"github.com/keys-pub/keys/dstore/events"
 	"github.com/keys-pub/keys/tsutil"
 	"google.golang.org/api/iterator"
 )
@@ -17,7 +17,7 @@ type docsIterator struct {
 	pathOnly bool
 }
 
-func (i *docsIterator) Next() (*docs.Document, error) {
+func (i *docsIterator) Next() (*dstore.Document, error) {
 	if i.iter == nil {
 		return nil, nil
 	}
@@ -34,18 +34,16 @@ func (i *docsIterator) Next() (*docs.Document, error) {
 		// TODO: Is there a more efficient way to do this in the query?
 		return nil, nil
 	}
-	kp := docs.Path(i.parent, k)
+	kp := dstore.Path(i.parent, k)
 
 	if i.pathOnly {
-		out := docs.NewDocument(kp, nil)
+		out := dstore.NewDocument(kp)
 		out.CreatedAt = doc.CreateTime
 		out.UpdatedAt = doc.UpdateTime
 		return out, nil
 	}
 
-	m := doc.Data()
-	b, _ := m["data"].([]byte)
-	out := docs.NewDocument(kp, b)
+	out := dstore.NewDocument(kp).With(doc.Data())
 	out.CreatedAt = doc.CreateTime
 	out.UpdatedAt = doc.UpdateTime
 	return out, nil
