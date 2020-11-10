@@ -1,6 +1,6 @@
 package api
 
-import "github.com/keys-pub/keys/docs/events"
+import "github.com/keys-pub/keys/dstore/events"
 
 // VaultResponse ...
 type VaultResponse struct {
