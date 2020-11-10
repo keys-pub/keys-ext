@@ -9,12 +9,12 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
-	"github.com/keys-pub/keys/docs"
+	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/http"
 	"github.com/stretchr/testify/require"
 )
 
-func TestInvite(t *testing.T) {
+func TestInviteCode(t *testing.T) {
 	// api.SetLogger(api.NewLogger(api.DebugLevel))
 
 	env := newEnv(t)
@@ -26,11 +26,11 @@ func TestInvite(t *testing.T) {
 	charlie := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x03}, 32)))
 
 	// POST /invite/:kid/:rid (alice, charlie)
-	req, err := http.NewAuthRequest("POST", docs.Path("invite", alice.ID(), charlie.ID()), nil, "", env.clock.Now(), alice)
+	req, err := http.NewAuthRequest("POST", dstore.Path("/invite/code", alice.ID(), charlie.ID()), nil, "", env.clock.Now(), http.Authorization(alice))
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	var created api.CreateInviteResponse
+	var created api.InviteCodeCreateResponse
 	err = json.Unmarshal([]byte(body), &created)
 	require.NoError(t, err)
 	require.NotEmpty(t, created.Code)
@@ -38,19 +38,19 @@ func TestInvite(t *testing.T) {
 	inviteCode := created.Code
 
 	// GET /invite?code=..
-	req, err = http.NewAuthRequest("GET", fmt.Sprintf("/invite?code=%s", url.QueryEscape(inviteCode)), nil, "", env.clock.Now(), charlie)
+	req, err = http.NewAuthRequest("GET", fmt.Sprintf("/invite/code/%s", url.QueryEscape(inviteCode)), nil, "", env.clock.Now(), http.Authorization(charlie))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	expected := `{"sender":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","recipient":"kex1a4yj333g68pvd6hfqvufqkv4vy54jfe6t33ljd3kc9rpfty8xlgs2u3qxr"}`
 	require.Equal(t, expected, body)
-	var invite api.InviteResponse
+	var invite api.InviteCodeResponse
 	err = json.Unmarshal([]byte(body), &invite)
 	require.NoError(t, err)
 	require.Equal(t, charlie.ID(), invite.Recipient)
 
 	// GET /invite?code=.. (bob, invalid)
-	req, err = http.NewAuthRequest("GET", fmt.Sprintf("/invite?code=%s", url.QueryEscape(inviteCode)), nil, "", env.clock.Now(), bob)
+	req, err = http.NewAuthRequest("GET", fmt.Sprintf("/invite/code/%s", url.QueryEscape(inviteCode)), nil, "", env.clock.Now(), http.Authorization(bob))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)

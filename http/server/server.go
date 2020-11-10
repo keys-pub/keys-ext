@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/docs"
-	"github.com/keys-pub/keys/docs/events"
+	"github.com/keys-pub/keys/dstore"
+	"github.com/keys-pub/keys/dstore/events"
 	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keys/users"
@@ -42,7 +42,7 @@ type Server struct {
 
 // Fire defines interface for remote store (like Firestore).
 type Fire interface {
-	docs.Documents
+	dstore.Documents
 	events.Events
 }
 
@@ -86,7 +86,7 @@ func NewHandler(s *Server) http.Handler {
 
 func newHandler(s *Server) *echo.Echo {
 	e := echo.New()
-	e.HTTPErrorHandler = ErrorHandler
+	e.HTTPErrorHandler = s.ErrorHandler
 	s.AddRoutes(e)
 	return e
 }
@@ -108,9 +108,27 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	// Cron
 	e.POST("/cron/check", s.cronCheck)
 
+	// Channel
+	e.PUT("/channel/:cid", s.putChannel)
+	// Channel (info)
+	e.PUT("/channel/:cid/info", s.putChannelInfo)
+	e.GET("/channel/:cid/info", s.getChannelInfo)
+	// Channel (members)
+	e.GET("/channel/:cid/members", s.getChannelMembers)
+	// e.POST("/channel/:cid/members", s.postChannelMembers)
 	// Messages
-	e.POST("/msgs/:kid/:rid", s.postMessage)
-	e.GET("/msgs/:kid/:rid", s.listMessages)
+	e.POST("/channel/:cid/msgs", s.postMessage)
+	e.GET("/channel/:cid/msgs", s.listMessages)
+	// Channel (invite)
+	e.POST("/channel/:cid/invite", s.postChannelInvite)
+	e.GET("/channel/:cid/invites", s.getChannelInvites)
+
+	// Inbox (channels)
+	e.GET("/inbox/:kid/channels", s.inboxChannels)
+	// Inbox (invites)
+	e.GET("/inbox/:kid/invites", s.inboxInvites)
+	e.POST("/inbox/:kid/invite/:cid/accept", s.acceptInboxInvite)
+	e.DELETE("/inbox/:kid/invite/:cid", s.deleteInboxInvite)
 
 	// Vault
 	e.POST("/vault/:kid", s.postVault)
@@ -123,9 +141,9 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	e.GET("/disco/:kid/:rid/:type", s.getDisco)
 	e.DELETE("/disco/:kid/:rid", s.deleteDisco)
 
-	// Invite
-	e.POST("/invite/:kid/:rid", s.postInvite)
-	e.GET("/invite", s.getInvite)
+	// Invite Code
+	e.POST("/invite/code/:kid/:rid", s.postInviteCode)
+	e.GET("/invite/code/:code", s.getInviteCode)
 
 	// Share
 	e.GET("/share/:kid", s.getShare)

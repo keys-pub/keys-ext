@@ -1,10 +1,10 @@
 package server
 
 import (
-	"net/http"
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/http"
 	"github.com/keys-pub/keys/user"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
@@ -16,10 +16,11 @@ func (s *Server) adminCheck(c echo.Context) error {
 	request := c.Request()
 	ctx := request.Context()
 
-	auth, status, err := checkAuth(c, s.URL, "", nil, s.clock.Now(), s.rds)
+	auth, err := s.auth(c, newAuth("Authorization", "", nil))
 	if err != nil {
-		return ErrResponse(c, status, err.Error())
+		return ErrForbidden(c, err)
 	}
+
 	if !s.isAdmin(auth.KID) {
 		return ErrForbidden(c, errors.Errorf("not authorized"))
 	}

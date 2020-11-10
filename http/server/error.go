@@ -28,28 +28,29 @@ func newErrorResponse(msg string, code int) *response {
 }
 
 // ErrResponse is a generate error response.
-func ErrResponse(c echo.Context, status int, msg string) error {
-	return JSON(c, status, newErrorResponse(msg, status))
+func ErrResponse(c echo.Context, status int, err error) error {
+	return JSON(c, status, newErrorResponse(err.Error(), status))
 }
 
 // ErrBadRequest response.
 func ErrBadRequest(c echo.Context, err error) error {
-	return ErrResponse(c, http.StatusBadRequest, err.Error())
+	return ErrResponse(c, http.StatusBadRequest, err)
 }
 
 // ErrEntityTooLarge response.
 func ErrEntityTooLarge(c echo.Context, err error) error {
-	return ErrResponse(c, http.StatusRequestEntityTooLarge, err.Error())
+	return ErrResponse(c, http.StatusRequestEntityTooLarge, err)
 }
 
 // ErrForbidden response.
 func ErrForbidden(c echo.Context, err error) error {
-	return ErrResponse(c, http.StatusForbidden, err.Error())
+	// We hide the source of the error to not expose any metadata.
+	return ErrResponse(c, http.StatusForbidden, errors.Errorf("auth failed"))
 }
 
 // ErrConflict response.
 func ErrConflict(c echo.Context, err error) error {
-	return ErrResponse(c, http.StatusConflict, err.Error())
+	return ErrResponse(c, http.StatusConflict, err)
 }
 
 // ErrNotFound response.
@@ -57,23 +58,24 @@ func ErrNotFound(c echo.Context, err error) error {
 	if err == nil {
 		err = errors.Errorf("resource not found")
 	}
-	return ErrResponse(c, http.StatusNotFound, err.Error())
+	return ErrResponse(c, http.StatusNotFound, err)
 }
 
 // ErrUnauthorized response.
-func ErrUnauthorized(c echo.Context, err error) error {
-	return ErrResponse(c, http.StatusUnauthorized, err.Error())
-}
+// Use ErrForbidden instead.
+// func ErrUnauthorized(c echo.Context, err error) error {
+// 	return ErrResponse(c, http.StatusUnauthorized, err)
+// }
 
 func (s *Server) internalError(c echo.Context, err error) error {
-	s.logger.Errorf("Internal error: %v", err)
-	return ErrResponse(c, http.StatusInternalServerError, err.Error())
+	s.logger.Errorf("Internal error: %+v", err)
+	return ErrResponse(c, http.StatusInternalServerError, err)
 }
 
 // ErrorHandler returns error handler that returns in the format:
 // {"error": {"message": "error message", status: 500}}".
-func ErrorHandler(err error, c echo.Context) {
-	c.Logger().Infof("Error: %v", err)
+func (s *Server) ErrorHandler(err error, c echo.Context) {
+	s.logger.Errorf("Error: %+v", err)
 
 	code := http.StatusInternalServerError
 	var resp *response

@@ -10,7 +10,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/server"
-	"github.com/keys-pub/keys/docs"
+	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/http"
 	"github.com/keys-pub/keys/request"
@@ -36,7 +36,7 @@ type testServer struct {
 // }
 
 func testFire(t *testing.T, clock tsutil.Clock) server.Fire {
-	fi := docs.NewMem()
+	fi := dstore.NewMem()
 	fi.SetClock(clock)
 	return fi
 }
@@ -45,7 +45,7 @@ func TestFireCreatedAt(t *testing.T) {
 	clock := tsutil.NewTestClock()
 	fi := testFire(t, clock)
 
-	err := fi.Set(context.TODO(), "/test/a", []byte{0x01})
+	err := fi.Set(context.TODO(), "/test/a", dstore.Data([]byte{0x01}))
 	require.NoError(t, err)
 
 	doc, err := fi.Get(context.TODO(), "/test/a")
@@ -80,7 +80,7 @@ func newEnvWithFire(t *testing.T, fi server.Fire, clock tsutil.Clock) *env {
 		fi:       fi,
 		req:      req,
 		pubSub:   pubSub,
-		logLevel: server.ErrLevel,
+		logLevel: server.NoLevel,
 	}
 }
 
@@ -107,6 +107,10 @@ func (s *testServer) Serve(req *http.Request) (int, http.Header, string) {
 	return rr.Code, rr.Header(), rr.Body.String()
 }
 
+func testSeed(b byte) *[32]byte {
+	return keys.Bytes32(bytes.Repeat([]byte{b}, 32))
+}
+
 func newTestPubSubServer(t *testing.T, env *env) *testPubSubServer {
 	pubSub := server.NewPubSub()
 	rds := server.NewRedisTest(env.clock)
@@ -124,6 +128,44 @@ type testPubSubServer struct {
 	Handler http.Handler
 	// Addr if started
 	Addr string
+}
+
+type testKeys struct {
+	alice    *keys.EdX25519Key
+	bob      *keys.EdX25519Key
+	channel  *keys.EdX25519Key
+	channel2 *keys.EdX25519Key
+	frank    *keys.EdX25519Key
+}
+
+func testKeysSeeded() testKeys {
+	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
+	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
+	channel := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0xef}, 32)))
+	channel2 := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0xf0}, 32)))
+	frank := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x06}, 32)))
+	return testKeys{
+		alice:    alice,
+		bob:      bob,
+		channel:  channel,
+		channel2: channel2,
+		frank:    frank,
+	}
+}
+
+func testKeysRandom() testKeys {
+	alice := keys.GenerateEdX25519Key()
+	bob := keys.GenerateEdX25519Key()
+	channel := keys.GenerateEdX25519Key()
+	channel2 := keys.GenerateEdX25519Key()
+	frank := keys.GenerateEdX25519Key()
+	return testKeys{
+		alice:    alice,
+		bob:      bob,
+		channel:  channel,
+		channel2: channel2,
+		frank:    frank,
+	}
 }
 
 func (s *testPubSubServer) Serve(req *http.Request) (int, http.Header, string) {
@@ -254,7 +296,7 @@ func TestAccess(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
-	require.Equal(t, `{"error":{"code":403,"message":"no auth token specified"}}`, body)
+	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, body)
 
 	// Set internal auth token
 	srv.Server.SetInternalAuth("testtoken")

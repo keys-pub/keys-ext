@@ -7,8 +7,8 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
-	"github.com/keys-pub/keys/docs"
-	"github.com/keys-pub/keys/docs/events"
+	"github.com/keys-pub/keys/dstore"
+	"github.com/keys-pub/keys/dstore/events"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 )
@@ -19,12 +19,12 @@ var errVaultDeleted = errors.New("vault was deleted")
 func (s *Server) listVault(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	kid, status, err := authorize(c, s.URL, "kid", nil, s.clock.Now(), s.rds)
+	auth, err := s.auth(c, newAuth("Authorization", "kid", nil))
 	if err != nil {
-		return ErrResponse(c, status, err.Error())
+		return ErrForbidden(c, err)
 	}
 
-	deleted, err := s.isVaultDeleted(c, kid)
+	deleted, err := s.isVaultDeleted(c, auth.KID)
 	if err != nil {
 		return s.internalError(c, err)
 	}
@@ -32,7 +32,7 @@ func (s *Server) listVault(c echo.Context) error {
 		return ErrNotFound(c, errVaultDeleted)
 	}
 
-	cpath := docs.Path("vaults", kid)
+	cpath := dstore.Path("vaults", auth.KID)
 	eresp, err := s.events(c, cpath)
 	if err != nil {
 		return err
@@ -61,12 +61,12 @@ func (s *Server) postVault(c echo.Context) error {
 		return s.internalError(c, err)
 	}
 
-	kid, status, err := authorize(c, s.URL, "kid", b, s.clock.Now(), s.rds)
+	auth, err := s.auth(c, newAuth("Authorization", "kid", b))
 	if err != nil {
-		return ErrResponse(c, status, err.Error())
+		return ErrForbidden(c, err)
 	}
 
-	deleted, err := s.isVaultDeleted(c, kid)
+	deleted, err := s.isVaultDeleted(c, auth.KID)
 	if err != nil {
 		return s.internalError(c, err)
 	}
@@ -80,7 +80,7 @@ func (s *Server) postVault(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	cpath := docs.Path("vaults", kid)
+	cpath := dstore.Path("vaults", auth.KID)
 	data := make([][]byte, 0, len(req))
 	for _, d := range req {
 		data = append(data, d.Data)
@@ -97,12 +97,12 @@ func (s *Server) deleteVault(c echo.Context) error {
 	ctx := c.Request().Context()
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	kid, status, err := authorize(c, s.URL, "kid", nil, s.clock.Now(), s.rds)
+	auth, err := s.auth(c, newAuth("Authorization", "kid", nil))
 	if err != nil {
-		return ErrResponse(c, status, err.Error())
+		return ErrForbidden(c, err)
 	}
 
-	deleted, err := s.isVaultDeleted(c, kid)
+	deleted, err := s.isVaultDeleted(c, auth.KID)
 	if err != nil {
 		return s.internalError(c, err)
 	}
@@ -110,11 +110,11 @@ func (s *Server) deleteVault(c echo.Context) error {
 		return ErrNotFound(c, errVaultDeleted)
 	}
 
-	if err := s.setVaultDeleted(c, kid); err != nil {
+	if err := s.setVaultDeleted(c, auth.KID); err != nil {
 		return s.internalError(c, err)
 	}
 
-	cpath := docs.Path("vaults", kid)
+	cpath := dstore.Path("vaults", auth.KID)
 	exists, err := s.fi.EventsDelete(ctx, cpath)
 	if err != nil {
 		return s.internalError(c, err)
@@ -131,12 +131,12 @@ func (s *Server) headVault(c echo.Context) error {
 	ctx := c.Request().Context()
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	kid, status, err := authorize(c, s.URL, "kid", nil, s.clock.Now(), s.rds)
+	auth, err := s.auth(c, newAuth("Authorization", "kid", nil))
 	if err != nil {
-		return ErrResponse(c, status, err.Error())
+		return ErrForbidden(c, err)
 	}
 
-	deleted, err := s.isVaultDeleted(c, kid)
+	deleted, err := s.isVaultDeleted(c, auth.KID)
 	if err != nil {
 		return s.internalError(c, err)
 	}
@@ -144,7 +144,7 @@ func (s *Server) headVault(c echo.Context) error {
 		return ErrNotFound(c, errVaultDeleted)
 	}
 
-	path := docs.Path("vaults", kid)
+	path := dstore.Path("vaults", auth.KID)
 	iter, err := s.fi.Events(ctx, path, events.Limit(1))
 	if err != nil {
 		return s.internalError(c, err)
@@ -163,10 +163,10 @@ func (s *Server) headVault(c echo.Context) error {
 
 func (s Server) isVaultDeleted(c echo.Context, kid keys.ID) (bool, error) {
 	ctx := c.Request().Context()
-	return s.fi.Exists(ctx, docs.Path("vaults-rm", kid))
+	return s.fi.Exists(ctx, dstore.Path("vaults-rm", kid))
 }
 
 func (s *Server) setVaultDeleted(c echo.Context, kid keys.ID) error {
 	ctx := c.Request().Context()
-	return s.fi.Set(ctx, docs.Path("vaults-rm", kid), []byte{})
+	return s.fi.Set(ctx, dstore.Path("vaults-rm", kid), dstore.Data([]byte{}))
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/keys-pub/keys"
@@ -17,14 +18,15 @@ type invite struct {
 	Recipient keys.ID `json:"r"`
 }
 
-func (s *Server) postInvite(c echo.Context) error {
+func (s *Server) postInviteCode(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	kid, status, err := authorize(c, s.URL, "kid", nil, s.clock.Now(), s.rds)
+	auth, err := s.auth(c, newAuth("Authorization", "kid", nil))
 	if err != nil {
-		return ErrResponse(c, status, err.Error())
+		return ErrForbidden(c, err)
 	}
+
 	recipient := c.Param("rid")
 	if recipient == "" {
 		return ErrBadRequest(c, errors.Errorf("no recipient id"))
@@ -35,7 +37,7 @@ func (s *Server) postInvite(c echo.Context) error {
 	}
 
 	inv := invite{
-		Sender:    kid,
+		Sender:    auth.KID,
 		Recipient: rid,
 	}
 	ib, err := json.Marshal(inv)
@@ -71,23 +73,27 @@ func (s *Server) postInvite(c echo.Context) error {
 	}
 
 	s.logger.Debugf("Created code: %s", code)
-	resp := api.CreateInviteResponse{
+	resp := api.InviteCodeCreateResponse{
 		Code: code,
 	}
 
 	return JSON(c, http.StatusOK, resp)
 }
 
-func (s *Server) getInvite(c echo.Context) error {
+func (s *Server) getInviteCode(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	res, status, err := checkAuth(c, s.URL, "", nil, s.clock.Now(), s.rds)
+	auth, err := s.auth(c, newAuth("Authorization", "", nil))
 	if err != nil {
-		return ErrResponse(c, status, err.Error())
+		return ErrForbidden(c, err)
 	}
 
-	key := fmt.Sprintf("code %s", c.QueryParam("code"))
+	code, err := url.QueryUnescape(c.Param("code"))
+	if err != nil {
+		return ErrBadRequest(c, err)
+	}
+	key := fmt.Sprintf("code %s", code)
 	s.logger.Debugf("Get code: %s", key)
 	out, err := s.rds.Get(ctx, key)
 	if err != nil {
@@ -104,8 +110,8 @@ func (s *Server) getInvite(c echo.Context) error {
 	// Only allow the sender or recipient to view the invite.
 	// This can happen if client has many keys and is brute forcing to find
 	// which one to use.
-	if inv.Recipient != res.KID && inv.Sender != res.KID {
-		s.logger.Debugf("Recipient mistmatch: %s != %s", inv.Recipient, res.KID)
+	if inv.Recipient != auth.KID && inv.Sender != auth.KID {
+		s.logger.Debugf("Recipient mistmatch: %s != %s", inv.Recipient, auth.KID)
 		return ErrNotFound(c, errors.Errorf("code not found"))
 	}
 	// TODO: Remove on access or when it's used?
@@ -113,7 +119,7 @@ func (s *Server) getInvite(c echo.Context) error {
 	// 	return s.internalError(c, err)
 	// }
 
-	resp := api.InviteResponse{
+	resp := api.InviteCodeResponse{
 		Sender:    inv.Sender,
 		Recipient: inv.Recipient,
 	}

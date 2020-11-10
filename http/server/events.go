@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/keys-pub/keys-ext/http/api"
-	"github.com/keys-pub/keys/docs/events"
+	"github.com/keys-pub/keys/dstore/events"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 )
@@ -18,7 +18,7 @@ func (s *Server) events(c echo.Context, path string) (*api.EventsResponse, error
 	if f := c.QueryParam("idx"); f != "" {
 		i, err := strconv.Atoi(f)
 		if err != nil {
-			return nil, ErrResponse(c, http.StatusBadRequest, errors.Wrapf(err, "invalid index").Error())
+			return nil, ErrResponse(c, http.StatusBadRequest, errors.Wrapf(err, "invalid index"))
 		}
 		index = int64(i)
 	}
@@ -26,7 +26,7 @@ func (s *Server) events(c echo.Context, path string) (*api.EventsResponse, error
 	if f := c.QueryParam("limit"); f != "" {
 		n, err := strconv.ParseInt(f, 10, 64)
 		if err != nil {
-			return nil, ErrResponse(c, http.StatusBadRequest, errors.Wrapf(err, "invalid limit").Error())
+			return nil, ErrResponse(c, http.StatusBadRequest, errors.Wrapf(err, "invalid limit"))
 		}
 		limit = n
 	}
@@ -43,7 +43,7 @@ func (s *Server) events(c echo.Context, path string) (*api.EventsResponse, error
 	case "desc":
 		dir = events.Descending
 	default:
-		return nil, ErrResponse(c, http.StatusBadRequest, "invalid dir")
+		return nil, ErrResponse(c, http.StatusBadRequest, errors.Errorf("invalid dir"))
 	}
 
 	s.logger.Infof("Events %s (from=%d)", path, index)

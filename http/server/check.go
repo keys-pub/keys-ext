@@ -6,7 +6,6 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/labstack/echo/v4"
-	"github.com/pkg/errors"
 )
 
 func (s *Server) check(c echo.Context) error {
@@ -15,18 +14,12 @@ func (s *Server) check(c echo.Context) error {
 	request := c.Request()
 	ctx := request.Context()
 
-	// Auth
-	auth := request.Header.Get("Authorization")
-	if auth == "" {
-		return ErrUnauthorized(c, errors.Errorf("missing Authorization header"))
-	}
-	res, status, err := checkAuth(c, s.URL, "", nil, s.clock.Now(), s.rds)
+	auth, err := s.auth(c, newAuth("Authorization", "", nil))
 	if err != nil {
-		return ErrResponse(c, status, err.Error())
+		return ErrForbidden(c, err)
 	}
 
-	kid := res.KID
-	if err := s.checkKID(ctx, kid, HighPriority); err != nil {
+	if err := s.checkKID(ctx, auth.KID, HighPriority); err != nil {
 		return s.internalError(c, err)
 	}
 

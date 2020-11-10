@@ -11,7 +11,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
-	"github.com/keys-pub/keys/docs"
+	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
@@ -19,11 +19,12 @@ import (
 
 func (s *Server) sigchain(c echo.Context, kid keys.ID) (*keys.Sigchain, map[string]api.Metadata, error) {
 	ctx := c.Request().Context()
-	iter, err := s.fi.DocumentIterator(ctx, SigchainResource.String(), docs.Prefix(kid.String()))
-	defer iter.Release()
+	iter, err := s.fi.DocumentIterator(ctx, SigchainResource.String(), dstore.Prefix(kid.String()))
 	if err != nil {
 		return nil, nil, err
 	}
+	defer iter.Release()
+
 	sc := keys.NewSigchain(kid)
 	md := make(map[string]api.Metadata, 100)
 	for {
@@ -36,7 +37,7 @@ func (s *Server) sigchain(c echo.Context, kid keys.ID) (*keys.Sigchain, map[stri
 		}
 
 		var st *keys.Statement
-		if err := json.Unmarshal(doc.Data, &st); err != nil {
+		if err := json.Unmarshal(doc.Data(), &st); err != nil {
 			return nil, nil, err
 		}
 
@@ -72,7 +73,7 @@ func (s *Server) getSigchain(c echo.Context) error {
 		KID:        kid,
 		Statements: sc.Statements(),
 	}
-	fields := docs.NewStringSetSplit(c.QueryParam("include"), ",")
+	fields := dstore.NewStringSetSplit(c.QueryParam("include"), ",")
 	if fields.Contains("md") {
 		resp.Metadata = md
 	}
@@ -91,7 +92,7 @@ func (s *Server) getSigchainStatement(c echo.Context) error {
 	if err != nil {
 		return ErrNotFound(c, err)
 	}
-	path := docs.Path(SigchainResource, kid.WithSeq(i))
+	path := dstore.Path(SigchainResource, kid.WithSeq(i))
 	st, doc, err := s.statement(ctx, path)
 	if st == nil {
 		return ErrNotFound(c, errors.Errorf("statement not found"))
@@ -137,8 +138,11 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 	if c.Param("seq") != fmt.Sprintf("%d", st.Seq) {
 		return ErrBadRequest(c, errors.Errorf("invalid seq"))
 	}
+	if st.Seq <= 0 {
+		return ErrBadRequest(c, errors.Errorf("invalid seq"))
+	}
 
-	path := docs.Path(SigchainResource, st.Key())
+	path := dstore.Path(SigchainResource, keys.StatementID(st.KID, st.Seq))
 
 	exists, err := s.fi.Exists(ctx, path)
 	if err != nil {
@@ -149,7 +153,7 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 	}
 
 	if access := s.accessFn(c, SigchainResource, Put); !access.Allow {
-		return ErrResponse(c, access.StatusCode, access.Message)
+		return ErrResponse(c, access.StatusCode, errors.Errorf(access.Message))
 	}
 
 	sc, _, err := s.sigchain(c, st.KID)
@@ -182,11 +186,11 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 		if err := s.checkKID(ctx, existing, HighPriority); err != nil {
 			return s.internalError(c, err)
 		}
-		return ErrResponse(c, http.StatusConflict, fmt.Sprintf("user already exists with key %s, if you removed or revoked the previous statement you may need to wait briefly for search to update", existing))
+		return ErrResponse(c, http.StatusConflict, errors.Errorf("user already exists with key %s, if you removed or revoked the previous statement you may need to wait briefly for search to update", existing))
 	}
 
 	s.logger.Infof("Statement, set %s", path)
-	if err := s.fi.Create(ctx, path, b); err != nil {
+	if err := s.fi.Create(ctx, path, dstore.Data(b)); err != nil {
 		return s.internalError(c, err)
 	}
 
@@ -202,7 +206,7 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 	return JSON(c, http.StatusOK, resp)
 }
 
-func (s *Server) statement(ctx context.Context, path string) (*keys.Statement, *docs.Document, error) {
+func (s *Server) statement(ctx context.Context, path string) (*keys.Statement, *dstore.Document, error) {
 	e, err := s.fi.Get(ctx, path)
 	if err != nil {
 		return nil, nil, err
@@ -210,7 +214,7 @@ func (s *Server) statement(ctx context.Context, path string) (*keys.Statement, *
 	if e == nil {
 		return nil, nil, nil
 	}
-	st, err := s.statementFromBytes(ctx, e.Data)
+	st, err := s.statementFromBytes(ctx, e.Data())
 	if err != nil {
 		return nil, nil, err
 	}

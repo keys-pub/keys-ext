@@ -41,9 +41,9 @@ func (s *Server) putDisco(c echo.Context) error {
 		return ErrBadRequest(c, errors.Errorf("message too large (greater than 256 bytes)"))
 	}
 
-	kid, status, err := authorize(c, s.URL, "kid", b, s.clock.Now(), s.rds)
+	auth, err := s.auth(c, newAuth("Authorization", "kid", b))
 	if err != nil {
-		return ErrResponse(c, status, err.Error())
+		return ErrForbidden(c, err)
 	}
 
 	recipient := c.Param("rid")
@@ -78,7 +78,7 @@ func (s *Server) putDisco(c echo.Context) error {
 		return ErrBadRequest(c, errors.Errorf("max expire is 1m"))
 	}
 
-	key := discoKey(kid, rid, typ)
+	key := discoKey(auth.KID, rid, typ)
 	if err := s.rds.Set(ctx, key, string(b)); err != nil {
 		return s.internalError(c, err)
 	}
@@ -95,9 +95,9 @@ func (s *Server) getDisco(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	rid, status, err := authorize(c, s.URL, "rid", nil, s.clock.Now(), s.rds)
+	auth, err := s.auth(c, newAuth("Authorization", "rid", nil))
 	if err != nil {
-		return ErrResponse(c, status, err.Error())
+		return ErrForbidden(c, err)
 	}
 
 	sender := c.Param("kid")
@@ -117,7 +117,7 @@ func (s *Server) getDisco(c echo.Context) error {
 		return ErrBadRequest(c, errors.Errorf("invalid type"))
 	}
 
-	key := discoKey(kid, rid, typ)
+	key := discoKey(kid, auth.KID, typ)
 	out, err := s.rds.Get(ctx, key)
 	if err != nil {
 		return s.internalError(c, err)
@@ -136,9 +136,9 @@ func (s *Server) deleteDisco(c echo.Context) error {
 	ctx := c.Request().Context()
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	kid, status, err := authorize(c, s.URL, "kid", nil, s.clock.Now(), s.rds)
+	auth, err := s.auth(c, newAuth("Authorization", "kid", nil))
 	if err != nil {
-		return ErrResponse(c, status, err.Error())
+		return ErrForbidden(c, err)
 	}
 
 	recipient := c.Param("rid")
@@ -150,11 +150,11 @@ func (s *Server) deleteDisco(c echo.Context) error {
 		return ErrBadRequest(c, err)
 	}
 
-	okey := discoKey(kid, rid, "offer")
+	okey := discoKey(auth.KID, rid, "offer")
 	if err := s.rds.Delete(ctx, okey); err != nil {
 		return s.internalError(c, err)
 	}
-	akey := discoKey(kid, rid, "answer")
+	akey := discoKey(auth.KID, rid, "answer")
 	if err := s.rds.Delete(ctx, akey); err != nil {
 		return s.internalError(c, err)
 	}

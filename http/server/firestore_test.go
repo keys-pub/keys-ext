@@ -64,7 +64,5 @@ func TestMessagesFirestore(t *testing.T) {
 	env := newEnvWithFire(t, fs, clock)
 	// env.logLevel = server.DebugLevel
 
-	alice := keys.GenerateEdX25519Key()
-	charlie := keys.GenerateEdX25519Key()
-	testMessages(t, env, alice, charlie)
+	testMessages(t, env, testKeysRandom())
 }

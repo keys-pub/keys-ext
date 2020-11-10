@@ -32,7 +32,7 @@ func TestCheck(t *testing.T) {
 	require.Equal(t, "{}", body)
 
 	// POST /check
-	req, err = http.NewAuthRequest("POST", "/check", nil, "", clock.Now(), alice)
+	req, err = http.NewAuthRequest("POST", "/check", nil, "", clock.Now(), http.Authorization(alice))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)

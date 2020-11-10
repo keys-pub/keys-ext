@@ -28,9 +28,9 @@ func (s *Server) putShare(c echo.Context) error {
 		return ErrBadRequest(c, errors.Errorf("message too large (greater than 512 bytes)"))
 	}
 
-	kid, status, err := authorize(c, s.URL, "kid", b, s.clock.Now(), s.rds)
+	auth, err := s.auth(c, newAuth("Authorization", "kid", b))
 	if err != nil {
-		return ErrResponse(c, status, err.Error())
+		return ErrForbidden(c, err)
 	}
 
 	expire := time.Minute * 5
@@ -48,7 +48,7 @@ func (s *Server) putShare(c echo.Context) error {
 		return ErrBadRequest(c, errors.Errorf("max expire is 15m"))
 	}
 
-	key := fmt.Sprintf("s-%s", kid)
+	key := fmt.Sprintf("s-%s", auth.KID)
 	if err := s.rds.Set(ctx, key, string(b)); err != nil {
 		return s.internalError(c, err)
 	}
@@ -65,12 +65,12 @@ func (s *Server) getShare(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	kid, status, err := authorize(c, s.URL, "kid", nil, s.clock.Now(), s.rds)
+	auth, err := s.auth(c, newAuth("Authorization", "kid", nil))
 	if err != nil {
-		return ErrResponse(c, status, err.Error())
+		return ErrForbidden(c, err)
 	}
 
-	key := fmt.Sprintf("s-%s", kid)
+	key := fmt.Sprintf("s-%s", auth.KID)
 	out, err := s.rds.Get(ctx, key)
 	if err != nil {
 		return s.internalError(c, err)

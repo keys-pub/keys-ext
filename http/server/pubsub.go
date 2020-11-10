@@ -3,12 +3,12 @@ package server
 import (
 	"context"
 	"io/ioutil"
-	"net/http"
 	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/http"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
@@ -51,7 +51,7 @@ func NewPubSubHandler(s *PubSubServer) http.Handler {
 
 func newPubSubHandler(s *PubSubServer) *echo.Echo {
 	e := echo.New()
-	e.HTTPErrorHandler = ErrorHandler
+	// e.HTTPErrorHandler = s.ErrorHandler
 	s.AddRoutes(e)
 	return e
 }
@@ -71,6 +71,10 @@ func (s *PubSubServer) publish(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
+	if _, err := s.auth(c, "kid"); err != nil {
+		return err
+	}
+
 	if c.Request().Body == nil {
 		return ErrBadRequest(c, errors.Errorf("missing body"))
 	}
@@ -83,11 +87,6 @@ func (s *PubSubServer) publish(c echo.Context) error {
 	if len(bin) > 16*1024 {
 		// TODO: Check length before reading data
 		return ErrBadRequest(c, errors.Errorf("message too large (greater than 16KiB)"))
-	}
-
-	_, status, err := authorize(c, s.URL, "kid", bin, s.clock.Now(), s.rds)
-	if err != nil {
-		return ErrResponse(c, status, err.Error())
 	}
 
 	recipient := c.Param("rid")
@@ -108,9 +107,13 @@ func (s *PubSubServer) publish(c echo.Context) error {
 	return JSON(c, http.StatusOK, resp)
 }
 
+func (s *PubSubServer) auth(c echo.Context, param string) (keys.ID, error) {
+	return "", ErrForbidden(c, errors.Errorf("not implemented"))
+}
+
 func (s *PubSubServer) internalError(c echo.Context, err error) error {
 	s.logger.Errorf("Internal error: %v", err)
-	return ErrResponse(c, http.StatusInternalServerError, err.Error())
+	return ErrResponse(c, http.StatusInternalServerError, err)
 }
 
 var (
@@ -124,10 +127,9 @@ var (
 func (s *PubSubServer) subscribe(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	kid, status, err := authorize(c, s.URL, "kid", nil, s.clock.Now(), s.rds)
+	kid, err := s.auth(c, "kid")
 	if err != nil {
-		s.logger.Errorf("Authorize error: %v", err)
-		return ErrResponse(c, status, err.Error())
+		return err
 	}
 
 	subCtx, cancel := context.WithCancel(c.Request().Context())
