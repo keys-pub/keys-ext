@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	github.com/davecgh/go-spew v1.1.1
-	github.com/keys-pub/keys v0.1.7-0.20201019222734-27495f7e1624
+	github.com/keys-pub/keys v0.1.18-0.20201110225229-cf94f4121589
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.5.1
 	github.com/vmihailenco/msgpack/v4 v4.3.11
@@ -12,4 +12,4 @@ require (
 	golang.org/x/sys v0.0.0-20200615200032-f1bc736245b1 // indirect
 )
 
-replace github.com/keys-pub/keys => ../../../keys
+// replace github.com/keys-pub/keys => ../../../keys
