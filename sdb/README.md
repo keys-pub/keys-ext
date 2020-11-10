@@ -1,6 +1,6 @@
 # SDB
 
-This package provides a leveldb database encrypted with [github.com/minio/sio](https://github.com/minio/sio) (DARE).
+This package implements dstore.Documents backed by a leveldb database encrypted with [github.com/minio/sio](https://github.com/minio/sio) (DARE).
 
 **Only values are encrypted.**
 
@@ -9,21 +9,26 @@ db := sdb.New()
 defer db.Close()
 
 key := keys.Rand32()
-if err := db.OpenAtPath(context.TODO(), "my.sdb", key); err != nil {
-    log.Fatal(err)
-}
-
-if err := db.Set(context.TODO(), "/collection1/doc1", []byte("hi")); err != nil {
-    log.Fatal(err)
-}
-
-doc, err  := db.Get(context.TODO(), "/collection1/doc1")
+dir, err := ioutil.TempDir("", "")
 if err != nil {
     log.Fatal(err)
 }
-fmt.Printf("%s: %s\n", doc.Path, string(doc.Data))
+path := filepath.Join(dir, "my.sdb")
+if err := db.OpenAtPath(context.TODO(), path, key); err != nil {
+    log.Fatal(err)
+}
 
-iter, err := db.DocumentIterator(context.TODO(), ds.Path("collection1"))
+type Message struct {
+    ID      string `json:"id"`
+    Content string `json:"content"`
+}
+msg := &Message{ID: "id1", Content: "hi"}
+
+if err := db.Set(context.TODO(), dstore.Path("collection1", "doc1"), dstore.From(msg)); err != nil {
+    log.Fatal(err)
+}
+
+iter, err := db.DocumentIterator(context.TODO(), dstore.Path("collection1"))
 if err != nil {
     log.Fatal(err)
 }
@@ -36,6 +41,10 @@ for {
     if doc == nil {
         break
     }
-    fmt.Printf("%s: %s\n", doc.Path, string(doc.Data))
+    var msg Message
+    if err := doc.To(&msg); err != nil {
+        log.Fatal(err)
+    }
+    fmt.Printf("%s: %s\n", doc.Path, msg.Content)
 }
 ```

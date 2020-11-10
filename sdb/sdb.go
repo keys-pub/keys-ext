@@ -1,3 +1,5 @@
+// Package sdb implements dstore.Documents backed by leveldb using data at rest
+// encryption.
 package sdb
 
 import (

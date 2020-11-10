@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"io"
 	"sync"
+	"time"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/keys-pub/keys/docs"
+	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
@@ -15,12 +16,12 @@ import (
 	"github.com/vmihailenco/msgpack/v4"
 )
 
-var _ docs.Documents = &DB{}
+var _ dstore.Documents = &DB{}
 
 // SecretKey for database.
 type SecretKey *[32]byte
 
-// DB is leveldb implementation of docs.DocumentStore.
+// DB is secure leveldb implementation of dstore.Documents.
 type DB struct {
 	rwmtx *sync.RWMutex
 	sdb   *sdb
@@ -84,18 +85,25 @@ func (d *DB) Exists(ctx context.Context, path string) (bool, error) {
 	if d.sdb == nil {
 		return false, errors.Errorf("db not open")
 	}
-	path = docs.Path(path)
+	path = dstore.Path(path)
 	return d.sdb.Has(path)
 }
 
+type document struct {
+	Path      string                 `msgpack:"path"`
+	Values    map[string]interface{} `msgpack:"v"`
+	CreatedAt time.Time              `msgpack:"cts"`
+	UpdatedAt time.Time              `msgpack:"uts"`
+}
+
 // Create entry.
-func (d *DB) Create(ctx context.Context, path string, b []byte) error {
+func (d *DB) Create(ctx context.Context, path string, values map[string]interface{}) error {
 	d.rwmtx.Lock()
 	defer d.rwmtx.Unlock()
 	if d.sdb == nil {
 		return errors.Errorf("db not open")
 	}
-	path = docs.Path(path)
+	path = dstore.Path(path)
 	if path == "/" {
 		return errors.Errorf("invalid path %s", path)
 	}
@@ -104,13 +112,13 @@ func (d *DB) Create(ctx context.Context, path string, b []byte) error {
 		return err
 	}
 	if exists {
-		return docs.NewErrPathExists(path)
+		return dstore.NewErrPathExists(path)
 	}
 
 	now := d.clock.Now()
-	doc := &docs.Document{
+	doc := &document{
 		Path:      path,
-		Data:      b,
+		Values:    values,
 		CreatedAt: now,
 		UpdatedAt: now,
 	}
@@ -128,35 +136,42 @@ func (d *DB) Create(ctx context.Context, path string, b []byte) error {
 }
 
 // Set saves document to the db at key.
-func (d *DB) Set(ctx context.Context, path string, b []byte) error {
+func (d *DB) Set(ctx context.Context, path string, values map[string]interface{}, opt ...dstore.SetOption) error {
 	d.rwmtx.Lock()
 	defer d.rwmtx.Unlock()
 	if d.sdb == nil {
 		return errors.Errorf("db not open")
 	}
-	path = docs.Path(path)
+	path = dstore.Path(path)
 	if path == "/" {
 		return errors.Errorf("invalid path %s", path)
 	}
-	return d.set(ctx, path, b)
+	return d.set(ctx, path, values, opt...)
 }
 
-func (d *DB) set(ctx context.Context, path string, b []byte) error {
-	doc, err := d.Get(ctx, path)
+func (d *DB) set(ctx context.Context, path string, values map[string]interface{}, opt ...dstore.SetOption) error {
+	opts := dstore.NewSetOptions(opt...)
+	doc, err := d.get(ctx, path)
 	if err != nil {
 		return err
 	}
 	now := d.clock.Now()
 	if doc == nil {
-		doc = &docs.Document{
+		doc = &document{
 			Path:      path,
-			Data:      b,
+			Values:    values,
 			CreatedAt: now,
 			UpdatedAt: now,
 		}
 	} else {
+		if opts.MergeAll {
+			for k, v := range values {
+				doc.Values[k] = v
+			}
+		} else {
+			doc.Values = values
+		}
 		doc.UpdatedAt = now
-		doc.Data = b
 	}
 
 	mb, err := msgpack.Marshal(doc)
@@ -172,8 +187,8 @@ func (d *DB) set(ctx context.Context, path string, b []byte) error {
 }
 
 // Get entry at path.
-func (d *DB) Get(ctx context.Context, path string) (*docs.Document, error) {
-	path = docs.Path(path)
+func (d *DB) Get(ctx context.Context, path string) (*dstore.Document, error) {
+	path = dstore.Path(path)
 	doc, err := d.get(ctx, path)
 	if err != nil {
 		return nil, err
@@ -181,12 +196,12 @@ func (d *DB) Get(ctx context.Context, path string) (*docs.Document, error) {
 	if doc == nil {
 		return nil, nil
 	}
-	return doc, nil
+	return newDocument(doc), nil
 }
 
 // GetAll paths.
-func (d *DB) GetAll(ctx context.Context, paths []string) ([]*docs.Document, error) {
-	out := make([]*docs.Document, 0, len(paths))
+func (d *DB) GetAll(ctx context.Context, paths []string) ([]*dstore.Document, error) {
+	out := make([]*dstore.Document, 0, len(paths))
 	for _, p := range paths {
 		// TODO: Handle context Done()
 		doc, err := d.get(ctx, p)
@@ -196,23 +211,23 @@ func (d *DB) GetAll(ctx context.Context, paths []string) ([]*docs.Document, erro
 		if doc == nil {
 			continue
 		}
-		out = append(out, doc)
+		out = append(out, newDocument(doc))
 	}
 	return out, nil
 }
 
 // Collections ...
-func (d *DB) Collections(ctx context.Context, parent string) ([]*docs.Collection, error) {
+func (d *DB) Collections(ctx context.Context, parent string) ([]*dstore.Collection, error) {
 	if d.sdb == nil {
 		return nil, errors.Errorf("db not open")
 	}
-	if docs.Path(parent) != "/" {
+	if dstore.Path(parent) != "/" {
 		// TODO: Support nested collections
 		return nil, errors.Errorf("only root collections supported")
 	}
 
 	// We iterate over all the paths to build the collections list, this is slow.
-	collections := []*docs.Collection{}
+	collections := []*dstore.Collection{}
 	count := map[string]int{}
 	iter := &docsIterator{
 		db:   d,
@@ -226,10 +241,10 @@ func (d *DB) Collections(ctx context.Context, parent string) ([]*docs.Collection
 		if doc == nil {
 			break
 		}
-		col := docs.PathFirst(doc.Path)
+		col := dstore.PathFirst(doc.Path)
 		colv, ok := count[col]
 		if !ok {
-			collections = append(collections, &docs.Collection{Path: docs.Path(col)})
+			collections = append(collections, &dstore.Collection{Path: dstore.Path(col)})
 			count[col] = 1
 		} else {
 			count[col] = colv + 1
@@ -245,7 +260,7 @@ func (d *DB) Delete(ctx context.Context, path string) (bool, error) {
 	if d.sdb == nil {
 		return false, errors.Errorf("db not open")
 	}
-	path = docs.Path(path)
+	path = dstore.Path(path)
 	ok, err := d.sdb.Has(path)
 	if err != nil {
 		return false, err
@@ -270,8 +285,16 @@ func (d *DB) DeleteAll(ctx context.Context, paths []string) error {
 	return nil
 }
 
-func (d *DB) unmarshal(path string, b []byte) (*docs.Document, error) {
-	var doc docs.Document
+func newDocument(doc *document) *dstore.Document {
+	out := dstore.NewDocument(doc.Path)
+	out.SetAll(doc.Values)
+	out.CreatedAt = doc.CreatedAt
+	out.UpdatedAt = doc.UpdatedAt
+	return out
+}
+
+func (d *DB) unmarshal(path string, b []byte) (*document, error) {
+	var doc document
 	if err := msgpack.Unmarshal(b, &doc); err != nil {
 		return nil, err
 	}
@@ -283,7 +306,7 @@ func (d *DB) unmarshal(path string, b []byte) (*docs.Document, error) {
 }
 
 // DocumentIterator ...
-func (d *DB) DocumentIterator(ctx context.Context, parent string, opt ...docs.Option) (docs.Iterator, error) {
+func (d *DB) DocumentIterator(ctx context.Context, parent string, opt ...dstore.Option) (dstore.Iterator, error) {
 	d.rwmtx.RLock()
 	defer d.rwmtx.RUnlock()
 
@@ -291,7 +314,7 @@ func (d *DB) DocumentIterator(ctx context.Context, parent string, opt ...docs.Op
 		return nil, errors.Errorf("db not open")
 	}
 
-	opts := docs.NewOptions(opt...)
+	opts := dstore.NewOptions(opt...)
 
 	iter, err := d.iterator(ctx, parent, opts.Prefix)
 	if err != nil {
@@ -315,9 +338,9 @@ func (d *DB) iterator(ctx context.Context, parent string, prefix string) (iterat
 	var iterPrefix string
 	if parent != "" {
 		if prefix != "" {
-			iterPrefix = docs.Path(parent, prefix)
+			iterPrefix = dstore.Path(parent, prefix)
 		} else {
-			iterPrefix = docs.Path(parent) + "/"
+			iterPrefix = dstore.Path(parent) + "/"
 		}
 	} else {
 		iterPrefix = prefix
@@ -328,10 +351,10 @@ func (d *DB) iterator(ctx context.Context, parent string, prefix string) (iterat
 }
 
 // Documents ...
-func (d *DB) Documents(ctx context.Context, parent string, opt ...docs.Option) ([]*docs.Document, error) {
+func (d *DB) Documents(ctx context.Context, parent string, opt ...dstore.Option) ([]*dstore.Document, error) {
 	d.rwmtx.RLock()
 	defer d.rwmtx.RUnlock()
-	opts := docs.NewOptions(opt...)
+	opts := dstore.NewOptions(opt...)
 
 	if opts.Index != 0 {
 		return nil, errors.Errorf("index not implemented")
@@ -342,7 +365,7 @@ func (d *DB) Documents(ctx context.Context, parent string, opt ...docs.Option) (
 		return nil, err
 	}
 
-	docs := []*docs.Document{}
+	docs := []*dstore.Document{}
 	for iter.Next() {
 		if opts.Limit > 0 && len(docs) >= opts.Limit {
 			break
@@ -354,7 +377,7 @@ func (d *DB) Documents(ctx context.Context, parent string, opt ...docs.Option) (
 		if err != nil {
 			return nil, err
 		}
-		docs = append(docs, doc)
+		docs = append(docs, newDocument(doc))
 	}
 	if err := iter.Error(); err != nil {
 		return nil, err
@@ -362,7 +385,7 @@ func (d *DB) Documents(ctx context.Context, parent string, opt ...docs.Option) (
 	return docs, nil
 }
 
-func (d *DB) get(ctx context.Context, path string) (*docs.Document, error) {
+func (d *DB) get(ctx context.Context, path string) (*document, error) {
 	if d.sdb == nil {
 		return nil, errors.Errorf("db not open")
 	}
@@ -378,13 +401,13 @@ func (d *DB) get(ctx context.Context, path string) (*docs.Document, error) {
 }
 
 // Last returns last item with key prefix.
-func (d *DB) Last(ctx context.Context, prefix string) (*docs.Document, error) {
+func (d *DB) Last(ctx context.Context, prefix string) (*dstore.Document, error) {
 	d.rwmtx.RLock()
 	defer d.rwmtx.RUnlock()
 	if d.sdb == nil {
 		return nil, errors.Errorf("db not open")
 	}
-	var doc *docs.Document
+	var doc *dstore.Document
 	iter := d.sdb.NewIterator(prefix)
 	defer iter.Release()
 	if ok := iter.Last(); ok {
@@ -393,49 +416,12 @@ func (d *DB) Last(ctx context.Context, prefix string) (*docs.Document, error) {
 		if err != nil {
 			return nil, err
 		}
-		doc = val
+		doc = newDocument(val)
 	}
 	if err := iter.Error(); err != nil {
 		return nil, errors.Wrap(err, "failed to iterate db")
 	}
 	return doc, nil
-}
-
-// Count returns number of docs in a collection with prefix and filter.
-// This iterates over the prefixed docs to count them.
-func (d *DB) Count(ctx context.Context, prefix string, contains string) (int, error) {
-	d.rwmtx.RLock()
-	defer d.rwmtx.RUnlock()
-	return d.countEntries(prefix, contains)
-}
-
-func (d *DB) countEntries(prefix string, contains string) (int, error) {
-	if d.sdb == nil {
-		return 0, errors.Errorf("db not open")
-	}
-	var prefixRange string
-	if prefix != "" {
-		prefixRange = prefix
-	}
-	iter := d.sdb.NewIterator(prefixRange)
-	defer iter.Release()
-	total := 0
-	for iter.Next() {
-		path := string(iter.Key())
-		if contains != "" {
-			value := iter.Value()
-			entry := docs.NewDocument(path, value)
-			if entry.Contains(contains) {
-				total++
-			}
-		} else {
-			total++
-		}
-	}
-	if err := iter.Error(); err != nil {
-		return -1, err
-	}
-	return total, nil
 }
 
 // Spew ...
