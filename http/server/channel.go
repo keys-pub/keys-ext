@@ -61,9 +61,9 @@ func (s *Server) putChannel(c echo.Context) error {
 		return s.internalError(c, err)
 	}
 	member := &api.ChannelMember{
-		KID:  auth.KID,
-		CID:  channel.KID,
-		From: auth.KID,
+		Member:  auth.KID,
+		Channel: channel.KID,
+		From:    auth.KID,
 	}
 	if err := s.addChannelMembers(ctx, channel.KID, auth.KID, member); err != nil {
 		return s.internalError(c, err)
@@ -73,24 +73,27 @@ func (s *Server) putChannel(c echo.Context) error {
 	return JSON(c, http.StatusOK, out)
 }
 
-func (s *Server) isChannelMember(ctx context.Context, cid keys.ID, sid keys.ID) (bool, error) {
+func (s *Server) isChannelMember(ctx context.Context, channel keys.ID, member keys.ID) (bool, error) {
 	// TODO: Cache this?
-	path := dstore.Path("channels", cid, "members", sid)
+	path := dstore.Path("channels", channel, "members", member)
 	return s.fi.Exists(ctx, path)
 }
 
-func (s *Server) addChannelMembers(ctx context.Context, cid keys.ID, from keys.ID, members ...*api.ChannelMember) error {
+func (s *Server) addChannelMembers(ctx context.Context, channel keys.ID, from keys.ID, members ...*api.ChannelMember) error {
 	for _, member := range members {
-		path := dstore.Path("channels", cid, "members", member.KID)
+		path := dstore.Path("channels", channel, "members", member.Member)
+		if member.Channel != channel {
+			return errors.Errorf("member channel mismatch")
+		}
 		add := &api.ChannelMember{
-			KID:  member.KID,
-			CID:  cid,
-			From: from,
+			Member:  member.Member,
+			Channel: channel,
+			From:    from,
 		}
 		if err := s.fi.Create(ctx, path, dstore.From(add)); err != nil {
 			return err
 		}
-		inboxPath := dstore.Path("inbox", member.KID, "channels", cid)
+		inboxPath := dstore.Path("inbox", member.Member, "channels", channel)
 		if err := s.fi.Create(ctx, inboxPath, dstore.From(member)); err != nil {
 			return err
 		}
@@ -214,7 +217,7 @@ func (s *Server) postChannelInvite(c echo.Context) error {
 		return ErrBadRequest(c, errors.Errorf("invalid channel invite"))
 	}
 
-	if invite.CID != channel.KID {
+	if invite.Channel != channel.KID {
 		return ErrBadRequest(c, errors.Errorf("invalid channel invite kid"))
 	}
 	if invite.Sender != auth.KID {
@@ -246,7 +249,7 @@ func (s *Server) postChannelInvite(c echo.Context) error {
 		return s.internalError(c, err)
 	}
 
-	inboxPath := dstore.Path("inbox", rid, "invites", invite.CID)
+	inboxPath := dstore.Path("inbox", rid, "invites", invite.Channel)
 	if err := s.fi.Set(ctx, inboxPath, val); err != nil {
 		return s.internalError(c, err)
 	}

@@ -127,6 +127,7 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	e.GET("/inbox/:kid/channels", s.inboxChannels)
 	// Inbox (invites)
 	e.GET("/inbox/:kid/invites", s.inboxInvites)
+	e.GET("/inbox/:kid/invite/:cid", s.getInboxInvite)
 	e.POST("/inbox/:kid/invite/:cid/accept", s.acceptInboxInvite)
 	e.DELETE("/inbox/:kid/invite/:cid", s.deleteInboxInvite)
 
