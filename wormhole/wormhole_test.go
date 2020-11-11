@@ -102,7 +102,7 @@ func testWormhole(t *testing.T, env *env, local bool, alice *keys.EdX25519Key, b
 	})
 
 	if inviteCode != "" {
-		invite, err := whb.FindInvite(ctx, inviteCode)
+		invite, err := whb.FindInviteCode(ctx, inviteCode)
 		if err != nil {
 			return
 		}

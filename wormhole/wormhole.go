@@ -189,16 +189,16 @@ func (w *Wormhole) Connect(ctx context.Context, sender keys.ID, recipient keys.I
 	return w.noiseHandshake(ctx, senderKey, recipient, true)
 }
 
-// FindInvite looks for an invite.
-func (w *Wormhole) FindInvite(ctx context.Context, code string) (*api.InviteResponse, error) {
+// FindInviteCode looks for an invite.
+func (w *Wormhole) FindInviteCode(ctx context.Context, code string) (*api.InviteCodeResponse, error) {
 	// TODO: Brute force here is slow
 	keys, err := w.vault.EdX25519Keys()
 	if err != nil {
 		return nil, err
 	}
-	var invite *api.InviteResponse
+	var invite *api.InviteCodeResponse
 	for _, key := range keys {
-		i, err := w.hcl.Invite(ctx, key, code)
+		i, err := w.hcl.InviteCode(ctx, key, code)
 		if err != nil {
 			return nil, err
 		}
@@ -246,7 +246,7 @@ func (w *Wormhole) CreateInvite(ctx context.Context, sender keys.ID, recipient k
 		return "", keys.NewErrNotFound(sender.String())
 	}
 
-	invite, err := w.hcl.InviteCreate(ctx, senderKey, recipient)
+	invite, err := w.hcl.InviteCodeCreate(ctx, senderKey, recipient)
 	if err != nil {
 		return "", err
 	}
