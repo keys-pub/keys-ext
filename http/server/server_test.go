@@ -7,7 +7,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gorilla/websocket"
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/server"
 	"github.com/keys-pub/keys/dstore"
@@ -61,7 +60,6 @@ func TestFireCreatedAt(t *testing.T) {
 type env struct {
 	clock    tsutil.Clock
 	fi       server.Fire
-	pubSub   server.PubSub
 	req      *request.MockRequestor
 	logLevel server.LogLevel
 }
@@ -74,12 +72,10 @@ func newEnv(t *testing.T) *env {
 
 func newEnvWithFire(t *testing.T, fi server.Fire, clock tsutil.Clock) *env {
 	req := request.NewMockRequestor()
-	pubSub := server.NewPubSub()
 	return &env{
 		clock:    clock,
 		fi:       fi,
 		req:      req,
-		pubSub:   pubSub,
 		logLevel: server.NoLevel,
 	}
 }
@@ -107,27 +103,8 @@ func (s *testServer) Serve(req *http.Request) (int, http.Header, string) {
 	return rr.Code, rr.Header(), rr.Body.String()
 }
 
-// func testSeed(b byte) *[32]byte {
-// 	return keys.Bytes32(bytes.Repeat([]byte{b}, 32))
-// }
-
-func newTestPubSubServer(t *testing.T, env *env) *testPubSubServer {
-	pubSub := server.NewPubSub()
-	rds := server.NewRedisTest(env.clock)
-	svr := server.NewPubSubServer(pubSub, rds, server.NewLogger(server.ErrLevel))
-	svr.SetClock(env.clock)
-	handler := server.NewPubSubHandler(svr)
-	return &testPubSubServer{
-		Server:  svr,
-		Handler: handler,
-	}
-}
-
-type testPubSubServer struct {
-	Server  *server.PubSubServer
-	Handler http.Handler
-	// Addr if started
-	Addr string
+func testSeed(b byte) *[32]byte {
+	return keys.Bytes32(bytes.Repeat([]byte{b}, 32))
 }
 
 type testKeys struct {
@@ -139,11 +116,11 @@ type testKeys struct {
 }
 
 func testKeysSeeded() testKeys {
-	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
-	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
-	channel := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0xef}, 32)))
-	channel2 := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0xf0}, 32)))
-	frank := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x06}, 32)))
+	alice := keys.NewEdX25519KeyFromSeed(testSeed(0x01))
+	bob := keys.NewEdX25519KeyFromSeed(testSeed(0x02))
+	channel := keys.NewEdX25519KeyFromSeed(testSeed(0xef))
+	channel2 := keys.NewEdX25519KeyFromSeed(testSeed(0xf0))
+	frank := keys.NewEdX25519KeyFromSeed(testSeed(0x06))
 	return testKeys{
 		alice:    alice,
 		bob:      bob,
@@ -166,40 +143,6 @@ func testKeysRandom() testKeys {
 		channel2: channel2,
 		frank:    frank,
 	}
-}
-
-func (s *testPubSubServer) Serve(req *http.Request) (int, http.Header, string) {
-	rr := httptest.NewRecorder()
-	s.Handler.ServeHTTP(rr, req)
-	return rr.Code, rr.Header(), rr.Body.String()
-}
-
-func (s *testPubSubServer) Start() (close func()) {
-	server := httptest.NewServer(s.Handler)
-	s.Addr = server.Listener.Addr().String()
-	return func() {
-		server.Close()
-	}
-}
-
-func (s *testPubSubServer) WebsocketDial(t *testing.T, path string, clock tsutil.Clock, key *keys.EdX25519Key) *websocket.Conn {
-	var wsAddr string
-	header := http.Header{}
-
-	if key != nil {
-		auth, err := http.NewAuth("GET", path, "", clock.Now(), key)
-		require.NoError(t, err)
-		wsAddr = fmt.Sprintf("ws://%s%s", s.Addr, auth.URL.String())
-
-		header.Set("Authorization", auth.Header())
-	} else {
-		wsAddr = fmt.Sprintf("ws://%s%s", s.Addr, path)
-	}
-
-	conn, _, err := websocket.DefaultDialer.Dial(wsAddr, header)
-	require.NoError(t, err)
-
-	return conn
 }
 
 func userMock(t *testing.T, key *keys.EdX25519Key, name string, service string, mock *request.MockRequestor, clock tsutil.Clock) *keys.Statement {
