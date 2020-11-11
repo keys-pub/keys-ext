@@ -182,6 +182,8 @@ github.com/keys-pub/keys-ext/http/api v0.0.0-20201019222921-495773d46954 h1:284g
 github.com/keys-pub/keys-ext/http/api v0.0.0-20201019222921-495773d46954/go.mod h1:+pjqztF3sI4bBDFfo/hcXej8W6bM/dtTBLisSsfIf7Y=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20201110233325-bd40b7e46e7d h1:RaWkipmsd5vtmtMhw+lQRqTln+r8gmUEgx/yNf4c5iU=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20201110233325-bd40b7e46e7d/go.mod h1:PHVMDmqon5+i1f2AeG5ucogR/t402JRhJy1SEWRl4Ko=
+github.com/keys-pub/keys-ext/http/api v0.0.0-20201111002057-e7a85c338e3d h1:eqvgiSOCuIGAj4ge6fPxHXRWSz67FOkC2jUTkUmWdpc=
+github.com/keys-pub/keys-ext/http/api v0.0.0-20201111002057-e7a85c338e3d/go.mod h1:PHVMDmqon5+i1f2AeG5ucogR/t402JRhJy1SEWRl4Ko=
 github.com/keys-pub/keys-ext/http/server v0.0.0-20200803193934-036dcb4c6007 h1:aMIX67vOPQCI0oznSSG6ZKQBCR4Rp9grFT5TqEo5AkU=
 github.com/keys-pub/keys-ext/http/server v0.0.0-20200803193934-036dcb4c6007/go.mod h1:cIciTZPtDgl7zYKJ2ea/KE1/A6ulB5sQ+jEaTwZl60E=
 github.com/keys-pub/keys-ext/http/server v0.0.0-20200916180831-f117dad251fc h1:oD9zclisVnEo2jJIk2nBSDrwvwusZ3wXpw+YBMDQojw=
@@ -194,6 +196,8 @@ github.com/keys-pub/keys-ext/http/server v0.0.0-20201019223136-6de853aa20e6 h1:+
 github.com/keys-pub/keys-ext/http/server v0.0.0-20201019223136-6de853aa20e6/go.mod h1:naMAyGheVFF4II9iaeDHWPyMYyEHZ4jcX4CCEXEn1OI=
 github.com/keys-pub/keys-ext/http/server v0.0.0-20201110235704-afb7223ac00d h1:2l7PK1HDgzPDXXvIClL3bueRfJ6LJmgeNq03XCNnspA=
 github.com/keys-pub/keys-ext/http/server v0.0.0-20201110235704-afb7223ac00d/go.mod h1:zXTVuazlUhwm7C31ia+rGmb9/sgsE0fO8Zl/YmENIes=
+github.com/keys-pub/keys-ext/http/server v0.0.0-20201111183311-6042c730fa0c h1:vKdScqGu1EXjjaYDEAiM+8ihD6m/xbo9kp/CdYqLMWU=
+github.com/keys-pub/keys-ext/http/server v0.0.0-20201111183311-6042c730fa0c/go.mod h1:zXTVuazlUhwm7C31ia+rGmb9/sgsE0fO8Zl/YmENIes=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f h1:LLsdI2XManLH0JonKqB6OYmHdHk/WwJByDbHI3hCEcs=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f/go.mod h1:YRHMiVbZqh7u8xRm77CvwJNAZdDlNXwWvQ4DK0N9mYg=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
