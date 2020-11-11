@@ -103,6 +103,6 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 
 	// Unknown channel
 	unknown := keys.GenerateEdX25519Key()
-	msgs, _, err = aliceClient.Messages(context.TODO(), unknown, alice, nil)
+	_, _, err = aliceClient.Messages(context.TODO(), unknown, alice, nil)
 	require.EqualError(t, err, "auth failed (403)")
 }
