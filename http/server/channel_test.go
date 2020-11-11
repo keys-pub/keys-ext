@@ -63,6 +63,7 @@ func TestChannel(t *testing.T) {
 	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "info"), nil, "", clock.Now(), frankChannel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
+	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, body)
 	require.Equal(t, http.StatusForbidden, code)
 
 	// // POST /channel/:cid/members

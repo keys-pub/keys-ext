@@ -107,9 +107,9 @@ func (s *testServer) Serve(req *http.Request) (int, http.Header, string) {
 	return rr.Code, rr.Header(), rr.Body.String()
 }
 
-func testSeed(b byte) *[32]byte {
-	return keys.Bytes32(bytes.Repeat([]byte{b}, 32))
-}
+// func testSeed(b byte) *[32]byte {
+// 	return keys.Bytes32(bytes.Repeat([]byte{b}, 32))
+// }
 
 func newTestPubSubServer(t *testing.T, env *env) *testPubSubServer {
 	pubSub := server.NewPubSub()
