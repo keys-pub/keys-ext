@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/docs"
+	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/http"
 	"github.com/pkg/errors"
 )
@@ -35,10 +35,10 @@ func (c *Client) DiscoSave(ctx context.Context, sender *keys.EdX25519Key, recipi
 	encrypted := keys.BoxSeal([]byte(data), recipientKey, sender.X25519Key())
 	contentHash := http.ContentHash(encrypted)
 
-	path := docs.Path("disco", sender.ID(), recipient, string(typ))
+	path := dstore.Path("disco", sender.ID(), recipient, string(typ))
 	vals := url.Values{}
 	vals.Set("expire", expire.String())
-	if _, err := c.putDocument(ctx, path, vals, sender, bytes.NewReader(encrypted), contentHash); err != nil {
+	if _, err := c.put(ctx, path, vals, bytes.NewReader(encrypted), contentHash, http.Authorization(sender)); err != nil {
 		return err
 	}
 	return nil
@@ -51,17 +51,17 @@ func (c *Client) Disco(ctx context.Context, sender keys.ID, recipient *keys.EdX2
 		return "", err
 	}
 
-	path := docs.Path("disco", sender, recipient, string(typ))
+	path := dstore.Path("disco", sender, recipient, string(typ))
 	vals := url.Values{}
-	doc, err := c.getDocument(ctx, path, vals, recipient)
+	resp, err := c.get(ctx, path, vals, http.Authorization(recipient))
 	if err != nil {
 		return "", err
 	}
-	if doc == nil {
+	if resp == nil {
 		return "", nil
 	}
 
-	decrypted, err := keys.BoxOpen(doc.Data, senderKey, recipient.X25519Key())
+	decrypted, err := keys.BoxOpen(resp.Data, senderKey, recipient.X25519Key())
 	if err != nil {
 		return "", err
 	}
@@ -71,9 +71,9 @@ func (c *Client) Disco(ctx context.Context, sender keys.ID, recipient *keys.EdX2
 
 // DiscoDelete removes discovery addresses.
 func (c *Client) DiscoDelete(ctx context.Context, sender *keys.EdX25519Key, recipient keys.ID) error {
-	path := docs.Path("disco", sender.ID(), recipient)
+	path := dstore.Path("disco", sender.ID(), recipient)
 	vals := url.Values{}
-	if _, err := c.delete(ctx, path, vals, sender); err != nil {
+	if _, err := c.delete(ctx, path, vals, http.Authorization(sender)); err != nil {
 		return err
 	}
 	return nil

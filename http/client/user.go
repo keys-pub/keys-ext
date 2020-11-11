@@ -19,36 +19,36 @@ func (c *Client) UserSearch(ctx context.Context, query string, limit int) (*api.
 		params.Add("limit", strconv.Itoa(limit))
 	}
 
-	doc, err := c.getDocument(ctx, "/user/search", params, nil)
+	resp, err := c.get(ctx, "/user/search", params, nil)
 	if err != nil {
 		return nil, err
 	}
-	if doc == nil {
+	if resp == nil {
 		return nil, errors.Errorf("/user/search not found")
 	}
 
 	// TODO: Support paging
-	var resp api.UserSearchResponse
-	if err := json.Unmarshal(doc.Data, &resp); err != nil {
+	var out api.UserSearchResponse
+	if err := json.Unmarshal(resp.Data, &out); err != nil {
 		return nil, err
 	}
-	return &resp, nil
+	return &out, nil
 }
 
 // User ...
 func (c *Client) User(ctx context.Context, kid keys.ID) (*api.UserResponse, error) {
 	params := url.Values{}
-	doc, err := c.getDocument(ctx, "/user/"+kid.String(), params, nil)
+	resp, err := c.get(ctx, "/user/"+kid.String(), params, nil)
 	if err != nil {
 		return nil, err
 	}
-	if doc == nil {
+	if resp == nil {
 		return nil, nil
 	}
 
-	var resp api.UserResponse
-	if err := json.Unmarshal(doc.Data, &resp); err != nil {
+	var out api.UserResponse
+	if err := json.Unmarshal(resp.Data, &out); err != nil {
 		return nil, err
 	}
-	return &resp, nil
+	return &out, nil
 }

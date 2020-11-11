@@ -5,6 +5,7 @@ import (
 	"net/url"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/http"
 )
 
 // AdminCheck performs user & sigchain associated with key by an admin.
@@ -14,7 +15,7 @@ import (
 // If check is "all" (not recommended), it will check all keys.
 func (c *Client) AdminCheck(ctx context.Context, check string, admin *keys.EdX25519Key) error {
 	params := url.Values{}
-	_, err := c.post(ctx, "/admin/check/"+check, params, admin, nil, "")
+	_, err := c.post(ctx, "/admin/check/"+check, params, nil, "", http.Authorization(admin))
 	if err != nil {
 		return err
 	}

@@ -1,6 +1,7 @@
 package client_test
 
 import (
+	"bytes"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -8,7 +9,7 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys-ext/http/server"
-	"github.com/keys-pub/keys/docs"
+	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keys/users"
@@ -58,7 +59,7 @@ func newEnvWithOptions(t *testing.T, opts *envOptions) (*env, func()) {
 		opts.clock = tsutil.NewTestClock()
 	}
 	if opts.fi == nil {
-		mem := docs.NewMem()
+		mem := dstore.NewMem()
 		mem.SetClock(opts.clock)
 		opts.fi = mem
 	}
@@ -108,4 +109,32 @@ func newTestClient(t *testing.T, env *env) *client.Client {
 	cl.SetHTTPClient(env.httpServer.Client())
 	cl.SetClock(env.clock)
 	return cl
+}
+
+type testKeys struct {
+	alice   *keys.EdX25519Key
+	bob     *keys.EdX25519Key
+	channel *keys.EdX25519Key
+}
+
+func testKeysSeeded() testKeys {
+	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
+	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
+	channel := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0xef}, 32)))
+	return testKeys{
+		alice:   alice,
+		bob:     bob,
+		channel: channel,
+	}
+}
+
+func testKeysRandom() testKeys {
+	alice := keys.GenerateEdX25519Key()
+	bob := keys.GenerateEdX25519Key()
+	channel := keys.GenerateEdX25519Key()
+	return testKeys{
+		alice:   alice,
+		bob:     bob,
+		channel: channel,
+	}
 }

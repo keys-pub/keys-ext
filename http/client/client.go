@@ -13,9 +13,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
-	"github.com/keys-pub/keys/docs"
 	"github.com/keys-pub/keys/http"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
@@ -123,7 +121,7 @@ func (c *Client) urlFor(path string, params url.Values) (string, error) {
 	return urs, nil
 }
 
-func (c *Client) req(ctx context.Context, method string, path string, params url.Values, key *keys.EdX25519Key, body io.Reader, contentHash string) (*http.Response, error) {
+func (c *Client) req(ctx context.Context, method string, path string, params url.Values, body io.Reader, contentHash string, auth http.AuthProvider) (*http.Response, error) {
 	urs, err := c.urlFor(path, params)
 	if err != nil {
 		return nil, err
@@ -132,24 +130,31 @@ func (c *Client) req(ctx context.Context, method string, path string, params url
 	logger.Debugf("Client req %s %s", method, urs)
 
 	var req *http.Request
-	if key != nil {
-		r, err := http.NewAuthRequestWithContext(ctx, method, urs, body, contentHash, c.clock.Now(), key)
+	if auth != nil {
+		r, err := http.NewAuthRequest(method, urs, body, contentHash, c.clock.Now(), auth)
 		if err != nil {
 			return nil, err
 		}
 		req = r
 	} else {
-		r, err := http.NewRequestWithContext(ctx, method, urs, body)
+		r, err := http.NewRequest(method, urs, body)
 		if err != nil {
 			return nil, err
 		}
 		req = r
 	}
 
-	return c.httpClient.Do(req)
+	return c.httpClient.Do(req.WithContext(ctx))
 }
 
-func (c *Client) document(path string, resp *http.Response) (*docs.Document, error) {
+// Response ...
+type Response struct {
+	Data      []byte
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+func (c *Client) response(path string, resp *http.Response) (*Response, error) {
 	b, readErr := ioutil.ReadAll(resp.Body)
 	if readErr != nil {
 		return nil, readErr
@@ -175,26 +180,14 @@ func (c *Client) document(path string, resp *http.Response) (*docs.Document, err
 		updatedAt = tm
 	}
 
-	doc := docs.NewDocument(path, b)
-	doc.CreatedAt = createdAt
-	doc.UpdatedAt = updatedAt
-	return doc, nil
+	out := &Response{Data: b}
+	out.CreatedAt = createdAt
+	out.UpdatedAt = updatedAt
+	return out, nil
 }
 
-func (c *Client) getDocument(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key) (*docs.Document, error) {
-	resp, err := c.get(ctx, path, params, key)
-	if err != nil {
-		return nil, err
-	}
-	if resp == nil {
-		return nil, nil
-	}
-	defer resp.Body.Close()
-	return c.document(path, resp)
-}
-
-func (c *Client) get(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key) (*http.Response, error) {
-	resp, err := c.req(ctx, "GET", path, params, key, nil, "")
+func (c *Client) get(ctx context.Context, path string, params url.Values, auth http.AuthProvider) (*Response, error) {
+	resp, err := c.req(ctx, "GET", path, params, nil, "", auth)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to GET")
 	}
@@ -205,11 +198,15 @@ func (c *Client) get(ctx context.Context, path string, params url.Values, key *k
 	if err := checkResponse(resp); err != nil {
 		return nil, err
 	}
-	return resp, nil
+	if resp == nil {
+		return nil, nil
+	}
+	defer resp.Body.Close()
+	return c.response(path, resp)
 }
 
-func (c *Client) head(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key) (*http.Response, error) {
-	resp, err := c.req(ctx, "HEAD", path, params, key, nil, "")
+func (c *Client) head(ctx context.Context, path string, params url.Values, auth http.AuthProvider) (*http.Response, error) {
+	resp, err := c.req(ctx, "HEAD", path, params, nil, "", auth)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to HEAD")
 	}
@@ -223,53 +220,26 @@ func (c *Client) head(ctx context.Context, path string, params url.Values, key *
 	return resp, nil
 }
 
-// func (c *Client) websocketGet(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key) (*websocket.Conn, error) {
-// 	url := c.url.String() + path
-// 	query := params.Encode()
-// 	if query != "" {
-// 		url = url + "?" + query
-// 	}
-
-// 	auth, err := api.NewAuth("GET", url, c.clock(), key)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	switch c.url.Scheme {
-// 	case "http":
-// 		auth.URL.Scheme = "ws"
-// 	case "https":
-// 		auth.URL.Scheme = "wss"
-// 	}
-
-// 	header := http.Header{}
-// 	header.Set("Authorization", auth.Header())
-
-// 	logger.Debugf("Websocket dial %s", auth.URL.String())
-// 	conn, _, err := websocket.DefaultDialer.Dial(auth.URL.String(), header)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	return conn, nil
-// }
-
-func (c *Client) put(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key, reader io.Reader, contentHash string) (*http.Response, error) {
-	resp, err := c.req(ctx, "PUT", path, params, key, reader, contentHash)
+func (c *Client) put(ctx context.Context, path string, params url.Values, reader io.Reader, contentHash string, auth http.AuthProvider) (*Response, error) {
+	resp, err := c.req(ctx, "PUT", path, params, reader, contentHash, auth)
 	if err != nil {
 		return nil, err
 	}
 	if err := checkResponse(resp); err != nil {
 		return nil, err
 	}
-	return resp, nil
+	if resp == nil {
+		return nil, nil
+	}
+	defer resp.Body.Close()
+	return c.response(path, resp)
 }
 
-func (c *Client) putRetryOnConflict(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key, b []byte, contentHash string, attempt int, maxAttempts int, delay time.Duration) (*http.Response, error) {
+func (c *Client) putRetryOnConflict(ctx context.Context, path string, params url.Values, b []byte, contentHash string, auth http.AuthProvider, attempt int, maxAttempts int, delay time.Duration) (*Response, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
-	resp, err := c.put(ctx, path, params, key, bytes.NewReader(b), contentHash)
+	resp, err := c.put(ctx, path, params, bytes.NewReader(b), contentHash, auth)
 	if err != nil {
 		var rerr Error
 		if attempt < maxAttempts && errors.As(err, &rerr) && rerr.StatusCode == http.StatusConflict {
@@ -278,50 +248,30 @@ func (c *Client) putRetryOnConflict(ctx context.Context, path string, params url
 				return nil, ctx.Err()
 			case <-time.After(delay):
 			}
-			return c.putRetryOnConflict(ctx, path, params, key, b, contentHash, attempt+1, maxAttempts, delay)
+			return c.putRetryOnConflict(ctx, path, params, b, contentHash, auth, attempt+1, maxAttempts, delay)
 		}
 		return nil, err
 	}
 	return resp, nil
 }
 
-func (c *Client) putDocument(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key, reader io.Reader, contentHash string) (*docs.Document, error) {
-	resp, err := c.put(ctx, path, params, key, reader, contentHash)
-	if err != nil {
-		return nil, err
-	}
-	if resp == nil {
-		return nil, nil
-	}
-	defer resp.Body.Close()
-	return c.document(path, resp)
-}
-
-func (c *Client) post(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key, reader io.Reader, contentHash string) (*http.Response, error) {
-	resp, err := c.req(ctx, "POST", path, params, key, reader, contentHash)
+func (c *Client) post(ctx context.Context, path string, params url.Values, reader io.Reader, contentHash string, auth http.AuthProvider) (*Response, error) {
+	resp, err := c.req(ctx, "POST", path, params, reader, contentHash, auth)
 	if err != nil {
 		return nil, err
 	}
 	if err := checkResponse(resp); err != nil {
 		return nil, err
 	}
-	return resp, nil
-}
-
-func (c *Client) postDocument(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key, reader io.Reader, contentHash string) (*docs.Document, error) {
-	resp, err := c.post(ctx, path, params, key, reader, contentHash)
-	if err != nil {
-		return nil, err
-	}
 	if resp == nil {
 		return nil, nil
 	}
 	defer resp.Body.Close()
-	return c.document(path, resp)
+	return c.response(path, resp)
 }
 
-func (c *Client) delete(ctx context.Context, path string, params url.Values, key *keys.EdX25519Key) (*http.Response, error) {
-	resp, err := c.req(ctx, "DELETE", path, params, key, nil, "")
+func (c *Client) delete(ctx context.Context, path string, params url.Values, auth http.AuthProvider) (*http.Response, error) {
+	resp, err := c.req(ctx, "DELETE", path, params, nil, "", auth)
 	if err != nil {
 		return nil, err
 	}
