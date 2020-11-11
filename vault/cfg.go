@@ -5,13 +5,12 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/tsutil"
-
-	"github.com/keys-pub/keys/docs"
 )
 
 func (v *Vault) setValue(key string, value []byte) error {
-	path := docs.Path(key)
+	path := dstore.Path(key)
 	if value == nil {
 		if _, err := v.store.Delete(path); err != nil {
 			return err

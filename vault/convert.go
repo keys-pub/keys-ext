@@ -3,7 +3,7 @@ package vault
 import (
 	"strings"
 
-	"github.com/keys-pub/keys/docs"
+	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/keyring"
 	"github.com/pkg/errors"
 	"github.com/vmihailenco/msgpack/v4"
@@ -11,70 +11,69 @@ import (
 
 // ConvertKeyring converts keyring store.
 func ConvertKeyring(kr keyring.Keyring, to *Vault) (bool, error) {
-	ds, err := kr.Documents()
+	items, err := kr.Items("")
 	if err != nil {
 		return false, err
 	}
-	if len(ds) == 0 {
+	if len(items) == 0 {
 		return false, nil
 	}
-	for _, doc := range ds {
+	for _, item := range items {
 		// #salt
-		if doc.Path == "#salt" {
-			if err := to.set(docs.Path("config", "salt"), doc.Data, true); err != nil {
+		if item.ID == "#salt" {
+			if err := to.set(dstore.Path("config", "salt"), item.Data, true); err != nil {
 				return false, err
 			}
 			continue
 		}
 
 		// #auth
-		if doc.Path == "#auth" {
-			if err := to.set(docs.Path("auth", "v0"), doc.Data, true); err != nil {
+		if item.ID == "#auth" {
+			if err := to.set(dstore.Path("auth", "v0"), item.Data, true); err != nil {
 				return false, err
 			}
 			provision := &Provision{
-				ID:        "v0",
-				Type:      PasswordAuth,
-				CreatedAt: doc.CreatedAt,
+				ID:   "v0",
+				Type: PasswordAuth,
 			}
 			b, err := msgpack.Marshal(provision)
 			if err != nil {
 				return false, err
 			}
-			if err := to.set(docs.Path("provision", "v0"), b, true); err != nil {
+			if err := to.set(dstore.Path("provision", "v0"), b, true); err != nil {
 				return false, err
 			}
 			continue
 		}
 
-		spl := strings.Split(doc.Path, "-")
+		spl := strings.Split(item.ID, "-")
 
 		switch spl[0] {
 		// #auth-
 		case "#auth":
 			if len(spl) < 2 {
-				return false, errors.Errorf("unsupported id %s", doc.Path)
+				return false, errors.Errorf("unsupported id %s", item.ID)
 			}
-			if err := to.set(docs.Path("auth", spl[1]), doc.Data, true); err != nil {
+			if err := to.set(dstore.Path("auth", spl[1]), item.Data, true); err != nil {
 				return false, err
 			}
 		// #provision-
 		case "#provision":
 			if len(spl) < 2 {
-				return false, errors.Errorf("unsupported id %s", doc.Path)
+				return false, errors.Errorf("unsupported id %s", item.ID)
 			}
-			if err := to.set(docs.Path("provision", spl[1]), doc.Data, true); err != nil {
+			if err := to.set(dstore.Path("provision", spl[1]), item.Data, true); err != nil {
 				return false, err
 			}
 		// items
 		default:
-			if strings.HasPrefix(doc.Path, "#") {
+			if strings.HasPrefix(item.ID, "#") {
 				continue
 			}
-			if strings.HasPrefix(doc.Path, ".") {
+			if strings.HasPrefix(item.ID, ".") {
 				continue
 			}
-			if err := to.set(docs.Path("item", doc.Path), doc.Data, true); err != nil {
+			if err := to.set(dstore.Path("item", item.ID), item.Data, true); err != nil {
 				return false, err
 			}
 		}

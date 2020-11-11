@@ -4,7 +4,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/keys-pub/keys/docs"
+	"github.com/keys-pub/keys/dstore"
 	"github.com/pkg/errors"
 )
 
@@ -91,17 +91,17 @@ func (m *mem) Delete(path string) (bool, error) {
 	return false, nil
 }
 
-func (m *mem) Documents(opt ...docs.Option) ([]*docs.Document, error) {
+func (m *mem) Documents(opt ...dstore.Option) ([]*dstore.Document, error) {
 	if !m.open {
 		return nil, ErrNotOpen
 	}
-	opts := docs.NewOptions(opt...)
+	opts := dstore.NewOptions(opt...)
 	prefix := opts.Prefix
 
-	out := make([]*docs.Document, 0, len(m.items))
+	out := make([]*dstore.Document, 0, len(m.items))
 	for path, b := range m.items {
 		if strings.HasPrefix(path, prefix) {
-			out = append(out, &docs.Document{Path: path, Data: b})
+			out = append(out, dstore.NewDocument(path).WithData(b))
 		}
 	}
 	sort.Slice(out, func(i, j int) bool {

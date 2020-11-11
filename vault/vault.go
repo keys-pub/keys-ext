@@ -11,7 +11,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/keys-pub/keys"
 	httpclient "github.com/keys-pub/keys-ext/http/client"
-	"github.com/keys-pub/keys/docs"
+	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
 	"github.com/vmihailenco/msgpack/v4"
@@ -55,6 +55,11 @@ func New(st Store, opt ...Option) *Vault {
 // Now is current time.
 func (v *Vault) Now() time.Time {
 	return v.clock.Now()
+}
+
+// Store used by vault.
+func (v *Vault) Store() Store {
+	return v.store
 }
 
 // Open vault.
@@ -164,7 +169,7 @@ func (v *Vault) setItem(item *Item, addToPush bool) error {
 	if err != nil {
 		return err
 	}
-	path := docs.Path("item", item.ID)
+	path := dstore.Path("item", item.ID)
 	return v.set(path, b, addToPush)
 }
 
@@ -183,7 +188,7 @@ func (v *Vault) addToPush(path string, b []byte) error {
 	if err != nil {
 		return err
 	}
-	push := docs.Path("push", pad(inc), path)
+	push := dstore.Path("push", pad(inc), path)
 	if err := v.store.Set(push, b); err != nil {
 		return err
 	}
@@ -203,7 +208,7 @@ func (v *Vault) addToPush(path string, b []byte) error {
 
 // Get vault item.
 func (v *Vault) Get(id string) (*Item, error) {
-	path := docs.Path("item", id)
+	path := dstore.Path("item", id)
 	b, err := v.store.Get(path)
 	if err != nil {
 		return nil, err
@@ -249,15 +254,15 @@ func (v *Vault) Delete(id string) (bool, error) {
 
 // Items to list.
 func (v *Vault) Items() ([]*Item, error) {
-	path := docs.Path("item")
-	ds, err := v.store.Documents(docs.Prefix(path))
+	path := dstore.Path("item")
+	ds, err := v.store.Documents(dstore.Prefix(path))
 	if err != nil {
 		return nil, err
 	}
 	items := []*Item{}
 	for _, doc := range ds {
-		id := docs.PathLast(doc.Path)
-		item, err := decryptItem(doc.Data, v.mk, id)
+		id := dstore.PathLast(doc.Path)
+		item, err := decryptItem(doc.Data(), v.mk, id)
 		if err != nil {
 			return nil, err
 		}
@@ -279,22 +284,23 @@ func (v *Vault) push(ctx context.Context) error {
 	}
 
 	paths := []string{}
-	events := []*httpclient.Event{}
+	events := []*httpclient.VaultEvent{}
 
 	// Get events from push.
-	path := docs.Path("push")
-	ds, err := v.store.Documents(docs.Prefix(path))
+	path := dstore.Path("push")
+	ds, err := v.store.Documents(dstore.Prefix(path))
 	if err != nil {
 		return err
 	}
-	var prev *httpclient.Event
+
+	// TODO: Enforce event chaining yet.
+
 	for _, doc := range ds {
 		logger.Debugf("Push %s", doc.Path)
 		paths = append(paths, doc.Path)
-		path := docs.PathFrom(doc.Path, 2)
-		event := httpclient.NewEvent(path, doc.Data, prev)
+		path := dstore.PathFrom(doc.Path, 2)
+		event := &httpclient.VaultEvent{Path: path, Data: doc.Data()}
 		events = append(events, event)
-		prev = event
 	}
 
 	if len(events) > 0 {
@@ -345,14 +351,6 @@ func (v *Vault) saveRemoteVault(vault *httpclient.Vault) error {
 		return errors.Errorf("vault not found")
 	}
 
-	// Do nonce checks before we write any data to prevent partial writes on
-	// nonce failure. And commit nonces at the end, so if we are interrupted we
-	// can recover without failures next time.
-	nonces, err := v.checkEventNonces(vault.Events)
-	if err != nil {
-		return err
-	}
-
 	for _, event := range vault.Events {
 		logger.Debugf("Pull %s", event.Path)
 		if event.Path == "" {
@@ -371,7 +369,7 @@ func (v *Vault) saveRemoteVault(vault *httpclient.Vault) error {
 			}
 		}
 
-		pull := docs.Path("pull", pad(event.Index), event.Path)
+		pull := dstore.Path("pull", pad(event.RemoteIndex), event.Path)
 		eb, err := msgpack.Marshal(event)
 		if err != nil {
 			return err
@@ -381,11 +379,8 @@ func (v *Vault) saveRemoteVault(vault *httpclient.Vault) error {
 		}
 	}
 
-	// Update pull index and commit nonces.
+	// Update pull index.
 	if err := v.setPullIndex(vault.Index); err != nil {
-		return err
-	}
-	if err := v.commitNonces(nonces); err != nil {
 		return err
 	}
 
@@ -394,7 +389,7 @@ func (v *Vault) saveRemoteVault(vault *httpclient.Vault) error {
 
 // Spew to out.
 func (v *Vault) Spew(prefix string, out io.Writer) error {
-	docs, err := v.store.Documents(docs.Prefix(prefix))
+	docs, err := v.store.Documents(dstore.Prefix(prefix))
 	if err != nil {
 		return err
 	}
@@ -406,7 +401,7 @@ func (v *Vault) Spew(prefix string, out io.Writer) error {
 
 // IsEmpty returns true if vault is empty.
 func (v *Vault) IsEmpty() (bool, error) {
-	docs, err := v.store.Documents(docs.Limit(1))
+	docs, err := v.store.Documents(dstore.Limit(1))
 	if err != nil {
 		return false, err
 	}

@@ -1,8 +1,6 @@
 package vault
 
-import (
-	"github.com/keys-pub/keys/docs"
-)
+import "github.com/keys-pub/keys/dstore"
 
 // Store is the interface used to store data.
 type Store interface {
@@ -17,7 +15,7 @@ type Store interface {
 	Delete(path string) (bool, error)
 
 	// Documents iterator.
-	Documents(opt ...docs.Option) ([]*docs.Document, error)
+	Documents(opt ...dstore.Option) ([]*dstore.Document, error)
 
 	// Open store.
 	Open() error
@@ -37,19 +35,19 @@ func deleteAll(st Store, paths []string) error {
 }
 
 // Collections from vault db.
-func (v *Vault) Collections(parent string) ([]*docs.Collection, error) {
+func (v *Vault) Collections(parent string) ([]*dstore.Collection, error) {
 	// We iterate over all the paths to build the collections list, this is slow.
-	collections := []*docs.Collection{}
-	ds, err := v.store.Documents(docs.Prefix(docs.Path(parent)), docs.NoData())
+	collections := []*dstore.Collection{}
+	ds, err := v.store.Documents(dstore.Prefix(dstore.Path(parent)), dstore.NoData())
 	if err != nil {
 		return nil, err
 	}
 	count := map[string]int{}
 	for _, doc := range ds {
-		col := docs.PathFirst(doc.Path)
+		col := dstore.PathFirst(doc.Path)
 		colv, ok := count[col]
 		if !ok {
-			collections = append(collections, &docs.Collection{Path: docs.Path(col)})
+			collections = append(collections, &dstore.Collection{Path: dstore.Path(col)})
 			count[col] = 1
 		} else {
 			count[col] = colv + 1
@@ -60,11 +58,6 @@ func (v *Vault) Collections(parent string) ([]*docs.Collection, error) {
 }
 
 // Documents from Store.
-func (v *Vault) Documents(opt ...docs.Option) ([]*docs.Document, error) {
+func (v *Vault) Documents(opt ...dstore.Option) ([]*dstore.Document, error) {
 	return v.store.Documents(opt...)
-}
-
-// DeleteDocument remotes document from vault.
-func (v *Vault) DeleteDocument(path string) (bool, error) {
-	return v.store.Delete(path)
 }

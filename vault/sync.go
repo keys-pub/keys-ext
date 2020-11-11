@@ -5,10 +5,8 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
-	httpclient "github.com/keys-pub/keys-ext/http/client"
-	"github.com/keys-pub/keys/docs"
-	"github.com/keys-pub/keys/docs/events"
-	"github.com/keys-pub/keys/encoding"
+	"github.com/keys-pub/keys/dstore"
+	"github.com/keys-pub/keys/dstore/events"
 	"github.com/pkg/errors"
 	"github.com/vmihailenco/msgpack/v4"
 )
@@ -28,8 +26,8 @@ func (v *Vault) Sync(ctx context.Context) error {
 
 	// What happens on connection failures, context cancellation?
 	//
-	// If we fail during push, we could push duplicates on the next push, with
-	// different nonces. But the duplicates would only show up in the history.
+	// If we fail during push, we could push duplicates on the next push.
+	// But the duplicates would only show up in the history.
 	// We could de-dupe on the clients, but this is probably rare enough to
 	// ignore for now (TODO: resolve possible duplicate push events).
 	//
@@ -109,9 +107,6 @@ func (v *Vault) Unsync(ctx context.Context) error {
 	if err := v.setPullIndex(0); err != nil {
 		return err
 	}
-	if err := v.clearNonces(); err != nil {
-		return err
-	}
 
 	// Clear remote
 	if err := v.clearRemote(); err != nil {
@@ -122,12 +117,12 @@ func (v *Vault) Unsync(ctx context.Context) error {
 }
 
 func (v *Vault) resetLog() error {
-	push, err := v.store.Documents(docs.Prefix(docs.Path("push")))
+	push, err := v.store.Documents(dstore.Prefix(dstore.Path("push")))
 	if err != nil {
 		return err
 	}
 
-	pull, err := v.store.Documents(docs.Prefix(docs.Path("pull")))
+	pull, err := v.store.Documents(dstore.Prefix(dstore.Path("pull")))
 	if err != nil {
 		return err
 	}
@@ -143,9 +138,9 @@ func (v *Vault) resetLog() error {
 	index := int64(len(pull))
 	for _, doc := range push {
 		index++
-		path := docs.PathFrom(doc.Path, 2)
-		push := docs.Path("push", pad(index), path)
-		if err := v.store.Set(push, doc.Data); err != nil {
+		path := dstore.PathFrom(doc.Path, 2)
+		push := dstore.Path("push", pad(index), path)
+		if err := v.store.Set(push, doc.Data()); err != nil {
 			return err
 		}
 	}
@@ -155,11 +150,11 @@ func (v *Vault) resetLog() error {
 	for _, doc := range pull {
 		index++
 		var event events.Event
-		if err := msgpack.Unmarshal(doc.Data, &event); err != nil {
+		if err := msgpack.Unmarshal(doc.Data(), &event); err != nil {
 			return err
 		}
-		path := docs.PathFrom(doc.Path, 2)
-		push := docs.Path("push", pad(index), path)
+		path := dstore.PathFrom(doc.Path, 2)
+		push := dstore.Path("push", pad(index), path)
 		if err := v.store.Set(push, event.Data); err != nil {
 			return err
 		}
@@ -306,54 +301,4 @@ func (v *Vault) getRemoteSalt(init bool) ([]byte, error) {
 		}
 	}
 	return salt, nil
-}
-
-func (v *Vault) checkNonce(n string) error {
-	b, err := v.store.Get(docs.Path("sync", "nonces", n))
-	if err != nil {
-		return err
-	}
-	if b != nil {
-		return errors.Errorf("nonce collision %s", n)
-	}
-	return nil
-}
-
-func (v *Vault) commitNonces(ns []string) error {
-	for _, n := range ns {
-		if err := v.store.Set(docs.Path("sync", "nonces", n), []byte{0x01}); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (v *Vault) clearNonces() error {
-	docs, err := v.store.Documents(docs.Prefix(docs.Path("sync", "nonces")), docs.NoData())
-	if err != nil {
-		return err
-	}
-	for _, doc := range docs {
-		if _, err := v.store.Delete(doc.Path); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (v *Vault) checkEventNonces(events []*httpclient.Event) ([]string, error) {
-	nonces := []string{}
-	for _, event := range events {
-		nb := encoding.MustEncode(event.Nonce, encoding.Base62)
-		if err := v.checkNonce(nb); err != nil {
-			return nil, err
-		}
-		for _, exist := range nonces {
-			if exist == nb {
-				return nil, errors.Errorf("nonce collision %s", nb)
-			}
-		}
-		nonces = append(nonces, nb)
-	}
-	return nonces, nil
 }

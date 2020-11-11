@@ -13,7 +13,7 @@ import (
 	"github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys-ext/http/server"
 	"github.com/keys-pub/keys-ext/vault"
-	"github.com/keys-pub/keys/docs"
+	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/tsutil"
@@ -115,7 +115,7 @@ func newTestEnv(t *testing.T, logger server.Logger) *testEnv {
 		logger = client.NewLogger(client.ErrLevel)
 	}
 	clock := tsutil.NewTestClock()
-	fi := docs.NewMem()
+	fi := dstore.NewMem()
 	fi.SetClock(clock)
 	req := request.NewMockRequestor()
 
@@ -399,7 +399,7 @@ func TestProtocol(t *testing.T) {
 }
 
 func vaultPaths(vlt *vault.Vault, prefix string) ([]string, error) {
-	docs, err := vlt.Documents(docs.Prefix(prefix))
+	docs, err := vlt.Documents(dstore.Prefix(prefix))
 	if err != nil {
 		return nil, err
 	}
@@ -410,3 +410,27 @@ func vaultPaths(vlt *vault.Vault, prefix string) ([]string, error) {
 	}
 	return paths, nil
 }
+
+// TODO: Create test db in testdata for backward compatibility testing.
+// func TestVaultDB(t *testing.T) {
+// 	db := vault.NewDB(filepath.Join("testdata", "vault.vdb"))
+// 	err := db.Open()
+// 	require.NoError(t, err)
+// 	defer db.Close()
+
+// 	vlt := vault.New(db)
+
+// 	err = vlt.UnlockWithPassword("password", false)
+// 	require.NoError(t, err)
+
+// 	ks, err := vlt.Keys()
+// 	require.NoError(t, err)
+// 	for _, key := range ks {
+// 		_, err := key.AsEdX25519Public()
+// 		require.NoError(t, err)
+// 	}
+// 	require.Equal(t, 20, len(ks))
+
+// 	pks, err := vlt.EdX25519PublicKeys()
+// 	require.Equal(t, 19, len(pks))
+// }

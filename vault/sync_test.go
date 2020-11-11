@@ -1,15 +1,12 @@
 package vault_test
 
 import (
-	"bytes"
 	"context"
 	"testing"
 	"time"
 
-	httpclient "github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys-ext/vault"
-	"github.com/keys-pub/keys/docs"
-	"github.com/keys-pub/keys/encoding"
+	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/stretchr/testify/require"
 )
@@ -257,7 +254,7 @@ func TestUnsync(t *testing.T) {
 	err = vlt.Sync(ctx)
 	require.NoError(t, err)
 
-	paths, err := vaultPaths(vlt, docs.Path("pull"))
+	paths, err := vaultPaths(vlt, dstore.Path("pull"))
 	require.NoError(t, err)
 	expected := []string{
 		"/pull/000000000000001/auth/ySymDh5DDuJo21ydVJdyuxcDTgYUJMin4PZQzSUBums",
@@ -292,7 +289,7 @@ func TestUnsync(t *testing.T) {
 	require.Equal(t, "key1", out.ID)
 	require.Equal(t, []byte("mysecretdata.1a"), out.Data)
 
-	paths, err = vaultPaths(vlt, docs.Path("push"))
+	paths, err = vaultPaths(vlt, dstore.Path("push"))
 	require.NoError(t, err)
 	expected = []string{
 		"/push/000000000000001/auth/ySymDh5DDuJo21ydVJdyuxcDTgYUJMin4PZQzSUBums",
@@ -315,7 +312,7 @@ func TestUnsync(t *testing.T) {
 	require.NotNil(t, status)
 	require.NotEqual(t, rkid, status.KID)
 
-	paths, err = vaultPaths(vlt, docs.Path("pull"))
+	paths, err = vaultPaths(vlt, dstore.Path("pull"))
 	require.NoError(t, err)
 	expected = []string{
 		"/pull/000000000000001/auth/ySymDh5DDuJo21ydVJdyuxcDTgYUJMin4PZQzSUBums",
@@ -332,46 +329,4 @@ func TestUnsync(t *testing.T) {
 	require.Equal(t, []byte("mysecretdata.1a"), items[0].Data)
 	require.Equal(t, "key2", items[1].ID)
 	require.Equal(t, []byte("mysecretdata.2"), items[1].Data)
-}
-
-func TestNonce(t *testing.T) {
-	var err error
-
-	vlt, closeFn := NewTestVault(t, &TestVaultOptions{Unlock: true})
-	defer closeFn()
-	n1 := encoding.MustEncode(bytes.Repeat([]byte{0x01}, 24), encoding.Base62)
-	err = vlt.CheckNonce(n1)
-	require.NoError(t, err)
-	err = vlt.CommitNonces([]string{n1})
-	require.NoError(t, err)
-	err = vlt.CheckNonce(n1)
-	require.EqualError(t, err, "nonce collision 00fdQWfEmi1CsDnkmh2kgfFBdcOWBGwvR")
-
-	events := []*httpclient.Event{
-		&httpclient.Event{Nonce: bytes.Repeat([]byte{0x01}, 24)},
-		&httpclient.Event{Nonce: bytes.Repeat([]byte{0x01}, 24)},
-	}
-	_, err = vlt.CheckEventNonces(events)
-	require.EqualError(t, err, "nonce collision 00fdQWfEmi1CsDnkmh2kgfFBdcOWBGwvR")
-
-	n2 := bytes.Repeat([]byte{0x02}, 24)
-	n3 := bytes.Repeat([]byte{0x03}, 24)
-	events = []*httpclient.Event{
-		&httpclient.Event{Nonce: n2},
-		&httpclient.Event{Nonce: n3},
-		&httpclient.Event{Nonce: n2},
-	}
-	_, err = vlt.CheckEventNonces(events)
-	require.EqualError(t, err, "nonce collision 01LGr3KTZQ2PkRbVZO5VNKUNHEn2MXtqs")
-
-	events = []*httpclient.Event{
-		&httpclient.Event{Nonce: n2},
-		&httpclient.Event{Nonce: n3},
-	}
-	nonces, err := vlt.CheckEventNonces(events)
-	require.NoError(t, err)
-	require.Equal(t, []string{
-		"01LGr3KTZQ2PkRbVZO5VNKUNHEn2MXtqs",
-		"020uHZziM83ccfPGM58G3zjYurBYXoqmJ",
-	}, nonces)
 }

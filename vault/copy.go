@@ -14,7 +14,7 @@ func Copy(from Store, to Store, opt ...CopyOption) ([]string, error) {
 
 	added := []string{}
 	for _, doc := range docs {
-		path, b := doc.Path, doc.Data
+		path, b := doc.Path, doc.Data()
 		data, err := to.Get(path)
 		if err != nil {
 			return nil, err
