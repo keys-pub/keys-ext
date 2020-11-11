@@ -3,14 +3,17 @@ package server_test
 import (
 	"bytes"
 	"encoding/json"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/firestore"
 	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/http"
+	"github.com/keys-pub/keys/tsutil"
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,6 +25,18 @@ func TestVault(t *testing.T) {
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 
 	testVault(t, env, alice)
+}
+
+func TestVaultFirestore(t *testing.T) {
+	if os.Getenv("TEST_FIRESTORE") != "1" {
+		t.Skip()
+	}
+	// firestore.SetContextLogger(firestore.NewContextLogger(firestore.DebugLevel))
+	env := newEnvWithFire(t, testFirestore(t), tsutil.NewTestClock())
+	// env.logLevel = server.DebugLevel
+
+	key := keys.GenerateEdX25519Key()
+	testVault(t, env, key)
 }
 
 func testVault(t *testing.T, env *env, alice *keys.EdX25519Key) {
@@ -194,31 +209,45 @@ func testVault(t *testing.T, env *env, alice *keys.EdX25519Key) {
 	require.Equal(t, `{"error":{"code":404,"message":"vault was deleted"}}`, body)
 }
 
-func TestVaultAuth(t *testing.T) {
-	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
+func TestVaultAuthFirestore(t *testing.T) {
+	if os.Getenv("TEST_FIRESTORE") != "1" {
+		t.Skip()
+	}
+	firestore.SetContextLogger(firestore.NewContextLogger(firestore.DebugLevel))
+	fs := testFirestore(t)
 
-	env := newEnv(t)
+	clock := tsutil.NewTestClock()
+	env := newEnvWithFire(t, fs, clock)
 	// env.logLevel = server.DebugLevel
-	// keys.SetLogger(keys.NewLogger(keys.DebugLevel))
+
+	alice := keys.GenerateEdX25519Key()
 
 	testVaultAuth(t, env, alice)
 }
 
-func testVaultAuth(t *testing.T, env *env, alice *keys.EdX25519Key) {
+func TestVaultAuth(t *testing.T) {
+	env := newEnv(t)
+	// env.logLevel = server.DebugLevel
+	// keys.SetLogger(keys.NewLogger(keys.DebugLevel))
+	key := keys.NewEdX25519KeyFromSeed(testSeed(0x01))
+	testVaultAuth(t, env, key)
+}
+
+func testVaultAuth(t *testing.T, env *env, key *keys.EdX25519Key) {
 	srv := newTestServer(t, env)
 	clock := env.clock
 
 	randKey := keys.GenerateEdX25519Key()
 
 	// GET /vault/:kid (no auth)
-	req, err := http.NewRequest("GET", dstore.Path("vault", alice.ID()), nil)
+	req, err := http.NewRequest("GET", dstore.Path("vault", key.ID()), nil)
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
 	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, body)
 
 	// GET /vault/:kid (invalid key)
-	req, err = http.NewAuthRequest("GET", dstore.Path("vault", alice.ID()), nil, "", clock.Now(), http.Authorization(randKey))
+	req, err = http.NewAuthRequest("GET", dstore.Path("vault", key.ID()), nil, "", clock.Now(), http.Authorization(randKey))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
@@ -227,14 +256,14 @@ func testVaultAuth(t *testing.T, env *env, alice *keys.EdX25519Key) {
 	// POST /vault/:kid (invalid key)
 	content := []byte(`[{"data":"dGVzdGluZzE="},{"data":"dGVzdGluZzI="}]`)
 	contentHash := http.ContentHash(content)
-	req, err = http.NewAuthRequest("POST", dstore.Path("vault", alice.ID()), bytes.NewReader(content), contentHash, clock.Now(), http.Authorization(randKey))
+	req, err = http.NewAuthRequest("POST", dstore.Path("vault", key.ID()), bytes.NewReader(content), contentHash, clock.Now(), http.Authorization(randKey))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
 	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, body)
 
 	// GET /vault/:kid
-	req, err = http.NewAuthRequest("GET", dstore.Path("vault", alice.ID()), nil, "", clock.Now(), http.Authorization(alice))
+	req, err = http.NewAuthRequest("GET", dstore.Path("vault", key.ID()), nil, "", clock.Now(), http.Authorization(key))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)
@@ -251,7 +280,7 @@ func testVaultAuth(t *testing.T, env *env, alice *keys.EdX25519Key) {
 	// GET /vault/:kid (invalid authorization)
 	authHeader := req.Header.Get("Authorization")
 	sig := strings.Split(authHeader, ":")[1]
-	req, err = http.NewAuthRequest("GET", dstore.Path("vault", alice.ID()), nil, "", clock.Now(), http.Authorization(randKey))
+	req, err = http.NewAuthRequest("GET", dstore.Path("vault", key.ID()), nil, "", clock.Now(), http.Authorization(randKey))
 	require.NoError(t, err)
 	req.Header.Set("Authorization", randKey.ID().String()+":"+sig)
 	code, _, body = srv.Serve(req)

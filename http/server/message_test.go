@@ -3,6 +3,7 @@ package server_test
 import (
 	"bytes"
 	"encoding/json"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -11,6 +12,7 @@ import (
 	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/http"
+	"github.com/keys-pub/keys/tsutil"
 	"github.com/stretchr/testify/require"
 )
 
@@ -18,6 +20,16 @@ func TestMessages(t *testing.T) {
 	env := newEnv(t)
 	// env.logLevel = server.DebugLevel
 	testMessages(t, env, testKeysSeeded())
+}
+
+func TestMessagesFirestore(t *testing.T) {
+	if os.Getenv("TEST_FIRESTORE") != "1" {
+		t.Skip()
+	}
+	// firestore.SetContextLogger(firestore.NewContextLogger(firestore.DebugLevel))
+	env := newEnvWithFire(t, testFirestore(t), tsutil.NewTestClock())
+	// env.logLevel = server.DebugLevel
+	testMessages(t, env, testKeysRandom())
 }
 
 func testMessages(t *testing.T, env *env, tk testKeys) {

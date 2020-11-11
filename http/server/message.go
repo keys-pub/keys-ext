@@ -33,7 +33,7 @@ func (s *Server) postMessage(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	path := dstore.Path("channel", channel.KID)
+	path := dstore.Path("channels", channel.KID)
 
 	events, err := s.fi.EventsAdd(ctx, path, [][]byte{b})
 	if err != nil {
@@ -55,7 +55,7 @@ func (s *Server) listMessages(c echo.Context) error {
 		return ErrForbidden(c, err)
 	}
 
-	path := dstore.Path("channel", channel.KID)
+	path := dstore.Path("channels", channel.KID)
 	resp, err := s.events(c, path)
 	if err != nil {
 		return s.internalError(c, err)
