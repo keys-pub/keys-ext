@@ -30,8 +30,6 @@ type Server struct {
 	// authorization checks in testing where the host is ambiguous.
 	URL string
 
-	accessFn AccessFn
-
 	users        *users.Users
 	sigchains    *keys.Sigchains
 	tasks        Tasks
@@ -58,9 +56,6 @@ func New(fi Fire, rds Redis, req request.Requestor, clock tsutil.Clock, logger L
 		sigchains: sigchains,
 		users:     usrs,
 		logger:    logger,
-		accessFn: func(c AccessContext, resource AccessResource, action AccessAction) Access {
-			return AccessDeny("no access set")
-		},
 	}
 }
 

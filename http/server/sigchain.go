@@ -19,7 +19,7 @@ import (
 
 func (s *Server) sigchain(c echo.Context, kid keys.ID) (*keys.Sigchain, map[string]api.Metadata, error) {
 	ctx := c.Request().Context()
-	iter, err := s.fi.DocumentIterator(ctx, SigchainResource.String(), dstore.Prefix(kid.String()))
+	iter, err := s.fi.DocumentIterator(ctx, "sigchain", dstore.Prefix(kid.String()))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -92,7 +92,7 @@ func (s *Server) getSigchainStatement(c echo.Context) error {
 	if err != nil {
 		return ErrNotFound(c, err)
 	}
-	path := dstore.Path(SigchainResource, kid.WithSeq(i))
+	path := dstore.Path("sigchain", kid.WithSeq(i))
 	st, doc, err := s.statement(ctx, path)
 	if st == nil {
 		return ErrNotFound(c, errors.Errorf("statement not found"))
@@ -142,7 +142,7 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 		return ErrBadRequest(c, errors.Errorf("invalid seq"))
 	}
 
-	path := dstore.Path(SigchainResource, keys.StatementID(st.KID, st.Seq))
+	path := dstore.Path("sigchain", keys.StatementID(st.KID, st.Seq))
 
 	exists, err := s.fi.Exists(ctx, path)
 	if err != nil {
@@ -150,10 +150,6 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 	}
 	if exists {
 		return ErrConflict(c, errors.Errorf("statement already exists"))
-	}
-
-	if access := s.accessFn(c, SigchainResource, Put); !access.Allow {
-		return ErrResponse(c, access.StatusCode, errors.Errorf(access.Message))
 	}
 
 	sc, _, err := s.sigchain(c, st.KID)

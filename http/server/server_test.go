@@ -87,9 +87,6 @@ func newTestServer(t *testing.T, env *env) *testServer {
 	srv.SetTasks(tasks)
 	srv.SetInternalAuth(encoding.MustEncode(keys.RandBytes(32), encoding.Base62))
 	srv.SetClock(env.clock)
-	srv.SetAccessFn(func(c server.AccessContext, resource server.AccessResource, action server.AccessAction) server.Access {
-		return server.AccessAllow()
-	})
 	handler := server.NewHandler(srv)
 	return &testServer{
 		Server:  srv,
@@ -169,75 +166,16 @@ func userMock(t *testing.T, key *keys.EdX25519Key, name string, service string, 
 	return st
 }
 
-func TestAccess(t *testing.T) {
+func TestInternalAuth(t *testing.T) {
 	env := newEnv(t)
 	srv := newTestServer(t, env)
-	clock := env.clock
 
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 
-	scCount := 0
-	srv.Server.SetAccessFn(func(c server.AccessContext, resource server.AccessResource, action server.AccessAction) server.Access {
-		switch resource {
-		case server.SigchainResource:
-			if action == server.Put {
-				scCount++
-				if scCount == 2 {
-					return server.AccessDenyTooManyRequests("sigchain deny test")
-				}
-			}
-		}
-		return server.AccessAllow()
-	})
-
-	// PUT /sigchain/:kid/:seq (alice, allow)
-	aliceSc := keys.NewSigchain(alice.ID())
-	aliceSt, err := keys.NewSigchainStatement(aliceSc, []byte("testing"), alice, "", clock.Now())
-	require.NoError(t, err)
-	err = aliceSc.Add(aliceSt)
-	require.NoError(t, err)
-	aliceStBytes, err := aliceSt.Bytes()
-	require.NoError(t, err)
-	req, err := http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/1", alice.ID()), bytes.NewReader(aliceStBytes))
+	// POST /task/check/:kid
+	req, err := http.NewRequest("POST", "/task/check/"+alice.ID().String(), nil)
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
-	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, "{}", body)
-
-	// PUT /sigchain/:kid/:seq (alice, deny)
-	aliceSt2, err := keys.NewSigchainStatement(aliceSc, []byte("testing"), alice, "", clock.Now())
-	require.NoError(t, err)
-	err = aliceSc.Add(aliceSt2)
-	require.NoError(t, err)
-	aliceStBytes2, err := aliceSt2.Bytes()
-	require.NoError(t, err)
-	req, err = http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/2", alice.ID()), bytes.NewReader(aliceStBytes2))
-	require.NoError(t, err)
-	code, _, body = srv.Serve(req)
-	require.Equal(t, http.StatusTooManyRequests, code)
-	require.Equal(t, `{"error":{"code":429,"message":"sigchain deny test"}}`, body)
-
-	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
-
-	// PUT /:kid/:seq (bob, allow)
-	bobSc := keys.NewSigchain(bob.ID())
-	bobSt, err := keys.NewSigchainStatement(bobSc, []byte("testing"), bob, "", clock.Now())
-	require.NoError(t, err)
-	bobAddErr := bobSc.Add(bobSt)
-	require.NoError(t, bobAddErr)
-	bobStBytes, err := bobSt.Bytes()
-	require.NoError(t, err)
-	req, err = http.NewRequest("PUT", fmt.Sprintf("/%s/1", bob.ID()), bytes.NewReader(bobStBytes))
-	require.NoError(t, err)
-	req.Host = "sigcha.in"
-	code, _, body = srv.Serve(req)
-	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, "{}", body)
-
-	// POST /task/check/:kid
-	req, err = http.NewRequest("POST", "/task/check/"+alice.ID().String(), nil)
-	require.NoError(t, err)
-	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
 	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, body)
 
