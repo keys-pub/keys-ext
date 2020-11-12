@@ -65,7 +65,7 @@ func Run(build Build) {
 	args.appName = flag.String("app", "Keys", "app name")
 	args.logPath = flag.String("log-path", "", "log path")
 	args.version = flag.Bool("version", false, "print version")
-	args.port = flag.Int("port", defaultPort, "port to listen")
+	args.port = flag.Int("port", 0, "port to listen")
 	args.logLevel = flag.String("log-level", "", "log level")
 
 	flag.Parse()
