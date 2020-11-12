@@ -13,7 +13,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/server"
-	"github.com/keys-pub/keys/docs"
+	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keys/users"
@@ -51,7 +51,7 @@ func writeTestFile(t *testing.T) string {
 }
 
 func testFire(t *testing.T, clock tsutil.Clock) server.Fire {
-	fi := docs.NewMem()
+	fi := dstore.NewMem()
 	fi.SetClock(clock)
 	return fi
 }
@@ -291,7 +291,7 @@ func newTestServerEnv(t *testing.T, env *testEnv) *serverEnv {
 // func spewService(t *testing.T, service *service) {
 // 	iter, iterErr := service.db.Documents(context.TODO(), "")
 // 	require.NoError(t, iterErr)
-// 	spew, err := docs.Spew(iter)
+// 	spew, err := dstore.Spew(iter)
 // 	require.NoError(t, err)
 // 	t.Logf(spew.String())
 // }

@@ -1,104 +1,127 @@
 package service
 
-// func TestMessages(t *testing.T) {
-// 	// SetLogger(NewLogger(DebugLevel))
-// 	// saltpack.SetLogger(NewLogger(DebugLevel))
-// 	// client.SetLogger(NewLogger(DebugLevel))
-// 	// server.SetContextLogger(NewContextLogger(DebugLevel))
+import (
+	"context"
+	"testing"
 
-// 	env := newTestEnv(t)
+	"github.com/stretchr/testify/require"
+)
 
-// 	aliceService, aliceCloseFn := newTestService(t, env)
-// 	defer aliceCloseFn()
-// 	testAuthSetup(t, aliceService)
-// 	ctx := context.TODO()
-// 	testImportKey(t, aliceService, alice)
-// 	testUserSetupGithub(t, env, aliceService, alice, "alice")
-// 	testPush(t, aliceService, alice)
+func TestMessages(t *testing.T) {
+	// SetLogger(NewLogger(DebugLevel))
+	// saltpack.SetLogger(NewLogger(DebugLevel))
+	// client.SetLogger(NewLogger(DebugLevel))
+	// server.SetContextLogger(NewContextLogger(DebugLevel))
 
-// 	// Bob service
-// 	bobService, bobCloseFn := newTestService(t, env)
-// 	defer bobCloseFn()
-// 	testAuthSetup(t, bobService)
-// 	testImportKey(t, bobService, bob)
-// 	testUserSetupGithub(t, env, bobService, bob, "bob")
+	env := newTestEnv(t)
 
-// 	// Alice lists messages
-// 	messagesResp, err := aliceService.Messages(ctx, &MessagesRequest{
-// 		Sender:    alice.ID().String(),
-// 		Recipient: bob.ID().String(),
-// 	})
-// 	require.NoError(t, err)
-// 	require.Equal(t, 0, len(messagesResp.Messages))
+	aliceService, aliceCloseFn := newTestService(t, env)
+	defer aliceCloseFn()
+	testAuthSetup(t, aliceService)
+	ctx := context.TODO()
+	testImportKey(t, aliceService, alice)
+	testUserSetupGithub(t, env, aliceService, alice, "alice")
+	testPush(t, aliceService, alice)
 
-// 	// Check prepare
-// 	_, err = aliceService.MessagePrepare(ctx, &MessagePrepareRequest{
-// 		Sender:    alice.ID().String(),
-// 		Recipient: bob.ID().String(),
-// 		Text:      "prepare",
-// 	})
-// 	require.NoError(t, err)
+	// Bob service
+	bobService, bobCloseFn := newTestService(t, env)
+	defer bobCloseFn()
+	testAuthSetup(t, bobService)
+	testImportKey(t, bobService, bob)
+	testUserSetupGithub(t, env, bobService, bob, "bob")
 
-// 	// Alice sends 2 messages
-// 	_, err = aliceService.MessageCreate(ctx, &MessageCreateRequest{
-// 		Sender:    alice.ID().String(),
-// 		Recipient: bob.ID().String(),
-// 		Text:      "am1",
-// 	})
-// 	require.NoError(t, err)
+	// Alice creates a channel
+	channelCreate, err := aliceService.ChannelCreate(ctx, &ChannelCreateRequest{
+		Name:   "Test",
+		Member: alice.ID().String(),
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, channelCreate.Channel)
+	channel := channelCreate.Channel
 
-// 	_, messageErrA2 := aliceService.MessageCreate(ctx, &MessageCreateRequest{
-// 		Sender:    alice.ID().String(),
-// 		Recipient: bob.ID().String(),
-// 		Text:      "am2",
-// 	})
-// 	require.NoError(t, messageErrA2)
+	// Alice invites bob
+	_, err = aliceService.ChannelInviteCreate(ctx, &ChannelInviteCreateRequest{
+		Channel:   channel.ID,
+		Recipient: bob.ID().String(),
+		Sender:    alice.ID().String(),
+	})
+	require.NoError(t, err)
+	// Bob accepts invite
+	_, err = bobService.ChannelInviteAccept(ctx, &ChannelInviteAcceptRequest{
+		Channel: channel.ID,
+		Member:  bob.ID().String(),
+	})
+	require.NoError(t, err)
 
-// 	// Bob sends message
-// 	_, err = bobService.MessageCreate(ctx, &MessageCreateRequest{
-// 		Sender:    bob.ID().String(),
-// 		Recipient: alice.ID().String(),
-// 		Text:      "bm1",
-// 	})
-// 	require.NoError(t, err)
+	// Alice lists messages
+	messages, err := aliceService.Messages(ctx, &MessagesRequest{
+		Channel: channel.ID,
+		Member:  alice.ID().String(),
+	})
+	require.NoError(t, err)
+	require.Equal(t, 0, len(messages.Messages))
 
-// 	// Alice lists messages
-// 	messagesResp2, err := aliceService.Messages(ctx, &MessagesRequest{
-// 		Sender:    alice.ID().String(),
-// 		Recipient: bob.ID().String(),
-// 	})
-// 	require.NoError(t, err)
-// 	require.Equal(t, 3, len(messagesResp2.Messages))
+	// Prepare
+	_, err = aliceService.MessagePrepare(ctx, &MessagePrepareRequest{
+		Channel: channel.ID,
+		Sender:  alice.ID().String(),
+		Text:    "prepare",
+	})
+	require.NoError(t, err)
 
-// 	// cols, err := env.fi.Collections(ctx, "")
-// 	// // cols, err := aliceService.db.Collections(ctx, "")
-// 	// require.NoError(t, err)
-// 	// paths, err := ds.CollectionPaths(cols)
-// 	// require.NoError(t, err)
-// 	// t.Logf("cols: %+v", paths)
+	// Alice sends 2 messages
+	_, err = aliceService.MessageCreate(ctx, &MessageCreateRequest{
+		Channel: channel.ID,
+		Sender:  alice.ID().String(),
+		Text:    "am1",
+	})
+	require.NoError(t, err)
 
-// 	require.Equal(t, "am1", string(messagesResp2.Messages[0].Content.Data))
-// 	require.NotNil(t, messagesResp2.Messages[0].Sender)
-// 	require.NotNil(t, messagesResp2.Messages[0].Sender.User)
-// 	require.Equal(t, "alice", messagesResp2.Messages[0].Sender.User.Name)
-// 	require.Equal(t, "am2", string(messagesResp2.Messages[1].Content.Data))
-// 	require.Equal(t, "bm1", string(messagesResp2.Messages[2].Content.Data))
+	_, err = aliceService.MessageCreate(ctx, &MessageCreateRequest{
+		Channel: channel.ID,
+		Sender:  alice.ID().String(),
+		Text:    "am2",
+	})
+	require.NoError(t, err)
 
-// 	_, err = bobService.Pull(ctx, &PullRequest{Identity: alice.ID().String()})
-// 	require.NoError(t, err)
+	// Bob sends message
+	_, err = bobService.MessageCreate(ctx, &MessageCreateRequest{
+		Sender:  bob.ID().String(),
+		Channel: channel.ID,
+		Text:    "bm1",
+	})
+	require.NoError(t, err)
 
-// 	// Bob lists messages
-// 	messagesResp3, err := bobService.Messages(ctx, &MessagesRequest{
-// 		Sender:    bob.ID().String(),
-// 		Recipient: alice.ID().String(),
-// 	})
-// 	require.NoError(t, err)
-// 	require.Equal(t, 3, len(messagesResp3.Messages))
+	// Alice lists messages
+	messages, err = aliceService.Messages(ctx, &MessagesRequest{
+		Channel: channel.ID,
+		Member:  alice.ID().String(),
+	})
+	require.NoError(t, err)
+	require.Equal(t, 3, len(messages.Messages))
 
-// 	require.Equal(t, "am1", string(messagesResp3.Messages[0].Content.Data))
-// 	require.NotNil(t, messagesResp3.Messages[0].Sender)
-// 	require.NotNil(t, messagesResp3.Messages[0].Sender.User)
-// 	require.Equal(t, "alice", messagesResp3.Messages[0].Sender.User.Name)
-// 	require.Equal(t, "am2", string(messagesResp3.Messages[1].Content.Data))
-// 	require.Equal(t, "bm1", string(messagesResp3.Messages[2].Content.Data))
-// }
+	require.Equal(t, "am1", string(messages.Messages[0].Content.Data))
+	require.NotNil(t, messages.Messages[0].Sender)
+	require.NotNil(t, messages.Messages[0].Sender.User)
+	require.Equal(t, "alice", messages.Messages[0].Sender.User.Name)
+	require.Equal(t, "am2", string(messages.Messages[1].Content.Data))
+	require.Equal(t, "bm1", string(messages.Messages[2].Content.Data))
+
+	_, err = bobService.Pull(ctx, &PullRequest{Key: alice.ID().String()})
+	require.NoError(t, err)
+
+	// Bob lists messages
+	messages, err = bobService.Messages(ctx, &MessagesRequest{
+		Channel: channel.ID,
+		Member:  bob.ID().String(),
+	})
+	require.NoError(t, err)
+	require.Equal(t, 3, len(messages.Messages))
+
+	require.Equal(t, "am1", string(messages.Messages[0].Content.Data))
+	require.NotNil(t, messages.Messages[0].Sender)
+	require.NotNil(t, messages.Messages[0].Sender.User)
+	require.Equal(t, "alice", messages.Messages[0].Sender.User.Name)
+	require.Equal(t, "am2", string(messages.Messages[1].Content.Data))
+	require.Equal(t, "bm1", string(messages.Messages[2].Content.Data))
+}

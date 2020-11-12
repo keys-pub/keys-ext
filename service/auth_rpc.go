@@ -29,7 +29,7 @@ func (s *service) AuthSetup(ctx context.Context, req *AuthSetupRequest) (*AuthSe
 
 	// If setting up auth, and service database exists we should nuke it since the
 	// pre-existing key is different. The database will be rebuilt on Open.
-	path, err := s.env.AppPath(kdbPath, false)
+	path, err := s.env.AppPath(cdbPath, false)
 	if err != nil {
 		return nil, err
 	}
@@ -242,7 +242,7 @@ func (s *service) AuthReset(ctx context.Context, req *AuthResetRequest) (*AuthRe
 		return nil, err
 	}
 
-	path, err := s.env.AppPath(kdbPath, false)
+	path, err := s.env.AppPath(cdbPath, false)
 	if err != nil {
 		return nil, err
 	}

@@ -5,10 +5,9 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys-ext/vault"
+	"github.com/keys-pub/keys/api"
 	"github.com/stretchr/testify/require"
 )
 
@@ -75,7 +74,10 @@ func TestFmtKey(t *testing.T) {
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
 
-	aliceVk := vault.NewKey(alice, time.Now())
+	aliceVk := api.NewKey(alice)
+	now := env.clock.Now()
+	aliceVk.CreatedAt = now
+	aliceVk.UpdatedAt = now
 
 	ak, err := service.keyToRPC(ctx, aliceVk)
 	require.NoError(t, err)
@@ -102,7 +104,10 @@ func TestFmtVerifiedEncrypt(t *testing.T) {
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
 
-	aliceVk := vault.NewKey(alice, time.Now())
+	aliceVk := api.NewKey(alice)
+	now := env.clock.Now()
+	aliceVk.CreatedAt = now
+	aliceVk.UpdatedAt = now
 	ak, err := service.keyToRPC(ctx, aliceVk)
 	require.NoError(t, err)
 	var buf bytes.Buffer
@@ -128,7 +133,10 @@ func TestFmtVerified(t *testing.T) {
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
 
-	aliceVk := vault.NewKey(alice, time.Now())
+	aliceVk := api.NewKey(alice)
+	now := env.clock.Now()
+	aliceVk.CreatedAt = now
+	aliceVk.UpdatedAt = now
 	ak, err := service.keyToRPC(ctx, aliceVk)
 	require.NoError(t, err)
 	var buf bytes.Buffer

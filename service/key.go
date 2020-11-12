@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys-ext/vault"
+	"github.com/keys-pub/keys/api"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
 )
@@ -59,7 +59,7 @@ func (s *service) verifyKey(ctx context.Context, kid keys.ID) (*Key, error) {
 	return s.key(ctx, kid)
 }
 
-func (s *service) keyToRPC(ctx context.Context, key *vault.Key) (*Key, error) {
+func (s *service) keyToRPC(ctx context.Context, key *api.Key) (*Key, error) {
 	if key == nil {
 		return nil, nil
 	}
@@ -165,7 +165,10 @@ func (s *service) KeyGenerate(ctx context.Context, req *KeyGenerateRequest) (*Ke
 	default:
 		return nil, errors.Errorf("unknown key type %s", req.Type)
 	}
-	vk := vault.NewKey(key, s.clock.Now())
+	vk := api.NewKey(key)
+	now := s.clock.Now()
+	vk.CreatedAt = now
+	vk.UpdatedAt = now
 	out, _, err := s.vault.SaveKey(vk)
 	if err != nil {
 		return nil, err

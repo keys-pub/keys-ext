@@ -5,7 +5,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/keys-pub/keys/docs"
+	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
 )
@@ -38,7 +38,7 @@ func (s *service) vaultCollections(ctx context.Context, parent string) (*Collect
 	return &CollectionsResponse{Collections: collectionsToRPC(cols)}, nil
 }
 
-func collectionsToRPC(cols []*docs.Collection) []*Collection {
+func collectionsToRPC(cols []*dstore.Collection) []*Collection {
 	out := make([]*Collection, 0, len(cols))
 	for _, c := range cols {
 		out = append(out, &Collection{Path: c.Path})
@@ -48,13 +48,13 @@ func collectionsToRPC(cols []*docs.Collection) []*Collection {
 
 // Documents (RPC) lists document from db or vault.
 func (s *service) Documents(ctx context.Context, req *DocumentsRequest) (*DocumentsResponse, error) {
-	var ds []*docs.Document
+	var ds []*dstore.Document
 	var dsErr error
 	switch req.DB {
 	case "", "service":
-		ds, dsErr = s.db.Documents(ctx, "", docs.Prefix(req.Prefix))
+		ds, dsErr = s.db.Documents(ctx, "", dstore.Prefix(req.Prefix))
 	case "vault":
-		ds, dsErr = s.vault.Documents(docs.Prefix(req.Prefix))
+		ds, dsErr = s.vault.Documents(dstore.Prefix(req.Prefix))
 	}
 	if dsErr != nil {
 		return nil, dsErr
@@ -62,10 +62,10 @@ func (s *service) Documents(ctx context.Context, req *DocumentsRequest) (*Docume
 	out := make([]*Document, 0, 100)
 	for _, doc := range ds {
 		var val string
-		if !utf8.Valid(doc.Data) {
-			val = string(spew.Sdump(doc.Data))
+		if !utf8.Valid(doc.Data()) {
+			val = string(spew.Sdump(doc.Data()))
 		} else {
-			val = string(doc.Data)
+			val = string(doc.Data())
 		}
 		out = append(out, &Document{
 			Path:      doc.Path,
@@ -91,7 +91,7 @@ func (s *service) DocumentDelete(ctx context.Context, req *DocumentDeleteRequest
 	case "", "service":
 		ok, err = s.db.Delete(ctx, req.Path)
 	case "vault":
-		ok, err = s.vault.DeleteDocument(req.Path)
+		ok, err = s.vault.Store().Delete(req.Path)
 	}
 	if err != nil {
 		return nil, err

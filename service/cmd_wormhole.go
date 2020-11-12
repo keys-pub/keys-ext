@@ -73,7 +73,7 @@ func wormholeCommands(client *Client) []cli.Command {
 							}
 						}
 
-						fmtMessage(os.Stdout, resp.Message)
+						fmtWormholeMessage(os.Stdout, resp.Message)
 					}
 				}()
 

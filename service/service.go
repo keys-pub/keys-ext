@@ -35,7 +35,7 @@ type service struct {
 	checkCancelFn func()
 }
 
-const kdbPath = "keys.sdb"
+const cdbPath = "cache.sdb"
 const vdbPath = "vault.vdb"
 
 func newService(env *Env, build Build, auth *auth, req request.Requestor, clock tsutil.Clock) (*service, error) {
@@ -107,8 +107,8 @@ func (s *service) unlock(ctx context.Context, req *AuthUnlockRequest) (string, e
 
 	// DB
 	if !s.db.IsOpen() {
-		logger.Infof("Opening %s...", kdbPath)
-		path, err := s.env.AppPath(kdbPath, true)
+		logger.Infof("Opening %s...", cdbPath)
+		path, err := s.env.AppPath(cdbPath, true)
 		if err != nil {
 			return "", err
 		}
@@ -124,7 +124,7 @@ func (s *service) unlock(ctx context.Context, req *AuthUnlockRequest) (string, e
 		// Derive sdb key
 		// TODO: Check if key is wrong
 		mk := s.vault.MasterKey()
-		dbk := keys.Bytes32(keys.HKDFSHA256(mk[:], 32, nil, []byte("keys.pub/ldb")))
+		dbk := keys.Bytes32(keys.HKDFSHA256(mk[:], 32, nil, []byte("keys.pub/cache")))
 		if err := s.db.OpenAtPath(ctx, path, dbk); err != nil {
 			return "", err
 		}
@@ -135,7 +135,7 @@ func (s *service) unlock(ctx context.Context, req *AuthUnlockRequest) (string, e
 	// local db for any keys we have in our vault.
 	if isNew {
 		if err := s.updateAllKeys(ctx); err != nil {
-			logger.Errorf("Failed to update keys on new database: %v", err)
+			logger.Errorf("Failed to update keys on new database: %+v", err)
 		}
 	}
 

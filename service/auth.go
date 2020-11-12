@@ -7,7 +7,7 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/auth/fido2"
 	"github.com/keys-pub/keys-ext/vault"
-	"github.com/keys-pub/keys/docs"
+	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/encoding"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
@@ -23,14 +23,14 @@ type auth struct {
 	sync.Mutex
 	env       *Env
 	tokens    map[string]string
-	allowlist *docs.StringSet
+	allowlist *dstore.StringSet
 
 	fas fido2.FIDO2Server
 }
 
 func newAuth(env *Env) *auth {
 	// We don't need auth for the following methods.
-	allowlist := docs.NewStringSet(
+	allowlist := dstore.NewStringSet(
 		"/keys.Keys/AuthSetup",
 		"/keys.Keys/AuthUnlock",
 		"/keys.Keys/AuthLock",

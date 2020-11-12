@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/keys-pub/keys-ext/vault"
+	"github.com/keys-pub/keys/api"
 	"github.com/pkg/errors"
 )
 
@@ -35,7 +35,7 @@ func (s *service) Keys(ctx context.Context, req *KeysRequest) (*KeysResponse, er
 	}, nil
 }
 
-func hasType(k *vault.Key, types []string) bool {
+func hasType(k *api.Key, types []string) bool {
 	for _, t := range types {
 		if k.Type == t {
 			return true
@@ -44,7 +44,7 @@ func hasType(k *vault.Key, types []string) bool {
 	return false
 }
 
-func (s *service) filterKeys(ctx context.Context, ks []*vault.Key, query string, types []string, sortField string, sortDirection SortDirection) ([]*Key, error) {
+func (s *service) filterKeys(ctx context.Context, ks []*api.Key, query string, types []string, sortField string, sortDirection SortDirection) ([]*Key, error) {
 	keys := make([]*Key, 0, len(ks))
 	for _, k := range ks {
 		if len(types) != 0 && !hasType(k, types) {

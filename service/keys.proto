@@ -71,32 +71,45 @@ service Keys {
   rpc RandPassword(RandPasswordRequest) returns (RandPasswordResponse) {}  
   // END NO AUTH
 
+  // Auth (edit)
   rpc AuthProvision(AuthProvisionRequest) returns (AuthProvisionResponse) {}
   rpc AuthDeprovision(AuthDeprovisionRequest) returns (AuthDeprovisionResponse) {}
   rpc AuthProvisions(AuthProvisionsRequest) returns (AuthProvisionsResponse) {}  
   rpc AuthPasswordChange(AuthPasswordChangeRequest) returns (AuthPasswordChangeResponse) {}
   
+  // Vault
   rpc VaultAuth(VaultAuthRequest) returns (VaultAuthResponse) {}
   rpc VaultSync(VaultSyncRequest) returns (VaultSyncResponse) {}  
   rpc VaultUnsync(VaultUnsyncRequest) returns (VaultUnsyncResponse) {}
   rpc VaultStatus(VaultStatusRequest) returns (VaultStatusResponse) {}  
   rpc VaultUpdate(VaultUpdateRequest) returns (VaultUpdateResponse) {}  
 
+  // DB
   rpc Collections(CollectionsRequest) returns (CollectionsResponse) {}
   rpc Documents(DocumentsRequest) returns (DocumentsResponse) {}
   rpc DocumentDelete(DocumentDeleteRequest) returns (DocumentDeleteResponse) {}
 
+  // Config
   rpc ConfigGet(ConfigGetRequest) returns (ConfigGetResponse) {}
   rpc ConfigSet(ConfigSetRequest) returns (ConfigSetResponse) {}
+
+  // Channels
+  rpc Channels(ChannelsRequest) returns (ChannelsResponse) {}
+  rpc ChannelCreate(ChannelCreateRequest) returns (ChannelCreateResponse) {}
+  rpc ChannelInviteCreate(ChannelInviteCreateRequest) returns (ChannelInviteCreateResponse) {}
+  rpc ChannelInviteAccept(ChannelInviteAcceptRequest) returns (ChannelInviteAcceptResponse) {}
+ 
+  // Messages
+  rpc MessagePrepare(MessagePrepareRequest) returns (MessagePrepareResponse) {}
+  rpc MessageCreate(MessageCreateRequest) returns (MessageCreateResponse) {}
+  rpc Messages(MessagesRequest) returns (MessagesResponse) {}
 
   // Admin
   rpc AdminSignURL(AdminSignURLRequest) returns (AdminSignURLResponse) {}
   rpc AdminCheck(AdminCheckRequest) returns (AdminCheckResponse) {}
 
-  // Experimental  
-  rpc MessagePrepare(MessagePrepareRequest) returns (MessagePrepareResponse) {}
-  rpc MessageCreate(MessageCreateRequest) returns (MessageCreateResponse) {}
-  rpc Messages(MessagesRequest) returns (MessagesResponse) {}
+  // Relay
+  rpc Relay(stream RelayInput) returns (stream RelayOutput) {}
 }
 
 message SignRequest {
@@ -856,43 +869,6 @@ message VaultStatusResponse {
 message VaultUpdateRequest {}
 message VaultUpdateResponse {}
 
-message WormholeInput {  
-  string sender = 1;
-  string recipient = 2;
-  string invite = 3;
-    
-  string id = 10 [(go.field) = {name: "ID"}];
-  bytes data = 11;
-  ContentType type = 12;
-}
-
-enum WormholeStatus {
-  option (go.enum) = {name: "WormholeStatus"};
-
-  WORMHOLE_DEFAULT = 0 [(go.value) = {name: "WormholeDefault"}];
-  
-  // WormholeStarting if starting.
-  WORMHOLE_STARTING = 10 [(go.value) = {name: "WormholeStarting"}];
-  
-  // WormholeOffering if offering.
-  WORMHOLE_OFFERING = 20 [(go.value) = {name: "WormholeOffering"}];
-  // WormholeAnswering if answering.
-  WORMHOLE_ANSWERING = 21 [(go.value) = {name: "WormholeAnswering"}];
-
-  // WormholeHandshake if found offer/answer and trying to SCTP/Noise handshake.
-  WORMHOLE_HANDSHAKE = 40 [(go.value) = {name: "WormholeHandshake"}];
-  
-  // WormholeConnected if connected
-  WORMHOLE_CONNECTED = 100 [(go.value) = {name: "WormholeConnected"}];
-  // WormholeClosed if closed
-  WORMHOLE_CLOSED = 200 [(go.value) = {name: "WormholeClosed"}]; 
-}
-
-message WormholeOutput {
-  Message message = 1;
-  WormholeStatus status = 2;
-}
-
 enum ContentType {
   option (go.enum) = {name: "ContentType"};
 
@@ -900,26 +876,11 @@ enum ContentType {
   UTF8_CONTENT = 1 [(go.value) = {name: "UTF8Content"}];
 }
 
-enum MessageType {
-  option (go.enum) = {name: "MessageType"};
-
-  MESSAGE_SENT = 0 [(go.value) = {name: "MessageSent"}];
-  MESSAGE_PENDING = 1 [(go.value) = {name: "MessagePending"}];
-  MESSAGE_ACK = 2 [(go.value) = {name: "MessageAck"}];
-}
-
 message Message {
   string id = 1 [(go.field) = {name: "ID"}];
-  
   Key sender = 2;
-  Key recipient = 3;
-  MessageType type = 5;
   Content content = 10;
-    
   int64 createdAt = 21;
-
-  string timeDisplay = 31;
-  string dateDisplay = 32;  
 }
 
 message Content {
@@ -929,7 +890,7 @@ message Content {
 
 message MessagePrepareRequest {  
   string sender = 1;
-  string recipient = 2;
+  string channel = 2;
   string text = 11;
 }
 
@@ -939,7 +900,7 @@ message MessagePrepareResponse {
 
 message MessageCreateRequest {  
   string sender = 1;
-  string recipient = 2;
+  string channel = 2;
   string text = 11;
 }
 
@@ -948,13 +909,46 @@ message MessageCreateResponse {
 }
 
 message MessagesRequest {  
-  string sender = 1;
-  string recipient = 2;
+  string channel = 1;
+  string member = 2;
 }
 
 message MessagesResponse {
   repeated Message messages = 1;
 }
+
+message Channel {
+  string id = 1 [(go.field) = {name: "ID"}];
+  string name = 2;
+}
+
+message ChannelsRequest {
+  string member = 1;
+}
+message ChannelsResponse {
+  repeated Channel channels = 1;
+}
+
+message ChannelCreateRequest {
+  string name = 1;
+  string member = 2;
+}
+message ChannelCreateResponse {
+  Channel channel = 1;
+}
+
+message ChannelInviteCreateRequest {
+  string channel = 1;  
+  string recipient = 2;
+  string sender = 3;
+}
+message ChannelInviteCreateResponse {}
+
+message ChannelInviteAcceptRequest {
+  string channel = 1;
+  string member = 2; 
+}
+message ChannelInviteAcceptResponse {}
 
 message AdminSignURLRequest {
   string signer = 1;
@@ -1012,3 +1006,65 @@ message ConfigSetRequest {
 }
 
 message ConfigSetResponse {}
+
+message RelayInput {}
+message RelayOutput {
+  string kid = 1 [(go.field) = {name: "KID"}];
+}
+
+message WormholeInput {  
+  string sender = 1;
+  string recipient = 2;
+  string invite = 3;
+    
+  string id = 10 [(go.field) = {name: "ID"}];
+  bytes data = 11;
+  ContentType type = 12;
+}
+
+enum WormholeStatus {
+  option (go.enum) = {name: "WormholeStatus"};
+
+  WORMHOLE_DEFAULT = 0 [(go.value) = {name: "WormholeDefault"}];
+  
+  // WormholeStarting if starting.
+  WORMHOLE_STARTING = 10 [(go.value) = {name: "WormholeStarting"}];
+  
+  // WormholeOffering if offering.
+  WORMHOLE_OFFERING = 20 [(go.value) = {name: "WormholeOffering"}];
+  // WormholeAnswering if answering.
+  WORMHOLE_ANSWERING = 21 [(go.value) = {name: "WormholeAnswering"}];
+
+  // WormholeHandshake if found offer/answer and trying to SCTP/Noise handshake.
+  WORMHOLE_HANDSHAKE = 40 [(go.value) = {name: "WormholeHandshake"}];
+  
+  // WormholeConnected if connected
+  WORMHOLE_CONNECTED = 100 [(go.value) = {name: "WormholeConnected"}];
+  // WormholeClosed if closed
+  WORMHOLE_CLOSED = 200 [(go.value) = {name: "WormholeClosed"}]; 
+}
+
+message WormholeMessage {
+  string id = 1 [(go.field) = {name: "ID"}];
+  
+  Key sender = 2;
+  Key recipient = 3;
+
+  WormholeMessageType type = 5;
+
+  Content content = 10;
+  int64 createdAt = 21;
+}
+
+message WormholeOutput {
+  WormholeMessage message = 1;
+  WormholeStatus status = 2;
+}
+
+enum WormholeMessageType {
+  option (go.enum) = {name: "WormholeMessageType"};
+
+  WORMHOLE_MESSAGE_SENT = 0 [(go.value) = {name: "WormholeMessageSent"}];
+  WORMHOLE_MESSAGE_PENDING = 1 [(go.value) = {name: "WormholeMessagePending"}];
+  WORMHOLE_MESSAGE_ACK = 2 [(go.value) = {name: "WormholeMessageAck"}];
+}

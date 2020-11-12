@@ -133,6 +133,15 @@ func fmtMessage(w io.Writer, msg *Message) {
 	fmt.Fprintf(w, "\n")
 }
 
+func fmtWormholeMessage(w io.Writer, msg *WormholeMessage) {
+	if msg == nil || msg.Content == nil || len(msg.Content.Data) == 0 {
+		return
+	}
+	fmt.Fprintf(w, "%s: ", identityForKey(msg.Sender))
+	fmtContent(w, msg.Content)
+	fmt.Fprintf(w, "\n")
+}
+
 func argString(c *cli.Context, name string, optional bool) (string, error) {
 	val := c.String(name)
 	if val != "" {

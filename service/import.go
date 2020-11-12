@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys-ext/vault"
+	"github.com/keys-pub/keys/api"
 )
 
 // TODO: Difference between pull and import is confusing?
@@ -15,7 +15,14 @@ func (s *service) KeyImport(ctx context.Context, req *KeyImportRequest) (*KeyImp
 	if err != nil {
 		return nil, err
 	}
-	vk := vault.NewKey(key, s.clock.Now())
+	vk := api.NewKey(key)
+	now := s.clock.Now()
+	if vk.CreatedAt.IsZero() {
+		vk.CreatedAt = now
+	}
+	if vk.UpdatedAt.IsZero() {
+		vk.UpdatedAt = now
+	}
 	out, _, err := s.vault.SaveKey(vk)
 	if err != nil {
 		return nil, err
@@ -39,7 +46,14 @@ func (s *service) importID(id keys.ID) error {
 	if key != nil {
 		return nil
 	}
-	vk := vault.NewKey(id, s.clock.Now())
+	vk := api.NewKey(id)
+	now := s.clock.Now()
+	if vk.CreatedAt.IsZero() {
+		vk.CreatedAt = now
+	}
+	if vk.UpdatedAt.IsZero() {
+		vk.UpdatedAt = now
+	}
 	if _, _, err := s.vault.SaveKey(vk); err != nil {
 		return err
 	}

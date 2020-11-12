@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/keys-pub/keys/dstore"
 	"github.com/stretchr/testify/require"
 )
 
@@ -26,7 +27,7 @@ func TestDocuments(t *testing.T) {
 	testUserSetupGithub(t, env, service, bob, "bob")
 	testPush(t, service, bob)
 
-	err = service.db.Set(ctx, "/test/key", []byte("testvalue"))
+	err = service.db.Set(ctx, "/test/key", dstore.Data([]byte("testvalue")))
 	require.NoError(t, err)
 
 	respCols, err := service.Collections(ctx, &CollectionsRequest{})

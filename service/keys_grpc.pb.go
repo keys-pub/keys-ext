@@ -66,27 +66,38 @@ type KeysClient interface {
 	RuntimeStatus(ctx context.Context, in *RuntimeStatusRequest, opts ...grpc.CallOption) (*RuntimeStatusResponse, error)
 	Rand(ctx context.Context, in *RandRequest, opts ...grpc.CallOption) (*RandResponse, error)
 	RandPassword(ctx context.Context, in *RandPasswordRequest, opts ...grpc.CallOption) (*RandPasswordResponse, error)
+	// Auth (edit)
 	AuthProvision(ctx context.Context, in *AuthProvisionRequest, opts ...grpc.CallOption) (*AuthProvisionResponse, error)
 	AuthDeprovision(ctx context.Context, in *AuthDeprovisionRequest, opts ...grpc.CallOption) (*AuthDeprovisionResponse, error)
 	AuthProvisions(ctx context.Context, in *AuthProvisionsRequest, opts ...grpc.CallOption) (*AuthProvisionsResponse, error)
 	AuthPasswordChange(ctx context.Context, in *AuthPasswordChangeRequest, opts ...grpc.CallOption) (*AuthPasswordChangeResponse, error)
+	// Vault
 	VaultAuth(ctx context.Context, in *VaultAuthRequest, opts ...grpc.CallOption) (*VaultAuthResponse, error)
 	VaultSync(ctx context.Context, in *VaultSyncRequest, opts ...grpc.CallOption) (*VaultSyncResponse, error)
 	VaultUnsync(ctx context.Context, in *VaultUnsyncRequest, opts ...grpc.CallOption) (*VaultUnsyncResponse, error)
 	VaultStatus(ctx context.Context, in *VaultStatusRequest, opts ...grpc.CallOption) (*VaultStatusResponse, error)
 	VaultUpdate(ctx context.Context, in *VaultUpdateRequest, opts ...grpc.CallOption) (*VaultUpdateResponse, error)
+	// DB
 	Collections(ctx context.Context, in *CollectionsRequest, opts ...grpc.CallOption) (*CollectionsResponse, error)
 	Documents(ctx context.Context, in *DocumentsRequest, opts ...grpc.CallOption) (*DocumentsResponse, error)
 	DocumentDelete(ctx context.Context, in *DocumentDeleteRequest, opts ...grpc.CallOption) (*DocumentDeleteResponse, error)
+	// Config
 	ConfigGet(ctx context.Context, in *ConfigGetRequest, opts ...grpc.CallOption) (*ConfigGetResponse, error)
 	ConfigSet(ctx context.Context, in *ConfigSetRequest, opts ...grpc.CallOption) (*ConfigSetResponse, error)
-	// Admin
-	AdminSignURL(ctx context.Context, in *AdminSignURLRequest, opts ...grpc.CallOption) (*AdminSignURLResponse, error)
-	AdminCheck(ctx context.Context, in *AdminCheckRequest, opts ...grpc.CallOption) (*AdminCheckResponse, error)
-	// Experimental
+	// Channels
+	Channels(ctx context.Context, in *ChannelsRequest, opts ...grpc.CallOption) (*ChannelsResponse, error)
+	ChannelCreate(ctx context.Context, in *ChannelCreateRequest, opts ...grpc.CallOption) (*ChannelCreateResponse, error)
+	ChannelInviteCreate(ctx context.Context, in *ChannelInviteCreateRequest, opts ...grpc.CallOption) (*ChannelInviteCreateResponse, error)
+	ChannelInviteAccept(ctx context.Context, in *ChannelInviteAcceptRequest, opts ...grpc.CallOption) (*ChannelInviteAcceptResponse, error)
+	// Messages
 	MessagePrepare(ctx context.Context, in *MessagePrepareRequest, opts ...grpc.CallOption) (*MessagePrepareResponse, error)
 	MessageCreate(ctx context.Context, in *MessageCreateRequest, opts ...grpc.CallOption) (*MessageCreateResponse, error)
 	Messages(ctx context.Context, in *MessagesRequest, opts ...grpc.CallOption) (*MessagesResponse, error)
+	// Admin
+	AdminSignURL(ctx context.Context, in *AdminSignURLRequest, opts ...grpc.CallOption) (*AdminSignURLResponse, error)
+	AdminCheck(ctx context.Context, in *AdminCheckRequest, opts ...grpc.CallOption) (*AdminCheckResponse, error)
+	// Relay
+	Relay(ctx context.Context, opts ...grpc.CallOption) (Keys_RelayClient, error)
 }
 
 type keysClient struct {
@@ -894,18 +905,36 @@ func (c *keysClient) ConfigSet(ctx context.Context, in *ConfigSetRequest, opts .
 	return out, nil
 }
 
-func (c *keysClient) AdminSignURL(ctx context.Context, in *AdminSignURLRequest, opts ...grpc.CallOption) (*AdminSignURLResponse, error) {
-	out := new(AdminSignURLResponse)
-	err := c.cc.Invoke(ctx, "/keys.Keys/AdminSignURL", in, out, opts...)
+func (c *keysClient) Channels(ctx context.Context, in *ChannelsRequest, opts ...grpc.CallOption) (*ChannelsResponse, error) {
+	out := new(ChannelsResponse)
+	err := c.cc.Invoke(ctx, "/keys.Keys/Channels", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *keysClient) AdminCheck(ctx context.Context, in *AdminCheckRequest, opts ...grpc.CallOption) (*AdminCheckResponse, error) {
-	out := new(AdminCheckResponse)
-	err := c.cc.Invoke(ctx, "/keys.Keys/AdminCheck", in, out, opts...)
+func (c *keysClient) ChannelCreate(ctx context.Context, in *ChannelCreateRequest, opts ...grpc.CallOption) (*ChannelCreateResponse, error) {
+	out := new(ChannelCreateResponse)
+	err := c.cc.Invoke(ctx, "/keys.Keys/ChannelCreate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *keysClient) ChannelInviteCreate(ctx context.Context, in *ChannelInviteCreateRequest, opts ...grpc.CallOption) (*ChannelInviteCreateResponse, error) {
+	out := new(ChannelInviteCreateResponse)
+	err := c.cc.Invoke(ctx, "/keys.Keys/ChannelInviteCreate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *keysClient) ChannelInviteAccept(ctx context.Context, in *ChannelInviteAcceptRequest, opts ...grpc.CallOption) (*ChannelInviteAcceptResponse, error) {
+	out := new(ChannelInviteAcceptResponse)
+	err := c.cc.Invoke(ctx, "/keys.Keys/ChannelInviteAccept", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -937,6 +966,55 @@ func (c *keysClient) Messages(ctx context.Context, in *MessagesRequest, opts ...
 		return nil, err
 	}
 	return out, nil
+}
+
+func (c *keysClient) AdminSignURL(ctx context.Context, in *AdminSignURLRequest, opts ...grpc.CallOption) (*AdminSignURLResponse, error) {
+	out := new(AdminSignURLResponse)
+	err := c.cc.Invoke(ctx, "/keys.Keys/AdminSignURL", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *keysClient) AdminCheck(ctx context.Context, in *AdminCheckRequest, opts ...grpc.CallOption) (*AdminCheckResponse, error) {
+	out := new(AdminCheckResponse)
+	err := c.cc.Invoke(ctx, "/keys.Keys/AdminCheck", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *keysClient) Relay(ctx context.Context, opts ...grpc.CallOption) (Keys_RelayClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[11], "/keys.Keys/Relay", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &keysRelayClient{stream}
+	return x, nil
+}
+
+type Keys_RelayClient interface {
+	Send(*RelayInput) error
+	Recv() (*RelayOutput, error)
+	grpc.ClientStream
+}
+
+type keysRelayClient struct {
+	grpc.ClientStream
+}
+
+func (x *keysRelayClient) Send(m *RelayInput) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *keysRelayClient) Recv() (*RelayOutput, error) {
+	m := new(RelayOutput)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 // KeysServer is the server API for Keys service.
@@ -992,27 +1070,38 @@ type KeysServer interface {
 	RuntimeStatus(context.Context, *RuntimeStatusRequest) (*RuntimeStatusResponse, error)
 	Rand(context.Context, *RandRequest) (*RandResponse, error)
 	RandPassword(context.Context, *RandPasswordRequest) (*RandPasswordResponse, error)
+	// Auth (edit)
 	AuthProvision(context.Context, *AuthProvisionRequest) (*AuthProvisionResponse, error)
 	AuthDeprovision(context.Context, *AuthDeprovisionRequest) (*AuthDeprovisionResponse, error)
 	AuthProvisions(context.Context, *AuthProvisionsRequest) (*AuthProvisionsResponse, error)
 	AuthPasswordChange(context.Context, *AuthPasswordChangeRequest) (*AuthPasswordChangeResponse, error)
+	// Vault
 	VaultAuth(context.Context, *VaultAuthRequest) (*VaultAuthResponse, error)
 	VaultSync(context.Context, *VaultSyncRequest) (*VaultSyncResponse, error)
 	VaultUnsync(context.Context, *VaultUnsyncRequest) (*VaultUnsyncResponse, error)
 	VaultStatus(context.Context, *VaultStatusRequest) (*VaultStatusResponse, error)
 	VaultUpdate(context.Context, *VaultUpdateRequest) (*VaultUpdateResponse, error)
+	// DB
 	Collections(context.Context, *CollectionsRequest) (*CollectionsResponse, error)
 	Documents(context.Context, *DocumentsRequest) (*DocumentsResponse, error)
 	DocumentDelete(context.Context, *DocumentDeleteRequest) (*DocumentDeleteResponse, error)
+	// Config
 	ConfigGet(context.Context, *ConfigGetRequest) (*ConfigGetResponse, error)
 	ConfigSet(context.Context, *ConfigSetRequest) (*ConfigSetResponse, error)
-	// Admin
-	AdminSignURL(context.Context, *AdminSignURLRequest) (*AdminSignURLResponse, error)
-	AdminCheck(context.Context, *AdminCheckRequest) (*AdminCheckResponse, error)
-	// Experimental
+	// Channels
+	Channels(context.Context, *ChannelsRequest) (*ChannelsResponse, error)
+	ChannelCreate(context.Context, *ChannelCreateRequest) (*ChannelCreateResponse, error)
+	ChannelInviteCreate(context.Context, *ChannelInviteCreateRequest) (*ChannelInviteCreateResponse, error)
+	ChannelInviteAccept(context.Context, *ChannelInviteAcceptRequest) (*ChannelInviteAcceptResponse, error)
+	// Messages
 	MessagePrepare(context.Context, *MessagePrepareRequest) (*MessagePrepareResponse, error)
 	MessageCreate(context.Context, *MessageCreateRequest) (*MessageCreateResponse, error)
 	Messages(context.Context, *MessagesRequest) (*MessagesResponse, error)
+	// Admin
+	AdminSignURL(context.Context, *AdminSignURLRequest) (*AdminSignURLResponse, error)
+	AdminCheck(context.Context, *AdminCheckRequest) (*AdminCheckResponse, error)
+	// Relay
+	Relay(Keys_RelayServer) error
 	mustEmbedUnimplementedKeysServer()
 }
 
@@ -1203,11 +1292,17 @@ func (*UnimplementedKeysServer) ConfigGet(context.Context, *ConfigGetRequest) (*
 func (*UnimplementedKeysServer) ConfigSet(context.Context, *ConfigSetRequest) (*ConfigSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ConfigSet not implemented")
 }
-func (*UnimplementedKeysServer) AdminSignURL(context.Context, *AdminSignURLRequest) (*AdminSignURLResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AdminSignURL not implemented")
+func (*UnimplementedKeysServer) Channels(context.Context, *ChannelsRequest) (*ChannelsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Channels not implemented")
 }
-func (*UnimplementedKeysServer) AdminCheck(context.Context, *AdminCheckRequest) (*AdminCheckResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AdminCheck not implemented")
+func (*UnimplementedKeysServer) ChannelCreate(context.Context, *ChannelCreateRequest) (*ChannelCreateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChannelCreate not implemented")
+}
+func (*UnimplementedKeysServer) ChannelInviteCreate(context.Context, *ChannelInviteCreateRequest) (*ChannelInviteCreateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChannelInviteCreate not implemented")
+}
+func (*UnimplementedKeysServer) ChannelInviteAccept(context.Context, *ChannelInviteAcceptRequest) (*ChannelInviteAcceptResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChannelInviteAccept not implemented")
 }
 func (*UnimplementedKeysServer) MessagePrepare(context.Context, *MessagePrepareRequest) (*MessagePrepareResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method MessagePrepare not implemented")
@@ -1217,6 +1312,15 @@ func (*UnimplementedKeysServer) MessageCreate(context.Context, *MessageCreateReq
 }
 func (*UnimplementedKeysServer) Messages(context.Context, *MessagesRequest) (*MessagesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Messages not implemented")
+}
+func (*UnimplementedKeysServer) AdminSignURL(context.Context, *AdminSignURLRequest) (*AdminSignURLResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdminSignURL not implemented")
+}
+func (*UnimplementedKeysServer) AdminCheck(context.Context, *AdminCheckRequest) (*AdminCheckResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdminCheck not implemented")
+}
+func (*UnimplementedKeysServer) Relay(Keys_RelayServer) error {
+	return status.Errorf(codes.Unimplemented, "method Relay not implemented")
 }
 func (*UnimplementedKeysServer) mustEmbedUnimplementedKeysServer() {}
 
@@ -2410,38 +2514,74 @@ func _Keys_ConfigSet_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Keys_AdminSignURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AdminSignURLRequest)
+func _Keys_Channels_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChannelsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(KeysServer).AdminSignURL(ctx, in)
+		return srv.(KeysServer).Channels(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/keys.Keys/AdminSignURL",
+		FullMethod: "/keys.Keys/Channels",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(KeysServer).AdminSignURL(ctx, req.(*AdminSignURLRequest))
+		return srv.(KeysServer).Channels(ctx, req.(*ChannelsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Keys_AdminCheck_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AdminCheckRequest)
+func _Keys_ChannelCreate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChannelCreateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(KeysServer).AdminCheck(ctx, in)
+		return srv.(KeysServer).ChannelCreate(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/keys.Keys/AdminCheck",
+		FullMethod: "/keys.Keys/ChannelCreate",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(KeysServer).AdminCheck(ctx, req.(*AdminCheckRequest))
+		return srv.(KeysServer).ChannelCreate(ctx, req.(*ChannelCreateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Keys_ChannelInviteCreate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChannelInviteCreateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KeysServer).ChannelInviteCreate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/keys.Keys/ChannelInviteCreate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KeysServer).ChannelInviteCreate(ctx, req.(*ChannelInviteCreateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Keys_ChannelInviteAccept_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChannelInviteAcceptRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KeysServer).ChannelInviteAccept(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/keys.Keys/ChannelInviteAccept",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KeysServer).ChannelInviteAccept(ctx, req.(*ChannelInviteAcceptRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2498,6 +2638,68 @@ func _Keys_Messages_Handler(srv interface{}, ctx context.Context, dec func(inter
 		return srv.(KeysServer).Messages(ctx, req.(*MessagesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _Keys_AdminSignURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdminSignURLRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KeysServer).AdminSignURL(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/keys.Keys/AdminSignURL",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KeysServer).AdminSignURL(ctx, req.(*AdminSignURLRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Keys_AdminCheck_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdminCheckRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KeysServer).AdminCheck(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/keys.Keys/AdminCheck",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KeysServer).AdminCheck(ctx, req.(*AdminCheckRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Keys_Relay_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(KeysServer).Relay(&keysRelayServer{stream})
+}
+
+type Keys_RelayServer interface {
+	Send(*RelayOutput) error
+	Recv() (*RelayInput, error)
+	grpc.ServerStream
+}
+
+type keysRelayServer struct {
+	grpc.ServerStream
+}
+
+func (x *keysRelayServer) Send(m *RelayOutput) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *keysRelayServer) Recv() (*RelayInput, error) {
+	m := new(RelayInput)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 var _Keys_serviceDesc = grpc.ServiceDesc{
@@ -2705,12 +2907,20 @@ var _Keys_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Keys_ConfigSet_Handler,
 		},
 		{
-			MethodName: "AdminSignURL",
-			Handler:    _Keys_AdminSignURL_Handler,
+			MethodName: "Channels",
+			Handler:    _Keys_Channels_Handler,
 		},
 		{
-			MethodName: "AdminCheck",
-			Handler:    _Keys_AdminCheck_Handler,
+			MethodName: "ChannelCreate",
+			Handler:    _Keys_ChannelCreate_Handler,
+		},
+		{
+			MethodName: "ChannelInviteCreate",
+			Handler:    _Keys_ChannelInviteCreate_Handler,
+		},
+		{
+			MethodName: "ChannelInviteAccept",
+			Handler:    _Keys_ChannelInviteAccept_Handler,
 		},
 		{
 			MethodName: "MessagePrepare",
@@ -2723,6 +2933,14 @@ var _Keys_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Messages",
 			Handler:    _Keys_Messages_Handler,
+		},
+		{
+			MethodName: "AdminSignURL",
+			Handler:    _Keys_AdminSignURL_Handler,
+		},
+		{
+			MethodName: "AdminCheck",
+			Handler:    _Keys_AdminCheck_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
@@ -2787,6 +3005,12 @@ var _Keys_serviceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Wormhole",
 			Handler:       _Keys_Wormhole_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "Relay",
+			Handler:       _Keys_Relay_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
 		},

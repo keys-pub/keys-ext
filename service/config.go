@@ -2,13 +2,12 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 
-	"github.com/keys-pub/keys/docs"
+	"github.com/keys-pub/keys/dstore"
 )
 
 func (s *service) ConfigGet(ctx context.Context, req *ConfigGetRequest) (*ConfigGetResponse, error) {
-	path := docs.Path("config", req.Name)
+	path := dstore.Path("config", req.Name)
 	doc, err := s.db.Get(ctx, path)
 	if err != nil {
 		return nil, err
@@ -18,7 +17,7 @@ func (s *service) ConfigGet(ctx context.Context, req *ConfigGetRequest) (*Config
 	}
 
 	var config Config
-	if err := json.Unmarshal(doc.Data, &config); err != nil {
+	if err := doc.To(&config); err != nil {
 		return nil, err
 	}
 
@@ -29,12 +28,8 @@ func (s *service) ConfigGet(ctx context.Context, req *ConfigGetRequest) (*Config
 
 func (s *service) ConfigSet(ctx context.Context, req *ConfigSetRequest) (*ConfigSetResponse, error) {
 	// TODO: Validate name
-	path := docs.Path("config", req.Name)
-	b, err := json.Marshal(req.Config)
-	if err != nil {
-		return nil, err
-	}
-	if err := s.db.Set(ctx, path, b); err != nil {
+	path := dstore.Path("config", req.Name)
+	if err := s.db.Set(ctx, path, dstore.From(req.Config)); err != nil {
 		return nil, err
 	}
 	return &ConfigSetResponse{}, nil

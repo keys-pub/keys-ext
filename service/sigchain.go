@@ -39,7 +39,16 @@ func statementFromRPC(st *Statement) (*keys.Statement, error) {
 	if err != nil {
 		return nil, err
 	}
-	return keys.NewUnverifiedStatement(st.Sig, st.Data, kid, int(st.Seq), st.Prev, int(st.Revoke), st.Type, ts)
+	return &keys.Statement{
+		Sig:       st.Sig,
+		Data:      st.Data,
+		KID:       kid,
+		Seq:       int(st.Seq),
+		Prev:      st.Prev,
+		Revoke:    int(st.Revoke),
+		Type:      st.Type,
+		Timestamp: ts,
+	}, nil
 }
 
 // statementsFromRPC converts Statement's to keys.Statement's.

@@ -2,22 +2,22 @@ package service
 
 import (
 	"context"
-	"encoding/json"
+	"fmt"
 	"sort"
-	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys-ext/http/client"
-	"github.com/keys-pub/keys/docs"
+	"github.com/keys-pub/keys/dstore"
+	"github.com/keys-pub/keys/dstore/events"
 	"github.com/keys-pub/keys/encoding"
-	"github.com/keys-pub/keys/saltpack"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
 )
 
 // MessagePrepare (RPC) prepares to create a message, the response can be used to show a pending message.
 func (s *service) MessagePrepare(ctx context.Context, req *MessagePrepareRequest) (*MessagePrepareResponse, error) {
-	message, prepareErr := s.messagePrepare(ctx, req.Sender, req.Recipient, req.Text)
+	message, prepareErr := s.messagePrepare(ctx, req.Sender, req.Channel, req.Text)
 	if prepareErr != nil {
 		return nil, prepareErr
 	}
@@ -28,7 +28,7 @@ func (s *service) MessagePrepare(ctx context.Context, req *MessagePrepareRequest
 
 // MessageCreate (RPC) creates a message for a recipient.
 func (s *service) MessageCreate(ctx context.Context, req *MessageCreateRequest) (*MessageCreateResponse, error) {
-	message, createErr := s.messageCreate(ctx, req.Sender, req.Recipient, req.Text)
+	message, createErr := s.messageCreate(ctx, req.Sender, req.Channel, req.Text)
 	if createErr != nil {
 		return nil, createErr
 	}
@@ -39,30 +39,28 @@ func (s *service) MessageCreate(ctx context.Context, req *MessageCreateRequest) 
 
 // Messages (RPC) lists messages.
 func (s *service) Messages(ctx context.Context, req *MessagesRequest) (*MessagesResponse, error) {
-	if req.Sender == "" {
-		return nil, errors.Errorf("no kid specified")
+	kid, err := keys.ParseID(req.Channel)
+	if err != nil {
+		return nil, errors.Wrapf(err, "invalid channel")
 	}
-	sender, err := s.lookup(ctx, req.Sender, nil)
+	channel, err := s.edx25519Key(kid)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get channel key")
+	}
+	mid, err := s.lookup(ctx, req.Member, nil)
 	if err != nil {
 		return nil, err
 	}
-	key, err := s.edx25519Key(sender)
+	member, err := s.edx25519Key(mid)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "failed to get sender key")
 	}
-	if req.Recipient == "" {
-		return nil, errors.Errorf("no recipient")
-	}
-	recipient, err := keys.ParseID(req.Recipient)
-	if err != nil {
+
+	if err := s.pullMessages(ctx, channel, member); err != nil {
 		return nil, err
 	}
 
-	if err := s.pullMessages(ctx, key, recipient); err != nil {
-		return nil, err
-	}
-
-	messages, err := s.messages(ctx, key, recipient)
+	messages, err := s.messages(ctx, channel)
 	if err != nil {
 		return nil, err
 	}
@@ -75,94 +73,86 @@ func (s *service) Messages(ctx context.Context, req *MessagesRequest) (*Messages
 // should then use messageCreate to save the message. This needs to be fast, so
 // the client can show the a pending message right away. Preparing before create
 // is optional.
-func (s *service) messagePrepare(ctx context.Context, sender string, recipient string, text string) (*Message, error) {
+func (s *service) messagePrepare(ctx context.Context, sender string, channel string, text string) (*Message, error) {
 	if sender == "" {
 		return nil, errors.Errorf("no sender specified")
 	}
-	kid, err := s.lookup(ctx, sender, nil)
+	if channel == "" {
+		return nil, errors.Errorf("no channel specified")
+	}
+
+	sid, err := s.lookup(ctx, sender, nil)
 	if err != nil {
 		return nil, err
 	}
-	key, err := s.edx25519Key(kid)
+	senderKey, err := s.key(ctx, sid)
 	if err != nil {
 		return nil, err
 	}
-	if recipient == "" {
-		return nil, errors.Errorf("no recipient specified")
-	}
-	_, err = keys.ParseID(recipient)
-	if err != nil {
-		return nil, err
+
+	if channel == "" {
+		return nil, errors.Errorf("no channel specified")
 	}
 
 	id := encoding.MustEncode(keys.RandBytes(32), encoding.Base62)
 	message := &Message{
-		ID: id,
+		ID:     id,
+		Sender: senderKey,
 		Content: &Content{
 			Data: []byte(text),
 			Type: UTF8Content,
 		},
+		CreatedAt: tsutil.Millis(s.clock.Now()),
 	}
 
-	if err := s.fillMessage(ctx, message, time.Now(), key.ID()); err != nil {
-		return nil, err
-	}
 	return message, nil
 }
 
-func (s *service) messageCreate(ctx context.Context, sender string, recipient string, text string) (*Message, error) {
-	if recipient == "" {
-		return nil, errors.Errorf("no recipient specified")
+func (s *service) messageCreate(ctx context.Context, sender string, channel string, text string) (*Message, error) {
+	if sender == "" {
+		return nil, errors.Errorf("no sender specified")
+	}
+	if channel == "" {
+		return nil, errors.Errorf("no channel specified")
 	}
 
-	kid, err := s.lookup(ctx, sender, nil)
+	sid, err := s.lookup(ctx, sender, nil)
 	if err != nil {
 		return nil, err
 	}
-	key, err := s.edx25519Key(kid)
+	senderKey, err := s.edx25519Key(sid)
 	if err != nil {
 		return nil, err
 	}
 
-	rid, err := keys.ParseID(recipient)
+	cid, err := keys.ParseID(channel)
+	if err != nil {
+		return nil, err
+	}
+	channelKey, err := s.edx25519Key(cid)
 	if err != nil {
 		return nil, err
 	}
 
 	// TODO: ID from prepare?
+	// TODO: Prev
 	id := encoding.MustEncode(keys.RandBytes(32), encoding.Base62)
-	message := &Message{
+	msg := &api.Message{
 		ID: id,
-		Content: &Content{
+		Content: &api.Content{
 			Data: []byte(text),
-			Type: UTF8Content,
+			Type: api.UTF8Content,
 		},
-	}
-	b, err := json.Marshal(message)
-	if err != nil {
-		return nil, err
+		Sender:    sid,
+		CreatedAt: s.clock.Now(),
 	}
 
-	event := client.NewEvent(docs.Path("msgs", id), b, nil)
-	if err := s.client.MessageSend(ctx, key, rid, event); err != nil { //, time.Hour*24)
+	if err := s.client.MessageSend(ctx, msg, senderKey, channelKey); err != nil {
 		return nil, err
 	}
 	// TODO: Sync to local
 
-	return message, nil
-}
-
-func (s *service) fillMessage(ctx context.Context, message *Message, t time.Time, sender keys.ID) error {
-	key, err := s.key(ctx, sender)
-	if err != nil {
-		return err
-	}
-
-	message.Sender = key
-	message.CreatedAt = tsutil.Millis(t)
-	message.TimeDisplay = timeDisplay(t)
-	message.DateDisplay = dateDisplay(t)
-	return nil
+	return s.messageToRPC(ctx, msg)
 }
 
 func (s *service) message(ctx context.Context, path string) (*Message, error) {
@@ -174,33 +164,54 @@ func (s *service) message(ctx context.Context, path string) (*Message, error) {
 		return nil, nil
 	}
 
-	decrypted, sender, err := saltpack.SigncryptOpen(doc.Data, false, s.vault)
+	var event events.Event
+	if err := doc.To(&event); err != nil {
+		return nil, err
+	}
+
+	msg, err := client.DecryptMessage(&event, s.vault)
 	if err != nil {
 		return nil, err
 	}
 
-	var message Message
-	if err := json.Unmarshal(decrypted, &message); err != nil {
-		return nil, err
-	}
-	createdAt := doc.CreatedAt
-	var kid keys.ID
-	if sender != nil {
-		kid = sender.ID()
-	}
-	if err := s.fillMessage(ctx, &message, createdAt, kid); err != nil {
-		return nil, err
-	}
-	return &message, nil
+	return s.messageToRPC(ctx, msg)
 }
 
-func (s *service) messages(ctx context.Context, key *keys.EdX25519Key, recipient keys.ID) ([]*Message, error) {
-	addr, err := keys.NewAddress(key.ID(), recipient)
+func (s *service) messageToRPC(ctx context.Context, msg *api.Message) (*Message, error) {
+	sender, err := s.key(ctx, msg.Sender)
 	if err != nil {
 		return nil, err
 	}
-	path := docs.Path("msgs", addr)
-	iter, iterErr := s.db.DocumentIterator(ctx, path, docs.NoData())
+	return &Message{
+		ID:        msg.ID,
+		Content:   contentToRPC(msg.Content),
+		Sender:    sender,
+		CreatedAt: tsutil.Millis(msg.CreatedAt),
+	}, nil
+}
+
+func contentToRPC(content *api.Content) *Content {
+	if content == nil {
+		return nil
+	}
+	return &Content{
+		Data: content.Data,
+		Type: contentTypeToRPC(content.Type),
+	}
+}
+
+func contentTypeToRPC(ct api.ContentType) ContentType {
+	switch ct {
+	case api.UTF8Content:
+		return UTF8Content
+	default:
+		return BinaryContent
+	}
+}
+
+func (s *service) messages(ctx context.Context, channel *keys.EdX25519Key) ([]*Message, error) {
+	path := dstore.Path("channel", channel.ID(), "msgs")
+	iter, iterErr := s.db.DocumentIterator(ctx, path, dstore.NoData())
 	if iterErr != nil {
 		return nil, iterErr
 	}
@@ -229,7 +240,54 @@ func (s *service) messages(ctx context.Context, key *keys.EdX25519Key, recipient
 	return messages, nil
 }
 
-func (s *service) pullMessages(ctx context.Context, key *keys.EdX25519Key, recipient keys.ID) error {
-	logger.Infof("Pull messages...")
-	return errors.Errorf("not implemented")
+type channelPullState struct {
+	Index int64
+}
+
+func (s *service) pullMessages(ctx context.Context, channel *keys.EdX25519Key, member *keys.EdX25519Key) error {
+	logger.Infof("Pull messages (%s)...", channel.ID())
+
+	// Get local channel state.
+	pullStatePath := dstore.Path("channel", channel.ID(), "pull")
+	doc, err := s.db.Get(ctx, pullStatePath)
+	if err != nil {
+		return err
+	}
+	var state channelPullState
+	if doc != nil {
+		if err := doc.To(&state); err != nil {
+			logger.Errorf("Invalid channel state: %v", err)
+		}
+	}
+
+	// Get messages.
+	logger.Infof("Pull state: %v", state)
+	events, next, err := s.client.Messages(ctx, channel, member, &client.MessagesOpts{Index: state.Index})
+	if err != nil {
+		return err
+	}
+	// TODO: If limit hit this doesn't get all messages
+
+	logger.Infof("Received %d messages", len(events))
+	for _, event := range events {
+		logger.Debugf("Saving message %d", event.Index)
+		path := dstore.Path("channel", channel.ID(), "msgs", pad(event.Index))
+		if err := s.db.Set(ctx, path, dstore.From(event)); err != nil {
+			return err
+		}
+	}
+
+	// Update state
+	state.Index = next
+	if err := s.db.Set(ctx, pullStatePath, dstore.From(state)); err != nil {
+		return err
+	}
+	return nil
+}
+
+func pad(n int64) string {
+	if n > 999999999999999 {
+		panic("int too large for padding")
+	}
+	return fmt.Sprintf("%015d", n)
 }

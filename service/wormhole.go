@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"io"
-	"time"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/wormhole"
@@ -32,7 +31,7 @@ func (s *service) wormholeInit(ctx context.Context, req *WormholeInput, wh *worm
 			return errors.Errorf("specify invite or sender/recipient")
 		}
 
-		invite, err := wh.FindInvite(ctx, req.Invite)
+		invite, err := wh.FindInviteCode(ctx, req.Invite)
 		if err != nil {
 			return err
 		}
@@ -110,7 +109,7 @@ func (s *service) wormholeInput(ctx context.Context, req *WormholeInput, wh *wor
 	if req.ID == "" {
 		return errors.Errorf("no message")
 	}
-	_, err := wh.WriteMessage(ctx, req.ID, req.Data, contentTypeFromRPC(req.Type))
+	_, err := wh.WriteMessage(ctx, req.ID, req.Data, wormholeContentTypeFromRPC(req.Type))
 	if err != nil {
 		return err
 	}
@@ -123,7 +122,7 @@ func (s *service) wormholeReadSend(ctx context.Context, wh *wormhole.Wormhole, s
 		return err
 	}
 
-	out, err := s.messageToRPC(ctx, msg)
+	out, err := s.wormholeMessageToRPC(ctx, msg)
 	if err != nil {
 		return err
 	}
@@ -149,7 +148,7 @@ func (s *service) Wormhole(srv Keys_WormholeServer) error {
 	init := false
 
 	wh.OnStatus(func(st wormhole.Status) {
-		rst := statusToRPC(st)
+		rst := wormholeStatusToRPC(st)
 		if rst == WormholeDefault {
 			return
 		}
@@ -212,7 +211,7 @@ func (s *service) Wormhole(srv Keys_WormholeServer) error {
 
 }
 
-func statusToRPC(st wormhole.Status) WormholeStatus {
+func wormholeStatusToRPC(st wormhole.Status) WormholeStatus {
 	switch st {
 	case wormhole.SCTPHandshake:
 		return WormholeHandshake
@@ -225,7 +224,7 @@ func statusToRPC(st wormhole.Status) WormholeStatus {
 	}
 }
 
-func contentTypeFromRPC(typ ContentType) wormhole.ContentType {
+func wormholeContentTypeFromRPC(typ ContentType) wormhole.ContentType {
 	switch typ {
 	case UTF8Content:
 		return wormhole.UTF8Content
@@ -234,21 +233,21 @@ func contentTypeFromRPC(typ ContentType) wormhole.ContentType {
 	}
 }
 
-func messageTypeToRPC(typ wormhole.MessageType) MessageType {
+func wormholeMessageTypeToRPC(typ wormhole.MessageType) WormholeMessageType {
 	switch typ {
 	case wormhole.Sent:
-		return MessageSent
+		return WormholeMessageSent
 	case wormhole.Pending:
-		return MessagePending
+		return WormholeMessagePending
 	case wormhole.Ack:
-		return MessageAck
+		return WormholeMessageAck
 	default:
 		// TODO:
-		return MessageSent
+		return WormholeMessageSent
 	}
 }
 
-func contentTypeToRPC(typ wormhole.ContentType) ContentType {
+func wormholeContentTypeToRPC(typ wormhole.ContentType) ContentType {
 	switch typ {
 	case wormhole.UTF8Content:
 		return UTF8Content
@@ -257,18 +256,20 @@ func contentTypeToRPC(typ wormhole.ContentType) ContentType {
 	}
 }
 
-func (s *service) messageToRPC(ctx context.Context, msg *wormhole.Message) (*Message, error) {
-	out := &Message{
+func (s *service) wormholeMessageToRPC(ctx context.Context, msg *wormhole.Message) (*WormholeMessage, error) {
+	sender, err := s.key(ctx, msg.Sender)
+	if err != nil {
+		return nil, err
+	}
+
+	out := &WormholeMessage{
 		ID: msg.ID,
 		Content: &Content{
 			Data: msg.Content.Data,
-			Type: contentTypeToRPC(msg.Content.Type),
+			Type: wormholeContentTypeToRPC(msg.Content.Type),
 		},
-		Type: messageTypeToRPC(msg.Type),
-	}
-
-	if err := s.fillMessage(ctx, out, time.Time{}, msg.Sender); err != nil {
-		return nil, err
+		Type:   wormholeMessageTypeToRPC(msg.Type),
+		Sender: sender,
 	}
 	return out, nil
 }
