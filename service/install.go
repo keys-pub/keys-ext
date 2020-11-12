@@ -62,18 +62,14 @@ func start(env *Env, wait bool) error {
 }
 
 func stop(env *Env) error {
+	if err := clearPID(env); err != nil {
+		return err
+	}
 	// TODO: This stops first process with keysd name
 	if err := stopProcess(env); err != nil {
+		// This can return errNotRunning
 		return err
 	}
-	pidPath, err := env.AppPath("pid", false)
-	if err != nil {
-		return err
-	}
-	if err := removeFile(pidPath); err != nil {
-		return err
-	}
-
 	return nil
 }
 

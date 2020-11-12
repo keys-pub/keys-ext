@@ -40,13 +40,24 @@ func autostart(env *Env) error {
 	return waitForStart(env)
 }
 
+func clearPID(env *Env) error {
+	pidPath, err := env.AppPath("pid", false)
+	if err != nil {
+		return err
+	}
+	if err := removeFile(pidPath); err != nil {
+		return err
+	}
+	return nil
+}
+
 func waitForStart(env *Env) error {
 	pidPath, err := env.AppPath("pid", false)
 	if err != nil {
 		return err
 	}
 	logger.Debugf("Waiting for pid: %s", pidPath)
-	_, perr := waitForPID(pidPath, nil, time.Second, 10*time.Second)
+	_, perr := waitForPID(pidPath, nil, time.Second, 20*time.Second)
 	if perr != nil {
 		return perr
 	}
