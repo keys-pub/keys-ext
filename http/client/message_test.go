@@ -51,6 +51,7 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	// Messages
 	msgs, idx, err := aliceClient.Messages(context.TODO(), channel, alice, nil)
 	require.NoError(t, err)
+	require.Equal(t, int64(0), idx)
 	require.Equal(t, 0, len(msgs))
 
 	// MessageSend #1
