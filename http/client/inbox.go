@@ -12,10 +12,10 @@ import (
 )
 
 // InboxChannels lists channels in inbox.
-func (c *Client) InboxChannels(ctx context.Context, key *keys.EdX25519Key) ([]*api.Channel, error) {
-	path := dstore.Path("inbox", key.ID(), "channels")
+func (c *Client) InboxChannels(ctx context.Context, inbox *keys.EdX25519Key) ([]*api.Channel, error) {
+	path := dstore.Path("inbox", inbox.ID(), "channels")
 	params := url.Values{}
-	resp, err := c.get(ctx, path, params, http.Authorization(key))
+	resp, err := c.get(ctx, path, params, http.Authorization(inbox))
 	if err != nil {
 		return nil, err
 	}
@@ -30,28 +30,46 @@ func (c *Client) InboxChannels(ctx context.Context, key *keys.EdX25519Key) ([]*a
 }
 
 // InboxChannelInvites ...
-func (c *Client) InboxChannelInvites(ctx context.Context, key *keys.EdX25519Key) ([]*api.ChannelInvite, error) {
-	path := dstore.Path("inbox", key.ID(), "invites")
+func (c *Client) InboxChannelInvites(ctx context.Context, inbox *keys.EdX25519Key) ([]*api.ChannelInvite, error) {
+	path := dstore.Path("inbox", inbox.ID(), "invites")
 	params := url.Values{}
-	resp, err := c.get(ctx, path, params, http.Authorization(key))
+	resp, err := c.get(ctx, path, params, http.Authorization(inbox))
 	if err != nil {
 		return nil, err
 	}
 	if resp == nil {
 		return nil, nil
 	}
-	var out api.ChannelInvitesResponse
+	var out api.InboxChannelInvitesResponse
 	if err := json.Unmarshal(resp.Data, &out); err != nil {
 		return nil, err
 	}
 	return out.Invites, nil
 }
 
+// InboxChannelInvite ...
+func (c *Client) InboxChannelInvite(ctx context.Context, inbox *keys.EdX25519Key, channel keys.ID) (*api.ChannelInvite, error) {
+	path := dstore.Path("inbox", inbox.ID(), "invite", channel)
+	params := url.Values{}
+	resp, err := c.get(ctx, path, params, http.Authorization(inbox))
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil {
+		return nil, nil
+	}
+	var out api.InboxChannelInviteResponse
+	if err := json.Unmarshal(resp.Data, &out); err != nil {
+		return nil, err
+	}
+	return out.Invite, nil
+}
+
 // ChannelInviteAccept accepts channel invite.
-func (c *Client) ChannelInviteAccept(ctx context.Context, recipient *keys.EdX25519Key, channel *keys.EdX25519Key) error {
-	path := dstore.Path("inbox", recipient.ID(), "invite", channel.ID(), "accept")
+func (c *Client) ChannelInviteAccept(ctx context.Context, inbox *keys.EdX25519Key, channel *keys.EdX25519Key) error {
+	path := dstore.Path("inbox", inbox.ID(), "invite", channel.ID(), "accept")
 	auth := http.AuthKeys(
-		http.NewAuthKey("Authorization", recipient),
+		http.NewAuthKey("Authorization", inbox),
 		http.NewAuthKey("Authorization-Channel", channel),
 	)
 	params := url.Values{}

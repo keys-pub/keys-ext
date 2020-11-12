@@ -21,7 +21,7 @@ import (
 
 // MessageSend posts an encrypted message.
 // TODO: expire time.Duration
-func (c *Client) MessageSend(ctx context.Context, sender *keys.EdX25519Key, channel *keys.EdX25519Key, message *api.Message) error {
+func (c *Client) MessageSend(ctx context.Context, message *api.Message, sender *keys.EdX25519Key, channel *keys.EdX25519Key) error {
 	// if expire == time.Duration(0) {
 	// 	return errors.Errorf("no expire specified")
 	// }
@@ -37,11 +37,8 @@ func (c *Client) MessageSend(ctx context.Context, sender *keys.EdX25519Key, chan
 	if message.Sender != "" && message.Sender != sender.ID() {
 		return errors.Errorf("message sender mismatch")
 	}
-	b, err := msgpack.Marshal(message)
-	if err != nil {
-		return err
-	}
-	encrypted, err := saltpack.Signcrypt(b, false, sender, channel.ID())
+
+	encrypted, err := EncryptMessage(message, sender, channel.ID())
 	if err != nil {
 		return err
 	}
@@ -71,14 +68,15 @@ type MessagesOpts struct {
 	Limit int
 }
 
-// Messages returns encrypted messages.
-// To decrypt a message, use Client#MessageDecrypt.
+// Messages returns encrypted messages, from index.
+// Returns messages (as event.Event) with the current index.
+// To decrypt to api.Message, use DecryptMessage.
 func (c *Client) Messages(ctx context.Context, channel *keys.EdX25519Key, sender *keys.EdX25519Key, opts *MessagesOpts) ([]*events.Event, int64, error) {
-	path := dstore.Path("channel", channel.ID(), "msgs")
 	if opts == nil {
 		opts = &MessagesOpts{}
 	}
 
+	path := dstore.Path("channel", channel.ID(), "msgs")
 	params := url.Values{}
 	params.Add("include", "md")
 	if opts.Index != 0 {
@@ -114,15 +112,28 @@ func (c *Client) Messages(ctx context.Context, channel *keys.EdX25519Key, sender
 	return out.Messages, out.Index, nil
 }
 
-// MessageDecrypt decrypts a remote Event from Messages.
-func (c *Client) MessageDecrypt(event *events.Event, kr saltpack.Keyring) (*api.Message, error) {
-	decrypted, pk, err := saltpack.SigncryptOpen(event.Data, false, kr)
+// EncryptMessage encrypts a message.
+func EncryptMessage(message *api.Message, sender *keys.EdX25519Key, channel keys.ID) ([]byte, error) {
+	b, err := msgpack.Marshal(message)
 	if err != nil {
 		return nil, err
 	}
+	encrypted, err := saltpack.Signcrypt(b, false, sender, channel.ID())
+	if err != nil {
+		return nil, err
+	}
+	return encrypted, nil
+}
+
+// DecryptMessage decrypts a remote Event from Messages.
+func DecryptMessage(event *events.Event, kr saltpack.Keyring) (*api.Message, error) {
+	decrypted, pk, err := saltpack.SigncryptOpen(event.Data, false, kr)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to decrypt message")
+	}
 	var message api.Message
 	if err := msgpack.Unmarshal(decrypted, &message); err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "failed to unmarshal message")
 	}
 	message.Sender = pk.ID()
 	message.RemoteIndex = event.Index

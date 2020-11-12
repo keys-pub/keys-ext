@@ -42,7 +42,7 @@ func testChannel(t *testing.T, env *env, tk testKeys) {
 	require.NoError(t, err)
 	require.Nil(t, notFound)
 
-	info := &api.ChannelInfo{CID: channel.ID(), Name: "test channel name"}
+	info := &api.ChannelInfo{Channel: channel.ID(), Name: "test channel name"}
 	err = aliceClient.ChannelInfoSet(context.TODO(), channel, alice, info)
 	require.NoError(t, err)
 
@@ -51,7 +51,7 @@ func testChannel(t *testing.T, env *env, tk testKeys) {
 	info.Sender = alice.ID()
 	require.Equal(t, info, out)
 
-	err = aliceClient.ChannelInvite(context.TODO(), channel, alice, bob.ID())
+	err = aliceClient.InviteToChannel(context.TODO(), channel, alice, bob.ID())
 	require.NoError(t, err)
 
 	invites, err := aliceClient.ChannelInvites(context.TODO(), channel, alice)
@@ -59,5 +59,5 @@ func testChannel(t *testing.T, env *env, tk testKeys) {
 	require.Equal(t, 1, len(invites))
 	require.Equal(t, bob.ID(), invites[0].Recipient)
 	require.Equal(t, alice.ID(), invites[0].Sender)
-	require.Equal(t, channel.ID(), invites[0].CID)
+	require.Equal(t, channel.ID(), invites[0].Channel)
 }
