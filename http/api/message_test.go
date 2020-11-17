@@ -17,25 +17,30 @@ func TestMessageMarshal(t *testing.T) {
 	msg := &api.Message{
 		ID:   "2",
 		Prev: "1",
-		Content: &api.Content{
-			Data: []byte("hi alice"),
-			Type: api.UTF8Content,
-		},
-		CreatedAt: clock.Now(),
+		Text: "hi alice",
 
+		ChannelInfo: &api.ChannelInfo{
+			Name:        "test channel",
+			Description: "A test channel.",
+		},
+
+		Timestamp: clock.NowMillis(),
+
+		// Non-marshalled fields
 		Sender:          keys.ID("test"),
 		RemoteIndex:     3,
-		RemoteTimestamp: clock.Now(),
+		RemoteTimestamp: clock.NowMillis(),
 	}
 
 	b, err := msgpack.Marshal(msg)
 	require.NoError(t, err)
-	expected := `([]uint8) (len=67 cap=136) {
- 00000000  84 a2 69 64 a1 32 a4 70  72 65 76 a1 31 a7 63 6f  |..id.2.prev.1.co|
- 00000010  6e 74 65 6e 74 82 a4 64  61 74 61 c4 08 68 69 20  |ntent..data..hi |
- 00000020  61 6c 69 63 65 a4 74 79  70 65 a4 75 74 66 38 a9  |alice.type.utf8.|
- 00000030  63 72 65 61 74 65 64 41  74 d7 ff 00 3d 09 00 49  |createdAt...=..I|
- 00000040  96 02 d2                                          |...|
+	expected := `([]uint8) (len=91 cap=140) {
+ 00000000  85 a2 69 64 a1 32 a4 70  72 65 76 a1 31 a2 74 73  |..id.2.prev.1.ts|
+ 00000010  d3 00 00 01 1f 71 fb 04  51 a4 74 65 78 74 a8 68  |.....q..Q.text.h|
+ 00000020  69 20 61 6c 69 63 65 ab  63 68 61 6e 6e 65 6c 49  |i alice.channelI|
+ 00000030  6e 66 6f 82 a4 6e 61 6d  65 ac 74 65 73 74 20 63  |nfo..name.test c|
+ 00000040  68 61 6e 6e 65 6c a4 64  65 73 63 af 41 20 74 65  |hannel.desc.A te|
+ 00000050  73 74 20 63 68 61 6e 6e  65 6c 2e                 |st channel.|
 }
 `
 	require.Equal(t, expected, spew.Sdump(b))
@@ -45,11 +50,12 @@ func TestMessageMarshal(t *testing.T) {
 	expected = `{
   "id": "2",
   "prev": "1",
-  "content": {
-    "data": "aGkgYWxpY2U=",
-    "type": "utf8"
-  },
-  "createdAt": "2009-02-13T23:31:30.001Z"
+  "ts": 1234567890001,
+  "text": "hi alice",
+  "channelInfo": {
+    "name": "test channel",
+    "desc": "A test channel."
+  }
 }`
 	require.Equal(t, expected, string(b))
 }

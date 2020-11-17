@@ -9,6 +9,10 @@ import (
 // Channel ...
 type Channel struct {
 	ID keys.ID `json:"id" msgpack:"id"`
+
+	Creator   keys.ID `json:"creator,omitempty" msgpack:"creator,omitempty"`
+	Index     int64   `json:"idx,omitempty" msgpack:"idx,omitempty"`
+	Timestamp int64   `json:"ts,omitempty" msgpack:"ts,omitempty"`
 }
 
 // ChannelInvite provides an encrypted key to a recipient.
@@ -17,6 +21,12 @@ type ChannelInvite struct {
 	Recipient    keys.ID `json:"recipient" msgpack:"recipient"`
 	Sender       keys.ID `json:"member" msgpack:"member"`
 	EncryptedKey []byte  `json:"k" msgpack:"k"` // Encrypted api.Key to recipient
+}
+
+// ChannelInfo for channel.
+type ChannelInfo struct {
+	Name        string `json:"name,omitempty" msgpack:"name,omitempty"`
+	Description string `json:"desc,omitempty" msgpack:"desc,omitempty"`
 }
 
 // Key decrypted by recipient.
@@ -36,18 +46,10 @@ func (i *ChannelInvite) Key(recipient *keys.EdX25519Key) (*keys.EdX25519Key, key
 	return sk, from, nil
 }
 
-// ChannelInfo is encrypted by clients.
-type ChannelInfo struct {
-	Channel keys.ID `json:"channel" msgpack:"channel"`
-	Name    string  `json:"name,omitempty" msgpack:"name,omitempty"`
-
-	Sender keys.ID `json:"-" msgpack:"-"` // Sender set by decryption
-}
-
 // ChannelMember ...
 type ChannelMember struct {
-	Member  keys.ID `json:"member" msgpack:"member"`
 	Channel keys.ID `json:"channel" msgpack:"channel"`
+	Member  keys.ID `json:"member" msgpack:"member"`
 	From    keys.ID `json:"from" msgpack:"from"`
 }
 
