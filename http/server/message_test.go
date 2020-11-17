@@ -60,7 +60,6 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	require.Equal(t, http.StatusForbidden, code)
 
 	// PUT /channel/:cid
-	contentHash = http.ContentHash(content)
 	req, err = http.NewAuthRequest("PUT", dstore.Path("channel", channel.ID()), nil, "", clock.Now(), aliceChannel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
