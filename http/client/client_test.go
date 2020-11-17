@@ -75,9 +75,6 @@ func newEnvWithOptions(t *testing.T, opts *envOptions) (*env, func()) {
 	tasks := server.NewTestTasks(srv)
 	srv.SetTasks(tasks)
 	srv.SetInternalAuth("testtoken")
-	srv.SetAccessFn(func(c server.AccessContext, resource server.AccessResource, action server.AccessAction) server.Access {
-		return server.AccessAllow()
-	})
 
 	handler := server.NewHandler(srv)
 	if opts.handlerFn != nil {

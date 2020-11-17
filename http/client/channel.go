@@ -11,9 +11,6 @@ import (
 	kapi "github.com/keys-pub/keys/api"
 	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/http"
-	"github.com/keys-pub/keys/saltpack"
-	"github.com/pkg/errors"
-	"github.com/vmihailenco/msgpack/v4"
 )
 
 // ChannelCreate creates a channel.
@@ -30,82 +27,30 @@ func (c *Client) ChannelCreate(ctx context.Context, channel *keys.EdX25519Key, m
 	return nil
 }
 
-// ChannelInfoSet sets channel info.
-func (c *Client) ChannelInfoSet(ctx context.Context, channel *keys.EdX25519Key, member *keys.EdX25519Key, info *api.ChannelInfo) error {
-	if info.Channel != channel.ID() {
-		return errors.Errorf("channel info invalid")
-	}
-	path := dstore.Path("channel", channel.ID(), "info")
-	auth := http.AuthKeys(
-		http.NewAuthKey("Authorization", member),
-		http.NewAuthKey("Authorization-Channel", channel),
-	)
-	params := url.Values{}
-	b, err := msgpack.Marshal(info)
-	if err != nil {
-		return err
-	}
-	encrypted, err := saltpack.Signcrypt(b, false, member, channel.ID())
-	if err != nil {
-		return err
-	}
-	contentHash := http.ContentHash(encrypted)
-	if _, err := c.put(ctx, path, params, bytes.NewReader(encrypted), contentHash, auth); err != nil {
-		return err
-	}
-	return nil
-}
-
-// ChannelInfo gets channel info.
-func (c *Client) ChannelInfo(ctx context.Context, channel *keys.EdX25519Key, member *keys.EdX25519Key) (*api.ChannelInfo, error) {
-	path := dstore.Path("channel", channel.ID(), "info")
-	auth := http.AuthKeys(
-		http.NewAuthKey("Authorization", member),
-		http.NewAuthKey("Authorization-Channel", channel),
-	)
-	params := url.Values{}
-	resp, err := c.get(ctx, path, params, auth)
-	if err != nil {
-		return nil, err
-	}
-	if resp == nil {
-		return nil, nil
-	}
-	b, pk, err := saltpack.SigncryptOpen(resp.Data, false, saltpack.NewKeyring(channel))
-	if err != nil {
-		return nil, err
-	}
-	var info api.ChannelInfo
-	if err := msgpack.Unmarshal(b, &info); err != nil {
-		return nil, err
-	}
-	if pk != nil {
-		info.Sender = pk.ID()
-	}
-	return &info, nil
-}
-
 // InviteToChannel invites a recipient to a channel from an existing member.
-func (c *Client) InviteToChannel(ctx context.Context, channel *keys.EdX25519Key, member *keys.EdX25519Key, recipient keys.ID) error {
-	path := dstore.Path("channel", channel.ID(), "invite")
+func (c *Client) InviteToChannel(ctx context.Context, channel *keys.EdX25519Key, member *keys.EdX25519Key, recipients ...keys.ID) error {
+	path := dstore.Path("channel", channel.ID(), "invites")
 	auth := http.AuthKeys(
 		http.NewAuthKey("Authorization", member),
 		http.NewAuthKey("Authorization-Channel", channel),
 	)
+	invites := make([]*api.ChannelInvite, 0, len(recipients))
+	for _, recipient := range recipients {
+		encryptedKey, err := kapi.EncryptKey(kapi.NewKey(channel), member, recipient)
+		if err != nil {
+			return err
+		}
 
-	encryptedKey, err := kapi.EncryptKey(kapi.NewKey(channel), member, recipient)
-	if err != nil {
-		return err
+		invite := &api.ChannelInvite{
+			Channel:      channel.ID(),
+			Recipient:    recipient,
+			Sender:       member.ID(),
+			EncryptedKey: encryptedKey,
+		}
+		invites = append(invites, invite)
 	}
 
-	invite := &api.ChannelInvite{
-		Channel:      channel.ID(),
-		Recipient:    recipient,
-		Sender:       member.ID(),
-		EncryptedKey: encryptedKey,
-	}
-
-	b, err := json.Marshal(invite)
+	b, err := json.Marshal(invites)
 	if err != nil {
 		return err
 	}

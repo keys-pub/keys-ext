@@ -70,9 +70,8 @@ func (c *Client) VaultSend(ctx context.Context, key *keys.EdX25519Key, events []
 	if err != nil {
 		return err
 	}
-	contentHash := http.ContentHash(b)
 
-	if _, err := c.post(ctx, path, vals, bytes.NewReader(b), contentHash, http.Authorization(key)); err != nil {
+	if _, err := c.post(ctx, path, vals, bytes.NewReader(b), http.ContentHash(b), http.Authorization(key)); err != nil {
 		return err
 	}
 	return nil

@@ -33,12 +33,11 @@ func (c *Client) DiscoSave(ctx context.Context, sender *keys.EdX25519Key, recipi
 	}
 
 	encrypted := keys.BoxSeal([]byte(data), recipientKey, sender.X25519Key())
-	contentHash := http.ContentHash(encrypted)
 
 	path := dstore.Path("disco", sender.ID(), recipient, string(typ))
 	vals := url.Values{}
 	vals.Set("expire", expire.String())
-	if _, err := c.put(ctx, path, vals, bytes.NewReader(encrypted), contentHash, http.Authorization(sender)); err != nil {
+	if _, err := c.put(ctx, path, vals, bytes.NewReader(encrypted), http.ContentHash(encrypted), http.Authorization(sender)); err != nil {
 		return err
 	}
 	return nil

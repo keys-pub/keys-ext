@@ -14,7 +14,6 @@ import (
 	"github.com/keys-pub/keys/dstore/events"
 	"github.com/keys-pub/keys/http"
 	"github.com/keys-pub/keys/saltpack"
-	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
 	"github.com/vmihailenco/msgpack/v4"
 )
@@ -25,14 +24,14 @@ func (c *Client) MessageSend(ctx context.Context, message *api.Message, sender *
 	// if expire == time.Duration(0) {
 	// 	return errors.Errorf("no expire specified")
 	// }
-	if !message.RemoteTimestamp.IsZero() {
+	if message.RemoteTimestamp != 0 {
 		return errors.Errorf("remote timestamp should be omitted on send")
 	}
 	if message.RemoteIndex != 0 {
 		return errors.Errorf("remote index should be omitted on send")
 	}
-	if message.CreatedAt.IsZero() {
-		return errors.Errorf("message.createdAt is not set")
+	if message.Timestamp == 0 {
+		return errors.Errorf("message timestamp is not set")
 	}
 	if message.Sender != "" && message.Sender != sender.ID() {
 		return errors.Errorf("message sender mismatch")
@@ -42,7 +41,6 @@ func (c *Client) MessageSend(ctx context.Context, message *api.Message, sender *
 	if err != nil {
 		return err
 	}
-	contentHash := http.ContentHash(encrypted)
 
 	path := dstore.Path("channel", channel.ID(), "msgs")
 	auth := http.AuthKeys(
@@ -52,7 +50,7 @@ func (c *Client) MessageSend(ctx context.Context, message *api.Message, sender *
 
 	vals := url.Values{}
 	// vals.Set("expire", expire.String())
-	if _, err := c.post(ctx, path, vals, bytes.NewReader(encrypted), contentHash, auth); err != nil {
+	if _, err := c.post(ctx, path, vals, bytes.NewReader(encrypted), http.ContentHash(encrypted), auth); err != nil {
 		return err
 	}
 	return nil
@@ -68,8 +66,10 @@ type MessagesOpts struct {
 	Limit int
 }
 
-// Messages returns encrypted messages, from index.
-// Returns messages (as event.Event) with the current index.
+// Messages returns encrypted messages (as event.Event) and current index from a
+// previous index.
+// This may not return all messages if a server limit is hit, if you call this
+// and no messages are returned, the end was encountered.
 // To decrypt to api.Message, use DecryptMessage.
 func (c *Client) Messages(ctx context.Context, channel *keys.EdX25519Key, sender *keys.EdX25519Key, opts *MessagesOpts) ([]*events.Event, int64, error) {
 	if opts == nil {
@@ -78,7 +78,6 @@ func (c *Client) Messages(ctx context.Context, channel *keys.EdX25519Key, sender
 
 	path := dstore.Path("channel", channel.ID(), "msgs")
 	params := url.Values{}
-	params.Add("include", "md")
 	if opts.Index != 0 {
 		params.Add("idx", strconv.FormatInt(opts.Index, 10))
 	}
@@ -88,8 +87,6 @@ func (c *Client) Messages(ctx context.Context, channel *keys.EdX25519Key, sender
 	if opts.Limit != 0 {
 		params.Add("limit", fmt.Sprintf("%d", opts.Limit))
 	}
-
-	// TODO: What if we hit limit, we won't have all the messages
 
 	auth := http.AuthKeys(
 		http.NewAuthKey("Authorization", sender),
@@ -137,6 +134,6 @@ func DecryptMessage(event *events.Event, kr saltpack.Keyring) (*api.Message, err
 	}
 	message.Sender = pk.ID()
 	message.RemoteIndex = event.Index
-	message.RemoteTimestamp = tsutil.ConvertMillis(event.Timestamp)
+	message.RemoteTimestamp = event.Timestamp
 	return &message, nil
 }

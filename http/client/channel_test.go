@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/stretchr/testify/require"
@@ -37,19 +36,6 @@ func testChannel(t *testing.T, env *env, tk testKeys) {
 
 	err := aliceClient.ChannelCreate(context.TODO(), channel, alice)
 	require.NoError(t, err)
-
-	notFound, err := aliceClient.ChannelInfo(context.TODO(), channel, alice)
-	require.NoError(t, err)
-	require.Nil(t, notFound)
-
-	info := &api.ChannelInfo{Channel: channel.ID(), Name: "test channel name"}
-	err = aliceClient.ChannelInfoSet(context.TODO(), channel, alice, info)
-	require.NoError(t, err)
-
-	out, err := aliceClient.ChannelInfo(context.TODO(), channel, alice)
-	require.NoError(t, err)
-	info.Sender = alice.ID()
-	require.Equal(t, info, out)
 
 	err = aliceClient.InviteToChannel(context.TODO(), channel, alice, bob.ID())
 	require.NoError(t, err)

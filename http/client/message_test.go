@@ -55,12 +55,12 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	require.Equal(t, 0, len(msgs))
 
 	// MessageSend #1
-	msg1 := &api.Message{ID: "1", Content: &api.Content{Data: []byte("hi alice"), Type: api.UTF8Content}, CreatedAt: env.clock.Now()}
+	msg1 := &api.Message{ID: "1", Text: "hi bob", Timestamp: env.clock.NowMillis()}
 	err = aliceClient.MessageSend(context.TODO(), msg1, alice, channel)
 	require.NoError(t, err)
 
 	// MessageSend #2
-	msg2 := &api.Message{ID: "2", Prev: "1", Content: &api.Content{Data: []byte("what time we meeting?"), Type: api.UTF8Content}, CreatedAt: env.clock.Now()}
+	msg2 := &api.Message{ID: "2", Prev: "1", Text: "what time we meeting?", Timestamp: env.clock.NowMillis()}
 	err = bobClient.MessageSend(context.TODO(), msg2, bob, channel)
 	require.NoError(t, err)
 
@@ -70,17 +70,17 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	require.Equal(t, 2, len(msgs))
 	out1, err := client.DecryptMessage(msgs[0], saltpack.NewKeyring(channel))
 	require.NoError(t, err)
-	require.Equal(t, msg1.Content.Data, out1.Content.Data)
+	require.Equal(t, msg1.Text, out1.Text)
 	require.Equal(t, alice.ID(), out1.Sender)
 	out2, err := client.DecryptMessage(msgs[1], saltpack.NewKeyring(channel))
 	require.NoError(t, err)
-	require.Equal(t, msg2.Content.Data, out2.Content.Data)
+	require.Equal(t, msg2.Text, out2.Text)
 	require.Equal(t, bob.ID(), out2.Sender)
 	require.NotEmpty(t, msgs[0].Timestamp)
 	require.NotEmpty(t, msgs[0].Index)
 
 	// MessageSend #3
-	msg3 := &api.Message{ID: "3", Prev: "2", Content: &api.Content{Data: []byte("3pm"), Type: api.UTF8Content}, CreatedAt: env.clock.Now()}
+	msg3 := &api.Message{ID: "3", Prev: "2", Text: "3pm", Timestamp: env.clock.NowMillis()}
 	err = aliceClient.MessageSend(context.TODO(), msg3, alice, channel)
 	require.NoError(t, err)
 
@@ -90,7 +90,7 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	require.Equal(t, 1, len(msgs))
 	out3, err := client.DecryptMessage(msgs[0], saltpack.NewKeyring(channel))
 	require.NoError(t, err)
-	require.Equal(t, msg3.Content.Data, out3.Content.Data)
+	require.Equal(t, msg3.Text, out3.Text)
 	require.Equal(t, alice.ID(), out3.Sender)
 
 	// Messages (desc)
@@ -99,13 +99,13 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	require.Equal(t, 3, len(msgs))
 	out1, err = client.DecryptMessage(msgs[0], saltpack.NewKeyring(channel))
 	require.NoError(t, err)
-	require.Equal(t, msg3.Content.Data, out1.Content.Data)
+	require.Equal(t, msg3.Text, out1.Text)
 	out2, err = client.DecryptMessage(msgs[1], saltpack.NewKeyring(channel))
 	require.NoError(t, err)
-	require.Equal(t, msg2.Content.Data, out2.Content.Data)
+	require.Equal(t, msg2.Text, out2.Text)
 	out3, err = client.DecryptMessage(msgs[2], saltpack.NewKeyring(channel))
 	require.NoError(t, err)
-	require.Equal(t, msg1.Content.Data, out3.Content.Data)
+	require.Equal(t, msg1.Text, out3.Text)
 
 	// Unknown channel
 	unknown := keys.GenerateEdX25519Key()

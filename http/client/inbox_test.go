@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/stretchr/testify/require"
 )
@@ -39,4 +40,18 @@ func testInbox(t *testing.T, env *env, tk testKeys) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(channels))
 	require.Equal(t, channel.ID(), channels[0].ID)
+	require.Equal(t, int64(0), channels[0].Index)
+	// require.Equal(t, int64(0), channels[0].Timestamp)
+
+	// MessageSend #1
+	msg1 := &api.Message{ID: "1", Text: "hi bob", Timestamp: env.clock.NowMillis()}
+	err = aliceClient.MessageSend(context.TODO(), msg1, alice, channel)
+	require.NoError(t, err)
+
+	channels, err = aliceClient.InboxChannels(context.TODO(), alice)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(channels))
+	require.Equal(t, channel.ID(), channels[0].ID)
+	require.Equal(t, int64(1), channels[0].Index)
+	// require.Equal(t, int64(1234567890016), channels[0].Timestamp)
 }

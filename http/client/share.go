@@ -14,12 +14,11 @@ import (
 // ShareSeal saves a secret on remote with expire.
 func (c *Client) ShareSeal(ctx context.Context, key *keys.EdX25519Key, data []byte, expire time.Duration) error {
 	encrypted := keys.BoxSeal(data, key.X25519Key().PublicKey(), key.X25519Key())
-	contentHash := http.ContentHash(encrypted)
 
 	path := dstore.Path("share", key.ID())
 	vals := url.Values{}
 	vals.Set("expire", expire.String())
-	if _, err := c.put(ctx, path, vals, bytes.NewReader(encrypted), contentHash, http.Authorization(key)); err != nil {
+	if _, err := c.put(ctx, path, vals, bytes.NewReader(encrypted), http.ContentHash(encrypted), http.Authorization(key)); err != nil {
 		return err
 	}
 	return nil
