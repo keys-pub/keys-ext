@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *Server) events(c echo.Context, path string) (*api.EventsResponse, error) {
+func (s *Server) events(c echo.Context, path string, max int64) (*api.EventsResponse, error) {
 	request := c.Request()
 	ctx := request.Context()
 
@@ -29,6 +29,10 @@ func (s *Server) events(c echo.Context, path string) (*api.EventsResponse, error
 			return nil, ErrResponse(c, http.StatusBadRequest, errors.Wrapf(err, "invalid limit"))
 		}
 		limit = n
+	}
+
+	if limit == 0 || limit > max {
+		limit = max
 	}
 
 	pdir := c.QueryParam("dir")

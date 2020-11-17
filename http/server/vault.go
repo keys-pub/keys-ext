@@ -32,20 +32,20 @@ func (s *Server) listVault(c echo.Context) error {
 		return ErrNotFound(c, errVaultDeleted)
 	}
 
-	cpath := dstore.Path("vaults", auth.KID)
-	eresp, err := s.events(c, cpath)
+	path := dstore.Path("vaults", auth.KID)
+	resp, err := s.events(c, path, 1000)
 	if err != nil {
 		return err
 	}
-	if len(eresp.Events) == 0 && eresp.Index == 0 {
+	if len(resp.Events) == 0 && resp.Index == 0 {
 		return ErrNotFound(c, errVaultNotFound)
 	}
 
-	resp := &api.VaultResponse{
-		Vault: eresp.Events,
-		Index: eresp.Index,
+	out := &api.VaultResponse{
+		Vault: resp.Events,
+		Index: resp.Index,
 	}
-	return JSON(c, http.StatusOK, resp)
+	return JSON(c, http.StatusOK, out)
 }
 
 func (s *Server) postVault(c echo.Context) error {

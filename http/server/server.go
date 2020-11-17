@@ -105,9 +105,7 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 
 	// Channel
 	e.PUT("/channel/:cid", s.putChannel)
-	// Channel (info)
-	e.PUT("/channel/:cid/info", s.putChannelInfo)
-	e.GET("/channel/:cid/info", s.getChannelInfo)
+	e.GET("/channel/:cid", s.getChannel)
 	// Channel (members)
 	e.GET("/channel/:cid/members", s.getChannelMembers)
 	// e.POST("/channel/:cid/members", s.postChannelMembers)
@@ -115,7 +113,7 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	e.POST("/channel/:cid/msgs", s.postMessage)
 	e.GET("/channel/:cid/msgs", s.listMessages)
 	// Channel (invite)
-	e.POST("/channel/:cid/invite", s.postChannelInvite)
+	e.POST("/channel/:cid/invites", s.postChannelInvites)
 	e.GET("/channel/:cid/invites", s.getChannelInvites)
 
 	// Inbox (channels)

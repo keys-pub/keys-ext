@@ -9,6 +9,7 @@ import (
 	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/http"
+	"github.com/keys-pub/keys/tsutil"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 )
@@ -53,7 +54,12 @@ func (s *Server) putChannel(c echo.Context) error {
 	ctx := c.Request().Context()
 	path := dstore.Path("channels", channel.KID)
 
-	if err := s.fi.Create(ctx, path, map[string]interface{}{"kid": channel.KID}); err != nil {
+	create := &api.Channel{
+		ID:      channel.KID,
+		Creator: auth.KID,
+	}
+
+	if err := s.fi.Create(ctx, path, dstore.From(create)); err != nil {
 		switch err.(type) {
 		case dstore.ErrPathExists:
 			return ErrConflict(c, errors.Errorf("channel already exists"))
@@ -73,6 +79,44 @@ func (s *Server) putChannel(c echo.Context) error {
 	return JSON(c, http.StatusOK, out)
 }
 
+func (s *Server) getChannel(c echo.Context) error {
+	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
+	ctx := c.Request().Context()
+
+	channel, _, err := s.authChannel(c, "cid", nil)
+	if err != nil {
+		return ErrForbidden(c, err)
+	}
+
+	path := dstore.Path("channels", channel.KID)
+
+	doc, err := s.fi.Get(ctx, path)
+	if err != nil {
+		return s.internalError(c, err)
+	}
+	if doc == nil {
+		return ErrNotFound(c, keys.NewErrNotFound(channel.KID.String()))
+	}
+
+	var out api.Channel
+	if err := doc.To(&out); err != nil {
+		return s.internalError(c, err)
+	}
+	out.Timestamp = tsutil.Millis(doc.UpdatedAt)
+
+	positions, err := s.fi.EventPositions(ctx, []string{path})
+	if err != nil {
+		return s.internalError(c, err)
+	}
+	if len(positions) > 0 {
+		out.Index = positions[0].Index
+		if positions[0].Timestamp > 0 {
+			out.Timestamp = positions[0].Timestamp
+		}
+	}
+	return c.JSON(http.StatusOK, out)
+}
+
 func (s *Server) isChannelMember(ctx context.Context, channel keys.ID, member keys.ID) (bool, error) {
 	// TODO: Cache this?
 	path := dstore.Path("channels", channel, "members", member)
@@ -80,21 +124,25 @@ func (s *Server) isChannelMember(ctx context.Context, channel keys.ID, member ke
 }
 
 func (s *Server) addChannelMembers(ctx context.Context, channel keys.ID, from keys.ID, members ...*api.ChannelMember) error {
+	// TODO: Before adding check if limits on number of channels for user
 	for _, member := range members {
 		path := dstore.Path("channels", channel, "members", member.Member)
 		if member.Channel != channel {
 			return errors.Errorf("member channel mismatch")
 		}
 		add := &api.ChannelMember{
-			Member:  member.Member,
 			Channel: channel,
+			Member:  member.Member,
 			From:    from,
 		}
 		if err := s.fi.Create(ctx, path, dstore.From(add)); err != nil {
 			return err
 		}
 		inboxPath := dstore.Path("inbox", member.Member, "channels", channel)
-		if err := s.fi.Create(ctx, inboxPath, dstore.From(member)); err != nil {
+		ch := &api.Channel{
+			ID: channel,
+		}
+		if err := s.fi.Create(ctx, inboxPath, dstore.From(ch)); err != nil {
 			return err
 		}
 	}
@@ -137,64 +185,7 @@ func (s *Server) getChannelMembers(c echo.Context) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-func (s *Server) putChannelInfo(c echo.Context) error {
-	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
-
-	if c.Request().Body == nil {
-		return ErrBadRequest(c, errors.Errorf("missing body"))
-	}
-
-	b, err := ioutil.ReadAll(c.Request().Body)
-	if err != nil {
-		return s.internalError(c, err)
-	}
-
-	if len(b) > 16*1024 {
-		// TODO: Check length before reading data
-		return ErrBadRequest(c, errors.Errorf("channel info too large (greater than 16KiB)"))
-	}
-
-	channel, _, err := s.authChannel(c, "cid", b)
-	if err != nil {
-		return ErrForbidden(c, err)
-	}
-
-	ctx := c.Request().Context()
-	path := dstore.Path("channels", channel.KID)
-
-	if err := s.fi.Set(ctx, path, map[string]interface{}{"info": b}, dstore.MergeAll()); err != nil {
-		return s.internalError(c, err)
-	}
-
-	var out struct{}
-	return JSON(c, http.StatusOK, out)
-}
-
-func (s *Server) getChannelInfo(c echo.Context) error {
-	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
-	ctx := c.Request().Context()
-
-	channel, _, err := s.authChannel(c, "cid", nil)
-	if err != nil {
-		return ErrForbidden(c, err)
-	}
-
-	path := dstore.Path("channels", channel.KID)
-	doc, err := s.fi.Get(ctx, path)
-	if err != nil {
-		return s.internalError(c, err)
-	}
-	if doc == nil {
-		return ErrNotFound(c, errors.Errorf("info not set"))
-	}
-	b := doc.Bytes("info")
-	if b == nil {
-		return ErrNotFound(c, errors.Errorf("info not set"))
-	}
-	return c.Blob(http.StatusOK, echo.MIMEOctetStream, b)
-}
-
-func (s *Server) postChannelInvite(c echo.Context) error {
+func (s *Server) postChannelInvites(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
@@ -212,46 +203,54 @@ func (s *Server) postChannelInvite(c echo.Context) error {
 		return ErrForbidden(c, err)
 	}
 
-	var invite api.ChannelInvite
-	if err := json.Unmarshal(b, &invite); err != nil {
-		return ErrBadRequest(c, errors.Errorf("invalid channel invite"))
+	var invites []*api.ChannelInvite
+	if err := json.Unmarshal(b, &invites); err != nil {
+		return ErrBadRequest(c, errors.Errorf("invalid channel invites"))
 	}
 
-	if invite.Channel != channel.KID {
-		return ErrBadRequest(c, errors.Errorf("invalid channel invite kid"))
-	}
-	if invite.Sender != auth.KID {
-		return ErrBadRequest(c, errors.Errorf("invalid channel invite sender"))
-	}
-	if len(invite.EncryptedKey) > 1024 {
-		return ErrBadRequest(c, errors.Errorf("invalid channel invite key"))
-	}
-	rid, err := keys.ParseID(invite.Recipient.String())
-	if err != nil {
-		return ErrBadRequest(c, errors.Errorf("invalid channel recipient"))
+	if len(invites) > 10 {
+		return ErrBadRequest(c, errors.Errorf("too many invites"))
 	}
 
-	// TODO: Ensure inbox invites aren't full (over some threshold)
-	// TODO: Restrict invite from a user@service
+	for _, invite := range invites {
+		if invite.Channel != channel.KID {
+			return ErrBadRequest(c, errors.Errorf("invalid channel invite kid"))
+		}
+		if invite.Sender != auth.KID {
+			return ErrBadRequest(c, errors.Errorf("invalid channel invite sender"))
+		}
+		if len(invite.EncryptedKey) > 1024 {
+			return ErrBadRequest(c, errors.Errorf("invalid channel invite key"))
+		}
+		rid, err := keys.ParseID(invite.Recipient.String())
+		if err != nil {
+			return ErrBadRequest(c, errors.Errorf("invalid channel recipient"))
+		}
 
-	invitePath := dstore.Path("channels", channel.KID, "invites", rid)
+		// TODO: Ensure inbox invites aren't full (over some threshold)
+		// TODO: Restrict invite from a user@service
 
-	exists, err := s.fi.Exists(ctx, invitePath)
-	if err != nil {
-		return s.internalError(c, err)
-	}
-	if exists {
-		return ErrConflict(c, errors.Errorf("invite already exists"))
-	}
+		invitePath := dstore.Path("channels", channel.KID, "invites", rid)
 
-	val := dstore.From(invite)
-	if err := s.fi.Set(ctx, invitePath, val); err != nil {
-		return s.internalError(c, err)
-	}
+		// TODO: If they have an existing invite it will get overwritten,
+		// with the same data, although maybe from a different sender.
+		// exists, err := s.fi.Exists(ctx, invitePath)
+		// if err != nil {
+		// 	return s.internalError(c, err)
+		// }
+		// if exists {
+		// 	return ErrConflict(c, errors.Errorf("invite already exists"))
+		// }
 
-	inboxPath := dstore.Path("inbox", rid, "invites", invite.Channel)
-	if err := s.fi.Set(ctx, inboxPath, val); err != nil {
-		return s.internalError(c, err)
+		val := dstore.From(invite)
+		if err := s.fi.Set(ctx, invitePath, val); err != nil {
+			return s.internalError(c, err)
+		}
+
+		inboxPath := dstore.Path("inbox", rid, "invites", invite.Channel)
+		if err := s.fi.Set(ctx, inboxPath, val); err != nil {
+			return s.internalError(c, err)
+		}
 	}
 
 	var resp struct{}

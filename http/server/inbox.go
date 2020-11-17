@@ -20,12 +20,12 @@ func (s *Server) inboxChannels(c echo.Context) error {
 	}
 
 	path := dstore.Path("inbox", auth.KID, "channels")
-	iter, err := s.fi.DocumentIterator(ctx, path)
+	iter, err := s.fi.DocumentIterator(ctx, path, dstore.NoData())
 	if err != nil {
 		return s.internalError(c, err)
 	}
 	defer iter.Release()
-	channels := []*api.Channel{}
+	cpaths := []string{}
 	for {
 		doc, err := iter.Next()
 		if err != nil {
@@ -34,14 +34,23 @@ func (s *Server) inboxChannels(c echo.Context) error {
 		if doc == nil {
 			break
 		}
-		var member api.ChannelMember
-		if err := doc.To(&member); err != nil {
-			return s.internalError(c, err)
-		}
+		cpaths = append(cpaths, dstore.Path("channels", dstore.PathLast(doc.Path)))
+	}
+
+	channels := make([]*api.Channel, 0, len(cpaths))
+
+	positions, err := s.fi.EventPositions(ctx, cpaths)
+	if err != nil {
+		return s.internalError(c, err)
+	}
+	for _, pos := range positions {
 		channels = append(channels, &api.Channel{
-			ID: member.Channel,
+			ID:        keys.ID(dstore.PathLast(pos.Path)),
+			Index:     pos.Index,
+			Timestamp: pos.Timestamp,
 		})
 	}
+
 	resp := &api.InboxChannelsResponse{Channels: channels}
 	return JSON(c, http.StatusOK, resp)
 }

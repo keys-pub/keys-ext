@@ -60,6 +60,7 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	require.Equal(t, http.StatusForbidden, code)
 
 	// PUT /channel/:cid
+	contentHash = http.ContentHash(content)
 	req, err = http.NewAuthRequest("PUT", dstore.Path("channel", channel.ID()), nil, "", clock.Now(), aliceChannel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
@@ -237,8 +238,8 @@ func TestMessagesAuth(t *testing.T) {
 	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, body)
 
 	// POST /channel/:cid/msgs (invalid authorization)
-	content := []byte("test")
-	req, err = http.NewAuthRequest("POST", dstore.Path("channel", channel.ID(), "msgs"), bytes.NewReader(content), http.ContentHash(content), clock.Now(), http.Authorization(randKey))
+	msg := []byte("test")
+	req, err = http.NewAuthRequest("POST", dstore.Path("channel", channel.ID(), "msgs"), bytes.NewReader(msg), http.ContentHash(msg), clock.Now(), http.Authorization(randKey))
 	require.NoError(t, err)
 	req.Header.Set("Authorization", randKey.ID().String()+":"+sig)
 	code, _, body = srv.Serve(req)

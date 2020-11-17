@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/http"
@@ -14,20 +15,29 @@ import (
 func TestChannel(t *testing.T) {
 	env := newEnv(t)
 	// env.logLevel = server.DebugLevel
+	testChannel(t, env, testKeysSeeded())
+}
 
-	tk := testKeysSeeded()
-	alice, _, channel, frank := tk.alice, tk.bob, tk.channel, tk.frank
+// func TestChannelFirestore(t *testing.T) {
+// 	if os.Getenv("TEST_FIRESTORE") != "1" {
+// 		t.Skip()
+// 	}
+// 	// firestore.SetContextLogger(firestore.NewContextLogger(firestore.DebugLevel))
+// 	env := newEnvWithFire(t, testFirestore(t), tsutil.NewTestClock())
+// 	// env.logLevel = server.DebugLevel
+// 	testChannel(t, env, testKeysRandom())
+// }
+
+func testChannel(t *testing.T, env *env, tk testKeys) {
+	alice, _, channel := tk.alice, tk.bob, tk.channel
 
 	aliceChannel := http.AuthKeys(
 		http.NewAuthKey("Authorization", alice),
 		http.NewAuthKey("Authorization-Channel", channel))
 
-	frankChannel := http.AuthKeys(
-		http.NewAuthKey("Authorization", frank),
-		http.NewAuthKey("Authorization-Channel", channel))
-
 	srv := newTestServer(t, env)
 	clock := env.clock
+	randKey := keys.GenerateEdX25519Key()
 
 	// PUT /channel/:cid
 	req, err := http.NewAuthRequest("PUT", dstore.Path("channel", channel.ID()), nil, "", clock.Now(), aliceChannel)
@@ -43,28 +53,35 @@ func TestChannel(t *testing.T) {
 	require.Equal(t, `{"error":{"code":409,"message":"channel already exists"}}`, body)
 	require.Equal(t, http.StatusConflict, code)
 
-	// PUT /channel/:cid/info
-	content := []byte("encryptedchannelinfo")
-	contentHash := http.ContentHash(content)
-	req, err = http.NewAuthRequest("PUT", dstore.Path("channel", channel.ID(), "info"), bytes.NewReader(content), contentHash, clock.Now(), aliceChannel)
+	// GET /channel/:cid
+	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID()), nil, "", clock.Now(), aliceChannel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
-	require.Equal(t, `{}`, body)
+	require.Equal(t, `{"id":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","creator":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","ts":1234567890005}`+"\n", body)
 	require.Equal(t, http.StatusOK, code)
 
-	// GET /channel/:cid/info (alice)
-	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "info"), nil, "", clock.Now(), aliceChannel)
-	require.NoError(t, err)
-	code, _, body = srv.Serve(req)
-	require.Equal(t, "encryptedchannelinfo", body)
-	require.Equal(t, http.StatusOK, code)
-
-	// GET /channel/:cid/info (frank)
-	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "info"), nil, "", clock.Now(), frankChannel)
+	// GET /channel/:cid (not found, forbidden)
+	req, err = http.NewAuthRequest("GET", dstore.Path("channel", randKey.ID()), nil, "", clock.Now(), aliceChannel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, body)
 	require.Equal(t, http.StatusForbidden, code)
+
+	// POST /channel/:cid/msgs
+	content := []byte("test1")
+	contentHash := http.ContentHash(content)
+	req, err = http.NewAuthRequest("POST", dstore.Path("channel", channel.ID(), "msgs"), bytes.NewReader(content), contentHash, clock.Now(), aliceChannel)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusOK, code)
+	require.Equal(t, `{}`, body)
+
+	// GET /channel/:cid
+	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID()), nil, "", clock.Now(), aliceChannel)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, `{"id":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","creator":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","idx":1,"ts":1234567890005}`+"\n", body)
+	require.Equal(t, http.StatusOK, code)
 
 	// // POST /channel/:cid/members
 	// addMember := api.ChannelMembersAddRequest{
@@ -114,32 +131,34 @@ func TestChannelInvite(t *testing.T) {
 	require.Equal(t, http.StatusOK, code)
 
 	// POST /channel/:cid/invite (alice invite bob)
-	inviteBob := &api.ChannelInvite{
-		Channel:      channel.ID(),
-		Recipient:    bob.ID(),
-		Sender:       alice.ID(),
-		EncryptedKey: []byte("testkey"),
+	invitesBob := []*api.ChannelInvite{
+		&api.ChannelInvite{
+			Channel:      channel.ID(),
+			Recipient:    bob.ID(),
+			Sender:       alice.ID(),
+			EncryptedKey: []byte("testkey"),
+		},
 	}
-	content, err := json.Marshal(inviteBob)
+	invites, err := json.Marshal(invitesBob)
 	require.NoError(t, err)
-	contentHash := http.ContentHash(content)
-	req, err = http.NewAuthRequest("POST", dstore.Path("channel", channel.ID(), "invite"), bytes.NewReader(content), contentHash, clock.Now(), aliceChannel)
+	req, err = http.NewAuthRequest("POST", dstore.Path("channel", channel.ID(), "invites"), bytes.NewReader(invites), http.ContentHash(invites), clock.Now(), aliceChannel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, `{}`, body)
 	require.Equal(t, http.StatusOK, code)
 
 	// POST /channel/:cid/invite (alice invite frank)
-	inviteFrank := &api.ChannelInvite{
-		Channel:      channel.ID(),
-		Recipient:    frank.ID(),
-		Sender:       alice.ID(),
-		EncryptedKey: []byte("testkey"),
+	invitesFrank := []*api.ChannelInvite{
+		&api.ChannelInvite{
+			Channel:      channel.ID(),
+			Recipient:    frank.ID(),
+			Sender:       alice.ID(),
+			EncryptedKey: []byte("testkey"),
+		},
 	}
-	content, err = json.Marshal(inviteFrank)
+	invites, err = json.Marshal(invitesFrank)
 	require.NoError(t, err)
-	contentHash = http.ContentHash(content)
-	req, err = http.NewAuthRequest("POST", dstore.Path("channel", channel.ID(), "invite"), bytes.NewReader(content), contentHash, clock.Now(), aliceChannel)
+	req, err = http.NewAuthRequest("POST", dstore.Path("channel", channel.ID(), "invites"), bytes.NewReader(invites), http.ContentHash(invites), clock.Now(), aliceChannel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, `{}`, body)
@@ -180,7 +199,7 @@ func TestChannelInvite(t *testing.T) {
 	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "members"), nil, "", clock.Now(), aliceChannel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
-	expected = `{"members":[{"member":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","channel":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","from":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077"},{"member":"kex1syuhwr4g05t4744r23nvxnr7en9cmz53knhr0gja7c84hr7fkw2quf6zcg","channel":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","from":"kex1syuhwr4g05t4744r23nvxnr7en9cmz53knhr0gja7c84hr7fkw2quf6zcg"}]}` + "\n"
+	expected = `{"members":[{"channel":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","member":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","from":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077"},{"channel":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","member":"kex1syuhwr4g05t4744r23nvxnr7en9cmz53knhr0gja7c84hr7fkw2quf6zcg","from":"kex1syuhwr4g05t4744r23nvxnr7en9cmz53knhr0gja7c84hr7fkw2quf6zcg"}]}` + "\n"
 	require.Equal(t, expected, body)
 	require.Equal(t, http.StatusOK, code)
 

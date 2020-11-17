@@ -40,7 +40,7 @@ func (s *Server) postMessage(c echo.Context) error {
 		return s.internalError(c, err)
 	}
 	if len(events) == 0 {
-		return s.internalError(c, errors.Errorf("no events added"))
+		return ErrBadRequest(c, errors.Errorf("no events added"))
 	}
 
 	var out struct{}
@@ -56,7 +56,7 @@ func (s *Server) listMessages(c echo.Context) error {
 	}
 
 	path := dstore.Path("channels", channel.KID)
-	resp, err := s.events(c, path)
+	resp, err := s.events(c, path, 1000)
 	if err != nil {
 		return s.internalError(c, err)
 	}
