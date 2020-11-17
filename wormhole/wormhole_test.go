@@ -225,7 +225,7 @@ func TestWormholeNoRecipient(t *testing.T) {
 	// Don't Connect
 
 	err = whb.Listen(ctx, alice.ID(), bob.ID(), offer)
-	require.EqualError(t, err, "not found kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077")
+	require.EqualError(t, err, "kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077 not found")
 
 	wha.Close()
 }
