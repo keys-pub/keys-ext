@@ -9,7 +9,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/sdb"
@@ -157,7 +156,7 @@ func TestDB(t *testing.T) {
 	require.EqualError(t, err, "only root collections supported")
 }
 
-func TestDocumentStorePath(t *testing.T) {
+func TestDocumentsPath(t *testing.T) {
 	db, closeFn := testDB(t)
 	defer closeFn()
 	ctx := context.TODO()
@@ -248,6 +247,17 @@ func TestDBListOptions(t *testing.T) {
 	require.Equal(t, expected, b.String())
 	iter.Release()
 
+	iter, err = db.DocumentIterator(context.TODO(), "test", dstore.NoData())
+	require.NoError(t, err)
+	b, err = dstore.Spew(iter)
+	require.NoError(t, err)
+	expected = `/test/1
+/test/2
+/test/3
+`
+	require.Equal(t, expected, b.String())
+	iter.Release()
+
 	iter, err = db.DocumentIterator(ctx, "b", dstore.Prefix("eb"))
 	require.NoError(t, err)
 	paths = []string{}
@@ -261,6 +271,11 @@ func TestDBListOptions(t *testing.T) {
 	}
 	iter.Release()
 	require.Equal(t, []string{"/b/eb1", "/b/eb2"}, paths)
+
+	last, err := db.Last(ctx, "")
+	require.NoError(t, err)
+	require.NotNil(t, last)
+	require.Equal(t, "/test/3", last.Path)
 }
 
 func TestMetadata(t *testing.T) {
@@ -284,6 +299,73 @@ func TestMetadata(t *testing.T) {
 	require.NotNil(t, doc)
 	require.Equal(t, int64(1234567890001), tsutil.Millis(doc.CreatedAt))
 	require.Equal(t, int64(1234567890002), tsutil.Millis(doc.UpdatedAt))
+}
+
+func TestDocumentSetTo(t *testing.T) {
+	ctx := context.TODO()
+	db, closeFn := testDB(t)
+	defer closeFn()
+
+	type Test struct {
+		Int    int    `json:"n,omitempty"`
+		String string `json:"s,omitempty"`
+		Bytes  []byte `json:"b,omitempty"`
+	}
+	val := &Test{
+		Int:    1,
+		String: "teststring",
+		Bytes:  []byte("testbytes"),
+	}
+
+	path := dstore.Path("test", "key1")
+	err := db.Create(ctx, path, dstore.From(val))
+	require.NoError(t, err)
+
+	doc, err := db.Get(ctx, path)
+	require.NoError(t, err)
+
+	var out Test
+	err = doc.To(&out)
+	require.NoError(t, err)
+	require.Equal(t, val, &out)
+}
+
+func TestDocumentMerge(t *testing.T) {
+	ctx := context.TODO()
+	db, closeFn := testDB(t)
+	defer closeFn()
+
+	type Test struct {
+		Int    int    `json:"n,omitempty"`
+		String string `json:"s,omitempty"`
+		Bytes  []byte `json:"b,omitempty"`
+	}
+	val := &Test{
+		Int:    1,
+		String: "teststring",
+		Bytes:  []byte("testbytes"),
+	}
+
+	path := dstore.Path("test", "key1")
+	err := db.Set(ctx, path, dstore.From(val))
+	require.NoError(t, err)
+
+	val2 := &Test{String: "teststring-merge"}
+	err = db.Set(ctx, path, dstore.From(val2), dstore.MergeAll())
+	require.NoError(t, err)
+
+	doc, err := db.Get(ctx, path)
+	require.NoError(t, err)
+
+	var out Test
+	err = doc.To(&out)
+	require.NoError(t, err)
+	expected := &Test{
+		Int:    1,
+		String: "teststring-merge",
+		Bytes:  []byte("testbytes"),
+	}
+	require.Equal(t, expected, &out)
 }
 
 func ExampleDB_OpenAtPath() {
@@ -527,8 +609,6 @@ func TestUpdate(t *testing.T) {
 
 	err = db.Set(ctx, dstore.Path("test", "key1"), map[string]interface{}{"index": 1, "info": "testinfo"}, dstore.MergeAll())
 	require.NoError(t, err)
-
-	time.Sleep(time.Second)
 
 	doc, err := db.Get(ctx, dstore.Path("test", "key1"))
 	require.NoError(t, err)

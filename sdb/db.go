@@ -199,6 +199,11 @@ func (d *DB) Get(ctx context.Context, path string) (*dstore.Document, error) {
 	return newDocument(doc), nil
 }
 
+// Load path into value.
+func (d *DB) Load(ctx context.Context, path string, v interface{}) (bool, error) {
+	return dstore.Load(ctx, d, path, v)
+}
+
 // GetAll paths.
 func (d *DB) GetAll(ctx context.Context, paths []string) ([]*dstore.Document, error) {
 	out := make([]*dstore.Document, 0, len(paths))
@@ -323,10 +328,11 @@ func (d *DB) DocumentIterator(ctx context.Context, parent string, opt ...dstore.
 
 	// TODO: Handle context Done()
 	return &docsIterator{
-		db:    d,
-		iter:  iter,
-		index: opts.Index,
-		limit: opts.Limit,
+		db:     d,
+		iter:   iter,
+		index:  opts.Index,
+		limit:  opts.Limit,
+		noData: opts.NoData,
 	}, nil
 }
 
@@ -411,12 +417,14 @@ func (d *DB) Last(ctx context.Context, prefix string) (*dstore.Document, error) 
 	iter := d.sdb.NewIterator(prefix)
 	defer iter.Release()
 	if ok := iter.Last(); ok {
-		path := string(iter.Value())
+		path := string(iter.Key())
 		val, err := d.get(ctx, path)
 		if err != nil {
 			return nil, err
 		}
-		doc = newDocument(val)
+		if val != nil {
+			doc = newDocument(val)
+		}
 	}
 	if err := iter.Error(); err != nil {
 		return nil, errors.Wrap(err, "failed to iterate db")
