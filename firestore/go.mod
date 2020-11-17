@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go v0.71.0 // indirect
 	cloud.google.com/go/firestore v1.3.0
 	github.com/davecgh/go-spew v1.1.1
-	github.com/keys-pub/keys v0.1.18-0.20201110225229-cf94f4121589
+	github.com/keys-pub/keys v0.1.18-0.20201117233052-2bfb5f4d6161
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.5.1
 	github.com/tyler-smith/go-bip39 v1.1.0 // indirect

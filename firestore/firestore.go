@@ -209,6 +209,11 @@ func (f *Firestore) Exists(ctx context.Context, path string) (bool, error) {
 	return doc != nil, nil
 }
 
+// Load path into value.
+func (f *Firestore) Load(ctx context.Context, path string, v interface{}) (bool, error) {
+	return dstore.Load(ctx, f, path, v)
+}
+
 func (f *Firestore) get(ctx context.Context, path string) (*firestore.DocumentSnapshot, error) {
 	path = normalizePath(path)
 	doc, err := f.client.Doc(path).Get(ctx)

@@ -36,6 +36,24 @@ func (f *Firestore) EventsAdd(ctx context.Context, path string, data [][]byte) (
 	return events, nil
 }
 
+// EventPositions returns positions for event logs.
+func (f *Firestore) EventPositions(ctx context.Context, paths []string) ([]*events.Position, error) {
+	positions := []*events.Position{}
+	docs, err := f.GetAll(ctx, paths)
+	if err != nil {
+		return nil, err
+	}
+	for _, doc := range docs {
+		idx, _ := doc.Int64("idx")
+		positions = append(positions, &events.Position{
+			Path:      doc.Path,
+			Index:     int64(idx),
+			Timestamp: tsutil.Millis(doc.UpdatedAt),
+		})
+	}
+	return positions, nil
+}
+
 func (f *Firestore) writeBatch(ctx context.Context, path string, data [][]byte) ([]*events.Event, error) {
 	if len(data) > 500 {
 		return nil, errors.Errorf("too many events to batch (max 500)")

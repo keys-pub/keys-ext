@@ -40,7 +40,7 @@ func testCollection() string {
 	return dstore.Path("test", time.Now().Format(time.RFC3339Nano), "root")
 }
 
-func TestDocumentStore(t *testing.T) {
+func TestDocuments(t *testing.T) {
 	ds := testFirestore(t)
 	ctx := context.TODO()
 	collection1 := testCollection()
@@ -150,7 +150,7 @@ func TestDocumentStore(t *testing.T) {
 	require.EqualError(t, err, "only root collections supported")
 }
 
-func TestDocumentStorePath(t *testing.T) {
+func TestDocumentsPath(t *testing.T) {
 	ds := testFirestore(t)
 	ctx := context.TODO()
 	collection := testCollection()
@@ -185,7 +185,7 @@ func TestDocumentStorePath(t *testing.T) {
 	// require.Equal(t, "/test", cols[0].Path)
 }
 
-func TestDocumentStoreListOptions(t *testing.T) {
+func TestDocumentsListOptions(t *testing.T) {
 	ds := testFirestore(t)
 	ctx := context.TODO()
 	collection := testCollection()
@@ -301,6 +301,73 @@ func TestSigchains(t *testing.T) {
 	sc, err := scs.Sigchain(kids[0])
 	require.NoError(t, err)
 	require.Equal(t, kids[0], sc.KID())
+}
+
+func TestDocumentSetTo(t *testing.T) {
+	ds := testFirestore(t)
+	ctx := context.TODO()
+	collection := testCollection()
+
+	type Test struct {
+		Int    int    `json:"n,omitempty"`
+		String string `json:"s,omitempty"`
+		Bytes  []byte `json:"b,omitempty"`
+	}
+	val := &Test{
+		Int:    1,
+		String: "teststring",
+		Bytes:  []byte("testbytes"),
+	}
+
+	path := dstore.Path(collection, "key1")
+	err := ds.Create(ctx, path, dstore.From(val))
+	require.NoError(t, err)
+
+	doc, err := ds.Get(ctx, path)
+	require.NoError(t, err)
+
+	var out Test
+	err = doc.To(&out)
+	require.NoError(t, err)
+	require.Equal(t, val, &out)
+}
+
+func TestDocumentMerge(t *testing.T) {
+	ds := testFirestore(t)
+	ctx := context.TODO()
+	collection := testCollection()
+
+	type Test struct {
+		Int    int    `json:"n,omitempty"`
+		String string `json:"s,omitempty"`
+		Bytes  []byte `json:"b,omitempty"`
+	}
+	val := &Test{
+		Int:    1,
+		String: "teststring",
+		Bytes:  []byte("testbytes"),
+	}
+
+	path := dstore.Path(collection, "key1")
+	err := ds.Set(ctx, path, dstore.From(val))
+	require.NoError(t, err)
+
+	val2 := &Test{String: "teststring-merge"}
+	err = ds.Set(ctx, path, dstore.From(val2), dstore.MergeAll())
+	require.NoError(t, err)
+
+	doc, err := ds.Get(ctx, path)
+	require.NoError(t, err)
+
+	var out Test
+	err = doc.To(&out)
+	require.NoError(t, err)
+	expected := &Test{
+		Int:    1,
+		String: "teststring-merge",
+		Bytes:  []byte("testbytes"),
+	}
+	require.Equal(t, expected, &out)
 }
 
 func ExampleNew() {
