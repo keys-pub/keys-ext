@@ -123,9 +123,6 @@ func newTestEnv(t *testing.T, logger server.Logger) *testEnv {
 	srv := server.New(fi, rds, req, clock, logger)
 	srv.SetClock(clock)
 	srv.SetInternalAuth("testtoken")
-	srv.SetAccessFn(func(c server.AccessContext, resource server.AccessResource, action server.AccessAction) server.Access {
-		return server.AccessAllow()
-	})
 	handler := server.NewHandler(srv)
 	httpServer := httptest.NewServer(handler)
 	srv.URL = httpServer.URL
@@ -399,7 +396,7 @@ func TestProtocol(t *testing.T) {
 }
 
 func vaultPaths(vlt *vault.Vault, prefix string) ([]string, error) {
-	docs, err := vlt.Documents(dstore.Prefix(prefix))
+	docs, err := vlt.Store().List(&vault.ListOptions{Prefix: prefix})
 	if err != nil {
 		return nil, err
 	}

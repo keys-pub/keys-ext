@@ -2,19 +2,19 @@ package vault
 
 import "github.com/pkg/errors"
 
-// Copy data from a vault.Store to vault vault.Store.
+// Copy data from a vault.Store to another vault.Store.
 // It copies raw data, it doesn't need to be unlocked.
 func Copy(from Store, to Store, opt ...CopyOption) ([]string, error) {
 	opts := newCopyOptions(opt...)
 
-	docs, err := from.Documents()
+	entries, err := from.List(nil)
 	if err != nil {
 		return nil, err
 	}
 
 	added := []string{}
-	for _, doc := range docs {
-		path, b := doc.Path, doc.Data()
+	for _, entry := range entries {
+		path, b := entry.Path, entry.Data
 		data, err := to.Get(path)
 		if err != nil {
 			return nil, err

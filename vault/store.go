@@ -2,6 +2,12 @@ package vault
 
 import "github.com/keys-pub/keys/dstore"
 
+// Entry in Store.
+type Entry struct {
+	Path string
+	Data []byte
+}
+
 // Store is the interface used to store data.
 type Store interface {
 	// Name of the Store implementation.
@@ -14,8 +20,8 @@ type Store interface {
 	// Delete bytes.
 	Delete(path string) (bool, error)
 
-	// Documents iterator.
-	Documents(opt ...dstore.Option) ([]*dstore.Document, error)
+	// List store entries.
+	List(opts *ListOptions) ([]*Entry, error)
 
 	// Open store.
 	Open() error
@@ -23,6 +29,13 @@ type Store interface {
 	Close() error
 	// Reset store.
 	Reset() error
+}
+
+// ListOptions for listing Store.
+type ListOptions struct {
+	Prefix string
+	NoData bool
+	Limit  int
 }
 
 func deleteAll(st Store, paths []string) error {
@@ -34,30 +47,22 @@ func deleteAll(st Store, paths []string) error {
 	return nil
 }
 
-// Collections from vault db.
-func (v *Vault) Collections(parent string) ([]*dstore.Collection, error) {
-	// We iterate over all the paths to build the collections list, this is slow.
-	collections := []*dstore.Collection{}
-	ds, err := v.store.Documents(dstore.Prefix(dstore.Path(parent)), dstore.NoData())
+// Collections lists collection paths from parent.
+func Collections(st Store, parent string) ([]string, error) {
+	entries, err := st.List(&ListOptions{Prefix: parent, NoData: true})
 	if err != nil {
 		return nil, err
 	}
-	count := map[string]int{}
-	for _, doc := range ds {
-		col := dstore.PathFirst(doc.Path)
-		colv, ok := count[col]
-		if !ok {
-			collections = append(collections, &dstore.Collection{Path: dstore.Path(col)})
-			count[col] = 1
-		} else {
-			count[col] = colv + 1
+	out := []string{}
+	cols := map[string]bool{}
+	for _, entry := range entries {
+		col := dstore.Path(dstore.PathFirst(entry.Path))
+		_, ok := cols[col]
+		if ok {
+			continue
 		}
+		cols[col] = true
+		out = append(out, col)
 	}
-
-	return collections, nil
-}
-
-// Documents from Store.
-func (v *Vault) Documents(opt ...dstore.Option) ([]*dstore.Document, error) {
-	return v.store.Documents(opt...)
+	return out, nil
 }

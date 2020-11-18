@@ -84,7 +84,7 @@ func TestCopy(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, expected, paths)
 
-	docs3, err := st3.Documents()
+	docs3, err := st3.List(nil)
 	require.NoError(t, err)
 	require.Equal(t, 0, len(docs3))
 }

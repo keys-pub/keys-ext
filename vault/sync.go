@@ -117,12 +117,12 @@ func (v *Vault) Unsync(ctx context.Context) error {
 }
 
 func (v *Vault) resetLog() error {
-	push, err := v.store.Documents(dstore.Prefix(dstore.Path("push")))
+	push, err := v.store.List(&ListOptions{Prefix: dstore.Path("push")})
 	if err != nil {
 		return err
 	}
 
-	pull, err := v.store.Documents(dstore.Prefix(dstore.Path("pull")))
+	pull, err := v.store.List(&ListOptions{Prefix: dstore.Path("pull")})
 	if err != nil {
 		return err
 	}
@@ -140,7 +140,7 @@ func (v *Vault) resetLog() error {
 		index++
 		path := dstore.PathFrom(doc.Path, 2)
 		push := dstore.Path("push", pad(index), path)
-		if err := v.store.Set(push, doc.Data()); err != nil {
+		if err := v.store.Set(push, doc.Data); err != nil {
 			return err
 		}
 	}
@@ -150,7 +150,7 @@ func (v *Vault) resetLog() error {
 	for _, doc := range pull {
 		index++
 		var event events.Event
-		if err := msgpack.Unmarshal(doc.Data(), &event); err != nil {
+		if err := msgpack.Unmarshal(doc.Data, &event); err != nil {
 			return err
 		}
 		path := dstore.PathFrom(doc.Path, 2)

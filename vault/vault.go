@@ -255,14 +255,14 @@ func (v *Vault) Delete(id string) (bool, error) {
 // Items to list.
 func (v *Vault) Items() ([]*Item, error) {
 	path := dstore.Path("item")
-	ds, err := v.store.Documents(dstore.Prefix(path))
+	ds, err := v.store.List(&ListOptions{Prefix: path})
 	if err != nil {
 		return nil, err
 	}
 	items := []*Item{}
 	for _, doc := range ds {
 		id := dstore.PathLast(doc.Path)
-		item, err := decryptItem(doc.Data(), v.mk, id)
+		item, err := decryptItem(doc.Data, v.mk, id)
 		if err != nil {
 			return nil, err
 		}
@@ -288,7 +288,7 @@ func (v *Vault) push(ctx context.Context) error {
 
 	// Get events from push.
 	path := dstore.Path("push")
-	ds, err := v.store.Documents(dstore.Prefix(path))
+	ds, err := v.store.List(&ListOptions{Prefix: path})
 	if err != nil {
 		return err
 	}
@@ -299,7 +299,7 @@ func (v *Vault) push(ctx context.Context) error {
 		logger.Debugf("Push %s", doc.Path)
 		paths = append(paths, doc.Path)
 		path := dstore.PathFrom(doc.Path, 2)
-		event := &httpclient.VaultEvent{Path: path, Data: doc.Data()}
+		event := &httpclient.VaultEvent{Path: path, Data: doc.Data}
 		events = append(events, event)
 	}
 
@@ -326,24 +326,41 @@ func (v *Vault) Pull(ctx context.Context) error {
 }
 
 func (v *Vault) pull(ctx context.Context) error {
+	// Keep pulling until no more.
+	for {
+		count, err := v.pullNext(ctx)
+		if err != nil {
+			return err
+		}
+		if count == 0 {
+			return nil
+		}
+	}
+}
+
+func (v *Vault) pullNext(ctx context.Context) (int, error) {
 	if v.client == nil {
-		return errors.Errorf("no vault client set")
+		return 0, errors.Errorf("no vault client set")
 	}
 	if v.remote == nil {
-		return errors.Errorf("no remote set")
+		return 0, errors.Errorf("no remote set")
 	}
 
 	index, err := v.pullIndex()
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	logger.Infof("Pulling vault items")
 	vault, err := v.client.Vault(ctx, v.remote.Key, httpclient.VaultIndex(index))
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return v.saveRemoteVault(vault)
+	if err := v.saveRemoteVault(vault); err != nil {
+		return 0, err
+	}
+
+	return len(vault.Events), nil
 }
 
 func (v *Vault) saveRemoteVault(vault *httpclient.Vault) error {
@@ -389,7 +406,7 @@ func (v *Vault) saveRemoteVault(vault *httpclient.Vault) error {
 
 // Spew to out.
 func (v *Vault) Spew(prefix string, out io.Writer) error {
-	docs, err := v.store.Documents(dstore.Prefix(prefix))
+	docs, err := v.store.List(&ListOptions{Prefix: prefix})
 	if err != nil {
 		return err
 	}
@@ -401,7 +418,7 @@ func (v *Vault) Spew(prefix string, out io.Writer) error {
 
 // IsEmpty returns true if vault is empty.
 func (v *Vault) IsEmpty() (bool, error) {
-	docs, err := v.store.Documents(dstore.Limit(1))
+	docs, err := v.store.List(&ListOptions{Limit: 1})
 	if err != nil {
 		return false, err
 	}

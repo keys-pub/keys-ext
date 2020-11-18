@@ -21,7 +21,7 @@ func NewRemote(url *url.URL, key *keys.EdX25519Key, salt []byte) *Remote {
 	return &Remote{URL: url, Key: key, Salt: salt}
 }
 
-// Clone initializes Vault with from remote.
+// Clone initializes a Vault from a remote.
 func (v *Vault) Clone(ctx context.Context, remote *Remote) error {
 	if remote == nil {
 		return errors.Errorf("nil remote")

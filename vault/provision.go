@@ -61,14 +61,14 @@ func (v *Vault) Provision(key *[32]byte, provision *Provision) error {
 // Doesn't require Unlock().
 func (v *Vault) Provisions() ([]*Provision, error) {
 	path := dstore.Path("provision")
-	docs, err := v.store.Documents(dstore.Prefix(path))
+	entries, err := v.store.List(&ListOptions{Prefix: path})
 	if err != nil {
 		return nil, err
 	}
 	provisions := []*Provision{}
-	for _, doc := range docs {
+	for _, entry := range entries {
 		var provision Provision
-		if err := msgpack.Unmarshal(doc.Data(), &provision); err != nil {
+		if err := msgpack.Unmarshal(entry.Data, &provision); err != nil {
 			return nil, err
 		}
 		provisions = append(provisions, &provision)

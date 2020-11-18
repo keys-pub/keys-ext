@@ -4,20 +4,19 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/keys-pub/keys/dstore"
 	"github.com/pkg/errors"
 )
 
 // NewMem returns an in memory Store useful for testing or ephemeral keys.
 func NewMem() Store {
 	return &mem{
-		items: map[string][]byte{},
+		entries: map[string][]byte{},
 	}
 }
 
 type mem struct {
-	open  bool
-	items map[string][]byte
+	open    bool
+	entries map[string][]byte
 }
 
 func (m *mem) Name() string {
@@ -38,7 +37,7 @@ func (m *mem) Close() error {
 }
 
 func (m *mem) Reset() error {
-	m.items = map[string][]byte{}
+	m.entries = map[string][]byte{}
 	return nil
 }
 
@@ -49,7 +48,7 @@ func (m *mem) Get(path string) ([]byte, error) {
 	if path == "" {
 		return nil, errors.Errorf("invalid path")
 	}
-	if b, ok := m.items[path]; ok {
+	if b, ok := m.entries[path]; ok {
 		return b, nil
 	}
 	return nil, nil
@@ -62,7 +61,7 @@ func (m *mem) Set(path string, b []byte) error {
 	if path == "" {
 		return errors.Errorf("invalid path")
 	}
-	m.items[path] = b
+	m.entries[path] = b
 	return nil
 }
 
@@ -73,7 +72,7 @@ func (m *mem) Exists(path string) (bool, error) {
 	if path == "" {
 		return false, errors.Errorf("invalid path")
 	}
-	_, ok := m.items[path]
+	_, ok := m.entries[path]
 	return ok, nil
 }
 
@@ -84,24 +83,26 @@ func (m *mem) Delete(path string) (bool, error) {
 	if path == "" {
 		return false, errors.Errorf("invalid path")
 	}
-	if _, ok := m.items[path]; ok {
-		delete(m.items, path)
+	if _, ok := m.entries[path]; ok {
+		delete(m.entries, path)
 		return true, nil
 	}
 	return false, nil
 }
 
-func (m *mem) Documents(opt ...dstore.Option) ([]*dstore.Document, error) {
+func (m *mem) List(opts *ListOptions) ([]*Entry, error) {
 	if !m.open {
 		return nil, ErrNotOpen
 	}
-	opts := dstore.NewOptions(opt...)
-	prefix := opts.Prefix
+	if opts == nil {
+		opts = &ListOptions{}
+	}
 
-	out := make([]*dstore.Document, 0, len(m.items))
-	for path, b := range m.items {
+	prefix := opts.Prefix
+	out := make([]*Entry, 0, len(m.entries))
+	for path, b := range m.entries {
 		if strings.HasPrefix(path, prefix) {
-			out = append(out, dstore.NewDocument(path).WithData(b))
+			out = append(out, &Entry{Path: path, Data: b})
 		}
 	}
 	sort.Slice(out, func(i, j int) bool {

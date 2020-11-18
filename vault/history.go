@@ -13,7 +13,7 @@ import (
 // This is slow.
 func (v *Vault) ItemHistory(id string) ([]*Item, error) {
 	path := dstore.Path("pull")
-	ds, err := v.store.Documents(dstore.Prefix(path), dstore.NoData())
+	ds, err := v.store.List(&ListOptions{Prefix: path, NoData: true})
 	if err != nil {
 		return nil, err
 	}
@@ -58,17 +58,17 @@ func (v *Vault) ItemHistory(id string) ([]*Item, error) {
 // Requires Unlock.
 func (v *Vault) findPendingItems(id string) ([]*Item, error) {
 	path := dstore.Path("push")
-	ds, err := v.store.Documents(dstore.Prefix(path))
+	entries, err := v.store.List(&ListOptions{Prefix: path})
 	if err != nil {
 		return nil, err
 	}
 	items := []*Item{}
-	for _, doc := range ds {
-		pc := dstore.PathComponents(doc.Path)
+	for _, entry := range entries {
+		pc := dstore.PathComponents(entry.Path)
 		if pc[2] != "item" || pc[3] != id {
 			continue
 		}
-		item, err := decryptItem(doc.Data(), v.mk, id)
+		item, err := decryptItem(entry.Data, v.mk, id)
 		if err != nil {
 			return nil, err
 		}

@@ -189,17 +189,10 @@ func testSync(t *testing.T, st1 vault.Store, st2 vault.Store) {
 	require.Equal(t, []byte("mysecretdata.1d"), history[3].Data)
 	require.Nil(t, history[4].Data)
 
-	paths, err := vaultPaths(v1, "/pull")
+	paths, err := vaultPaths(v1, "/auth")
 	require.NoError(t, err)
 	expected := []string{
-		"/pull/000000000000001/auth/ySymDh5DDuJo21ydVJdyuxcDTgYUJMin4PZQzSUBums",
-		"/pull/000000000000002/provision/ySymDh5DDuJo21ydVJdyuxcDTgYUJMin4PZQzSUBums",
-		"/pull/000000000000003/item/key1",
-		"/pull/000000000000004/item/key2",
-		"/pull/000000000000005/item/key1",
-		"/pull/000000000000006/item/key1",
-		"/pull/000000000000007/item/key1",
-		"/pull/000000000000008/item/key1",
+		"/auth/ySymDh5DDuJo21ydVJdyuxcDTgYUJMin4PZQzSUBums",
 	}
 	require.Equal(t, expected, paths)
 
@@ -211,14 +204,41 @@ func testSync(t *testing.T, st1 vault.Store, st2 vault.Store) {
 	}
 	require.Equal(t, expected, paths)
 
-	cols, err := v1.Collections("")
+	paths, err = vaultPaths(v1, "/provision")
 	require.NoError(t, err)
-	require.Equal(t, 5, len(cols))
-	require.Equal(t, "/auth", cols[0].Path)
-	require.Equal(t, "/item", cols[1].Path)
-	require.Equal(t, "/provision", cols[2].Path)
-	require.Equal(t, "/pull", cols[3].Path)
-	require.Equal(t, "/sync", cols[4].Path)
+	expected = []string{
+		"/provision/ySymDh5DDuJo21ydVJdyuxcDTgYUJMin4PZQzSUBums",
+	}
+	require.Equal(t, expected, paths)
+
+	paths, err = vaultPaths(v1, "/pull")
+	require.NoError(t, err)
+	expected = []string{
+		"/pull/000000000000001/auth/ySymDh5DDuJo21ydVJdyuxcDTgYUJMin4PZQzSUBums",
+		"/pull/000000000000002/provision/ySymDh5DDuJo21ydVJdyuxcDTgYUJMin4PZQzSUBums",
+		"/pull/000000000000003/item/key1",
+		"/pull/000000000000004/item/key2",
+		"/pull/000000000000005/item/key1",
+		"/pull/000000000000006/item/key1",
+		"/pull/000000000000007/item/key1",
+		"/pull/000000000000008/item/key1",
+	}
+	require.Equal(t, expected, paths)
+
+	paths, err = vaultPaths(v1, "/sync")
+	require.NoError(t, err)
+	expected = []string{
+		"/sync/lastSync",
+		"/sync/pull",
+		"/sync/push",
+		"/sync/rsalt",
+	}
+	require.Equal(t, expected, paths)
+
+	cols, err := vault.Collections(v1.Store(), "")
+	require.NoError(t, err)
+	expected = []string{"/auth", "/item", "/provision", "/pull", "/sync"}
+	require.Equal(t, expected, cols)
 }
 
 func TestUnsync(t *testing.T) {

@@ -202,11 +202,11 @@ func (v *Vault) authDelete(id string) (bool, error) {
 
 func (v *Vault) hasAuth() (bool, error) {
 	path := dstore.Path("auth")
-	docs, err := v.store.Documents(dstore.Prefix(path), dstore.NoData(), dstore.Limit(1))
+	entries, err := v.store.List(&ListOptions{Prefix: path, NoData: true, Limit: 1})
 	if err != nil {
 		return false, err
 	}
-	return len(docs) > 0, nil
+	return len(entries) > 0, nil
 }
 
 // authUnlock returns (id, master key) or ("", nil) if a matching auth
@@ -214,13 +214,13 @@ func (v *Vault) hasAuth() (bool, error) {
 // Auth is found by trying to decrypt auth until successful.
 func (v *Vault) authUnlock(key *[32]byte) (string, *[32]byte, error) {
 	path := dstore.Path("auth")
-	ds, err := v.store.Documents(dstore.Prefix(path))
+	entries, err := v.store.List(&ListOptions{Prefix: path})
 	if err != nil {
 		return "", nil, err
 	}
-	for _, doc := range ds {
-		logger.Debugf("Trying %s", doc.Path)
-		item, err := decryptItem(doc.Data(), key, "")
+	for _, entry := range entries {
+		logger.Debugf("Trying %s", entry.Path)
+		item, err := decryptItem(entry.Data, key, "")
 		if err != nil {
 			continue
 		}
