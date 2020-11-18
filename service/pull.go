@@ -12,7 +12,7 @@ import (
 // If no key is specified, we update our existing keys.
 func (s *service) Pull(ctx context.Context, req *PullRequest) (*PullResponse, error) {
 	if req.Key != "" {
-		kid, err := s.lookup(ctx, req.Key, &LookupOpts{SearchRemote: true})
+		kid, err := s.lookup(ctx, req.Key, &lookupOpts{SearchRemote: true})
 		if err != nil {
 			return nil, err
 		}

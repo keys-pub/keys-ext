@@ -32,24 +32,25 @@ func TestMessages(t *testing.T) {
 
 	// Alice creates a channel
 	channelCreate, err := aliceService.ChannelCreate(ctx, &ChannelCreateRequest{
-		Name:   "Test",
-		Member: alice.ID().String(),
+		Name:  "Test",
+		Inbox: alice.ID().String(),
 	})
 	require.NoError(t, err)
 	require.NotEmpty(t, channelCreate.Channel)
 	channel := channelCreate.Channel
 
 	// Alice invites bob
-	_, err = aliceService.ChannelInviteCreate(ctx, &ChannelInviteCreateRequest{
-		Channel:   channel.ID,
-		Recipient: bob.ID().String(),
-		Sender:    alice.ID().String(),
+	_, err = aliceService.ChannelInvitesCreate(ctx, &ChannelInvitesCreateRequest{
+		Channel:    channel.ID,
+		Sender:     alice.ID().String(),
+		Recipients: []string{bob.ID().String()},
 	})
 	require.NoError(t, err)
+
 	// Bob accepts invite
 	_, err = bobService.ChannelInviteAccept(ctx, &ChannelInviteAcceptRequest{
 		Channel: channel.ID,
-		Member:  bob.ID().String(),
+		Inbox:   bob.ID().String(),
 	})
 	require.NoError(t, err)
 
@@ -59,7 +60,8 @@ func TestMessages(t *testing.T) {
 		Member:  alice.ID().String(),
 	})
 	require.NoError(t, err)
-	require.Equal(t, 0, len(messages.Messages))
+	require.Equal(t, 1, len(messages.Messages))
+	require.Equal(t, []string{`alice set the name to "Test"`}, messages.Messages[0].Text)
 
 	// Prepare
 	_, err = aliceService.MessagePrepare(ctx, &MessagePrepareRequest{
@@ -98,14 +100,14 @@ func TestMessages(t *testing.T) {
 		Member:  alice.ID().String(),
 	})
 	require.NoError(t, err)
-	require.Equal(t, 3, len(messages.Messages))
+	require.Equal(t, 4, len(messages.Messages))
 
-	require.Equal(t, "am1", string(messages.Messages[0].Content.Data))
-	require.NotNil(t, messages.Messages[0].Sender)
-	require.NotNil(t, messages.Messages[0].Sender.User)
-	require.Equal(t, "alice", messages.Messages[0].Sender.User.Name)
-	require.Equal(t, "am2", string(messages.Messages[1].Content.Data))
-	require.Equal(t, "bm1", string(messages.Messages[2].Content.Data))
+	require.Equal(t, "am1", messages.Messages[1].Text[0])
+	require.NotNil(t, messages.Messages[1].Sender)
+	require.NotNil(t, messages.Messages[1].Sender.User)
+	require.Equal(t, "alice", messages.Messages[1].Sender.User.Name)
+	require.Equal(t, "am2", messages.Messages[2].Text[0])
+	require.Equal(t, "bm1", messages.Messages[3].Text[0])
 
 	_, err = bobService.Pull(ctx, &PullRequest{Key: alice.ID().String()})
 	require.NoError(t, err)
@@ -116,12 +118,12 @@ func TestMessages(t *testing.T) {
 		Member:  bob.ID().String(),
 	})
 	require.NoError(t, err)
-	require.Equal(t, 3, len(messages.Messages))
+	require.Equal(t, 4, len(messages.Messages))
 
-	require.Equal(t, "am1", string(messages.Messages[0].Content.Data))
-	require.NotNil(t, messages.Messages[0].Sender)
-	require.NotNil(t, messages.Messages[0].Sender.User)
-	require.Equal(t, "alice", messages.Messages[0].Sender.User.Name)
-	require.Equal(t, "am2", string(messages.Messages[1].Content.Data))
-	require.Equal(t, "bm1", string(messages.Messages[2].Content.Data))
+	require.Equal(t, "am1", messages.Messages[1].Text[0])
+	require.NotNil(t, messages.Messages[1].Sender)
+	require.NotNil(t, messages.Messages[1].Sender.User)
+	require.Equal(t, "alice", messages.Messages[1].Sender.User.Name)
+	require.Equal(t, "am2", messages.Messages[2].Text[0])
+	require.Equal(t, "bm1", messages.Messages[3].Text[0])
 }

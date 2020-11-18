@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"sort"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
@@ -39,21 +38,13 @@ func (s *service) MessageCreate(ctx context.Context, req *MessageCreateRequest) 
 
 // Messages (RPC) lists messages.
 func (s *service) Messages(ctx context.Context, req *MessagesRequest) (*MessagesResponse, error) {
-	kid, err := keys.ParseID(req.Channel)
+	channel, err := keys.ParseID(req.Channel)
 	if err != nil {
 		return nil, errors.Wrapf(err, "invalid channel")
 	}
-	channel, err := s.edx25519Key(kid)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get channel key")
-	}
-	mid, err := s.lookup(ctx, req.Member, nil)
+	member, err := s.lookup(ctx, req.Member, nil)
 	if err != nil {
 		return nil, err
-	}
-	member, err := s.edx25519Key(mid)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get sender key")
 	}
 
 	if err := s.pullMessages(ctx, channel, member); err != nil {
@@ -96,12 +87,9 @@ func (s *service) messagePrepare(ctx context.Context, sender string, channel str
 
 	id := encoding.MustEncode(keys.RandBytes(32), encoding.Base62)
 	message := &Message{
-		ID:     id,
-		Sender: senderKey,
-		Content: &Content{
-			Data: []byte(text),
-			Type: UTF8Content,
-		},
+		ID:        id,
+		Sender:    senderKey,
+		Text:      []string{text},
 		CreatedAt: tsutil.Millis(s.clock.Now()),
 	}
 
@@ -138,13 +126,10 @@ func (s *service) messageCreate(ctx context.Context, sender string, channel stri
 	// TODO: Prev
 	id := encoding.MustEncode(keys.RandBytes(32), encoding.Base62)
 	msg := &api.Message{
-		ID: id,
-		Content: &api.Content{
-			Data: []byte(text),
-			Type: api.UTF8Content,
-		},
+		ID:        id,
+		Text:      text,
 		Sender:    sid,
-		CreatedAt: s.clock.Now(),
+		Timestamp: s.clock.NowMillis(),
 	}
 
 	if err := s.client.MessageSend(ctx, msg, senderKey, channelKey); err != nil {
@@ -177,43 +162,42 @@ func (s *service) message(ctx context.Context, path string) (*Message, error) {
 	return s.messageToRPC(ctx, msg)
 }
 
+func keyUserName(key *Key) string {
+	if key.User != nil && key.User.Name != "" {
+		return key.User.Name
+	}
+	return key.ID
+}
+
 func (s *service) messageToRPC(ctx context.Context, msg *api.Message) (*Message, error) {
 	sender, err := s.key(ctx, msg.Sender)
 	if err != nil {
 		return nil, err
 	}
+	texts := []string{}
+	if msg.Text != "" {
+		texts = append(texts, msg.Text)
+	}
+	if msg.ChannelInfo != nil && msg.ChannelInfo.Name != "" {
+		texts = append(texts, fmt.Sprintf("%s set the name to %q", keyUserName(sender), msg.ChannelInfo.Name))
+	}
+	if msg.ChannelInfo != nil && msg.ChannelInfo.Description != "" {
+		texts = append(texts, fmt.Sprintf("%s set the description to %q", keyUserName(sender), msg.ChannelInfo.Description))
+	}
+
 	return &Message{
 		ID:        msg.ID,
-		Content:   contentToRPC(msg.Content),
+		Text:      texts,
 		Sender:    sender,
-		CreatedAt: tsutil.Millis(msg.CreatedAt),
+		CreatedAt: msg.Timestamp,
 	}, nil
 }
 
-func contentToRPC(content *api.Content) *Content {
-	if content == nil {
-		return nil
-	}
-	return &Content{
-		Data: content.Data,
-		Type: contentTypeToRPC(content.Type),
-	}
-}
-
-func contentTypeToRPC(ct api.ContentType) ContentType {
-	switch ct {
-	case api.UTF8Content:
-		return UTF8Content
-	default:
-		return BinaryContent
-	}
-}
-
-func (s *service) messages(ctx context.Context, channel *keys.EdX25519Key) ([]*Message, error) {
-	path := dstore.Path("channel", channel.ID(), "msgs")
-	iter, iterErr := s.db.DocumentIterator(ctx, path, dstore.NoData())
-	if iterErr != nil {
-		return nil, iterErr
+func (s *service) messages(ctx context.Context, channel keys.ID) ([]*Message, error) {
+	path := dstore.Path("messages", channel.ID())
+	iter, err := s.db.DocumentIterator(ctx, path, dstore.NoData())
+	if err != nil {
+		return nil, err
 	}
 	defer iter.Release()
 	messages := make([]*Message, 0, 100)
@@ -232,57 +216,102 @@ func (s *service) messages(ctx context.Context, channel *keys.EdX25519Key) ([]*M
 		}
 		messages = append(messages, message)
 	}
-
-	sort.Slice(messages, func(i, j int) bool {
-		return messages[i].CreatedAt < messages[j].CreatedAt
-	})
-
 	return messages, nil
 }
 
 type channelPullState struct {
-	Index int64
+	Index int64 `json:"idx"`
 }
 
-func (s *service) pullMessages(ctx context.Context, channel *keys.EdX25519Key, member *keys.EdX25519Key) error {
-	logger.Infof("Pull messages (%s)...", channel.ID())
-
-	// Get local channel state.
-	pullStatePath := dstore.Path("channel", channel.ID(), "pull")
-	doc, err := s.db.Get(ctx, pullStatePath)
+func (s *service) pullMessages(ctx context.Context, channel keys.ID, member keys.ID) error {
+	channelKey, err := s.edx25519Key(channel)
 	if err != nil {
 		return err
 	}
-	var state channelPullState
-	if doc != nil {
-		if err := doc.To(&state); err != nil {
-			logger.Errorf("Invalid channel state: %v", err)
+	memberKey, err := s.edx25519Key(member)
+	if err != nil {
+		return err
+	}
+
+	logger.Infof("Pull messages (%s)...", channel)
+
+	// Keep pulling messages til we receive none.
+	for {
+		count, err := s.pullMessagesNext(ctx, channelKey, memberKey)
+		if err != nil {
+			return err
 		}
+		if count == 0 {
+			return nil
+		}
+	}
+}
+
+func (s *service) channelPullState(ctx context.Context, channel keys.ID) (*channelPullState, error) {
+	pullStatePath := dstore.Path("channel", channel, "pull")
+	var pullState channelPullState
+	if _, err := s.db.Load(ctx, pullStatePath, &pullState); err != nil {
+		return nil, err
+	}
+	return &pullState, nil
+}
+
+func (s *service) pullMessagesNext(ctx context.Context, channel *keys.EdX25519Key, member *keys.EdX25519Key) (int, error) {
+	pullState, err := s.channelPullState(ctx, channel.ID())
+	if err != nil {
+		return 0, err
 	}
 
 	// Get messages.
-	logger.Infof("Pull state: %v", state)
-	events, next, err := s.client.Messages(ctx, channel, member, &client.MessagesOpts{Index: state.Index})
+	logger.Infof("Pull state: %v", pullState)
+	events, next, err := s.client.Messages(ctx, channel, member, &client.MessagesOpts{Index: pullState.Index})
 	if err != nil {
-		return err
+		return 0, err
 	}
-	// TODO: If limit hit this doesn't get all messages
 
 	logger.Infof("Received %d messages", len(events))
+
+	info := &channelInfo{ID: channel.ID()}
+
 	for _, event := range events {
 		logger.Debugf("Saving message %d", event.Index)
-		path := dstore.Path("channel", channel.ID(), "msgs", pad(event.Index))
+		path := dstore.Path("messages", channel.ID(), pad(event.Index))
 		if err := s.db.Set(ctx, path, dstore.From(event)); err != nil {
-			return err
+			return 0, err
 		}
+
+		// Decrypt message temporarily to update channel state.
+		msg, err := client.DecryptMessage(event, s.vault)
+		if err != nil {
+			return 0, err
+		}
+		if msg.Text != "" {
+			info.Snippet = msg.Text
+		}
+		if msg.ChannelInfo != nil {
+			if msg.ChannelInfo.Name != "" {
+				info.Name = msg.ChannelInfo.Name
+			}
+			if msg.ChannelInfo.Description != "" {
+				info.Description = msg.ChannelInfo.Description
+			}
+		}
+		info.Timestamp = msg.Timestamp
+		info.RemoteTimestamp = msg.RemoteTimestamp
 	}
 
-	// Update state
-	state.Index = next
-	if err := s.db.Set(ctx, pullStatePath, dstore.From(state)); err != nil {
-		return err
+	// Save channel state.
+	if err := s.db.Set(ctx, dstore.Path("channel", channel.ID(), "info"), dstore.From(info), dstore.MergeAll()); err != nil {
+		return 0, err
 	}
-	return nil
+
+	// Update pull state
+	pullState.Index = next
+	if err := s.db.Set(ctx, dstore.Path("channel", channel.ID(), "pull"), dstore.From(pullState)); err != nil {
+		return 0, err
+	}
+
+	return len(events), nil
 }
 
 func pad(n int64) string {

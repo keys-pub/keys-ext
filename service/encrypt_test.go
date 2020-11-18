@@ -489,7 +489,7 @@ func TestEncryptUnverified(t *testing.T) {
 		Recipients: []string{"bob@github"},
 		Sender:     "alice@github",
 	})
-	require.EqualError(t, err, "not found bob@github")
+	require.EqualError(t, err, "bob@github not found")
 
 	testPull(t, aliceService, bob.ID())
 

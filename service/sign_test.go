@@ -80,7 +80,7 @@ func TestSignVerify(t *testing.T) {
 	// Sign (not found)
 	key := keys.GenerateEdX25519Key()
 	_, err = aliceService.Sign(context.TODO(), &SignRequest{Data: []byte(message), Signer: key.ID().String()})
-	require.EqualError(t, err, fmt.Sprintf("not found %s", key.ID()))
+	require.EqualError(t, err, fmt.Sprintf("%s not found", key.ID()))
 }
 
 func TestSignStream(t *testing.T) {

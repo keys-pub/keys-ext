@@ -8,27 +8,29 @@ import (
 	"github.com/pkg/errors"
 )
 
-// LookupOpts are options for key lookups.
-type LookupOpts struct {
-	// Verify to make sure the key and user is verified.
-	// If not verified an error is returned.
+// lookupOpts are options for key lookups.
+type lookupOpts struct {
+	// Verify makes sure the key and user is verified and the verification is up to date.
 	Verify bool
 	// SearchRemote to look for the key on the server if not found locally.
 	SearchRemote bool
 }
 
 // lookup a key by kid or user@service.
-func (s *service) lookup(ctx context.Context, key string, opts *LookupOpts) (keys.ID, error) {
+func (s *service) lookup(ctx context.Context, key string, opts *lookupOpts) (keys.ID, error) {
 	if key == "" {
 		return "", errors.Errorf("no key specified")
 	}
 	if opts == nil {
-		opts = &LookupOpts{}
+		opts = &lookupOpts{}
 	}
 
 	kid, err := s.lookupKID(ctx, key, opts.SearchRemote)
 	if err != nil {
 		return "", err
+	}
+	if kid == "" {
+		return "", keys.NewErrNotFound(key)
 	}
 
 	if opts.Verify {
@@ -40,7 +42,7 @@ func (s *service) lookup(ctx context.Context, key string, opts *LookupOpts) (key
 	return kid, nil
 }
 
-func (s *service) lookupAll(ctx context.Context, ks []string, opts *LookupOpts) ([]keys.ID, error) {
+func (s *service) lookupAll(ctx context.Context, ks []string, opts *lookupOpts) ([]keys.ID, error) {
 	ids := make([]keys.ID, 0, len(ks))
 	for _, key := range ks {
 		id, err := s.lookup(ctx, key, opts)

@@ -14,7 +14,7 @@ import (
 var ErrWormholeTimedOut = errors.New("wormhole timed out")
 
 func (s *service) wormholeInit(ctx context.Context, req *WormholeInput, wh *wormhole.Wormhole, srv Keys_WormholeServer) error {
-	if req.ID != "" || len(req.Data) != 0 {
+	if req.ID != "" || len(req.Text) != 0 {
 		return errors.Errorf("first request should not include a message")
 	}
 
@@ -41,7 +41,7 @@ func (s *service) wormholeInit(ctx context.Context, req *WormholeInput, wh *worm
 		if req.Sender == "" {
 			return errors.Errorf("no sender specified")
 		}
-		sid, err := s.lookup(ctx, req.Sender, &LookupOpts{Verify: true})
+		sid, err := s.lookup(ctx, req.Sender, &lookupOpts{Verify: true})
 		if err != nil {
 			return err
 		}
@@ -50,7 +50,7 @@ func (s *service) wormholeInit(ctx context.Context, req *WormholeInput, wh *worm
 		if req.Recipient == "" {
 			return errors.Errorf("no recipient specified")
 		}
-		rid, err := s.lookup(ctx, req.Recipient, &LookupOpts{Verify: true})
+		rid, err := s.lookup(ctx, req.Recipient, &lookupOpts{Verify: true})
 		if err != nil {
 			return err
 		}
@@ -109,7 +109,7 @@ func (s *service) wormholeInput(ctx context.Context, req *WormholeInput, wh *wor
 	if req.ID == "" {
 		return errors.Errorf("no message")
 	}
-	_, err := wh.WriteMessage(ctx, req.ID, req.Data, wormholeContentTypeFromRPC(req.Type))
+	_, err := wh.WriteMessage(ctx, req.ID, []byte(req.Text), wormhole.UTF8Content)
 	if err != nil {
 		return err
 	}
@@ -224,15 +224,6 @@ func wormholeStatusToRPC(st wormhole.Status) WormholeStatus {
 	}
 }
 
-func wormholeContentTypeFromRPC(typ ContentType) wormhole.ContentType {
-	switch typ {
-	case UTF8Content:
-		return wormhole.UTF8Content
-	default:
-		return wormhole.BinaryContent
-	}
-}
-
 func wormholeMessageTypeToRPC(typ wormhole.MessageType) WormholeMessageType {
 	switch typ {
 	case wormhole.Sent:
@@ -263,13 +254,12 @@ func (s *service) wormholeMessageToRPC(ctx context.Context, msg *wormhole.Messag
 	}
 
 	out := &WormholeMessage{
-		ID: msg.ID,
-		Content: &Content{
-			Data: msg.Content.Data,
-			Type: wormholeContentTypeToRPC(msg.Content.Type),
-		},
+		ID:     msg.ID,
 		Type:   wormholeMessageTypeToRPC(msg.Type),
 		Sender: sender,
+	}
+	if msg.Content.Type == wormhole.UTF8Content {
+		out.Text = string(msg.Content.Data)
 	}
 	return out, nil
 }

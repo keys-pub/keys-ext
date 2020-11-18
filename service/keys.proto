@@ -96,7 +96,7 @@ service Keys {
   // Channels
   rpc Channels(ChannelsRequest) returns (ChannelsResponse) {}
   rpc ChannelCreate(ChannelCreateRequest) returns (ChannelCreateResponse) {}
-  rpc ChannelInviteCreate(ChannelInviteCreateRequest) returns (ChannelInviteCreateResponse) {}
+  rpc ChannelInvitesCreate(ChannelInvitesCreateRequest) returns (ChannelInvitesCreateResponse) {}
   rpc ChannelInviteAccept(ChannelInviteAcceptRequest) returns (ChannelInviteAcceptResponse) {}
  
   // Messages
@@ -879,13 +879,8 @@ enum ContentType {
 message Message {
   string id = 1 [(go.field) = {name: "ID"}];
   Key sender = 2;
-  Content content = 10;
+  repeated string text = 3;  
   int64 createdAt = 21;
-}
-
-message Content {
-  bytes data = 1;
-  ContentType type = 2;
 }
 
 message MessagePrepareRequest {  
@@ -920,10 +915,12 @@ message MessagesResponse {
 message Channel {
   string id = 1 [(go.field) = {name: "ID"}];
   string name = 2;
+  string snippet = 3;
+  int64 updatedAt = 4;
 }
 
 message ChannelsRequest {
-  string member = 1;
+  string inbox = 1;
 }
 message ChannelsResponse {
   repeated Channel channels = 1;
@@ -931,22 +928,22 @@ message ChannelsResponse {
 
 message ChannelCreateRequest {
   string name = 1;
-  string member = 2;
+  string inbox = 2;
 }
 message ChannelCreateResponse {
   Channel channel = 1;
 }
 
-message ChannelInviteCreateRequest {
-  string channel = 1;  
-  string recipient = 2;
-  string sender = 3;
+message ChannelInvitesCreateRequest {
+  string channel = 1;    
+  string sender = 2;
+  repeated string recipients = 3;
 }
-message ChannelInviteCreateResponse {}
+message ChannelInvitesCreateResponse {}
 
 message ChannelInviteAcceptRequest {
   string channel = 1;
-  string member = 2; 
+  string inbox = 2; 
 }
 message ChannelInviteAcceptResponse {}
 
@@ -1018,8 +1015,7 @@ message WormholeInput {
   string invite = 3;
     
   string id = 10 [(go.field) = {name: "ID"}];
-  bytes data = 11;
-  ContentType type = 12;
+  string text = 11;
 }
 
 enum WormholeStatus {
@@ -1052,7 +1048,7 @@ message WormholeMessage {
 
   WormholeMessageType type = 5;
 
-  Content content = 10;
+  string text = 10;
   int64 createdAt = 21;
 }
 

@@ -226,5 +226,5 @@ func TestKeyRemove(t *testing.T) {
 	// Remove (not found)
 	randKey := keys.GenerateEdX25519Key()
 	_, err = service.KeyRemove(ctx, &KeyRemoveRequest{KID: randKey.ID().String()})
-	require.EqualError(t, err, fmt.Sprintf("not found %s", randKey.ID()))
+	require.EqualError(t, err, fmt.Sprintf("%s not found", randKey.ID()))
 }

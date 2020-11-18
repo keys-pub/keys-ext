@@ -1,6 +1,7 @@
 package service
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/base32"
@@ -54,6 +55,10 @@ func testFire(t *testing.T, clock tsutil.Clock) server.Fire {
 	fi := dstore.NewMem()
 	fi.SetClock(clock)
 	return fi
+}
+
+func testSeed(b byte) *[32]byte {
+	return keys.Bytes32(bytes.Repeat([]byte{b}, 32))
 }
 
 type testEnv struct {
@@ -272,9 +277,6 @@ func newTestServerEnv(t *testing.T, env *testEnv) *serverEnv {
 	tasks := server.NewTestTasks(srv)
 	srv.SetTasks(tasks)
 	srv.SetInternalAuth("testtoken")
-	srv.SetAccessFn(func(c server.AccessContext, resource server.AccessResource, action server.AccessAction) server.Access {
-		return server.AccessAllow()
-	})
 	handler := server.NewHandler(srv)
 	testServer := httptest.NewServer(handler)
 	srv.URL = testServer.URL

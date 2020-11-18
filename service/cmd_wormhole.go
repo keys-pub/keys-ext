@@ -83,8 +83,7 @@ func wormholeCommands(client *Client) []cli.Command {
 					id := wormhole.NewID()
 					if err := client.Send(&WormholeInput{
 						ID:   id,
-						Data: []byte(text),
-						Type: UTF8Content,
+						Text: text,
 					}); err != nil {
 						return err
 					}

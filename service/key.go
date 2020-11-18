@@ -11,7 +11,7 @@ import (
 
 // Key (RPC) ...
 func (s *service) Key(ctx context.Context, req *KeyRequest) (*KeyResponse, error) {
-	kid, err := s.lookup(context.TODO(), req.Key, &LookupOpts{SearchRemote: req.Search})
+	kid, err := s.lookup(ctx, req.Key, &lookupOpts{SearchRemote: req.Search})
 	if err != nil {
 		return nil, err
 	}
@@ -34,22 +34,6 @@ func (s *service) Key(ctx context.Context, req *KeyRequest) (*KeyResponse, error
 	return &KeyResponse{
 		Key: key,
 	}, nil
-}
-
-// Emoji for KeyType.
-func Emoji(key keys.Key) string {
-	switch key.Type() {
-	case keys.EdX25519:
-		return "🖋️"
-	case keys.EdX25519Public:
-		return "🖋️"
-	case keys.X25519:
-		return "🔑"
-	case keys.X25519Public:
-		return "🔑"
-	default:
-		return "❓"
-	}
 }
 
 func (s *service) verifyKey(ctx context.Context, kid keys.ID) (*Key, error) {
@@ -227,7 +211,14 @@ func (s *service) edx25519Key(kid keys.ID) (*keys.EdX25519Key, error) {
 	if key == nil {
 		return nil, keys.NewErrNotFound(kid.String())
 	}
-	return key.AsEdX25519()
+	sk, err := key.AsEdX25519()
+	if err != nil {
+		return nil, err
+	}
+	if sk == nil {
+		return nil, keys.NewErrNotFound(kid.String())
+	}
+	return sk, nil
 }
 
 func (s *service) x25519Key(kid keys.ID) (*keys.X25519Key, error) {
@@ -241,5 +232,12 @@ func (s *service) x25519Key(kid keys.ID) (*keys.X25519Key, error) {
 	if key == nil {
 		return nil, keys.NewErrNotFound(kid.String())
 	}
-	return key.AsX25519()
+	bk, err := key.AsX25519()
+	if err != nil {
+		return nil, err
+	}
+	if bk == nil {
+		return nil, keys.NewErrNotFound(kid.String())
+	}
+	return bk, nil
 }

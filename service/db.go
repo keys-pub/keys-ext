@@ -5,6 +5,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/keys-pub/keys-ext/vault"
 	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
@@ -31,11 +32,15 @@ func (s *service) serviceCollections(ctx context.Context, parent string) (*Colle
 }
 
 func (s *service) vaultCollections(ctx context.Context, parent string) (*CollectionsResponse, error) {
-	cols, err := s.vault.Collections(parent)
+	cols, err := vault.Collections(s.vault.Store(), "")
 	if err != nil {
 		return nil, err
 	}
-	return &CollectionsResponse{Collections: collectionsToRPC(cols)}, nil
+	out := make([]*Collection, 0, len(cols))
+	for _, c := range cols {
+		out = append(out, &Collection{Path: c})
+	}
+	return &CollectionsResponse{Collections: out}, nil
 }
 
 func collectionsToRPC(cols []*dstore.Collection) []*Collection {
@@ -48,32 +53,48 @@ func collectionsToRPC(cols []*dstore.Collection) []*Collection {
 
 // Documents (RPC) lists document from db or vault.
 func (s *service) Documents(ctx context.Context, req *DocumentsRequest) (*DocumentsResponse, error) {
-	var ds []*dstore.Document
-	var dsErr error
+	out := make([]*Document, 0, 100)
+
+	dataToString := func(b []byte) string {
+		var val string
+		if !utf8.Valid(b) {
+			val = string(spew.Sdump(b))
+		} else {
+			val = string(b)
+		}
+		return val
+	}
+
 	switch req.DB {
 	case "", "service":
-		ds, dsErr = s.db.Documents(ctx, "", dstore.Prefix(req.Prefix))
-	case "vault":
-		ds, dsErr = s.vault.Documents(dstore.Prefix(req.Prefix))
-	}
-	if dsErr != nil {
-		return nil, dsErr
-	}
-	out := make([]*Document, 0, 100)
-	for _, doc := range ds {
-		var val string
-		if !utf8.Valid(doc.Data()) {
-			val = string(spew.Sdump(doc.Data()))
-		} else {
-			val = string(doc.Data())
+		docs, err := s.db.Documents(ctx, "", dstore.Prefix(req.Prefix))
+		if err != nil {
+			return nil, err
 		}
-		out = append(out, &Document{
-			Path:      doc.Path,
-			Value:     val,
-			CreatedAt: tsutil.Millis(doc.CreatedAt),
-			UpdatedAt: tsutil.Millis(doc.UpdatedAt),
-		})
+		for _, doc := range docs {
+			out = append(out, &Document{
+				Path:      doc.Path,
+				Value:     dataToString(doc.Data()),
+				CreatedAt: tsutil.Millis(doc.CreatedAt),
+				UpdatedAt: tsutil.Millis(doc.UpdatedAt),
+			})
+		}
+
+	case "vault":
+		entries, err := s.vault.Store().List(&vault.ListOptions{Prefix: req.Prefix})
+		if err != nil {
+			return nil, err
+		}
+		for _, entry := range entries {
+			out = append(out, &Document{
+				Path:  entry.Path,
+				Value: dataToString(entry.Data),
+			})
+		}
+	default:
+		return nil, errors.Errorf("unrecognized db")
 	}
+
 	return &DocumentsResponse{
 		Documents: out,
 	}, nil

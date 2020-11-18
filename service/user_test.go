@@ -171,7 +171,7 @@ func TestUserAdd(t *testing.T) {
 		Name:    "bob",
 		URL:     "https://gist.github.com/bob/1",
 	})
-	require.EqualError(t, err, fmt.Sprintf("not found %s", randID))
+	require.EqualError(t, err, fmt.Sprintf("%s not found", randID))
 
 	// Invalid scheme
 	_, err = service.UserAdd(ctx, &UserAddRequest{
@@ -302,7 +302,7 @@ func TestUserAddEcho(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 0, len(searchResp.Users))
 
-	kid, err := service.lookup(context.TODO(), "bob@echo", &LookupOpts{Verify: true})
+	kid, err := service.lookup(context.TODO(), "bob@echo", &lookupOpts{Verify: true})
 	require.NoError(t, err)
 	require.Equal(t, keys.ID("kex1syuhwr4g05t4744r23nvxnr7en9cmz53knhr0gja7c84hr7fkw2quf6zcg"), kid)
 }

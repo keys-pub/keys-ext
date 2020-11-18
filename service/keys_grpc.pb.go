@@ -87,7 +87,7 @@ type KeysClient interface {
 	// Channels
 	Channels(ctx context.Context, in *ChannelsRequest, opts ...grpc.CallOption) (*ChannelsResponse, error)
 	ChannelCreate(ctx context.Context, in *ChannelCreateRequest, opts ...grpc.CallOption) (*ChannelCreateResponse, error)
-	ChannelInviteCreate(ctx context.Context, in *ChannelInviteCreateRequest, opts ...grpc.CallOption) (*ChannelInviteCreateResponse, error)
+	ChannelInvitesCreate(ctx context.Context, in *ChannelInvitesCreateRequest, opts ...grpc.CallOption) (*ChannelInvitesCreateResponse, error)
 	ChannelInviteAccept(ctx context.Context, in *ChannelInviteAcceptRequest, opts ...grpc.CallOption) (*ChannelInviteAcceptResponse, error)
 	// Messages
 	MessagePrepare(ctx context.Context, in *MessagePrepareRequest, opts ...grpc.CallOption) (*MessagePrepareResponse, error)
@@ -923,9 +923,9 @@ func (c *keysClient) ChannelCreate(ctx context.Context, in *ChannelCreateRequest
 	return out, nil
 }
 
-func (c *keysClient) ChannelInviteCreate(ctx context.Context, in *ChannelInviteCreateRequest, opts ...grpc.CallOption) (*ChannelInviteCreateResponse, error) {
-	out := new(ChannelInviteCreateResponse)
-	err := c.cc.Invoke(ctx, "/keys.Keys/ChannelInviteCreate", in, out, opts...)
+func (c *keysClient) ChannelInvitesCreate(ctx context.Context, in *ChannelInvitesCreateRequest, opts ...grpc.CallOption) (*ChannelInvitesCreateResponse, error) {
+	out := new(ChannelInvitesCreateResponse)
+	err := c.cc.Invoke(ctx, "/keys.Keys/ChannelInvitesCreate", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1091,7 +1091,7 @@ type KeysServer interface {
 	// Channels
 	Channels(context.Context, *ChannelsRequest) (*ChannelsResponse, error)
 	ChannelCreate(context.Context, *ChannelCreateRequest) (*ChannelCreateResponse, error)
-	ChannelInviteCreate(context.Context, *ChannelInviteCreateRequest) (*ChannelInviteCreateResponse, error)
+	ChannelInvitesCreate(context.Context, *ChannelInvitesCreateRequest) (*ChannelInvitesCreateResponse, error)
 	ChannelInviteAccept(context.Context, *ChannelInviteAcceptRequest) (*ChannelInviteAcceptResponse, error)
 	// Messages
 	MessagePrepare(context.Context, *MessagePrepareRequest) (*MessagePrepareResponse, error)
@@ -1298,8 +1298,8 @@ func (*UnimplementedKeysServer) Channels(context.Context, *ChannelsRequest) (*Ch
 func (*UnimplementedKeysServer) ChannelCreate(context.Context, *ChannelCreateRequest) (*ChannelCreateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ChannelCreate not implemented")
 }
-func (*UnimplementedKeysServer) ChannelInviteCreate(context.Context, *ChannelInviteCreateRequest) (*ChannelInviteCreateResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ChannelInviteCreate not implemented")
+func (*UnimplementedKeysServer) ChannelInvitesCreate(context.Context, *ChannelInvitesCreateRequest) (*ChannelInvitesCreateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChannelInvitesCreate not implemented")
 }
 func (*UnimplementedKeysServer) ChannelInviteAccept(context.Context, *ChannelInviteAcceptRequest) (*ChannelInviteAcceptResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ChannelInviteAccept not implemented")
@@ -2550,20 +2550,20 @@ func _Keys_ChannelCreate_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Keys_ChannelInviteCreate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ChannelInviteCreateRequest)
+func _Keys_ChannelInvitesCreate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChannelInvitesCreateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(KeysServer).ChannelInviteCreate(ctx, in)
+		return srv.(KeysServer).ChannelInvitesCreate(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/keys.Keys/ChannelInviteCreate",
+		FullMethod: "/keys.Keys/ChannelInvitesCreate",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(KeysServer).ChannelInviteCreate(ctx, req.(*ChannelInviteCreateRequest))
+		return srv.(KeysServer).ChannelInvitesCreate(ctx, req.(*ChannelInvitesCreateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2915,8 +2915,8 @@ var _Keys_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Keys_ChannelCreate_Handler,
 		},
 		{
-			MethodName: "ChannelInviteCreate",
-			Handler:    _Keys_ChannelInviteCreate_Handler,
+			MethodName: "ChannelInvitesCreate",
+			Handler:    _Keys_ChannelInvitesCreate_Handler,
 		},
 		{
 			MethodName: "ChannelInviteAccept",

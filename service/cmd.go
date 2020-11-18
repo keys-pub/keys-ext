@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"text/tabwriter"
-	"unicode/utf8"
 
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
@@ -104,19 +103,6 @@ func encryptModeToString(m EncryptMode) string {
 	}
 }
 
-func fmtContent(w io.Writer, content *Content) {
-	switch content.Type {
-	case UTF8Content:
-		if utf8.Valid(content.Data) {
-			fmt.Fprintf(w, "%s", string(content.Data))
-		} else {
-			fmt.Fprintf(w, "[invalid utf8]")
-		}
-	default:
-		fmt.Fprintf(w, "[bytes len(%d)]", len(content.Data))
-	}
-}
-
 func identityForKey(k *Key) string {
 	if k.User != nil {
 		return k.User.ID
@@ -125,11 +111,11 @@ func identityForKey(k *Key) string {
 }
 
 func fmtWormholeMessage(w io.Writer, msg *WormholeMessage) {
-	if msg == nil || msg.Content == nil || len(msg.Content.Data) == 0 {
+	if msg == nil || len(msg.Text) == 0 {
 		return
 	}
 	fmt.Fprintf(w, "%s: ", identityForKey(msg.Sender))
-	fmtContent(w, msg.Content)
+	fmt.Fprint(w, msg.Text)
 	fmt.Fprintf(w, "\n")
 }
 
