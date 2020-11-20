@@ -7,6 +7,7 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/dstore/events"
+	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keys/users"
@@ -30,12 +31,18 @@ type Server struct {
 	// authorization checks in testing where the host is ambiguous.
 	URL string
 
-	users        *users.Users
-	sigchains    *keys.Sigchains
-	tasks        Tasks
+	users     *users.Users
+	sigchains *keys.Sigchains
+	tasks     Tasks
+
+	// internalAuth token for authorizing internal services.
 	internalAuth string
 
+	// admins are key ids that can do admin actions on the server.
 	admins []keys.ID
+
+	// secretKey for encrypting between internal services.
+	secretKey *[32]byte
 }
 
 // Fire defines interface for remote store (like Firestore).
@@ -62,6 +69,19 @@ func New(fi Fire, rds Redis, req request.Requestor, clock tsutil.Clock, logger L
 // SetInternalAuth for authorizing internal requests, like tasks.
 func (s *Server) SetInternalAuth(internalAuth string) {
 	s.internalAuth = internalAuth
+}
+
+// SetSecretKeyFromHex as (32 byte hex string) for encrypting between internal services.
+func (s *Server) SetSecretKeyFromHex(secretKey string) error {
+	if secretKey == "" {
+		return errors.Errorf("empty secret key")
+	}
+	sk, err := encoding.Decode(secretKey, encoding.Hex)
+	if err != nil {
+		return err
+	}
+	s.secretKey = keys.Bytes32(sk)
+	return nil
 }
 
 // SetAdmins sets authorized admins.

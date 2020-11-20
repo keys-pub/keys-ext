@@ -8,7 +8,7 @@ require (
 	github.com/keys-pub/keys v0.1.18-0.20201120035008-acb3bbba9752
 	github.com/keys-pub/keys-ext/firestore v0.0.0-20201120035752-fc8566e1f7c4
 	github.com/keys-pub/keys-ext/http/api v0.0.0-20201120035752-fc8566e1f7c4
-	github.com/keys-pub/keys-ext/ws/api v0.0.0-20201120040216-9bb267d5584f
+	github.com/keys-pub/keys-ext/ws/api v0.0.0-20201120191341-b7b29ceab3cf
 	github.com/labstack/echo/v4 v4.1.17
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/pkg/errors v0.9.1

@@ -11,7 +11,6 @@ import (
 	"github.com/keys-pub/keys/dstore"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
-	"github.com/vmihailenco/msgpack/v4"
 )
 
 func (s *Server) postMessage(c echo.Context) error {
@@ -57,6 +56,9 @@ func (s *Server) postMessage(c echo.Context) error {
 }
 
 func (s *Server) notifyChannel(ctx context.Context, channel keys.ID, idx int64) error {
+	if s.secretKey == nil {
+		return errors.Errorf("no secret key set")
+	}
 	users, err := s.channelUserIDs(ctx, channel)
 	if err != nil {
 		return err
@@ -66,7 +68,7 @@ func (s *Server) notifyChannel(ctx context.Context, channel keys.ID, idx int64) 
 		Users:   users,
 		Index:   idx,
 	}
-	pb, err := msgpack.Marshal(pub)
+	pb, err := wsapi.Encrypt(pub, s.secretKey)
 	if err != nil {
 		return err
 	}
