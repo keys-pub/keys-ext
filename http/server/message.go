@@ -86,15 +86,23 @@ func (s *Server) listMessages(c echo.Context) error {
 		return ErrForbidden(c, err)
 	}
 
+	limit := 1000
 	path := dstore.Path("channels", channel.KID)
-	resp, err := s.events(c, path, 1000)
+	resp, err := s.events(c, path, limit)
 	if err != nil {
 		return s.internalError(c, err)
 	}
 
+	truncated := false
+	if len(resp.Events) >= limit {
+		// TODO: This is a lie if the number of results are exactly equal to limit
+		truncated = true
+	}
+
 	out := &api.MessagesResponse{
-		Messages: resp.Events,
-		Index:    resp.Index,
+		Messages:  resp.Events,
+		Index:     resp.Index,
+		Truncated: truncated,
 	}
 
 	return JSON(c, http.StatusOK, out)

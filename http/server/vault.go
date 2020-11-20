@@ -32,18 +32,25 @@ func (s *Server) listVault(c echo.Context) error {
 		return ErrNotFound(c, errVaultDeleted)
 	}
 
+	limit := 1000
 	path := dstore.Path("vaults", auth.KID)
-	resp, err := s.events(c, path, 1000)
+	resp, err := s.events(c, path, limit)
 	if err != nil {
 		return err
 	}
 	if len(resp.Events) == 0 && resp.Index == 0 {
 		return ErrNotFound(c, errVaultNotFound)
 	}
+	truncated := false
+	if len(resp.Events) >= limit {
+		// TODO: This is a lie if the number of results are exactly equal to limit
+		truncated = true
+	}
 
 	out := &api.VaultResponse{
-		Vault: resp.Events,
-		Index: resp.Index,
+		Vault:     resp.Events,
+		Index:     resp.Index,
+		Truncated: truncated,
 	}
 	return JSON(c, http.StatusOK, out)
 }

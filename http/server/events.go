@@ -10,21 +10,21 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *Server) events(c echo.Context, path string, max int64) (*api.EventsResponse, error) {
+func (s *Server) events(c echo.Context, path string, max int) (*api.EventsResponse, error) {
 	request := c.Request()
 	ctx := request.Context()
 
-	var index int64
+	var index int
 	if f := c.QueryParam("idx"); f != "" {
 		i, err := strconv.Atoi(f)
 		if err != nil {
 			return nil, ErrResponse(c, http.StatusBadRequest, errors.Wrapf(err, "invalid index"))
 		}
-		index = int64(i)
+		index = i
 	}
-	var limit int64
+	var limit int
 	if f := c.QueryParam("limit"); f != "" {
-		n, err := strconv.ParseInt(f, 10, 64)
+		n, err := strconv.Atoi(f)
 		if err != nil {
 			return nil, ErrResponse(c, http.StatusBadRequest, errors.Wrapf(err, "invalid limit"))
 		}
@@ -51,7 +51,7 @@ func (s *Server) events(c echo.Context, path string, max int64) (*api.EventsResp
 	}
 
 	s.logger.Infof("Events %s (from=%d)", path, index)
-	iter, err := s.fi.Events(ctx, path, events.Index(index), events.Limit(limit), events.WithDirection(dir))
+	iter, err := s.fi.Events(ctx, path, events.Index(int64(index)), events.Limit(int64(limit)), events.WithDirection(dir))
 	if err != nil {
 		return nil, s.internalError(c, err)
 	}
