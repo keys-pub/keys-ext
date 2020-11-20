@@ -24,12 +24,12 @@ const (
 	pingPeriod = (pongWait * 9) / 10
 
 	// Maximum message size allowed from peer.
-	maxMessageSize = 512
+	maxMessageSize = 1024 * 16
 )
 
 var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
+	// ReadBufferSize:  1024,
+	// WriteBufferSize: 1024,
 }
 
 // Client is a middleman between the websocket connection and the hub.
@@ -44,7 +44,7 @@ type client struct {
 	kids []keys.ID
 
 	// Buffered channel of outbound messages.
-	send chan *api.Message
+	send chan *api.Event
 }
 
 // newClient returns a new client.
@@ -53,7 +53,7 @@ func newClient(hub *Hub, conn *websocket.Conn) *client {
 		id:   encoding.MustEncode(keys.Rand16()[:], encoding.Base62),
 		hub:  hub,
 		conn: conn,
-		send: make(chan *api.Message, 256),
+		send: make(chan *api.Event, 256),
 	}
 }
 
@@ -78,9 +78,9 @@ func (c *client) readPump() {
 			}
 			break
 		}
-		// log.Printf("read: %s\n", message)
 
-		kid, err := api.CheckAuth(context.TODO(), data, time.Now(), c.hub.host, c.hub.nonces)
+		// log.Printf("authorize %s\n", c.id)
+		kid, err := api.Authorize(context.TODO(), data, time.Now(), c.hub.url, c.hub.nonceCheck)
 		if err != nil {
 			log.Printf("auth err: %v\n", err)
 			break
@@ -103,7 +103,7 @@ func (c *client) writePump() {
 	}()
 	for {
 		select {
-		case message, ok := <-c.send:
+		case event, ok := <-c.send:
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if !ok {
 				// The hub closed the channel.
@@ -115,22 +115,25 @@ func (c *client) writePump() {
 			if err != nil {
 				return
 			}
-			b, err := json.Marshal(message)
+			b, err := json.Marshal(event)
 			if err != nil {
 				return
 			}
+			w.Write([]byte("["))
 			w.Write(b)
 
-			// Add queued messages .
+			// Add queued messages.
 			n := len(c.send)
 			for i := 0; i < n; i++ {
-				message = <-c.send
-				b, err := json.Marshal(message)
+				event = <-c.send
+				b, err := json.Marshal(event)
 				if err != nil {
 					return
 				}
+				w.Write([]byte(","))
 				w.Write(b)
 			}
+			w.Write([]byte("]"))
 
 			if err := w.Close(); err != nil {
 				return

@@ -1,17 +1,21 @@
 package server
 
 import (
+	"context"
 	"log"
+	"time"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/ws/api"
+	"github.com/pkg/errors"
 )
 
 // Hub maintains the set of active clients and broadcasts messages to the
 // clients.
 type Hub struct {
-	host   string
-	nonces api.Nonces
+	url string
+
+	rds *Redis
 
 	// Registered clients.
 	clients map[string]*client
@@ -20,7 +24,7 @@ type Hub struct {
 	clientsForKey map[keys.ID]map[string]*client
 
 	// Inbound messages.
-	broadcast chan *api.Message
+	broadcast chan *api.PubEvent
 
 	// Inbound auth.
 	auth chan *authClient
@@ -30,6 +34,8 @@ type Hub struct {
 
 	// Unregister requests from clients.
 	unregister chan *client
+
+	nonceCheck api.NonceCheck
 }
 
 type authClient struct {
@@ -38,16 +44,41 @@ type authClient struct {
 }
 
 // NewHub ...
-func NewHub(host string) *Hub {
-	return &Hub{
-		host:          host,
-		broadcast:     make(chan *api.Message),
-		auth:          make(chan *authClient),
+func NewHub(url string) *Hub {
+	h := &Hub{
+		url:           url,
+		broadcast:     make(chan *api.PubEvent),
+		auth:          make(chan *authClient, 10),
 		register:      make(chan *client),
 		unregister:    make(chan *client),
 		clients:       make(map[string]*client),
 		clientsForKey: make(map[keys.ID]map[string]*client),
 	}
+	h.nonceCheck = h.rdsNonceCheck
+	return h
+}
+
+func (h *Hub) rdsNonceCheck(ctx context.Context, nonce string) error {
+	if h.rds == nil {
+		return errors.Errorf("redis not set")
+	}
+	if nonce == "" {
+		return errors.Errorf("empty nonce")
+	}
+	val, err := h.rds.Get(ctx, nonce)
+	if err != nil {
+		return err
+	}
+	if val != "" {
+		return errors.Errorf("nonce collision")
+	}
+	if err := h.rds.Set(ctx, nonce, "1"); err != nil {
+		return err
+	}
+	if err := h.rds.Expire(ctx, nonce, time.Hour); err != nil {
+		return err
+	}
+	return nil
 }
 
 // Run hub.
@@ -64,17 +95,27 @@ func (h *Hub) Run() {
 				close(client.send)
 			}
 		case auth := <-h.auth:
+			// log.Printf("register auth %s\n", auth.client.id)
 			h.registerAuth(auth)
-			auth.client.send <- &api.Message{KID: auth.kid, Type: api.Hello}
-		case message := <-h.broadcast:
-			clients := h.findClients(message.KID)
-			for _, client := range clients {
-				select {
-				case client.send <- message:
-					// log.Printf("send %s => %s\n", client.id, message.KID)
-				default:
-					close(client.send)
-					h.unregisterAuth(client)
+			log.Printf("send hello %s\n", auth.kid)
+			auth.client.send <- &api.Event{Type: api.HelloEvent, User: auth.kid}
+		case pevent := <-h.broadcast:
+			for _, user := range pevent.Users {
+				clients := h.findClients(user)
+				event := &api.Event{
+					Channel: pevent.Channel,
+					User:    user,
+					Index:   pevent.Index,
+					Type:    api.ChannelEvent,
+				}
+				for _, client := range clients {
+					select {
+					case client.send <- event:
+						// log.Printf("send %s => %s\n", client.id, message.KID)
+					default:
+						close(client.send)
+						h.unregisterAuth(client)
+					}
 				}
 			}
 		}
@@ -82,17 +123,21 @@ func (h *Hub) Run() {
 }
 
 func (h *Hub) registerAuth(auth *authClient) {
+	h.registerKIDs(auth.client, auth.kid)
+}
+
+func (h *Hub) registerKIDs(cl *client, kid keys.ID) {
 	// log.Printf("auth %s => %s\n", auth.client.id, auth.kid)
-	if auth.client.kids == nil {
-		auth.client.kids = []keys.ID{}
+	if cl.kids == nil {
+		cl.kids = []keys.ID{}
 	}
-	auth.client.kids = append(auth.client.kids, auth.kid)
-	clients, ok := h.clientsForKey[auth.kid]
+	cl.kids = append(cl.kids, kid)
+	clients, ok := h.clientsForKey[kid]
 	if !ok {
 		clients = map[string]*client{}
-		h.clientsForKey[auth.kid] = clients
+		h.clientsForKey[kid] = clients
 	}
-	clients[auth.client.id] = auth.client
+	clients[cl.id] = cl
 }
 
 func (h *Hub) unregisterAuth(cl *client) {

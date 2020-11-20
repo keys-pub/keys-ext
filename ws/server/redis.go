@@ -2,13 +2,13 @@ package server
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 	"os"
 	"time"
 
 	"github.com/gomodule/redigo/redis"
 	"github.com/keys-pub/keys-ext/ws/api"
+	"github.com/vmihailenco/msgpack/v4"
 )
 
 // NewRedisPool from env.
@@ -57,17 +57,17 @@ func (r *Redis) Subscribe() error {
 
 	log.Printf("subscribe\n")
 	psc := redis.PubSubConn{Conn: redisConn}
-	psc.Subscribe("message")
+	psc.Subscribe(api.EventPubSub)
 	for {
 		switch v := psc.Receive().(type) {
 		case redis.Message:
-			log.Printf("channel %s: message: %s\n", v.Channel, v.Data)
-			var msg api.Message
-			if err := json.Unmarshal(v.Data, &msg); err != nil {
-				log.Printf("error receiving message: %v", v)
+			log.Printf("channel %s (%d)", v.Channel, len(v.Data))
+			var event api.PubEvent
+			if err := msgpack.Unmarshal(v.Data, &event); err != nil {
+				log.Printf("error receiving event: %v", err)
 				break
 			}
-			r.hub.broadcast <- &msg
+			r.hub.broadcast <- &event
 		case redis.Subscription:
 			log.Printf("subscription %s: %s %d\n", v.Channel, v.Kind, v.Count)
 		case error:

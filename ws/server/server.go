@@ -4,6 +4,8 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/keys-pub/keys-ext/ws/api"
 )
 
 func liveness(w http.ResponseWriter, r *http.Request) {
@@ -14,11 +16,25 @@ func readiness(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("OK"))
 }
 
+// ServeOptions ...
+type ServeOptions struct {
+	// NonceCheck to override default nonce check.
+	NonceCheck api.NonceCheck
+}
+
 // ListenAndServe starts the server.
-func ListenAndServe(addr string, host string) error {
-	hub := NewHub(host)
+func ListenAndServe(addr string, url string, opts *ServeOptions) error {
+	if opts == nil {
+		opts = &ServeOptions{}
+	}
+
+	hub := NewHub(url)
 	rds := NewRedis(hub)
-	hub.nonces = rds
+	hub.rds = rds
+
+	if opts.NonceCheck != nil {
+		hub.nonceCheck = opts.NonceCheck
+	}
 
 	go func() {
 		for {
