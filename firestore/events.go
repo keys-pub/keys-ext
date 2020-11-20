@@ -17,23 +17,25 @@ import (
 const eventIdxLabel = "idx"
 
 // EventsAdd adds events.
-func (f *Firestore) EventsAdd(ctx context.Context, path string, data [][]byte) ([]*events.Event, error) {
+func (f *Firestore) EventsAdd(ctx context.Context, path string, data [][]byte) ([]*events.Event, int64, error) {
 	pos := 0
 	remaining := len(data)
 	events := make([]*events.Event, 0, len(data))
+	idx := int64(0)
 	for remaining > 0 {
 		chunk := min(500, remaining)
 		logger.Infof(ctx, "Writing %s (batch %d:%d)", path, pos, pos+chunk)
-		batch, err := f.writeBatch(ctx, path, data[pos:pos+chunk])
+		batch, bidx, err := f.writeBatch(ctx, path, data[pos:pos+chunk])
 		if err != nil {
 			// TODO: Delete previous batch writes if pos > 0
-			return nil, errors.Wrapf(err, "failed to write batch")
+			return nil, 0, errors.Wrapf(err, "failed to write batch")
 		}
 		events = append(events, batch...)
 		pos = pos + chunk
 		remaining = remaining - chunk
+		idx = bidx
 	}
-	return events, nil
+	return events, idx, nil
 }
 
 // EventPositions returns positions for event logs.
@@ -54,19 +56,20 @@ func (f *Firestore) EventPositions(ctx context.Context, paths []string) ([]*even
 	return positions, nil
 }
 
-func (f *Firestore) writeBatch(ctx context.Context, path string, data [][]byte) ([]*events.Event, error) {
+func (f *Firestore) writeBatch(ctx context.Context, path string, data [][]byte) ([]*events.Event, int64, error) {
 	if len(data) > 500 {
-		return nil, errors.Errorf("too many events to batch (max 500)")
+		return nil, 0, errors.Errorf("too many events to batch (max 500)")
+	}
+
+	idx, err := f.index(ctx, dstore.Path(path), int64(len(data)))
+	if err != nil {
+		return nil, 0, errors.Wrapf(err, "failed to increment index")
 	}
 
 	batch := f.client.Batch()
 
-	idx, err := f.index(ctx, dstore.Path(path), int64(len(data)))
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to increment index")
-	}
-
 	out := make([]*events.Event, 0, len(data))
+	last := int64(0)
 	for _, b := range data {
 		id := encoding.MustEncode(keys.RandBytes(32), encoding.Base62)
 		path := dstore.Path(path, "log", id)
@@ -84,19 +87,19 @@ func (f *Firestore) writeBatch(ctx context.Context, path string, data [][]byte) 
 			Data:  b,
 			Index: idx,
 		})
-
+		last = idx
 		idx++
 	}
 
 	res, err := batch.Commit(ctx)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	for i, event := range out {
 		event.Timestamp = tsutil.Millis(res[i].UpdateTime)
 	}
 
-	return out, nil
+	return out, last, nil
 }
 
 // Events ...

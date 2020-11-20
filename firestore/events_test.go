@@ -27,9 +27,10 @@ func TestEvents(t *testing.T) {
 		values = append(values, []byte(str))
 		strs = append(strs, str)
 	}
-	out, err := eds.EventsAdd(ctx, path, values)
+	out, idx, err := eds.EventsAdd(ctx, path, values)
 	require.NoError(t, err)
 	require.Equal(t, 40, len(out))
+	require.Equal(t, int64(40), idx)
 	for i, event := range out {
 		require.NotEmpty(t, event.Timestamp)
 		require.Equal(t, int64(i+1), event.Index)
@@ -196,9 +197,10 @@ func TestFirestoreBatch(t *testing.T) {
 		str := fmt.Sprintf("value%d", i)
 		values = append(values, []byte(str))
 	}
-	out, err := eds.EventsAdd(ctx, path, values)
+	out, idx, err := eds.EventsAdd(ctx, path, values)
 	require.NoError(t, err)
 	require.Equal(t, length, len(out))
+	require.Equal(t, int64(length), idx)
 
 	iter, err := eds.Events(ctx, path)
 	require.NoError(t, err)
@@ -223,7 +225,7 @@ func TestUpdateWithEvents(t *testing.T) {
 
 	path := dstore.Path(collection, "key1")
 
-	_, err := ds.EventsAdd(ctx, path, [][]byte{[]byte("test1"), []byte("test2")})
+	_, _, err := ds.EventsAdd(ctx, path, [][]byte{[]byte("test1"), []byte("test2")})
 	require.NoError(t, err)
 
 	err = ds.Set(ctx, path, map[string]interface{}{"info": "testinfo", "data": []byte("val1")}, dstore.MergeAll())

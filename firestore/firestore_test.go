@@ -135,19 +135,19 @@ func TestDocuments(t *testing.T) {
 
 	cols, err := ds.Collections(ctx, "")
 	require.NoError(t, err)
-	expectedCols := []*dstore.Collection{
-		&dstore.Collection{Path: "/channels"},
-		&dstore.Collection{Path: "/inbox"},
-		&dstore.Collection{Path: "/rkl"},
-		&dstore.Collection{Path: "/sigchain"},
-		&dstore.Collection{Path: "/test"},
-		&dstore.Collection{Path: "/vaults"},
-		&dstore.Collection{Path: "/vaults-rm"},
-	}
-	require.Equal(t, expectedCols, cols)
+	require.True(t, hasCollection("/test", cols))
 
 	_, err = ds.Collections(ctx, "/foo")
 	require.EqualError(t, err, "only root collections supported")
+}
+
+func hasCollection(path string, cols []*dstore.Collection) bool {
+	for _, c := range cols {
+		if c.Path == path {
+			return true
+		}
+	}
+	return false
 }
 
 func TestDocumentsPath(t *testing.T) {
