@@ -66,12 +66,12 @@ func (s *Server) putChannel(c echo.Context) error {
 		}
 		return s.internalError(c, err)
 	}
-	member := &api.ChannelMember{
-		Member:  auth.KID,
+	user := &api.ChannelUser{
+		User:    auth.KID,
 		Channel: channel.KID,
 		From:    auth.KID,
 	}
-	if err := s.addChannelMembers(ctx, channel.KID, auth.KID, member); err != nil {
+	if err := s.addChannelUsers(ctx, channel.KID, auth.KID, user); err != nil {
 		return s.internalError(c, err)
 	}
 
@@ -117,39 +117,60 @@ func (s *Server) getChannel(c echo.Context) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-func (s *Server) isChannelMember(ctx context.Context, channel keys.ID, member keys.ID) (bool, error) {
+func (s *Server) isChannelMember(ctx context.Context, channel keys.ID, user keys.ID) (bool, error) {
 	// TODO: Cache this?
-	path := dstore.Path("channels", channel, "members", member)
+	path := dstore.Path("channels", channel, "users", user)
 	return s.fi.Exists(ctx, path)
 }
 
-func (s *Server) addChannelMembers(ctx context.Context, channel keys.ID, from keys.ID, members ...*api.ChannelMember) error {
-	// TODO: Before adding check if limits on number of channels for user
-	for _, member := range members {
-		path := dstore.Path("channels", channel, "members", member.Member)
-		if member.Channel != channel {
-			return errors.Errorf("member channel mismatch")
+func (s *Server) channelUserIDs(ctx context.Context, channel keys.ID) ([]keys.ID, error) {
+	path := dstore.Path("channels", channel, "users")
+	iter, err := s.fi.DocumentIterator(ctx, path, dstore.NoData())
+	if err != nil {
+		return nil, err
+	}
+	defer iter.Release()
+	kids := []keys.ID{}
+	for {
+		doc, err := iter.Next()
+		if err != nil {
+			return nil, err
 		}
-		add := &api.ChannelMember{
+		if doc == nil {
+			break
+		}
+		kids = append(kids, keys.ID(dstore.PathLast(doc.Path)))
+	}
+	return kids, nil
+}
+
+func (s *Server) addChannelUsers(ctx context.Context, channel keys.ID, from keys.ID, users ...*api.ChannelUser) error {
+	// TODO: Before adding check if limits on number of channels for user
+	for _, user := range users {
+		path := dstore.Path("channels", channel, "users", user.User)
+		if user.Channel != channel {
+			return errors.Errorf("user channel mismatch")
+		}
+		add := &api.ChannelUser{
 			Channel: channel,
-			Member:  member.Member,
+			User:    user.User,
 			From:    from,
 		}
 		if err := s.fi.Create(ctx, path, dstore.From(add)); err != nil {
 			return err
 		}
-		inboxPath := dstore.Path("inbox", member.Member, "channels", channel)
+		usersPath := dstore.Path("users", user.User, "channels", channel)
 		ch := &api.Channel{
 			ID: channel,
 		}
-		if err := s.fi.Create(ctx, inboxPath, dstore.From(ch)); err != nil {
+		if err := s.fi.Create(ctx, usersPath, dstore.From(ch)); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (s *Server) getChannelMembers(c echo.Context) error {
+func (s *Server) getChannelUsers(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
@@ -158,13 +179,13 @@ func (s *Server) getChannelMembers(c echo.Context) error {
 		return ErrForbidden(c, err)
 	}
 
-	path := dstore.Path("channels", channel.KID, "members")
+	path := dstore.Path("channels", channel.KID, "users")
 	iter, err := s.fi.DocumentIterator(ctx, path)
 	if err != nil {
 		return s.internalError(c, err)
 	}
 	defer iter.Release()
-	members := []*api.ChannelMember{}
+	users := []*api.ChannelUser{}
 	for {
 		doc, err := iter.Next()
 		if err != nil {
@@ -173,14 +194,14 @@ func (s *Server) getChannelMembers(c echo.Context) error {
 		if doc == nil {
 			break
 		}
-		var member api.ChannelMember
-		if err := doc.To(&member); err != nil {
+		var user api.ChannelUser
+		if err := doc.To(&user); err != nil {
 			return s.internalError(c, err)
 		}
-		members = append(members, &member)
+		users = append(users, &user)
 	}
-	out := &api.ChannelMembersResponse{
-		Members: members,
+	out := &api.ChannelUsersResponse{
+		Users: users,
 	}
 	return c.JSON(http.StatusOK, out)
 }
@@ -227,7 +248,7 @@ func (s *Server) postChannelInvites(c echo.Context) error {
 			return ErrBadRequest(c, errors.Errorf("invalid channel recipient"))
 		}
 
-		// TODO: Ensure inbox invites aren't full (over some threshold)
+		// TODO: Ensure users invites aren't full (over some threshold)
 		// TODO: Restrict invite from a user@service
 
 		invitePath := dstore.Path("channels", channel.KID, "invites", rid)
@@ -247,14 +268,14 @@ func (s *Server) postChannelInvites(c echo.Context) error {
 			return s.internalError(c, err)
 		}
 
-		inboxPath := dstore.Path("inbox", rid, "invites", invite.Channel)
-		if err := s.fi.Set(ctx, inboxPath, val); err != nil {
+		usersPath := dstore.Path("users", rid, "invites", invite.Channel)
+		if err := s.fi.Set(ctx, usersPath, val); err != nil {
 			return s.internalError(c, err)
 		}
 	}
 
-	var resp struct{}
-	return JSON(c, http.StatusOK, resp)
+	var out struct{}
+	return JSON(c, http.StatusOK, out)
 }
 
 func (s *Server) getChannelInvites(c echo.Context) error {
@@ -291,7 +312,7 @@ func (s *Server) getChannelInvites(c echo.Context) error {
 	return JSON(c, http.StatusOK, out)
 }
 
-// func (s *Server) postChannelMembers(c echo.Context) error {
+// func (s *Server) postChannelUsers(c echo.Context) error {
 // 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
 // 	if c.Request().Body == nil {
@@ -314,13 +335,13 @@ func (s *Server) getChannelInvites(c echo.Context) error {
 // 		return ErrForbidden(c, err)
 // 	}
 
-// 	var req api.ChannelMembersAddRequest
+// 	var req api.ChannelUsersAddRequest
 // 	if err := json.Unmarshal(b, &req); err != nil {
 // 		return ErrBadRequest(c, err)
 // 	}
 
 // 	ctx := c.Request().Context()
-// 	if err := s.addChannelMembers(ctx, channel.KID, auth.KID, req.Members); err != nil {
+// 	if err := s.addChannelUsers(ctx, channel.KID, auth.KID, req.Users); err != nil {
 // 		return s.internalError(c, err)
 // 	}
 // 	var out struct{}

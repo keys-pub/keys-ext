@@ -83,24 +83,24 @@ func testChannel(t *testing.T, env *env, tk testKeys) {
 	require.Equal(t, `{"id":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","creator":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","idx":1,"ts":1234567890005}`+"\n", body)
 	require.Equal(t, http.StatusOK, code)
 
-	// // POST /channel/:cid/members
-	// addMember := api.ChannelMembersAddRequest{
-	// 	Members: []*api.ChannelMember{&api.ChannelMember{ID: bob.ID()}},
+	// // POST /channel/:cid/users
+	// addUser := api.ChannelUsersAddRequest{
+	// 	Users: []*api.ChannelUser{&api.ChannelUser{ID: bob.ID()}},
 	// }
-	// content, err := json.Marshal(addMember)
+	// content, err := json.Marshal(addUser)
 	// require.NoError(t, err)
 	// contentHash := http.ContentHash(content)
-	// req, err = http.NewAuthRequest("POST", dstore.Path("channel", channel.ID(), "members"), bytes.NewReader(content), contentHash, clock.Now(), aliceChannel)
+	// req, err = http.NewAuthRequest("POST", dstore.Path("channel", channel.ID(), "users"), bytes.NewReader(content), contentHash, clock.Now(), aliceChannel)
 	// require.NoError(t, err)
 	// code, _, body = srv.Serve(req)
 	// require.Equal(t, `{}`, body)
 	// require.Equal(t, http.StatusOK, code)
 
-	// // GET /channel/:cid/members
-	// req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "members"), nil, "", clock.Now(), aliceChannel)
+	// // GET /channel/:cid/users
+	// req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "users"), nil, "", clock.Now(), aliceChannel)
 	// require.NoError(t, err)
 	// code, _, body = srv.Serve(req)
-	// expected := `{"members":[{"kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","from":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077"},{"kid":"kex1syuhwr4g05t4744r23nvxnr7en9cmz53knhr0gja7c84hr7fkw2quf6zcg","from":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077"}]}` + "\n"
+	// expected := `{"users":[{"kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","from":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077"},{"kid":"kex1syuhwr4g05t4744r23nvxnr7en9cmz53knhr0gja7c84hr7fkw2quf6zcg","from":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077"}]}` + "\n"
 	// require.Equal(t, expected, body)
 	// require.Equal(t, http.StatusOK, code)
 }
@@ -168,66 +168,66 @@ func TestChannelInvite(t *testing.T) {
 	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "invites"), nil, "", clock.Now(), aliceChannel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
-	expected := `{"invites":[{"channel":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","recipient":"kex132r4llc7kwz9z4m6e4d0aeq9g4jk3htu38sfpp36q4tmc7h5nutsv4zjrd","member":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","k":"dGVzdGtleQ=="},{"channel":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","recipient":"kex1syuhwr4g05t4744r23nvxnr7en9cmz53knhr0gja7c84hr7fkw2quf6zcg","member":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","k":"dGVzdGtleQ=="}]}`
+	expected := `{"invites":[{"channel":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","recipient":"kex132r4llc7kwz9z4m6e4d0aeq9g4jk3htu38sfpp36q4tmc7h5nutsv4zjrd","sender":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","k":"dGVzdGtleQ=="},{"channel":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","recipient":"kex1syuhwr4g05t4744r23nvxnr7en9cmz53knhr0gja7c84hr7fkw2quf6zcg","sender":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","k":"dGVzdGtleQ=="}]}`
 	require.Equal(t, expected, body)
 	require.Equal(t, http.StatusOK, code)
 
-	// GET /inbox/:kid/invites (bob)
-	req, err = http.NewAuthRequest("GET", dstore.Path("inbox", bob.ID(), "invites"), nil, "", clock.Now(), http.Authorization(bob))
+	// GET /user/:kid/invites (bob)
+	req, err = http.NewAuthRequest("GET", dstore.Path("user", bob.ID(), "invites"), nil, "", clock.Now(), http.Authorization(bob))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
-	expected = `{"invites":[{"channel":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","recipient":"kex1syuhwr4g05t4744r23nvxnr7en9cmz53knhr0gja7c84hr7fkw2quf6zcg","member":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","k":"dGVzdGtleQ=="}]}`
+	expected = `{"invites":[{"channel":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","recipient":"kex1syuhwr4g05t4744r23nvxnr7en9cmz53knhr0gja7c84hr7fkw2quf6zcg","sender":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","k":"dGVzdGtleQ=="}]}`
 	require.Equal(t, expected, body)
 	require.Equal(t, http.StatusOK, code)
 
-	// GET /inbox/:kid/invite/:cid (bob gets invite)
-	req, err = http.NewAuthRequest("GET", dstore.Path("inbox", bob.ID(), "invite", channel.ID()), nil, "", clock.Now(), http.Authorization(bob))
+	// GET /user/:kid/invite/:cid (bob gets invite)
+	req, err = http.NewAuthRequest("GET", dstore.Path("user", bob.ID(), "invite", channel.ID()), nil, "", clock.Now(), http.Authorization(bob))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
-	expected = `{"invite":{"channel":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","recipient":"kex1syuhwr4g05t4744r23nvxnr7en9cmz53knhr0gja7c84hr7fkw2quf6zcg","member":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","k":"dGVzdGtleQ=="}}`
+	expected = `{"invite":{"channel":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","recipient":"kex1syuhwr4g05t4744r23nvxnr7en9cmz53knhr0gja7c84hr7fkw2quf6zcg","sender":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","k":"dGVzdGtleQ=="}}`
 	require.Equal(t, expected, body)
 	require.Equal(t, http.StatusOK, code)
 
-	// POST /inbox/:kid/invite/:cid/accept (bob accept)
-	req, err = http.NewAuthRequest("POST", dstore.Path("inbox", bob.ID(), "invite", channel.ID(), "accept"), nil, "", clock.Now(), bobChannel)
+	// POST /user/:kid/invite/:cid/accept (bob accept)
+	req, err = http.NewAuthRequest("POST", dstore.Path("user", bob.ID(), "invite", channel.ID(), "accept"), nil, "", clock.Now(), bobChannel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, `{}`, body)
 	require.Equal(t, http.StatusOK, code)
 
-	// GET /channel/:cid/members
-	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "members"), nil, "", clock.Now(), aliceChannel)
+	// GET /channel/:cid/users
+	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "users"), nil, "", clock.Now(), aliceChannel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
-	expected = `{"members":[{"channel":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","member":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","from":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077"},{"channel":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","member":"kex1syuhwr4g05t4744r23nvxnr7en9cmz53knhr0gja7c84hr7fkw2quf6zcg","from":"kex1syuhwr4g05t4744r23nvxnr7en9cmz53knhr0gja7c84hr7fkw2quf6zcg"}]}` + "\n"
+	expected = `{"users":[{"channel":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","user":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","from":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077"},{"channel":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","user":"kex1syuhwr4g05t4744r23nvxnr7en9cmz53knhr0gja7c84hr7fkw2quf6zcg","from":"kex1syuhwr4g05t4744r23nvxnr7en9cmz53knhr0gja7c84hr7fkw2quf6zcg"}]}` + "\n"
 	require.Equal(t, expected, body)
 	require.Equal(t, http.StatusOK, code)
 
-	// GET /inbox/:kid/invites (frank)
-	req, err = http.NewAuthRequest("GET", dstore.Path("inbox", frank.ID(), "invites"), nil, "", clock.Now(), http.Authorization(frank))
+	// GET /user/:kid/invites (frank)
+	req, err = http.NewAuthRequest("GET", dstore.Path("user", frank.ID(), "invites"), nil, "", clock.Now(), http.Authorization(frank))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
-	expected = `{"invites":[{"channel":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","recipient":"kex132r4llc7kwz9z4m6e4d0aeq9g4jk3htu38sfpp36q4tmc7h5nutsv4zjrd","member":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","k":"dGVzdGtleQ=="}]}`
+	expected = `{"invites":[{"channel":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","recipient":"kex132r4llc7kwz9z4m6e4d0aeq9g4jk3htu38sfpp36q4tmc7h5nutsv4zjrd","sender":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","k":"dGVzdGtleQ=="}]}`
 	require.Equal(t, expected, body)
 	require.Equal(t, http.StatusOK, code)
 
-	// DELETE /inbox/:kid/invites/:cid (frank delete)
-	req, err = http.NewAuthRequest("DELETE", dstore.Path("inbox", frank.ID(), "invite", channel.ID()), nil, "", clock.Now(), http.Authorization(frank))
+	// DELETE /user/:kid/invites/:cid (frank delete)
+	req, err = http.NewAuthRequest("DELETE", dstore.Path("user", frank.ID(), "invite", channel.ID()), nil, "", clock.Now(), http.Authorization(frank))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, `{}`, body)
 	require.Equal(t, http.StatusOK, code)
 
-	// GET /inbox/:kid/invites (frank)
-	req, err = http.NewAuthRequest("GET", dstore.Path("inbox", frank.ID(), "invites"), nil, "", clock.Now(), http.Authorization(frank))
+	// GET /user/:kid/invites (frank)
+	req, err = http.NewAuthRequest("GET", dstore.Path("user", frank.ID(), "invites"), nil, "", clock.Now(), http.Authorization(frank))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	expected = `{"invites":[]}`
 	require.Equal(t, expected, body)
 	require.Equal(t, http.StatusOK, code)
 
-	// GET /inbox/:kid/invites (bad auth)
-	req, err = http.NewAuthRequest("GET", dstore.Path("inbox", alice.ID(), "invites"), nil, "", clock.Now(), http.Authorization(bob))
+	// GET /user/:kid/invites (bad auth)
+	req, err = http.NewAuthRequest("GET", dstore.Path("user", alice.ID(), "invites"), nil, "", clock.Now(), http.Authorization(bob))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, body)

@@ -106,9 +106,9 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	// Channel
 	e.PUT("/channel/:cid", s.putChannel)
 	e.GET("/channel/:cid", s.getChannel)
-	// Channel (members)
-	e.GET("/channel/:cid/members", s.getChannelMembers)
-	// e.POST("/channel/:cid/members", s.postChannelMembers)
+	// Channel (users)
+	e.GET("/channel/:cid/users", s.getChannelUsers)
+	// e.POST("/channel/:cid/users", s.postChannelUsers)
 	// Messages
 	e.POST("/channel/:cid/msgs", s.postMessage)
 	e.GET("/channel/:cid/msgs", s.listMessages)
@@ -116,13 +116,12 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	e.POST("/channel/:cid/invites", s.postChannelInvites)
 	e.GET("/channel/:cid/invites", s.getChannelInvites)
 
-	// Inbox (channels)
-	e.GET("/inbox/:kid/channels", s.inboxChannels)
-	// Inbox (invites)
-	e.GET("/inbox/:kid/invites", s.inboxInvites)
-	e.GET("/inbox/:kid/invite/:cid", s.getInboxInvite)
-	e.POST("/inbox/:kid/invite/:cid/accept", s.acceptInboxInvite)
-	e.DELETE("/inbox/:kid/invite/:cid", s.deleteInboxInvite)
+	// User (channels)
+	e.GET("/user/:kid/channels", s.usersChannels)
+	e.GET("/user/:kid/invites", s.userChannelInvites)
+	e.GET("/user/:kid/invite/:cid", s.getUserChannelInvite)
+	e.POST("/user/:kid/invite/:cid/accept", s.acceptUserChannelInvite)
+	e.DELETE("/user/:kid/invite/:cid", s.deleteUserChannelInvite)
 
 	// Vault
 	e.POST("/vault/:kid", s.postVault)

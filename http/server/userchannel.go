@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *Server) inboxChannels(c echo.Context) error {
+func (s *Server) usersChannels(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
@@ -19,13 +19,13 @@ func (s *Server) inboxChannels(c echo.Context) error {
 		return ErrForbidden(c, err)
 	}
 
-	path := dstore.Path("inbox", auth.KID, "channels")
+	path := dstore.Path("users", auth.KID, "channels")
 	iter, err := s.fi.DocumentIterator(ctx, path, dstore.NoData())
 	if err != nil {
 		return s.internalError(c, err)
 	}
 	defer iter.Release()
-	cpaths := []string{}
+	paths := []string{}
 	for {
 		doc, err := iter.Next()
 		if err != nil {
@@ -34,12 +34,12 @@ func (s *Server) inboxChannels(c echo.Context) error {
 		if doc == nil {
 			break
 		}
-		cpaths = append(cpaths, dstore.Path("channels", dstore.PathLast(doc.Path)))
+		paths = append(paths, dstore.Path("channels", dstore.PathLast(doc.Path)))
 	}
 
-	channels := make([]*api.Channel, 0, len(cpaths))
+	channels := make([]*api.Channel, 0, len(paths))
 
-	positions, err := s.fi.EventPositions(ctx, cpaths)
+	positions, err := s.fi.EventPositions(ctx, paths)
 	if err != nil {
 		return s.internalError(c, err)
 	}
@@ -51,11 +51,11 @@ func (s *Server) inboxChannels(c echo.Context) error {
 		})
 	}
 
-	resp := &api.InboxChannelsResponse{Channels: channels}
-	return JSON(c, http.StatusOK, resp)
+	out := &api.UserChannelsResponse{Channels: channels}
+	return JSON(c, http.StatusOK, out)
 }
 
-func (s *Server) inboxInvites(c echo.Context) error {
+func (s *Server) userChannelInvites(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
@@ -64,7 +64,7 @@ func (s *Server) inboxInvites(c echo.Context) error {
 		return ErrForbidden(c, err)
 	}
 
-	path := dstore.Path("inbox", auth.KID, "invites")
+	path := dstore.Path("users", auth.KID, "invites")
 	iter, err := s.fi.DocumentIterator(ctx, path)
 	if err != nil {
 		return s.internalError(c, err)
@@ -85,11 +85,11 @@ func (s *Server) inboxInvites(c echo.Context) error {
 		}
 		invites = append(invites, &invite)
 	}
-	resp := &api.ChannelInvitesResponse{Invites: invites}
-	return JSON(c, http.StatusOK, resp)
+	out := &api.ChannelInvitesResponse{Invites: invites}
+	return JSON(c, http.StatusOK, out)
 }
 
-func (s *Server) getInboxInvite(c echo.Context) error {
+func (s *Server) getUserChannelInvite(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
@@ -103,7 +103,7 @@ func (s *Server) getInboxInvite(c echo.Context) error {
 		return ErrBadRequest(c, err)
 	}
 
-	path := dstore.Path("inbox", auth.KID, "invites", cid)
+	path := dstore.Path("users", auth.KID, "invites", cid)
 	doc, err := s.fi.Get(ctx, path)
 	if err != nil {
 		return s.internalError(c, err)
@@ -117,11 +117,11 @@ func (s *Server) getInboxInvite(c echo.Context) error {
 		return s.internalError(c, err)
 	}
 
-	resp := &api.InboxChannelInviteResponse{Invite: &invite}
-	return JSON(c, http.StatusOK, resp)
+	out := &api.UserChannelInviteResponse{Invite: &invite}
+	return JSON(c, http.StatusOK, out)
 }
 
-func (s *Server) deleteInboxInvite(c echo.Context) error {
+func (s *Server) deleteUserChannelInvite(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
@@ -135,7 +135,7 @@ func (s *Server) deleteInboxInvite(c echo.Context) error {
 		return ErrBadRequest(c, err)
 	}
 
-	path := dstore.Path("inbox", auth.KID, "invites", cid)
+	path := dstore.Path("users", auth.KID, "invites", cid)
 	ok, err := s.fi.Delete(ctx, path)
 	if err != nil {
 		return s.internalError(c, err)
@@ -147,7 +147,7 @@ func (s *Server) deleteInboxInvite(c echo.Context) error {
 	return JSON(c, http.StatusOK, out)
 }
 
-func (s *Server) acceptInboxInvite(c echo.Context) error {
+func (s *Server) acceptUserChannelInvite(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
@@ -162,7 +162,7 @@ func (s *Server) acceptInboxInvite(c echo.Context) error {
 		return ErrForbidden(c, err)
 	}
 
-	path := dstore.Path("inbox", auth.KID, "invites", channel.KID)
+	path := dstore.Path("users", auth.KID, "invites", channel.KID)
 	doc, err := s.fi.Get(ctx, path)
 	if err != nil {
 		return s.internalError(c, err)
@@ -175,12 +175,12 @@ func (s *Server) acceptInboxInvite(c echo.Context) error {
 		return s.internalError(c, err)
 	}
 
-	member := &api.ChannelMember{
-		Member:  auth.KID,
+	user := &api.ChannelUser{
+		User:    auth.KID,
 		Channel: channel.KID,
 		From:    invite.Sender,
 	}
-	if err := s.addChannelMembers(ctx, channel.KID, auth.KID, member); err != nil {
+	if err := s.addChannelUsers(ctx, channel.KID, auth.KID, user); err != nil {
 		return s.internalError(c, err)
 	}
 	var out struct{}

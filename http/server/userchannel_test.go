@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestInbox(t *testing.T) {
+func TestUserChannels(t *testing.T) {
 	env := newEnv(t)
 	// env.logLevel = server.DebugLevel
 
@@ -27,8 +27,8 @@ func TestInbox(t *testing.T) {
 	srv := newTestServer(t, env)
 	clock := env.clock
 
-	// GET /inbox/:kid/channels
-	req, err := http.NewAuthRequest("GET", dstore.Path("inbox", alice.ID(), "channels"), nil, "", clock.Now(), http.Authorization(alice))
+	// GET /user/:kid/channels
+	req, err := http.NewAuthRequest("GET", dstore.Path("user", alice.ID(), "channels"), nil, "", clock.Now(), http.Authorization(alice))
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, `{"channels":[]}`, body)
@@ -50,8 +50,8 @@ func TestInbox(t *testing.T) {
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, `{}`, body)
 
-	// GET /inbox/:kid/channels
-	req, err = http.NewAuthRequest("GET", dstore.Path("inbox", alice.ID(), "channels"), nil, "", clock.Now(), http.Authorization(alice))
+	// GET /user/:kid/channels
+	req, err = http.NewAuthRequest("GET", dstore.Path("user", alice.ID(), "channels"), nil, "", clock.Now(), http.Authorization(alice))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, `{"channels":[{"id":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","idx":1,"ts":1234567890008}]}`, body)
@@ -64,8 +64,8 @@ func TestInbox(t *testing.T) {
 	require.Equal(t, `{}`, body)
 	require.Equal(t, http.StatusOK, code)
 
-	// GET /inbox/:kid/channels
-	req, err = http.NewAuthRequest("GET", dstore.Path("inbox", alice.ID(), "channels"), nil, "", clock.Now(), http.Authorization(alice))
+	// GET /user/:kid/channels
+	req, err = http.NewAuthRequest("GET", dstore.Path("user", alice.ID(), "channels"), nil, "", clock.Now(), http.Authorization(alice))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, `{"channels":[{"id":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","idx":1,"ts":1234567890008},{"id":"kex1tan3x22v8nc6s98gmr9q3zwmy0ngywm4yja0zdylh37e752jj3dsur2s3g","ts":1234567890025}]}`, body)

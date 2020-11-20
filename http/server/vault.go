@@ -85,12 +85,12 @@ func (s *Server) postVault(c echo.Context) error {
 	for _, d := range req {
 		data = append(data, d.Data)
 	}
-	if _, err := s.fi.EventsAdd(ctx, cpath, data); err != nil {
+	if _, _, err := s.fi.EventsAdd(ctx, cpath, data); err != nil {
 		return s.internalError(c, err)
 	}
 
-	var resp struct{}
-	return JSON(c, http.StatusOK, resp)
+	var out struct{}
+	return JSON(c, http.StatusOK, out)
 }
 
 func (s *Server) deleteVault(c echo.Context) error {

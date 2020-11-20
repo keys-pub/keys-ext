@@ -22,6 +22,8 @@ type Redis interface {
 	Expire(ctx context.Context, k string, dt time.Duration) error
 	// Increment value at key.
 	Increment(ctx context.Context, k string) (int64, error)
+	// Publish data to key.
+	Publish(ctx context.Context, k string, b []byte) error
 }
 
 type rdsTest struct {
@@ -121,4 +123,9 @@ func (m *rdsTest) Increment(ctx context.Context, k string) (int64, error) {
 	inc := strconv.FormatInt(n, 10)
 	e.Value = inc
 	return n, m.set(ctx, k, e)
+}
+
+func (m *rdsTest) Publish(ctx context.Context, k string, b []byte) error {
+	// Noop
+	return nil
 }

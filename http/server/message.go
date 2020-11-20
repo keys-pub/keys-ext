@@ -1,13 +1,17 @@
 package server
 
 import (
+	"context"
 	"io/ioutil"
 	"net/http"
 
+	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
+	wsapi "github.com/keys-pub/keys-ext/ws/api"
 	"github.com/keys-pub/keys/dstore"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
+	"github.com/vmihailenco/msgpack/v4"
 )
 
 func (s *Server) postMessage(c echo.Context) error {
@@ -35,7 +39,7 @@ func (s *Server) postMessage(c echo.Context) error {
 	ctx := c.Request().Context()
 	path := dstore.Path("channels", channel.KID)
 
-	events, err := s.fi.EventsAdd(ctx, path, [][]byte{b})
+	events, idx, err := s.fi.EventsAdd(ctx, path, [][]byte{b})
 	if err != nil {
 		return s.internalError(c, err)
 	}
@@ -43,8 +47,33 @@ func (s *Server) postMessage(c echo.Context) error {
 		return ErrBadRequest(c, errors.Errorf("no events added"))
 	}
 
+	// Notify channel
+	if err := s.notifyChannel(ctx, channel.KID, idx); err != nil {
+		return s.internalError(c, err)
+	}
+
 	var out struct{}
 	return JSON(c, http.StatusOK, out)
+}
+
+func (s *Server) notifyChannel(ctx context.Context, channel keys.ID, idx int64) error {
+	users, err := s.channelUserIDs(ctx, channel)
+	if err != nil {
+		return err
+	}
+	pub := &wsapi.PubEvent{
+		Channel: channel,
+		Users:   users,
+		Index:   idx,
+	}
+	pb, err := msgpack.Marshal(pub)
+	if err != nil {
+		return err
+	}
+	if err := s.rds.Publish(ctx, wsapi.EventPubSub, pb); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *Server) listMessages(c echo.Context) error {
