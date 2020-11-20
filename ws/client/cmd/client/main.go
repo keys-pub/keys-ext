@@ -29,22 +29,24 @@ func main() {
 		log.Fatal(err)
 	}
 
-	for i := 0; i < 100; i++ {
-		key := keys.NewEdX25519KeyFromSeed(testSeed(byte(i)))
-		cl.Register(key)
-	}
-
 	go func() {
 		for {
-			msg, err := cl.ReadMessage()
+			events, err := cl.ReadEvents()
 			if err != nil {
 				log.Errorf("read err: %v", err)
 				time.Sleep(time.Second * 2) // TODO: Backoff
 			} else {
-				log.Infof("%s (%s)\n", msg.KID, msg.Type)
+				for _, event := range events {
+					log.Infof("%+v\n", event)
+				}
 			}
 		}
 	}()
+
+	for i := 0; i < 20; i++ {
+		key := keys.NewEdX25519KeyFromSeed(testSeed(byte(i)))
+		cl.Authorize(key)
+	}
 
 	select {
 	case <-interrupt:

@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"sync"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/gorilla/websocket"
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/ws/api"
@@ -18,6 +19,7 @@ type Client struct {
 	connected bool
 
 	connectMtx sync.Mutex
+	writeMtx   sync.Mutex
 
 	keys []*keys.EdX25519Key
 }
@@ -34,9 +36,9 @@ func New(urs string) (*Client, error) {
 	}, nil
 }
 
-// Register key.
-func (c *Client) Register(key *keys.EdX25519Key) {
-	logger.Infof("register %s", key.ID())
+// Authorize with key.
+func (c *Client) Authorize(key *keys.EdX25519Key) {
+	// logger.Infof("auth %s", key.ID())
 	c.keys = append(c.keys, key)
 	if c.connected {
 		if err := c.sendAuth(key); err != nil {
@@ -98,30 +100,34 @@ func (c *Client) Connect() error {
 	return nil
 }
 
-// ReadMessage reads a message.
-func (c *Client) ReadMessage() (*api.Message, error) {
+// ReadEvents reads events.
+func (c *Client) ReadEvents() ([]*api.Event, error) {
 	if !c.connected {
 		if err := c.Connect(); err != nil {
 			return nil, err
 		}
 	}
 
-	logger.Infof("read message")
-	_, message, err := c.conn.ReadMessage()
+	logger.Infof("read event")
+	_, connMsg, err := c.conn.ReadMessage()
 	if err != nil {
 		c.close()
 		return nil, err
 	}
-	var msg api.Message
-	if err := json.Unmarshal(message, &msg); err != nil {
+	spew.Dump(connMsg)
+	var events []*api.Event
+	if err := json.Unmarshal(connMsg, &events); err != nil {
 		return nil, err
 	}
-	return &msg, nil
+	return events, nil
 }
 
 func (c *Client) sendAuth(key *keys.EdX25519Key) error {
-	logger.Infof("send auth %s", key.ID())
-	b := api.GenerateAuth(key, c.url.Hostname())
+	c.writeMtx.Lock()
+	defer c.writeMtx.Unlock()
+
+	logger.Infof("send auth %s %s", key.ID(), c.url.String())
+	b := api.GenerateAuth(key, c.url.String())
 
 	if err := c.conn.WriteMessage(websocket.TextMessage, b); err != nil {
 		return errors.Wrapf(err, "failed to write message")
