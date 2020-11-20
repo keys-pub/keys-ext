@@ -10,23 +10,23 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestInbox(t *testing.T) {
+func TestUserChannel(t *testing.T) {
 	env, closeFn := newEnv(t)
 	defer closeFn()
-	testInbox(t, env, testKeysSeeded())
+	testUserChannel(t, env, testKeysSeeded())
 }
 
-func TestInboxFirestore(t *testing.T) {
+func TestUserChannelFirestore(t *testing.T) {
 	if os.Getenv("TEST_FIRESTORE") != "1" {
 		t.Skip()
 	}
 	env, closeFn := newEnvWithOptions(t, &envOptions{fi: testFirestore(t), clock: tsutil.NewTestClock()})
 	defer closeFn()
 
-	testInbox(t, env, testKeysRandom())
+	testUserChannel(t, env, testKeysRandom())
 }
 
-func testInbox(t *testing.T, env *env, tk testKeys) {
+func testUserChannel(t *testing.T, env *env, tk testKeys) {
 	aliceClient := newTestClient(t, env)
 	// bobClient := newTestClient(t, env)
 
@@ -36,7 +36,7 @@ func testInbox(t *testing.T, env *env, tk testKeys) {
 	require.NoError(t, err)
 
 	// Channels
-	channels, err := aliceClient.InboxChannels(context.TODO(), alice)
+	channels, err := aliceClient.UserChannels(context.TODO(), alice)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(channels))
 	require.Equal(t, channel.ID(), channels[0].ID)
@@ -48,7 +48,7 @@ func testInbox(t *testing.T, env *env, tk testKeys) {
 	err = aliceClient.MessageSend(context.TODO(), msg1, alice, channel)
 	require.NoError(t, err)
 
-	channels, err = aliceClient.InboxChannels(context.TODO(), alice)
+	channels, err = aliceClient.UserChannels(context.TODO(), alice)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(channels))
 	require.Equal(t, channel.ID(), channels[0].ID)

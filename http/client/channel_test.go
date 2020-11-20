@@ -13,7 +13,7 @@ import (
 func TestChannel(t *testing.T) {
 	env, closeFn := newEnv(t)
 	defer closeFn()
-	testInbox(t, env, testKeysSeeded())
+	testChannel(t, env, testKeysSeeded())
 }
 
 func TestChannelFirestore(t *testing.T) {

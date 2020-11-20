@@ -14,10 +14,10 @@ import (
 )
 
 // ChannelCreate creates a channel.
-func (c *Client) ChannelCreate(ctx context.Context, channel *keys.EdX25519Key, member *keys.EdX25519Key) error {
+func (c *Client) ChannelCreate(ctx context.Context, channel *keys.EdX25519Key, user *keys.EdX25519Key) error {
 	path := dstore.Path("channel", channel.ID())
 	auth := http.AuthKeys(
-		http.NewAuthKey("Authorization", member),
+		http.NewAuthKey("Authorization", user),
 		http.NewAuthKey("Authorization-Channel", channel),
 	)
 	params := url.Values{}
@@ -27,16 +27,16 @@ func (c *Client) ChannelCreate(ctx context.Context, channel *keys.EdX25519Key, m
 	return nil
 }
 
-// InviteToChannel invites a recipient to a channel from an existing member.
-func (c *Client) InviteToChannel(ctx context.Context, channel *keys.EdX25519Key, member *keys.EdX25519Key, recipients ...keys.ID) error {
+// InviteToChannel invites a recipient to a channel from an existing user.
+func (c *Client) InviteToChannel(ctx context.Context, channel *keys.EdX25519Key, user *keys.EdX25519Key, recipients ...keys.ID) error {
 	path := dstore.Path("channel", channel.ID(), "invites")
 	auth := http.AuthKeys(
-		http.NewAuthKey("Authorization", member),
+		http.NewAuthKey("Authorization", user),
 		http.NewAuthKey("Authorization-Channel", channel),
 	)
 	invites := make([]*api.ChannelInvite, 0, len(recipients))
 	for _, recipient := range recipients {
-		encryptedKey, err := kapi.EncryptKey(kapi.NewKey(channel), member, recipient)
+		encryptedKey, err := kapi.EncryptKey(kapi.NewKey(channel), user, recipient)
 		if err != nil {
 			return err
 		}
@@ -44,7 +44,7 @@ func (c *Client) InviteToChannel(ctx context.Context, channel *keys.EdX25519Key,
 		invite := &api.ChannelInvite{
 			Channel:      channel.ID(),
 			Recipient:    recipient,
-			Sender:       member.ID(),
+			Sender:       user.ID(),
 			EncryptedKey: encryptedKey,
 		}
 		invites = append(invites, invite)
@@ -63,10 +63,10 @@ func (c *Client) InviteToChannel(ctx context.Context, channel *keys.EdX25519Key,
 }
 
 // ChannelInvites returns all pending invites.
-func (c *Client) ChannelInvites(ctx context.Context, channel *keys.EdX25519Key, member *keys.EdX25519Key) ([]*api.ChannelInvite, error) {
+func (c *Client) ChannelInvites(ctx context.Context, channel *keys.EdX25519Key, user *keys.EdX25519Key) ([]*api.ChannelInvite, error) {
 	path := dstore.Path("channel", channel.ID(), "invites")
 	auth := http.AuthKeys(
-		http.NewAuthKey("Authorization", member),
+		http.NewAuthKey("Authorization", user),
 		http.NewAuthKey("Authorization-Channel", channel),
 	)
 	params := url.Values{}
@@ -84,11 +84,11 @@ func (c *Client) ChannelInvites(ctx context.Context, channel *keys.EdX25519Key, 
 	return out.Invites, nil
 }
 
-// ChannelMembers returns channel members.
-func (c *Client) ChannelMembers(ctx context.Context, channel *keys.EdX25519Key, member *keys.EdX25519Key) ([]*api.ChannelMember, error) {
-	path := dstore.Path("channel", channel.ID(), "members")
+// ChannelUsers returns channel users.
+func (c *Client) ChannelUsers(ctx context.Context, channel *keys.EdX25519Key, user *keys.EdX25519Key) ([]*api.ChannelUser, error) {
+	path := dstore.Path("channel", channel.ID(), "users")
 	auth := http.AuthKeys(
-		http.NewAuthKey("Authorization", member),
+		http.NewAuthKey("Authorization", user),
 		http.NewAuthKey("Authorization-Channel", channel),
 	)
 	params := url.Values{}
@@ -99,9 +99,9 @@ func (c *Client) ChannelMembers(ctx context.Context, channel *keys.EdX25519Key, 
 	if resp == nil {
 		return nil, nil
 	}
-	var out api.ChannelMembersResponse
+	var out api.ChannelUsersResponse
 	if err := json.Unmarshal(resp.Data, &out); err != nil {
 		return nil, err
 	}
-	return out.Members, nil
+	return out.Users, nil
 }
