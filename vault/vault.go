@@ -328,39 +328,40 @@ func (v *Vault) Pull(ctx context.Context) error {
 func (v *Vault) pull(ctx context.Context) error {
 	// Keep pulling until no more.
 	for {
-		count, err := v.pullNext(ctx)
+		truncated, err := v.pullNext(ctx)
 		if err != nil {
 			return err
 		}
-		if count == 0 {
-			return nil
+		if !truncated {
+			break
 		}
 	}
+	return nil
 }
 
-func (v *Vault) pullNext(ctx context.Context) (int, error) {
+func (v *Vault) pullNext(ctx context.Context) (bool, error) {
 	if v.client == nil {
-		return 0, errors.Errorf("no vault client set")
+		return false, errors.Errorf("no vault client set")
 	}
 	if v.remote == nil {
-		return 0, errors.Errorf("no remote set")
+		return false, errors.Errorf("no remote set")
 	}
 
 	index, err := v.pullIndex()
 	if err != nil {
-		return 0, err
+		return false, err
 	}
 
 	logger.Infof("Pulling vault items")
 	vault, err := v.client.Vault(ctx, v.remote.Key, httpclient.VaultIndex(index))
 	if err != nil {
-		return 0, err
+		return false, err
 	}
 	if err := v.saveRemoteVault(vault); err != nil {
-		return 0, err
+		return false, err
 	}
 
-	return len(vault.Events), nil
+	return vault.Truncated, nil
 }
 
 func (v *Vault) saveRemoteVault(vault *httpclient.Vault) error {

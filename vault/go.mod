@@ -6,10 +6,10 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/golang/protobuf v1.4.3 // indirect
 	github.com/golang/snappy v0.0.2 // indirect
-	github.com/keys-pub/keys v0.1.18-0.20201117233052-2bfb5f4d6161
-	github.com/keys-pub/keys-ext/http/api v0.0.0-20201117233622-e7ee764fc003
-	github.com/keys-pub/keys-ext/http/client v0.0.0-20201117235545-32432664de26
-	github.com/keys-pub/keys-ext/http/server v0.0.0-20201117233622-e7ee764fc003
+	github.com/keys-pub/keys v0.1.18-0.20201120035008-acb3bbba9752
+	github.com/keys-pub/keys-ext/http/api v0.0.0-20201120215311-661239608411
+	github.com/keys-pub/keys-ext/http/client v0.0.0-20201120220010-3d9f67cb9121
+	github.com/keys-pub/keys-ext/http/server v0.0.0-20201120215828-874010c80395
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.5.1
