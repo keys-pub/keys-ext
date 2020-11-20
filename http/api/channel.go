@@ -19,7 +19,7 @@ type Channel struct {
 type ChannelInvite struct {
 	Channel      keys.ID `json:"channel" msgpack:"channel"`
 	Recipient    keys.ID `json:"recipient" msgpack:"recipient"`
-	Sender       keys.ID `json:"member" msgpack:"member"`
+	Sender       keys.ID `json:"sender" msgpack:"sender"`
 	EncryptedKey []byte  `json:"k" msgpack:"k"` // Encrypted api.Key to recipient
 }
 
@@ -46,10 +46,10 @@ func (i *ChannelInvite) Key(recipient *keys.EdX25519Key) (*keys.EdX25519Key, key
 	return sk, from, nil
 }
 
-// ChannelMember ...
-type ChannelMember struct {
+// ChannelUser ...
+type ChannelUser struct {
 	Channel keys.ID `json:"channel" msgpack:"channel"`
-	Member  keys.ID `json:"member" msgpack:"member"`
+	User    keys.ID `json:"user" msgpack:"user"`
 	From    keys.ID `json:"from" msgpack:"from"`
 }
 
@@ -58,12 +58,12 @@ type ChannelInvitesResponse struct {
 	Invites []*ChannelInvite `json:"invites" msgpack:"invites"`
 }
 
-// ChannelMembersResponse ..
-type ChannelMembersResponse struct {
-	Members []*ChannelMember `json:"members" msgpack:"members"`
+// ChannelUsersResponse ..
+type ChannelUsersResponse struct {
+	Users []*ChannelUser `json:"users" msgpack:"users"`
 }
 
-// ChannelMembersAddRequest ...
-// type ChannelMembersAddRequest struct {
-// 	Members []*ChannelMember `json:"members" msgpack:"members"`
+// ChannelUsersAddRequest ...
+// type ChannelUsersAddRequest struct {
+// 	Users []*ChannelUser `json:"users" msgpack:"users"`
 // }
