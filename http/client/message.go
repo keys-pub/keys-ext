@@ -66,12 +66,18 @@ type MessagesOpts struct {
 	Limit int
 }
 
+// Messages response.
+type Messages struct {
+	Messages  []*events.Event
+	Index     int64
+	Truncated bool
+}
+
 // Messages returns encrypted messages (as event.Event) and current index from a
 // previous index.
-// This may not return all messages if a server limit is hit, if you call this
-// and no messages are returned, the end was encountered.
+// If truncated, there are more results if you call again with the new index.
 // To decrypt to api.Message, use DecryptMessage.
-func (c *Client) Messages(ctx context.Context, channel *keys.EdX25519Key, sender *keys.EdX25519Key, opts *MessagesOpts) ([]*events.Event, int64, error) {
+func (c *Client) Messages(ctx context.Context, channel *keys.EdX25519Key, sender *keys.EdX25519Key, opts *MessagesOpts) (*Messages, error) {
 	if opts == nil {
 		opts = &MessagesOpts{}
 	}
@@ -95,18 +101,22 @@ func (c *Client) Messages(ctx context.Context, channel *keys.EdX25519Key, sender
 
 	resp, err := c.get(ctx, path, params, auth)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 	if resp == nil {
-		return nil, 0, nil
+		return nil, nil
 	}
 
 	var out api.MessagesResponse
 	if err := json.Unmarshal(resp.Data, &out); err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
-	return out.Messages, out.Index, nil
+	return &Messages{
+		Messages:  out.Messages,
+		Index:     out.Index,
+		Truncated: out.Truncated,
+	}, nil
 }
 
 // EncryptMessage encrypts a message.

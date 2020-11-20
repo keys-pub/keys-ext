@@ -16,6 +16,8 @@ import (
 	"github.com/vmihailenco/msgpack/v4"
 )
 
+// TODO: Test truncated
+
 func TestVault(t *testing.T) {
 	// api.SetLogger(NewLogger(DebugLevel))
 	var err error
@@ -40,6 +42,7 @@ func TestVault(t *testing.T) {
 	require.Equal(t, 2, len(vault.Events))
 	require.Equal(t, []byte("test1"), vault.Events[0].Data)
 	require.Equal(t, []byte("test2"), vault.Events[1].Data)
+	require.False(t, vault.Truncated)
 
 	exists, err = cl.VaultExists(context.TODO(), alice)
 	require.NoError(t, err)

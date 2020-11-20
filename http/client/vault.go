@@ -19,8 +19,9 @@ import (
 
 // Vault events from the API, decrypted with vault API key.
 type Vault struct {
-	Events []*VaultEvent
-	Index  int64
+	Events    []*VaultEvent
+	Index     int64
+	Truncated bool
 }
 
 // VaultEvent describes a vault event.
@@ -112,7 +113,7 @@ func newVaultOptions(opts ...VaultOption) VaultOptions {
 
 // Vault events.
 // Vault data is decrypted using the vault key before being returned.
-// Callers should check for repeated nonces and event chain ordering.
+// If truncated, there are more results if you call again with the new index.
 func (c *Client) Vault(ctx context.Context, key *keys.EdX25519Key, opt ...VaultOption) (*Vault, error) {
 	opts := newVaultOptions(opt...)
 	path := dstore.Path("vault", key.ID())
@@ -156,7 +157,7 @@ func vaultDecryptResponse(resp *api.VaultResponse, key *keys.EdX25519Key) (*Vaul
 		event.RemoteIndex = revent.Index
 		out = append(out, &event)
 	}
-	return &Vault{Events: out, Index: resp.Index}, nil
+	return &Vault{Events: out, Index: resp.Index, Truncated: resp.Truncated}, nil
 }
 
 func vaultEncrypt(b []byte, key *keys.EdX25519Key) []byte {

@@ -14,6 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TODO: Test truncated
+
 func TestMessages(t *testing.T) {
 	env, closeFn := newEnv(t)
 	defer closeFn()
@@ -49,10 +51,11 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	require.NoError(t, err)
 
 	// Messages
-	msgs, idx, err := aliceClient.Messages(context.TODO(), channel, alice, nil)
+	msgs, err := aliceClient.Messages(context.TODO(), channel, alice, nil)
 	require.NoError(t, err)
-	require.Equal(t, int64(0), idx)
-	require.Equal(t, 0, len(msgs))
+	require.Equal(t, int64(0), msgs.Index)
+	require.Equal(t, 0, len(msgs.Messages))
+	require.False(t, msgs.Truncated)
 
 	// MessageSend #1
 	msg1 := &api.Message{ID: "1", Text: "hi bob", Timestamp: env.clock.NowMillis()}
@@ -65,19 +68,20 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	require.NoError(t, err)
 
 	// Messages
-	msgs, idx, err = aliceClient.Messages(context.TODO(), channel, alice, nil)
+	msgs, err = aliceClient.Messages(context.TODO(), channel, alice, nil)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(msgs))
-	out1, err := client.DecryptMessage(msgs[0], saltpack.NewKeyring(channel))
+	require.Equal(t, 2, len(msgs.Messages))
+	require.False(t, msgs.Truncated)
+	out1, err := client.DecryptMessage(msgs.Messages[0], saltpack.NewKeyring(channel))
 	require.NoError(t, err)
 	require.Equal(t, msg1.Text, out1.Text)
 	require.Equal(t, alice.ID(), out1.Sender)
-	out2, err := client.DecryptMessage(msgs[1], saltpack.NewKeyring(channel))
+	out2, err := client.DecryptMessage(msgs.Messages[1], saltpack.NewKeyring(channel))
 	require.NoError(t, err)
 	require.Equal(t, msg2.Text, out2.Text)
 	require.Equal(t, bob.ID(), out2.Sender)
-	require.NotEmpty(t, msgs[0].Timestamp)
-	require.NotEmpty(t, msgs[0].Index)
+	require.NotEmpty(t, msgs.Messages[0].Timestamp)
+	require.NotEmpty(t, msgs.Messages[0].Index)
 
 	// MessageSend #3
 	msg3 := &api.Message{ID: "3", Prev: "2", Text: "3pm", Timestamp: env.clock.NowMillis()}
@@ -85,30 +89,30 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	require.NoError(t, err)
 
 	// Messages (from idx)
-	msgs, _, err = aliceClient.Messages(context.TODO(), channel, alice, &client.MessagesOpts{Index: idx})
+	msgs, err = aliceClient.Messages(context.TODO(), channel, alice, &client.MessagesOpts{Index: msgs.Index})
 	require.NoError(t, err)
-	require.Equal(t, 1, len(msgs))
-	out3, err := client.DecryptMessage(msgs[0], saltpack.NewKeyring(channel))
+	require.Equal(t, 1, len(msgs.Messages))
+	out3, err := client.DecryptMessage(msgs.Messages[0], saltpack.NewKeyring(channel))
 	require.NoError(t, err)
 	require.Equal(t, msg3.Text, out3.Text)
 	require.Equal(t, alice.ID(), out3.Sender)
 
 	// Messages (desc)
-	msgs, _, err = aliceClient.Messages(context.TODO(), channel, alice, &client.MessagesOpts{Direction: events.Descending})
+	msgs, err = aliceClient.Messages(context.TODO(), channel, alice, &client.MessagesOpts{Direction: events.Descending})
 	require.NoError(t, err)
-	require.Equal(t, 3, len(msgs))
-	out1, err = client.DecryptMessage(msgs[0], saltpack.NewKeyring(channel))
+	require.Equal(t, 3, len(msgs.Messages))
+	out1, err = client.DecryptMessage(msgs.Messages[0], saltpack.NewKeyring(channel))
 	require.NoError(t, err)
 	require.Equal(t, msg3.Text, out1.Text)
-	out2, err = client.DecryptMessage(msgs[1], saltpack.NewKeyring(channel))
+	out2, err = client.DecryptMessage(msgs.Messages[1], saltpack.NewKeyring(channel))
 	require.NoError(t, err)
 	require.Equal(t, msg2.Text, out2.Text)
-	out3, err = client.DecryptMessage(msgs[2], saltpack.NewKeyring(channel))
+	out3, err = client.DecryptMessage(msgs.Messages[2], saltpack.NewKeyring(channel))
 	require.NoError(t, err)
 	require.Equal(t, msg1.Text, out3.Text)
 
 	// Unknown channel
 	unknown := keys.GenerateEdX25519Key()
-	_, _, err = aliceClient.Messages(context.TODO(), unknown, alice, nil)
+	_, err = aliceClient.Messages(context.TODO(), unknown, alice, nil)
 	require.EqualError(t, err, "auth failed (403)")
 }
