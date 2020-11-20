@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/joho/godotenv"
 	"github.com/keys-pub/keys-ext/ws/server"
@@ -28,5 +29,6 @@ func main() {
 		},
 	}
 
-	log.Fatal(server.ListenAndServe(":8080", "ws://localhost:8080/ws", opts))
+	sk := os.Getenv("SECRET_KEY")
+	log.Fatal(server.ListenAndServe(":8080", "ws://localhost:8080/ws", sk, opts))
 }

@@ -5,7 +5,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/ws/api"
+	"github.com/keys-pub/keys/encoding"
+	"github.com/pkg/errors"
 )
 
 func liveness(w http.ResponseWriter, r *http.Request) {
@@ -22,14 +25,30 @@ type ServeOptions struct {
 	NonceCheck api.NonceCheck
 }
 
+func decodeKey(secretKey string) (*[32]byte, error) {
+	if secretKey == "" {
+		return nil, errors.Errorf("empty secret key")
+	}
+	key, err := encoding.Decode(secretKey, encoding.Hex)
+	if err != nil {
+		return nil, err
+	}
+	return keys.Bytes32(key), nil
+}
+
 // ListenAndServe starts the server.
-func ListenAndServe(addr string, url string, opts *ServeOptions) error {
+func ListenAndServe(addr string, url string, secretKey string, opts *ServeOptions) error {
 	if opts == nil {
 		opts = &ServeOptions{}
 	}
 
+	sk, err := decodeKey(secretKey)
+	if err != nil {
+		return err
+	}
+
 	hub := NewHub(url)
-	rds := NewRedis(hub)
+	rds := NewRedis(hub, sk)
 	hub.rds = rds
 
 	if opts.NonceCheck != nil {

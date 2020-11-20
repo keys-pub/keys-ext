@@ -3,13 +3,26 @@ package main
 import (
 	"bytes"
 	"log"
+	"os"
 
 	"github.com/joho/godotenv"
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/ws/api"
 	"github.com/keys-pub/keys-ext/ws/server"
-	"github.com/vmihailenco/msgpack/v4"
+	"github.com/keys-pub/keys/encoding"
+	"github.com/pkg/errors"
 )
+
+func decodeKey(secretKey string) (*[32]byte, error) {
+	if secretKey == "" {
+		return nil, errors.Errorf("empty secret key")
+	}
+	key, err := encoding.Decode(secretKey, encoding.Hex)
+	if err != nil {
+		return nil, err
+	}
+	return keys.Bytes32(key), nil
+}
 
 func main() {
 	err := godotenv.Load()
@@ -17,12 +30,17 @@ func main() {
 		log.Fatal("Failed to load .env")
 	}
 
+	secretKey, err := decodeKey(os.Getenv("SECRET_KEY"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	redisPool := server.NewRedisPool()
 	redisConn := redisPool.Get()
 	defer redisConn.Close()
 
 	send := func(event *api.PubEvent) error {
-		b, err := msgpack.Marshal(event)
+		b, err := api.Encrypt(event, secretKey)
 		if err != nil {
 			return err
 		}
