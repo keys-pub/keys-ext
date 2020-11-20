@@ -11,8 +11,9 @@ import (
 
 // MessagesResponse ...
 type MessagesResponse struct {
-	Messages []*events.Event `json:"msgs"`
-	Index    int64           `json:"idx"`
+	Messages  []*events.Event `json:"msgs"`
+	Index     int64           `json:"idx"`
+	Truncated bool            `json:"truncated,omitempty"`
 }
 
 // Message is encrypted by clients.
