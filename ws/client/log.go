@@ -95,7 +95,7 @@ func (l defaultLog) Warningf(format string, args ...interface{}) {
 
 func (l defaultLog) Errorf(format string, args ...interface{}) {
 	if l.Level >= 0 {
-		pkglog.Printf("[ERR]  "+format+"\n", args...)
+		pkglog.Printf("[ERR] "+format+"\n", args...)
 	}
 }
 

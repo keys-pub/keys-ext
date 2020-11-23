@@ -5,7 +5,6 @@ import (
 	"net/url"
 	"sync"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/gorilla/websocket"
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/ws/api"
@@ -111,10 +110,10 @@ func (c *Client) ReadEvents() ([]*api.Event, error) {
 	logger.Infof("read event")
 	_, connMsg, err := c.conn.ReadMessage()
 	if err != nil {
+		logger.Errorf("connection error: %v", err)
 		c.close()
 		return nil, err
 	}
-	spew.Dump(connMsg)
 	var events []*api.Event
 	if err := json.Unmarshal(connMsg, &events); err != nil {
 		return nil, err
