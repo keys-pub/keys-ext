@@ -46,8 +46,7 @@ func (s *Server) postMessage(c echo.Context) error {
 		return ErrBadRequest(c, errors.Errorf("no events added"))
 	}
 
-	// Notify channel
-	if err := s.notifyChannel(ctx, channel.KID, idx); err != nil {
+	if err := s.notifyChannelMessage(ctx, channel.KID, idx); err != nil {
 		return s.internalError(c, err)
 	}
 
@@ -55,18 +54,19 @@ func (s *Server) postMessage(c echo.Context) error {
 	return JSON(c, http.StatusOK, out)
 }
 
-func (s *Server) notifyChannel(ctx context.Context, channel keys.ID, idx int64) error {
+func (s *Server) notifyChannelMessage(ctx context.Context, channel keys.ID, idx int64) error {
 	if s.secretKey == nil {
 		return errors.Errorf("no secret key set")
 	}
-	users, err := s.channelUserIDs(ctx, channel)
+	recipients, err := s.channelUserIDs(ctx, channel)
 	if err != nil {
 		return err
 	}
-	pub := &wsapi.PubEvent{
-		Channel: channel,
-		Users:   users,
-		Index:   idx,
+	pub := &wsapi.PubSubEvent{
+		Type:       wsapi.ChannelMessageEventType,
+		Channel:    channel,
+		Recipients: recipients,
+		Index:      idx,
 	}
 	pb, err := wsapi.Encrypt(pub, s.secretKey)
 	if err != nil {

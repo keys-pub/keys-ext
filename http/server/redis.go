@@ -126,6 +126,6 @@ func (m *rdsTest) Increment(ctx context.Context, k string) (int64, error) {
 }
 
 func (m *rdsTest) Publish(ctx context.Context, k string, b []byte) error {
-	// Noop
+	// TODO: Assert published events
 	return nil
 }

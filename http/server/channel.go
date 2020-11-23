@@ -7,6 +7,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
+	wsapi "github.com/keys-pub/keys-ext/ws/api"
 	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/http"
 	"github.com/keys-pub/keys/tsutil"
@@ -75,8 +76,31 @@ func (s *Server) putChannel(c echo.Context) error {
 		return s.internalError(c, err)
 	}
 
+	if err := s.notifyChannelCreated(ctx, auth.KID, channel.KID); err != nil {
+		return s.internalError(c, err)
+	}
+
 	var out struct{}
 	return JSON(c, http.StatusOK, out)
+}
+
+func (s *Server) notifyChannelCreated(ctx context.Context, user keys.ID, channel keys.ID) error {
+	if s.secretKey == nil {
+		return errors.Errorf("no secret key set")
+	}
+	pub := &wsapi.PubSubEvent{
+		Type:    wsapi.ChannelCreatedEventType,
+		User:    user,
+		Channel: channel,
+	}
+	pb, err := wsapi.Encrypt(pub, s.secretKey)
+	if err != nil {
+		return err
+	}
+	if err := s.rds.Publish(ctx, wsapi.EventPubSub, pb); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *Server) getChannel(c echo.Context) error {
