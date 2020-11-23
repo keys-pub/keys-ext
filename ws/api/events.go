@@ -5,7 +5,7 @@ import (
 	"github.com/vmihailenco/msgpack/v4"
 )
 
-// EventPubSub is the pub/sub key/name for events.
+// EventPubSub is the pub/sub name for events.
 const EventPubSub = "e"
 
 // EventType is the type of event.
@@ -13,28 +13,36 @@ type EventType string
 
 // Event types.
 const (
-	// HelloEvent is sent to client after the connect.
-	HelloEvent EventType = "hello"
-	// ChannelEvent is sent to client if a channel has changed.
-	ChannelEvent EventType = "channel"
+	// HelloEventType is sent to client after the connect.
+	HelloEventType EventType = "hello"
+
+	// ChannelCreateEventType if channel was created.
+	ChannelCreatedEventType EventType = "ch-new"
+
+	// ChannelMessageEventType if channel has a new message.
+	ChannelMessageEventType EventType = "ch-msg"
 )
 
 // Event to client.
+// JSON is used for websocket clients.
 type Event struct {
 	Type EventType `json:"type,omitempty"`
 
-	Channel keys.ID `json:"channel,omitempty"`
-	User    keys.ID `json:"user,omitempty"`
+	User keys.ID `json:"user,omitempty"`
 
-	Index int64 `json:"idx,omitempty"`
+	Channel keys.ID `json:"channel,omitempty"`
+	Index   int64   `json:"idx,omitempty"`
 }
 
-// PubEvent notification sent through Redis pub/sub from server to websockets
-// to notify clients of a channel message.
-type PubEvent struct {
-	Channel keys.ID   `json:"channel,omitempty" msgpack:"c,omitempty"`
-	Users   []keys.ID `json:"users,omitempty" msgpack:"u,omitempty"`
-	Index   int64     `json:"index,omitempty" msgpack:"i,omitempty"`
+// PubSubEvent is for pub/sub (server to server) events (using msgpack).
+type PubSubEvent struct {
+	Type EventType `json:"type,omitempty" msgpack:"t,omitempty"`
+
+	Channel keys.ID `json:"channel,omitempty" msgpack:"c,omitempty"`
+	User    keys.ID `json:"user,omitempty" msgpack:"u,omitempty"`
+
+	Recipients []keys.ID `json:"recipients,omitempty" msgpack:"r,omitempty"`
+	Index      int64     `json:"index,omitempty" msgpack:"i,omitempty"`
 }
 
 // Encrypt value into data (msgpack).
