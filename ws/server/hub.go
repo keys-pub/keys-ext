@@ -24,7 +24,7 @@ type Hub struct {
 	clientsForKey map[keys.ID]map[string]*client
 
 	// Inbound messages.
-	broadcast chan *api.PubEvent
+	broadcast chan *api.PubSubEvent
 
 	// Inbound auth.
 	auth chan *authClient
@@ -47,7 +47,7 @@ type authClient struct {
 func NewHub(url string) *Hub {
 	h := &Hub{
 		url:           url,
-		broadcast:     make(chan *api.PubEvent),
+		broadcast:     make(chan *api.PubSubEvent),
 		auth:          make(chan *authClient, 10),
 		register:      make(chan *client),
 		unregister:    make(chan *client),
@@ -98,26 +98,41 @@ func (h *Hub) Run() {
 			// log.Printf("register auth %s\n", auth.client.id)
 			h.registerAuth(auth)
 			log.Printf("send hello %s\n", auth.kid)
-			auth.client.send <- &api.Event{Type: api.HelloEvent, User: auth.kid}
+			auth.client.send <- &api.Event{Type: api.HelloEventType, User: auth.kid}
 		case pevent := <-h.broadcast:
-			for _, user := range pevent.Users {
-				clients := h.findClients(user)
+			switch pevent.Type {
+			case api.ChannelCreatedEventType:
+				clients := h.findClients(pevent.User)
 				event := &api.Event{
 					Channel: pevent.Channel,
-					User:    user,
-					Index:   pevent.Index,
-					Type:    api.ChannelEvent,
+					User:    pevent.User,
+					Type:    api.ChannelCreatedEventType,
 				}
-				for _, client := range clients {
-					select {
-					case client.send <- event:
-						// log.Printf("send %s => %s\n", client.id, message.KID)
-					default:
-						close(client.send)
-						h.unregisterAuth(client)
+				h.send(clients, event)
+			case api.ChannelMessageEventType:
+				for _, user := range pevent.Recipients {
+					clients := h.findClients(user)
+					event := &api.Event{
+						Channel: pevent.Channel,
+						User:    user,
+						Index:   pevent.Index,
+						Type:    api.ChannelMessageEventType,
 					}
+					h.send(clients, event)
 				}
 			}
+		}
+	}
+}
+
+func (h *Hub) send(clients []*client, event *api.Event) {
+	for _, client := range clients {
+		select {
+		case client.send <- event:
+			// log.Printf("send %s => %s\n", client.id, message.KID)
+		default:
+			close(client.send)
+			h.unregisterAuth(client)
 		}
 	}
 }
