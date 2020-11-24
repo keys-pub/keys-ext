@@ -194,6 +194,8 @@ github.com/keys-pub/keys v0.1.18-0.20201117233052-2bfb5f4d6161 h1:hj1DxAN64T1idP
 github.com/keys-pub/keys v0.1.18-0.20201117233052-2bfb5f4d6161/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys v0.1.18-0.20201120035008-acb3bbba9752 h1:qNbZ5YGj+xR1T8UE7Qlh8cs3crzPXxBS8IQB/4h6SBE=
 github.com/keys-pub/keys v0.1.18-0.20201120035008-acb3bbba9752/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.1.18-0.20201124170605-b802bea21f73 h1:H1goee2RWv/RTemC44ERa3c7/AYv6PAJlbxfBwbIx3c=
+github.com/keys-pub/keys v0.1.18-0.20201124170605-b802bea21f73/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys-ext v0.1.20 h1:KZs+L8GtJj00bKh+xhQqHNkSQgq2fUCYwBsrP2vV23g=
 github.com/keys-pub/keys-ext v0.1.21-0.20201023185358-3aa021ac522b h1:KtnQeluO4nhs2SRB71vnQcSUKDMsW6fzTjHUQlXss6o=
 github.com/keys-pub/keys-ext v0.1.21-0.20201027204032-04296a431295 h1:J5pKPITbp2yYiDkvTWCoo4Wh9bhnJ1BNlo5MpgxgyNA=

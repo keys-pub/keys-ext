@@ -39,7 +39,7 @@ func main() {
 	redisConn := redisPool.Get()
 	defer redisConn.Close()
 
-	send := func(event *api.PubEvent) error {
+	send := func(event *api.PubSubEvent) error {
 		b, err := api.Encrypt(event, secretKey)
 		if err != nil {
 			return err
@@ -58,7 +58,7 @@ func main() {
 		ids = append(ids, user.ID())
 	}
 
-	if err := send(&api.PubEvent{Channel: channel.ID(), Users: ids, Index: 1}); err != nil {
+	if err := send(&api.PubSubEvent{Channel: channel.ID(), Recipients: ids, Index: 1}); err != nil {
 		log.Fatal(err)
 	}
 }

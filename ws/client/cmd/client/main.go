@@ -48,10 +48,8 @@ func main() {
 		cl.Authorize(key)
 	}
 
-	select {
-	case <-interrupt:
-		cl.Close()
-	}
+	<-interrupt
+	cl.Close()
 }
 
 func testSeed(b byte) *[32]byte {

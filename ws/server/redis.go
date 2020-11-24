@@ -25,7 +25,7 @@ func NewRedisPool() *redis.Pool {
 				return nil, err
 			}
 			if _, err := conn.Do("AUTH", redisPassword); err != nil {
-				conn.Close()
+				_ = conn.Close()
 				return nil, err
 			}
 			return conn, nil
@@ -58,7 +58,9 @@ func (r *Redis) Subscribe() error {
 
 	log.Printf("subscribe\n")
 	psc := redis.PubSubConn{Conn: redisConn}
-	psc.Subscribe(api.EventPubSub)
+	if err := psc.Subscribe(api.EventPubSub); err != nil {
+		return err
+	}
 	for {
 		switch v := psc.Receive().(type) {
 		case redis.Message:

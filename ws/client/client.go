@@ -53,6 +53,7 @@ func (c *Client) Close() {
 		err := c.conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 		if err != nil {
 			// Failed to write close message
+			logger.Infof("Failed to write close message: %v", err)
 		}
 	}
 	c.close()
@@ -61,7 +62,7 @@ func (c *Client) Close() {
 func (c *Client) close() {
 	if c.conn != nil {
 		c.connectMtx.Lock()
-		c.conn.Close()
+		_ = c.conn.Close()
 		c.connected = false
 		c.connectMtx.Unlock()
 	}
