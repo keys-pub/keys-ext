@@ -75,6 +75,7 @@ func newEnvWithOptions(t *testing.T, opts *envOptions) (*env, func()) {
 	tasks := server.NewTestTasks(srv)
 	srv.SetTasks(tasks)
 	srv.SetInternalAuth("testtoken")
+	srv.SetSecretKeyFromHex("6a169a699f7683c04d127504a12ace3b326e8b56a61a9b315cf6b42e20d6a44a")
 
 	handler := server.NewHandler(srv)
 	if opts.handlerFn != nil {
