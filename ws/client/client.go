@@ -48,7 +48,7 @@ func (c *Client) Authorize(key *keys.EdX25519Key) {
 
 // Close ...
 func (c *Client) Close() {
-	logger.Infof("close")
+	logger.Infof("Close...")
 	if c.connected {
 		err := c.conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 		if err != nil {
@@ -68,11 +68,11 @@ func (c *Client) close() {
 }
 
 func (c *Client) connect() error {
-	logger.Infof("connect")
+	logger.Infof("Connect...")
 	if c.connected {
 		return errors.Errorf("already connected")
 	}
-	logger.Infof("dial %s", c.url)
+	logger.Infof("Dial %s", c.url)
 	conn, _, err := websocket.DefaultDialer.Dial(c.url.String(), nil)
 	if err != nil {
 		return errors.Wrapf(err, "failed to dial")
@@ -107,10 +107,10 @@ func (c *Client) ReadEvents() ([]*api.Event, error) {
 		}
 	}
 
-	logger.Infof("read event")
+	logger.Debugf("Read event")
 	_, connMsg, err := c.conn.ReadMessage()
 	if err != nil {
-		logger.Errorf("connection error: %v", err)
+		logger.Errorf("Connection error: %v", err)
 		c.close()
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func (c *Client) sendAuth(key *keys.EdX25519Key) error {
 	c.writeMtx.Lock()
 	defer c.writeMtx.Unlock()
 
-	logger.Infof("send auth %s %s", key.ID(), c.url.String())
+	logger.Infof("Send auth %s", key.ID())
 	b := api.GenerateAuth(key, c.url.String())
 
 	if err := c.conn.WriteMessage(websocket.TextMessage, b); err != nil {
