@@ -229,6 +229,10 @@ github.com/keys-pub/keys-ext/http/api v0.0.0-20201120035752-fc8566e1f7c4 h1:/X1q
 github.com/keys-pub/keys-ext/http/api v0.0.0-20201120035752-fc8566e1f7c4/go.mod h1:AMw6uIBWLhFpE8G3XotMO1pFGL2Zwji/fgbZ8pScE8I=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20201120215311-661239608411 h1:A0BOOvSmU7rHWKWDWYDTHRXG8VgSQs/DW5nzEn1pTlE=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20201120215311-661239608411/go.mod h1:AMw6uIBWLhFpE8G3XotMO1pFGL2Zwji/fgbZ8pScE8I=
+github.com/keys-pub/keys-ext/http/api v0.0.0-20201124171340-f41427119d82 h1:5CWiHuJMG3zhyoLrK3bzK0PECngT06PgSYvwrcoQlew=
+github.com/keys-pub/keys-ext/http/api v0.0.0-20201124171340-f41427119d82/go.mod h1:AMw6uIBWLhFpE8G3XotMO1pFGL2Zwji/fgbZ8pScE8I=
+github.com/keys-pub/keys-ext/http/api v0.0.0-20201124173412-72095c733b73 h1:coQ+mZojwsiszzbTBWBYf/JxJg6s/2EyaYIszHciJnk=
+github.com/keys-pub/keys-ext/http/api v0.0.0-20201124173412-72095c733b73/go.mod h1:AMw6uIBWLhFpE8G3XotMO1pFGL2Zwji/fgbZ8pScE8I=
 github.com/keys-pub/keys-ext/ws/api v0.0.0-20201118000734-c321e1dba334 h1:fwwhYzjk6o0Ddc29n3NDILbla7J4YhmN7mSlIMHasPk=
 github.com/keys-pub/keys-ext/ws/api v0.0.0-20201118000734-c321e1dba334/go.mod h1:K41OgD6x/MGJfkpC3fmGxBbvhVbiRqMTeNh8DQ+CJ44=
 github.com/keys-pub/keys-ext/ws/api v0.0.0-20201120040216-9bb267d5584f h1:DIDDqjmMgffrxAHY1iOENdrw5ObnEmG+vJVO3U1QsSQ=
@@ -237,6 +241,10 @@ github.com/keys-pub/keys-ext/ws/api v0.0.0-20201120191341-b7b29ceab3cf h1:pqYDW/
 github.com/keys-pub/keys-ext/ws/api v0.0.0-20201120191341-b7b29ceab3cf/go.mod h1:LbgwcQT1R5W8EBRHmDeE6d2lr0t4EYS6J9ih2Jv4iN8=
 github.com/keys-pub/keys-ext/ws/api v0.0.0-20201123214159-d624ad274a49 h1:d+Tiza4wXD79bzAa2HJL5Hk+MobTU7FHMboASUm2LUA=
 github.com/keys-pub/keys-ext/ws/api v0.0.0-20201123214159-d624ad274a49/go.mod h1:LbgwcQT1R5W8EBRHmDeE6d2lr0t4EYS6J9ih2Jv4iN8=
+github.com/keys-pub/keys-ext/ws/api v0.0.0-20201124171340-f41427119d82 h1:qYSsEyszXSelnCnJkDH2FyW0/MByDmyjfL0DtNn/Wy4=
+github.com/keys-pub/keys-ext/ws/api v0.0.0-20201124171340-f41427119d82/go.mod h1:LbgwcQT1R5W8EBRHmDeE6d2lr0t4EYS6J9ih2Jv4iN8=
+github.com/keys-pub/keys-ext/ws/api v0.0.0-20201124173412-72095c733b73 h1:llcATuyIeYZ1a9C5fR2a24k6ZiZ6lYkZ2STKk8LQsr4=
+github.com/keys-pub/keys-ext/ws/api v0.0.0-20201124173412-72095c733b73/go.mod h1:LbgwcQT1R5W8EBRHmDeE6d2lr0t4EYS6J9ih2Jv4iN8=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f h1:LLsdI2XManLH0JonKqB6OYmHdHk/WwJByDbHI3hCEcs=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f/go.mod h1:YRHMiVbZqh7u8xRm77CvwJNAZdDlNXwWvQ4DK0N9mYg=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=

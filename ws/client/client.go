@@ -61,7 +61,7 @@ func (c *Client) Close() {
 func (c *Client) close() {
 	if c.conn != nil {
 		c.connectMtx.Lock()
-		c.conn.Close()
+		_ = c.conn.Close()
 		c.connected = false
 		c.connectMtx.Unlock()
 	}

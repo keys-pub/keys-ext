@@ -12,11 +12,11 @@ import (
 )
 
 func liveness(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("OK"))
+	_, _ = w.Write([]byte("OK"))
 }
 
 func readiness(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("OK"))
+	_, _ = w.Write([]byte("OK"))
 }
 
 // ServeOptions ...

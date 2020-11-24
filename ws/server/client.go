@@ -65,11 +65,11 @@ func newClient(hub *Hub, conn *websocket.Conn) *client {
 func (c *client) readPump() {
 	defer func() {
 		c.hub.unregister <- c
-		c.conn.Close()
+		_ = c.conn.Close()
 	}()
 	c.conn.SetReadLimit(maxMessageSize)
-	c.conn.SetReadDeadline(time.Now().Add(pongWait))
-	c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+	_ = c.conn.SetReadDeadline(time.Now().Add(pongWait))
+	c.conn.SetPongHandler(func(string) error { _ = c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	for {
 		_, data, err := c.conn.ReadMessage()
 		if err != nil {
@@ -99,15 +99,15 @@ func (c *client) writePump() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
 		ticker.Stop()
-		c.conn.Close()
+		_ = c.conn.Close()
 	}()
 	for {
 		select {
 		case event, ok := <-c.send:
-			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
+			_ = c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if !ok {
 				// The hub closed the channel.
-				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
+				_ = c.conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
 
@@ -119,8 +119,12 @@ func (c *client) writePump() {
 			if err != nil {
 				return
 			}
-			w.Write([]byte("["))
-			w.Write(b)
+			if _, err = w.Write([]byte("[")); err != nil {
+				return
+			}
+			if _, err = w.Write(b); err != nil {
+				return
+			}
 
 			// Add queued messages.
 			n := len(c.send)
@@ -130,16 +134,22 @@ func (c *client) writePump() {
 				if err != nil {
 					return
 				}
-				w.Write([]byte(","))
-				w.Write(b)
+				if _, err = w.Write([]byte(",")); err != nil {
+					return
+				}
+				if _, err = w.Write(b); err != nil {
+					return
+				}
 			}
-			w.Write([]byte("]"))
+			if _, err = w.Write([]byte("]")); err != nil {
+				return
+			}
 
 			if err := w.Close(); err != nil {
 				return
 			}
 		case <-ticker.C:
-			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
+			_ = c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				return
 			}

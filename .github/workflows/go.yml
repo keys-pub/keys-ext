@@ -11,9 +11,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Run gosec
-        uses: cedrickring/golang-action@1.5.2
+        uses: cedrickring/golang-action@1.6.0
         with:
-          args: go get github.com/securego/gosec/cmd/gosec; (cd auth/fido2 && gosec ./...) && (cd auth/mock && gosec ./...) && (cd auth/rpc && gosec ./...) && (cd firestore && gosec ./...) && (cd http/api && gosec ./...) && (cd http/client && gosec ./...) && (cd http/server && gosec ./...) && (cd sdb && gosec ./...) && (cd service && gosec ./...) && (cd vault && gosec ./...) && (cd wormhole && gosec .)
+          args: go get github.com/securego/gosec/cmd/gosec; gosec ./...
   golangci-lint:
     name: Linter
     runs-on: macos-latest
@@ -38,6 +38,7 @@ jobs:
           (cd service && golangci-lint run --timeout 10m)
           (cd vault && golangci-lint run --timeout 10m)
           (cd wormhole && golangci-lint run --timeout 10m)
+          (cd ws && golangci-lint run --timeout 10m)          
   test:
     strategy:
       matrix:
