@@ -171,6 +171,8 @@ github.com/keybase/go-codec v0.0.0-20180928230036-164397562123 h1:yg56lYPqh9suJe
 github.com/keybase/go-codec v0.0.0-20180928230036-164397562123/go.mod h1:r/eVVWCngg6TsFV/3HuS9sWhDkAzGG8mXhiuYA+Z/20=
 github.com/keybase/go-keychain v0.0.0-20200502122510-cda31fe0c86d h1:gVjhBCfVGl32RIBooOANzfw+0UqX8HU+yPlMv8vypcg=
 github.com/keybase/go-keychain v0.0.0-20200502122510-cda31fe0c86d/go.mod h1:W6EbaYmb4RldPn0N3gvVHjY1wmU59kbymhW9NATWhwY=
+github.com/keybase/go-keychain v0.0.0-20201121013009-976c83ec27a6 h1:Mj0fhP9dzHKPijsmli/XbXMDKe1/KWy5xKci8e3nmBg=
+github.com/keybase/go-keychain v0.0.0-20201121013009-976c83ec27a6/go.mod h1:N83iQ9rnnzi2KZuTu+0xBcD1JNWn1jSN140ggAF7HeE=
 github.com/keybase/go.dbus v0.0.0-20200324223359-a94be52c0b03/go.mod h1:a8clEhrrGV/d76/f9r2I41BwANMihfZYV9C223vaxqE=
 github.com/keybase/saltpack v0.0.0-20200430135328-e19b1910c0c5 h1:X6nYzCVURqxDv0GuyptaCcRFTXPM0rSGNUrTeQ2NKUQ=
 github.com/keybase/saltpack v0.0.0-20200430135328-e19b1910c0c5/go.mod h1:FNSq71OhXv/Z1W9M37nnHxJVhXitc03z6qshCbAten8=
@@ -211,6 +213,8 @@ github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20201118000009-28224424e74f h1:fl
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20201118000009-28224424e74f/go.mod h1:GbEBEmSHwUw5hY0cRh0oPOA0UhM5yEJbDUK5qA3yqR4=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20201120041941-a18ca08871a0 h1:EtprgicRY3O635S+AibjbFFv5gDwmlpBd72e+OK5aEw=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20201120041941-a18ca08871a0/go.mod h1:GbEBEmSHwUw5hY0cRh0oPOA0UhM5yEJbDUK5qA3yqR4=
+github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20201124171340-f41427119d82 h1:DIISFWy/pNPzFDc8w2lQXz32o8DTVFC6S195mceMpQk=
+github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20201124171340-f41427119d82/go.mod h1:GbEBEmSHwUw5hY0cRh0oPOA0UhM5yEJbDUK5qA3yqR4=
 github.com/keys-pub/keys-ext/auth/mock v0.0.0-20201018000238-7b6186f1fe97 h1:ua+sFrD9S0kAuEJSPHZgGKRboekEK/xl9LGtzLhGdnw=
 github.com/keys-pub/keys-ext/auth/mock v0.0.0-20201018000238-7b6186f1fe97/go.mod h1:ScNbfUi3P54e6EV2/LFEbAVPGosPrEhmlZYgALzrZ+U=
 github.com/keys-pub/keys-ext/firestore v0.0.0-20200720191317-d8df837b3bb1/go.mod h1:GjeE1G8wiEzCP/Fa4zZt80E3wkpLtL1ICUWNf1zdJuo=
@@ -241,6 +245,10 @@ github.com/keys-pub/keys-ext/http/api v0.0.0-20201117233622-e7ee764fc003/go.mod 
 github.com/keys-pub/keys-ext/http/api v0.0.0-20201120035752-fc8566e1f7c4/go.mod h1:AMw6uIBWLhFpE8G3XotMO1pFGL2Zwji/fgbZ8pScE8I=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20201120040216-9bb267d5584f h1:2bOPzDxbIcsrVX1XnK8XVtzdbbGacN+3wRLgX0MOQi0=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20201120040216-9bb267d5584f/go.mod h1:AMw6uIBWLhFpE8G3XotMO1pFGL2Zwji/fgbZ8pScE8I=
+github.com/keys-pub/keys-ext/http/api v0.0.0-20201120215311-661239608411 h1:A0BOOvSmU7rHWKWDWYDTHRXG8VgSQs/DW5nzEn1pTlE=
+github.com/keys-pub/keys-ext/http/api v0.0.0-20201120215311-661239608411/go.mod h1:AMw6uIBWLhFpE8G3XotMO1pFGL2Zwji/fgbZ8pScE8I=
+github.com/keys-pub/keys-ext/http/api v0.0.0-20201124171340-f41427119d82 h1:5CWiHuJMG3zhyoLrK3bzK0PECngT06PgSYvwrcoQlew=
+github.com/keys-pub/keys-ext/http/api v0.0.0-20201124171340-f41427119d82/go.mod h1:AMw6uIBWLhFpE8G3XotMO1pFGL2Zwji/fgbZ8pScE8I=
 github.com/keys-pub/keys-ext/http/client v0.0.0-20200720192843-3c8c1e04cd87/go.mod h1:HQqqeE0kKYTxNi45uH7W65u2L3DhWbmkpvp+xfBGG/M=
 github.com/keys-pub/keys-ext/http/client v0.0.0-20201020191314-a11edd4d5ac7 h1:PxKPT4cismiuea4gdc7Eu79lvGYH9npJjfI7htupvl8=
 github.com/keys-pub/keys-ext/http/client v0.0.0-20201020191314-a11edd4d5ac7/go.mod h1:c/PTm7O75ZpF7oacsum4dtNbpY8vmz0y7NdS9ImQp8Q=
@@ -257,6 +265,10 @@ github.com/keys-pub/keys-ext/http/client v0.0.0-20201117235545-32432664de26 h1:4
 github.com/keys-pub/keys-ext/http/client v0.0.0-20201117235545-32432664de26/go.mod h1:gN5OljV4GCdW4VhgD9Xlx3x9kUtPL71+mDGQek4mBDY=
 github.com/keys-pub/keys-ext/http/client v0.0.0-20201120041941-a18ca08871a0 h1:K1Mu0lCSd7ZUevcK36Qu0z2UrnRdcHX4Qd66TG13OGk=
 github.com/keys-pub/keys-ext/http/client v0.0.0-20201120041941-a18ca08871a0/go.mod h1:2zaZHexTHywEolvIUACUFikWmCfoCHwwMMK3baQl/vk=
+github.com/keys-pub/keys-ext/http/client v0.0.0-20201120220010-3d9f67cb9121 h1:moweYK/Pj6k+WU7HaelTh7ipELwBjO5mEIGQfvEvb+k=
+github.com/keys-pub/keys-ext/http/client v0.0.0-20201120220010-3d9f67cb9121/go.mod h1:G+GMSVPo+24vAgdw1YJJzMO2W7i5/tBpS740xXpWC2Q=
+github.com/keys-pub/keys-ext/http/client v0.0.0-20201124173412-72095c733b73 h1:4FuAZVqLswoSjmJ3piIYONEEIxFz/700DpCuUulLv2M=
+github.com/keys-pub/keys-ext/http/client v0.0.0-20201124173412-72095c733b73/go.mod h1:G+GMSVPo+24vAgdw1YJJzMO2W7i5/tBpS740xXpWC2Q=
 github.com/keys-pub/keys-ext/http/server v0.0.0-20200720192738-5f31fdd89b88/go.mod h1:UyqGOVQ0fijk4le/2HYsSTS/jYZR6UpCjuMmdW7aFYc=
 github.com/keys-pub/keys-ext/http/server v0.0.0-20201019223136-6de853aa20e6/go.mod h1:naMAyGheVFF4II9iaeDHWPyMYyEHZ4jcX4CCEXEn1OI=
 github.com/keys-pub/keys-ext/http/server v0.0.0-20201019223330-fac0ac0e3560 h1:4VtxN7b3533CCcqmUZua1HoRVIDkdUrtpeeiQtbmz5o=
@@ -269,6 +281,10 @@ github.com/keys-pub/keys-ext/http/server v0.0.0-20201117233622-e7ee764fc003 h1:z
 github.com/keys-pub/keys-ext/http/server v0.0.0-20201117233622-e7ee764fc003/go.mod h1:20R7kFOBKvsqme4Bov4zr1BsjKfUluk5cjq5PTObF2o=
 github.com/keys-pub/keys-ext/http/server v0.0.0-20201120040902-5167b4342b0c h1:lmQpSXZtBy0SqQqh5gQZhTiF5PSg+JQgQKaHySMNGAE=
 github.com/keys-pub/keys-ext/http/server v0.0.0-20201120040902-5167b4342b0c/go.mod h1:l1heWBo/9E+2zELOXJZoD7xNKYz/wBK35wr26eZji0Y=
+github.com/keys-pub/keys-ext/http/server v0.0.0-20201120215828-874010c80395 h1:MHQr7w0dflwMdcO+orHbtnMdiIzY8SYBwIaXspYYTSo=
+github.com/keys-pub/keys-ext/http/server v0.0.0-20201120215828-874010c80395/go.mod h1:5gNa9mlXI21yAWKuK6tfDRnKjwiFQbLrErqfNweaaRI=
+github.com/keys-pub/keys-ext/http/server v0.0.0-20201124173412-72095c733b73 h1:UTYWJ2R6P7whxgzpuabd6n530nRWZ9TbH4QIFI+p8xk=
+github.com/keys-pub/keys-ext/http/server v0.0.0-20201124173412-72095c733b73/go.mod h1:98+93KLqUgWs4JAP08fDTQg0NAfYmZkWOBUsvdGn+UY=
 github.com/keys-pub/keys-ext/sdb v0.0.0-20200917215110-bda938100d21 h1:kQE/wWdNcKgXmR/PLjPIsh89Q1Wf0/wWUd5JYSMTSBI=
 github.com/keys-pub/keys-ext/sdb v0.0.0-20200917215110-bda938100d21/go.mod h1:a2kdlrU3Q860hDBlcpzqEzXMSQPh6C1rXdXmyVP8MGo=
 github.com/keys-pub/keys-ext/sdb v0.0.0-20201023200942-48e5f880045e h1:kwFLA7TqxFsGjpwEdxdRkyLY6YqiQHCEh7/Ra7SOGcM=
@@ -283,6 +299,8 @@ github.com/keys-pub/keys-ext/sdb v0.0.0-20201118000009-28224424e74f h1:nKMtWw5LH
 github.com/keys-pub/keys-ext/sdb v0.0.0-20201118000009-28224424e74f/go.mod h1:YaUd6KuVv3OsRk9lFs1kw1/1aaWySKfVyOKVusRyv2M=
 github.com/keys-pub/keys-ext/sdb v0.0.0-20201120041941-a18ca08871a0 h1:IDZKclURPZsYRqLbmMs7vHToXv7GLTyGl7TjLfxOOc4=
 github.com/keys-pub/keys-ext/sdb v0.0.0-20201120041941-a18ca08871a0/go.mod h1:YaUd6KuVv3OsRk9lFs1kw1/1aaWySKfVyOKVusRyv2M=
+github.com/keys-pub/keys-ext/sdb v0.0.0-20201124173412-72095c733b73 h1:14wYBvL+7clbF6JHmIq8Wg5AW963im1trhbmub3GhHo=
+github.com/keys-pub/keys-ext/sdb v0.0.0-20201124173412-72095c733b73/go.mod h1:YaUd6KuVv3OsRk9lFs1kw1/1aaWySKfVyOKVusRyv2M=
 github.com/keys-pub/keys-ext/vault v0.0.0-20201023185358-3aa021ac522b h1:XHYEHWlQ+aNtFkdSEmQbS+JzZz0RNpN+o+APQ0K3Zoc=
 github.com/keys-pub/keys-ext/vault v0.0.0-20201023185358-3aa021ac522b/go.mod h1:bCZUgZDzbcROwGkRHEg+/QXQRG3jcK7gVi/WTsA4X+Q=
 github.com/keys-pub/keys-ext/vault v0.0.0-20201023200942-48e5f880045e h1:F6QMtKOW3RZ8Y3nvyxTtEhLepPJtt6oJPB96VZACixQ=
@@ -295,6 +313,8 @@ github.com/keys-pub/keys-ext/vault v0.0.0-20201118000009-28224424e74f h1:fPQ7sWw
 github.com/keys-pub/keys-ext/vault v0.0.0-20201118000009-28224424e74f/go.mod h1:i+5vxTnvnXk3Epp/q86+d/Iu6A79SNHsCUFUDu11KGo=
 github.com/keys-pub/keys-ext/vault v0.0.0-20201120041941-a18ca08871a0 h1:tvBCUoCOqEv0yRxF/XJEiJKWm9t2agLL+hykJjHVLN4=
 github.com/keys-pub/keys-ext/vault v0.0.0-20201120041941-a18ca08871a0/go.mod h1:i+5vxTnvnXk3Epp/q86+d/Iu6A79SNHsCUFUDu11KGo=
+github.com/keys-pub/keys-ext/vault v0.0.0-20201124173412-72095c733b73 h1:vFi9lhSx7JIGBrOGFplw5y8i3XZGv5Aq1T2tZUn4/fs=
+github.com/keys-pub/keys-ext/vault v0.0.0-20201124173412-72095c733b73/go.mod h1:DVH9LcSEksQNdJGhnEBi3UT+C1dCUhi/GJ8utrqs5i8=
 github.com/keys-pub/keys-ext/wormhole v0.0.0-20200917215110-bda938100d21 h1:Z7w1JWqdDjyhzHDKHQwEqK9wUyJ0OPNNg6kTQUQsIfE=
 github.com/keys-pub/keys-ext/wormhole v0.0.0-20200917215110-bda938100d21/go.mod h1:ZoIOc0QRxj/yqgyH7Qn5DrvXFGDZ35i2V5Djr+9Weqo=
 github.com/keys-pub/keys-ext/wormhole v0.0.0-20201023200942-48e5f880045e h1:R0yjcHFymPN2owy6ppMp1b78clwL2paai2peaYiWu9s=
@@ -308,6 +328,8 @@ github.com/keys-pub/keys-ext/wormhole v0.0.0-20201118000009-28224424e74f h1:LxZa
 github.com/keys-pub/keys-ext/wormhole v0.0.0-20201118000009-28224424e74f/go.mod h1:vddNo6pJwNHaast/wCRjISLBEqOBzmOlIiYK5IFzmYM=
 github.com/keys-pub/keys-ext/wormhole v0.0.0-20201120041941-a18ca08871a0 h1:tW087G4vjLOa2AU6vuXEQLrRcegAiQSq9/3MYriA0iM=
 github.com/keys-pub/keys-ext/wormhole v0.0.0-20201120041941-a18ca08871a0/go.mod h1:vddNo6pJwNHaast/wCRjISLBEqOBzmOlIiYK5IFzmYM=
+github.com/keys-pub/keys-ext/wormhole v0.0.0-20201124173412-72095c733b73 h1:aHMIsNgTEUG5SUh+r2t2fbssbXPPJ7Ftgh3HBJyUZ+Q=
+github.com/keys-pub/keys-ext/wormhole v0.0.0-20201124173412-72095c733b73/go.mod h1:vddNo6pJwNHaast/wCRjISLBEqOBzmOlIiYK5IFzmYM=
 github.com/keys-pub/keys-ext/ws/api v0.0.0-20201029233258-c8bcb7e97c61 h1:f+bEgjBi13RWmNrasQShOw9j9hejz4pENBO8UtbbsoI=
 github.com/keys-pub/keys-ext/ws/api v0.0.0-20201029233258-c8bcb7e97c61/go.mod h1:Hj+BPWhDdvWwe3D3GvWtVSVXPxgAb1Th/U8gwhiGrNE=
 github.com/keys-pub/keys-ext/ws/api v0.0.0-20201030201518-8a43008be509/go.mod h1:K41OgD6x/MGJfkpC3fmGxBbvhVbiRqMTeNh8DQ+CJ44=
@@ -326,6 +348,10 @@ github.com/keys-pub/keys-ext/ws/api v0.0.0-20201120040216-9bb267d5584f h1:DIDDqj
 github.com/keys-pub/keys-ext/ws/api v0.0.0-20201120040216-9bb267d5584f/go.mod h1:JYj+ZTIjvAnJZeIv7eEjCmSA0HjwzluUh/aVZMgsRDQ=
 github.com/keys-pub/keys-ext/ws/api v0.0.0-20201120191341-b7b29ceab3cf h1:pqYDW/8mvgV39gEKKdMYdiYE2DUD6S85bVdqqMvnuZY=
 github.com/keys-pub/keys-ext/ws/api v0.0.0-20201120191341-b7b29ceab3cf/go.mod h1:LbgwcQT1R5W8EBRHmDeE6d2lr0t4EYS6J9ih2Jv4iN8=
+github.com/keys-pub/keys-ext/ws/api v0.0.0-20201123214159-d624ad274a49 h1:d+Tiza4wXD79bzAa2HJL5Hk+MobTU7FHMboASUm2LUA=
+github.com/keys-pub/keys-ext/ws/api v0.0.0-20201123214159-d624ad274a49/go.mod h1:LbgwcQT1R5W8EBRHmDeE6d2lr0t4EYS6J9ih2Jv4iN8=
+github.com/keys-pub/keys-ext/ws/api v0.0.0-20201124171340-f41427119d82 h1:qYSsEyszXSelnCnJkDH2FyW0/MByDmyjfL0DtNn/Wy4=
+github.com/keys-pub/keys-ext/ws/api v0.0.0-20201124171340-f41427119d82/go.mod h1:LbgwcQT1R5W8EBRHmDeE6d2lr0t4EYS6J9ih2Jv4iN8=
 github.com/keys-pub/keys-ext/ws/client v0.0.0-20201030164639-041eb18d8d8b h1:CkXeRc3Tc7AQGmxN5BbqvSO2lJNAuotqU3geerX81kg=
 github.com/keys-pub/keys-ext/ws/client v0.0.0-20201030164639-041eb18d8d8b/go.mod h1:o0l3et64X+D3KoqpKu+BlhqN4YdpdPwhAcpditY2rEo=
 github.com/keys-pub/keys-ext/ws/client v0.0.0-20201111183433-233bc966c00a h1:cYqwpE2buqarJtkfu+dYsWNy1szGPXCYibVKYKLKtZc=
@@ -338,6 +364,8 @@ github.com/keys-pub/keys-ext/ws/client v0.0.0-20201118000009-28224424e74f h1:1ol
 github.com/keys-pub/keys-ext/ws/client v0.0.0-20201118000009-28224424e74f/go.mod h1:B3R1P56G00QU2O5Vgr7sQplBwu8nyvvq/2s6zOAHxWA=
 github.com/keys-pub/keys-ext/ws/client v0.0.0-20201120041941-a18ca08871a0 h1:ckuwoPrd49b+ly8ynmHZPskj/Q9EarbrDAu86Cnfftw=
 github.com/keys-pub/keys-ext/ws/client v0.0.0-20201120041941-a18ca08871a0/go.mod h1:ftbIzhvkmoNmRwIadlLP4B9poH8o4Cm+rrHi5kO6VD4=
+github.com/keys-pub/keys-ext/ws/client v0.0.0-20201124173412-72095c733b73 h1:GuSIq5M7ohQOMvHtQvizoXNktu3zn08vI5NXDfBBZ2U=
+github.com/keys-pub/keys-ext/ws/client v0.0.0-20201124173412-72095c733b73/go.mod h1:2BNjc7UDJu0Mt2VJOa54xp7n0jowGIiviq0vLWYHpZg=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f h1:LLsdI2XManLH0JonKqB6OYmHdHk/WwJByDbHI3hCEcs=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f/go.mod h1:YRHMiVbZqh7u8xRm77CvwJNAZdDlNXwWvQ4DK0N9mYg=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=
