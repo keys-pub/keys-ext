@@ -6,7 +6,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/golang/protobuf v1.4.3 // indirect
 	github.com/golang/snappy v0.0.2 // indirect
-	github.com/keys-pub/keys v0.1.18-0.20201120035008-acb3bbba9752
+	github.com/keys-pub/keys v0.1.18-0.20201124170605-b802bea21f73
 	github.com/keys-pub/keys-ext/http/api v0.0.0-20201120215311-661239608411
 	github.com/keys-pub/keys-ext/http/client v0.0.0-20201120220010-3d9f67cb9121
 	github.com/keys-pub/keys-ext/http/server v0.0.0-20201120215828-874010c80395
