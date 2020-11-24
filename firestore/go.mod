@@ -7,7 +7,7 @@ require (
 	cloud.google.com/go/firestore v1.3.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/google/go-cmp v0.5.3 // indirect
-	github.com/keys-pub/keys v0.1.18-0.20201120035008-acb3bbba9752
+	github.com/keys-pub/keys v0.1.18-0.20201124170605-b802bea21f73
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.5.1
 	github.com/tyler-smith/go-bip39 v1.1.0 // indirect
@@ -27,4 +27,4 @@ require (
 	honnef.co/go/tools v0.0.1-2020.1.6 // indirect
 )
 
-replace github.com/keys-pub/keys => ../../keys
+// replace github.com/keys-pub/keys => ../../keys
