@@ -53,6 +53,7 @@ func (c *Client) Close() {
 		err := c.conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 		if err != nil {
 			// Failed to write close message
+			logger.Infof("Failed to write close message: %v", err)
 		}
 	}
 	c.close()

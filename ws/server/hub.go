@@ -162,9 +162,7 @@ func (h *Hub) unregisterAuth(cl *client) {
 			continue
 		}
 		// log.Printf("deauth %s => %s\n", cl.id, kid)
-		if _, ok := clientsForKey[cl.id]; ok {
-			delete(clientsForKey, cl.id)
-		}
+		delete(clientsForKey, cl.id)
 	}
 	delete(h.clients, cl.id)
 	cl.kids = nil
