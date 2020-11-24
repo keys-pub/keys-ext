@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"sort"
 	"strings"
 
 	"github.com/keys-pub/keys"
@@ -12,15 +13,15 @@ import (
 )
 
 func (s *service) Channels(ctx context.Context, req *ChannelsRequest) (*ChannelsResponse, error) {
-	inbox, err := s.lookup(ctx, req.Inbox, nil)
+	user, err := s.lookup(ctx, req.User, nil)
 	if err != nil {
 		return nil, err
 	}
-	if err := s.pullChannels(ctx, inbox); err != nil {
+	if err := s.pullChannels(ctx, user); err != nil {
 		return nil, err
 	}
 
-	channels, err := s.channels(ctx, inbox)
+	channels, err := s.channels(ctx, user)
 	if err != nil {
 		return nil, err
 	}
@@ -35,11 +36,11 @@ func (s *service) ChannelCreate(ctx context.Context, req *ChannelCreateRequest) 
 	if name == "" {
 		return nil, errors.Errorf("no channel name specified")
 	}
-	inbox, err := s.lookup(ctx, req.Inbox, nil)
+	user, err := s.lookup(ctx, req.User, nil)
 	if err != nil {
 		return nil, err
 	}
-	inboxKey, err := s.edx25519Key(inbox)
+	userKey, err := s.edx25519Key(user)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +48,7 @@ func (s *service) ChannelCreate(ctx context.Context, req *ChannelCreateRequest) 
 	// Create channel key
 	channelKey := keys.GenerateEdX25519Key()
 
-	if err := s.client.ChannelCreate(ctx, channelKey, inboxKey); err != nil {
+	if err := s.client.ChannelCreate(ctx, channelKey, userKey); err != nil {
 		return nil, err
 	}
 
@@ -58,7 +59,7 @@ func (s *service) ChannelCreate(ctx context.Context, req *ChannelCreateRequest) 
 	msg := api.NewMessage()
 	msg.ChannelInfo = &api.ChannelInfo{Name: name}
 	msg.Timestamp = s.clock.NowMillis()
-	if err := s.client.MessageSend(ctx, msg, inboxKey, channelKey); err != nil {
+	if err := s.client.MessageSend(ctx, msg, userKey, channelKey); err != nil {
 		return nil, err
 	}
 
@@ -107,23 +108,23 @@ func (s *service) ChannelInviteAccept(ctx context.Context, req *ChannelInviteAcc
 	if err != nil {
 		return nil, errors.Wrapf(err, "invalid channel")
 	}
-	iid, err := s.lookup(ctx, req.Inbox, nil)
+	uid, err := s.lookup(ctx, req.User, nil)
 	if err != nil {
 		return nil, err
 	}
-	inbox, err := s.edx25519Key(iid)
+	user, err := s.edx25519Key(uid)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get key")
 	}
 
 	// Get invite.
-	invite, err := s.client.InboxChannelInvite(ctx, inbox, cid)
+	invite, err := s.client.UserChannelInvite(ctx, user, cid)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get invite")
 	}
 
 	// Save key.
-	channel, _, err := invite.Key(inbox)
+	channel, _, err := invite.Key(user)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to decrypt channel key")
 	}
@@ -132,49 +133,38 @@ func (s *service) ChannelInviteAccept(ctx context.Context, req *ChannelInviteAcc
 	}
 
 	// Accept invite.
-	if err := s.client.ChannelInviteAccept(ctx, inbox, channel); err != nil {
+	if err := s.client.ChannelInviteAccept(ctx, user, channel); err != nil {
 		return nil, err
 	}
 
 	return &ChannelInviteAcceptResponse{}, nil
 }
 
-func (s *service) channelsToRPC(cs []*api.Channel) []*Channel {
-	out := make([]*Channel, 0, len(cs))
-	for _, c := range cs {
-		out = append(out, s.channelToRPC(c))
-	}
-	return out
-}
-
-func (s *service) channelToRPC(c *api.Channel) *Channel {
-	return &Channel{
-		ID: c.ID.String(),
-		// Name: c.Name,
-	}
-}
-
 type channelsState struct {
 	Channels []*api.Channel `json:"channels"`
 }
 
-func (s *service) pullChannels(ctx context.Context, inbox keys.ID) error {
-	logger.Infof("Pull channels (%s)...", inbox)
+func (s *service) pullChannels(ctx context.Context, user keys.ID) error {
+	logger.Infof("Pull channels (%s)...", user)
 
-	inboxKey, err := s.edx25519Key(inbox)
+	userKey, err := s.edx25519Key(user)
 	if err != nil {
 		return err
 	}
-	channels, err := s.client.InboxChannels(ctx, inboxKey)
+	channels, err := s.client.UserChannels(ctx, userKey)
 	if err != nil {
 		return err
 	}
+	sort.Slice(channels, func(i, j int) bool {
+		return channels[i].Timestamp > channels[j].Timestamp
+	})
 
-	path := dstore.Path("inbox", inbox, "channels")
+	path := dstore.Path("users", user, "channels")
 	if err := s.db.Set(ctx, path, dstore.From(channelsState{Channels: channels})); err != nil {
 		return err
 	}
 
+	// TODO: Pull channels in a single (bulk) call
 	for _, channel := range channels {
 		pullState, err := s.channelPullState(ctx, channel.ID)
 		if err != nil {
@@ -182,12 +172,11 @@ func (s *service) pullChannels(ctx context.Context, inbox keys.ID) error {
 		}
 
 		if pullState.Index < channel.Index {
-			if err := s.pullMessages(ctx, channel.ID, inbox); err != nil {
+			if err := s.pullMessages(ctx, channel.ID, user); err != nil {
 				return err
 			}
 		}
 	}
-
 	return nil
 }
 
@@ -196,11 +185,13 @@ type channelInfo struct {
 	Name            string  `json:"name,omitempty" msgpack:"name,omitempty"`
 	Description     string  `json:"desc,omitempty" msgpack:"desc,omitempty"`
 	Snippet         string  `json:"snippet,omitempty" msgpack:"snippet,omitempty"`
+	Index           int64   `json:"index,omitempty" msgpack:"index,omitempty"`
 	Timestamp       int64   `json:"ts,omitempty" msgpack:"ts,omitempty"`
 	RemoteTimestamp int64   `json:"rts,omitempty" msgpack:"rts,omitempty"`
 }
 
 func (s *service) channel(ctx context.Context, channel keys.ID) (*Channel, error) {
+	// channelInfo is set during pullMessages
 	var info channelInfo
 	ok, err := s.db.Load(ctx, dstore.Path("channel", channel.ID(), "info"), &info)
 	if err != nil {
@@ -217,11 +208,12 @@ func (s *service) channel(ctx context.Context, channel keys.ID) (*Channel, error
 		Name:      info.Name,
 		Snippet:   info.Snippet,
 		UpdatedAt: info.RemoteTimestamp,
+		Index:     info.Index,
 	}, nil
 }
 
-func (s *service) channels(ctx context.Context, inbox keys.ID) ([]*Channel, error) {
-	path := dstore.Path("inbox", inbox, "channels")
+func (s *service) channels(ctx context.Context, users keys.ID) ([]*Channel, error) {
+	path := dstore.Path("users", users, "channels")
 	doc, err := s.db.Get(ctx, path)
 	if err != nil {
 		return nil, err
@@ -239,6 +231,6 @@ func (s *service) channels(ctx context.Context, inbox keys.ID) ([]*Channel, erro
 		}
 		out = append(out, c)
 	}
-	logger.Debugf("Found %d channels in %s", len(out), inbox)
+	logger.Debugf("Found %d channels in %s", len(out), users)
 	return out, nil
 }

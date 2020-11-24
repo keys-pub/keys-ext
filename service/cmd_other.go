@@ -14,7 +14,7 @@ func otherCommands(client *Client) []cli.Command {
 			Usage: "Generate randomness",
 			Flags: []cli.Flag{
 				cli.IntFlag{Name: "num-bytes, n", Usage: "number of bytes", Value: 32},
-				cli.StringFlag{Name: "encoding, enc, e", Usage: "encoding (base64, base62, base58, base32, base16, bip39, saltpack)", Value: "base62"},
+				cli.StringFlag{Name: "encoding, enc, e", Usage: "encoding (base64, base62, base58, base32, base16, hex, bip39, saltpack)", Value: "base62"},
 				cli.BoolFlag{Name: "no-padding", Usage: "no padding (base64, base32"},
 				cli.BoolFlag{Name: "lower", Usage: "lowercase (base64, base32"},
 			},

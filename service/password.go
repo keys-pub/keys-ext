@@ -7,11 +7,11 @@ import (
 	"syscall"
 
 	"github.com/pkg/errors"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 func readPassword(prompt string, allowEmpty bool) (string, error) {
-	if !terminal.IsTerminal(int(syscall.Stdin)) {
+	if !term.IsTerminal(int(syscall.Stdin)) {
 		return "", errors.Errorf("failed to read password from terminal: not a terminal or terminal not supported, use -password option")
 	}
 
@@ -22,7 +22,7 @@ func readPassword(prompt string, allowEmpty bool) (string, error) {
 	// }
 
 	// Get the initial state of the terminal.
-	initialTermState, err := terminal.GetState(int(syscall.Stdin))
+	initialTermState, err := term.GetState(int(syscall.Stdin))
 	if err != nil {
 		return "", err
 	}
@@ -33,13 +33,13 @@ func readPassword(prompt string, allowEmpty bool) (string, error) {
 	signal.Notify(c, os.Interrupt, os.Kill) //nolint
 	go func() {
 		<-c
-		_ = terminal.Restore(int(syscall.Stdin), initialTermState)
+		_ = term.Restore(int(syscall.Stdin), initialTermState)
 		os.Exit(1)
 	}()
 
 	// Now get the password.
 	fmt.Fprint(os.Stderr, prompt)
-	p, err := terminal.ReadPassword(int(syscall.Stdin))
+	p, err := term.ReadPassword(int(syscall.Stdin))
 	fmt.Fprintf(os.Stderr, "\n")
 
 	// Stop looking for ^C on the channel.

@@ -20,6 +20,7 @@ import (
 	"github.com/keys-pub/keys-ext/vault"
 	"github.com/keys-pub/keys-ext/wormhole"
 	"github.com/keys-pub/keys-ext/wormhole/sctp"
+	wsclient "github.com/keys-pub/keys-ext/ws/client"
 	"github.com/keys-pub/keys/link"
 	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/saltpack"
@@ -42,7 +43,7 @@ func newProtoService(env *Env, build Build, auth *auth) (*service, error) {
 	return srv, nil
 }
 
-func setupLogging(logLevel LogLevel, logPath string) (Logger, LogInterceptor) {
+func setupLogging(logLevel LogLevel, logPath string) (*logrus.Logger, LogInterceptor) {
 	return setupLogrus(logLevel, logPath)
 }
 
@@ -94,18 +95,20 @@ func Run(build Build) {
 		logFatal(err)
 	}
 
-	// TODO: Disable logging by default
+	// TODO: Disable logging by default?
+	// TODO: Include package name in logging
 
 	lg, lgi := setupLogging(logLevel, *args.logPath)
 	SetLogger(lg)
-	keys.SetLogger(lg)
-	user.SetLogger(lg)
-	link.SetLogger(lg)
-	saltpack.SetLogger(lg)
-	vault.SetLogger(lg)
-	client.SetLogger(lg)
-	wormhole.SetLogger(lg)
-	sctp.SetLogger(lg)
+	client.SetLogger(newPackageLogger(lg, "keys-ext/http/client"))
+	keys.SetLogger(newPackageLogger(lg, "keys"))
+	link.SetLogger(newPackageLogger(lg, "keys/link"))
+	saltpack.SetLogger(newPackageLogger(lg, "keys/saltpack"))
+	sctp.SetLogger(newPackageLogger(lg, "keys-ext/wormhole/sctp"))
+	user.SetLogger(newPackageLogger(lg, "keys/user"))
+	vault.SetLogger(newPackageLogger(lg, "keys-ext/vault"))
+	wormhole.SetLogger(newPackageLogger(lg, "keys-ext/wormhole"))
+	wsclient.SetLogger(newPackageLogger(lg, "keys-ext/ws/client"))
 
 	logger.Debugf("Running %v", os.Args)
 

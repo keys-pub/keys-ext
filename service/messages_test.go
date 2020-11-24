@@ -32,8 +32,8 @@ func TestMessages(t *testing.T) {
 
 	// Alice creates a channel
 	channelCreate, err := aliceService.ChannelCreate(ctx, &ChannelCreateRequest{
-		Name:  "Test",
-		Inbox: alice.ID().String(),
+		Name: "Test",
+		User: alice.ID().String(),
 	})
 	require.NoError(t, err)
 	require.NotEmpty(t, channelCreate.Channel)
@@ -50,14 +50,15 @@ func TestMessages(t *testing.T) {
 	// Bob accepts invite
 	_, err = bobService.ChannelInviteAccept(ctx, &ChannelInviteAcceptRequest{
 		Channel: channel.ID,
-		Inbox:   bob.ID().String(),
+		User:    bob.ID().String(),
 	})
 	require.NoError(t, err)
 
 	// Alice lists messages
 	messages, err := aliceService.Messages(ctx, &MessagesRequest{
 		Channel: channel.ID,
-		Member:  alice.ID().String(),
+		User:    alice.ID().String(),
+		Update:  true,
 	})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(messages.Messages))
@@ -97,7 +98,8 @@ func TestMessages(t *testing.T) {
 	// Alice lists messages
 	messages, err = aliceService.Messages(ctx, &MessagesRequest{
 		Channel: channel.ID,
-		Member:  alice.ID().String(),
+		User:    alice.ID().String(),
+		Update:  true,
 	})
 	require.NoError(t, err)
 	require.Equal(t, 4, len(messages.Messages))
@@ -115,7 +117,8 @@ func TestMessages(t *testing.T) {
 	// Bob lists messages
 	messages, err = bobService.Messages(ctx, &MessagesRequest{
 		Channel: channel.ID,
-		Member:  bob.ID().String(),
+		User:    bob.ID().String(),
+		Update:  true,
 	})
 	require.NoError(t, err)
 	require.Equal(t, 4, len(messages.Messages))

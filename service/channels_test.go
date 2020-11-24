@@ -34,8 +34,8 @@ func TestChannel(t *testing.T) {
 
 	// Alice creates a channel
 	channelCreate, err := aliceService.ChannelCreate(ctx, &ChannelCreateRequest{
-		Name:  "Test",
-		Inbox: alice.ID().String(),
+		Name: "Test",
+		User: alice.ID().String(),
 	})
 	require.NoError(t, err)
 	require.NotEmpty(t, channelCreate.Channel)
@@ -43,7 +43,7 @@ func TestChannel(t *testing.T) {
 
 	// Channels (alice)
 	channels, err := aliceService.Channels(ctx, &ChannelsRequest{
-		Inbox: alice.ID().String(),
+		User: alice.ID().String(),
 	})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(channels.Channels))
@@ -51,7 +51,7 @@ func TestChannel(t *testing.T) {
 
 	// Channels (alice@github)
 	channels, err = aliceService.Channels(ctx, &ChannelsRequest{
-		Inbox: "alice@github",
+		User: "alice@github",
 	})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(channels.Channels))
@@ -68,13 +68,13 @@ func TestChannel(t *testing.T) {
 	// Bob accepts invite
 	_, err = bobService.ChannelInviteAccept(ctx, &ChannelInviteAcceptRequest{
 		Channel: cid,
-		Inbox:   bob.ID().String(),
+		User:    bob.ID().String(),
 	})
 	require.NoError(t, err)
 
 	// Channels (bob)
 	channels, err = bobService.Channels(ctx, &ChannelsRequest{
-		Inbox: bob.ID().String(),
+		User: bob.ID().String(),
 	})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(channels.Channels))
@@ -82,35 +82,35 @@ func TestChannel(t *testing.T) {
 
 	// ChannelCreate (alice@github)
 	channelCreate, err = aliceService.ChannelCreate(ctx, &ChannelCreateRequest{
-		Name:  "Test2",
-		Inbox: "alice@github",
+		Name: "Test2",
+		User: "alice@github",
 	})
 	require.NoError(t, err)
 	require.NotEmpty(t, channelCreate.Channel)
 
 	// ChannelCreate (unknown key)
 	randKey := keys.NewEdX25519KeyFromSeed(testSeed(0xaa))
-	channelCreate, err = aliceService.ChannelCreate(ctx, &ChannelCreateRequest{
-		Name:  "Test2",
-		Inbox: randKey.ID().String(),
+	_, err = aliceService.ChannelCreate(ctx, &ChannelCreateRequest{
+		Name: "Test2",
+		User: randKey.ID().String(),
 	})
 	require.EqualError(t, err, "kex1uu6w5mptvftauu34terj4gz6f3y8u66x8spfa5cxmuhsrdtrddvqevhznx not found")
 
 	// Channels (unknown key)
 	_, err = aliceService.Channels(ctx, &ChannelsRequest{
-		Inbox: randKey.ID().String(),
+		User: randKey.ID().String(),
 	})
 	require.EqualError(t, err, "kex1uu6w5mptvftauu34terj4gz6f3y8u66x8spfa5cxmuhsrdtrddvqevhznx not found")
 
 	// Channels (unknown user)
 	_, err = aliceService.Channels(ctx, &ChannelsRequest{
-		Inbox: "unknown@github",
+		User: "unknown@github",
 	})
 	require.EqualError(t, err, "unknown@github not found")
 
 	// Channels (unauthorized)
 	_, err = bobService.Channels(ctx, &ChannelsRequest{
-		Inbox: "alice@github",
+		User: "alice@github",
 	})
 	require.EqualError(t, err, "kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077 not found")
 }

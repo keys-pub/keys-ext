@@ -412,3 +412,11 @@ func (s *service) ensureUserVerified(ctx context.Context, kid keys.ID) error {
 	}
 	return nil
 }
+
+func (s *service) user(ctx context.Context, kid keys.ID) (*User, error) {
+	res, err := s.users.Get(ctx, kid)
+	if err != nil {
+		return nil, err
+	}
+	return userResultToRPC(res), nil
+}

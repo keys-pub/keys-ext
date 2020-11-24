@@ -65,3 +65,33 @@ func setupLogrus(logLevel LogLevel, logPath string) (*logrus.Logger, logrusInter
 	}
 	return llog, newLogrusInterceptor(llog)
 }
+
+// newPackageLogger adds package name to logrus.Logger.
+func newPackageLogger(log *logrus.Logger, packageName string) Logger {
+	return &packageLogger{log, packageName}
+}
+
+type packageLogger struct {
+	*logrus.Logger
+	packageName string
+}
+
+func (l packageLogger) Debugf(format string, args ...interface{}) {
+	l.WithField("package", l.packageName).Debugf(format, args...)
+}
+
+func (l packageLogger) Infof(format string, args ...interface{}) {
+	l.WithField("package", l.packageName).Infof(format, args...)
+}
+
+func (l packageLogger) Warningf(format string, args ...interface{}) {
+	l.WithField("package", l.packageName).Warningf(format, args...)
+}
+
+func (l packageLogger) Errorf(format string, args ...interface{}) {
+	l.WithField("package", l.packageName).Errorf(format, args...)
+}
+
+func (l packageLogger) Fatalf(format string, args ...interface{}) {
+	l.WithField("package", l.packageName).Fatalf(format, args...)
+}

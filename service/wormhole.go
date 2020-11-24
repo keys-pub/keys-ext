@@ -224,7 +224,7 @@ func wormholeStatusToRPC(st wormhole.Status) WormholeStatus {
 	}
 }
 
-func wormholeMessageTypeToRPC(typ wormhole.MessageType) WormholeMessageType {
+func wormholeMessageTypeToRPC(typ wormhole.MessageType) WormholeMessageStatus {
 	switch typ {
 	case wormhole.Sent:
 		return WormholeMessageSent
@@ -238,15 +238,6 @@ func wormholeMessageTypeToRPC(typ wormhole.MessageType) WormholeMessageType {
 	}
 }
 
-func wormholeContentTypeToRPC(typ wormhole.ContentType) ContentType {
-	switch typ {
-	case wormhole.UTF8Content:
-		return UTF8Content
-	default:
-		return BinaryContent
-	}
-}
-
 func (s *service) wormholeMessageToRPC(ctx context.Context, msg *wormhole.Message) (*WormholeMessage, error) {
 	sender, err := s.key(ctx, msg.Sender)
 	if err != nil {
@@ -255,7 +246,7 @@ func (s *service) wormholeMessageToRPC(ctx context.Context, msg *wormhole.Messag
 
 	out := &WormholeMessage{
 		ID:     msg.ID,
-		Type:   wormholeMessageTypeToRPC(msg.Type),
+		Status: wormholeMessageTypeToRPC(msg.Type),
 		Sender: sender,
 	}
 	if msg.Content.Type == wormhole.UTF8Content {
