@@ -5,10 +5,12 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/api"
+	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
 	"github.com/vmihailenco/msgpack/v4"
 )
 
+// keyItemType for a generic api.Key.
 const keyItemType = "key"
 
 func newItemForKey(key *api.Key) (*Item, error) {
@@ -19,7 +21,7 @@ func newItemForKey(key *api.Key) (*Item, error) {
 	if err != nil {
 		return nil, err
 	}
-	item := NewItem(key.ID.String(), b, keyItemType, key.CreatedAt)
+	item := NewItem(key.ID.String(), b, keyItemType, tsutil.ConvertMillis(key.CreatedAt))
 	return item, nil
 }
 
@@ -56,7 +58,7 @@ func (v *Vault) SaveKey(key *api.Key) (*api.Key, bool, error) {
 
 	updated := false
 	if item != nil {
-		key.UpdatedAt = v.Now()
+		key.UpdatedAt = tsutil.Millis(v.Now())
 		b, err := marshalKey(key)
 		if err != nil {
 			return nil, false, err
@@ -67,7 +69,7 @@ func (v *Vault) SaveKey(key *api.Key) (*api.Key, bool, error) {
 		}
 		updated = true
 	} else {
-		now := v.Now()
+		now := tsutil.Millis(v.Now())
 		key.CreatedAt = now
 		key.UpdatedAt = now
 
@@ -88,18 +90,9 @@ func (i *Item) Key() (*api.Key, error) {
 	switch i.Type {
 	case keyItemType:
 		return unmarshalKey(i.Data)
-	// Keys used to be stored as item data directly instead of as a marshaled vault.Key.
-	case string(keys.X25519), string(keys.X25519Public), string(keys.EdX25519), string(keys.EdX25519Public):
-		return &api.Key{
-			ID:        keys.ID(i.ID),
-			Data:      i.Data,
-			Type:      i.Type,
-			CreatedAt: i.CreatedAt,
-			UpdatedAt: i.CreatedAt,
-		}, nil
-	default:
-		return nil, nil
 	}
+
+	return i.keyV1()
 }
 
 func unmarshalKey(b []byte) (*api.Key, error) {
@@ -136,11 +129,11 @@ func (v *Vault) ImportSaltpack(msg string, password string, isHTML bool) (*api.K
 	if err != nil {
 		return nil, err
 	}
-	now := v.Now()
-	if key.CreatedAt.IsZero() {
+	now := tsutil.Millis(v.Now())
+	if key.CreatedAt == 0 {
 		key.CreatedAt = now
 	}
-	if key.UpdatedAt.IsZero() {
+	if key.UpdatedAt == 0 {
 		key.UpdatedAt = now
 	}
 	out, _, err := v.SaveKey(key)
@@ -163,7 +156,7 @@ func (v *Vault) ExportSaltpack(id keys.ID, password string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return api.EncryptKeyWithPassword(key, password)
+	return key.EncryptWithPassword(password)
 }
 
 // EdX25519Keys implements wormhole.Keyring.
@@ -174,10 +167,7 @@ func (v *Vault) EdX25519Keys() ([]*keys.EdX25519Key, error) {
 	}
 	out := make([]*keys.EdX25519Key, 0, len(ks))
 	for _, key := range ks {
-		sk, err := key.AsEdX25519()
-		if err != nil {
-			return nil, err
-		}
+		sk := key.AsEdX25519()
 		if sk == nil {
 			continue
 		}
@@ -194,10 +184,7 @@ func (v *Vault) X25519Keys() ([]*keys.X25519Key, error) {
 	}
 	out := make([]*keys.X25519Key, 0, len(ks))
 	for _, key := range ks {
-		bk, err := key.AsX25519()
-		if err != nil {
-			return nil, err
-		}
+		bk := key.AsX25519()
 		if bk == nil {
 			continue
 		}
@@ -240,10 +227,7 @@ func (v *Vault) EdX25519PublicKeys() ([]*keys.EdX25519PublicKey, error) {
 	}
 	out := make([]*keys.EdX25519PublicKey, 0, len(ks))
 	for _, key := range ks {
-		pk, err := key.AsEdX25519Public()
-		if err != nil {
-			return nil, err
-		}
+		pk := key.AsEdX25519Public()
 		if pk == nil {
 			continue
 		}
@@ -261,5 +245,5 @@ func (v *Vault) EdX25519Key(kid keys.ID) (*keys.EdX25519Key, error) {
 	if key == nil {
 		return nil, nil
 	}
-	return key.AsEdX25519()
+	return key.AsEdX25519(), nil
 }

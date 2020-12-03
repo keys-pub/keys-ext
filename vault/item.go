@@ -7,7 +7,7 @@ import (
 	"github.com/vmihailenco/msgpack/v4"
 )
 
-// Item in the vault.
+// Item in the vault, uses msgpack.
 type Item struct {
 	ID   string `msgpack:"id"`
 	Data []byte `msgpack:"dat"`

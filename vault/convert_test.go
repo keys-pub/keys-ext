@@ -168,7 +168,7 @@ func TestConvertBackup37(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(out))
 	require.Equal(t, keys.ID("kex1kt0wmstr4craw8d5h03uhvpyuzxudr9zypw9uzgq9nks007vy3jsasxz73"), out[0].ID)
-	require.Equal(t, "0479c4a84a474d16249dd9fba24c0ab5303a38fd62fea98c9489f7eaf71c42ebb2deedc163ae07d71db4bbe3cbb024e08dc68ca2205c5e09002ced07bfcc2465", encoding.EncodeHex(out[0].Data))
+	require.Equal(t, "0479c4a84a474d16249dd9fba24c0ab5303a38fd62fea98c9489f7eaf71c42ebb2deedc163ae07d71db4bbe3cbb024e08dc68ca2205c5e09002ced07bfcc2465", encoding.EncodeHex(out[0].Private))
 
 	secrets, err := secrets.List(vlt)
 	require.NoError(t, err)
@@ -201,7 +201,7 @@ func TestConvertBackup48(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(out))
 	require.Equal(t, keys.ID("kex1hp7507fxazu3tezfnf6mad7aw0zy5cshnyps2l8u5njqlnhev2ms58c9az"), out[0].ID)
-	require.Equal(t, "26767983d4f52553906df34729c22510ecf4d6d863f580552bb75cfdafefa7a7b87d47f926e8b915e4499a75beb7dd73c44a62179903057cfca4e40fcef962b7", encoding.EncodeHex(out[0].Data))
+	require.Equal(t, "26767983d4f52553906df34729c22510ecf4d6d863f580552bb75cfdafefa7a7b87d47f926e8b915e4499a75beb7dd73c44a62179903057cfca4e40fcef962b7", encoding.EncodeHex(out[0].Private))
 
 	secrets, err := secrets.List(vlt)
 	require.NoError(t, err)
