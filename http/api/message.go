@@ -29,6 +29,10 @@ type Message struct {
 	// For channel info (optional).
 	ChannelInfo *ChannelInfo `json:"channelInfo,omitempty" msgpack:"channelInfo,omitempty"`
 
+	// Notifications
+	ChannelInviteNn *ChannelInviteNn `json:"channelInviteNn,omitempty" msgpack:"channelInviteNn,omitempty"`
+	ChannelAcceptNn *ChannelAcceptNn `json:"channelAcceptNn,omitempty" msgpack:"channelAcceptNn,omitempty"`
+
 	// Sender set from decrypt.
 	Sender keys.ID `json:"-" msgpack:"-"`
 

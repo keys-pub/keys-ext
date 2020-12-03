@@ -4,6 +4,7 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/api"
 	"github.com/keys-pub/keys/saltpack"
+	"github.com/pkg/errors"
 )
 
 // Channel ...
@@ -23,12 +24,6 @@ type ChannelInvite struct {
 	EncryptedKey []byte  `json:"k" msgpack:"k"` // Encrypted api.Key to recipient
 }
 
-// ChannelInfo for channel.
-type ChannelInfo struct {
-	Name        string `json:"name,omitempty" msgpack:"name,omitempty"`
-	Description string `json:"desc,omitempty" msgpack:"desc,omitempty"`
-}
-
 // Key decrypted by recipient.
 func (i *ChannelInvite) Key(recipient *keys.EdX25519Key) (*keys.EdX25519Key, keys.ID, error) {
 	key, sender, err := api.DecryptKey(i.EncryptedKey, saltpack.NewKeyring(recipient))
@@ -39,9 +34,9 @@ func (i *ChannelInvite) Key(recipient *keys.EdX25519Key) (*keys.EdX25519Key, key
 	if sender != nil {
 		from = sender.ID()
 	}
-	sk, err := key.AsEdX25519()
-	if err != nil {
-		return nil, "", err
+	sk := key.AsEdX25519()
+	if sk == nil {
+		return nil, "", errors.Errorf("invalid key")
 	}
 	return sk, from, nil
 }
@@ -67,3 +62,20 @@ type ChannelUsersResponse struct {
 // type ChannelUsersAddRequest struct {
 // 	Users []*ChannelUser `json:"users" msgpack:"users"`
 // }
+
+// ChannelInfo for setting channel name or description.
+type ChannelInfo struct {
+	Name        string `json:"name,omitempty" msgpack:"name,omitempty"`
+	Description string `json:"desc,omitempty" msgpack:"desc,omitempty"`
+}
+
+// ChannelInviteNn an invite was sent (notification).
+type ChannelInviteNn struct {
+	Recipients []keys.ID `json:"recipients" msgpack:"recipients"`
+	Sender     keys.ID   `json:"sender" msgpack:"sender"`
+}
+
+// ChannelAcceptNn an invite was accepted (notification).
+type ChannelAcceptNn struct {
+	Recipient keys.ID `json:"recipient" msgpack:"recipient"`
+}
