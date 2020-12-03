@@ -138,10 +138,10 @@ func (h *Hub) send(clients []*client, event *api.Event) {
 }
 
 func (h *Hub) registerAuth(auth *authClient) {
-	h.registerKIDs(auth.client, auth.kid)
+	h.registerKID(auth.client, auth.kid)
 }
 
-func (h *Hub) registerKIDs(cl *client, kid keys.ID) {
+func (h *Hub) registerKID(cl *client, kid keys.ID) {
 	// log.Printf("auth %s => %s\n", auth.client.id, auth.kid)
 	if cl.kids == nil {
 		cl.kids = []keys.ID{}
