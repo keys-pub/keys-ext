@@ -22,7 +22,7 @@ func userCommands(client *Client) []cli.Command {
 					Name:  "find",
 					Usage: "Find by kid",
 					Flags: []cli.Flag{
-						cli.StringFlag{Name: "kid, k", Usage: "kid"},
+						cli.StringFlag{Name: "kid, k", Usage: "key"},
 						cli.BoolFlag{Name: "local", Usage: "search local index only"},
 					},
 					Action: func(c *cli.Context) error {
@@ -80,9 +80,9 @@ func userCommands(client *Client) []cli.Command {
 				},
 				cli.Command{
 					Name:  "setup",
-					Usage: "Link a key to an account on Twitter or Github",
+					Usage: "Link a key to an account (Twitter, Github, Reddit)",
 					Flags: []cli.Flag{
-						cli.StringFlag{Name: "kid, k", Usage: "key (defaults to current key)"},
+						cli.StringFlag{Name: "kid, k", Usage: "key"},
 					},
 					Action: func(c *cli.Context) error {
 						kid, err := argString(c, "kid", false)
@@ -191,7 +191,7 @@ func userCommands(client *Client) []cli.Command {
 					Usage:     "Create a signed user statement",
 					ArgsUsage: "",
 					Flags: []cli.Flag{
-						cli.StringFlag{Name: "kid", Usage: "kid (defaults to current key)"},
+						cli.StringFlag{Name: "kid, k", Usage: "key"},
 						cli.StringFlag{Name: "service"},
 						cli.StringFlag{Name: "name"},
 					},
@@ -210,10 +210,10 @@ func userCommands(client *Client) []cli.Command {
 				},
 				cli.Command{
 					Name:      "add",
-					Usage:     "Add a verified user statement to the sigchain",
+					Usage:     "Add a verified user statement to a sigchain",
 					ArgsUsage: "",
 					Flags: []cli.Flag{
-						cli.StringFlag{Name: "kid", Usage: "kid (defaults to current key)"},
+						cli.StringFlag{Name: "kid, k", Usage: "key"},
 						cli.StringFlag{Name: "service"},
 						cli.StringFlag{Name: "name"},
 						cli.StringFlag{Name: "url", Usage: "URL to signed statement created by `keys user sign`"},

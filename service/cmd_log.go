@@ -9,9 +9,10 @@ import (
 func logCommands(client *Client) []cli.Command {
 	return []cli.Command{
 		cli.Command{
-			Name:  "log",
-			Usage: "Log path",
-			Flags: []cli.Flag{},
+			Name:   "log",
+			Usage:  "Log path",
+			Flags:  []cli.Flag{},
+			Hidden: true,
 			Action: func(c *cli.Context) error {
 				env, err := newClientEnv(c)
 				if err != nil {

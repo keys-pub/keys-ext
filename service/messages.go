@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
@@ -35,11 +36,13 @@ func (s *service) MessagePrepare(ctx context.Context, req *MessagePrepareRequest
 		return nil, err
 	}
 
+	text := processText(req.Text)
+
 	id := encoding.MustEncode(keys.RandBytes(32), encoding.Base62)
 	message := &Message{
 		ID:        id,
 		Sender:    senderKey,
-		Text:      []string{req.Text},
+		Text:      []string{text},
 		Status:    MessagePending,
 		CreatedAt: tsutil.Millis(s.clock.Now()),
 	}
@@ -47,6 +50,10 @@ func (s *service) MessagePrepare(ctx context.Context, req *MessagePrepareRequest
 	return &MessagePrepareResponse{
 		Message: message,
 	}, nil
+}
+
+func processText(s string) string {
+	return strings.TrimSpace(s)
 }
 
 // MessageCreate (RPC) creates a message for a recipient.
@@ -76,31 +83,44 @@ func (s *service) MessageCreate(ctx context.Context, req *MessageCreateRequest) 
 		return nil, err
 	}
 
-	// TODO: Prev
-	id := req.ID
-	if id == "" {
-		id = encoding.MustEncode(keys.RandBytes(32), encoding.Base62)
-	}
-	msg := &api.Message{
-		ID:        id,
-		Text:      req.Text,
-		Sender:    sender,
-		Timestamp: s.clock.NowMillis(),
+	text := processText(req.Text)
+
+	var out *Message
+	if strings.HasPrefix(text, "/") {
+		m, err := s.messageCommand(ctx, text, channelKey, senderKey)
+		if err != nil {
+			return nil, err
+		}
+		out = m
+	} else {
+		// TODO: Prev
+		id := req.ID
+		if id == "" {
+			id = encoding.MustEncode(keys.RandBytes(32), encoding.Base62)
+		}
+		msg := &api.Message{
+			ID:        id,
+			Text:      text,
+			Sender:    sender,
+			Timestamp: s.clock.NowMillis(),
+		}
+
+		if err := s.client.MessageSend(ctx, msg, senderKey, channelKey); err != nil {
+			return nil, err
+		}
+
+		// TODO: Trigger message update asynchronously.
+		// if err := s.pullMessages(ctx, channel, sender); err != nil {
+		// 	return nil, err
+		// }
+
+		m, err := s.messageToRPC(ctx, msg)
+		if err != nil {
+			return nil, err
+		}
+		out = m
 	}
 
-	if err := s.client.MessageSend(ctx, msg, senderKey, channelKey); err != nil {
-		return nil, err
-	}
-
-	// TODO: Trigger message update asynchronously.
-	// if err := s.pullMessages(ctx, channel, sender); err != nil {
-	// 	return nil, err
-	// }
-
-	out, err := s.messageToRPC(ctx, msg)
-	if err != nil {
-		return nil, err
-	}
 	return &MessageCreateResponse{
 		Message: out,
 	}, nil
@@ -153,37 +173,6 @@ func (s *service) message(ctx context.Context, path string) (*Message, error) {
 	}
 
 	return s.messageToRPC(ctx, msg)
-}
-
-func keyUserName(key *Key) string {
-	if key.User != nil && key.User.Name != "" {
-		return key.User.Name
-	}
-	return key.ID
-}
-
-func (s *service) messageToRPC(ctx context.Context, msg *api.Message) (*Message, error) {
-	sender, err := s.key(ctx, msg.Sender)
-	if err != nil {
-		return nil, err
-	}
-	texts := []string{}
-	if msg.Text != "" {
-		texts = append(texts, msg.Text)
-	}
-	if msg.ChannelInfo != nil && msg.ChannelInfo.Name != "" {
-		texts = append(texts, fmt.Sprintf("%s set the name to %q", keyUserName(sender), msg.ChannelInfo.Name))
-	}
-	if msg.ChannelInfo != nil && msg.ChannelInfo.Description != "" {
-		texts = append(texts, fmt.Sprintf("%s set the description to %q", keyUserName(sender), msg.ChannelInfo.Description))
-	}
-
-	return &Message{
-		ID:        msg.ID,
-		Text:      texts,
-		Sender:    sender,
-		CreatedAt: msg.Timestamp,
-	}, nil
 }
 
 func (s *service) messages(ctx context.Context, channel keys.ID) ([]*Message, error) {
@@ -313,4 +302,46 @@ func pad(n int64) string {
 		panic("int too large for padding")
 	}
 	return fmt.Sprintf("%015d", n)
+}
+
+func keyUserName(key *Key) string {
+	if key.User != nil && key.User.Name != "" {
+		return key.User.Name
+	}
+	return key.ID
+}
+
+func (s *service) messageToRPC(ctx context.Context, msg *api.Message) (*Message, error) {
+	sender, err := s.key(ctx, msg.Sender)
+	if err != nil {
+		return nil, err
+	}
+	texts := []string{}
+	if msg.Text != "" {
+		texts = append(texts, msg.Text)
+	}
+
+	// Info
+	if msg.ChannelInfo != nil && msg.ChannelInfo.Name != "" {
+		texts = append(texts, fmt.Sprintf("%s set the name to %q", keyUserName(sender), msg.ChannelInfo.Name))
+	}
+	if msg.ChannelInfo != nil && msg.ChannelInfo.Description != "" {
+		texts = append(texts, fmt.Sprintf("%s set the description to %q", keyUserName(sender), msg.ChannelInfo.Description))
+	}
+
+	// Notifications
+	if msg.ChannelInviteNn != nil {
+		inviteSender, err := s.key(ctx, msg.ChannelInviteNn.Sender)
+		if err != nil {
+			return nil, err
+		}
+		texts = append(texts, fmt.Sprintf("%s invited %v", keyUserName(inviteSender), msg.ChannelInviteNn.Recipients))
+	}
+
+	return &Message{
+		ID:        msg.ID,
+		Text:      texts,
+		Sender:    sender,
+		CreatedAt: msg.Timestamp,
+	}, nil
 }

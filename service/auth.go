@@ -127,13 +127,19 @@ func (a *auth) registerToken(client string) string {
 	return token
 }
 
+// ErrInvalidPassword if invalid password.
+var ErrInvalidPassword = status.Error(codes.Unauthenticated, "invalid password")
+
+// ErrInvalidAuth if invalid auth.
+var ErrInvalidAuth = status.Error(codes.Unauthenticated, "invalid auth")
+
 func authErr(err error, typ AuthType, wrap string) error {
 	if errors.Cause(err) == vault.ErrInvalidAuth {
 		switch typ {
 		case PasswordAuth:
-			return status.Error(codes.Unauthenticated, "invalid password")
+			return ErrInvalidPassword
 		default:
-			return status.Error(codes.Unauthenticated, "invalid auth")
+			return ErrInvalidAuth
 		}
 
 	}

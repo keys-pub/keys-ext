@@ -22,6 +22,7 @@ func wormholeCommands(client *Client) []cli.Command {
 				cli.StringFlag{Name: "recipient, r", Usage: "recipient"},
 				cli.StringFlag{Name: "invite", Usage: "invite code"},
 			},
+			Hidden: true,
 			Action: func(c *cli.Context) error {
 				client, err := client.KeysClient().Wormhole(context.TODO())
 				if err != nil {

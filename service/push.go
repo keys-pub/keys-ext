@@ -33,9 +33,9 @@ func (s *service) Push(ctx context.Context, req *PushRequest) (*PushResponse, er
 		if key == nil {
 			return nil, keys.NewErrNotFound(kid.String())
 		}
-		sk, err := key.AsEdX25519()
-		if err != nil {
-			return nil, err
+		sk := key.AsEdX25519()
+		if sk == nil {
+			return nil, errors.Errorf("invalid key")
 		}
 		if err := s.client.Check(ctx, sk); err != nil {
 			return nil, err

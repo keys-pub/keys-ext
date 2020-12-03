@@ -91,7 +91,15 @@ service Keys {
 
   // Config
   rpc ConfigGet(ConfigGetRequest) returns (ConfigGetResponse) {}
-  rpc ConfigSet(ConfigSetRequest) returns (ConfigSetResponse) {}
+  rpc ConfigSet(ConfigSetRequest) returns (ConfigSetResponse) {}  
+
+  // Admin
+  rpc AdminSignURL(AdminSignURLRequest) returns (AdminSignURLResponse) {}
+  rpc AdminCheck(AdminCheckRequest) returns (AdminCheckResponse) {}
+
+  //
+  // Experimental
+  //
 
   // Channels
   rpc Channels(ChannelsRequest) returns (ChannelsResponse) {}
@@ -104,12 +112,8 @@ service Keys {
   rpc MessageCreate(MessageCreateRequest) returns (MessageCreateResponse) {}
   rpc Messages(MessagesRequest) returns (MessagesResponse) {}
 
-  // Notifications
-  rpc NotifyStream(NotifyStreamRequest) returns (stream NotifyStreamOutput) {}  
-
-  // Admin
-  rpc AdminSignURL(AdminSignURLRequest) returns (AdminSignURLResponse) {}
-  rpc AdminCheck(AdminCheckRequest) returns (AdminCheckResponse) {}
+  // Relay
+  rpc Relay(RelayRequest) returns (stream RelayOutput) {}
 }
 
 message SignRequest {
@@ -642,7 +646,7 @@ enum SortDirection {
 message KeysRequest {
   string query = 1;
   repeated string types = 2;  
-  
+
   string sortField = 10;
   SortDirection sortDirection = 11;  
 }
@@ -921,18 +925,21 @@ message MessagesResponse {
   repeated Message messages = 1;
 }
 
-message NotifyStreamRequest {}
-
-enum NotificationType {
-  option (go.enum) = {name: "NotificationType"};
-
-  NOTIFICATION_UNSPECIFIED = 0 [(go.value) = {name: "UnspecifiedNotification"}];
-  NOTIFICATION_CHANNEL_CREATED = 1 [(go.value) = {name: "ChannelCreatedNotification"}];
-  NOTIFICATION_CHANNEL_MESSAGE = 2 [(go.value) = {name: "ChannelMessageNotification"}];
+message RelayRequest {
+  repeated string keys = 1;
 }
 
-message NotifyStreamOutput {
-  NotificationType type = 1;
+enum RelayType {
+  option (go.enum) = {name: "RelayType"};
+
+  RELAY_UNSPECIFIED = 0 [(go.value) = {name: "RelayUnspecified"}];
+  RELAY_HELLO = 1  [(go.value) = {name: "RelayHello"}];
+  RELAY_CHANNEL_CREATED = 10 [(go.value) = {name: "RelayChannelCreated"}];
+  RELAY_CHANNEL_MESSAGE = 20 [(go.value) = {name: "RelayChannelMessage"}];
+}
+
+message RelayOutput {
+  RelayType type = 1;
   string channel = 2;
   string user = 3;
   int64 index = 4;
@@ -1030,11 +1037,6 @@ message ConfigSetRequest {
 }
 
 message ConfigSetResponse {}
-
-message RelayInput {}
-message RelayOutput {
-  string kid = 1 [(go.field) = {name: "KID"}];
-}
 
 message WormholeInput {  
   string sender = 1;

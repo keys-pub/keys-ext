@@ -180,7 +180,7 @@ func TestPasswordChange(t *testing.T) {
 		Old: "invalid",
 		New: "newpassword",
 	})
-	require.EqualError(t, err, "invalid password")
+	require.EqualError(t, err, "rpc error: code = Unauthenticated desc = invalid password")
 
 	_, err = service.AuthPasswordChange(ctx, &AuthPasswordChangeRequest{
 		Old: "",
@@ -207,7 +207,6 @@ func TestPasswordChange(t *testing.T) {
 		Client: "test",
 	})
 	require.NoError(t, err)
-
 }
 
 func TestUnlockMultipleClients(t *testing.T) {

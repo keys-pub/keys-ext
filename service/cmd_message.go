@@ -22,7 +22,7 @@ func messageCommands(client *Client) []cli.Command {
 					Flags: []cli.Flag{
 						cli.StringFlag{Name: "sender, s", Usage: "sender"},
 						cli.StringFlag{Name: "recipient, r", Usage: "recipient"},
-						cli.StringFlag{Name: "message, m", Usage: "message"},
+						cli.StringFlag{Name: "text, t", Usage: "text of message"},
 					},
 					Action: func(c *cli.Context) error {
 						return errors.Errorf("not implemented")
