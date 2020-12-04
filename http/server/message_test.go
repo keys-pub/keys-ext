@@ -162,13 +162,13 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	require.Equal(t, []byte("test2"), resp4.Messages[1].Data)
 
 	// POST /channel/:cid/msgs (message too large)
-	large := bytes.Repeat([]byte{0x01}, 17*1024)
+	large := bytes.Repeat([]byte{0x01}, 65*1024)
 	largeHash := http.ContentHash(large)
 	req, err = http.NewAuthRequest("POST", dstore.Path("channel", channel.ID(), "msgs"), bytes.NewReader(large), largeHash, clock.Now(), aliceChannel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
-	require.Equal(t, http.StatusBadRequest, code)
-	require.Equal(t, `{"error":{"code":400,"message":"message too large (greater than 16KiB)"}}`, body)
+	require.Equal(t, http.StatusRequestEntityTooLarge, code)
+	require.Equal(t, `{"error":{"code":413,"message":"request too large"}}`, body)
 }
 
 func TestMessagesAuth(t *testing.T) {

@@ -7,7 +7,7 @@ require (
 	github.com/gorilla/websocket v1.4.2
 	github.com/keys-pub/keys v0.1.18-0.20201203191616-7881134d0f3d
 	github.com/keys-pub/keys-ext/firestore v0.0.0-20201120035752-fc8566e1f7c4
-	github.com/keys-pub/keys-ext/http/api v0.0.0-20201203191937-c249020a7399
+	github.com/keys-pub/keys-ext/http/api v0.0.0-20201204193150-981b0838e57a
 	github.com/keys-pub/keys-ext/ws/api v0.0.0-20201203191937-c249020a7399
 	github.com/labstack/echo/v4 v4.1.17
 	github.com/mattn/go-colorable v0.1.8 // indirect

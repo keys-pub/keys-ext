@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/keys-pub/keys"
@@ -16,42 +15,42 @@ import (
 func (s *Server) postMessage(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	if c.Request().Body == nil {
-		return ErrBadRequest(c, errors.Errorf("missing body"))
-	}
-
-	b, err := ioutil.ReadAll(c.Request().Body)
+	body, st, err := readBody(c, true, 64*1024)
 	if err != nil {
-		return s.internalError(c, err)
+		return ErrResponse(c, st, err)
 	}
 
-	if len(b) > 16*1024 {
-		// TODO: Check length before reading data
-		return ErrBadRequest(c, errors.Errorf("message too large (greater than 16KiB)"))
-	}
-
-	channel, _, err := s.authChannel(c, "cid", b)
+	channel, _, err := s.authChannel(c, "cid", body)
 	if err != nil {
 		return ErrForbidden(c, err)
 	}
 
-	ctx := c.Request().Context()
-	path := dstore.Path("channels", channel.KID)
-
-	events, idx, err := s.fi.EventsAdd(ctx, path, [][]byte{b})
-	if err != nil {
-		return s.internalError(c, err)
-	}
-	if len(events) == 0 {
-		return ErrBadRequest(c, errors.Errorf("no events added"))
-	}
-
-	if err := s.notifyChannelMessage(ctx, channel.KID, idx); err != nil {
+	if err := s.sendMessage(c, channel.KID, body); err != nil {
 		return s.internalError(c, err)
 	}
 
 	var out struct{}
 	return JSON(c, http.StatusOK, out)
+}
+
+func (s *Server) sendMessage(c echo.Context, channel keys.ID, msg []byte) error {
+	if len(msg) == 0 {
+		return errors.Errorf("no message data")
+	}
+	ctx := c.Request().Context()
+	path := dstore.Path("channels", channel)
+
+	events, idx, err := s.fi.EventsAdd(ctx, path, [][]byte{msg})
+	if err != nil {
+		return err
+	}
+	if len(events) == 0 {
+		return errors.Errorf("no events added")
+	}
+	if err := s.notifyChannelMessage(ctx, channel, idx); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *Server) notifyChannelMessage(ctx context.Context, channel keys.ID, idx int64) error {

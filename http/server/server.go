@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/keys-pub/keys"
@@ -123,26 +124,6 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	// Cron
 	e.POST("/cron/check", s.cronCheck)
 
-	// Channel
-	e.PUT("/channel/:cid", s.putChannel)
-	e.GET("/channel/:cid", s.getChannel)
-	// Channel (users)
-	e.GET("/channel/:cid/users", s.getChannelUsers)
-	// e.POST("/channel/:cid/users", s.postChannelUsers)
-	// Messages
-	e.POST("/channel/:cid/msgs", s.postMessage)
-	e.GET("/channel/:cid/msgs", s.listMessages)
-	// Channel (invite)
-	e.POST("/channel/:cid/invites", s.postChannelInvites)
-	e.GET("/channel/:cid/invites", s.getChannelInvites)
-
-	// User (channels)
-	e.GET("/user/:kid/channels", s.usersChannels)
-	e.GET("/user/:kid/invites", s.userChannelInvites)
-	e.GET("/user/:kid/invite/:cid", s.getUserChannelInvite)
-	e.POST("/user/:kid/invite/:cid/accept", s.acceptUserChannelInvite)
-	e.DELETE("/user/:kid/invite/:cid", s.deleteUserChannelInvite)
-
 	// Vault
 	e.POST("/vault/:kid", s.postVault)
 	e.GET("/vault/:kid", s.listVault)
@@ -166,6 +147,27 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	e.GET("/:kid", s.getSigchainAliased)
 	e.GET("/:kid/:seq", s.getSigchainStatementAliased)
 	e.PUT("/:kid/:seq", s.putSigchainStatementAliased)
+
+	//
+	// Experimental
+	//
+
+	// Channel
+	e.PUT("/channel/:cid", s.putChannel)                  // Create a channel
+	e.GET("/channel/:cid", s.getChannel)                  // Get a channel
+	e.GET("/channel/:cid/users", s.getChannelUsers)       // List channel users
+	e.POST("/channel/:cid/msgs", s.postMessage)           // Send message
+	e.GET("/channel/:cid/msgs", s.listMessages)           // List messages
+	e.POST("/channel/:cid/invites", s.postChannelInvites) // Invite to channel
+	e.GET("/channel/:cid/invites", s.getChannelInvites)   // List channel invites
+
+	// User (channels)
+	e.GET("/user/:kid/channels", s.listUserChannels)              // List channels for user
+	e.GET("/user/:kid/invites", s.getUserChannelInvites)          // List invites
+	e.GET("/user/:kid/invite/:cid", s.getUserChannelInvite)       // Get invite
+	e.DELETE("/user/:kid/invite/:cid", s.deleteUserChannelInvite) // Delete invite
+	e.PUT("/user/:kid/channel/:cid", s.putUserChannel)            // Join
+	e.DELETE("/user/:kid/channel/:cid", s.deleteUserChannel)      // Leave
 
 	// Admin
 	e.POST("/admin/check/:kid", s.adminCheck)
@@ -204,4 +206,26 @@ func (s *Server) checkInternalAuth(c echo.Context) error {
 		return ErrForbidden(c, errors.Errorf("invalid auth token"))
 	}
 	return nil
+}
+
+func readBody(c echo.Context, required bool, maxLength int) ([]byte, int, error) {
+	br := c.Request().Body
+	if br == nil {
+		if !required {
+			return []byte{}, 0, nil
+		}
+		return nil, http.StatusBadRequest, errors.Errorf("missing body")
+	}
+	b, err := ioutil.ReadAll(br)
+	if err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+	if len(b) > maxLength {
+		// TODO: Check length before reading data
+		return nil, http.StatusRequestEntityTooLarge, errors.Errorf("request too large")
+	}
+	if len(b) == 0 && required {
+		return nil, http.StatusBadRequest, errors.Errorf("no body data")
+	}
+	return b, 0, nil
 }

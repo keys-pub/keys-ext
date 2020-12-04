@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
@@ -41,23 +40,34 @@ func (s *Server) authChannel(c echo.Context, param string, content []byte) (*htt
 func (s *Server) putChannel(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
+	body, st, err := readBody(c, false, 64*1024)
+	if err != nil {
+		return ErrResponse(c, st, err)
+	}
+
 	// We don't use authChannel here because the channel doesn't exist yet.
-	auth, err := s.auth(c, newAuth("Authorization", "", nil))
+	auth, err := s.auth(c, newAuth("Authorization", "", body))
 	if err != nil {
 		return ErrForbidden(c, err)
 	}
 	// Skip nonce check here since the previous auth checks it.
-	channel, err := s.auth(c, newAuth("Authorization-Channel", "cid", nil).skipNonceCheck())
+	channel, err := s.auth(c, newAuth("Authorization-Channel", "cid", body).skipNonceCheck())
 	if err != nil {
 		return ErrForbidden(c, err)
+	}
+
+	var req api.ChannelCreateRequest
+	if len(body) != 0 {
+		if err := json.Unmarshal(body, &req); err != nil {
+			return ErrBadRequest(c, errors.Errorf("invalid channel create request"))
+		}
 	}
 
 	ctx := c.Request().Context()
 	path := dstore.Path("channels", channel.KID)
 
 	create := &api.Channel{
-		ID:      channel.KID,
-		Creator: auth.KID,
+		ID: channel.KID,
 	}
 
 	if err := s.fi.Create(ctx, path, dstore.From(create)); err != nil {
@@ -78,6 +88,12 @@ func (s *Server) putChannel(c echo.Context) error {
 
 	if err := s.notifyChannelCreated(ctx, auth.KID, channel.KID); err != nil {
 		return s.internalError(c, err)
+	}
+
+	if len(req.Message) > 0 {
+		if err := s.sendMessage(c, channel.KID, req.Message); err != nil {
+			return s.internalError(c, err)
+		}
 	}
 
 	var out struct{}
@@ -183,14 +199,29 @@ func (s *Server) addChannelUsers(ctx context.Context, channel keys.ID, from keys
 		if err := s.fi.Create(ctx, path, dstore.From(add)); err != nil {
 			return err
 		}
-		usersPath := dstore.Path("users", user.User, "channels", channel)
+		userChannelPath := dstore.Path("users", user.User, "channels", channel)
 		ch := &api.Channel{
 			ID: channel,
 		}
-		if err := s.fi.Create(ctx, usersPath, dstore.From(ch)); err != nil {
+		if err := s.fi.Create(ctx, userChannelPath, dstore.From(ch)); err != nil {
 			return err
 		}
 	}
+	return nil
+}
+
+func (s *Server) removeChannelUsers(ctx context.Context, channel keys.ID, users ...keys.ID) error {
+	for _, user := range users {
+		path := dstore.Path("channels", channel, "users", user)
+		if _, err := s.fi.Delete(ctx, path); err != nil {
+			return err
+		}
+		userChannelPath := dstore.Path("users", user, "channels", channel)
+		if _, err := s.fi.Delete(ctx, userChannelPath); err != nil {
+			return err
+		}
+	}
+	// TODO: If no more users, delete the channel from the server.
 	return nil
 }
 
@@ -234,30 +265,26 @@ func (s *Server) postChannelInvites(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	if c.Request().Body == nil {
-		return ErrBadRequest(c, errors.Errorf("missing body"))
-	}
-
-	b, err := ioutil.ReadAll(c.Request().Body)
+	body, st, err := readBody(c, true, 64*1024)
 	if err != nil {
-		return s.internalError(c, err)
+		return ErrResponse(c, st, err)
 	}
 
-	channel, auth, err := s.authChannel(c, "cid", b)
+	channel, auth, err := s.authChannel(c, "cid", body)
 	if err != nil {
 		return ErrForbidden(c, err)
 	}
 
-	var invites []*api.ChannelInvite
-	if err := json.Unmarshal(b, &invites); err != nil {
-		return ErrBadRequest(c, errors.Errorf("invalid channel invites"))
+	var req api.ChannelInvitesRequest
+	if err := json.Unmarshal(body, &req); err != nil {
+		return ErrBadRequest(c, errors.Errorf("invalid channel invites request"))
 	}
 
-	if len(invites) > 10 {
+	if len(req.Invites) > 10 {
 		return ErrBadRequest(c, errors.Errorf("too many invites"))
 	}
 
-	for _, invite := range invites {
+	for _, invite := range req.Invites {
 		if invite.Channel != channel.KID {
 			return ErrBadRequest(c, errors.Errorf("invalid channel invite kid"))
 		}
@@ -294,6 +321,12 @@ func (s *Server) postChannelInvites(c echo.Context) error {
 
 		usersPath := dstore.Path("users", rid, "invites", invite.Channel)
 		if err := s.fi.Set(ctx, usersPath, val); err != nil {
+			return s.internalError(c, err)
+		}
+	}
+
+	if len(req.Message) > 0 {
+		if err := s.sendMessage(c, channel.KID, req.Message); err != nil {
 			return s.internalError(c, err)
 		}
 	}

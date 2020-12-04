@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/keys-pub/keys"
@@ -10,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *Server) usersChannels(c echo.Context) error {
+func (s *Server) listUserChannels(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
@@ -55,7 +56,7 @@ func (s *Server) usersChannels(c echo.Context) error {
 	return JSON(c, http.StatusOK, out)
 }
 
-func (s *Server) userChannelInvites(c echo.Context) error {
+func (s *Server) getUserChannelInvites(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
@@ -147,19 +148,33 @@ func (s *Server) deleteUserChannelInvite(c echo.Context) error {
 	return JSON(c, http.StatusOK, out)
 }
 
-func (s *Server) acceptUserChannelInvite(c echo.Context) error {
+// putUserChannel to join a channel.
+// Authorization and Authorization-Channel required.
+func (s *Server) putUserChannel(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	auth, err := s.auth(c, newAuth("Authorization", "kid", nil))
+	body, st, err := readBody(c, false, 64*1024)
+	if err != nil {
+		return ErrResponse(c, st, err)
+	}
+
+	auth, err := s.auth(c, newAuth("Authorization", "kid", body))
 	if err != nil {
 		return ErrForbidden(c, err)
 	}
 
 	// Skip nonce check here since the previous auth checks it.
-	channel, err := s.auth(c, newAuth("Authorization-Channel", "cid", nil).skipNonceCheck())
+	channel, err := s.auth(c, newAuth("Authorization-Channel", "cid", body).skipNonceCheck())
 	if err != nil {
 		return ErrForbidden(c, err)
+	}
+
+	var req api.ChannelJoinRequest
+	if len(body) != 0 {
+		if err := json.Unmarshal(body, &req); err != nil {
+			return ErrBadRequest(c, errors.Errorf("invalid channel join request"))
+		}
 	}
 
 	path := dstore.Path("users", auth.KID, "invites", channel.KID)
@@ -168,6 +183,7 @@ func (s *Server) acceptUserChannelInvite(c echo.Context) error {
 		return s.internalError(c, err)
 	}
 	if doc == nil {
+		// User had channel key, but no current invite.
 		return ErrNotFound(c, errors.Errorf("invite not found"))
 	}
 	var invite api.ChannelInvite
@@ -183,6 +199,52 @@ func (s *Server) acceptUserChannelInvite(c echo.Context) error {
 	if err := s.addChannelUsers(ctx, channel.KID, auth.KID, user); err != nil {
 		return s.internalError(c, err)
 	}
+
+	if len(req.Message) > 0 {
+		if err := s.sendMessage(c, channel.KID, req.Message); err != nil {
+			return s.internalError(c, err)
+		}
+	}
+
+	var out struct{}
+	return JSON(c, http.StatusOK, out)
+}
+
+func (s *Server) deleteUserChannel(c echo.Context) error {
+	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
+	ctx := c.Request().Context()
+
+	body, st, err := readBody(c, false, 64*1024)
+	if err != nil {
+		return ErrResponse(c, st, err)
+	}
+
+	auth, err := s.auth(c, newAuth("Authorization", "kid", body))
+	if err != nil {
+		return ErrForbidden(c, err)
+	}
+	cid, err := keys.ParseID(c.Param("cid"))
+	if err != nil {
+		return ErrBadRequest(c, err)
+	}
+
+	var req api.ChannelLeaveRequest
+	if len(body) != 0 {
+		if err := json.Unmarshal(body, &req); err != nil {
+			return ErrBadRequest(c, errors.Errorf("invalid channel leave request"))
+		}
+	}
+
+	if len(req.Message) > 0 {
+		if err := s.sendMessage(c, cid, req.Message); err != nil {
+			return s.internalError(c, err)
+		}
+	}
+
+	if err := s.removeChannelUsers(ctx, cid, auth.KID); err != nil {
+		return s.internalError(c, err)
+	}
+
 	var out struct{}
 	return JSON(c, http.StatusOK, out)
 }
