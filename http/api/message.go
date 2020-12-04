@@ -30,8 +30,9 @@ type Message struct {
 	ChannelInfo *ChannelInfo `json:"channelInfo,omitempty" msgpack:"channelInfo,omitempty"`
 
 	// Notifications
-	ChannelInviteNn *ChannelInviteNn `json:"channelInviteNn,omitempty" msgpack:"channelInviteNn,omitempty"`
-	ChannelAcceptNn *ChannelAcceptNn `json:"channelAcceptNn,omitempty" msgpack:"channelAcceptNn,omitempty"`
+	ChannelInvites *ChannelInvitesNn `json:"channelInvites,omitempty" msgpack:"channelInvites,omitempty"`
+	ChannelJoin    *ChannelJoinNn    `json:"channelJoin,omitempty" msgpack:"channelAccept,omitempty"`
+	ChannelLeave   *ChannelLeaveNn   `json:"channelLeave,omitempty" msgpack:"channelLeave,omitempty"`
 
 	// Sender set from decrypt.
 	Sender keys.ID `json:"-" msgpack:"-"`
@@ -53,4 +54,32 @@ func NewMessage() *Message {
 		ID:        NewID(),
 		Timestamp: tsutil.Millis(time.Now()),
 	}
+}
+
+// NewMessageForChannelInfo ...
+func NewMessageForChannelInfo(info *ChannelInfo) *Message {
+	msg := NewMessage()
+	msg.ChannelInfo = info
+	return msg
+}
+
+// NewMessageForChannelInvites ...
+func NewMessageForChannelInvites(sender keys.ID, users ...keys.ID) *Message {
+	msg := NewMessage()
+	msg.ChannelInvites = &ChannelInvitesNn{Sender: sender, Users: users}
+	return msg
+}
+
+// NewMessageForChannelJoin ...
+func NewMessageForChannelJoin(user keys.ID) *Message {
+	msg := NewMessage()
+	msg.ChannelJoin = &ChannelJoinNn{User: user}
+	return msg
+}
+
+// NewMessageForChannelLeave ...
+func NewMessageForChannelLeave(user keys.ID) *Message {
+	msg := NewMessage()
+	msg.ChannelLeave = &ChannelLeaveNn{User: user}
+	return msg
 }

@@ -11,9 +11,8 @@ import (
 type Channel struct {
 	ID keys.ID `json:"id" msgpack:"id"`
 
-	Creator   keys.ID `json:"creator,omitempty" msgpack:"creator,omitempty"`
-	Index     int64   `json:"idx,omitempty" msgpack:"idx,omitempty"`
-	Timestamp int64   `json:"ts,omitempty" msgpack:"ts,omitempty"`
+	Index     int64 `json:"idx,omitempty" msgpack:"idx,omitempty"`
+	Timestamp int64 `json:"ts,omitempty" msgpack:"ts,omitempty"`
 }
 
 // ChannelInvite provides an encrypted key to a recipient.
@@ -48,6 +47,19 @@ type ChannelUser struct {
 	From    keys.ID `json:"from" msgpack:"from"`
 }
 
+// ChannelCreateRequest ...
+type ChannelCreateRequest struct {
+	// Message to post on create.
+	Message []byte `json:"msg,omitempty" msgpack:"msg,omitempty"`
+}
+
+// ChannelInvitesRequest ...
+type ChannelInvitesRequest struct {
+	Invites []*ChannelInvite `json:"invites" msgpack:"invites"`
+	// Message to post on invite.
+	Message []byte `json:"msg,omitempty" msgpack:"msg,omitempty"`
+}
+
 // ChannelInvitesResponse ...
 type ChannelInvitesResponse struct {
 	Invites []*ChannelInvite `json:"invites" msgpack:"invites"`
@@ -56,6 +68,18 @@ type ChannelInvitesResponse struct {
 // ChannelUsersResponse ..
 type ChannelUsersResponse struct {
 	Users []*ChannelUser `json:"users" msgpack:"users"`
+}
+
+// ChannelJoinRequest ...
+type ChannelJoinRequest struct {
+	// Message to post on join.
+	Message []byte `json:"msg,omitempty" msgpack:"msg,omitempty"`
+}
+
+// ChannelLeaveRequest ...
+type ChannelLeaveRequest struct {
+	// Message to post on leave.
+	Message []byte `json:"msg,omitempty" msgpack:"msg,omitempty"`
 }
 
 // ChannelUsersAddRequest ...
@@ -69,13 +93,18 @@ type ChannelInfo struct {
 	Description string `json:"desc,omitempty" msgpack:"desc,omitempty"`
 }
 
-// ChannelInviteNn an invite was sent (notification).
-type ChannelInviteNn struct {
-	Recipients []keys.ID `json:"recipients" msgpack:"recipients"`
-	Sender     keys.ID   `json:"sender" msgpack:"sender"`
+// ChannelInvitesNn if invites were sent (notification).
+type ChannelInvitesNn struct {
+	Users  []keys.ID `json:"users" msgpack:"users"`
+	Sender keys.ID   `json:"sender" msgpack:"sender"`
 }
 
-// ChannelAcceptNn an invite was accepted (notification).
-type ChannelAcceptNn struct {
-	Recipient keys.ID `json:"recipient" msgpack:"recipient"`
+// ChannelJoinNn is a user joined a channel (invite was accepted) (notification).
+type ChannelJoinNn struct {
+	User keys.ID `json:"user" msgpack:"user"`
+}
+
+// ChannelLeaveNn if a user left the channel (notification).
+type ChannelLeaveNn struct {
+	User keys.ID `json:"user" msgpack:"user"`
 }
