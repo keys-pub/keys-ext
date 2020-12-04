@@ -49,37 +49,56 @@ func NewID() string {
 }
 
 // NewMessage creates a new empty message.
-func NewMessage() *Message {
+func NewMessage(sender keys.ID) *Message {
 	return &Message{
 		ID:        NewID(),
+		Sender:    sender,
 		Timestamp: tsutil.Millis(time.Now()),
 	}
 }
 
+// WithPrev ...
+func (m *Message) WithPrev(prev string) *Message {
+	m.Prev = prev
+	return m
+}
+
+// WithText ...
+func (m *Message) WithText(text string) *Message {
+	m.Text = text
+	return m
+}
+
+// WithTimestamp ...
+func (m *Message) WithTimestamp(ts int64) *Message {
+	m.Timestamp = ts
+	return m
+}
+
 // NewMessageForChannelInfo ...
-func NewMessageForChannelInfo(info *ChannelInfo) *Message {
-	msg := NewMessage()
+func NewMessageForChannelInfo(sender keys.ID, info *ChannelInfo) *Message {
+	msg := NewMessage(sender)
 	msg.ChannelInfo = info
 	return msg
 }
 
 // NewMessageForChannelInvites ...
 func NewMessageForChannelInvites(sender keys.ID, users ...keys.ID) *Message {
-	msg := NewMessage()
-	msg.ChannelInvites = &ChannelInvitesNn{Sender: sender, Users: users}
+	msg := NewMessage(sender)
+	msg.ChannelInvites = &ChannelInvitesNn{Users: users}
 	return msg
 }
 
 // NewMessageForChannelJoin ...
-func NewMessageForChannelJoin(user keys.ID) *Message {
-	msg := NewMessage()
+func NewMessageForChannelJoin(sender keys.ID, user keys.ID) *Message {
+	msg := NewMessage(sender)
 	msg.ChannelJoin = &ChannelJoinNn{User: user}
 	return msg
 }
 
 // NewMessageForChannelLeave ...
-func NewMessageForChannelLeave(user keys.ID) *Message {
-	msg := NewMessage()
+func NewMessageForChannelLeave(sender keys.ID, user keys.ID) *Message {
+	msg := NewMessage(sender)
 	msg.ChannelLeave = &ChannelLeaveNn{User: user}
 	return msg
 }

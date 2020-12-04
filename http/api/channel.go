@@ -95,8 +95,7 @@ type ChannelInfo struct {
 
 // ChannelInvitesNn if invites were sent (notification).
 type ChannelInvitesNn struct {
-	Users  []keys.ID `json:"users" msgpack:"users"`
-	Sender keys.ID   `json:"sender" msgpack:"sender"`
+	Users []keys.ID `json:"users" msgpack:"users"`
 }
 
 // ChannelJoinNn is a user joined a channel (invite was accepted) (notification).
