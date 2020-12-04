@@ -75,7 +75,7 @@ func TestFmtKey(t *testing.T) {
 	testImportKey(t, service, alice)
 
 	aliceVk := api.NewKey(alice)
-	now := env.clock.Now()
+	now := env.clock.NowMillis()
 	aliceVk.CreatedAt = now
 	aliceVk.UpdatedAt = now
 
@@ -105,7 +105,7 @@ func TestFmtVerifiedEncrypt(t *testing.T) {
 	testImportKey(t, service, alice)
 
 	aliceVk := api.NewKey(alice)
-	now := env.clock.Now()
+	now := env.clock.NowMillis()
 	aliceVk.CreatedAt = now
 	aliceVk.UpdatedAt = now
 	ak, err := service.keyToRPC(ctx, aliceVk)
@@ -134,7 +134,7 @@ func TestFmtVerified(t *testing.T) {
 	testImportKey(t, service, alice)
 
 	aliceVk := api.NewKey(alice)
-	now := env.clock.Now()
+	now := env.clock.NowMillis()
 	aliceVk.CreatedAt = now
 	aliceVk.UpdatedAt = now
 	ak, err := service.keyToRPC(ctx, aliceVk)

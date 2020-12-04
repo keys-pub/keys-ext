@@ -219,7 +219,7 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 		logger.Debugf("Command: %s", command)
 
 		// Start commands don't connect to the service.
-		skip := dstore.NewStringSet("uninstall", "restart", "start", "stop", "config")
+		skip := dstore.NewStringSet("", "log", "uninstall", "restart", "start", "stop", "env")
 		if skip.Contains(command) {
 			return nil
 		}
@@ -351,7 +351,14 @@ func clientFatal(err error) {
 	case codes.PermissionDenied:
 		fmt.Fprintf(os.Stderr, "Permission denied.\n")
 	case codes.Unauthenticated:
-		fmt.Fprintf(os.Stderr, "Authorization required, run `keys auth`.\n")
+		switch st.Message() {
+		case "invalid password":
+			fmt.Fprintf(os.Stderr, "Invalid password.\n")
+		case "invalid auth":
+			fmt.Fprintf(os.Stderr, "Invalid auth.\n")
+		default:
+			fmt.Fprintf(os.Stderr, "Authorization required, run `keys auth`.\n")
+		}
 	case codes.Unknown:
 		// TODO: Use error codes from service for nicer error messages
 		fmt.Fprintf(os.Stderr, "%s\n", st.Message())

@@ -15,8 +15,9 @@ import (
 func dbCommands(client *Client) []cli.Command {
 	return []cli.Command{
 		cli.Command{
-			Name:  "db",
-			Usage: "DB",
+			Name:   "db",
+			Usage:  "DB",
+			Hidden: true,
 			Subcommands: []cli.Command{
 				cli.Command{
 					Name:  "collections",

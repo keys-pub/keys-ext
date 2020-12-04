@@ -41,49 +41,9 @@ func (s *service) KeyExport(ctx context.Context, req *KeyExportRequest) (*KeyExp
 
 	var out keys.Key
 	if req.Public {
-		switch key.Type {
-		case string(keys.EdX25519):
-			sk, err := key.AsEdX25519()
-			if err != nil {
-				return nil, err
-			}
-			out = sk.PublicKey()
-		case string(keys.X25519):
-			bk, err := key.AsX25519()
-			if err != nil {
-				return nil, err
-			}
-			out = bk.PublicKey()
-		case string(keys.EdX25519Public):
-			spk, err := key.AsEdX25519Public()
-			if err != nil {
-				return nil, err
-			}
-			out = spk
-		case string(keys.X25519Public):
-			bpk, err := key.AsX25519Public()
-			if err != nil {
-				return nil, err
-			}
-			out = bpk
-		default:
-			return nil, errors.Errorf("unsupported public option for key export")
-		}
+		out = key.AsPublic()
 	} else {
-		switch key.Type {
-		case string(keys.EdX25519):
-			sk, err := key.AsEdX25519()
-			if err != nil {
-				return nil, err
-			}
-			out = sk
-		case string(keys.X25519):
-			bk, err := key.AsX25519()
-			if err != nil {
-				return nil, err
-			}
-			out = bk
-		}
+		out = key.As()
 	}
 
 	enc, err := exportTypeFromRPC(typ)

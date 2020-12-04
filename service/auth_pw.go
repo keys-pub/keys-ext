@@ -59,7 +59,7 @@ func (s *service) AuthPasswordChange(ctx context.Context, req *AuthPasswordChang
 	old, err := unlockPassword(s.vault, req.Old)
 	if err != nil {
 		if errors.Cause(err) == vault.ErrInvalidAuth {
-			return nil, errors.Errorf("invalid password")
+			return nil, ErrInvalidPassword
 		}
 		return nil, err
 	}

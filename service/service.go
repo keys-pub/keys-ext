@@ -33,6 +33,10 @@ type service struct {
 	checkMtx      sync.Mutex
 	checking      bool
 	checkCancelFn func()
+
+	// relay    *wsclient.Client
+	// relayChs map[string]chan *RelayOutput
+	// relayMtx sync.Mutex
 }
 
 const cdbPath = "cache.sdb"
@@ -58,15 +62,16 @@ func newService(env *Env, build Build, auth *auth, req request.Requestor, clock 
 	usrs := users.New(db, scs, users.Requestor(req), users.Clock(clock))
 
 	return &service{
-		auth:          auth,
-		build:         build,
-		env:           env,
-		scs:           scs,
-		db:            db,
-		users:         usrs,
-		client:        client,
-		vault:         vlt,
-		clock:         clock,
+		auth:   auth,
+		build:  build,
+		env:    env,
+		scs:    scs,
+		db:     db,
+		users:  usrs,
+		client: client,
+		vault:  vlt,
+		clock:  clock,
+		// relayChs:      map[string]chan *RelayOutput{},
 		checkCancelFn: func() {},
 	}, nil
 }
@@ -178,53 +183,4 @@ func (s *service) tryCheck(ctx context.Context) {
 	if err := s.checkKeys(ctx); err != nil {
 		logger.Warningf("Failed to check keys: %v", err)
 	}
-}
-
-func (s *service) startCheck() {
-	s.checkMtx.Lock()
-	defer s.checkMtx.Unlock()
-
-	if s.checking {
-		return
-	}
-	logger.Debugf("Start check...")
-	ticker := time.NewTicker(time.Hour)
-	ctx, cancel := context.WithCancel(context.Background())
-	s.checkCancelFn = cancel
-	s.checking = true
-
-	go func() {
-		s.tryCheck(ctx)
-		for {
-			select {
-			case <-ticker.C:
-				s.tryCheck(ctx)
-			case <-ctx.Done():
-				logger.Debugf("Check canceled")
-				ticker.Stop()
-				return
-			}
-		}
-	}()
-}
-
-func (s *service) stopCheck() {
-	s.checkMtx.Lock()
-	defer s.checkMtx.Unlock()
-
-	logger.Debugf("Stop check...")
-	s.checking = false
-	s.checkCancelFn()
-	// We should give it little bit of time to finish checking after the cancel
-	// otherwise it might error trying to write to a closed database.
-	// This wait isn't strictly required but we do it to be nice.
-	// TODO: Use a WaitGroup with a timeout or channel
-	for i := 0; i < 100; i++ {
-		if !s.checking {
-			logger.Debugf("Check stopped")
-			return
-		}
-		time.Sleep(time.Millisecond * 10)
-	}
-	logger.Debugf("Timed out waiting for stop check")
 }

@@ -93,8 +93,8 @@ type KeysClient interface {
 	MessagePrepare(ctx context.Context, in *MessagePrepareRequest, opts ...grpc.CallOption) (*MessagePrepareResponse, error)
 	MessageCreate(ctx context.Context, in *MessageCreateRequest, opts ...grpc.CallOption) (*MessageCreateResponse, error)
 	Messages(ctx context.Context, in *MessagesRequest, opts ...grpc.CallOption) (*MessagesResponse, error)
-	// Notifications
-	NotifyStream(ctx context.Context, in *NotifyStreamRequest, opts ...grpc.CallOption) (Keys_NotifyStreamClient, error)
+	// Relay
+	Relay(ctx context.Context, in *RelayRequest, opts ...grpc.CallOption) (Keys_RelayClient, error)
 	// Admin
 	AdminSignURL(ctx context.Context, in *AdminSignURLRequest, opts ...grpc.CallOption) (*AdminSignURLResponse, error)
 	AdminCheck(ctx context.Context, in *AdminCheckRequest, opts ...grpc.CallOption) (*AdminCheckResponse, error)
@@ -968,12 +968,12 @@ func (c *keysClient) Messages(ctx context.Context, in *MessagesRequest, opts ...
 	return out, nil
 }
 
-func (c *keysClient) NotifyStream(ctx context.Context, in *NotifyStreamRequest, opts ...grpc.CallOption) (Keys_NotifyStreamClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[11], "/keys.Keys/NotifyStream", opts...)
+func (c *keysClient) Relay(ctx context.Context, in *RelayRequest, opts ...grpc.CallOption) (Keys_RelayClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_Keys_serviceDesc.Streams[11], "/keys.Keys/Relay", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &keysNotifyStreamClient{stream}
+	x := &keysRelayClient{stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -983,17 +983,17 @@ func (c *keysClient) NotifyStream(ctx context.Context, in *NotifyStreamRequest, 
 	return x, nil
 }
 
-type Keys_NotifyStreamClient interface {
-	Recv() (*NotifyStreamOutput, error)
+type Keys_RelayClient interface {
+	Recv() (*RelayOutput, error)
 	grpc.ClientStream
 }
 
-type keysNotifyStreamClient struct {
+type keysRelayClient struct {
 	grpc.ClientStream
 }
 
-func (x *keysNotifyStreamClient) Recv() (*NotifyStreamOutput, error) {
-	m := new(NotifyStreamOutput)
+func (x *keysRelayClient) Recv() (*RelayOutput, error) {
+	m := new(RelayOutput)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -1098,8 +1098,8 @@ type KeysServer interface {
 	MessagePrepare(context.Context, *MessagePrepareRequest) (*MessagePrepareResponse, error)
 	MessageCreate(context.Context, *MessageCreateRequest) (*MessageCreateResponse, error)
 	Messages(context.Context, *MessagesRequest) (*MessagesResponse, error)
-	// Notifications
-	NotifyStream(*NotifyStreamRequest, Keys_NotifyStreamServer) error
+	// Relay
+	Relay(*RelayRequest, Keys_RelayServer) error
 	// Admin
 	AdminSignURL(context.Context, *AdminSignURLRequest) (*AdminSignURLResponse, error)
 	AdminCheck(context.Context, *AdminCheckRequest) (*AdminCheckResponse, error)
@@ -1314,8 +1314,8 @@ func (*UnimplementedKeysServer) MessageCreate(context.Context, *MessageCreateReq
 func (*UnimplementedKeysServer) Messages(context.Context, *MessagesRequest) (*MessagesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Messages not implemented")
 }
-func (*UnimplementedKeysServer) NotifyStream(*NotifyStreamRequest, Keys_NotifyStreamServer) error {
-	return status.Errorf(codes.Unimplemented, "method NotifyStream not implemented")
+func (*UnimplementedKeysServer) Relay(*RelayRequest, Keys_RelayServer) error {
+	return status.Errorf(codes.Unimplemented, "method Relay not implemented")
 }
 func (*UnimplementedKeysServer) AdminSignURL(context.Context, *AdminSignURLRequest) (*AdminSignURLResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AdminSignURL not implemented")
@@ -2641,24 +2641,24 @@ func _Keys_Messages_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Keys_NotifyStream_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(NotifyStreamRequest)
+func _Keys_Relay_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(RelayRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(KeysServer).NotifyStream(m, &keysNotifyStreamServer{stream})
+	return srv.(KeysServer).Relay(m, &keysRelayServer{stream})
 }
 
-type Keys_NotifyStreamServer interface {
-	Send(*NotifyStreamOutput) error
+type Keys_RelayServer interface {
+	Send(*RelayOutput) error
 	grpc.ServerStream
 }
 
-type keysNotifyStreamServer struct {
+type keysRelayServer struct {
 	grpc.ServerStream
 }
 
-func (x *keysNotifyStreamServer) Send(m *NotifyStreamOutput) error {
+func (x *keysRelayServer) Send(m *RelayOutput) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -3005,8 +3005,8 @@ var _Keys_serviceDesc = grpc.ServiceDesc{
 			ClientStreams: true,
 		},
 		{
-			StreamName:    "NotifyStream",
-			Handler:       _Keys_NotifyStream_Handler,
+			StreamName:    "Relay",
+			Handler:       _Keys_Relay_Handler,
 			ServerStreams: true,
 		},
 	},

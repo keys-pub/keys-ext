@@ -71,7 +71,7 @@ func (s *service) key(ctx context.Context, kid keys.ID) (*Key, error) {
 
 	out := &Key{
 		ID:    kid.String(),
-		Type:  string(kid.PublicKeyType()),
+		Type:  string(kid.Type()),
 		Saved: false,
 	}
 	if err := s.fillKey(ctx, kid, out); err != nil {
@@ -150,7 +150,7 @@ func (s *service) KeyGenerate(ctx context.Context, req *KeyGenerateRequest) (*Ke
 		return nil, errors.Errorf("unknown key type %s", req.Type)
 	}
 	vk := api.NewKey(key)
-	now := s.clock.Now()
+	now := s.clock.NowMillis()
 	vk.CreatedAt = now
 	vk.UpdatedAt = now
 	out, _, err := s.vault.SaveKey(vk)
@@ -211,10 +211,7 @@ func (s *service) edx25519Key(kid keys.ID) (*keys.EdX25519Key, error) {
 	if key == nil {
 		return nil, keys.NewErrNotFound(kid.String())
 	}
-	sk, err := key.AsEdX25519()
-	if err != nil {
-		return nil, err
-	}
+	sk := key.AsEdX25519()
 	if sk == nil {
 		return nil, keys.NewErrNotFound(kid.String())
 	}
@@ -232,10 +229,7 @@ func (s *service) x25519Key(kid keys.ID) (*keys.X25519Key, error) {
 	if key == nil {
 		return nil, keys.NewErrNotFound(kid.String())
 	}
-	bk, err := key.AsX25519()
-	if err != nil {
-		return nil, err
-	}
+	bk := key.AsX25519()
 	if bk == nil {
 		return nil, keys.NewErrNotFound(kid.String())
 	}

@@ -11,7 +11,7 @@ func (s *service) Search(ctx context.Context, req *SearchRequest) (*SearchRespon
 	keys := make([]*Key, 0, len(res))
 	for _, u := range res {
 		kid := u.KID
-		typ := string(kid.PublicKeyType())
+		typ := string(kid.Type())
 		key := &Key{
 			ID:   kid.String(),
 			User: apiUserToRPC(u),
