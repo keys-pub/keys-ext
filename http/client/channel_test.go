@@ -34,10 +34,10 @@ func testChannel(t *testing.T, env *env, tk testKeys) {
 	aliceClient := newTestClient(t, env)
 	// bobClient := newTestClient(t, env)
 
-	err := aliceClient.ChannelCreate(context.TODO(), channel, alice, nil)
+	_, err := aliceClient.ChannelCreate(context.TODO(), channel, alice, nil)
 	require.NoError(t, err)
 
-	err = aliceClient.InviteToChannel(context.TODO(), channel, alice, bob.ID())
+	_, err = aliceClient.InviteToChannel(context.TODO(), channel, alice, bob.ID())
 	require.NoError(t, err)
 
 	invites, err := aliceClient.ChannelInvites(context.TODO(), channel, alice)

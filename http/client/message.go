@@ -33,9 +33,6 @@ func (c *Client) MessageSend(ctx context.Context, message *api.Message, sender *
 	if message.Timestamp == 0 {
 		return errors.Errorf("message timestamp is not set")
 	}
-	if message.Sender != "" && message.Sender != sender.ID() {
-		return errors.Errorf("message sender mismatch")
-	}
 
 	encrypted, err := EncryptMessage(message, sender, channel.ID())
 	if err != nil {
@@ -121,6 +118,12 @@ func (c *Client) Messages(ctx context.Context, channel *keys.EdX25519Key, sender
 
 // EncryptMessage encrypts a message.
 func EncryptMessage(message *api.Message, sender *keys.EdX25519Key, channel keys.ID) ([]byte, error) {
+	if message.Sender == "" {
+		return nil, errors.Errorf("message sender not set")
+	}
+	if message.Sender != sender.ID() {
+		return nil, errors.Errorf("message sender mismatch")
+	}
 	b, err := msgpack.Marshal(message)
 	if err != nil {
 		return nil, err

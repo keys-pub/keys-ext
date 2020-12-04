@@ -45,12 +45,12 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 
 	// Create channel
 	info := &api.ChannelInfo{Name: "test"}
-	err := aliceClient.ChannelCreate(ctx, channel, alice, info)
+	_, err := aliceClient.ChannelCreate(ctx, channel, alice, info)
 	require.NoError(t, err)
 	// Invite bob
-	err = aliceClient.InviteToChannel(ctx, channel, alice, bob.ID())
+	_, err = aliceClient.InviteToChannel(ctx, channel, alice, bob.ID())
 	require.NoError(t, err)
-	err = bobClient.ChannelJoin(ctx, bob, channel)
+	_, err = bobClient.ChannelJoin(ctx, bob, channel)
 	require.NoError(t, err)
 
 	// Messages
@@ -61,12 +61,12 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	require.False(t, msgs.Truncated)
 
 	// MessageSend #1
-	msg1 := &api.Message{ID: "1", Text: "hi bob", Timestamp: env.clock.NowMillis()}
+	msg1 := api.NewMessage(alice.ID()).WithText("hi bob").WithTimestamp(env.clock.NowMillis())
 	err = aliceClient.MessageSend(ctx, msg1, alice, channel)
 	require.NoError(t, err)
 
 	// MessageSend #2
-	msg2 := &api.Message{ID: "2", Prev: "1", Text: "what time we meeting?", Timestamp: env.clock.NowMillis()}
+	msg2 := api.NewMessage(bob.ID()).WithPrev(msg1.ID).WithText("what time are we meeting?").WithTimestamp(env.clock.NowMillis())
 	err = bobClient.MessageSend(ctx, msg2, bob, channel)
 	require.NoError(t, err)
 
@@ -87,7 +87,7 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	require.NotEmpty(t, msgs.Messages[0].Index)
 
 	// MessageSend #3
-	msg3 := &api.Message{ID: "3", Prev: "2", Text: "3pm", Timestamp: env.clock.NowMillis()}
+	msg3 := api.NewMessage(alice.ID()).WithPrev(msg2.ID).WithText("3pm").WithTimestamp(env.clock.NowMillis())
 	err = aliceClient.MessageSend(ctx, msg3, alice, channel)
 	require.NoError(t, err)
 

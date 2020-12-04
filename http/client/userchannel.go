@@ -67,7 +67,7 @@ func (c *Client) UserChannelInvite(ctx context.Context, user *keys.EdX25519Key, 
 }
 
 // ChannelJoin joins a channel.
-func (c *Client) ChannelJoin(ctx context.Context, user *keys.EdX25519Key, channel *keys.EdX25519Key) error {
+func (c *Client) ChannelJoin(ctx context.Context, user *keys.EdX25519Key, channel *keys.EdX25519Key) (*api.Message, error) {
 	path := dstore.Path("user", user.ID(), "channel", channel.ID())
 	auth := http.AuthKeys(
 		http.NewAuthKey("Authorization", user),
@@ -75,50 +75,50 @@ func (c *Client) ChannelJoin(ctx context.Context, user *keys.EdX25519Key, channe
 	)
 
 	// Join message
-	msg := api.NewMessageForChannelJoin(user.ID())
+	msg := api.NewMessageForChannelJoin(user.ID(), user.ID())
 	msgEncrypted, err := EncryptMessage(msg, user, channel.ID())
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req := api.ChannelJoinRequest{
 		Message: msgEncrypted,
 	}
 	body, err := json.Marshal(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	params := url.Values{}
 	if _, err := c.put(ctx, path, params, bytes.NewReader(body), http.ContentHash(body), auth); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return msg, nil
 }
 
 // ChannelLeave leaves a channel.
-func (c *Client) ChannelLeave(ctx context.Context, user *keys.EdX25519Key, channel keys.ID) error {
+func (c *Client) ChannelLeave(ctx context.Context, user *keys.EdX25519Key, channel keys.ID) (*api.Message, error) {
 	path := dstore.Path("user", user.ID(), "channel", channel)
 	auth := http.AuthKeys(
 		http.NewAuthKey("Authorization", user),
 	)
 
 	// Leave message
-	msg := api.NewMessageForChannelLeave(user.ID())
+	msg := api.NewMessageForChannelLeave(user.ID(), user.ID())
 	msgEncrypted, err := EncryptMessage(msg, user, channel.ID())
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req := api.ChannelLeaveRequest{
 		Message: msgEncrypted,
 	}
 	body, err := json.Marshal(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	params := url.Values{}
 	if _, err := c.delete(ctx, path, params, bytes.NewReader(body), http.ContentHash(body), auth); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return msg, nil
 }

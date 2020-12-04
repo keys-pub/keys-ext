@@ -34,7 +34,7 @@ func testUserChannel(t *testing.T, env *env, tk testKeys) {
 	ctx := context.TODO()
 
 	info := &api.ChannelInfo{Name: "test"}
-	err := aliceClient.ChannelCreate(ctx, channel, alice, info)
+	_, err := aliceClient.ChannelCreate(ctx, channel, alice, info)
 	require.NoError(t, err)
 
 	// Channels
@@ -46,7 +46,7 @@ func testUserChannel(t *testing.T, env *env, tk testKeys) {
 	// require.Equal(t, int64(0), channels[0].Timestamp)
 
 	// MessageSend #1
-	msg1 := &api.Message{ID: "1", Text: "hi bob", Timestamp: env.clock.NowMillis()}
+	msg1 := api.NewMessage(alice.ID()).WithText("hi bob").WithTimestamp(env.clock.NowMillis())
 	err = aliceClient.MessageSend(ctx, msg1, alice, channel)
 	require.NoError(t, err)
 
@@ -58,25 +58,26 @@ func testUserChannel(t *testing.T, env *env, tk testKeys) {
 	// require.Equal(t, int64(1234567890016), channels[0].Timestamp)
 
 	// Invite bob
-	err = aliceClient.InviteToChannel(ctx, channel, alice, bob.ID())
+	_, err = aliceClient.InviteToChannel(ctx, channel, alice, bob.ID())
 	require.NoError(t, err)
 	// Bob join
-	err = bobClient.ChannelJoin(ctx, bob, channel)
+	_, err = bobClient.ChannelJoin(ctx, bob, channel)
 	require.NoError(t, err)
 
 	// Leave channel
-	err = aliceClient.ChannelLeave(ctx, alice, channel.ID())
+	_, err = aliceClient.ChannelLeave(ctx, alice, channel.ID())
 	require.NoError(t, err)
 
 	// Channels
 	channels, err = aliceClient.Channels(ctx, alice)
+	require.NoError(t, err)
 	require.Equal(t, 0, len(channels))
 
-	msg2 := &api.Message{ID: "2", Text: "test", Timestamp: env.clock.NowMillis()}
+	msg2 := api.NewMessage(alice.ID()).WithText("hi bob").WithTimestamp(env.clock.NowMillis())
 	err = aliceClient.MessageSend(ctx, msg2, alice, channel)
 	require.EqualError(t, err, "auth failed (403)")
 
 	// Try to re-join without invite
-	err = aliceClient.ChannelJoin(ctx, alice, channel)
+	_, err = aliceClient.ChannelJoin(ctx, alice, channel)
 	require.EqualError(t, err, "invite not found (404)")
 }

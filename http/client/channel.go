@@ -14,39 +14,40 @@ import (
 )
 
 // ChannelCreate creates a channel.
-func (c *Client) ChannelCreate(ctx context.Context, channel *keys.EdX25519Key, user *keys.EdX25519Key, info *api.ChannelInfo) error {
+func (c *Client) ChannelCreate(ctx context.Context, channel *keys.EdX25519Key, user *keys.EdX25519Key, info *api.ChannelInfo) (*api.Message, error) {
 	path := dstore.Path("channel", channel.ID())
 	auth := http.AuthKeys(
 		http.NewAuthKey("Authorization", user),
 		http.NewAuthKey("Authorization-Channel", channel),
 	)
 
+	var msg *api.Message
 	var body []byte
 	if info != nil {
-		msg := api.NewMessageForChannelInfo(info)
+		msg = api.NewMessageForChannelInfo(user.ID(), info)
 		msgEncrypted, err := EncryptMessage(msg, user, channel.ID())
 		if err != nil {
-			return err
+			return nil, err
 		}
 		req := api.ChannelCreateRequest{
 			Message: msgEncrypted,
 		}
 		b, err := json.Marshal(req)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		body = b
 	}
 
 	params := url.Values{}
 	if _, err := c.put(ctx, path, params, bytes.NewReader(body), http.ContentHash(body), auth); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return msg, nil
 }
 
 // InviteToChannel invites a recipient to a channel from an existing user.
-func (c *Client) InviteToChannel(ctx context.Context, channel *keys.EdX25519Key, user *keys.EdX25519Key, recipients ...keys.ID) error {
+func (c *Client) InviteToChannel(ctx context.Context, channel *keys.EdX25519Key, user *keys.EdX25519Key, recipients ...keys.ID) (*api.Message, error) {
 	path := dstore.Path("channel", channel.ID(), "invites")
 	auth := http.AuthKeys(
 		http.NewAuthKey("Authorization", user),
@@ -56,7 +57,7 @@ func (c *Client) InviteToChannel(ctx context.Context, channel *keys.EdX25519Key,
 	for _, recipient := range recipients {
 		encryptedKey, err := kapi.EncryptKey(kapi.NewKey(channel), user, recipient)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		invite := &api.ChannelInvite{
@@ -71,7 +72,7 @@ func (c *Client) InviteToChannel(ctx context.Context, channel *keys.EdX25519Key,
 	msg := api.NewMessageForChannelInvites(user.ID(), recipients...)
 	msgEncrypted, err := EncryptMessage(msg, user, channel.ID())
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req := api.ChannelInvitesRequest{
 		Invites: invites,
@@ -79,14 +80,14 @@ func (c *Client) InviteToChannel(ctx context.Context, channel *keys.EdX25519Key,
 	}
 	body, err := json.Marshal(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	params := url.Values{}
 	if _, err := c.post(ctx, path, params, bytes.NewReader(body), http.ContentHash(body), auth); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return msg, nil
 }
 
 // ChannelInvites returns all pending invites.
