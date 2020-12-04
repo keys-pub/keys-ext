@@ -270,8 +270,8 @@ func (c *Client) post(ctx context.Context, path string, params url.Values, reade
 	return c.response(path, resp)
 }
 
-func (c *Client) delete(ctx context.Context, path string, params url.Values, auth http.AuthProvider) (*http.Response, error) {
-	resp, err := c.req(ctx, "DELETE", path, params, nil, "", auth)
+func (c *Client) delete(ctx context.Context, path string, params url.Values, reader io.Reader, contentHash string, auth http.AuthProvider) (*http.Response, error) {
+	resp, err := c.req(ctx, "DELETE", path, params, reader, contentHash, auth)
 	if err != nil {
 		return nil, err
 	}

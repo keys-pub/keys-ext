@@ -1,6 +1,7 @@
 package client
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"net/url"
@@ -11,8 +12,8 @@ import (
 	"github.com/keys-pub/keys/http"
 )
 
-// UserChannels lists channels for user.
-func (c *Client) UserChannels(ctx context.Context, user *keys.EdX25519Key) ([]*api.Channel, error) {
+// Channels lists channels for user.
+func (c *Client) Channels(ctx context.Context, user *keys.EdX25519Key) ([]*api.Channel, error) {
 	path := dstore.Path("user", user.ID(), "channels")
 	params := url.Values{}
 	resp, err := c.get(ctx, path, params, http.Authorization(user))
@@ -65,15 +66,58 @@ func (c *Client) UserChannelInvite(ctx context.Context, user *keys.EdX25519Key, 
 	return out.Invite, nil
 }
 
-// ChannelInviteAccept accepts channel invite.
-func (c *Client) ChannelInviteAccept(ctx context.Context, user *keys.EdX25519Key, channel *keys.EdX25519Key) error {
-	path := dstore.Path("user", user.ID(), "invite", channel.ID(), "accept")
+// ChannelJoin joins a channel.
+func (c *Client) ChannelJoin(ctx context.Context, user *keys.EdX25519Key, channel *keys.EdX25519Key) error {
+	path := dstore.Path("user", user.ID(), "channel", channel.ID())
 	auth := http.AuthKeys(
 		http.NewAuthKey("Authorization", user),
 		http.NewAuthKey("Authorization-Channel", channel),
 	)
+
+	// Join message
+	msg := api.NewMessageForChannelJoin(user.ID())
+	msgEncrypted, err := EncryptMessage(msg, user, channel.ID())
+	if err != nil {
+		return err
+	}
+	req := api.ChannelJoinRequest{
+		Message: msgEncrypted,
+	}
+	body, err := json.Marshal(req)
+	if err != nil {
+		return err
+	}
+
 	params := url.Values{}
-	if _, err := c.post(ctx, path, params, nil, "", auth); err != nil {
+	if _, err := c.put(ctx, path, params, bytes.NewReader(body), http.ContentHash(body), auth); err != nil {
+		return err
+	}
+	return nil
+}
+
+// ChannelLeave leaves a channel.
+func (c *Client) ChannelLeave(ctx context.Context, user *keys.EdX25519Key, channel keys.ID) error {
+	path := dstore.Path("user", user.ID(), "channel", channel)
+	auth := http.AuthKeys(
+		http.NewAuthKey("Authorization", user),
+	)
+
+	// Leave message
+	msg := api.NewMessageForChannelLeave(user.ID())
+	msgEncrypted, err := EncryptMessage(msg, user, channel.ID())
+	if err != nil {
+		return err
+	}
+	req := api.ChannelLeaveRequest{
+		Message: msgEncrypted,
+	}
+	body, err := json.Marshal(req)
+	if err != nil {
+		return err
+	}
+
+	params := url.Values{}
+	if _, err := c.delete(ctx, path, params, bytes.NewReader(body), http.ContentHash(body), auth); err != nil {
 		return err
 	}
 	return nil

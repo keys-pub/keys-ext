@@ -173,7 +173,7 @@ func (c *Client) VaultDelete(ctx context.Context, key *keys.EdX25519Key) error {
 	path := dstore.Path("vault", key.ID())
 	vals := url.Values{}
 
-	if _, err := c.delete(ctx, path, vals, http.Authorization(key)); err != nil {
+	if _, err := c.delete(ctx, path, vals, nil, "", http.Authorization(key)); err != nil {
 		return err
 	}
 	return nil

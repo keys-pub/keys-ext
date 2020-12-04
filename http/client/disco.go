@@ -72,7 +72,7 @@ func (c *Client) Disco(ctx context.Context, sender keys.ID, recipient *keys.EdX2
 func (c *Client) DiscoDelete(ctx context.Context, sender *keys.EdX25519Key, recipient keys.ID) error {
 	path := dstore.Path("disco", sender.ID(), recipient)
 	vals := url.Values{}
-	if _, err := c.delete(ctx, path, vals, http.Authorization(sender)); err != nil {
+	if _, err := c.delete(ctx, path, vals, nil, "", http.Authorization(sender)); err != nil {
 		return err
 	}
 	return nil

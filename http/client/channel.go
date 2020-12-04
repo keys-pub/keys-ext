@@ -14,14 +14,32 @@ import (
 )
 
 // ChannelCreate creates a channel.
-func (c *Client) ChannelCreate(ctx context.Context, channel *keys.EdX25519Key, user *keys.EdX25519Key) error {
+func (c *Client) ChannelCreate(ctx context.Context, channel *keys.EdX25519Key, user *keys.EdX25519Key, info *api.ChannelInfo) error {
 	path := dstore.Path("channel", channel.ID())
 	auth := http.AuthKeys(
 		http.NewAuthKey("Authorization", user),
 		http.NewAuthKey("Authorization-Channel", channel),
 	)
+
+	var body []byte
+	if info != nil {
+		msg := api.NewMessageForChannelInfo(info)
+		msgEncrypted, err := EncryptMessage(msg, user, channel.ID())
+		if err != nil {
+			return err
+		}
+		req := api.ChannelCreateRequest{
+			Message: msgEncrypted,
+		}
+		b, err := json.Marshal(req)
+		if err != nil {
+			return err
+		}
+		body = b
+	}
+
 	params := url.Values{}
-	if _, err := c.put(ctx, path, params, nil, "", auth); err != nil {
+	if _, err := c.put(ctx, path, params, bytes.NewReader(body), http.ContentHash(body), auth); err != nil {
 		return err
 	}
 	return nil
@@ -50,13 +68,22 @@ func (c *Client) InviteToChannel(ctx context.Context, channel *keys.EdX25519Key,
 		invites = append(invites, invite)
 	}
 
-	b, err := json.Marshal(invites)
+	msg := api.NewMessageForChannelInvites(user.ID(), recipients...)
+	msgEncrypted, err := EncryptMessage(msg, user, channel.ID())
+	if err != nil {
+		return err
+	}
+	req := api.ChannelInvitesRequest{
+		Invites: invites,
+		Message: msgEncrypted,
+	}
+	body, err := json.Marshal(req)
 	if err != nil {
 		return err
 	}
 
 	params := url.Values{}
-	if _, err := c.post(ctx, path, params, bytes.NewReader(b), http.ContentHash(b), auth); err != nil {
+	if _, err := c.post(ctx, path, params, bytes.NewReader(body), http.ContentHash(body), auth); err != nil {
 		return err
 	}
 	return nil

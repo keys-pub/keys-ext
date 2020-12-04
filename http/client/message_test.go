@@ -41,42 +41,45 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	aliceClient := newTestClient(t, env)
 	bobClient := newTestClient(t, env)
 	alice, bob, channel := tk.alice, tk.bob, tk.channel
+	ctx := context.TODO()
 
 	// Create channel
-	err := aliceClient.ChannelCreate(context.TODO(), channel, alice)
+	info := &api.ChannelInfo{Name: "test"}
+	err := aliceClient.ChannelCreate(ctx, channel, alice, info)
 	require.NoError(t, err)
-	err = aliceClient.InviteToChannel(context.TODO(), channel, alice, bob.ID())
+	// Invite bob
+	err = aliceClient.InviteToChannel(ctx, channel, alice, bob.ID())
 	require.NoError(t, err)
-	err = aliceClient.ChannelInviteAccept(context.TODO(), bob, channel)
+	err = bobClient.ChannelJoin(ctx, bob, channel)
 	require.NoError(t, err)
 
 	// Messages
-	msgs, err := aliceClient.Messages(context.TODO(), channel, alice, nil)
+	msgs, err := aliceClient.Messages(ctx, channel, alice, nil)
 	require.NoError(t, err)
-	require.Equal(t, int64(0), msgs.Index)
-	require.Equal(t, 0, len(msgs.Messages))
+	require.Equal(t, int64(3), msgs.Index)
+	require.Equal(t, 3, len(msgs.Messages))
 	require.False(t, msgs.Truncated)
 
 	// MessageSend #1
 	msg1 := &api.Message{ID: "1", Text: "hi bob", Timestamp: env.clock.NowMillis()}
-	err = aliceClient.MessageSend(context.TODO(), msg1, alice, channel)
+	err = aliceClient.MessageSend(ctx, msg1, alice, channel)
 	require.NoError(t, err)
 
 	// MessageSend #2
 	msg2 := &api.Message{ID: "2", Prev: "1", Text: "what time we meeting?", Timestamp: env.clock.NowMillis()}
-	err = bobClient.MessageSend(context.TODO(), msg2, bob, channel)
+	err = bobClient.MessageSend(ctx, msg2, bob, channel)
 	require.NoError(t, err)
 
 	// Messages
-	msgs, err = aliceClient.Messages(context.TODO(), channel, alice, nil)
+	msgs, err = aliceClient.Messages(ctx, channel, alice, nil)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(msgs.Messages))
+	require.Equal(t, 5, len(msgs.Messages))
 	require.False(t, msgs.Truncated)
-	out1, err := client.DecryptMessage(msgs.Messages[0], saltpack.NewKeyring(channel))
+	out1, err := client.DecryptMessage(msgs.Messages[3], saltpack.NewKeyring(channel))
 	require.NoError(t, err)
 	require.Equal(t, msg1.Text, out1.Text)
 	require.Equal(t, alice.ID(), out1.Sender)
-	out2, err := client.DecryptMessage(msgs.Messages[1], saltpack.NewKeyring(channel))
+	out2, err := client.DecryptMessage(msgs.Messages[4], saltpack.NewKeyring(channel))
 	require.NoError(t, err)
 	require.Equal(t, msg2.Text, out2.Text)
 	require.Equal(t, bob.ID(), out2.Sender)
@@ -85,11 +88,11 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 
 	// MessageSend #3
 	msg3 := &api.Message{ID: "3", Prev: "2", Text: "3pm", Timestamp: env.clock.NowMillis()}
-	err = aliceClient.MessageSend(context.TODO(), msg3, alice, channel)
+	err = aliceClient.MessageSend(ctx, msg3, alice, channel)
 	require.NoError(t, err)
 
 	// Messages (from idx)
-	msgs, err = aliceClient.Messages(context.TODO(), channel, alice, &client.MessagesOpts{Index: msgs.Index})
+	msgs, err = aliceClient.Messages(ctx, channel, alice, &client.MessagesOpts{Index: msgs.Index})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(msgs.Messages))
 	out3, err := client.DecryptMessage(msgs.Messages[0], saltpack.NewKeyring(channel))
@@ -98,9 +101,9 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	require.Equal(t, alice.ID(), out3.Sender)
 
 	// Messages (desc)
-	msgs, err = aliceClient.Messages(context.TODO(), channel, alice, &client.MessagesOpts{Direction: events.Descending})
+	msgs, err = aliceClient.Messages(ctx, channel, alice, &client.MessagesOpts{Direction: events.Descending})
 	require.NoError(t, err)
-	require.Equal(t, 3, len(msgs.Messages))
+	require.Equal(t, 6, len(msgs.Messages))
 	out1, err = client.DecryptMessage(msgs.Messages[0], saltpack.NewKeyring(channel))
 	require.NoError(t, err)
 	require.Equal(t, msg3.Text, out1.Text)
@@ -113,6 +116,6 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 
 	// Unknown channel
 	unknown := keys.GenerateEdX25519Key()
-	_, err = aliceClient.Messages(context.TODO(), unknown, alice, nil)
+	_, err = aliceClient.Messages(ctx, unknown, alice, nil)
 	require.EqualError(t, err, "auth failed (403)")
 }
