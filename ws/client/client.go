@@ -4,11 +4,23 @@ import (
 	"encoding/json"
 	"net/url"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/ws/api"
 	"github.com/pkg/errors"
+)
+
+const (
+	// Time allowed to write a message to the peer.
+	writeWait = 10 * time.Second
+
+	// Time allowed to read the next pong message from the peer.
+	pongWait = 60 * time.Second
+
+	// Maximum message size allowed from peer.
+	maxMessageSize = 1024 * 64
 )
 
 // Client to websocket.
@@ -78,6 +90,10 @@ func (c *Client) connect() error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to dial")
 	}
+	conn.SetReadLimit(maxMessageSize)
+	_ = conn.SetReadDeadline(time.Now().Add(pongWait))
+	conn.SetPongHandler(func(string) error { _ = c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+
 	c.connectMtx.Lock()
 	c.conn = conn
 	c.connected = true
@@ -133,4 +149,12 @@ func (c *Client) sendAuth(key *keys.EdX25519Key) error {
 		return errors.Wrapf(err, "failed to write message")
 	}
 	return nil
+}
+
+// SendPing sends a ping message.
+func (c *Client) SendPing() error {
+	if c.conn == nil {
+		return errors.Errorf("not connected")
+	}
+	return c.conn.WriteControl(websocket.PingMessage, []byte{}, time.Now().Add(writeWait))
 }
