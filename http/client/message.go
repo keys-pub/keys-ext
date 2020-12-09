@@ -13,9 +13,7 @@ import (
 	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/dstore/events"
 	"github.com/keys-pub/keys/http"
-	"github.com/keys-pub/keys/saltpack"
 	"github.com/pkg/errors"
-	"github.com/vmihailenco/msgpack/v4"
 )
 
 // MessageSend posts an encrypted message.
@@ -34,7 +32,7 @@ func (c *Client) MessageSend(ctx context.Context, message *api.Message, sender *
 		return errors.Errorf("message timestamp is not set")
 	}
 
-	encrypted, err := EncryptMessage(message, sender, channel.ID())
+	encrypted, err := api.EncryptMessage(message, sender, channel.ID())
 	if err != nil {
 		return err
 	}
@@ -114,39 +112,4 @@ func (c *Client) Messages(ctx context.Context, channel *keys.EdX25519Key, sender
 		Index:     out.Index,
 		Truncated: out.Truncated,
 	}, nil
-}
-
-// EncryptMessage encrypts a message.
-func EncryptMessage(message *api.Message, sender *keys.EdX25519Key, channel keys.ID) ([]byte, error) {
-	if message.Sender == "" {
-		return nil, errors.Errorf("message sender not set")
-	}
-	if message.Sender != sender.ID() {
-		return nil, errors.Errorf("message sender mismatch")
-	}
-	b, err := msgpack.Marshal(message)
-	if err != nil {
-		return nil, err
-	}
-	encrypted, err := saltpack.Signcrypt(b, false, sender, channel.ID())
-	if err != nil {
-		return nil, err
-	}
-	return encrypted, nil
-}
-
-// DecryptMessage decrypts a remote Event from Messages.
-func DecryptMessage(event *events.Event, kr saltpack.Keyring) (*api.Message, error) {
-	decrypted, pk, err := saltpack.SigncryptOpen(event.Data, false, kr)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to decrypt message")
-	}
-	var message api.Message
-	if err := msgpack.Unmarshal(decrypted, &message); err != nil {
-		return nil, errors.Wrapf(err, "failed to unmarshal message")
-	}
-	message.Sender = pk.ID()
-	message.RemoteIndex = event.Index
-	message.RemoteTimestamp = event.Timestamp
-	return &message, nil
 }

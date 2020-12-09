@@ -76,7 +76,7 @@ func (c *Client) ChannelJoin(ctx context.Context, user *keys.EdX25519Key, channe
 
 	// Join message
 	msg := api.NewMessageForChannelJoin(user.ID(), user.ID())
-	msgEncrypted, err := EncryptMessage(msg, user, channel.ID())
+	msgEncrypted, err := api.EncryptMessage(msg, user, channel.ID())
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (c *Client) ChannelLeave(ctx context.Context, user *keys.EdX25519Key, chann
 
 	// Leave message
 	msg := api.NewMessageForChannelLeave(user.ID(), user.ID())
-	msgEncrypted, err := EncryptMessage(msg, user, channel.ID())
+	msgEncrypted, err := api.EncryptMessage(msg, user, channel.ID())
 	if err != nil {
 		return nil, err
 	}

@@ -58,7 +58,7 @@ func testUserChannel(t *testing.T, env *env, tk testKeys) {
 	// require.Equal(t, int64(1234567890016), channels[0].Timestamp)
 
 	// Invite bob
-	_, err = aliceClient.InviteToChannel(ctx, channel, alice, bob.ID())
+	_, err = aliceClient.InviteToChannel(ctx, channel, info, alice, bob.ID())
 	require.NoError(t, err)
 	// Bob join
 	_, err = bobClient.ChannelJoin(ctx, bob, channel)
