@@ -130,38 +130,25 @@ func TestChannelInvite(t *testing.T) {
 	require.Equal(t, http.StatusOK, code)
 
 	// POST /channel/:cid/invite (alice invite bob)
-	invitesBob := api.ChannelInvitesRequest{
-		Invites: []*api.ChannelInvite{
-			&api.ChannelInvite{
-				Channel:      channel.ID(),
-				Recipient:    bob.ID(),
-				Sender:       alice.ID(),
-				EncryptedKey: []byte("testkey"),
-			},
-		},
-	}
-	invites, err := json.Marshal(invitesBob)
+	info := &api.ChannelInfo{Name: "test"}
+	inviteBob, err := api.NewChannelInvite(channel, info, alice, bob.ID())
 	require.NoError(t, err)
-	req, err = http.NewAuthRequest("POST", dstore.Path("channel", channel.ID(), "invites"), bytes.NewReader(invites), http.ContentHash(invites), clock.Now(), aliceChannel)
+	invitesBob := api.ChannelInvitesRequest{Invites: []*api.ChannelInvite{inviteBob}}
+	invitesBobBody, err := json.Marshal(invitesBob)
+	require.NoError(t, err)
+	req, err = http.NewAuthRequest("POST", dstore.Path("channel", channel.ID(), "invites"), bytes.NewReader(invitesBobBody), http.ContentHash(invitesBobBody), clock.Now(), aliceChannel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, `{}`, body)
 	require.Equal(t, http.StatusOK, code)
 
 	// POST /channel/:cid/invite (alice invite frank)
-	invitesFrank := api.ChannelInvitesRequest{
-		Invites: []*api.ChannelInvite{
-			&api.ChannelInvite{
-				Channel:      channel.ID(),
-				Recipient:    frank.ID(),
-				Sender:       alice.ID(),
-				EncryptedKey: []byte("testkey"),
-			},
-		},
-	}
-	invites, err = json.Marshal(invitesFrank)
+	inviteFrank, err := api.NewChannelInvite(channel, info, alice, frank.ID())
 	require.NoError(t, err)
-	req, err = http.NewAuthRequest("POST", dstore.Path("channel", channel.ID(), "invites"), bytes.NewReader(invites), http.ContentHash(invites), clock.Now(), aliceChannel)
+	invitesFrank := api.ChannelInvitesRequest{Invites: []*api.ChannelInvite{inviteFrank}}
+	invitesFrankBody, err := json.Marshal(invitesFrank)
+	require.NoError(t, err)
+	req, err = http.NewAuthRequest("POST", dstore.Path("channel", channel.ID(), "invites"), bytes.NewReader(invitesFrankBody), http.ContentHash(invitesFrankBody), clock.Now(), aliceChannel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, `{}`, body)
@@ -171,25 +158,30 @@ func TestChannelInvite(t *testing.T) {
 	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "invites"), nil, "", clock.Now(), aliceChannel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
-	expected := `{"invites":[{"channel":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","recipient":"kex132r4llc7kwz9z4m6e4d0aeq9g4jk3htu38sfpp36q4tmc7h5nutsv4zjrd","sender":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","k":"dGVzdGtleQ=="},{"channel":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","recipient":"kex1syuhwr4g05t4744r23nvxnr7en9cmz53knhr0gja7c84hr7fkw2quf6zcg","sender":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","k":"dGVzdGtleQ=="}]}`
-	require.Equal(t, expected, body)
 	require.Equal(t, http.StatusOK, code)
+	var invitesResp api.ChannelInvitesResponse
+	err = json.Unmarshal([]byte(body), &invitesResp)
+	require.NoError(t, err)
+	require.Equal(t, []*api.ChannelInvite{inviteFrank, inviteBob}, invitesResp.Invites)
 
 	// GET /user/:kid/invites (bob)
 	req, err = http.NewAuthRequest("GET", dstore.Path("user", bob.ID(), "invites"), nil, "", clock.Now(), http.Authorization(bob))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
-	expected = `{"invites":[{"channel":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","recipient":"kex1syuhwr4g05t4744r23nvxnr7en9cmz53knhr0gja7c84hr7fkw2quf6zcg","sender":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","k":"dGVzdGtleQ=="}]}`
-	require.Equal(t, expected, body)
 	require.Equal(t, http.StatusOK, code)
+	err = json.Unmarshal([]byte(body), &invitesResp)
+	require.NoError(t, err)
+	require.Equal(t, []*api.ChannelInvite{inviteBob}, invitesResp.Invites)
 
 	// GET /user/:kid/invite/:cid (bob gets invite)
 	req, err = http.NewAuthRequest("GET", dstore.Path("user", bob.ID(), "invite", channel.ID()), nil, "", clock.Now(), http.Authorization(bob))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
-	expected = `{"invite":{"channel":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","recipient":"kex1syuhwr4g05t4744r23nvxnr7en9cmz53knhr0gja7c84hr7fkw2quf6zcg","sender":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","k":"dGVzdGtleQ=="}}`
-	require.Equal(t, expected, body)
 	require.Equal(t, http.StatusOK, code)
+	var userInviteResp api.UserChannelInviteResponse
+	err = json.Unmarshal([]byte(body), &userInviteResp)
+	require.NoError(t, err)
+	require.Equal(t, inviteBob, userInviteResp.Invite)
 
 	// PUT /user/:kid/channel/:cid (bob join)
 	req, err = http.NewAuthRequest("PUT", dstore.Path("user", bob.ID(), "channel", channel.ID()), nil, "", clock.Now(), bobChannel)
@@ -202,17 +194,29 @@ func TestChannelInvite(t *testing.T) {
 	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "users"), nil, "", clock.Now(), aliceChannel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
-	expected = `{"users":[{"channel":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","user":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","from":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077"},{"channel":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","user":"kex1syuhwr4g05t4744r23nvxnr7en9cmz53knhr0gja7c84hr7fkw2quf6zcg","from":"kex1syuhwr4g05t4744r23nvxnr7en9cmz53knhr0gja7c84hr7fkw2quf6zcg"}]}` + "\n"
-	require.Equal(t, expected, body)
 	require.Equal(t, http.StatusOK, code)
+	var usersResp api.ChannelUsersResponse
+	err = json.Unmarshal([]byte(body), &usersResp)
+	require.NoError(t, err)
+	require.Equal(t, []*api.ChannelUser{
+		&api.ChannelUser{
+			Channel: channel.ID(),
+			User:    alice.ID(),
+		},
+		&api.ChannelUser{
+			Channel: channel.ID(),
+			User:    bob.ID(),
+		},
+	}, usersResp.Users)
 
 	// GET /user/:kid/invites (frank)
 	req, err = http.NewAuthRequest("GET", dstore.Path("user", frank.ID(), "invites"), nil, "", clock.Now(), http.Authorization(frank))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
-	expected = `{"invites":[{"channel":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","recipient":"kex132r4llc7kwz9z4m6e4d0aeq9g4jk3htu38sfpp36q4tmc7h5nutsv4zjrd","sender":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","k":"dGVzdGtleQ=="}]}`
-	require.Equal(t, expected, body)
 	require.Equal(t, http.StatusOK, code)
+	err = json.Unmarshal([]byte(body), &invitesResp)
+	require.NoError(t, err)
+	require.Equal(t, []*api.ChannelInvite{inviteFrank}, invitesResp.Invites)
 
 	// DELETE /user/:kid/invites/:cid (frank delete)
 	req, err = http.NewAuthRequest("DELETE", dstore.Path("user", frank.ID(), "invite", channel.ID()), nil, "", clock.Now(), http.Authorization(frank))
@@ -225,9 +229,18 @@ func TestChannelInvite(t *testing.T) {
 	req, err = http.NewAuthRequest("GET", dstore.Path("user", frank.ID(), "invites"), nil, "", clock.Now(), http.Authorization(frank))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
-	expected = `{"invites":[]}`
+	expected := `{"invites":[]}`
 	require.Equal(t, expected, body)
 	require.Equal(t, http.StatusOK, code)
+
+	// GET /channel/:cid/invites (alice)
+	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "invites"), nil, "", clock.Now(), aliceChannel)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusOK, code)
+	err = json.Unmarshal([]byte(body), &invitesResp)
+	require.NoError(t, err)
+	require.Equal(t, []*api.ChannelInvite{inviteBob}, invitesResp.Invites)
 
 	// GET /user/:kid/invites (bad auth)
 	req, err = http.NewAuthRequest("GET", dstore.Path("user", alice.ID(), "invites"), nil, "", clock.Now(), http.Authorization(bob))
@@ -235,4 +248,19 @@ func TestChannelInvite(t *testing.T) {
 	code, _, body = srv.Serve(req)
 	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, body)
 	require.Equal(t, http.StatusForbidden, code)
+
+	// DELETE /channel/:cid/invite/:kid (alice uininvite bob)
+	req, err = http.NewAuthRequest("DELETE", dstore.Path("channel", channel.ID(), "invite", bob.ID()), nil, "", clock.Now(), aliceChannel)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, `{}`, body)
+	require.Equal(t, http.StatusOK, code)
+
+	// GET /channel/:cid/invites (alice)
+	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "invites"), nil, "", clock.Now(), aliceChannel)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	expected = `{"invites":[]}`
+	require.Equal(t, expected, body)
+	require.Equal(t, http.StatusOK, code)
 }

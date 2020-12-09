@@ -77,12 +77,7 @@ func (s *Server) putChannel(c echo.Context) error {
 		}
 		return s.internalError(c, err)
 	}
-	user := &api.ChannelUser{
-		User:    auth.KID,
-		Channel: channel.KID,
-		From:    auth.KID,
-	}
-	if err := s.addChannelUsers(ctx, channel.KID, auth.KID, user); err != nil {
+	if err := s.addChannelUsers(ctx, channel.KID, auth.KID); err != nil {
 		return s.internalError(c, err)
 	}
 
@@ -184,22 +179,18 @@ func (s *Server) channelUserIDs(ctx context.Context, channel keys.ID) ([]keys.ID
 	return kids, nil
 }
 
-func (s *Server) addChannelUsers(ctx context.Context, channel keys.ID, from keys.ID, users ...*api.ChannelUser) error {
+func (s *Server) addChannelUsers(ctx context.Context, channel keys.ID, users ...keys.ID) error {
 	// TODO: Before adding check if limits on number of channels for user
 	for _, user := range users {
-		path := dstore.Path("channels", channel, "users", user.User)
-		if user.Channel != channel {
-			return errors.Errorf("user channel mismatch")
-		}
+		path := dstore.Path("channels", channel, "users", user)
 		add := &api.ChannelUser{
 			Channel: channel,
-			User:    user.User,
-			From:    from,
+			User:    user,
 		}
 		if err := s.fi.Create(ctx, path, dstore.From(add)); err != nil {
 			return err
 		}
-		userChannelPath := dstore.Path("users", user.User, "channels", channel)
+		userChannelPath := dstore.Path("users", user, "channels", channel)
 		ch := &api.Channel{
 			ID: channel,
 		}
@@ -270,7 +261,7 @@ func (s *Server) postChannelInvites(c echo.Context) error {
 		return ErrResponse(c, st, err)
 	}
 
-	channel, auth, err := s.authChannel(c, "cid", body)
+	channel, _, err := s.authChannel(c, "cid", body)
 	if err != nil {
 		return ErrForbidden(c, err)
 	}
@@ -287,12 +278,6 @@ func (s *Server) postChannelInvites(c echo.Context) error {
 	for _, invite := range req.Invites {
 		if invite.Channel != channel.KID {
 			return ErrBadRequest(c, errors.Errorf("invalid channel invite kid"))
-		}
-		if invite.Sender != auth.KID {
-			return ErrBadRequest(c, errors.Errorf("invalid channel invite sender"))
-		}
-		if len(invite.EncryptedKey) > 1024 {
-			return ErrBadRequest(c, errors.Errorf("invalid channel invite key"))
 		}
 		rid, err := keys.ParseID(invite.Recipient.String())
 		if err != nil {
@@ -323,6 +308,50 @@ func (s *Server) postChannelInvites(c echo.Context) error {
 		if err := s.fi.Set(ctx, usersPath, val); err != nil {
 			return s.internalError(c, err)
 		}
+	}
+
+	if len(req.Message) > 0 {
+		if err := s.sendMessage(c, channel.KID, req.Message); err != nil {
+			return s.internalError(c, err)
+		}
+	}
+
+	var out struct{}
+	return JSON(c, http.StatusOK, out)
+}
+
+func (s *Server) deleteChannelInvite(c echo.Context) error {
+	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
+	ctx := c.Request().Context()
+
+	body, st, err := readBody(c, false, 64*1024)
+	if err != nil {
+		return ErrResponse(c, st, err)
+	}
+
+	channel, _, err := s.authChannel(c, "cid", body)
+	if err != nil {
+		return ErrForbidden(c, err)
+	}
+
+	kid, err := keys.ParseID(c.Param("kid"))
+	if err != nil {
+		return ErrNotFound(c, errors.Errorf("kid not found"))
+	}
+
+	var req api.ChannelUninviteRequest
+	if len(body) != 0 {
+		if err := json.Unmarshal(body, &req); err != nil {
+			return ErrBadRequest(c, errors.Errorf("invalid channel uninvite request"))
+		}
+	}
+
+	ok, err := s.deleteInvite(ctx, channel.KID, kid)
+	if err != nil {
+		return s.internalError(c, err)
+	}
+	if !ok {
+		return ErrNotFound(c, errors.Errorf("invite not found"))
 	}
 
 	if len(req.Message) > 0 {
@@ -368,39 +397,3 @@ func (s *Server) getChannelInvites(c echo.Context) error {
 	out := &api.ChannelInvitesResponse{Invites: invites}
 	return JSON(c, http.StatusOK, out)
 }
-
-// func (s *Server) postChannelUsers(c echo.Context) error {
-// 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
-
-// 	if c.Request().Body == nil {
-// 		return ErrBadRequest(c, errors.Errorf("missing body"))
-// 	}
-
-// 	b, err := ioutil.ReadAll(c.Request().Body)
-// 	if err != nil {
-// 		return s.internalError(c, err)
-// 	}
-
-// 	if len(b) > 16*1024 {
-// 		// TODO: Check length before reading data
-// 		return ErrBadRequest(c, errors.Errorf("channel data too large (greater than 16KiB)"))
-// 	}
-
-// 	channel, auth, err := s.authChannel(c, "cid", b)
-// 	if err != nil {
-// 		s.logger.Errorf("Auth failed: %v", err)
-// 		return ErrForbidden(c, err)
-// 	}
-
-// 	var req api.ChannelUsersAddRequest
-// 	if err := json.Unmarshal(b, &req); err != nil {
-// 		return ErrBadRequest(c, err)
-// 	}
-
-// 	ctx := c.Request().Context()
-// 	if err := s.addChannelUsers(ctx, channel.KID, auth.KID, req.Users); err != nil {
-// 		return s.internalError(c, err)
-// 	}
-// 	var out struct{}
-// 	return JSON(c, http.StatusOK, out)
-// }

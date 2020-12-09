@@ -153,13 +153,14 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	//
 
 	// Channel
-	e.PUT("/channel/:cid", s.putChannel)                  // Create a channel
-	e.GET("/channel/:cid", s.getChannel)                  // Get a channel
-	e.GET("/channel/:cid/users", s.getChannelUsers)       // List channel users
-	e.POST("/channel/:cid/msgs", s.postMessage)           // Send message
-	e.GET("/channel/:cid/msgs", s.listMessages)           // List messages
-	e.POST("/channel/:cid/invites", s.postChannelInvites) // Invite to channel
-	e.GET("/channel/:cid/invites", s.getChannelInvites)   // List channel invites
+	e.PUT("/channel/:cid", s.putChannel)                         // Create a channel
+	e.GET("/channel/:cid", s.getChannel)                         // Get a channel
+	e.GET("/channel/:cid/users", s.getChannelUsers)              // List channel users
+	e.POST("/channel/:cid/msgs", s.postMessage)                  // Send message
+	e.GET("/channel/:cid/msgs", s.listMessages)                  // List messages
+	e.POST("/channel/:cid/invites", s.postChannelInvites)        // Invite to channel
+	e.DELETE("/channel/:cid/invite/:kid", s.deleteChannelInvite) // Uninvite
+	e.GET("/channel/:cid/invites", s.getChannelInvites)          // List channel invites
 
 	// User (channels)
 	e.GET("/user/:kid/channels", s.listUserChannels)              // List channels for user

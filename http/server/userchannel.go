@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -136,16 +137,34 @@ func (s *Server) deleteUserChannelInvite(c echo.Context) error {
 		return ErrBadRequest(c, err)
 	}
 
-	path := dstore.Path("users", auth.KID, "invites", cid)
-	ok, err := s.fi.Delete(ctx, path)
+	ok, err := s.deleteInvite(ctx, cid, auth.KID)
 	if err != nil {
 		return s.internalError(c, err)
 	}
 	if !ok {
 		return ErrNotFound(c, errors.Errorf("invite not found"))
 	}
+
 	var out struct{}
 	return JSON(c, http.StatusOK, out)
+}
+
+func (s *Server) deleteInvite(ctx context.Context, cid keys.ID, kid keys.ID) (bool, error) {
+	path := dstore.Path("users", kid, "invites", cid)
+	ok, err := s.fi.Delete(ctx, path)
+	if err != nil {
+		return false, err
+	}
+	if !ok {
+		return false, nil
+	}
+
+	invitePath := dstore.Path("channels", cid, "invites", kid)
+	if _, err := s.fi.Delete(ctx, invitePath); err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 // putUserChannel to join a channel.
@@ -191,12 +210,7 @@ func (s *Server) putUserChannel(c echo.Context) error {
 		return s.internalError(c, err)
 	}
 
-	user := &api.ChannelUser{
-		User:    auth.KID,
-		Channel: channel.KID,
-		From:    invite.Sender,
-	}
-	if err := s.addChannelUsers(ctx, channel.KID, auth.KID, user); err != nil {
+	if err := s.addChannelUsers(ctx, channel.KID, auth.KID); err != nil {
 		return s.internalError(c, err)
 	}
 
