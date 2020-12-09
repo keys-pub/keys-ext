@@ -17,15 +17,33 @@ type Channel struct {
 
 // ChannelInvite provides an encrypted key to a recipient.
 type ChannelInvite struct {
-	Channel      keys.ID `json:"channel" msgpack:"channel"`
-	Recipient    keys.ID `json:"recipient" msgpack:"recipient"`
-	Sender       keys.ID `json:"sender" msgpack:"sender"`
-	EncryptedKey []byte  `json:"k" msgpack:"k"` // Encrypted api.Key to recipient
+	Channel   keys.ID `json:"channel" msgpack:"channel"`
+	Recipient keys.ID `json:"recipient" msgpack:"recipient"`
+	Key       []byte  `json:"k" msgpack:"k"`       // Encrypted api.Key to recipient from sender.
+	Info      []byte  `json:"info" msgpack:"info"` // Encrypted api.ChannelInfo to recipient from sender.
 }
 
-// Key decrypted by recipient.
-func (i *ChannelInvite) Key(recipient *keys.EdX25519Key) (*keys.EdX25519Key, keys.ID, error) {
-	key, sender, err := api.DecryptKey(i.EncryptedKey, saltpack.NewKeyring(recipient))
+// NewChannelInvite creates a channel invite.
+func NewChannelInvite(channel *keys.EdX25519Key, info *ChannelInfo, sender *keys.EdX25519Key, recipient keys.ID) (*ChannelInvite, error) {
+	ek, err := api.EncryptKey(api.NewKey(channel), sender, recipient, false)
+	if err != nil {
+		return nil, err
+	}
+	ei, err := Encrypt(info, sender, recipient)
+	if err != nil {
+		return nil, err
+	}
+	return &ChannelInvite{
+		Channel:   channel.ID(),
+		Recipient: recipient,
+		Key:       ek,
+		Info:      ei,
+	}, nil
+}
+
+// DecryptKey for recipient keyring.
+func (i *ChannelInvite) DecryptKey(kr saltpack.Keyring) (*keys.EdX25519Key, keys.ID, error) {
+	key, sender, err := api.DecryptKey(i.Key, kr, false)
 	if err != nil {
 		return nil, "", err
 	}
@@ -40,11 +58,20 @@ func (i *ChannelInvite) Key(recipient *keys.EdX25519Key) (*keys.EdX25519Key, key
 	return sk, from, nil
 }
 
+// DecryptInfo for recipient keyring.
+func (i *ChannelInvite) DecryptInfo(kr saltpack.Keyring) (*ChannelInfo, keys.ID, error) {
+	var info ChannelInfo
+	pk, err := Decrypt(i.Info, &info, kr)
+	if err != nil {
+		return nil, "", err
+	}
+	return &info, pk, nil
+}
+
 // ChannelUser ...
 type ChannelUser struct {
 	Channel keys.ID `json:"channel" msgpack:"channel"`
 	User    keys.ID `json:"user" msgpack:"user"`
-	From    keys.ID `json:"from" msgpack:"from"`
 }
 
 // ChannelCreateRequest ...
@@ -57,6 +84,12 @@ type ChannelCreateRequest struct {
 type ChannelInvitesRequest struct {
 	Invites []*ChannelInvite `json:"invites" msgpack:"invites"`
 	// Message to post on invite.
+	Message []byte `json:"msg,omitempty" msgpack:"msg,omitempty"`
+}
+
+// ChannelUninviteRequest ...
+type ChannelUninviteRequest struct {
+	// Message to post on uninvite.
 	Message []byte `json:"msg,omitempty" msgpack:"msg,omitempty"`
 }
 
@@ -93,17 +126,37 @@ type ChannelInfo struct {
 	Description string `json:"desc,omitempty" msgpack:"desc,omitempty"`
 }
 
-// ChannelInvitesNn if invites were sent (notification).
-type ChannelInvitesNn struct {
+// ChannelInvites if invites were sent (notification).
+type ChannelInvites struct {
 	Users []keys.ID `json:"users" msgpack:"users"`
 }
 
-// ChannelJoinNn is a user joined a channel (invite was accepted) (notification).
-type ChannelJoinNn struct {
+// ChannelUninvites if invites were removed (notification).
+type ChannelUninvites struct {
+	Users []keys.ID `json:"users" msgpack:"users"`
+}
+
+// ChannelJoin is a user joined a channel (invite was accepted) (notification).
+type ChannelJoin struct {
 	User keys.ID `json:"user" msgpack:"user"`
 }
 
-// ChannelLeaveNn if a user left the channel (notification).
-type ChannelLeaveNn struct {
+// ChannelLeave if a user left the channel (notification).
+type ChannelLeave struct {
 	User keys.ID `json:"user" msgpack:"user"`
+}
+
+// UserChannelsResponse ...
+type UserChannelsResponse struct {
+	Channels []*Channel `json:"channels"`
+}
+
+// UserChannelInviteResponse ...
+type UserChannelInviteResponse struct {
+	Invite *ChannelInvite `json:"invite"`
+}
+
+// UserChannelInvitesResponse ...
+type UserChannelInvitesResponse struct {
+	Invites []*ChannelInvite `json:"invites"`
 }

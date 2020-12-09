@@ -61,6 +61,7 @@ github.com/keys-pub/keys v0.1.6-0.20200917180900-68c62e67b737 h1:uJfjHncQGkzcBkv
 github.com/keys-pub/keys v0.1.6-0.20200917180900-68c62e67b737/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys v0.1.7-0.20201019222734-27495f7e1624 h1:IUS+hiiR8epYtDHl6z/P2Ay2xuECmdsxHoE/LLeFj5w=
 github.com/keys-pub/keys v0.1.7-0.20201019222734-27495f7e1624/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.1.18-0.20201029233150-785ac922181d/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys v0.1.18-0.20201110225229-cf94f4121589 h1:y/+YAoeQQKqo+xA95UTUkjatVXU1kYrZdCfz1g0qsV4=
 github.com/keys-pub/keys v0.1.18-0.20201110225229-cf94f4121589/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys v0.1.18-0.20201117233052-2bfb5f4d6161 h1:hj1DxAN64T1idPgbU2PibxYOcWqCrro+IqLS7h6HZng=
@@ -71,6 +72,11 @@ github.com/keys-pub/keys v0.1.18-0.20201124170605-b802bea21f73 h1:H1goee2RWv/RTe
 github.com/keys-pub/keys v0.1.18-0.20201124170605-b802bea21f73/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys v0.1.18-0.20201203191616-7881134d0f3d h1:Cm0BzO2ZstdmPtB9hLHau39liWDZHa68vDNIpfKBM0k=
 github.com/keys-pub/keys v0.1.18-0.20201203191616-7881134d0f3d/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.1.18-0.20201208204604-e9ae8c5755ae h1:VYx/5+HVIAdJ+1JlbJjsKZ99+6PMHJZYyx++7ZS8ulo=
+github.com/keys-pub/keys v0.1.18-0.20201208204604-e9ae8c5755ae/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys-ext v0.1.20 h1:KZs+L8GtJj00bKh+xhQqHNkSQgq2fUCYwBsrP2vV23g=
+github.com/keys-pub/keys-ext/ws/api v0.0.0-20201208014450-6b7883173a82 h1:l3vndQ+tAHm4wO4POy8gz5VqPB4rrHhbB3TPwqNphoc=
+github.com/keys-pub/keys-ext/ws/api v0.0.0-20201208014450-6b7883173a82/go.mod h1:LbgwcQT1R5W8EBRHmDeE6d2lr0t4EYS6J9ih2Jv4iN8=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f h1:LLsdI2XManLH0JonKqB6OYmHdHk/WwJByDbHI3hCEcs=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f/go.mod h1:YRHMiVbZqh7u8xRm77CvwJNAZdDlNXwWvQ4DK0N9mYg=
 github.com/kr/pretty v0.1.0 h1:L/CwN0zerZDmRFUapSPitk6f+Q3+0za1rQkzVuMiMFI=
@@ -148,6 +154,7 @@ golang.org/x/sys v0.0.0-20200523222454-059865788121/go.mod h1:h1NjWce9XRLGQEsW7w
 golang.org/x/sys v0.0.0-20200615200032-f1bc736245b1 h1:ogLJMz+qpzav7lGMh10LMvAkM/fAoGlaiiHYiFYdm80=
 golang.org/x/sys v0.0.0-20200615200032-f1bc736245b1/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200930185726-fdedc70b468f/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20201118182958-a01c418693c7/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20201119102817-f84b799fce68 h1:nxC68pudNYkKU6jWhgrqdreuFiOQWj1Fs7T3VrH4Pjw=
 golang.org/x/sys v0.0.0-20201119102817-f84b799fce68/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/term v0.0.0-20201117132131-f5c789dd3221/go.mod h1:Nr5EML6q2oocZ2LXRh80K7BxOlk5/8JxuGnuhpl+muw=
