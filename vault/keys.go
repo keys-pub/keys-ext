@@ -113,6 +113,9 @@ func (v *Vault) Keys() ([]*api.Key, error) {
 	for _, i := range items {
 		key, err := i.Key()
 		if err != nil {
+			// TODO: Should we skip keys that don't resolve?
+			// logger.Errorf("Failed to resolve key (%s): %v", i.ID, err)
+			// continue
 			return nil, err
 		}
 		if key == nil {
