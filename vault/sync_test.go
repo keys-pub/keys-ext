@@ -239,6 +239,11 @@ func testSync(t *testing.T, st1 vault.Store, st2 vault.Store) {
 	require.NoError(t, err)
 	expected = []string{"/auth", "/item", "/provision", "/pull", "/sync"}
 	require.Equal(t, expected, cols)
+
+	cols, err = vault.Collections(v1.Store(), "/pull")
+	require.NoError(t, err)
+	expected = []string{"/000000000000001", "/000000000000002", "/000000000000003", "/000000000000004", "/000000000000005", "/000000000000006", "/000000000000007", "/000000000000008"}
+	require.Equal(t, expected, cols)
 }
 
 func TestUnsync(t *testing.T) {

@@ -1,6 +1,10 @@
 package vault
 
-import "github.com/keys-pub/keys/dstore"
+import (
+	"strings"
+
+	"github.com/keys-pub/keys/dstore"
+)
 
 // Entry in Store.
 type Entry struct {
@@ -56,7 +60,7 @@ func Collections(st Store, parent string) ([]string, error) {
 	out := []string{}
 	cols := map[string]bool{}
 	for _, entry := range entries {
-		col := dstore.Path(dstore.PathFirst(entry.Path))
+		col := dstore.Path(dstore.PathFirst(strings.TrimPrefix(entry.Path, parent)))
 		_, ok := cols[col]
 		if ok {
 			continue
