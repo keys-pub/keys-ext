@@ -208,6 +208,9 @@ func (v *Vault) addToPush(path string, b []byte) error {
 
 // Get vault item.
 func (v *Vault) Get(id string) (*Item, error) {
+	if id == "" {
+		return nil, errors.Errorf("empty id")
+	}
 	path := dstore.Path("item", id)
 	b, err := v.store.Get(path)
 	if err != nil {

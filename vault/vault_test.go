@@ -182,14 +182,14 @@ func TestErrors(t *testing.T) {
 	require.EqualError(t, err, "vault is locked")
 }
 
-func TestUpdate(t *testing.T) {
+func TestVaultGet(t *testing.T) {
 	db, closeFn := newTestDB(t)
 	defer closeFn()
 	vlt := vault.New(db)
-	testUpdate(t, vlt)
+	testVaultGet(t, vlt)
 }
 
-func testUpdate(t *testing.T, vlt *vault.Vault) {
+func testVaultGet(t *testing.T, vlt *vault.Vault) {
 	var err error
 	key := keys.Rand32()
 	provision := vault.NewProvision(vault.UnknownAuth)
@@ -205,6 +205,9 @@ func testUpdate(t *testing.T, vlt *vault.Vault) {
 	out, err := vlt.Get("abc")
 	require.NoError(t, err)
 	require.Nil(t, out)
+
+	_, err = vlt.Get("")
+	require.EqualError(t, err, "empty id")
 
 	now := time.Now()
 
