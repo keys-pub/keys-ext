@@ -11,7 +11,7 @@ import (
 // ErrInvalidAuth if auth is invalid.
 var ErrInvalidAuth = errors.New("invalid auth")
 
-// ErrLocked if no vault key is set.
+// ErrLocked if you try to access vault while it is locked.
 var ErrLocked = errors.New("vault is locked")
 
 // ErrAlreadySetup if already setup.

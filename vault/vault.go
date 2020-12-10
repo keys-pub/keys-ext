@@ -17,7 +17,7 @@ import (
 	"github.com/vmihailenco/msgpack/v4"
 )
 
-// ErrNotOpen if try to use vault when it isn't open.
+// ErrNotOpen if you try to use the vault when it isn't open.
 var ErrNotOpen = errors.Errorf("vault not open")
 
 // ErrAlreadyOpen if you try to open when it is already open.
@@ -38,8 +38,6 @@ type Vault struct {
 
 	checkedAt time.Time
 	checkMtx  sync.Mutex
-
-	subs *subscribers
 }
 
 // New vault.
@@ -48,7 +46,6 @@ func New(st Store, opt ...Option) *Vault {
 	return &Vault{
 		store: st,
 		clock: opts.Clock,
-		subs:  newSubscribers(),
 	}
 }
 
@@ -295,8 +292,6 @@ func (v *Vault) push(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-
-	// TODO: Enforce event chaining yet.
 
 	for _, doc := range ds {
 		logger.Debugf("Push %s", doc.Path)

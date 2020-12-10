@@ -18,9 +18,12 @@ type Item struct {
 	// CreatedAt when item was created.
 	// TODO: Updated at
 	CreatedAt time.Time `msgpack:"cts,omitempty"`
+
+	// TODO: Specify prev item (for chaining).
 }
 
 // NewItem creates an item.
+// Item IDs are NOT encrypted locally and are provided for fast lookups.
 func NewItem(id string, b []byte, typ string, createdAt time.Time) *Item {
 	return &Item{
 		ID:        id,
