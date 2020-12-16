@@ -19,22 +19,25 @@ func (s *Server) postDirect(c echo.Context) error {
 		return ErrResponse(c, st, err)
 	}
 
-	kid, err := keys.ParseID(c.Param("kid"))
+	auth, err := s.auth(c, newAuth("Authorization", "from", body))
 	if err != nil {
-		return ErrBadRequest(c, errors.Errorf("invalid drop kid"))
+		return ErrForbidden(c, err)
+	}
+	from := auth.KID
+
+	to, err := keys.ParseID(c.Param("to"))
+	if err != nil {
+		return ErrBadRequest(c, errors.Errorf("invalid sender"))
 	}
 
-	token := c.Param("token")
-	if token == "" {
-	}
-	hasToken, err := s.checkUserToken(ctx, token, kid)
+	following, err := s.follows(ctx, to, from)
 	if err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
-	if !hasToken {
-		return ErrForbidden(c, errors.Errorf("invalid token"))
+	if !following {
+		return ErrForbidden(c, nil)
 	}
-	path := dstore.Path("dms", kid)
+	path := dstore.Path("dms", to)
 	if _, _, err := s.fi.EventsAdd(ctx, path, [][]byte{body}); err != nil {
 		return err
 	}
@@ -52,9 +55,9 @@ func (s *Server) getDirects(c echo.Context) error {
 
 	limit := 1000
 	path := dstore.Path("dms", auth.KID)
-	resp, err := s.events(c, path, limit)
+	resp, st, err := s.events(c, path, limit)
 	if err != nil {
-		return s.internalError(c, err)
+		return ErrResponse(c, st, err)
 	}
 
 	truncated := false
@@ -68,4 +71,6 @@ func (s *Server) getDirects(c echo.Context) error {
 		Index:     resp.Index,
 		Truncated: truncated,
 	}
+
+	return JSON(c, http.StatusOK, out)
 }

@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/api"
 )
 
 // Channel ...
@@ -37,4 +38,9 @@ type ChannelJoin struct {
 // ChannelLeave if a user left the channel (notification).
 type ChannelLeave struct {
 	User keys.ID `json:"user" msgpack:"user"`
+}
+
+// ChannelInvite if invited to a channel.
+type ChannelInvite struct {
+	Key api.Key `json:"key" msgpack:"key"`
 }

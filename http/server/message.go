@@ -27,7 +27,7 @@ func (s *Server) postMessage(c echo.Context) error {
 	}
 
 	if err := s.sendMessage(c, channel.KID, body); err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 
 	var out struct{}
@@ -76,9 +76,9 @@ func (s *Server) getMessages(c echo.Context) error {
 
 	limit := 1000
 	path := dstore.Path("channels", channel.KID)
-	resp, err := s.events(c, path, limit)
+	resp, st, err := s.events(c, path, limit)
 	if err != nil {
-		return s.internalError(c, err)
+		return ErrResponse(c, st, err)
 	}
 
 	truncated := false

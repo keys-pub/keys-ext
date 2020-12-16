@@ -29,23 +29,23 @@ func (s *Server) adminCheck(c echo.Context) error {
 	case "all":
 		kids, err := s.users.KIDs(ctx)
 		if err != nil {
-			return s.internalError(c, err)
+			return ErrInternalServer(c, err)
 		}
 		s.logger.Infof("Checking all (%d)", len(kids))
 		if err := s.checkKeys(ctx, kids); err != nil {
-			return s.internalError(c, err)
+			return ErrInternalServer(c, err)
 		}
 	case "content-not-found":
 		if err := s.checkUserStatus(ctx, user.StatusContentNotFound); err != nil {
-			return s.internalError(c, err)
+			return ErrInternalServer(c, err)
 		}
 	case "connection-fail":
 		if err := s.checkUserStatus(ctx, user.StatusConnFailure); err != nil {
-			return s.internalError(c, err)
+			return ErrInternalServer(c, err)
 		}
 	case "expired":
 		if err := s.checkExpired(ctx, time.Hour*6, time.Hour*24*7); err != nil {
-			return s.internalError(c, err)
+			return ErrInternalServer(c, err)
 		}
 	default:
 		kid, err := keys.ParseID(c.Param("kid"))
@@ -54,7 +54,7 @@ func (s *Server) adminCheck(c echo.Context) error {
 		}
 		s.logger.Infof("Checking %s", kid)
 		if err := s.checkKID(ctx, kid, HighPriority); err != nil {
-			return s.internalError(c, err)
+			return ErrInternalServer(c, err)
 		}
 	}
 

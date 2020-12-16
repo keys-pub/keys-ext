@@ -113,8 +113,8 @@ func nonceCheck(rds Redis) http.NonceCheck {
 	}
 }
 
-func nonceCheckSkip() http.NonceCheck {
-	return func(ctx context.Context, nonce string) error {
-		return nil
-	}
-}
+// func nonceCheckSkip() http.NonceCheck {
+// 	return func(ctx context.Context, nonce string) error {
+// 		return nil
+// 	}
+// }

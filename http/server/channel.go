@@ -47,16 +47,16 @@ func (s *Server) putChannel(c echo.Context) error {
 		case dstore.ErrPathExists:
 			return ErrConflict(c, errors.Errorf("channel already exists"))
 		}
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 
 	if err := s.notifyChannelCreated(ctx, channel.KID); err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 
 	if len(req.Message) > 0 {
 		if err := s.sendMessage(c, channel.KID, req.Message); err != nil {
-			return s.internalError(c, err)
+			return ErrInternalServer(c, err)
 		}
 	}
 
@@ -91,7 +91,7 @@ func (s *Server) getChannel(c echo.Context) error {
 
 	doc, err := s.fi.Get(ctx, path)
 	if err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 	if doc == nil {
 		return ErrNotFound(c, keys.NewErrNotFound(channel.KID.String()))
@@ -99,13 +99,13 @@ func (s *Server) getChannel(c echo.Context) error {
 
 	var out api.Channel
 	if err := doc.To(&out); err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 	out.Timestamp = tsutil.Millis(doc.UpdatedAt)
 
 	positions, err := s.fi.EventPositions(ctx, []string{path})
 	if err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 	if len(positions) > 0 {
 		out.Index = positions[0].Index

@@ -141,17 +141,14 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	e.POST("/channel/:cid/msgs", s.postMessage) // Send message
 	e.GET("/channel/:cid/msgs", s.getMessages)  // List messages
 
-	// Drop
-	e.POST("/drop/:kid", s.postDrop)      // Create drop
-	e.GET("/drop/:kid", s.getDrops)       // List drops
-	e.DELETE("/drop/:kid", s.deleteDrops) // Delete drops
-
 	// Direct
-	e.POST("/dm/:kid/:token", s.postDirect) // Send direct message
-	e.GET("/dm/:kid", s.getDirects)         // List direct messages
+	e.POST("/dm/:to/:from", s.postDirect) // Send direct message to :kid from :sid
+	e.GET("/dm/:kid", s.getDirects)       // List direct messages
 
-	// Tokens
-	e.POST("/user/:kid/token", s.postUserToken) // Create user token
+	// Follow
+	e.POST("/follow/:kid/:user", s.postFollow)     // Follow
+	e.GET("/follows/:kid", s.getFollows)           // List follows
+	e.DELETE("/follow/:kid/:user", s.deleteFollow) // Unfollow
 
 	// Admin
 	e.POST("/admin/check/:kid", s.adminCheck)

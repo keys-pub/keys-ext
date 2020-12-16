@@ -29,13 +29,16 @@ type Message struct {
 	// For message text (optional).
 	Text string `json:"text,omitempty" msgpack:"text,omitempty"`
 
-	// For channel info (optional).
+	// ChannelInfo sets info.
 	ChannelInfo *ChannelInfo `json:"channelInfo,omitempty" msgpack:"channelInfo,omitempty"`
 
-	// Actions (optional).
+	// Actions
 	ChannelInvites *ChannelInvites `json:"channelInvites,omitempty" msgpack:"channelInvites,omitempty"`
 	ChannelJoin    *ChannelJoin    `json:"channelJoin,omitempty" msgpack:"channelAccept,omitempty"`
 	ChannelLeave   *ChannelLeave   `json:"channelLeave,omitempty" msgpack:"channelLeave,omitempty"`
+
+	// ChannelInvite to invite to a new channel.
+	ChannelInvite *ChannelInvite `json:"channelInvite,omitempty" msgpack:"channelInvite,omitempty"`
 
 	// Sender set from decrypt.
 	Sender keys.ID `json:"-" msgpack:"-"`

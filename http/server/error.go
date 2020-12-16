@@ -32,6 +32,11 @@ func ErrResponse(c echo.Context, status int, err error) error {
 	return JSON(c, status, newErrorResponse(err.Error(), status))
 }
 
+// ErrInternalServer response.
+func ErrInternalServer(c echo.Context, err error) error {
+	return ErrResponse(c, http.StatusInternalServerError, err)
+}
+
 // ErrBadRequest response.
 func ErrBadRequest(c echo.Context, err error) error {
 	return ErrResponse(c, http.StatusBadRequest, err)
@@ -66,11 +71,6 @@ func ErrNotFound(c echo.Context, err error) error {
 // func ErrUnauthorized(c echo.Context, err error) error {
 // 	return ErrResponse(c, http.StatusUnauthorized, err)
 // }
-
-func (s *Server) internalError(c echo.Context, err error) error {
-	s.logger.Errorf("Internal error: %+v", err)
-	return ErrResponse(c, http.StatusInternalServerError, err)
-}
 
 // ErrorHandler returns error handler that returns in the format:
 // {"error": {"message": "error message", status: 500}}".

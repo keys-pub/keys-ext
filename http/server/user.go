@@ -28,7 +28,7 @@ func (s *Server) getUserSearch(c echo.Context) error {
 
 	results, err := s.users.Search(ctx, &users.SearchRequest{Query: q, Limit: limit})
 	if err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 
 	usrs := make([]*api.User, 0, len(results))
@@ -53,7 +53,7 @@ func (s *Server) getUser(c echo.Context) error {
 
 	userResult, err := s.users.Find(ctx, kid)
 	if err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 	if userResult == nil {
 		return ErrNotFound(c, errors.Errorf("user not found"))
