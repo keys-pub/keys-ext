@@ -63,14 +63,11 @@ func (s *Server) putDisco(c echo.Context) error {
 		return ErrBadRequest(c, errors.Errorf("invalid type"))
 	}
 
-	expire := time.Second * 15
-	if c.QueryParam("expire") != "" {
-		e, err := time.ParseDuration(c.QueryParam("expire"))
-		if err != nil {
-			return ErrBadRequest(c, err)
-		}
-		expire = e
+	expire, err := queryParamDuration(c, "expire", time.Second*15)
+	if err != nil {
+		return ErrBadRequest(c, err)
 	}
+
 	if len(expire.String()) > 64 {
 		return ErrBadRequest(c, errors.Errorf("invalid expire"))
 	}

@@ -32,19 +32,19 @@ func (s *service) checkKeys(ctx context.Context) error {
 	return nil
 }
 
+// Check if expired, and then update.
+// If we don't have a local result, we don't update.
 func (s *service) checkForExpiredKey(ctx context.Context, kid keys.ID) error {
 	res, err := s.users.Get(ctx, kid)
 	if err != nil {
 		return err
 	}
-	// Check if expired, and then update.
-	// If we don't have a local result, we don't update.
 	if res != nil {
-		// If not OK, check every "userCheckFailureExpire", otherwise check every "userCheckExpire"
+		// If not OK, check every "userCheckFailureExpire", otherwise check every "userCheckExpire".
 		now := s.clock.Now()
 		if (res.Status != user.StatusOK && res.IsTimestampExpired(now, userCheckFailureExpire)) ||
 			res.IsTimestampExpired(now, userCheckExpire) {
-			_, _, err := s.update(ctx, kid)
+			_, err := s.updateUser(ctx, kid)
 			if err != nil {
 				return err
 			}
@@ -60,19 +60,20 @@ func (s *service) updateAllKeys(ctx context.Context) error {
 		return err
 	}
 	for _, pk := range pks {
-		if _, _, err := s.update(ctx, pk.ID()); err != nil {
+		if _, err := s.updateUser(ctx, pk.ID()); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (s *service) update(ctx context.Context, kid keys.ID) (bool, *user.Result, error) {
-	logger.Infof("Update %s", kid)
+func (s *service) updateUser(ctx context.Context, kid keys.ID) (*user.Result, error) {
+	logger.Infof("Update user %s", kid)
 
+	// TODO: Only get new sigchain entries.
 	resp, err := s.client.Sigchain(ctx, kid)
 	if err != nil {
-		return false, nil, err
+		return nil, err
 	}
 	if resp != nil {
 		// TODO: Check that our existing statements haven't changed or disappeared
@@ -80,23 +81,23 @@ func (s *service) update(ctx context.Context, kid keys.ID) (bool, *user.Result, 
 
 		sc := keys.NewSigchain(kid)
 		if err := sc.AddAll(resp.Statements); err != nil {
-			return false, nil, err
+			return nil, err
 		}
 		if err := s.scs.Save(sc); err != nil {
-			return false, nil, err
+			return nil, err
 		}
 	} else {
 		logger.Infof("No sigchain for %s", kid)
 	}
 
 	if err := s.scs.Index(kid); err != nil {
-		return false, nil, err
+		return nil, err
 	}
 
 	res, err := s.users.Update(ctx, kid)
 	if err != nil {
-		return false, nil, err
+		return nil, err
 	}
 
-	return true, res, nil
+	return res, nil
 }

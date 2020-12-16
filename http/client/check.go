@@ -13,7 +13,7 @@ import (
 // to do it right away.
 func (c *Client) Check(ctx context.Context, key *keys.EdX25519Key) error {
 	params := url.Values{}
-	_, err := c.post(ctx, "/check", params, nil, "", http.Authorization(key))
+	_, err := c.post(ctx, "/check", params, nil, "", key)
 	if err != nil {
 		return err
 	}

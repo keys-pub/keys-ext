@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 
 	"github.com/keys-pub/keys"
@@ -20,7 +21,7 @@ func (s *Server) postMessage(c echo.Context) error {
 		return ErrResponse(c, st, err)
 	}
 
-	channel, _, err := s.authChannel(c, "cid", body)
+	channel, err := s.auth(c, newAuth("Authorization", "cid", body))
 	if err != nil {
 		return ErrForbidden(c, err)
 	}
@@ -40,12 +41,9 @@ func (s *Server) sendMessage(c echo.Context, channel keys.ID, msg []byte) error 
 	ctx := c.Request().Context()
 	path := dstore.Path("channels", channel)
 
-	events, idx, err := s.fi.EventsAdd(ctx, path, [][]byte{msg})
+	_, idx, err := s.fi.EventsAdd(ctx, path, [][]byte{msg})
 	if err != nil {
 		return err
-	}
-	if len(events) == 0 {
-		return errors.Errorf("no events added")
 	}
 	if err := s.notifyChannelMessage(ctx, channel, idx); err != nil {
 		return err
@@ -54,33 +52,24 @@ func (s *Server) sendMessage(c echo.Context, channel keys.ID, msg []byte) error 
 }
 
 func (s *Server) notifyChannelMessage(ctx context.Context, channel keys.ID, idx int64) error {
-	if s.secretKey == nil {
-		return errors.Errorf("no secret key set")
+	event := &wsapi.Event{
+		Channel: channel,
+		Index:   idx,
 	}
-	recipients, err := s.channelUserIDs(ctx, channel)
+	b, err := json.Marshal(event)
 	if err != nil {
 		return err
 	}
-	pub := &wsapi.PubSubEvent{
-		Type:       wsapi.ChannelMessageEventType,
-		Channel:    channel,
-		Recipients: recipients,
-		Index:      idx,
-	}
-	pb, err := wsapi.Encrypt(pub, s.secretKey)
-	if err != nil {
-		return err
-	}
-	if err := s.rds.Publish(ctx, wsapi.EventPubSub, pb); err != nil {
+	if err := s.rds.Publish(ctx, wsapi.EventPubSub, b); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *Server) listMessages(c echo.Context) error {
+func (s *Server) getMessages(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	channel, _, err := s.authChannel(c, "cid", nil)
+	channel, err := s.auth(c, newAuth("Authorization", "cid", nil))
 	if err != nil {
 		return ErrForbidden(c, err)
 	}

@@ -38,13 +38,10 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	srv := newTestServer(t, env)
 	clock := env.clock
 
-	alice, channel := tk.alice, tk.channel
-	aliceChannel := http.AuthKeys(
-		http.NewAuthKey("Authorization", alice),
-		http.NewAuthKey("Authorization-Channel", channel))
+	channel := tk.channel
 
 	// GET /channel/:cid/msgs (not found)
-	req, err := http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs"), nil, "", clock.Now(), aliceChannel)
+	req, err := http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs"), nil, "", clock.Now(), channel)
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, body)
@@ -53,28 +50,28 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	// POST /channel/:cid/msgs (not found)
 	content := []byte("test1")
 	contentHash := http.ContentHash(content)
-	req, err = http.NewAuthRequest("POST", dstore.Path("channel", channel.ID(), "msgs"), bytes.NewReader(content), contentHash, clock.Now(), aliceChannel)
+	req, err = http.NewAuthRequest("POST", dstore.Path("channel", channel.ID(), "msgs"), bytes.NewReader(content), contentHash, clock.Now(), channel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, body)
 	require.Equal(t, http.StatusForbidden, code)
 
 	// PUT /channel/:cid
-	req, err = http.NewAuthRequest("PUT", dstore.Path("channel", channel.ID()), nil, "", clock.Now(), aliceChannel)
+	req, err = http.NewAuthRequest("PUT", dstore.Path("channel", channel.ID()), nil, "", clock.Now(), channel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, `{}`, body)
 	require.Equal(t, http.StatusOK, code)
 
 	// GET /channel/:cid/msgs
-	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs"), nil, "", clock.Now(), aliceChannel)
+	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs"), nil, "", clock.Now(), channel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, `{"msgs":[],"idx":0}`, body)
 	require.Equal(t, http.StatusOK, code)
 
 	// POST /channel/:cid/msgs (no body)
-	req, err = http.NewAuthRequest("POST", dstore.Path("channel", channel.ID(), "msgs"), nil, "", clock.Now(), aliceChannel)
+	req, err = http.NewAuthRequest("POST", dstore.Path("channel", channel.ID(), "msgs"), nil, "", clock.Now(), channel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	expected := `{"error":{"code":400,"message":"missing body"}}`
@@ -84,28 +81,28 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	// POST /channel/:cid/msgs
 	content = []byte("test1")
 	contentHash = http.ContentHash(content)
-	req, err = http.NewAuthRequest("POST", dstore.Path("channel", channel.ID(), "msgs"), bytes.NewReader(content), contentHash, clock.Now(), aliceChannel)
+	req, err = http.NewAuthRequest("POST", dstore.Path("channel", channel.ID(), "msgs"), bytes.NewReader(content), contentHash, clock.Now(), channel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, `{}`, body)
 	content2 := []byte("test2")
 	contentHash2 := http.ContentHash(content2)
-	req, err = http.NewAuthRequest("POST", dstore.Path("channel", channel.ID(), "msgs"), bytes.NewReader(content2), contentHash2, clock.Now(), aliceChannel)
+	req, err = http.NewAuthRequest("POST", dstore.Path("channel", channel.ID(), "msgs"), bytes.NewReader(content2), contentHash2, clock.Now(), channel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, `{}`, body)
 
 	// PUT /channel/:cid/msgs (invalid method)
-	req, err = http.NewAuthRequest("PUT", dstore.Path("channel", channel.ID(), "msgs"), bytes.NewReader(content), contentHash, clock.Now(), aliceChannel)
+	req, err = http.NewAuthRequest("PUT", dstore.Path("channel", channel.ID(), "msgs"), bytes.NewReader(content), contentHash, clock.Now(), channel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusMethodNotAllowed, code)
 	require.Equal(t, `{"error":{"code":405,"message":"method not allowed"}}`, body)
 
 	// GET /channel/:cid/msgs
-	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs")+"?limit=1", nil, "", clock.Now(), aliceChannel)
+	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs")+"?limit=1", nil, "", clock.Now(), channel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
@@ -117,7 +114,7 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	require.Equal(t, []byte("test1"), resp.Messages[0].Data)
 
 	// GET /channel/:cid/msgs?idx=next
-	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs")+"?idx="+strconv.Itoa(int(resp.Index)), nil, "", clock.Now(), aliceChannel)
+	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs")+"?idx="+strconv.Itoa(int(resp.Index)), nil, "", clock.Now(), channel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
@@ -131,13 +128,13 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	// POST /channel/:cid/msgs
 	content3 := []byte("test3")
 	contentHash3 := http.ContentHash(content3)
-	req, err = http.NewAuthRequest("POST", dstore.Path("channel", channel.ID(), "msgs"), bytes.NewReader(content3), contentHash3, clock.Now(), aliceChannel)
+	req, err = http.NewAuthRequest("POST", dstore.Path("channel", channel.ID(), "msgs"), bytes.NewReader(content3), contentHash3, clock.Now(), channel)
 	require.NoError(t, err)
 	code, _, _ = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 
 	// GET /channel/:cid/msgs
-	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs"), nil, "", clock.Now(), aliceChannel)
+	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs"), nil, "", clock.Now(), channel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
@@ -150,7 +147,7 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	require.Equal(t, []byte("test3"), resp3.Messages[2].Data)
 
 	// GET /channel/:cid/msgs (descending, limit=2)
-	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs")+"?dir=desc&limit=2", nil, "", clock.Now(), aliceChannel)
+	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs")+"?dir=desc&limit=2", nil, "", clock.Now(), channel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
@@ -164,7 +161,7 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	// POST /channel/:cid/msgs (message too large)
 	large := bytes.Repeat([]byte{0x01}, 65*1024)
 	largeHash := http.ContentHash(large)
-	req, err = http.NewAuthRequest("POST", dstore.Path("channel", channel.ID(), "msgs"), bytes.NewReader(large), largeHash, clock.Now(), aliceChannel)
+	req, err = http.NewAuthRequest("POST", dstore.Path("channel", channel.ID(), "msgs"), bytes.NewReader(large), largeHash, clock.Now(), channel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusRequestEntityTooLarge, code)
@@ -178,20 +175,17 @@ func TestMessagesAuth(t *testing.T) {
 	clock := env.clock
 
 	tk := testKeysSeeded()
-	alice, channel := tk.alice, tk.channel
-	aliceChannel := http.AuthKeys(
-		http.NewAuthKey("Authorization", alice),
-		http.NewAuthKey("Authorization-Channel", channel))
+	channel := tk.channel
 
 	// PUT /channel/:cid
-	req, err := http.NewAuthRequest("PUT", dstore.Path("channel", channel.ID()), nil, "", clock.Now(), aliceChannel)
+	req, err := http.NewAuthRequest("PUT", dstore.Path("channel", channel.ID()), nil, "", clock.Now(), channel)
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, `{}`, body)
 	require.Equal(t, http.StatusOK, code)
 
 	// GET /channel/:cid/msgs
-	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs"), nil, "", clock.Now(), aliceChannel)
+	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs"), nil, "", clock.Now(), channel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
@@ -205,7 +199,7 @@ func TestMessagesAuth(t *testing.T) {
 	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, body)
 
 	// GET /channel/:cid/msgs
-	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs"), nil, "", clock.Now(), aliceChannel)
+	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs"), nil, "", clock.Now(), channel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
@@ -223,14 +217,14 @@ func TestMessagesAuth(t *testing.T) {
 	authHeader := req.Header.Get("Authorization")
 	randKey := keys.GenerateEdX25519Key()
 	sig := strings.Split(authHeader, ":")[1]
-	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs"), nil, "", clock.Now(), http.Authorization(randKey))
+	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs"), nil, "", clock.Now(), randKey)
 	require.NoError(t, err)
 	req.Header.Set("Authorization", randKey.ID().String()+":"+sig)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
 	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, body)
 
-	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs"), nil, "", clock.Now(), http.Authorization(randKey))
+	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs"), nil, "", clock.Now(), randKey)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
@@ -238,14 +232,14 @@ func TestMessagesAuth(t *testing.T) {
 
 	// POST /channel/:cid/msgs (invalid authorization)
 	msg := []byte("test")
-	req, err = http.NewAuthRequest("POST", dstore.Path("channel", channel.ID(), "msgs"), bytes.NewReader(msg), http.ContentHash(msg), clock.Now(), http.Authorization(randKey))
+	req, err = http.NewAuthRequest("POST", dstore.Path("channel", channel.ID(), "msgs"), bytes.NewReader(msg), http.ContentHash(msg), clock.Now(), randKey)
 	require.NoError(t, err)
 	req.Header.Set("Authorization", randKey.ID().String()+":"+sig)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
 	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, body)
 
-	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs"), nil, "", clock.Now(), http.Authorization(randKey))
+	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs"), nil, "", clock.Now(), randKey)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)

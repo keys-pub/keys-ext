@@ -10,7 +10,7 @@ import (
 
 func ExampleNew() {
 	// New vault.
-	// You can use vault.NewDB or keyring.NewSystem for vault.Store.
+	// Use vault.NewDB for a persistent store.
 	vlt := vault.New(vault.NewMem())
 	if err := vlt.Open(); err != nil {
 		log.Fatal(err)
@@ -23,7 +23,7 @@ func ExampleNew() {
 	}
 
 	// Save item.
-	// Item IDs are NOT encrypted locally.
+	// Item IDs are NOT encrypted locally and are provided for fast lookups.
 	item := vault.NewItem("id1", []byte("mysecret"), "", time.Now())
 	if err := vlt.Set(item); err != nil {
 		log.Fatal(err)

@@ -33,10 +33,9 @@ type Message struct {
 	ChannelInfo *ChannelInfo `json:"channelInfo,omitempty" msgpack:"channelInfo,omitempty"`
 
 	// Actions (optional).
-	ChannelInvites   *ChannelInvites   `json:"channelInvites,omitempty" msgpack:"channelInvites,omitempty"`
-	ChannelUninvites *ChannelUninvites `json:"channelUninvites,omitempty" msgpack:"channelUninvites,omitempty"`
-	ChannelJoin      *ChannelJoin      `json:"channelJoin,omitempty" msgpack:"channelAccept,omitempty"`
-	ChannelLeave     *ChannelLeave     `json:"channelLeave,omitempty" msgpack:"channelLeave,omitempty"`
+	ChannelInvites *ChannelInvites `json:"channelInvites,omitempty" msgpack:"channelInvites,omitempty"`
+	ChannelJoin    *ChannelJoin    `json:"channelJoin,omitempty" msgpack:"channelAccept,omitempty"`
+	ChannelLeave   *ChannelLeave   `json:"channelLeave,omitempty" msgpack:"channelLeave,omitempty"`
 
 	// Sender set from decrypt.
 	Sender keys.ID `json:"-" msgpack:"-"`
@@ -93,13 +92,6 @@ func NewMessageForChannelInvites(sender keys.ID, users ...keys.ID) *Message {
 	return msg
 }
 
-// NewMessageForChannelUninvites ...
-func NewMessageForChannelUninvites(sender keys.ID, users ...keys.ID) *Message {
-	msg := NewMessage(sender)
-	msg.ChannelUninvites = &ChannelUninvites{Users: users}
-	return msg
-}
-
 // NewMessageForChannelJoin ...
 func NewMessageForChannelJoin(sender keys.ID, user keys.ID) *Message {
 	msg := NewMessage(sender)
@@ -114,7 +106,8 @@ func NewMessageForChannelLeave(sender keys.ID, user keys.ID) *Message {
 	return msg
 }
 
-// EncryptMessage encrypts a message.
+// EncryptMessage encrypts a message marshaled via mspack and encrypted using
+// saltpack signcrypt.
 func EncryptMessage(message *Message, sender *keys.EdX25519Key, channel keys.ID) ([]byte, error) {
 	if message.Sender == "" {
 		return nil, errors.Errorf("message sender not set")
@@ -133,9 +126,9 @@ func EncryptMessage(message *Message, sender *keys.EdX25519Key, channel keys.ID)
 	return encrypted, nil
 }
 
-// DecryptMessage decrypts a remote Event from Messages.
-func DecryptMessage(event *events.Event, kr saltpack.Keyring) (*Message, error) {
-	decrypted, pk, err := saltpack.SigncryptOpen(event.Data, false, kr)
+// DecryptMessage decrypts saltpack signed data and unmarshals the message.
+func DecryptMessage(b []byte, kr saltpack.Keyring) (*Message, error) {
+	decrypted, pk, err := saltpack.SigncryptOpen(b, false, kr)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to decrypt message")
 	}
@@ -144,7 +137,16 @@ func DecryptMessage(event *events.Event, kr saltpack.Keyring) (*Message, error) 
 		return nil, errors.Wrapf(err, "failed to unmarshal message")
 	}
 	message.Sender = pk.ID()
+	return &message, nil
+}
+
+// DecryptMessageFromEvent decrypts a remote Event from Messages.
+func DecryptMessageFromEvent(event *events.Event, kr saltpack.Keyring) (*Message, error) {
+	message, err := DecryptMessage(event.Data, kr)
+	if err != nil {
+		return nil, err
+	}
 	message.RemoteIndex = event.Index
 	message.RemoteTimestamp = event.Timestamp
-	return &message, nil
+	return message, nil
 }

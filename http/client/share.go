@@ -18,7 +18,7 @@ func (c *Client) ShareSeal(ctx context.Context, key *keys.EdX25519Key, data []by
 	path := dstore.Path("share", key.ID())
 	vals := url.Values{}
 	vals.Set("expire", expire.String())
-	if _, err := c.put(ctx, path, vals, bytes.NewReader(encrypted), http.ContentHash(encrypted), http.Authorization(key)); err != nil {
+	if _, err := c.put(ctx, path, vals, bytes.NewReader(encrypted), http.ContentHash(encrypted), key); err != nil {
 		return err
 	}
 	return nil
@@ -28,7 +28,7 @@ func (c *Client) ShareSeal(ctx context.Context, key *keys.EdX25519Key, data []by
 func (c *Client) ShareOpen(ctx context.Context, key *keys.EdX25519Key) ([]byte, error) {
 	path := dstore.Path("share", key.ID())
 	vals := url.Values{}
-	resp, err := c.get(ctx, path, vals, http.Authorization(key))
+	resp, err := c.get(ctx, path, vals, key)
 	if err != nil {
 		return nil, err
 	}

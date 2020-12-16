@@ -17,7 +17,7 @@ func (s *service) Key(ctx context.Context, req *KeyRequest) (*KeyResponse, error
 	}
 
 	if req.Update {
-		if _, _, err := s.update(ctx, kid); err != nil {
+		if _, err := s.updateUser(ctx, kid); err != nil {
 			return nil, err
 		}
 	} else {
@@ -43,14 +43,15 @@ func (s *service) verifyKey(ctx context.Context, kid keys.ID) (*Key, error) {
 	return s.key(ctx, kid)
 }
 
-func (s *service) keyToRPC(ctx context.Context, key *api.Key) (*Key, error) {
+func (s *service) keyToRPC(ctx context.Context, key *api.Key, saved bool) (*Key, error) {
 	if key == nil {
 		return nil, nil
 	}
 	out := &Key{
-		ID:    key.ID.String(),
-		Type:  key.Type,
-		Saved: true,
+		ID:        key.ID.String(),
+		Type:      key.Type,
+		Saved:     saved,
+		IsPrivate: len(key.Private) > 0,
 	}
 
 	if err := s.fillKey(ctx, key.ID, out); err != nil {
@@ -66,18 +67,9 @@ func (s *service) key(ctx context.Context, kid keys.ID) (*Key, error) {
 		return nil, err
 	}
 	if key != nil {
-		return s.keyToRPC(ctx, key)
+		return s.keyToRPC(ctx, key, true)
 	}
-
-	out := &Key{
-		ID:    kid.String(),
-		Type:  string(kid.Type()),
-		Saved: false,
-	}
-	if err := s.fillKey(ctx, kid, out); err != nil {
-		return nil, err
-	}
-	return out, nil
+	return s.keyToRPC(ctx, api.NewKey(kid), false)
 }
 
 func (s *service) fillKey(ctx context.Context, kid keys.ID, key *Key) error {
@@ -85,9 +77,6 @@ func (s *service) fillKey(ctx context.Context, kid keys.ID, key *Key) error {
 	if err != nil {
 		return err
 	}
-
-	// TODO: What if user is stale?
-
 	key.User = userResultToRPC(res)
 
 	// Sigchain info
@@ -234,4 +223,19 @@ func (s *service) x25519Key(kid keys.ID) (*keys.X25519Key, error) {
 		return nil, keys.NewErrNotFound(kid.String())
 	}
 	return bk, nil
+}
+
+func (k *Key) userName() string {
+	if k.User != nil && k.User.ID != "" {
+		return k.User.ID
+	}
+	return k.ID
+}
+
+func keyUserNames(ks []*Key) []string {
+	out := []string{}
+	for _, k := range ks {
+		out = append(out, k.userName())
+	}
+	return out
 }

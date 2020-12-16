@@ -6,18 +6,18 @@ import (
 	"github.com/vmihailenco/msgpack/v4"
 )
 
-// Encrypt to recipients saltpack.
+// Encrypt to recipients using saltpack.
 func Encrypt(i interface{}, sender *keys.EdX25519Key, recipients ...keys.ID) ([]byte, error) {
 	b, err := msgpack.Marshal(i)
 	if err != nil {
 		return nil, err
 	}
-	return saltpack.Signcrypt(b, false, sender, recipients...)
+	return saltpack.Encrypt(b, false, sender.X25519Key(), recipients...)
 }
 
 // Decrypt and unmarshal into value for recipient.
 func Decrypt(b []byte, v interface{}, kr saltpack.Keyring) (keys.ID, error) {
-	dec, pk, err := saltpack.SigncryptOpen(b, false, kr)
+	dec, pk, err := saltpack.Decrypt(b, false, kr)
 	if err != nil {
 		return "", err
 	}

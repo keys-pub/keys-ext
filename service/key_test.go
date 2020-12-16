@@ -79,7 +79,7 @@ func TestFmtKey(t *testing.T) {
 	aliceVk.CreatedAt = now
 	aliceVk.UpdatedAt = now
 
-	ak, err := service.keyToRPC(ctx, aliceVk)
+	ak, err := service.keyToRPC(ctx, aliceVk, true)
 	require.NoError(t, err)
 	var buf bytes.Buffer
 	fmtKey(&buf, ak)
@@ -87,7 +87,7 @@ func TestFmtKey(t *testing.T) {
 
 	testUserSetupGithub(t, env, service, alice, "alice")
 
-	ak2, err := service.keyToRPC(ctx, aliceVk)
+	ak2, err := service.keyToRPC(ctx, aliceVk, true)
 	require.NoError(t, err)
 
 	var buf2 bytes.Buffer
@@ -108,7 +108,7 @@ func TestFmtVerifiedEncrypt(t *testing.T) {
 	now := env.clock.NowMillis()
 	aliceVk.CreatedAt = now
 	aliceVk.UpdatedAt = now
-	ak, err := service.keyToRPC(ctx, aliceVk)
+	ak, err := service.keyToRPC(ctx, aliceVk, true)
 	require.NoError(t, err)
 	var buf bytes.Buffer
 	fmtVerifiedEncrypt(&buf, ak, SaltpackEncrypt)
@@ -116,7 +116,7 @@ func TestFmtVerifiedEncrypt(t *testing.T) {
 
 	testUserSetupGithub(t, env, service, alice, "alice")
 
-	ak2, err := service.keyToRPC(ctx, aliceVk)
+	ak2, err := service.keyToRPC(ctx, aliceVk, true)
 	require.NoError(t, err)
 
 	var buf2 bytes.Buffer
@@ -137,7 +137,7 @@ func TestFmtVerified(t *testing.T) {
 	now := env.clock.NowMillis()
 	aliceVk.CreatedAt = now
 	aliceVk.UpdatedAt = now
-	ak, err := service.keyToRPC(ctx, aliceVk)
+	ak, err := service.keyToRPC(ctx, aliceVk, true)
 	require.NoError(t, err)
 	var buf bytes.Buffer
 	fmtVerified(&buf, ak)
@@ -145,7 +145,7 @@ func TestFmtVerified(t *testing.T) {
 
 	testUserSetupGithub(t, env, service, alice, "alice")
 
-	ak2, err := service.keyToRPC(ctx, aliceVk)
+	ak2, err := service.keyToRPC(ctx, aliceVk, true)
 	require.NoError(t, err)
 
 	var buf2 bytes.Buffer

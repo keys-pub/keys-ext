@@ -30,9 +30,11 @@ func TestMessages(t *testing.T) {
 	testImportKey(t, bobService, bob)
 	testUserSetupGithub(t, env, bobService, bob, "bob")
 
+	testPull(t, aliceService, bob.ID())
+
 	// Alice creates a channel
 	channelCreate, err := aliceService.ChannelCreate(ctx, &ChannelCreateRequest{
-		Name: "Test",
+		Name: "test",
 		User: alice.ID().String(),
 	})
 	require.NoError(t, err)
@@ -48,7 +50,7 @@ func TestMessages(t *testing.T) {
 	require.NoError(t, err)
 
 	// Bob accepts invite
-	_, err = bobService.ChannelInviteAccept(ctx, &ChannelInviteAcceptRequest{
+	_, err = bobService.ChannelJoin(ctx, &ChannelJoinRequest{
 		Channel: channel.ID,
 		User:    bob.ID().String(),
 	})
@@ -61,8 +63,10 @@ func TestMessages(t *testing.T) {
 		Update:  true,
 	})
 	require.NoError(t, err)
-	require.Equal(t, 1, len(messages.Messages))
-	require.Equal(t, []string{`alice set the name to "Test"`}, messages.Messages[0].Text)
+	require.Equal(t, 3, len(messages.Messages))
+	require.Equal(t, []string{`alice@github set the channel name to test`}, messages.Messages[0].Text)
+	require.Equal(t, []string{`alice@github invited [kex1syuhwr4g05t4744r23nvxnr7en9cmz53knhr0gja7c84hr7fkw2quf6zcg]`}, messages.Messages[1].Text)
+	require.Equal(t, []string{`bob@github joined`}, messages.Messages[2].Text)
 
 	// Prepare
 	_, err = aliceService.MessagePrepare(ctx, &MessagePrepareRequest{
@@ -102,14 +106,14 @@ func TestMessages(t *testing.T) {
 		Update:  true,
 	})
 	require.NoError(t, err)
-	require.Equal(t, 4, len(messages.Messages))
+	require.Equal(t, 6, len(messages.Messages))
 
-	require.Equal(t, "am1", messages.Messages[1].Text[0])
-	require.NotNil(t, messages.Messages[1].Sender)
-	require.NotNil(t, messages.Messages[1].Sender.User)
-	require.Equal(t, "alice", messages.Messages[1].Sender.User.Name)
-	require.Equal(t, "am2", messages.Messages[2].Text[0])
-	require.Equal(t, "bm1", messages.Messages[3].Text[0])
+	require.Equal(t, "am1", messages.Messages[3].Text[0])
+	require.NotNil(t, messages.Messages[3].Sender)
+	require.NotNil(t, messages.Messages[3].Sender.User)
+	require.Equal(t, "alice", messages.Messages[3].Sender.User.Name)
+	require.Equal(t, "am2", messages.Messages[4].Text[0])
+	require.Equal(t, "bm1", messages.Messages[5].Text[0])
 
 	_, err = bobService.Pull(ctx, &PullRequest{Key: alice.ID().String()})
 	require.NoError(t, err)
@@ -121,12 +125,12 @@ func TestMessages(t *testing.T) {
 		Update:  true,
 	})
 	require.NoError(t, err)
-	require.Equal(t, 4, len(messages.Messages))
+	require.Equal(t, 6, len(messages.Messages))
 
-	require.Equal(t, "am1", messages.Messages[1].Text[0])
-	require.NotNil(t, messages.Messages[1].Sender)
-	require.NotNil(t, messages.Messages[1].Sender.User)
-	require.Equal(t, "alice", messages.Messages[1].Sender.User.Name)
-	require.Equal(t, "am2", messages.Messages[2].Text[0])
-	require.Equal(t, "bm1", messages.Messages[3].Text[0])
+	require.Equal(t, "am1", messages.Messages[3].Text[0])
+	require.NotNil(t, messages.Messages[3].Sender)
+	require.NotNil(t, messages.Messages[3].Sender.User)
+	require.Equal(t, "alice", messages.Messages[3].Sender.User.Name)
+	require.Equal(t, "am2", messages.Messages[4].Text[0])
+	require.Equal(t, "bm1", messages.Messages[5].Text[0])
 }

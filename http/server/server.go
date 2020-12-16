@@ -8,7 +8,6 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/dstore/events"
-	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keys/users"
@@ -41,9 +40,6 @@ type Server struct {
 
 	// admins are key ids that can do admin actions on the server.
 	admins []keys.ID
-
-	// secretKey for encrypting between internal services.
-	secretKey *[32]byte
 }
 
 // Fire defines interface for remote store (like Firestore).
@@ -70,19 +66,6 @@ func New(fi Fire, rds Redis, req request.Requestor, clock tsutil.Clock, logger L
 // SetInternalAuth for authorizing internal requests, like tasks.
 func (s *Server) SetInternalAuth(internalAuth string) {
 	s.internalAuth = internalAuth
-}
-
-// SetSecretKeyFromHex as (32 byte hex string) for encrypting between internal services.
-func (s *Server) SetSecretKeyFromHex(secretKey string) error {
-	if secretKey == "" {
-		return errors.Errorf("empty secret key")
-	}
-	sk, err := encoding.Decode(secretKey, encoding.Hex)
-	if err != nil {
-		return err
-	}
-	s.secretKey = keys.Bytes32(sk)
-	return nil
 }
 
 // SetAdmins sets authorized admins.
@@ -153,22 +136,22 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	//
 
 	// Channel
-	e.PUT("/channel/:cid", s.putChannel)                         // Create a channel
-	e.GET("/channel/:cid", s.getChannel)                         // Get a channel
-	e.GET("/channel/:cid/users", s.getChannelUsers)              // List channel users
-	e.POST("/channel/:cid/msgs", s.postMessage)                  // Send message
-	e.GET("/channel/:cid/msgs", s.listMessages)                  // List messages
-	e.POST("/channel/:cid/invites", s.postChannelInvites)        // Invite to channel
-	e.DELETE("/channel/:cid/invite/:kid", s.deleteChannelInvite) // Uninvite
-	e.GET("/channel/:cid/invites", s.getChannelInvites)          // List channel invites
+	e.PUT("/channel/:cid", s.putChannel)        // Create a channel
+	e.GET("/channel/:cid", s.getChannel)        // Get a channel
+	e.POST("/channel/:cid/msgs", s.postMessage) // Send message
+	e.GET("/channel/:cid/msgs", s.getMessages)  // List messages
 
-	// User (channels)
-	e.GET("/user/:kid/channels", s.listUserChannels)              // List channels for user
-	e.GET("/user/:kid/invites", s.getUserChannelInvites)          // List invites
-	e.GET("/user/:kid/invite/:cid", s.getUserChannelInvite)       // Get invite
-	e.DELETE("/user/:kid/invite/:cid", s.deleteUserChannelInvite) // Delete invite
-	e.PUT("/user/:kid/channel/:cid", s.putUserChannel)            // Join
-	e.DELETE("/user/:kid/channel/:cid", s.deleteUserChannel)      // Leave
+	// Drop
+	e.POST("/drop/:kid", s.postDrop)      // Create drop
+	e.GET("/drop/:kid", s.getDrops)       // List drops
+	e.DELETE("/drop/:kid", s.deleteDrops) // Delete drops
+
+	// Direct
+	e.POST("/dm/:kid/:token", s.postDirect) // Send direct message
+	e.GET("/dm/:kid", s.getDirects)         // List direct messages
+
+	// Tokens
+	e.POST("/user/:kid/token", s.postUserToken) // Create user token
 
 	// Admin
 	e.POST("/admin/check/:kid", s.adminCheck)

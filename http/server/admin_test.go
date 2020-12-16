@@ -33,14 +33,14 @@ func TestAdminCheck(t *testing.T) {
 	require.Equal(t, "{}", body)
 
 	// POST /admin/check/:kid
-	req, err = http.NewAuthRequest("POST", "/admin/check/"+alice.ID().String(), nil, "", clock.Now(), http.Authorization(bob))
+	req, err = http.NewAuthRequest("POST", "/admin/check/"+alice.ID().String(), nil, "", clock.Now(), bob)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
 	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, body)
 
 	// POST /admin/check/all
-	req, err = http.NewAuthRequest("POST", "/admin/check/"+alice.ID().String(), nil, "", clock.Now(), http.Authorization(bob))
+	req, err = http.NewAuthRequest("POST", "/admin/check/"+alice.ID().String(), nil, "", clock.Now(), bob)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
@@ -50,14 +50,14 @@ func TestAdminCheck(t *testing.T) {
 	srv.Server.SetAdmins([]keys.ID{bob.ID()})
 
 	// POST /admin/check/:kid
-	req, err = http.NewAuthRequest("POST", "/admin/check/"+alice.ID().String(), nil, "", clock.Now(), http.Authorization(bob))
+	req, err = http.NewAuthRequest("POST", "/admin/check/"+alice.ID().String(), nil, "", clock.Now(), bob)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, `{}`, body)
 
 	// POST /admin/check/all
-	req, err = http.NewAuthRequest("POST", "/admin/check/all", nil, "", clock.Now(), http.Authorization(bob))
+	req, err = http.NewAuthRequest("POST", "/admin/check/all", nil, "", clock.Now(), bob)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)

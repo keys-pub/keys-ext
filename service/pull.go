@@ -16,11 +16,11 @@ func (s *service) Pull(ctx context.Context, req *PullRequest) (*PullResponse, er
 		if err != nil {
 			return nil, err
 		}
-		ok, _, err := s.pull(ctx, kid)
+		res, err := s.pullUser(ctx, kid)
 		if err != nil {
 			return nil, err
 		}
-		if !ok {
+		if res == nil {
 			return nil, keys.NewErrNotFound(kid.String())
 		}
 		return &PullResponse{KIDs: []string{kid.String()}}, nil
@@ -33,11 +33,11 @@ func (s *service) Pull(ctx context.Context, req *PullRequest) (*PullResponse, er
 		return nil, errors.Wrapf(err, "failed to load keys")
 	}
 	for _, spk := range spks {
-		ok, _, err := s.pull(ctx, spk.ID())
+		res, err := s.pullUser(ctx, spk.ID())
 		if err != nil {
 			return nil, err
 		}
-		if !ok {
+		if res == nil {
 			// TODO: Report missing
 			continue
 		}
@@ -46,16 +46,14 @@ func (s *service) Pull(ctx context.Context, req *PullRequest) (*PullResponse, er
 	return &PullResponse{KIDs: pulled}, nil
 }
 
-func (s *service) pull(ctx context.Context, kid keys.ID) (bool, *user.Result, error) {
-	logger.Infof("Pull %s", kid)
-
+func (s *service) pullUser(ctx context.Context, kid keys.ID) (*user.Result, error) {
+	logger.Infof("Pull user %s", kid)
 	if err := s.importID(kid); err != nil {
-		return false, nil, err
+		return nil, err
 	}
-
-	ok, res, err := s.update(ctx, kid)
+	res, err := s.updateUser(ctx, kid)
 	if err != nil {
-		return false, nil, err
+		return nil, err
 	}
-	return ok, res, nil
+	return res, nil
 }

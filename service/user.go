@@ -65,11 +65,11 @@ func (s *service) User(ctx context.Context, req *UserRequest) (*UserResponse, er
 				return nil, err
 			}
 			if resp != nil {
-				_, r, err := s.update(ctx, resp.User.KID)
+				res, err := s.updateUser(ctx, resp.User.KID)
 				if err != nil {
 					return nil, err
 				}
-				user = userResultToRPC(r)
+				user = userResultToRPC(res)
 			}
 		}
 	}
@@ -308,8 +308,8 @@ func apiUserToRPC(user *api.User) *User {
 	}
 }
 
-func (s *service) searchRemoteCheckUser(ctx context.Context, userID string) (*User, error) {
-	users, err := s.searchUsersRemote(ctx, userID, 1)
+func (s *service) searchRemoteCheckUser(ctx context.Context, query string) (*User, error) {
+	users, err := s.searchUsersRemote(ctx, query, 1)
 	if err != nil {
 		return nil, err
 	}
@@ -317,14 +317,14 @@ func (s *service) searchRemoteCheckUser(ctx context.Context, userID string) (*Us
 		return nil, nil
 	}
 	user := users[0]
-	if user.ID != userID {
-		return nil, errors.Errorf("user search mismatch %s != %s", user.ID, userID)
+	if user.ID != query {
+		return nil, errors.Errorf("user search mismatch %s != %s", user.ID, query)
 	}
-	_, r, err := s.update(ctx, keys.ID(user.KID))
+	res, err := s.updateUser(ctx, keys.ID(user.KID))
 	if err != nil {
 		return nil, err
 	}
-	return userResultToRPC(r), nil
+	return userResultToRPC(res), nil
 }
 
 func (s *service) searchUsersLocal(ctx context.Context, query string, limit int) ([]*User, error) {
@@ -400,11 +400,11 @@ func (s *service) ensureUserVerified(ctx context.Context, kid keys.ID) error {
 
 	// Our verify expired, re-check.
 	logger.Infof("Checking user %v", res)
-	ok, resNew, err := s.update(ctx, res.User.KID)
+	resNew, err := s.updateUser(ctx, res.User.KID)
 	if err != nil {
 		return err
 	}
-	if !ok {
+	if resNew == nil {
 		return errors.Errorf("failed user update: not found")
 	}
 	if resNew.Status != user.StatusOK {
@@ -413,10 +413,17 @@ func (s *service) ensureUserVerified(ctx context.Context, kid keys.ID) error {
 	return nil
 }
 
-// func (s *service) user(ctx context.Context, kid keys.ID) (*User, error) {
+// func (s *service) user(ctx context.Context, kid keys.ID, pull bool) (*User, error) {
 // 	res, err := s.users.Get(ctx, kid)
 // 	if err != nil {
 // 		return nil, err
+// 	}
+// 	if res == nil && pull {
+// 		r, err := s.pullUser(ctx, kid)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		res = r
 // 	}
 // 	return userResultToRPC(res), nil
 // }

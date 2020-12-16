@@ -65,8 +65,8 @@ func TestChannel(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// Bob accepts invite
-	_, err = bobService.ChannelInviteAccept(ctx, &ChannelInviteAcceptRequest{
+	// Bob joins (accepts invite)
+	_, err = bobService.ChannelJoin(ctx, &ChannelJoinRequest{
 		Channel: cid,
 		User:    bob.ID().String(),
 	})

@@ -20,10 +20,10 @@ require (
 	google.golang.org/api v0.35.0
 )
 
-// replace github.com/keys-pub/keys => ../../../keys
+replace github.com/keys-pub/keys => ../../../keys
 
-// replace github.com/keys-pub/keys-ext/http/api => ../api
+replace github.com/keys-pub/keys-ext/http/api => ../api
 
 // replace github.com/keys-pub/keys-ext/firestore => ../../firestore
 
-// replace github.com/keys-pub/keys-ext/ws/api => ../../ws/api
+replace github.com/keys-pub/keys-ext/ws/api => ../../ws/api

@@ -2,7 +2,6 @@ package server
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/dstore/events"
@@ -14,21 +13,14 @@ func (s *Server) events(c echo.Context, path string, max int) (*api.EventsRespon
 	request := c.Request()
 	ctx := request.Context()
 
-	var index int
-	if f := c.QueryParam("idx"); f != "" {
-		i, err := strconv.Atoi(f)
-		if err != nil {
-			return nil, ErrResponse(c, http.StatusBadRequest, errors.Wrapf(err, "invalid index"))
-		}
-		index = i
+	index, err := queryParamInt(c, "idx", 0)
+	if err != nil {
+		return nil, ErrResponse(c, http.StatusBadRequest, err)
 	}
-	var limit int
-	if f := c.QueryParam("limit"); f != "" {
-		n, err := strconv.Atoi(f)
-		if err != nil {
-			return nil, ErrResponse(c, http.StatusBadRequest, errors.Wrapf(err, "invalid limit"))
-		}
-		limit = n
+
+	limit, err := queryParamInt(c, "limit", 0)
+	if err != nil {
+		return nil, ErrResponse(c, http.StatusBadRequest, err)
 	}
 
 	if limit == 0 || limit > max {
