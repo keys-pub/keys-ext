@@ -142,16 +142,15 @@ func (s *service) KeyGenerate(ctx context.Context, req *KeyGenerateRequest) (*Ke
 	now := s.clock.NowMillis()
 	vk.CreatedAt = now
 	vk.UpdatedAt = now
-	out, _, err := s.vault.SaveKey(vk)
-	if err != nil {
+	if err := s.vault.SaveKey(vk); err != nil {
 		return nil, err
 	}
-	if err := s.scs.Index(out.ID); err != nil {
+	if err := s.scs.Index(vk.ID); err != nil {
 		return nil, err
 	}
 
 	return &KeyGenerateResponse{
-		KID: out.ID.String(),
+		KID: vk.ID.String(),
 	}, nil
 }
 

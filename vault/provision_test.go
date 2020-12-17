@@ -84,7 +84,7 @@ func TestProvisionMarshal(t *testing.T) {
  00000010  46 44 38 4a 32 76 47 78  73 61 62 6f 57 37 72 5a  |FD8J2vGxsaboW7rZ|
  00000020  59 6e 51 52 42 50 35 64  39 65 72 77 52 77 64 32  |YnQRBP5d9erwRwd2|
  00000030  39 a4 74 79 70 65 a8 70  61 73 73 77 6f 72 64 a3  |9.type.password.|
- 00000040  63 74 73 d7 ff 00 7a 12  00 49 96 02 d2 a6 61 61  |cts...z..I....aa|
+ 00000040  63 74 73 d7 ff 00 b7 1b  00 49 96 02 d2 a6 61 61  |cts......I....aa|
  00000050  67 75 69 64 a3 31 32 33  a4 73 61 6c 74 c4 20 02  |guid.123.salt. .|
  00000060  02 02 02 02 02 02 02 02  02 02 02 02 02 02 02 02  |................|
  00000070  02 02 02 02 02 02 02 02  02 02 02 02 02 02 02 a5  |................|
@@ -98,7 +98,7 @@ func TestProvisionMarshal(t *testing.T) {
 	expectedJSON := `{
   "id": "0El6XFXwsUFD8J2vGxsaboW7rZYnQRBP5d9erwRwd29",
   "type": "password",
-  "cts": "2009-02-13T23:31:30.002Z",
+  "cts": "2009-02-13T23:31:30.003Z",
   "aaguid": "123",
   "salt": "AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI=",
   "nopin": true

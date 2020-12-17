@@ -1,8 +1,6 @@
 package vault
 
 import (
-	"time"
-
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/dstore"
 	"github.com/pkg/errors"
@@ -163,7 +161,7 @@ func (v *Vault) authCreate(id string, key *[32]byte, mk *[32]byte) error {
 	if id == "" {
 		return errors.Errorf("no auth id")
 	}
-	item := NewItem(id, mk[:], "", time.Now())
+	item := NewItem(id, mk[:], "", v.Now())
 	b, err := encryptItem(item, key)
 	if err != nil {
 		return err

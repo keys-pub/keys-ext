@@ -4,6 +4,8 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/keys-pub/keys-ext/vault"
+
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/api"
 	"github.com/stretchr/testify/require"
@@ -18,11 +20,8 @@ func TestSaveKeyDelete(t *testing.T) {
 	vk := api.NewKey(sk)
 	require.NoError(t, err)
 
-	out, updated, err := vlt.SaveKey(vk)
+	err = vlt.SaveKey(vk)
 	require.NoError(t, err)
-	require.False(t, updated)
-	require.NotEmpty(t, out.CreatedAt)
-	require.NotEmpty(t, out.UpdatedAt)
 
 	key, err := vlt.Key(sk.ID())
 	require.NoError(t, err)
@@ -35,7 +34,7 @@ func TestSaveKeyDelete(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, ok)
 
-	out, err = vlt.Key(sk.ID())
+	out, err := vlt.Key(sk.ID())
 	require.NoError(t, err)
 	require.Nil(t, out)
 
@@ -51,7 +50,7 @@ func TestStoreConcurrent(t *testing.T) {
 
 	sk := keys.GenerateEdX25519Key()
 	key := api.NewKey(sk)
-	_, _, err = vlt.SaveKey(key)
+	err = vlt.SaveKey(key)
 	require.NoError(t, err)
 
 	wg := sync.WaitGroup{}
@@ -79,7 +78,7 @@ func TestExportImportKey(t *testing.T) {
 
 	sk := keys.GenerateEdX25519Key()
 	key := api.NewKey(sk)
-	_, _, err = vlt.SaveKey(key)
+	err = vlt.SaveKey(key)
 	require.NoError(t, err)
 
 	password := "testpassword"
@@ -92,4 +91,24 @@ func TestExportImportKey(t *testing.T) {
 	out, err := vlt2.ImportSaltpack(msg, "testpassword", false)
 	require.NoError(t, err)
 	require.Equal(t, sk.ID(), out.ID)
+}
+
+func TestKeysV1(t *testing.T) {
+	var err error
+	vlt, closeFn := NewTestVault(t, &TestVaultOptions{Unlock: true})
+	defer closeFn()
+
+	sk := keys.GenerateEdX25519Key()
+
+	// Set v1 key
+	item := vault.NewItem(sk.ID().String(), sk.Private(), "edx25519", vlt.Now())
+	err = vlt.Set(item)
+	require.NoError(t, err)
+
+	// Overwrite key
+	err = vlt.SaveKey(api.NewKey(sk))
+
+	out, err := vlt.Keys()
+	require.NoError(t, err)
+	require.NotEmpty(t, out)
 }

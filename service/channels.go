@@ -57,7 +57,7 @@ func (s *service) ChannelCreate(ctx context.Context, req *ChannelCreateRequest) 
 		return nil, err
 	}
 
-	if _, _, err := s.vault.SaveKey(kapi.NewKey(channelKey)); err != nil {
+	if err := s.vault.SaveKey(kapi.NewKey(channelKey)); err != nil {
 		return nil, err
 	}
 

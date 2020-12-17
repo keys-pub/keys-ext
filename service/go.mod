@@ -57,7 +57,7 @@ replace github.com/keys-pub/keys-ext/http/client => ../http/client
 
 replace github.com/keys-pub/keys-ext/http/server => ../http/server
 
-// replace github.com/keys-pub/keys-ext/vault => ../vault
+replace github.com/keys-pub/keys-ext/vault => ../vault
 
 // replace github.com/keys-pub/keys-ext/wormhole => ../wormhole
 

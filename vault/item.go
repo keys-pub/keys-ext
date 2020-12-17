@@ -16,7 +16,6 @@ type Item struct {
 	Type string `msgpack:"typ,omitempty"`
 
 	// CreatedAt when item was created.
-	// TODO: Updated at
 	CreatedAt time.Time `msgpack:"cts,omitempty"`
 
 	// TODO: Specify prev item (for chaining).
