@@ -23,17 +23,16 @@ func (s *service) KeyImport(ctx context.Context, req *KeyImportRequest) (*KeyImp
 	if vk.UpdatedAt == 0 {
 		vk.UpdatedAt = now
 	}
-	out, _, err := s.vault.SaveKey(vk)
-	if err != nil {
+	if err := s.vault.SaveKey(vk); err != nil {
 		return nil, err
 	}
 
-	if _, _, err := s.update(ctx, out.ID); err != nil {
+	if _, err := s.updateUser(ctx, key.ID()); err != nil {
 		return nil, err
 	}
 
 	return &KeyImportResponse{
-		KID: out.ID.String(),
+		KID: key.ID().String(),
 	}, nil
 }
 
@@ -48,13 +47,9 @@ func (s *service) importID(id keys.ID) error {
 	}
 	vk := api.NewKey(id)
 	now := s.clock.NowMillis()
-	if vk.CreatedAt == 0 {
-		vk.CreatedAt = now
-	}
-	if vk.UpdatedAt == 0 {
-		vk.UpdatedAt = now
-	}
-	if _, _, err := s.vault.SaveKey(vk); err != nil {
+	vk.CreatedAt = now
+	vk.UpdatedAt = now
+	if err := s.vault.SaveKey(vk); err != nil {
 		return err
 	}
 	if err := s.scs.Index(id); err != nil {

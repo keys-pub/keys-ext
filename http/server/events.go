@@ -2,7 +2,6 @@ package server
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/dstore/events"
@@ -10,32 +9,25 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *Server) events(c echo.Context, path string, max int) (*api.EventsResponse, error) {
+func (s *Server) events(c echo.Context, path string, max int) (*api.EventsResponse, int, error) {
 	request := c.Request()
 	ctx := request.Context()
 
-	var index int
-	if f := c.QueryParam("idx"); f != "" {
-		i, err := strconv.Atoi(f)
-		if err != nil {
-			return nil, ErrResponse(c, http.StatusBadRequest, errors.Wrapf(err, "invalid index"))
-		}
-		index = i
+	index, err := queryParamInt(c, "idx", 0)
+	if err != nil {
+		return nil, http.StatusBadRequest, err
 	}
-	var limit int
-	if f := c.QueryParam("limit"); f != "" {
-		n, err := strconv.Atoi(f)
-		if err != nil {
-			return nil, ErrResponse(c, http.StatusBadRequest, errors.Wrapf(err, "invalid limit"))
-		}
-		limit = n
+
+	limit, err := queryParamInt(c, "limit", 0)
+	if err != nil {
+		return nil, http.StatusBadRequest, err
 	}
 
 	if limit == 0 || limit > max {
 		limit = max
 	}
 
-	pdir := c.QueryParam("dir")
+	pdir := c.QueryParam("order")
 	if pdir == "" {
 		pdir = "asc"
 	}
@@ -47,13 +39,13 @@ func (s *Server) events(c echo.Context, path string, max int) (*api.EventsRespon
 	case "desc":
 		dir = events.Descending
 	default:
-		return nil, ErrResponse(c, http.StatusBadRequest, errors.Errorf("invalid dir"))
+		return nil, http.StatusBadRequest, errors.Errorf("invalid order")
 	}
 
 	s.logger.Infof("Events %s (from=%d)", path, index)
 	iter, err := s.fi.Events(ctx, path, events.Index(int64(index)), events.Limit(int64(limit)), events.WithDirection(dir))
 	if err != nil {
-		return nil, s.internalError(c, err)
+		return nil, http.StatusInternalServerError, err
 	}
 	defer iter.Release()
 	to := int64(index)
@@ -61,7 +53,7 @@ func (s *Server) events(c echo.Context, path string, max int) (*api.EventsRespon
 	for {
 		event, err := iter.Next()
 		if err != nil {
-			return nil, s.internalError(c, err)
+			return nil, http.StatusInternalServerError, err
 		}
 		if event == nil {
 			break
@@ -74,5 +66,5 @@ func (s *Server) events(c echo.Context, path string, max int) (*api.EventsRespon
 	return &api.EventsResponse{
 		Events: events,
 		Index:  to,
-	}, nil
+	}, http.StatusOK, nil
 }

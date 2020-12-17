@@ -5,13 +5,14 @@ import (
 	"strings"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/user"
 	"github.com/pkg/errors"
 )
 
 // lookupOpts are options for key lookups.
 type lookupOpts struct {
-	// Verify makes sure the key and user is verified and the verification is up to date.
-	Verify bool
+	// VerifyUser makes sure the user is verified.
+	VerifyUser bool
 	// SearchRemote to look for the key on the server if not found locally.
 	SearchRemote bool
 }
@@ -33,9 +34,16 @@ func (s *service) lookup(ctx context.Context, key string, opts *lookupOpts) (key
 		return "", keys.NewErrNotFound(key)
 	}
 
-	if opts.Verify {
-		if err := s.ensureUserVerified(ctx, kid); err != nil {
+	if opts.VerifyUser {
+		res, err := s.users.Get(ctx, kid)
+		if err != nil {
 			return "", err
+		}
+		if res == nil {
+			return kid, nil
+		}
+		if res.Status != user.StatusOK {
+			return "", errors.Errorf("user %s has failed status %s", res.User.ID(), res.Status)
 		}
 	}
 

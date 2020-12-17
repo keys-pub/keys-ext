@@ -64,7 +64,7 @@ func (s *Server) getSigchain(c echo.Context) error {
 	s.logger.Infof("Loading sigchain: %s", kid)
 	sc, md, err := s.sigchain(c, kid)
 	if err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 	if sc.Length() == 0 {
 		return ErrNotFound(c, errors.Errorf("sigchain not found"))
@@ -98,7 +98,7 @@ func (s *Server) getSigchainStatement(c echo.Context) error {
 		return ErrNotFound(c, errors.Errorf("statement not found"))
 	}
 	if err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 	if !doc.CreatedAt.IsZero() {
 		c.Response().Header().Set("CreatedAt", doc.CreatedAt.Format(http.TimeFormat))
@@ -122,7 +122,7 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 
 	b, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 	st, err := s.statementFromBytes(ctx, b)
 	if err != nil {
@@ -146,7 +146,7 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 
 	exists, err := s.fi.Exists(ctx, path)
 	if err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 	if exists {
 		return ErrConflict(c, errors.Errorf("statement already exists"))
@@ -154,7 +154,7 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 
 	sc, _, err := s.sigchain(c, st.KID)
 	if err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 
 	if sc.Length() >= 1024 {
@@ -176,26 +176,26 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 	// it will limit them. If we find spaming this is a problem, we can get more strict.
 	existing, err := s.users.CheckForExisting(ctx, sc)
 	if err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 	if existing != "" {
 		if err := s.checkKID(ctx, existing, HighPriority); err != nil {
-			return s.internalError(c, err)
+			return ErrInternalServer(c, err)
 		}
 		return ErrResponse(c, http.StatusConflict, errors.Errorf("user already exists with key %s, if you removed or revoked the previous statement you may need to wait briefly for search to update", existing))
 	}
 
 	s.logger.Infof("Statement, set %s", path)
 	if err := s.fi.Create(ctx, path, dstore.Data(b)); err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 
 	if err := s.sigchains.Index(st.KID); err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 
 	if err := s.checkKID(ctx, st.KID, HighPriority); err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 
 	var resp struct{}

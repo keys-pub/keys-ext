@@ -26,7 +26,7 @@ func (s *Server) listVault(c echo.Context) error {
 
 	deleted, err := s.isVaultDeleted(c, auth.KID)
 	if err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 	if deleted {
 		return ErrNotFound(c, errVaultDeleted)
@@ -34,9 +34,9 @@ func (s *Server) listVault(c echo.Context) error {
 
 	limit := 1000
 	path := dstore.Path("vaults", auth.KID)
-	resp, err := s.events(c, path, limit)
+	resp, st, err := s.events(c, path, limit)
 	if err != nil {
-		return err
+		return ErrResponse(c, st, err)
 	}
 	if len(resp.Events) == 0 && resp.Index == 0 {
 		return ErrNotFound(c, errVaultNotFound)
@@ -65,7 +65,7 @@ func (s *Server) postVault(c echo.Context) error {
 	}
 	b, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 
 	auth, err := s.auth(c, newAuth("Authorization", "kid", b))
@@ -75,7 +75,7 @@ func (s *Server) postVault(c echo.Context) error {
 
 	deleted, err := s.isVaultDeleted(c, auth.KID)
 	if err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 	if deleted {
 		return ErrNotFound(c, errVaultDeleted)
@@ -93,7 +93,7 @@ func (s *Server) postVault(c echo.Context) error {
 		data = append(data, d.Data)
 	}
 	if _, _, err := s.fi.EventsAdd(ctx, cpath, data); err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 
 	var out struct{}
@@ -111,20 +111,20 @@ func (s *Server) deleteVault(c echo.Context) error {
 
 	deleted, err := s.isVaultDeleted(c, auth.KID)
 	if err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 	if deleted {
 		return ErrNotFound(c, errVaultDeleted)
 	}
 
 	if err := s.setVaultDeleted(c, auth.KID); err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 
 	cpath := dstore.Path("vaults", auth.KID)
 	exists, err := s.fi.EventsDelete(ctx, cpath)
 	if err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 	if !exists {
 		return ErrNotFound(c, errVaultNotFound)
@@ -145,7 +145,7 @@ func (s *Server) headVault(c echo.Context) error {
 
 	deleted, err := s.isVaultDeleted(c, auth.KID)
 	if err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 	if deleted {
 		return ErrNotFound(c, errVaultDeleted)
@@ -154,12 +154,12 @@ func (s *Server) headVault(c echo.Context) error {
 	path := dstore.Path("vaults", auth.KID)
 	iter, err := s.fi.Events(ctx, path, events.Limit(1))
 	if err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 	defer iter.Release()
 	event, err := iter.Next()
 	if err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 	if event == nil {
 		return ErrNotFound(c, errVaultNotFound)

@@ -1,7 +1,6 @@
 package service
 
 import (
-	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/base32"
@@ -57,9 +56,9 @@ func testFire(t *testing.T, clock tsutil.Clock) server.Fire {
 	return fi
 }
 
-func testSeed(b byte) *[32]byte {
-	return keys.Bytes32(bytes.Repeat([]byte{b}, 32))
-}
+// func testSeed(b byte) *[32]byte {
+// 	return keys.Bytes32(bytes.Repeat([]byte{b}, 32))
+// }
 
 type testEnv struct {
 	clock tsutil.Clock
@@ -277,7 +276,6 @@ func newTestServerEnv(t *testing.T, env *testEnv) *serverEnv {
 	tasks := server.NewTestTasks(srv)
 	srv.SetTasks(tasks)
 	srv.SetInternalAuth("testtoken")
-	_ = srv.SetSecretKeyFromHex("6a169a699f7683c04d127504a12ace3b326e8b56a61a9b315cf6b42e20d6a44a")
 	handler := server.NewHandler(srv)
 	testServer := httptest.NewServer(handler)
 	srv.URL = testServer.URL
@@ -290,14 +288,6 @@ func newTestServerEnv(t *testing.T, env *testEnv) *serverEnv {
 		closeFn: closeFn,
 	}
 }
-
-// func spewService(t *testing.T, service *service) {
-// 	iter, iterErr := service.db.Documents(context.TODO(), "")
-// 	require.NoError(t, iterErr)
-// 	spew, err := dstore.Spew(iter)
-// 	require.NoError(t, err)
-// 	t.Logf(spew.String())
-// }
 
 func TestRuntimeStatus(t *testing.T) {
 	env := newTestEnv(t)

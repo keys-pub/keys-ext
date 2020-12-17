@@ -162,7 +162,8 @@ func attestationToRPC(in *libfido2.Attestation) *fido2.Attestation {
 
 func assertionToRPC(in *libfido2.Assertion) *fido2.Assertion {
 	return &fido2.Assertion{
-		AuthData:   in.AuthData,
+		// TODO: Change to AuthDataCBOR
+		AuthData:   in.AuthDataCBOR,
 		Sig:        in.Sig,
 		HMACSecret: in.HMACSecret,
 	}

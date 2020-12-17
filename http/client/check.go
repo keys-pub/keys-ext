@@ -5,7 +5,6 @@ import (
 	"net/url"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/http"
 )
 
 // Check user & sigchain associated with edx25519 key.
@@ -13,7 +12,7 @@ import (
 // to do it right away.
 func (c *Client) Check(ctx context.Context, key *keys.EdX25519Key) error {
 	params := url.Values{}
-	_, err := c.post(ctx, "/check", params, nil, "", http.Authorization(key))
+	_, err := c.post(ctx, "/check", params, nil, "", key)
 	if err != nil {
 		return err
 	}

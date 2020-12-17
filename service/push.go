@@ -10,7 +10,7 @@ import (
 
 // Push (RPC) publishes sigchain statements.
 func (s *service) Push(ctx context.Context, req *PushRequest) (*PushResponse, error) {
-	kid, err := s.lookup(ctx, req.Key, &lookupOpts{Verify: true})
+	kid, err := s.lookup(ctx, req.Key, &lookupOpts{VerifyUser: true})
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +95,7 @@ func (s *service) push(ctx context.Context, kid keys.ID) ([]string, error) {
 	}
 
 	// TODO: instead of pulling, save resource from push
-	if _, _, err := s.pull(ctx, kid); err != nil {
+	if _, err := s.pullUser(ctx, kid); err != nil {
 		return nil, err
 	}
 

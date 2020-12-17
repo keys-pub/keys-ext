@@ -85,7 +85,6 @@ func newTestServer(t *testing.T, env *env) *testServer {
 	srv := server.New(env.fi, rds, env.req, env.clock, server.NewLogger(env.logLevel))
 	tasks := server.NewTestTasks(srv)
 	srv.SetTasks(tasks)
-	_ = srv.SetSecretKeyFromHex("6a169a699f7683c04d127504a12ace3b326e8b56a61a9b315cf6b42e20d6a44a")
 	srv.SetInternalAuth(encoding.MustEncode(keys.RandBytes(32), encoding.Base62))
 	srv.SetClock(env.clock)
 	handler := server.NewHandler(srv)

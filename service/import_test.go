@@ -60,3 +60,29 @@ func TestKeyImport(t *testing.T) {
 	_, err = service.KeyImport(ctx, &KeyImportRequest{In: []byte{}})
 	require.EqualError(t, err, "unknown key format")
 }
+
+func TestKeyImportSaltpack(t *testing.T) {
+	msg := `BEGIN EDX25519 KEY MESSAGE.
+	9tyMV66eX002JQT sWFyRoiUzCV1DFS Fl2nbyGGteXmU9M XoQcx1V9CKdUCPM
+	EoszEpADNLrqULM 2MAcI8XOXSIsAFk 5peBObhA0I9IAZS OOkLndOHMOGHGCd
+	dtMkQg08U1C4RtH PMpMj1RyNz9CyBF dNS9qrctSt0r.
+	END EDX25519 KEY MESSAGE.`
+
+	env := newTestEnv(t)
+	service, closeFn := newTestService(t, env)
+	defer closeFn()
+	ctx := context.TODO()
+	testAuthSetup(t, service)
+
+	importResp, err := service.KeyImport(ctx, &KeyImportRequest{
+		In:       []byte(msg),
+		Password: "",
+	})
+	require.NoError(t, err)
+	require.Equal(t, "kex16v9uk4t5wykkklpkrcane3p267n8eu95y3fd55yv4h45m6ku3hyqx2a5fn", importResp.KID)
+
+	keysResp, err := service.Keys(ctx, &KeysRequest{})
+	require.NoError(t, err)
+	require.Equal(t, 1, len(keysResp.Keys))
+	require.Equal(t, "kex16v9uk4t5wykkklpkrcane3p267n8eu95y3fd55yv4h45m6ku3hyqx2a5fn", keysResp.Keys[0].ID)
+}

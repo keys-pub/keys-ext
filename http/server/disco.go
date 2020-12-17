@@ -33,7 +33,7 @@ func (s *Server) putDisco(c echo.Context) error {
 
 	b, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 
 	if len(b) > 256 {
@@ -63,14 +63,11 @@ func (s *Server) putDisco(c echo.Context) error {
 		return ErrBadRequest(c, errors.Errorf("invalid type"))
 	}
 
-	expire := time.Second * 15
-	if c.QueryParam("expire") != "" {
-		e, err := time.ParseDuration(c.QueryParam("expire"))
-		if err != nil {
-			return ErrBadRequest(c, err)
-		}
-		expire = e
+	expire, err := queryParamDuration(c, "expire", time.Second*15)
+	if err != nil {
+		return ErrBadRequest(c, err)
 	}
+
 	if len(expire.String()) > 64 {
 		return ErrBadRequest(c, errors.Errorf("invalid expire"))
 	}
@@ -80,11 +77,11 @@ func (s *Server) putDisco(c echo.Context) error {
 
 	key := discoKey(auth.KID, rid, typ)
 	if err := s.rds.Set(ctx, key, string(b)); err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 
 	if err := s.rds.Expire(ctx, key, expire); err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 
 	var resp struct{}
@@ -120,14 +117,14 @@ func (s *Server) getDisco(c echo.Context) error {
 	key := discoKey(kid, auth.KID, typ)
 	out, err := s.rds.Get(ctx, key)
 	if err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 	if out == "" {
 		return ErrNotFound(c, nil)
 	}
 	// Delete after get
 	if err := s.rds.Delete(ctx, key); err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 	return c.Blob(http.StatusOK, echo.MIMEOctetStream, []byte(out))
 }
@@ -152,11 +149,11 @@ func (s *Server) deleteDisco(c echo.Context) error {
 
 	okey := discoKey(auth.KID, rid, "offer")
 	if err := s.rds.Delete(ctx, okey); err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 	akey := discoKey(auth.KID, rid, "answer")
 	if err := s.rds.Delete(ctx, akey); err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 
 	var resp struct{}

@@ -78,7 +78,7 @@ func (s *Server) taskCheck(c echo.Context) error {
 	}
 
 	if _, err := s.users.Update(ctx, kid); err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 	return c.String(http.StatusOK, "")
 }
@@ -114,12 +114,12 @@ func (s *Server) cronCheck(c echo.Context) error {
 	// TODO: Need to test this
 
 	if err := s.checkUserStatus(ctx, user.StatusConnFailure); err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 
 	// Check expired
 	if err := s.checkExpired(ctx, time.Hour*12, time.Hour*24*60); err != nil {
-		return s.internalError(c, err)
+		return ErrInternalServer(c, err)
 	}
 
 	return c.String(http.StatusOK, "")

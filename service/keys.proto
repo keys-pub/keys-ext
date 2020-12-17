@@ -104,9 +104,7 @@ service Keys {
   // Channels
   rpc Channels(ChannelsRequest) returns (ChannelsResponse) {}
   rpc ChannelCreate(ChannelCreateRequest) returns (ChannelCreateResponse) {}
-  rpc ChannelInvitesCreate(ChannelInvitesCreateRequest) returns (ChannelInvitesCreateResponse) {}
-  rpc ChannelInviteAccept(ChannelInviteAcceptRequest) returns (ChannelInviteAcceptResponse) {}
- 
+  
   // Messages
   rpc MessagePrepare(MessagePrepareRequest) returns (MessagePrepareResponse) {}
   rpc MessageCreate(MessageCreateRequest) returns (MessageCreateResponse) {}
@@ -612,10 +610,13 @@ message Key {
   string id = 1 [(go.field) = {name: "ID"}];
   // Type of key.
   string type = 3;
+  // IsPrivate if private key.
+  bool isPrivate = 4;
   // User associated with this key.
   User user = 6;  
   // Saved if saved locally.
-  bool saved = 10;  
+  bool saved = 10;
+  
 
   // SigchainLength is length of sigchain (if any).
   int32 sigchainLength = 40;
@@ -645,10 +646,10 @@ enum SortDirection {
 
 message KeysRequest {
   string query = 1;
-  repeated string types = 2;  
+  repeated string types = 2; 
 
   string sortField = 10;
-  SortDirection sortDirection = 11;  
+  SortDirection sortDirection = 11;
 }
 message KeysResponse {
   repeated Key keys = 1;
@@ -967,19 +968,6 @@ message ChannelCreateRequest {
 message ChannelCreateResponse {
   Channel channel = 1;
 }
-
-message ChannelInvitesCreateRequest {
-  string channel = 1;    
-  string sender = 2;
-  repeated string recipients = 3;
-}
-message ChannelInvitesCreateResponse {}
-
-message ChannelInviteAcceptRequest {
-  string channel = 1;
-  string user = 2; 
-}
-message ChannelInviteAcceptResponse {}
 
 message AdminSignURLRequest {
   string signer = 1;

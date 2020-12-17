@@ -26,14 +26,14 @@ func (s *service) newEncrypt(ctx context.Context, recipients []string, sender st
 
 	var skid keys.ID
 	if sender != "" {
-		s, err := s.lookup(ctx, sender, &lookupOpts{Verify: true})
+		s, err := s.lookup(ctx, sender, &lookupOpts{VerifyUser: true})
 		if err != nil {
 			return nil, err
 		}
 		skid = s
 	}
 
-	recs, err := s.lookupAll(ctx, recipients, &lookupOpts{Verify: true})
+	recs, err := s.lookupAll(ctx, recipients, &lookupOpts{VerifyUser: true})
 	if err != nil {
 		return nil, err
 	}

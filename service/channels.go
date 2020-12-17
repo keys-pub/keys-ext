@@ -36,6 +36,10 @@ func (s *service) ChannelCreate(ctx context.Context, req *ChannelCreateRequest) 
 	if name == "" {
 		return nil, errors.Errorf("no channel name specified")
 	}
+	if len(name) > 16 {
+		return nil, errors.Errorf("channel name too long (must be < 16)")
+	}
+
 	user, err := s.lookup(ctx, req.User, nil)
 	if err != nil {
 		return nil, err
@@ -48,18 +52,12 @@ func (s *service) ChannelCreate(ctx context.Context, req *ChannelCreateRequest) 
 	// Create channel key
 	channelKey := keys.GenerateEdX25519Key()
 
-	if err := s.client.ChannelCreate(ctx, channelKey, userKey); err != nil {
+	info := &api.ChannelInfo{Name: name}
+	if _, err := s.client.ChannelCreate(ctx, channelKey, userKey, info); err != nil {
 		return nil, err
 	}
 
-	if _, _, err := s.vault.SaveKey(kapi.NewKey(channelKey)); err != nil {
-		return nil, err
-	}
-
-	msg := api.NewMessage()
-	msg.ChannelInfo = &api.ChannelInfo{Name: name}
-	msg.Timestamp = s.clock.NowMillis()
-	if err := s.client.MessageSend(ctx, msg, userKey, channelKey); err != nil {
+	if err := s.vault.SaveKey(kapi.NewKey(channelKey)); err != nil {
 		return nil, err
 	}
 
@@ -70,76 +68,6 @@ func (s *service) ChannelCreate(ctx context.Context, req *ChannelCreateRequest) 
 	}, nil
 }
 
-func (s *service) ChannelInvitesCreate(ctx context.Context, req *ChannelInvitesCreateRequest) (*ChannelInvitesCreateResponse, error) {
-	cid, err := keys.ParseID(req.Channel)
-	if err != nil {
-		return nil, errors.Wrapf(err, "invalid channel")
-	}
-	channel, err := s.edx25519Key(cid)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get channel key")
-	}
-	sid, err := s.lookup(ctx, req.Sender, nil)
-	if err != nil {
-		return nil, err
-	}
-	sender, err := s.edx25519Key(sid)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get sender key")
-	}
-
-	rids := make([]keys.ID, 0, len(req.Recipients))
-	for _, invite := range req.Recipients {
-		rid, err := s.lookup(ctx, invite, &lookupOpts{Verify: true})
-		if err != nil {
-			return nil, err
-		}
-		rids = append(rids, rid)
-	}
-
-	if err := s.client.InviteToChannel(ctx, channel, sender, rids...); err != nil {
-		return nil, err
-	}
-	return &ChannelInvitesCreateResponse{}, nil
-}
-
-func (s *service) ChannelInviteAccept(ctx context.Context, req *ChannelInviteAcceptRequest) (*ChannelInviteAcceptResponse, error) {
-	cid, err := keys.ParseID(req.Channel)
-	if err != nil {
-		return nil, errors.Wrapf(err, "invalid channel")
-	}
-	uid, err := s.lookup(ctx, req.User, nil)
-	if err != nil {
-		return nil, err
-	}
-	user, err := s.edx25519Key(uid)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get key")
-	}
-
-	// Get invite.
-	invite, err := s.client.UserChannelInvite(ctx, user, cid)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get invite")
-	}
-
-	// Save key.
-	channel, _, err := invite.Key(user)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to decrypt channel key")
-	}
-	if _, _, err := s.vault.SaveKey(kapi.NewKey(channel)); err != nil {
-		return nil, err
-	}
-
-	// Accept invite.
-	if err := s.client.ChannelInviteAccept(ctx, user, channel); err != nil {
-		return nil, err
-	}
-
-	return &ChannelInviteAcceptResponse{}, nil
-}
-
 type channelsState struct {
 	Channels []*api.Channel `json:"channels"`
 }
@@ -147,14 +75,15 @@ type channelsState struct {
 func (s *service) pullChannels(ctx context.Context, user keys.ID) error {
 	logger.Infof("Pull channels (%s)...", user)
 
-	userKey, err := s.edx25519Key(user)
-	if err != nil {
-		return err
-	}
-	channels, err := s.client.UserChannels(ctx, userKey)
-	if err != nil {
-		return err
-	}
+	// userKey, err := s.edx25519Key(user)
+	// if err != nil {
+	// 	return err
+	// }
+	channels := []*api.Channel{}
+	// channels, err := s.client.Channels(ctx, userKey)
+	// if err != nil {
+	// 	return err
+	// }
 	sort.Slice(channels, func(i, j int) bool {
 		return channels[i].Timestamp > channels[j].Timestamp
 	})
@@ -166,14 +95,19 @@ func (s *service) pullChannels(ctx context.Context, user keys.ID) error {
 
 	// TODO: Pull channels in a single (bulk) call
 	for _, channel := range channels {
-		pullState, err := s.channelPullState(ctx, channel.ID)
-		if err != nil {
-			return err
-		}
-
-		if pullState.Index < channel.Index {
-			if err := s.pullMessages(ctx, channel.ID, user); err != nil {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+			pullState, err := s.channelPullState(ctx, channel.ID)
+			if err != nil {
 				return err
+			}
+
+			if pullState.Index < channel.Index {
+				if err := s.pullMessages(ctx, channel.ID, user); err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -199,6 +133,7 @@ func (s *service) channel(ctx context.Context, channel keys.ID) (*Channel, error
 	}
 	if !ok {
 		return &Channel{
+			ID:   channel.String(),
 			Name: channel.String(),
 		}, nil
 	}
@@ -211,6 +146,14 @@ func (s *service) channel(ctx context.Context, channel keys.ID) (*Channel, error
 		Index:     info.Index,
 	}, nil
 }
+
+// func (s *service) channelInfo(ctx context.Context, channel keys.ID) (*api.ChannelInfo, error) {
+// 	ch, err := s.channel(ctx, channel)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return &api.ChannelInfo{Name: ch.Name}, nil
+// }
 
 func (s *service) channels(ctx context.Context, users keys.ID) ([]*Channel, error) {
 	path := dstore.Path("users", users, "channels")

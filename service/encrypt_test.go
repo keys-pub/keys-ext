@@ -8,7 +8,6 @@ import (
 	"os"
 	"path"
 	"testing"
-	"time"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/request"
@@ -466,7 +465,7 @@ func TestEncryptDecryptFile(t *testing.T) {
 	require.Equal(t, noExt+"-2.dat", dec.Out)
 }
 
-func TestEncryptUnverified(t *testing.T) {
+func TestEncryptVerifyFailed(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
 	// keys.SetLogger(NewLogger(DebugLevel))
 	env := newTestEnv(t)
@@ -493,10 +492,10 @@ func TestEncryptUnverified(t *testing.T) {
 
 	testPull(t, aliceService, bob.ID())
 
-	env.clock.Add(time.Hour * 24)
-
 	// Set 500 error for bob@github
 	env.req.SetError("https://gist.github.com/bob/1", request.ErrHTTP{StatusCode: 500})
+
+	testPull(t, aliceService, bob.ID())
 
 	// Encrypt (bob, error)
 	_, err = aliceService.Encrypt(context.TODO(), &EncryptRequest{

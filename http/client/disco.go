@@ -37,7 +37,7 @@ func (c *Client) DiscoSave(ctx context.Context, sender *keys.EdX25519Key, recipi
 	path := dstore.Path("disco", sender.ID(), recipient, string(typ))
 	vals := url.Values{}
 	vals.Set("expire", expire.String())
-	if _, err := c.put(ctx, path, vals, bytes.NewReader(encrypted), http.ContentHash(encrypted), http.Authorization(sender)); err != nil {
+	if _, err := c.put(ctx, path, vals, bytes.NewReader(encrypted), http.ContentHash(encrypted), sender); err != nil {
 		return err
 	}
 	return nil
@@ -52,7 +52,7 @@ func (c *Client) Disco(ctx context.Context, sender keys.ID, recipient *keys.EdX2
 
 	path := dstore.Path("disco", sender, recipient, string(typ))
 	vals := url.Values{}
-	resp, err := c.get(ctx, path, vals, http.Authorization(recipient))
+	resp, err := c.get(ctx, path, vals, recipient)
 	if err != nil {
 		return "", err
 	}
@@ -72,7 +72,7 @@ func (c *Client) Disco(ctx context.Context, sender keys.ID, recipient *keys.EdX2
 func (c *Client) DiscoDelete(ctx context.Context, sender *keys.EdX25519Key, recipient keys.ID) error {
 	path := dstore.Path("disco", sender.ID(), recipient)
 	vals := url.Values{}
-	if _, err := c.delete(ctx, path, vals, nil, "", http.Authorization(sender)); err != nil {
+	if _, err := c.delete(ctx, path, vals, nil, "", sender); err != nil {
 		return err
 	}
 	return nil

@@ -26,7 +26,7 @@ func TestInviteCode(t *testing.T) {
 	charlie := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x03}, 32)))
 
 	// POST /invite/:kid/:rid (alice, charlie)
-	req, err := http.NewAuthRequest("POST", dstore.Path("/invite/code", alice.ID(), charlie.ID()), nil, "", env.clock.Now(), http.Authorization(alice))
+	req, err := http.NewAuthRequest("POST", dstore.Path("/invite/code", alice.ID(), charlie.ID()), nil, "", env.clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
@@ -38,7 +38,7 @@ func TestInviteCode(t *testing.T) {
 	inviteCode := created.Code
 
 	// GET /invite?code=..
-	req, err = http.NewAuthRequest("GET", fmt.Sprintf("/invite/code/%s", url.QueryEscape(inviteCode)), nil, "", env.clock.Now(), http.Authorization(charlie))
+	req, err = http.NewAuthRequest("GET", fmt.Sprintf("/invite/code/%s", url.QueryEscape(inviteCode)), nil, "", env.clock.Now(), charlie)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
@@ -50,7 +50,7 @@ func TestInviteCode(t *testing.T) {
 	require.Equal(t, charlie.ID(), invite.Recipient)
 
 	// GET /invite?code=.. (bob, invalid)
-	req, err = http.NewAuthRequest("GET", fmt.Sprintf("/invite/code/%s", url.QueryEscape(inviteCode)), nil, "", env.clock.Now(), http.Authorization(bob))
+	req, err = http.NewAuthRequest("GET", fmt.Sprintf("/invite/code/%s", url.QueryEscape(inviteCode)), nil, "", env.clock.Now(), bob)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)

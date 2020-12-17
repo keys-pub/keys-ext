@@ -32,11 +32,11 @@ func newAuth(header string, param string, content []byte) *auth {
 	}
 }
 
-// skipNonceCheck to skip nonce check.
-func (a *auth) skipNonceCheck() *auth {
-	a.NonceCheck = nonceCheckSkip()
-	return a
-}
+// // skipNonceCheck to skip nonce check.
+// func (a *auth) skipNonceCheck() *auth {
+// 	a.NonceCheck = nonceCheckSkip()
+// 	return a
+// }
 
 func (s *Server) auth(c echo.Context, auth *auth) (*http.AuthResult, error) {
 	request := c.Request()
@@ -113,8 +113,8 @@ func nonceCheck(rds Redis) http.NonceCheck {
 	}
 }
 
-func nonceCheckSkip() http.NonceCheck {
-	return func(ctx context.Context, nonce string) error {
-		return nil
-	}
-}
+// func nonceCheckSkip() http.NonceCheck {
+// 	return func(ctx context.Context, nonce string) error {
+// 		return nil
+// 	}
+// }

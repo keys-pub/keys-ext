@@ -72,7 +72,7 @@ func (c *Client) VaultSend(ctx context.Context, key *keys.EdX25519Key, events []
 		return err
 	}
 
-	if _, err := c.post(ctx, path, vals, bytes.NewReader(b), http.ContentHash(b), http.Authorization(key)); err != nil {
+	if _, err := c.post(ctx, path, vals, bytes.NewReader(b), http.ContentHash(b), key); err != nil {
 		return err
 	}
 	return nil
@@ -126,7 +126,7 @@ func (c *Client) Vault(ctx context.Context, key *keys.EdX25519Key, opt ...VaultO
 		return nil, errors.Errorf("limit not currently supported")
 	}
 
-	resp, err := c.get(ctx, path, params, http.Authorization(key))
+	resp, err := c.get(ctx, path, params, key)
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +173,7 @@ func (c *Client) VaultDelete(ctx context.Context, key *keys.EdX25519Key) error {
 	path := dstore.Path("vault", key.ID())
 	vals := url.Values{}
 
-	if _, err := c.delete(ctx, path, vals, nil, "", http.Authorization(key)); err != nil {
+	if _, err := c.delete(ctx, path, vals, nil, "", key); err != nil {
 		return err
 	}
 	return nil
@@ -183,7 +183,7 @@ func (c *Client) VaultDelete(ctx context.Context, key *keys.EdX25519Key) error {
 func (c *Client) VaultExists(ctx context.Context, key *keys.EdX25519Key) (bool, error) {
 	path := dstore.Path("vault", key.ID())
 	params := url.Values{}
-	resp, err := c.head(ctx, path, params, http.Authorization(key))
+	resp, err := c.head(ctx, path, params, key)
 	if err != nil {
 		return false, err
 	}

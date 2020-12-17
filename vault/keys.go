@@ -15,7 +15,7 @@ const keyItemType = "key"
 
 func newItemForKey(key *api.Key) (*Item, error) {
 	if key.ID == "" {
-		return nil, errors.Errorf("no secret id")
+		return nil, errors.Errorf("no key id")
 	}
 	b, err := marshalKey(key)
 	if err != nil {
@@ -42,47 +42,24 @@ func (v *Vault) Key(id keys.ID) (*api.Key, error) {
 }
 
 // SaveKey saves key to vault.
-func (v *Vault) SaveKey(key *api.Key) (*api.Key, bool, error) {
+func (v *Vault) SaveKey(key *api.Key) error {
 	if key == nil {
-		return nil, false, errors.Errorf("nil secret")
+		return errors.Errorf("nil key")
 	}
 
 	if key.ID == "" {
-		return nil, false, errors.Errorf("no key id")
+		return errors.Errorf("no key id")
 	}
 
-	item, err := v.Get(key.ID.String())
+	item, err := newItemForKey(key)
 	if err != nil {
-		return nil, false, err
+		return err
+	}
+	if err := v.Set(item); err != nil {
+		return err
 	}
 
-	updated := false
-	if item != nil {
-		key.UpdatedAt = tsutil.Millis(v.Now())
-		b, err := marshalKey(key)
-		if err != nil {
-			return nil, false, err
-		}
-		item.Data = b
-		if err := v.Set(item); err != nil {
-			return nil, false, err
-		}
-		updated = true
-	} else {
-		now := tsutil.Millis(v.Now())
-		key.CreatedAt = now
-		key.UpdatedAt = now
-
-		item, err := newItemForKey(key)
-		if err != nil {
-			return nil, false, err
-		}
-		if err := v.Set(item); err != nil {
-			return nil, false, err
-		}
-	}
-
-	return key, updated, nil
+	return nil
 }
 
 // Key for Item or nil if not a recognized key type.
@@ -113,7 +90,7 @@ func (v *Vault) Keys() ([]*api.Key, error) {
 	for _, i := range items {
 		key, err := i.Key()
 		if err != nil {
-			// TODO: Should we skip keys that don't resolve?
+			// TODO: Ok to skip keys that don't resolve?
 			// logger.Errorf("Failed to resolve key (%s): %v", i.ID, err)
 			// continue
 			return nil, err
@@ -132,18 +109,10 @@ func (v *Vault) ImportSaltpack(msg string, password string, isHTML bool) (*api.K
 	if err != nil {
 		return nil, err
 	}
-	now := tsutil.Millis(v.Now())
-	if key.CreatedAt == 0 {
-		key.CreatedAt = now
-	}
-	if key.UpdatedAt == 0 {
-		key.UpdatedAt = now
-	}
-	out, _, err := v.SaveKey(key)
-	if err != nil {
+	if err := v.SaveKey(key); err != nil {
 		return nil, err
 	}
-	return out, nil
+	return key, nil
 }
 
 // ExportSaltpack exports a Key from the vault to a Saltpack message.

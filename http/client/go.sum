@@ -65,6 +65,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dchest/bcrypt_pbkdf v0.0.0-20150205184540-83f37f9c154a h1:saTgr5tMLFnmy/yg3qDTft4rE5DY2uJ/cCxCe3q0XTU=
 github.com/dchest/bcrypt_pbkdf v0.0.0-20150205184540-83f37f9c154a/go.mod h1:Bw9BbhOJVNR+t0jCqx2GC6zv0TGBsShs56Y3gfSCvl0=
+github.com/dchest/blake2b v1.0.0 h1:KK9LimVmE0MjRl9095XJmKqZ+iLxWATvlcpVFRtaw6s=
+github.com/dchest/blake2b v1.0.0/go.mod h1:U034kXgbJpCle2wSk5ybGIVhOSHCVLMDqOzcPEA0F7s=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
@@ -180,6 +182,8 @@ github.com/keys-pub/keys v0.1.18-0.20201203191616-7881134d0f3d h1:Cm0BzO2ZstdmPt
 github.com/keys-pub/keys v0.1.18-0.20201203191616-7881134d0f3d/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys v0.1.18-0.20201208204604-e9ae8c5755ae h1:VYx/5+HVIAdJ+1JlbJjsKZ99+6PMHJZYyx++7ZS8ulo=
 github.com/keys-pub/keys v0.1.18-0.20201208204604-e9ae8c5755ae/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
+github.com/keys-pub/keys v0.1.18-0.20201217003538-138e9a15ccb4 h1:yLAjE2ZWHpBCnPR4SiplH5+bmR0Y0IQ+sE2Nvphi/h0=
+github.com/keys-pub/keys v0.1.18-0.20201217003538-138e9a15ccb4/go.mod h1:CgoPVi0AZw87ncg5xCYnhlY9h+WQmAVsokthREKygzw=
 github.com/keys-pub/keys-ext v0.1.16 h1:HqUOqDxZzfllxgxYVTzRSl7ZR2NecqV5+ytfzONkbSA=
 github.com/keys-pub/keys-ext v0.1.20 h1:KZs+L8GtJj00bKh+xhQqHNkSQgq2fUCYwBsrP2vV23g=
 github.com/keys-pub/keys-ext/firestore v0.0.0-20200803193547-52c161dbd094 h1:eEgZ+t6HaFTdxhzubVOUSkMRxZH6blyP3OAN8C44dvI=
