@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys-ext/ws/api"
-	wsapi "github.com/keys-pub/keys-ext/ws/api"
 	wsclient "github.com/keys-pub/keys-ext/ws/client"
 	"github.com/pkg/errors"
 )
@@ -69,51 +68,17 @@ func (s *service) Relay(req *RelayRequest, srv Keys_RelayServer) error {
 				case <-ctx.Done():
 					return ctx.Err()
 				default:
-					switch event.Type {
-					case wsapi.HelloEventType:
-						logger.Infof("Relay hello %s", event.User)
-						if err := s.pullChannels(ctx, event.User); err != nil {
-							return err
-						}
-					case wsapi.ChannelMessageEventType:
-						logger.Infof("Relay message %s", event.Channel)
-						if err := s.pullMessages(ctx, event.Channel, event.User); err != nil {
-							return err
-
-						}
-					case wsapi.ChannelCreatedEventType:
-						logger.Infof("Relay channel created %s", event.Channel)
-						// TODO: This pulls all channels, not just the new one.
-						if err := s.pullChannels(ctx, event.User); err != nil {
-							return err
-						}
-					}
+					logger.Infof("Relay event %s", event.Channel)
+					// TODO: Channel user
+					// if err := s.pullMessages(ctx, event.Channel, keys.ID("")); err != nil {
+					// 	return err
+					// }
+					return errors.Errorf("not implemented")
 				}
 			}
 			for _, event := range events {
-				var out *RelayOutput
-				switch event.Type {
-				case wsapi.HelloEventType:
-					out = &RelayOutput{
-						Type: RelayHello,
-						User: event.User.String(),
-					}
-				case wsapi.ChannelCreatedEventType:
-					out = &RelayOutput{
-						Type:    RelayChannelCreated,
-						User:    event.User.String(),
-						Channel: event.Channel.String(),
-					}
-				case wsapi.ChannelMessageEventType:
-					out = &RelayOutput{
-						Type:    RelayChannelMessage,
-						Channel: event.Channel.String(),
-						User:    event.User.String(),
-						Index:   event.Index,
-					}
-				default:
-					continue
-
+				out := &RelayOutput{
+					Channel: event.Channel.String(),
 				}
 				if err := srv.Send(out); err != nil {
 					return err

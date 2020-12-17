@@ -930,20 +930,10 @@ message RelayRequest {
   repeated string keys = 1;
 }
 
-enum RelayType {
-  option (go.enum) = {name: "RelayType"};
-
-  RELAY_UNSPECIFIED = 0 [(go.value) = {name: "RelayUnspecified"}];
-  RELAY_HELLO = 1  [(go.value) = {name: "RelayHello"}];
-  RELAY_CHANNEL_CREATED = 10 [(go.value) = {name: "RelayChannelCreated"}];
-  RELAY_CHANNEL_MESSAGE = 20 [(go.value) = {name: "RelayChannelMessage"}];
-}
-
 message RelayOutput {
-  RelayType type = 1;
-  string channel = 2;
-  string user = 3;
-  int64 index = 4;
+  string channel = 1;
+  string user = 2;
+  int64 index = 3;
 }
 
 message Channel {
