@@ -104,17 +104,17 @@ func keysSort(pks []*Key, sortField string, sortDirection SortDirection, i, j in
 	}
 }
 
-func (s *service) resolveKeys(ctx context.Context, kids []keys.ID) ([]*Key, error) {
-	out := make([]*Key, 0, len(kids))
-	for _, kid := range kids {
-		key, err := s.resolveKey(ctx, kid)
-		if err != nil {
-			return nil, err
-		}
-		out = append(out, key)
-	}
-	return out, nil
-}
+// func (s *service) resolveKeys(ctx context.Context, kids []keys.ID) ([]*Key, error) {
+// 	out := make([]*Key, 0, len(kids))
+// 	for _, kid := range kids {
+// 		key, err := s.resolveKey(ctx, kid)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		out = append(out, key)
+// 	}
+// 	return out, nil
+// }
 
 func (s *service) resolveKey(ctx context.Context, kid keys.ID) (*Key, error) {
 	// TODO: If the user was revoked, this could update every request.

@@ -1,7 +1,6 @@
 package service
 
 import (
-	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/base32"
@@ -57,9 +56,9 @@ func testFire(t *testing.T, clock tsutil.Clock) server.Fire {
 	return fi
 }
 
-func testSeed(b byte) *[32]byte {
-	return keys.Bytes32(bytes.Repeat([]byte{b}, 32))
-}
+// func testSeed(b byte) *[32]byte {
+// 	return keys.Bytes32(bytes.Repeat([]byte{b}, 32))
+// }
 
 type testEnv struct {
 	clock tsutil.Clock

@@ -232,10 +232,10 @@ func (k *Key) userName() string {
 	return k.ID
 }
 
-func keyUserNames(ks []*Key) []string {
-	out := []string{}
-	for _, k := range ks {
-		out = append(out, k.userName())
-	}
-	return out
-}
+// func keyUserNames(ks []*Key) []string {
+// 	out := []string{}
+// 	for _, k := range ks {
+// 		out = append(out, k.userName())
+// 	}
+// 	return out
+// }

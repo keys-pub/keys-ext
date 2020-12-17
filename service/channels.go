@@ -147,13 +147,13 @@ func (s *service) channel(ctx context.Context, channel keys.ID) (*Channel, error
 	}, nil
 }
 
-func (s *service) channelInfo(ctx context.Context, channel keys.ID) (*api.ChannelInfo, error) {
-	ch, err := s.channel(ctx, channel)
-	if err != nil {
-		return nil, err
-	}
-	return &api.ChannelInfo{Name: ch.Name}, nil
-}
+// func (s *service) channelInfo(ctx context.Context, channel keys.ID) (*api.ChannelInfo, error) {
+// 	ch, err := s.channel(ctx, channel)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return &api.ChannelInfo{Name: ch.Name}, nil
+// }
 
 func (s *service) channels(ctx context.Context, users keys.ID) ([]*Channel, error) {
 	path := dstore.Path("users", users, "channels")
