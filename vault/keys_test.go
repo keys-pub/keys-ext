@@ -107,8 +107,10 @@ func TestKeysV1(t *testing.T) {
 
 	// Overwrite key
 	err = vlt.SaveKey(api.NewKey(sk))
+	require.NoError(t, err)
 
 	out, err := vlt.Keys()
 	require.NoError(t, err)
-	require.NotEmpty(t, out)
+	require.Equal(t, 1, len(out))
+	require.Equal(t, sk.ID(), out[0].ID)
 }
