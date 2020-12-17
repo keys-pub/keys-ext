@@ -49,6 +49,7 @@ func testDirect(t *testing.T, env *env, tk testKeys) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
+	require.Equal(t, `{}`, body)
 
 	// POST /dm/:bob/:alice (alice to bob, trying again after follow)
 	req, err = http.NewAuthRequest("POST", dstore.Path("dm", bob.ID(), alice.ID()), bytes.NewReader(content), contentHash, clock.Now(), alice)

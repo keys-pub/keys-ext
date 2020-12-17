@@ -39,6 +39,7 @@ func testFollow(t *testing.T, env *env, tk testKeys) {
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
+	require.Equal(t, `{}`, body)
 
 	// GET /follows/:bob
 	req, err = http.NewAuthRequest("GET", dstore.Path("follows", bob.ID()), nil, "", clock.Now(), bob)
