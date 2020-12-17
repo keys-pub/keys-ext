@@ -25,11 +25,6 @@ type ChannelInfo struct {
 	Description string `json:"desc,omitempty" msgpack:"desc,omitempty"`
 }
 
-// ChannelInvites if invites were sent (notification).
-type ChannelInvites struct {
-	Users []keys.ID `json:"users" msgpack:"users"`
-}
-
 // ChannelJoin is a user joined a channel (invite was accepted) (notification).
 type ChannelJoin struct {
 	User keys.ID `json:"user" msgpack:"user"`
@@ -42,5 +37,8 @@ type ChannelLeave struct {
 
 // ChannelInvite if invited to a channel.
 type ChannelInvite struct {
-	Key api.Key `json:"key" msgpack:"key"`
+	Channel   keys.ID      `json:"channelId" msgpack:"channelId"`
+	Recipient keys.ID      `json:"recipient" msgpack:"recipient"`
+	Key       *api.Key     `json:"key" msgpack:"key"`
+	Info      *ChannelInfo `json:"info" msgpack:"info"`
 }
