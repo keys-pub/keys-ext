@@ -8,14 +8,13 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/dstore"
-	"github.com/keys-pub/keys/http"
 )
 
 // InviteCodeCreate creates an invite code.
 func (c *Client) InviteCodeCreate(ctx context.Context, sender *keys.EdX25519Key, recipient keys.ID) (*api.InviteCodeCreateResponse, error) {
 	path := dstore.Path("/invite/code", sender.ID(), recipient)
 	vals := url.Values{}
-	resp, err := c.post(ctx, path, vals, nil, "", http.Authorization(sender))
+	resp, err := c.post(ctx, path, vals, nil, "", sender)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +32,7 @@ func (c *Client) InviteCodeCreate(ctx context.Context, sender *keys.EdX25519Key,
 func (c *Client) InviteCode(ctx context.Context, sender *keys.EdX25519Key, code string) (*api.InviteCodeResponse, error) {
 	path := dstore.Path("/invite/code", url.QueryEscape(code))
 	vals := url.Values{}
-	resp, err := c.get(ctx, path, vals, http.Authorization(sender))
+	resp, err := c.get(ctx, path, vals, sender)
 	if err != nil {
 		return nil, err
 	}

@@ -44,8 +44,8 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	req, err := http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs"), nil, "", clock.Now(), channel)
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
-	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, body)
-	require.Equal(t, http.StatusForbidden, code)
+	require.Equal(t, `{"error":{"code":404,"message":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep not found"}}`, body)
+	require.Equal(t, http.StatusNotFound, code)
 
 	// POST /channel/:cid/msgs (not found)
 	content := []byte("test1")
@@ -53,8 +53,8 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	req, err = http.NewAuthRequest("POST", dstore.Path("channel", channel.ID(), "msgs"), bytes.NewReader(content), contentHash, clock.Now(), channel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
-	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, body)
-	require.Equal(t, http.StatusForbidden, code)
+	require.Equal(t, `{"error":{"code":404,"message":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep not found"}}`, body)
+	require.Equal(t, http.StatusNotFound, code)
 
 	// PUT /channel/:cid
 	req, err = http.NewAuthRequest("PUT", dstore.Path("channel", channel.ID()), nil, "", clock.Now(), channel)
@@ -147,7 +147,7 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	require.Equal(t, []byte("test3"), resp3.Messages[2].Data)
 
 	// GET /channel/:cid/msgs (descending, limit=2)
-	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs")+"?dir=desc&limit=2", nil, "", clock.Now(), channel)
+	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs")+"?order=desc&limit=2", nil, "", clock.Now(), channel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)

@@ -5,7 +5,6 @@ import (
 	"net/url"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/http"
 )
 
 // Check user & sigchain associated with edx25519 key.

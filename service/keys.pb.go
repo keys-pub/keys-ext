@@ -8297,829 +8297,6 @@ func (x *ChannelCreateResponse) GetChannel() *Channel {
 	return nil
 }
 
-type ChannelUser struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Key *Key `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-}
-
-func (x *ChannelUser) Reset() {
-	*x = ChannelUser{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_keys_proto_msgTypes[136]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *ChannelUser) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ChannelUser) ProtoMessage() {}
-
-func (x *ChannelUser) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[136]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ChannelUser.ProtoReflect.Descriptor instead.
-func (*ChannelUser) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{136}
-}
-
-func (x *ChannelUser) GetKey() *Key {
-	if x != nil {
-		return x.Key
-	}
-	return nil
-}
-
-type ChannelUsersRequest struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Channel string `protobuf:"bytes,1,opt,name=channel,proto3" json:"channel,omitempty"`
-	User    string `protobuf:"bytes,2,opt,name=user,proto3" json:"user,omitempty"`
-}
-
-func (x *ChannelUsersRequest) Reset() {
-	*x = ChannelUsersRequest{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_keys_proto_msgTypes[137]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *ChannelUsersRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ChannelUsersRequest) ProtoMessage() {}
-
-func (x *ChannelUsersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[137]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ChannelUsersRequest.ProtoReflect.Descriptor instead.
-func (*ChannelUsersRequest) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{137}
-}
-
-func (x *ChannelUsersRequest) GetChannel() string {
-	if x != nil {
-		return x.Channel
-	}
-	return ""
-}
-
-func (x *ChannelUsersRequest) GetUser() string {
-	if x != nil {
-		return x.User
-	}
-	return ""
-}
-
-type ChannelUsersResponse struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Users []*ChannelUser `protobuf:"bytes,1,rep,name=users,proto3" json:"users,omitempty"`
-}
-
-func (x *ChannelUsersResponse) Reset() {
-	*x = ChannelUsersResponse{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_keys_proto_msgTypes[138]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *ChannelUsersResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ChannelUsersResponse) ProtoMessage() {}
-
-func (x *ChannelUsersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[138]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ChannelUsersResponse.ProtoReflect.Descriptor instead.
-func (*ChannelUsersResponse) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{138}
-}
-
-func (x *ChannelUsersResponse) GetUsers() []*ChannelUser {
-	if x != nil {
-		return x.Users
-	}
-	return nil
-}
-
-type ChannelInvitesCreateRequest struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Channel    string   `protobuf:"bytes,1,opt,name=channel,proto3" json:"channel,omitempty"`
-	Sender     string   `protobuf:"bytes,2,opt,name=sender,proto3" json:"sender,omitempty"`
-	Recipients []string `protobuf:"bytes,3,rep,name=recipients,proto3" json:"recipients,omitempty"`
-}
-
-func (x *ChannelInvitesCreateRequest) Reset() {
-	*x = ChannelInvitesCreateRequest{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_keys_proto_msgTypes[139]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *ChannelInvitesCreateRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ChannelInvitesCreateRequest) ProtoMessage() {}
-
-func (x *ChannelInvitesCreateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[139]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ChannelInvitesCreateRequest.ProtoReflect.Descriptor instead.
-func (*ChannelInvitesCreateRequest) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{139}
-}
-
-func (x *ChannelInvitesCreateRequest) GetChannel() string {
-	if x != nil {
-		return x.Channel
-	}
-	return ""
-}
-
-func (x *ChannelInvitesCreateRequest) GetSender() string {
-	if x != nil {
-		return x.Sender
-	}
-	return ""
-}
-
-func (x *ChannelInvitesCreateRequest) GetRecipients() []string {
-	if x != nil {
-		return x.Recipients
-	}
-	return nil
-}
-
-type ChannelInvitesCreateResponse struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Message *Message `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
-}
-
-func (x *ChannelInvitesCreateResponse) Reset() {
-	*x = ChannelInvitesCreateResponse{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_keys_proto_msgTypes[140]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *ChannelInvitesCreateResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ChannelInvitesCreateResponse) ProtoMessage() {}
-
-func (x *ChannelInvitesCreateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[140]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ChannelInvitesCreateResponse.ProtoReflect.Descriptor instead.
-func (*ChannelInvitesCreateResponse) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{140}
-}
-
-func (x *ChannelInvitesCreateResponse) GetMessage() *Message {
-	if x != nil {
-		return x.Message
-	}
-	return nil
-}
-
-type ChannelUninviteRequest struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Channel   string `protobuf:"bytes,1,opt,name=channel,proto3" json:"channel,omitempty"`
-	Sender    string `protobuf:"bytes,2,opt,name=sender,proto3" json:"sender,omitempty"`
-	Recipient string `protobuf:"bytes,3,opt,name=recipient,proto3" json:"recipient,omitempty"`
-}
-
-func (x *ChannelUninviteRequest) Reset() {
-	*x = ChannelUninviteRequest{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_keys_proto_msgTypes[141]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *ChannelUninviteRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ChannelUninviteRequest) ProtoMessage() {}
-
-func (x *ChannelUninviteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[141]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ChannelUninviteRequest.ProtoReflect.Descriptor instead.
-func (*ChannelUninviteRequest) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{141}
-}
-
-func (x *ChannelUninviteRequest) GetChannel() string {
-	if x != nil {
-		return x.Channel
-	}
-	return ""
-}
-
-func (x *ChannelUninviteRequest) GetSender() string {
-	if x != nil {
-		return x.Sender
-	}
-	return ""
-}
-
-func (x *ChannelUninviteRequest) GetRecipient() string {
-	if x != nil {
-		return x.Recipient
-	}
-	return ""
-}
-
-type ChannelUninviteResponse struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Message *Message `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
-}
-
-func (x *ChannelUninviteResponse) Reset() {
-	*x = ChannelUninviteResponse{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_keys_proto_msgTypes[142]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *ChannelUninviteResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ChannelUninviteResponse) ProtoMessage() {}
-
-func (x *ChannelUninviteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[142]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ChannelUninviteResponse.ProtoReflect.Descriptor instead.
-func (*ChannelUninviteResponse) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{142}
-}
-
-func (x *ChannelUninviteResponse) GetMessage() *Message {
-	if x != nil {
-		return x.Message
-	}
-	return nil
-}
-
-type ChannelInvite struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Channel   *Channel `protobuf:"bytes,1,opt,name=channel,proto3" json:"channel,omitempty"`
-	Recipient *Key     `protobuf:"bytes,2,opt,name=recipient,proto3" json:"recipient,omitempty"`
-	Sender    *Key     `protobuf:"bytes,3,opt,name=sender,proto3" json:"sender,omitempty"`
-}
-
-func (x *ChannelInvite) Reset() {
-	*x = ChannelInvite{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_keys_proto_msgTypes[143]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *ChannelInvite) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ChannelInvite) ProtoMessage() {}
-
-func (x *ChannelInvite) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[143]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ChannelInvite.ProtoReflect.Descriptor instead.
-func (*ChannelInvite) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{143}
-}
-
-func (x *ChannelInvite) GetChannel() *Channel {
-	if x != nil {
-		return x.Channel
-	}
-	return nil
-}
-
-func (x *ChannelInvite) GetRecipient() *Key {
-	if x != nil {
-		return x.Recipient
-	}
-	return nil
-}
-
-func (x *ChannelInvite) GetSender() *Key {
-	if x != nil {
-		return x.Sender
-	}
-	return nil
-}
-
-type ChannelInvitesRequest struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Channel string `protobuf:"bytes,1,opt,name=channel,proto3" json:"channel,omitempty"`
-	User    string `protobuf:"bytes,2,opt,name=user,proto3" json:"user,omitempty"`
-}
-
-func (x *ChannelInvitesRequest) Reset() {
-	*x = ChannelInvitesRequest{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_keys_proto_msgTypes[144]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *ChannelInvitesRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ChannelInvitesRequest) ProtoMessage() {}
-
-func (x *ChannelInvitesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[144]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ChannelInvitesRequest.ProtoReflect.Descriptor instead.
-func (*ChannelInvitesRequest) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{144}
-}
-
-func (x *ChannelInvitesRequest) GetChannel() string {
-	if x != nil {
-		return x.Channel
-	}
-	return ""
-}
-
-func (x *ChannelInvitesRequest) GetUser() string {
-	if x != nil {
-		return x.User
-	}
-	return ""
-}
-
-type ChannelInvitesResponse struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Invites []*ChannelInvite `protobuf:"bytes,1,rep,name=invites,proto3" json:"invites,omitempty"`
-}
-
-func (x *ChannelInvitesResponse) Reset() {
-	*x = ChannelInvitesResponse{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_keys_proto_msgTypes[145]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *ChannelInvitesResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ChannelInvitesResponse) ProtoMessage() {}
-
-func (x *ChannelInvitesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[145]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ChannelInvitesResponse.ProtoReflect.Descriptor instead.
-func (*ChannelInvitesResponse) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{145}
-}
-
-func (x *ChannelInvitesResponse) GetInvites() []*ChannelInvite {
-	if x != nil {
-		return x.Invites
-	}
-	return nil
-}
-
-type ChannelUserInvitesRequest struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	User string `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
-}
-
-func (x *ChannelUserInvitesRequest) Reset() {
-	*x = ChannelUserInvitesRequest{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_keys_proto_msgTypes[146]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *ChannelUserInvitesRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ChannelUserInvitesRequest) ProtoMessage() {}
-
-func (x *ChannelUserInvitesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[146]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ChannelUserInvitesRequest.ProtoReflect.Descriptor instead.
-func (*ChannelUserInvitesRequest) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{146}
-}
-
-func (x *ChannelUserInvitesRequest) GetUser() string {
-	if x != nil {
-		return x.User
-	}
-	return ""
-}
-
-type ChannelUserInvitesResponse struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Invites []*ChannelInvite `protobuf:"bytes,1,rep,name=invites,proto3" json:"invites,omitempty"`
-}
-
-func (x *ChannelUserInvitesResponse) Reset() {
-	*x = ChannelUserInvitesResponse{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_keys_proto_msgTypes[147]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *ChannelUserInvitesResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ChannelUserInvitesResponse) ProtoMessage() {}
-
-func (x *ChannelUserInvitesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[147]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ChannelUserInvitesResponse.ProtoReflect.Descriptor instead.
-func (*ChannelUserInvitesResponse) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{147}
-}
-
-func (x *ChannelUserInvitesResponse) GetInvites() []*ChannelInvite {
-	if x != nil {
-		return x.Invites
-	}
-	return nil
-}
-
-type ChannelJoinRequest struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Channel string `protobuf:"bytes,1,opt,name=channel,proto3" json:"channel,omitempty"`
-	User    string `protobuf:"bytes,2,opt,name=user,proto3" json:"user,omitempty"`
-}
-
-func (x *ChannelJoinRequest) Reset() {
-	*x = ChannelJoinRequest{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_keys_proto_msgTypes[148]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *ChannelJoinRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ChannelJoinRequest) ProtoMessage() {}
-
-func (x *ChannelJoinRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[148]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ChannelJoinRequest.ProtoReflect.Descriptor instead.
-func (*ChannelJoinRequest) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{148}
-}
-
-func (x *ChannelJoinRequest) GetChannel() string {
-	if x != nil {
-		return x.Channel
-	}
-	return ""
-}
-
-func (x *ChannelJoinRequest) GetUser() string {
-	if x != nil {
-		return x.User
-	}
-	return ""
-}
-
-type ChannelJoinResponse struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-}
-
-func (x *ChannelJoinResponse) Reset() {
-	*x = ChannelJoinResponse{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_keys_proto_msgTypes[149]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *ChannelJoinResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ChannelJoinResponse) ProtoMessage() {}
-
-func (x *ChannelJoinResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[149]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ChannelJoinResponse.ProtoReflect.Descriptor instead.
-func (*ChannelJoinResponse) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{149}
-}
-
-type ChannelLeaveRequest struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Channel string `protobuf:"bytes,1,opt,name=channel,proto3" json:"channel,omitempty"`
-	User    string `protobuf:"bytes,2,opt,name=user,proto3" json:"user,omitempty"`
-}
-
-func (x *ChannelLeaveRequest) Reset() {
-	*x = ChannelLeaveRequest{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_keys_proto_msgTypes[150]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *ChannelLeaveRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ChannelLeaveRequest) ProtoMessage() {}
-
-func (x *ChannelLeaveRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[150]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ChannelLeaveRequest.ProtoReflect.Descriptor instead.
-func (*ChannelLeaveRequest) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{150}
-}
-
-func (x *ChannelLeaveRequest) GetChannel() string {
-	if x != nil {
-		return x.Channel
-	}
-	return ""
-}
-
-func (x *ChannelLeaveRequest) GetUser() string {
-	if x != nil {
-		return x.User
-	}
-	return ""
-}
-
-type ChannelLeaveResponse struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Message *Message `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
-}
-
-func (x *ChannelLeaveResponse) Reset() {
-	*x = ChannelLeaveResponse{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_keys_proto_msgTypes[151]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *ChannelLeaveResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ChannelLeaveResponse) ProtoMessage() {}
-
-func (x *ChannelLeaveResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[151]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ChannelLeaveResponse.ProtoReflect.Descriptor instead.
-func (*ChannelLeaveResponse) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{151}
-}
-
-func (x *ChannelLeaveResponse) GetMessage() *Message {
-	if x != nil {
-		return x.Message
-	}
-	return nil
-}
-
 type AdminSignURLRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -9133,7 +8310,7 @@ type AdminSignURLRequest struct {
 func (x *AdminSignURLRequest) Reset() {
 	*x = AdminSignURLRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_keys_proto_msgTypes[152]
+		mi := &file_keys_proto_msgTypes[136]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9146,7 +8323,7 @@ func (x *AdminSignURLRequest) String() string {
 func (*AdminSignURLRequest) ProtoMessage() {}
 
 func (x *AdminSignURLRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[152]
+	mi := &file_keys_proto_msgTypes[136]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9159,7 +8336,7 @@ func (x *AdminSignURLRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdminSignURLRequest.ProtoReflect.Descriptor instead.
 func (*AdminSignURLRequest) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{152}
+	return file_keys_proto_rawDescGZIP(), []int{136}
 }
 
 func (x *AdminSignURLRequest) GetSigner() string {
@@ -9196,7 +8373,7 @@ type AdminSignURLResponse struct {
 func (x *AdminSignURLResponse) Reset() {
 	*x = AdminSignURLResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_keys_proto_msgTypes[153]
+		mi := &file_keys_proto_msgTypes[137]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9209,7 +8386,7 @@ func (x *AdminSignURLResponse) String() string {
 func (*AdminSignURLResponse) ProtoMessage() {}
 
 func (x *AdminSignURLResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[153]
+	mi := &file_keys_proto_msgTypes[137]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9222,7 +8399,7 @@ func (x *AdminSignURLResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdminSignURLResponse.ProtoReflect.Descriptor instead.
 func (*AdminSignURLResponse) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{153}
+	return file_keys_proto_rawDescGZIP(), []int{137}
 }
 
 func (x *AdminSignURLResponse) GetAuth() string {
@@ -9258,7 +8435,7 @@ type AdminCheckRequest struct {
 func (x *AdminCheckRequest) Reset() {
 	*x = AdminCheckRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_keys_proto_msgTypes[154]
+		mi := &file_keys_proto_msgTypes[138]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9271,7 +8448,7 @@ func (x *AdminCheckRequest) String() string {
 func (*AdminCheckRequest) ProtoMessage() {}
 
 func (x *AdminCheckRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[154]
+	mi := &file_keys_proto_msgTypes[138]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9284,7 +8461,7 @@ func (x *AdminCheckRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdminCheckRequest.ProtoReflect.Descriptor instead.
 func (*AdminCheckRequest) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{154}
+	return file_keys_proto_rawDescGZIP(), []int{138}
 }
 
 func (x *AdminCheckRequest) GetSigner() string {
@@ -9310,7 +8487,7 @@ type AdminCheckResponse struct {
 func (x *AdminCheckResponse) Reset() {
 	*x = AdminCheckResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_keys_proto_msgTypes[155]
+		mi := &file_keys_proto_msgTypes[139]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9323,7 +8500,7 @@ func (x *AdminCheckResponse) String() string {
 func (*AdminCheckResponse) ProtoMessage() {}
 
 func (x *AdminCheckResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[155]
+	mi := &file_keys_proto_msgTypes[139]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9336,7 +8513,7 @@ func (x *AdminCheckResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdminCheckResponse.ProtoReflect.Descriptor instead.
 func (*AdminCheckResponse) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{155}
+	return file_keys_proto_rawDescGZIP(), []int{139}
 }
 
 type Config struct {
@@ -9352,7 +8529,7 @@ type Config struct {
 func (x *Config) Reset() {
 	*x = Config{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_keys_proto_msgTypes[156]
+		mi := &file_keys_proto_msgTypes[140]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9365,7 +8542,7 @@ func (x *Config) String() string {
 func (*Config) ProtoMessage() {}
 
 func (x *Config) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[156]
+	mi := &file_keys_proto_msgTypes[140]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9378,7 +8555,7 @@ func (x *Config) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Config.ProtoReflect.Descriptor instead.
 func (*Config) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{156}
+	return file_keys_proto_rawDescGZIP(), []int{140}
 }
 
 func (x *Config) GetApp() *Config_App {
@@ -9413,7 +8590,7 @@ type ConfigGetRequest struct {
 func (x *ConfigGetRequest) Reset() {
 	*x = ConfigGetRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_keys_proto_msgTypes[157]
+		mi := &file_keys_proto_msgTypes[141]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9426,7 +8603,7 @@ func (x *ConfigGetRequest) String() string {
 func (*ConfigGetRequest) ProtoMessage() {}
 
 func (x *ConfigGetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[157]
+	mi := &file_keys_proto_msgTypes[141]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9439,7 +8616,7 @@ func (x *ConfigGetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfigGetRequest.ProtoReflect.Descriptor instead.
 func (*ConfigGetRequest) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{157}
+	return file_keys_proto_rawDescGZIP(), []int{141}
 }
 
 func (x *ConfigGetRequest) GetName() string {
@@ -9460,7 +8637,7 @@ type ConfigGetResponse struct {
 func (x *ConfigGetResponse) Reset() {
 	*x = ConfigGetResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_keys_proto_msgTypes[158]
+		mi := &file_keys_proto_msgTypes[142]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9473,7 +8650,7 @@ func (x *ConfigGetResponse) String() string {
 func (*ConfigGetResponse) ProtoMessage() {}
 
 func (x *ConfigGetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[158]
+	mi := &file_keys_proto_msgTypes[142]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9486,7 +8663,7 @@ func (x *ConfigGetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfigGetResponse.ProtoReflect.Descriptor instead.
 func (*ConfigGetResponse) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{158}
+	return file_keys_proto_rawDescGZIP(), []int{142}
 }
 
 func (x *ConfigGetResponse) GetConfig() *Config {
@@ -9508,7 +8685,7 @@ type ConfigSetRequest struct {
 func (x *ConfigSetRequest) Reset() {
 	*x = ConfigSetRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_keys_proto_msgTypes[159]
+		mi := &file_keys_proto_msgTypes[143]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9521,7 +8698,7 @@ func (x *ConfigSetRequest) String() string {
 func (*ConfigSetRequest) ProtoMessage() {}
 
 func (x *ConfigSetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[159]
+	mi := &file_keys_proto_msgTypes[143]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9534,7 +8711,7 @@ func (x *ConfigSetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfigSetRequest.ProtoReflect.Descriptor instead.
 func (*ConfigSetRequest) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{159}
+	return file_keys_proto_rawDescGZIP(), []int{143}
 }
 
 func (x *ConfigSetRequest) GetName() string {
@@ -9560,7 +8737,7 @@ type ConfigSetResponse struct {
 func (x *ConfigSetResponse) Reset() {
 	*x = ConfigSetResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_keys_proto_msgTypes[160]
+		mi := &file_keys_proto_msgTypes[144]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9573,7 +8750,7 @@ func (x *ConfigSetResponse) String() string {
 func (*ConfigSetResponse) ProtoMessage() {}
 
 func (x *ConfigSetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[160]
+	mi := &file_keys_proto_msgTypes[144]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9586,7 +8763,7 @@ func (x *ConfigSetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfigSetResponse.ProtoReflect.Descriptor instead.
 func (*ConfigSetResponse) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{160}
+	return file_keys_proto_rawDescGZIP(), []int{144}
 }
 
 type WormholeInput struct {
@@ -9604,7 +8781,7 @@ type WormholeInput struct {
 func (x *WormholeInput) Reset() {
 	*x = WormholeInput{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_keys_proto_msgTypes[161]
+		mi := &file_keys_proto_msgTypes[145]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9617,7 +8794,7 @@ func (x *WormholeInput) String() string {
 func (*WormholeInput) ProtoMessage() {}
 
 func (x *WormholeInput) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[161]
+	mi := &file_keys_proto_msgTypes[145]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9630,7 +8807,7 @@ func (x *WormholeInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WormholeInput.ProtoReflect.Descriptor instead.
 func (*WormholeInput) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{161}
+	return file_keys_proto_rawDescGZIP(), []int{145}
 }
 
 func (x *WormholeInput) GetSender() string {
@@ -9684,7 +8861,7 @@ type WormholeMessage struct {
 func (x *WormholeMessage) Reset() {
 	*x = WormholeMessage{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_keys_proto_msgTypes[162]
+		mi := &file_keys_proto_msgTypes[146]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9697,7 +8874,7 @@ func (x *WormholeMessage) String() string {
 func (*WormholeMessage) ProtoMessage() {}
 
 func (x *WormholeMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[162]
+	mi := &file_keys_proto_msgTypes[146]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9710,7 +8887,7 @@ func (x *WormholeMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WormholeMessage.ProtoReflect.Descriptor instead.
 func (*WormholeMessage) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{162}
+	return file_keys_proto_rawDescGZIP(), []int{146}
 }
 
 func (x *WormholeMessage) GetID() string {
@@ -9767,7 +8944,7 @@ type WormholeOutput struct {
 func (x *WormholeOutput) Reset() {
 	*x = WormholeOutput{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_keys_proto_msgTypes[163]
+		mi := &file_keys_proto_msgTypes[147]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9780,7 +8957,7 @@ func (x *WormholeOutput) String() string {
 func (*WormholeOutput) ProtoMessage() {}
 
 func (x *WormholeOutput) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[163]
+	mi := &file_keys_proto_msgTypes[147]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9793,7 +8970,7 @@ func (x *WormholeOutput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WormholeOutput.ProtoReflect.Descriptor instead.
 func (*WormholeOutput) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{163}
+	return file_keys_proto_rawDescGZIP(), []int{147}
 }
 
 func (x *WormholeOutput) GetMessage() *WormholeMessage {
@@ -9823,7 +9000,7 @@ type Config_App struct {
 func (x *Config_App) Reset() {
 	*x = Config_App{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_keys_proto_msgTypes[164]
+		mi := &file_keys_proto_msgTypes[148]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9836,7 +9013,7 @@ func (x *Config_App) String() string {
 func (*Config_App) ProtoMessage() {}
 
 func (x *Config_App) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[164]
+	mi := &file_keys_proto_msgTypes[148]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9849,7 +9026,7 @@ func (x *Config_App) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Config_App.ProtoReflect.Descriptor instead.
 func (*Config_App) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{156, 0}
+	return file_keys_proto_rawDescGZIP(), []int{140, 0}
 }
 
 func (x *Config_App) GetLocation() string {
@@ -9887,7 +9064,7 @@ type Config_Encrypt struct {
 func (x *Config_Encrypt) Reset() {
 	*x = Config_Encrypt{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_keys_proto_msgTypes[165]
+		mi := &file_keys_proto_msgTypes[149]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9900,7 +9077,7 @@ func (x *Config_Encrypt) String() string {
 func (*Config_Encrypt) ProtoMessage() {}
 
 func (x *Config_Encrypt) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[165]
+	mi := &file_keys_proto_msgTypes[149]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9913,7 +9090,7 @@ func (x *Config_Encrypt) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Config_Encrypt.ProtoReflect.Descriptor instead.
 func (*Config_Encrypt) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{156, 1}
+	return file_keys_proto_rawDescGZIP(), []int{140, 1}
 }
 
 func (x *Config_Encrypt) GetRecipients() []string {
@@ -9955,7 +9132,7 @@ type Config_Sign struct {
 func (x *Config_Sign) Reset() {
 	*x = Config_Sign{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_keys_proto_msgTypes[166]
+		mi := &file_keys_proto_msgTypes[150]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9968,7 +9145,7 @@ func (x *Config_Sign) String() string {
 func (*Config_Sign) ProtoMessage() {}
 
 func (x *Config_Sign) ProtoReflect() protoreflect.Message {
-	mi := &file_keys_proto_msgTypes[166]
+	mi := &file_keys_proto_msgTypes[150]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9981,7 +9158,7 @@ func (x *Config_Sign) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Config_Sign.ProtoReflect.Descriptor instead.
 func (*Config_Sign) Descriptor() ([]byte, []int) {
-	return file_keys_proto_rawDescGZIP(), []int{156, 2}
+	return file_keys_proto_rawDescGZIP(), []int{140, 2}
 }
 
 func (x *Config_Sign) GetSigner() string {
@@ -10648,79 +9825,6 @@ var file_keys_proto_rawDesc = []byte{
 	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x27, 0x0a, 0x07, 0x63, 0x68, 0x61, 0x6e, 0x6e, 0x65,
 	0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0d, 0x2e, 0x6b, 0x65, 0x79, 0x73, 0x2e, 0x43,
 	0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x52, 0x07, 0x63, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x22,
-	0x2a, 0x0a, 0x0b, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x55, 0x73, 0x65, 0x72, 0x12, 0x1b,
-	0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x09, 0x2e, 0x6b, 0x65,
-	0x79, 0x73, 0x2e, 0x4b, 0x65, 0x79, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x22, 0x43, 0x0a, 0x13, 0x43,
-	0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x55, 0x73, 0x65, 0x72, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x12, 0x18, 0x0a, 0x07, 0x63, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x07, 0x63, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x12, 0x12, 0x0a, 0x04,
-	0x75, 0x73, 0x65, 0x72, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x75, 0x73, 0x65, 0x72,
-	0x22, 0x3f, 0x0a, 0x14, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x55, 0x73, 0x65, 0x72, 0x73,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x27, 0x0a, 0x05, 0x75, 0x73, 0x65, 0x72,
-	0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x11, 0x2e, 0x6b, 0x65, 0x79, 0x73, 0x2e, 0x43,
-	0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x55, 0x73, 0x65, 0x72, 0x52, 0x05, 0x75, 0x73, 0x65, 0x72,
-	0x73, 0x22, 0x6f, 0x0a, 0x1b, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x49, 0x6e, 0x76, 0x69,
-	0x74, 0x65, 0x73, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x12, 0x18, 0x0a, 0x07, 0x63, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x07, 0x63, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x12, 0x16, 0x0a, 0x06, 0x73, 0x65,
-	0x6e, 0x64, 0x65, 0x72, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x73, 0x65, 0x6e, 0x64,
-	0x65, 0x72, 0x12, 0x1e, 0x0a, 0x0a, 0x72, 0x65, 0x63, 0x69, 0x70, 0x69, 0x65, 0x6e, 0x74, 0x73,
-	0x18, 0x03, 0x20, 0x03, 0x28, 0x09, 0x52, 0x0a, 0x72, 0x65, 0x63, 0x69, 0x70, 0x69, 0x65, 0x6e,
-	0x74, 0x73, 0x22, 0x47, 0x0a, 0x1c, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x49, 0x6e, 0x76,
-	0x69, 0x74, 0x65, 0x73, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x12, 0x27, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x0b, 0x32, 0x0d, 0x2e, 0x6b, 0x65, 0x79, 0x73, 0x2e, 0x4d, 0x65, 0x73, 0x73, 0x61,
-	0x67, 0x65, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x22, 0x68, 0x0a, 0x16, 0x43,
-	0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x55, 0x6e, 0x69, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x18, 0x0a, 0x07, 0x63, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c,
-	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x63, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x12,
-	0x16, 0x0a, 0x06, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x06, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x12, 0x1c, 0x0a, 0x09, 0x72, 0x65, 0x63, 0x69, 0x70,
-	0x69, 0x65, 0x6e, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x72, 0x65, 0x63, 0x69,
-	0x70, 0x69, 0x65, 0x6e, 0x74, 0x22, 0x42, 0x0a, 0x17, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c,
-	0x55, 0x6e, 0x69, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x12, 0x27, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x0b, 0x32, 0x0d, 0x2e, 0x6b, 0x65, 0x79, 0x73, 0x2e, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65,
-	0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x22, 0x84, 0x01, 0x0a, 0x0d, 0x43, 0x68,
-	0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x12, 0x27, 0x0a, 0x07, 0x63,
-	0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0d, 0x2e, 0x6b,
-	0x65, 0x79, 0x73, 0x2e, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x52, 0x07, 0x63, 0x68, 0x61,
-	0x6e, 0x6e, 0x65, 0x6c, 0x12, 0x27, 0x0a, 0x09, 0x72, 0x65, 0x63, 0x69, 0x70, 0x69, 0x65, 0x6e,
-	0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x09, 0x2e, 0x6b, 0x65, 0x79, 0x73, 0x2e, 0x4b,
-	0x65, 0x79, 0x52, 0x09, 0x72, 0x65, 0x63, 0x69, 0x70, 0x69, 0x65, 0x6e, 0x74, 0x12, 0x21, 0x0a,
-	0x06, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x09, 0x2e,
-	0x6b, 0x65, 0x79, 0x73, 0x2e, 0x4b, 0x65, 0x79, 0x52, 0x06, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72,
-	0x22, 0x45, 0x0a, 0x15, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x49, 0x6e, 0x76, 0x69, 0x74,
-	0x65, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x18, 0x0a, 0x07, 0x63, 0x68, 0x61,
-	0x6e, 0x6e, 0x65, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x63, 0x68, 0x61, 0x6e,
-	0x6e, 0x65, 0x6c, 0x12, 0x12, 0x0a, 0x04, 0x75, 0x73, 0x65, 0x72, 0x18, 0x02, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x04, 0x75, 0x73, 0x65, 0x72, 0x22, 0x47, 0x0a, 0x16, 0x43, 0x68, 0x61, 0x6e, 0x6e,
-	0x65, 0x6c, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
-	0x65, 0x12, 0x2d, 0x0a, 0x07, 0x69, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03,
-	0x28, 0x0b, 0x32, 0x13, 0x2e, 0x6b, 0x65, 0x79, 0x73, 0x2e, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65,
-	0x6c, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x52, 0x07, 0x69, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x73,
-	0x22, 0x2f, 0x0a, 0x19, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x55, 0x73, 0x65, 0x72, 0x49,
-	0x6e, 0x76, 0x69, 0x74, 0x65, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x12, 0x0a,
-	0x04, 0x75, 0x73, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x75, 0x73, 0x65,
-	0x72, 0x22, 0x4b, 0x0a, 0x1a, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x55, 0x73, 0x65, 0x72,
-	0x49, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12,
-	0x2d, 0x0a, 0x07, 0x69, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b,
-	0x32, 0x13, 0x2e, 0x6b, 0x65, 0x79, 0x73, 0x2e, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x49,
-	0x6e, 0x76, 0x69, 0x74, 0x65, 0x52, 0x07, 0x69, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x73, 0x22, 0x42,
-	0x0a, 0x12, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x4a, 0x6f, 0x69, 0x6e, 0x52, 0x65, 0x71,
-	0x75, 0x65, 0x73, 0x74, 0x12, 0x18, 0x0a, 0x07, 0x63, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x63, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x12, 0x12,
-	0x0a, 0x04, 0x75, 0x73, 0x65, 0x72, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x75, 0x73,
-	0x65, 0x72, 0x22, 0x15, 0x0a, 0x13, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x4a, 0x6f, 0x69,
-	0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x43, 0x0a, 0x13, 0x43, 0x68, 0x61,
-	0x6e, 0x6e, 0x65, 0x6c, 0x4c, 0x65, 0x61, 0x76, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x12, 0x18, 0x0a, 0x07, 0x63, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x07, 0x63, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x12, 0x12, 0x0a, 0x04, 0x75, 0x73,
-	0x65, 0x72, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x75, 0x73, 0x65, 0x72, 0x22, 0x3f,
-	0x0a, 0x14, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x4c, 0x65, 0x61, 0x76, 0x65, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x27, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67,
-	0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0d, 0x2e, 0x6b, 0x65, 0x79, 0x73, 0x2e, 0x4d,
-	0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x22,
 	0x62, 0x0a, 0x13, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x53, 0x69, 0x67, 0x6e, 0x55, 0x52, 0x4c, 0x52,
 	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x16, 0x0a, 0x06, 0x73, 0x69, 0x67, 0x6e, 0x65, 0x72,
 	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x73, 0x69, 0x67, 0x6e, 0x65, 0x72, 0x12, 0x16,
@@ -10969,7 +10073,7 @@ var file_keys_proto_rawDesc = []byte{
 	0x14, 0x0a, 0x12, 0x57, 0x6f, 0x72, 0x6d, 0x68, 0x6f, 0x6c, 0x65, 0x4d, 0x65, 0x73, 0x73, 0x61,
 	0x67, 0x65, 0x41, 0x63, 0x6b, 0x1a, 0x1b, 0xca, 0xb5, 0x03, 0x17, 0x0a, 0x15, 0x57, 0x6f, 0x72,
 	0x6d, 0x68, 0x6f, 0x6c, 0x65, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x53, 0x74, 0x61, 0x74,
-	0x75, 0x73, 0x32, 0xf8, 0x27, 0x0a, 0x04, 0x4b, 0x65, 0x79, 0x73, 0x12, 0x44, 0x0a, 0x0b, 0x4b,
+	0x75, 0x73, 0x32, 0xc3, 0x23, 0x0a, 0x04, 0x4b, 0x65, 0x79, 0x73, 0x12, 0x44, 0x0a, 0x0b, 0x4b,
 	0x65, 0x79, 0x47, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x12, 0x18, 0x2e, 0x6b, 0x65, 0x79,
 	0x73, 0x2e, 0x4b, 0x65, 0x79, 0x47, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71,
 	0x75, 0x65, 0x73, 0x74, 0x1a, 0x19, 0x2e, 0x6b, 0x65, 0x79, 0x73, 0x2e, 0x4b, 0x65, 0x79, 0x47,
@@ -11236,61 +10340,25 @@ var file_keys_proto_rawDesc = []byte{
 	0x65, 0x12, 0x1a, 0x2e, 0x6b, 0x65, 0x79, 0x73, 0x2e, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c,
 	0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1b, 0x2e,
 	0x6b, 0x65, 0x79, 0x73, 0x2e, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x43, 0x72, 0x65, 0x61,
-	0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x47, 0x0a, 0x0c,
-	0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x55, 0x73, 0x65, 0x72, 0x73, 0x12, 0x19, 0x2e, 0x6b,
-	0x65, 0x79, 0x73, 0x2e, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x55, 0x73, 0x65, 0x72, 0x73,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1a, 0x2e, 0x6b, 0x65, 0x79, 0x73, 0x2e, 0x43,
-	0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x55, 0x73, 0x65, 0x72, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x5f, 0x0a, 0x14, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c,
-	0x49, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x73, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x12, 0x21, 0x2e,
-	0x6b, 0x65, 0x79, 0x73, 0x2e, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x49, 0x6e, 0x76, 0x69,
-	0x74, 0x65, 0x73, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x1a, 0x22, 0x2e, 0x6b, 0x65, 0x79, 0x73, 0x2e, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x49,
-	0x6e, 0x76, 0x69, 0x74, 0x65, 0x73, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x50, 0x0a, 0x0f, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65,
-	0x6c, 0x55, 0x6e, 0x69, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x12, 0x1c, 0x2e, 0x6b, 0x65, 0x79, 0x73,
-	0x2e, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x55, 0x6e, 0x69, 0x6e, 0x76, 0x69, 0x74, 0x65,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1d, 0x2e, 0x6b, 0x65, 0x79, 0x73, 0x2e, 0x43,
-	0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x55, 0x6e, 0x69, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x4d, 0x0a, 0x0e, 0x43, 0x68, 0x61, 0x6e,
-	0x6e, 0x65, 0x6c, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x73, 0x12, 0x1b, 0x2e, 0x6b, 0x65, 0x79,
-	0x73, 0x2e, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x73,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1c, 0x2e, 0x6b, 0x65, 0x79, 0x73, 0x2e, 0x43,
-	0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x73, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x59, 0x0a, 0x12, 0x43, 0x68, 0x61, 0x6e, 0x6e,
-	0x65, 0x6c, 0x55, 0x73, 0x65, 0x72, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x73, 0x12, 0x1f, 0x2e,
-	0x6b, 0x65, 0x79, 0x73, 0x2e, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x55, 0x73, 0x65, 0x72,
-	0x49, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x20,
-	0x2e, 0x6b, 0x65, 0x79, 0x73, 0x2e, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x55, 0x73, 0x65,
-	0x72, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x22, 0x00, 0x12, 0x44, 0x0a, 0x0b, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x4a, 0x6f, 0x69,
-	0x6e, 0x12, 0x18, 0x2e, 0x6b, 0x65, 0x79, 0x73, 0x2e, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c,
-	0x4a, 0x6f, 0x69, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x19, 0x2e, 0x6b, 0x65,
-	0x79, 0x73, 0x2e, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x4a, 0x6f, 0x69, 0x6e, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x47, 0x0a, 0x0c, 0x43, 0x68, 0x61, 0x6e,
-	0x6e, 0x65, 0x6c, 0x4c, 0x65, 0x61, 0x76, 0x65, 0x12, 0x19, 0x2e, 0x6b, 0x65, 0x79, 0x73, 0x2e,
-	0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x4c, 0x65, 0x61, 0x76, 0x65, 0x52, 0x65, 0x71, 0x75,
-	0x65, 0x73, 0x74, 0x1a, 0x1a, 0x2e, 0x6b, 0x65, 0x79, 0x73, 0x2e, 0x43, 0x68, 0x61, 0x6e, 0x6e,
-	0x65, 0x6c, 0x4c, 0x65, 0x61, 0x76, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
-	0x00, 0x12, 0x4d, 0x0a, 0x0e, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x50, 0x72, 0x65, 0x70,
-	0x61, 0x72, 0x65, 0x12, 0x1b, 0x2e, 0x6b, 0x65, 0x79, 0x73, 0x2e, 0x4d, 0x65, 0x73, 0x73, 0x61,
-	0x67, 0x65, 0x50, 0x72, 0x65, 0x70, 0x61, 0x72, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x1a, 0x1c, 0x2e, 0x6b, 0x65, 0x79, 0x73, 0x2e, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x50,
-	0x72, 0x65, 0x70, 0x61, 0x72, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
-	0x12, 0x4a, 0x0a, 0x0d, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x43, 0x72, 0x65, 0x61, 0x74,
-	0x65, 0x12, 0x1a, 0x2e, 0x6b, 0x65, 0x79, 0x73, 0x2e, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65,
-	0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1b, 0x2e,
-	0x6b, 0x65, 0x79, 0x73, 0x2e, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x43, 0x72, 0x65, 0x61,
-	0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x3b, 0x0a, 0x08,
-	0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x73, 0x12, 0x15, 0x2e, 0x6b, 0x65, 0x79, 0x73, 0x2e,
-	0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
-	0x16, 0x2e, 0x6b, 0x65, 0x79, 0x73, 0x2e, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x73, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x32, 0x0a, 0x05, 0x52, 0x65, 0x6c,
-	0x61, 0x79, 0x12, 0x12, 0x2e, 0x6b, 0x65, 0x79, 0x73, 0x2e, 0x52, 0x65, 0x6c, 0x61, 0x79, 0x52,
-	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x11, 0x2e, 0x6b, 0x65, 0x79, 0x73, 0x2e, 0x52, 0x65,
-	0x6c, 0x61, 0x79, 0x4f, 0x75, 0x74, 0x70, 0x75, 0x74, 0x22, 0x00, 0x30, 0x01, 0x42, 0x0b, 0x5a,
-	0x09, 0x2e, 0x3b, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x33,
+	0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x4d, 0x0a, 0x0e,
+	0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x50, 0x72, 0x65, 0x70, 0x61, 0x72, 0x65, 0x12, 0x1b,
+	0x2e, 0x6b, 0x65, 0x79, 0x73, 0x2e, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x50, 0x72, 0x65,
+	0x70, 0x61, 0x72, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1c, 0x2e, 0x6b, 0x65,
+	0x79, 0x73, 0x2e, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x50, 0x72, 0x65, 0x70, 0x61, 0x72,
+	0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x4a, 0x0a, 0x0d, 0x4d,
+	0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x12, 0x1a, 0x2e, 0x6b,
+	0x65, 0x79, 0x73, 0x2e, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x43, 0x72, 0x65, 0x61, 0x74,
+	0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1b, 0x2e, 0x6b, 0x65, 0x79, 0x73, 0x2e,
+	0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x3b, 0x0a, 0x08, 0x4d, 0x65, 0x73, 0x73, 0x61,
+	0x67, 0x65, 0x73, 0x12, 0x15, 0x2e, 0x6b, 0x65, 0x79, 0x73, 0x2e, 0x4d, 0x65, 0x73, 0x73, 0x61,
+	0x67, 0x65, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x6b, 0x65, 0x79,
+	0x73, 0x2e, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x22, 0x00, 0x12, 0x32, 0x0a, 0x05, 0x52, 0x65, 0x6c, 0x61, 0x79, 0x12, 0x12, 0x2e,
+	0x6b, 0x65, 0x79, 0x73, 0x2e, 0x52, 0x65, 0x6c, 0x61, 0x79, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x1a, 0x11, 0x2e, 0x6b, 0x65, 0x79, 0x73, 0x2e, 0x52, 0x65, 0x6c, 0x61, 0x79, 0x4f, 0x75,
+	0x74, 0x70, 0x75, 0x74, 0x22, 0x00, 0x30, 0x01, 0x42, 0x0b, 0x5a, 0x09, 0x2e, 0x3b, 0x73, 0x65,
+	0x72, 0x76, 0x69, 0x63, 0x65, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -11306,187 +10374,171 @@ func file_keys_proto_rawDescGZIP() []byte {
 }
 
 var file_keys_proto_enumTypes = make([]protoimpl.EnumInfo, 12)
-var file_keys_proto_msgTypes = make([]protoimpl.MessageInfo, 167)
+var file_keys_proto_msgTypes = make([]protoimpl.MessageInfo, 151)
 var file_keys_proto_goTypes = []interface{}{
-	(EncryptMode)(0),                     // 0: keys.EncryptMode
-	(AuthStatus)(0),                      // 1: keys.AuthStatus
-	(AuthType)(0),                        // 2: keys.AuthType
-	(ExportType)(0),                      // 3: keys.ExportType
-	(SortDirection)(0),                   // 4: keys.SortDirection
-	(SecretType)(0),                      // 5: keys.SecretType
-	(Encoding)(0),                        // 6: keys.Encoding
-	(UserStatus)(0),                      // 7: keys.UserStatus
-	(MessageStatus)(0),                   // 8: keys.MessageStatus
-	(RelayType)(0),                       // 9: keys.RelayType
-	(WormholeStatus)(0),                  // 10: keys.WormholeStatus
-	(WormholeMessageStatus)(0),           // 11: keys.WormholeMessageStatus
-	(*SignRequest)(nil),                  // 12: keys.SignRequest
-	(*SignResponse)(nil),                 // 13: keys.SignResponse
-	(*SignFileInput)(nil),                // 14: keys.SignFileInput
-	(*SignFileOutput)(nil),               // 15: keys.SignFileOutput
-	(*VerifyRequest)(nil),                // 16: keys.VerifyRequest
-	(*VerifyResponse)(nil),               // 17: keys.VerifyResponse
-	(*VerifyDetachedRequest)(nil),        // 18: keys.VerifyDetachedRequest
-	(*VerifyDetachedResponse)(nil),       // 19: keys.VerifyDetachedResponse
-	(*VerifyInput)(nil),                  // 20: keys.VerifyInput
-	(*VerifyOutput)(nil),                 // 21: keys.VerifyOutput
-	(*VerifyFileInput)(nil),              // 22: keys.VerifyFileInput
-	(*VerifyFileOutput)(nil),             // 23: keys.VerifyFileOutput
-	(*VerifyDetachedFileInput)(nil),      // 24: keys.VerifyDetachedFileInput
-	(*VerifyDetachedInput)(nil),          // 25: keys.VerifyDetachedInput
-	(*Statement)(nil),                    // 26: keys.Statement
-	(*SigchainRequest)(nil),              // 27: keys.SigchainRequest
-	(*SigchainResponse)(nil),             // 28: keys.SigchainResponse
-	(*StatementRequest)(nil),             // 29: keys.StatementRequest
-	(*StatementResponse)(nil),            // 30: keys.StatementResponse
-	(*StatementCreateRequest)(nil),       // 31: keys.StatementCreateRequest
-	(*StatementCreateResponse)(nil),      // 32: keys.StatementCreateResponse
-	(*StatementRevokeRequest)(nil),       // 33: keys.StatementRevokeRequest
-	(*StatementRevokeResponse)(nil),      // 34: keys.StatementRevokeResponse
-	(*SignInput)(nil),                    // 35: keys.SignInput
-	(*SignOutput)(nil),                   // 36: keys.SignOutput
-	(*EncryptOptions)(nil),               // 37: keys.EncryptOptions
-	(*EncryptRequest)(nil),               // 38: keys.EncryptRequest
-	(*EncryptResponse)(nil),              // 39: keys.EncryptResponse
-	(*EncryptFileInput)(nil),             // 40: keys.EncryptFileInput
-	(*EncryptFileOutput)(nil),            // 41: keys.EncryptFileOutput
-	(*EncryptInput)(nil),                 // 42: keys.EncryptInput
-	(*EncryptOutput)(nil),                // 43: keys.EncryptOutput
-	(*DecryptRequest)(nil),               // 44: keys.DecryptRequest
-	(*DecryptResponse)(nil),              // 45: keys.DecryptResponse
-	(*DecryptFileInput)(nil),             // 46: keys.DecryptFileInput
-	(*DecryptFileOutput)(nil),            // 47: keys.DecryptFileOutput
-	(*DecryptInput)(nil),                 // 48: keys.DecryptInput
-	(*DecryptOutput)(nil),                // 49: keys.DecryptOutput
-	(*RuntimeStatusRequest)(nil),         // 50: keys.RuntimeStatusRequest
-	(*RuntimeStatusResponse)(nil),        // 51: keys.RuntimeStatusResponse
-	(*AuthSetupRequest)(nil),             // 52: keys.AuthSetupRequest
-	(*AuthSetupResponse)(nil),            // 53: keys.AuthSetupResponse
-	(*AuthVaultRequest)(nil),             // 54: keys.AuthVaultRequest
-	(*AuthVaultResponse)(nil),            // 55: keys.AuthVaultResponse
-	(*AuthUnlockRequest)(nil),            // 56: keys.AuthUnlockRequest
-	(*AuthUnlockResponse)(nil),           // 57: keys.AuthUnlockResponse
-	(*AuthProvisionRequest)(nil),         // 58: keys.AuthProvisionRequest
-	(*AuthProvisionResponse)(nil),        // 59: keys.AuthProvisionResponse
-	(*AuthDeprovisionRequest)(nil),       // 60: keys.AuthDeprovisionRequest
-	(*AuthDeprovisionResponse)(nil),      // 61: keys.AuthDeprovisionResponse
-	(*AuthPasswordChangeRequest)(nil),    // 62: keys.AuthPasswordChangeRequest
-	(*AuthPasswordChangeResponse)(nil),   // 63: keys.AuthPasswordChangeResponse
-	(*AuthProvision)(nil),                // 64: keys.AuthProvision
-	(*AuthProvisionsRequest)(nil),        // 65: keys.AuthProvisionsRequest
-	(*AuthProvisionsResponse)(nil),       // 66: keys.AuthProvisionsResponse
-	(*AuthLockRequest)(nil),              // 67: keys.AuthLockRequest
-	(*AuthLockResponse)(nil),             // 68: keys.AuthLockResponse
-	(*AuthResetRequest)(nil),             // 69: keys.AuthResetRequest
-	(*AuthResetResponse)(nil),            // 70: keys.AuthResetResponse
-	(*AuthRecoverRequest)(nil),           // 71: keys.AuthRecoverRequest
-	(*AuthRecoverResponse)(nil),          // 72: keys.AuthRecoverResponse
-	(*KeyGenerateRequest)(nil),           // 73: keys.KeyGenerateRequest
-	(*KeyGenerateResponse)(nil),          // 74: keys.KeyGenerateResponse
-	(*UserServiceRequest)(nil),           // 75: keys.UserServiceRequest
-	(*UserServiceResponse)(nil),          // 76: keys.UserServiceResponse
-	(*UserSignRequest)(nil),              // 77: keys.UserSignRequest
-	(*UserSignResponse)(nil),             // 78: keys.UserSignResponse
-	(*UserAddRequest)(nil),               // 79: keys.UserAddRequest
-	(*UserAddResponse)(nil),              // 80: keys.UserAddResponse
-	(*KeyExportRequest)(nil),             // 81: keys.KeyExportRequest
-	(*KeyExportResponse)(nil),            // 82: keys.KeyExportResponse
-	(*KeyImportRequest)(nil),             // 83: keys.KeyImportRequest
-	(*KeyImportResponse)(nil),            // 84: keys.KeyImportResponse
-	(*KeyRemoveRequest)(nil),             // 85: keys.KeyRemoveRequest
-	(*KeyRemoveResponse)(nil),            // 86: keys.KeyRemoveResponse
-	(*Key)(nil),                          // 87: keys.Key
-	(*KeyRequest)(nil),                   // 88: keys.KeyRequest
-	(*KeyResponse)(nil),                  // 89: keys.KeyResponse
-	(*KeysRequest)(nil),                  // 90: keys.KeysRequest
-	(*KeysResponse)(nil),                 // 91: keys.KeysResponse
-	(*Secret)(nil),                       // 92: keys.Secret
-	(*SecretRequest)(nil),                // 93: keys.SecretRequest
-	(*SecretResponse)(nil),               // 94: keys.SecretResponse
-	(*SecretSaveRequest)(nil),            // 95: keys.SecretSaveRequest
-	(*SecretSaveResponse)(nil),           // 96: keys.SecretSaveResponse
-	(*SecretRemoveRequest)(nil),          // 97: keys.SecretRemoveRequest
-	(*SecretRemoveResponse)(nil),         // 98: keys.SecretRemoveResponse
-	(*SecretsRequest)(nil),               // 99: keys.SecretsRequest
-	(*SecretsResponse)(nil),              // 100: keys.SecretsResponse
-	(*RandRequest)(nil),                  // 101: keys.RandRequest
-	(*RandResponse)(nil),                 // 102: keys.RandResponse
-	(*RandPasswordRequest)(nil),          // 103: keys.RandPasswordRequest
-	(*RandPasswordResponse)(nil),         // 104: keys.RandPasswordResponse
-	(*PullRequest)(nil),                  // 105: keys.PullRequest
-	(*PullResponse)(nil),                 // 106: keys.PullResponse
-	(*PushRequest)(nil),                  // 107: keys.PushRequest
-	(*PushResponse)(nil),                 // 108: keys.PushResponse
-	(*Collection)(nil),                   // 109: keys.Collection
-	(*CollectionsRequest)(nil),           // 110: keys.CollectionsRequest
-	(*CollectionsResponse)(nil),          // 111: keys.CollectionsResponse
-	(*Document)(nil),                     // 112: keys.Document
-	(*DocumentsRequest)(nil),             // 113: keys.DocumentsRequest
-	(*DocumentsResponse)(nil),            // 114: keys.DocumentsResponse
-	(*DocumentDeleteRequest)(nil),        // 115: keys.DocumentDeleteRequest
-	(*DocumentDeleteResponse)(nil),       // 116: keys.DocumentDeleteResponse
-	(*User)(nil),                         // 117: keys.User
-	(*UserRequest)(nil),                  // 118: keys.UserRequest
-	(*UserResponse)(nil),                 // 119: keys.UserResponse
-	(*UserSearchRequest)(nil),            // 120: keys.UserSearchRequest
-	(*UserSearchResponse)(nil),           // 121: keys.UserSearchResponse
-	(*SearchRequest)(nil),                // 122: keys.SearchRequest
-	(*SearchResponse)(nil),               // 123: keys.SearchResponse
-	(*VaultSyncRequest)(nil),             // 124: keys.VaultSyncRequest
-	(*VaultSyncResponse)(nil),            // 125: keys.VaultSyncResponse
-	(*VaultUnsyncRequest)(nil),           // 126: keys.VaultUnsyncRequest
-	(*VaultUnsyncResponse)(nil),          // 127: keys.VaultUnsyncResponse
-	(*VaultAuthRequest)(nil),             // 128: keys.VaultAuthRequest
-	(*VaultAuthResponse)(nil),            // 129: keys.VaultAuthResponse
-	(*VaultStatusRequest)(nil),           // 130: keys.VaultStatusRequest
-	(*VaultStatusResponse)(nil),          // 131: keys.VaultStatusResponse
-	(*VaultUpdateRequest)(nil),           // 132: keys.VaultUpdateRequest
-	(*VaultUpdateResponse)(nil),          // 133: keys.VaultUpdateResponse
-	(*Message)(nil),                      // 134: keys.Message
-	(*MessagePrepareRequest)(nil),        // 135: keys.MessagePrepareRequest
-	(*MessagePrepareResponse)(nil),       // 136: keys.MessagePrepareResponse
-	(*MessageCreateRequest)(nil),         // 137: keys.MessageCreateRequest
-	(*MessageCreateResponse)(nil),        // 138: keys.MessageCreateResponse
-	(*MessagesRequest)(nil),              // 139: keys.MessagesRequest
-	(*MessagesResponse)(nil),             // 140: keys.MessagesResponse
-	(*RelayRequest)(nil),                 // 141: keys.RelayRequest
-	(*RelayOutput)(nil),                  // 142: keys.RelayOutput
-	(*Channel)(nil),                      // 143: keys.Channel
-	(*ChannelsRequest)(nil),              // 144: keys.ChannelsRequest
-	(*ChannelsResponse)(nil),             // 145: keys.ChannelsResponse
-	(*ChannelCreateRequest)(nil),         // 146: keys.ChannelCreateRequest
-	(*ChannelCreateResponse)(nil),        // 147: keys.ChannelCreateResponse
-	(*ChannelUser)(nil),                  // 148: keys.ChannelUser
-	(*ChannelUsersRequest)(nil),          // 149: keys.ChannelUsersRequest
-	(*ChannelUsersResponse)(nil),         // 150: keys.ChannelUsersResponse
-	(*ChannelInvitesCreateRequest)(nil),  // 151: keys.ChannelInvitesCreateRequest
-	(*ChannelInvitesCreateResponse)(nil), // 152: keys.ChannelInvitesCreateResponse
-	(*ChannelUninviteRequest)(nil),       // 153: keys.ChannelUninviteRequest
-	(*ChannelUninviteResponse)(nil),      // 154: keys.ChannelUninviteResponse
-	(*ChannelInvite)(nil),                // 155: keys.ChannelInvite
-	(*ChannelInvitesRequest)(nil),        // 156: keys.ChannelInvitesRequest
-	(*ChannelInvitesResponse)(nil),       // 157: keys.ChannelInvitesResponse
-	(*ChannelUserInvitesRequest)(nil),    // 158: keys.ChannelUserInvitesRequest
-	(*ChannelUserInvitesResponse)(nil),   // 159: keys.ChannelUserInvitesResponse
-	(*ChannelJoinRequest)(nil),           // 160: keys.ChannelJoinRequest
-	(*ChannelJoinResponse)(nil),          // 161: keys.ChannelJoinResponse
-	(*ChannelLeaveRequest)(nil),          // 162: keys.ChannelLeaveRequest
-	(*ChannelLeaveResponse)(nil),         // 163: keys.ChannelLeaveResponse
-	(*AdminSignURLRequest)(nil),          // 164: keys.AdminSignURLRequest
-	(*AdminSignURLResponse)(nil),         // 165: keys.AdminSignURLResponse
-	(*AdminCheckRequest)(nil),            // 166: keys.AdminCheckRequest
-	(*AdminCheckResponse)(nil),           // 167: keys.AdminCheckResponse
-	(*Config)(nil),                       // 168: keys.Config
-	(*ConfigGetRequest)(nil),             // 169: keys.ConfigGetRequest
-	(*ConfigGetResponse)(nil),            // 170: keys.ConfigGetResponse
-	(*ConfigSetRequest)(nil),             // 171: keys.ConfigSetRequest
-	(*ConfigSetResponse)(nil),            // 172: keys.ConfigSetResponse
-	(*WormholeInput)(nil),                // 173: keys.WormholeInput
-	(*WormholeMessage)(nil),              // 174: keys.WormholeMessage
-	(*WormholeOutput)(nil),               // 175: keys.WormholeOutput
-	(*Config_App)(nil),                   // 176: keys.Config.App
-	(*Config_Encrypt)(nil),               // 177: keys.Config.Encrypt
-	(*Config_Sign)(nil),                  // 178: keys.Config.Sign
+	(EncryptMode)(0),                   // 0: keys.EncryptMode
+	(AuthStatus)(0),                    // 1: keys.AuthStatus
+	(AuthType)(0),                      // 2: keys.AuthType
+	(ExportType)(0),                    // 3: keys.ExportType
+	(SortDirection)(0),                 // 4: keys.SortDirection
+	(SecretType)(0),                    // 5: keys.SecretType
+	(Encoding)(0),                      // 6: keys.Encoding
+	(UserStatus)(0),                    // 7: keys.UserStatus
+	(MessageStatus)(0),                 // 8: keys.MessageStatus
+	(RelayType)(0),                     // 9: keys.RelayType
+	(WormholeStatus)(0),                // 10: keys.WormholeStatus
+	(WormholeMessageStatus)(0),         // 11: keys.WormholeMessageStatus
+	(*SignRequest)(nil),                // 12: keys.SignRequest
+	(*SignResponse)(nil),               // 13: keys.SignResponse
+	(*SignFileInput)(nil),              // 14: keys.SignFileInput
+	(*SignFileOutput)(nil),             // 15: keys.SignFileOutput
+	(*VerifyRequest)(nil),              // 16: keys.VerifyRequest
+	(*VerifyResponse)(nil),             // 17: keys.VerifyResponse
+	(*VerifyDetachedRequest)(nil),      // 18: keys.VerifyDetachedRequest
+	(*VerifyDetachedResponse)(nil),     // 19: keys.VerifyDetachedResponse
+	(*VerifyInput)(nil),                // 20: keys.VerifyInput
+	(*VerifyOutput)(nil),               // 21: keys.VerifyOutput
+	(*VerifyFileInput)(nil),            // 22: keys.VerifyFileInput
+	(*VerifyFileOutput)(nil),           // 23: keys.VerifyFileOutput
+	(*VerifyDetachedFileInput)(nil),    // 24: keys.VerifyDetachedFileInput
+	(*VerifyDetachedInput)(nil),        // 25: keys.VerifyDetachedInput
+	(*Statement)(nil),                  // 26: keys.Statement
+	(*SigchainRequest)(nil),            // 27: keys.SigchainRequest
+	(*SigchainResponse)(nil),           // 28: keys.SigchainResponse
+	(*StatementRequest)(nil),           // 29: keys.StatementRequest
+	(*StatementResponse)(nil),          // 30: keys.StatementResponse
+	(*StatementCreateRequest)(nil),     // 31: keys.StatementCreateRequest
+	(*StatementCreateResponse)(nil),    // 32: keys.StatementCreateResponse
+	(*StatementRevokeRequest)(nil),     // 33: keys.StatementRevokeRequest
+	(*StatementRevokeResponse)(nil),    // 34: keys.StatementRevokeResponse
+	(*SignInput)(nil),                  // 35: keys.SignInput
+	(*SignOutput)(nil),                 // 36: keys.SignOutput
+	(*EncryptOptions)(nil),             // 37: keys.EncryptOptions
+	(*EncryptRequest)(nil),             // 38: keys.EncryptRequest
+	(*EncryptResponse)(nil),            // 39: keys.EncryptResponse
+	(*EncryptFileInput)(nil),           // 40: keys.EncryptFileInput
+	(*EncryptFileOutput)(nil),          // 41: keys.EncryptFileOutput
+	(*EncryptInput)(nil),               // 42: keys.EncryptInput
+	(*EncryptOutput)(nil),              // 43: keys.EncryptOutput
+	(*DecryptRequest)(nil),             // 44: keys.DecryptRequest
+	(*DecryptResponse)(nil),            // 45: keys.DecryptResponse
+	(*DecryptFileInput)(nil),           // 46: keys.DecryptFileInput
+	(*DecryptFileOutput)(nil),          // 47: keys.DecryptFileOutput
+	(*DecryptInput)(nil),               // 48: keys.DecryptInput
+	(*DecryptOutput)(nil),              // 49: keys.DecryptOutput
+	(*RuntimeStatusRequest)(nil),       // 50: keys.RuntimeStatusRequest
+	(*RuntimeStatusResponse)(nil),      // 51: keys.RuntimeStatusResponse
+	(*AuthSetupRequest)(nil),           // 52: keys.AuthSetupRequest
+	(*AuthSetupResponse)(nil),          // 53: keys.AuthSetupResponse
+	(*AuthVaultRequest)(nil),           // 54: keys.AuthVaultRequest
+	(*AuthVaultResponse)(nil),          // 55: keys.AuthVaultResponse
+	(*AuthUnlockRequest)(nil),          // 56: keys.AuthUnlockRequest
+	(*AuthUnlockResponse)(nil),         // 57: keys.AuthUnlockResponse
+	(*AuthProvisionRequest)(nil),       // 58: keys.AuthProvisionRequest
+	(*AuthProvisionResponse)(nil),      // 59: keys.AuthProvisionResponse
+	(*AuthDeprovisionRequest)(nil),     // 60: keys.AuthDeprovisionRequest
+	(*AuthDeprovisionResponse)(nil),    // 61: keys.AuthDeprovisionResponse
+	(*AuthPasswordChangeRequest)(nil),  // 62: keys.AuthPasswordChangeRequest
+	(*AuthPasswordChangeResponse)(nil), // 63: keys.AuthPasswordChangeResponse
+	(*AuthProvision)(nil),              // 64: keys.AuthProvision
+	(*AuthProvisionsRequest)(nil),      // 65: keys.AuthProvisionsRequest
+	(*AuthProvisionsResponse)(nil),     // 66: keys.AuthProvisionsResponse
+	(*AuthLockRequest)(nil),            // 67: keys.AuthLockRequest
+	(*AuthLockResponse)(nil),           // 68: keys.AuthLockResponse
+	(*AuthResetRequest)(nil),           // 69: keys.AuthResetRequest
+	(*AuthResetResponse)(nil),          // 70: keys.AuthResetResponse
+	(*AuthRecoverRequest)(nil),         // 71: keys.AuthRecoverRequest
+	(*AuthRecoverResponse)(nil),        // 72: keys.AuthRecoverResponse
+	(*KeyGenerateRequest)(nil),         // 73: keys.KeyGenerateRequest
+	(*KeyGenerateResponse)(nil),        // 74: keys.KeyGenerateResponse
+	(*UserServiceRequest)(nil),         // 75: keys.UserServiceRequest
+	(*UserServiceResponse)(nil),        // 76: keys.UserServiceResponse
+	(*UserSignRequest)(nil),            // 77: keys.UserSignRequest
+	(*UserSignResponse)(nil),           // 78: keys.UserSignResponse
+	(*UserAddRequest)(nil),             // 79: keys.UserAddRequest
+	(*UserAddResponse)(nil),            // 80: keys.UserAddResponse
+	(*KeyExportRequest)(nil),           // 81: keys.KeyExportRequest
+	(*KeyExportResponse)(nil),          // 82: keys.KeyExportResponse
+	(*KeyImportRequest)(nil),           // 83: keys.KeyImportRequest
+	(*KeyImportResponse)(nil),          // 84: keys.KeyImportResponse
+	(*KeyRemoveRequest)(nil),           // 85: keys.KeyRemoveRequest
+	(*KeyRemoveResponse)(nil),          // 86: keys.KeyRemoveResponse
+	(*Key)(nil),                        // 87: keys.Key
+	(*KeyRequest)(nil),                 // 88: keys.KeyRequest
+	(*KeyResponse)(nil),                // 89: keys.KeyResponse
+	(*KeysRequest)(nil),                // 90: keys.KeysRequest
+	(*KeysResponse)(nil),               // 91: keys.KeysResponse
+	(*Secret)(nil),                     // 92: keys.Secret
+	(*SecretRequest)(nil),              // 93: keys.SecretRequest
+	(*SecretResponse)(nil),             // 94: keys.SecretResponse
+	(*SecretSaveRequest)(nil),          // 95: keys.SecretSaveRequest
+	(*SecretSaveResponse)(nil),         // 96: keys.SecretSaveResponse
+	(*SecretRemoveRequest)(nil),        // 97: keys.SecretRemoveRequest
+	(*SecretRemoveResponse)(nil),       // 98: keys.SecretRemoveResponse
+	(*SecretsRequest)(nil),             // 99: keys.SecretsRequest
+	(*SecretsResponse)(nil),            // 100: keys.SecretsResponse
+	(*RandRequest)(nil),                // 101: keys.RandRequest
+	(*RandResponse)(nil),               // 102: keys.RandResponse
+	(*RandPasswordRequest)(nil),        // 103: keys.RandPasswordRequest
+	(*RandPasswordResponse)(nil),       // 104: keys.RandPasswordResponse
+	(*PullRequest)(nil),                // 105: keys.PullRequest
+	(*PullResponse)(nil),               // 106: keys.PullResponse
+	(*PushRequest)(nil),                // 107: keys.PushRequest
+	(*PushResponse)(nil),               // 108: keys.PushResponse
+	(*Collection)(nil),                 // 109: keys.Collection
+	(*CollectionsRequest)(nil),         // 110: keys.CollectionsRequest
+	(*CollectionsResponse)(nil),        // 111: keys.CollectionsResponse
+	(*Document)(nil),                   // 112: keys.Document
+	(*DocumentsRequest)(nil),           // 113: keys.DocumentsRequest
+	(*DocumentsResponse)(nil),          // 114: keys.DocumentsResponse
+	(*DocumentDeleteRequest)(nil),      // 115: keys.DocumentDeleteRequest
+	(*DocumentDeleteResponse)(nil),     // 116: keys.DocumentDeleteResponse
+	(*User)(nil),                       // 117: keys.User
+	(*UserRequest)(nil),                // 118: keys.UserRequest
+	(*UserResponse)(nil),               // 119: keys.UserResponse
+	(*UserSearchRequest)(nil),          // 120: keys.UserSearchRequest
+	(*UserSearchResponse)(nil),         // 121: keys.UserSearchResponse
+	(*SearchRequest)(nil),              // 122: keys.SearchRequest
+	(*SearchResponse)(nil),             // 123: keys.SearchResponse
+	(*VaultSyncRequest)(nil),           // 124: keys.VaultSyncRequest
+	(*VaultSyncResponse)(nil),          // 125: keys.VaultSyncResponse
+	(*VaultUnsyncRequest)(nil),         // 126: keys.VaultUnsyncRequest
+	(*VaultUnsyncResponse)(nil),        // 127: keys.VaultUnsyncResponse
+	(*VaultAuthRequest)(nil),           // 128: keys.VaultAuthRequest
+	(*VaultAuthResponse)(nil),          // 129: keys.VaultAuthResponse
+	(*VaultStatusRequest)(nil),         // 130: keys.VaultStatusRequest
+	(*VaultStatusResponse)(nil),        // 131: keys.VaultStatusResponse
+	(*VaultUpdateRequest)(nil),         // 132: keys.VaultUpdateRequest
+	(*VaultUpdateResponse)(nil),        // 133: keys.VaultUpdateResponse
+	(*Message)(nil),                    // 134: keys.Message
+	(*MessagePrepareRequest)(nil),      // 135: keys.MessagePrepareRequest
+	(*MessagePrepareResponse)(nil),     // 136: keys.MessagePrepareResponse
+	(*MessageCreateRequest)(nil),       // 137: keys.MessageCreateRequest
+	(*MessageCreateResponse)(nil),      // 138: keys.MessageCreateResponse
+	(*MessagesRequest)(nil),            // 139: keys.MessagesRequest
+	(*MessagesResponse)(nil),           // 140: keys.MessagesResponse
+	(*RelayRequest)(nil),               // 141: keys.RelayRequest
+	(*RelayOutput)(nil),                // 142: keys.RelayOutput
+	(*Channel)(nil),                    // 143: keys.Channel
+	(*ChannelsRequest)(nil),            // 144: keys.ChannelsRequest
+	(*ChannelsResponse)(nil),           // 145: keys.ChannelsResponse
+	(*ChannelCreateRequest)(nil),       // 146: keys.ChannelCreateRequest
+	(*ChannelCreateResponse)(nil),      // 147: keys.ChannelCreateResponse
+	(*AdminSignURLRequest)(nil),        // 148: keys.AdminSignURLRequest
+	(*AdminSignURLResponse)(nil),       // 149: keys.AdminSignURLResponse
+	(*AdminCheckRequest)(nil),          // 150: keys.AdminCheckRequest
+	(*AdminCheckResponse)(nil),         // 151: keys.AdminCheckResponse
+	(*Config)(nil),                     // 152: keys.Config
+	(*ConfigGetRequest)(nil),           // 153: keys.ConfigGetRequest
+	(*ConfigGetResponse)(nil),          // 154: keys.ConfigGetResponse
+	(*ConfigSetRequest)(nil),           // 155: keys.ConfigSetRequest
+	(*ConfigSetResponse)(nil),          // 156: keys.ConfigSetResponse
+	(*WormholeInput)(nil),              // 157: keys.WormholeInput
+	(*WormholeMessage)(nil),            // 158: keys.WormholeMessage
+	(*WormholeOutput)(nil),             // 159: keys.WormholeOutput
+	(*Config_App)(nil),                 // 160: keys.Config.App
+	(*Config_Encrypt)(nil),             // 161: keys.Config.Encrypt
+	(*Config_Sign)(nil),                // 162: keys.Config.Sign
 }
 var file_keys_proto_depIdxs = []int32{
 	87,  // 0: keys.VerifyResponse.signer:type_name -> keys.Key
@@ -11545,183 +10597,159 @@ var file_keys_proto_depIdxs = []int32{
 	9,   // 53: keys.RelayOutput.type:type_name -> keys.RelayType
 	143, // 54: keys.ChannelsResponse.channels:type_name -> keys.Channel
 	143, // 55: keys.ChannelCreateResponse.channel:type_name -> keys.Channel
-	87,  // 56: keys.ChannelUser.key:type_name -> keys.Key
-	148, // 57: keys.ChannelUsersResponse.users:type_name -> keys.ChannelUser
-	134, // 58: keys.ChannelInvitesCreateResponse.message:type_name -> keys.Message
-	134, // 59: keys.ChannelUninviteResponse.message:type_name -> keys.Message
-	143, // 60: keys.ChannelInvite.channel:type_name -> keys.Channel
-	87,  // 61: keys.ChannelInvite.recipient:type_name -> keys.Key
-	87,  // 62: keys.ChannelInvite.sender:type_name -> keys.Key
-	155, // 63: keys.ChannelInvitesResponse.invites:type_name -> keys.ChannelInvite
-	155, // 64: keys.ChannelUserInvitesResponse.invites:type_name -> keys.ChannelInvite
-	134, // 65: keys.ChannelLeaveResponse.message:type_name -> keys.Message
-	176, // 66: keys.Config.app:type_name -> keys.Config.App
-	177, // 67: keys.Config.encrypt:type_name -> keys.Config.Encrypt
-	178, // 68: keys.Config.sign:type_name -> keys.Config.Sign
-	168, // 69: keys.ConfigGetResponse.config:type_name -> keys.Config
-	168, // 70: keys.ConfigSetRequest.config:type_name -> keys.Config
-	87,  // 71: keys.WormholeMessage.sender:type_name -> keys.Key
-	87,  // 72: keys.WormholeMessage.recipient:type_name -> keys.Key
-	11,  // 73: keys.WormholeMessage.status:type_name -> keys.WormholeMessageStatus
-	174, // 74: keys.WormholeOutput.message:type_name -> keys.WormholeMessage
-	10,  // 75: keys.WormholeOutput.status:type_name -> keys.WormholeStatus
-	73,  // 76: keys.Keys.KeyGenerate:input_type -> keys.KeyGenerateRequest
-	90,  // 77: keys.Keys.Keys:input_type -> keys.KeysRequest
-	88,  // 78: keys.Keys.Key:input_type -> keys.KeyRequest
-	83,  // 79: keys.Keys.KeyImport:input_type -> keys.KeyImportRequest
-	81,  // 80: keys.Keys.KeyExport:input_type -> keys.KeyExportRequest
-	85,  // 81: keys.Keys.KeyRemove:input_type -> keys.KeyRemoveRequest
-	12,  // 82: keys.Keys.Sign:input_type -> keys.SignRequest
-	14,  // 83: keys.Keys.SignFile:input_type -> keys.SignFileInput
-	35,  // 84: keys.Keys.SignStream:input_type -> keys.SignInput
-	16,  // 85: keys.Keys.Verify:input_type -> keys.VerifyRequest
-	22,  // 86: keys.Keys.VerifyFile:input_type -> keys.VerifyFileInput
-	20,  // 87: keys.Keys.VerifyStream:input_type -> keys.VerifyInput
-	18,  // 88: keys.Keys.VerifyDetached:input_type -> keys.VerifyDetachedRequest
-	24,  // 89: keys.Keys.VerifyDetachedFile:input_type -> keys.VerifyDetachedFileInput
-	25,  // 90: keys.Keys.VerifyDetachedStream:input_type -> keys.VerifyDetachedInput
-	38,  // 91: keys.Keys.Encrypt:input_type -> keys.EncryptRequest
-	42,  // 92: keys.Keys.EncryptStream:input_type -> keys.EncryptInput
-	40,  // 93: keys.Keys.EncryptFile:input_type -> keys.EncryptFileInput
-	44,  // 94: keys.Keys.Decrypt:input_type -> keys.DecryptRequest
-	48,  // 95: keys.Keys.DecryptStream:input_type -> keys.DecryptInput
-	46,  // 96: keys.Keys.DecryptFile:input_type -> keys.DecryptFileInput
-	27,  // 97: keys.Keys.Sigchain:input_type -> keys.SigchainRequest
-	29,  // 98: keys.Keys.Statement:input_type -> keys.StatementRequest
-	31,  // 99: keys.Keys.StatementCreate:input_type -> keys.StatementCreateRequest
-	33,  // 100: keys.Keys.StatementRevoke:input_type -> keys.StatementRevokeRequest
-	118, // 101: keys.Keys.User:input_type -> keys.UserRequest
-	120, // 102: keys.Keys.UserSearch:input_type -> keys.UserSearchRequest
-	75,  // 103: keys.Keys.UserService:input_type -> keys.UserServiceRequest
-	77,  // 104: keys.Keys.UserSign:input_type -> keys.UserSignRequest
-	79,  // 105: keys.Keys.UserAdd:input_type -> keys.UserAddRequest
-	122, // 106: keys.Keys.Search:input_type -> keys.SearchRequest
-	93,  // 107: keys.Keys.Secret:input_type -> keys.SecretRequest
-	95,  // 108: keys.Keys.SecretSave:input_type -> keys.SecretSaveRequest
-	97,  // 109: keys.Keys.SecretRemove:input_type -> keys.SecretRemoveRequest
-	99,  // 110: keys.Keys.Secrets:input_type -> keys.SecretsRequest
-	105, // 111: keys.Keys.Pull:input_type -> keys.PullRequest
-	107, // 112: keys.Keys.Push:input_type -> keys.PushRequest
-	173, // 113: keys.Keys.Wormhole:input_type -> keys.WormholeInput
-	52,  // 114: keys.Keys.AuthSetup:input_type -> keys.AuthSetupRequest
-	54,  // 115: keys.Keys.AuthVault:input_type -> keys.AuthVaultRequest
-	56,  // 116: keys.Keys.AuthUnlock:input_type -> keys.AuthUnlockRequest
-	67,  // 117: keys.Keys.AuthLock:input_type -> keys.AuthLockRequest
-	69,  // 118: keys.Keys.AuthReset:input_type -> keys.AuthResetRequest
-	71,  // 119: keys.Keys.AuthRecover:input_type -> keys.AuthRecoverRequest
-	50,  // 120: keys.Keys.RuntimeStatus:input_type -> keys.RuntimeStatusRequest
-	101, // 121: keys.Keys.Rand:input_type -> keys.RandRequest
-	103, // 122: keys.Keys.RandPassword:input_type -> keys.RandPasswordRequest
-	58,  // 123: keys.Keys.AuthProvision:input_type -> keys.AuthProvisionRequest
-	60,  // 124: keys.Keys.AuthDeprovision:input_type -> keys.AuthDeprovisionRequest
-	65,  // 125: keys.Keys.AuthProvisions:input_type -> keys.AuthProvisionsRequest
-	62,  // 126: keys.Keys.AuthPasswordChange:input_type -> keys.AuthPasswordChangeRequest
-	128, // 127: keys.Keys.VaultAuth:input_type -> keys.VaultAuthRequest
-	124, // 128: keys.Keys.VaultSync:input_type -> keys.VaultSyncRequest
-	126, // 129: keys.Keys.VaultUnsync:input_type -> keys.VaultUnsyncRequest
-	130, // 130: keys.Keys.VaultStatus:input_type -> keys.VaultStatusRequest
-	132, // 131: keys.Keys.VaultUpdate:input_type -> keys.VaultUpdateRequest
-	110, // 132: keys.Keys.Collections:input_type -> keys.CollectionsRequest
-	113, // 133: keys.Keys.Documents:input_type -> keys.DocumentsRequest
-	115, // 134: keys.Keys.DocumentDelete:input_type -> keys.DocumentDeleteRequest
-	169, // 135: keys.Keys.ConfigGet:input_type -> keys.ConfigGetRequest
-	171, // 136: keys.Keys.ConfigSet:input_type -> keys.ConfigSetRequest
-	164, // 137: keys.Keys.AdminSignURL:input_type -> keys.AdminSignURLRequest
-	166, // 138: keys.Keys.AdminCheck:input_type -> keys.AdminCheckRequest
-	144, // 139: keys.Keys.Channels:input_type -> keys.ChannelsRequest
-	146, // 140: keys.Keys.ChannelCreate:input_type -> keys.ChannelCreateRequest
-	149, // 141: keys.Keys.ChannelUsers:input_type -> keys.ChannelUsersRequest
-	151, // 142: keys.Keys.ChannelInvitesCreate:input_type -> keys.ChannelInvitesCreateRequest
-	153, // 143: keys.Keys.ChannelUninvite:input_type -> keys.ChannelUninviteRequest
-	156, // 144: keys.Keys.ChannelInvites:input_type -> keys.ChannelInvitesRequest
-	158, // 145: keys.Keys.ChannelUserInvites:input_type -> keys.ChannelUserInvitesRequest
-	160, // 146: keys.Keys.ChannelJoin:input_type -> keys.ChannelJoinRequest
-	162, // 147: keys.Keys.ChannelLeave:input_type -> keys.ChannelLeaveRequest
-	135, // 148: keys.Keys.MessagePrepare:input_type -> keys.MessagePrepareRequest
-	137, // 149: keys.Keys.MessageCreate:input_type -> keys.MessageCreateRequest
-	139, // 150: keys.Keys.Messages:input_type -> keys.MessagesRequest
-	141, // 151: keys.Keys.Relay:input_type -> keys.RelayRequest
-	74,  // 152: keys.Keys.KeyGenerate:output_type -> keys.KeyGenerateResponse
-	91,  // 153: keys.Keys.Keys:output_type -> keys.KeysResponse
-	89,  // 154: keys.Keys.Key:output_type -> keys.KeyResponse
-	84,  // 155: keys.Keys.KeyImport:output_type -> keys.KeyImportResponse
-	82,  // 156: keys.Keys.KeyExport:output_type -> keys.KeyExportResponse
-	86,  // 157: keys.Keys.KeyRemove:output_type -> keys.KeyRemoveResponse
-	13,  // 158: keys.Keys.Sign:output_type -> keys.SignResponse
-	15,  // 159: keys.Keys.SignFile:output_type -> keys.SignFileOutput
-	36,  // 160: keys.Keys.SignStream:output_type -> keys.SignOutput
-	17,  // 161: keys.Keys.Verify:output_type -> keys.VerifyResponse
-	23,  // 162: keys.Keys.VerifyFile:output_type -> keys.VerifyFileOutput
-	21,  // 163: keys.Keys.VerifyStream:output_type -> keys.VerifyOutput
-	19,  // 164: keys.Keys.VerifyDetached:output_type -> keys.VerifyDetachedResponse
-	19,  // 165: keys.Keys.VerifyDetachedFile:output_type -> keys.VerifyDetachedResponse
-	19,  // 166: keys.Keys.VerifyDetachedStream:output_type -> keys.VerifyDetachedResponse
-	39,  // 167: keys.Keys.Encrypt:output_type -> keys.EncryptResponse
-	43,  // 168: keys.Keys.EncryptStream:output_type -> keys.EncryptOutput
-	41,  // 169: keys.Keys.EncryptFile:output_type -> keys.EncryptFileOutput
-	45,  // 170: keys.Keys.Decrypt:output_type -> keys.DecryptResponse
-	49,  // 171: keys.Keys.DecryptStream:output_type -> keys.DecryptOutput
-	47,  // 172: keys.Keys.DecryptFile:output_type -> keys.DecryptFileOutput
-	28,  // 173: keys.Keys.Sigchain:output_type -> keys.SigchainResponse
-	30,  // 174: keys.Keys.Statement:output_type -> keys.StatementResponse
-	32,  // 175: keys.Keys.StatementCreate:output_type -> keys.StatementCreateResponse
-	34,  // 176: keys.Keys.StatementRevoke:output_type -> keys.StatementRevokeResponse
-	119, // 177: keys.Keys.User:output_type -> keys.UserResponse
-	121, // 178: keys.Keys.UserSearch:output_type -> keys.UserSearchResponse
-	76,  // 179: keys.Keys.UserService:output_type -> keys.UserServiceResponse
-	78,  // 180: keys.Keys.UserSign:output_type -> keys.UserSignResponse
-	80,  // 181: keys.Keys.UserAdd:output_type -> keys.UserAddResponse
-	123, // 182: keys.Keys.Search:output_type -> keys.SearchResponse
-	94,  // 183: keys.Keys.Secret:output_type -> keys.SecretResponse
-	96,  // 184: keys.Keys.SecretSave:output_type -> keys.SecretSaveResponse
-	98,  // 185: keys.Keys.SecretRemove:output_type -> keys.SecretRemoveResponse
-	100, // 186: keys.Keys.Secrets:output_type -> keys.SecretsResponse
-	106, // 187: keys.Keys.Pull:output_type -> keys.PullResponse
-	108, // 188: keys.Keys.Push:output_type -> keys.PushResponse
-	175, // 189: keys.Keys.Wormhole:output_type -> keys.WormholeOutput
-	53,  // 190: keys.Keys.AuthSetup:output_type -> keys.AuthSetupResponse
-	55,  // 191: keys.Keys.AuthVault:output_type -> keys.AuthVaultResponse
-	57,  // 192: keys.Keys.AuthUnlock:output_type -> keys.AuthUnlockResponse
-	68,  // 193: keys.Keys.AuthLock:output_type -> keys.AuthLockResponse
-	70,  // 194: keys.Keys.AuthReset:output_type -> keys.AuthResetResponse
-	72,  // 195: keys.Keys.AuthRecover:output_type -> keys.AuthRecoverResponse
-	51,  // 196: keys.Keys.RuntimeStatus:output_type -> keys.RuntimeStatusResponse
-	102, // 197: keys.Keys.Rand:output_type -> keys.RandResponse
-	104, // 198: keys.Keys.RandPassword:output_type -> keys.RandPasswordResponse
-	59,  // 199: keys.Keys.AuthProvision:output_type -> keys.AuthProvisionResponse
-	61,  // 200: keys.Keys.AuthDeprovision:output_type -> keys.AuthDeprovisionResponse
-	66,  // 201: keys.Keys.AuthProvisions:output_type -> keys.AuthProvisionsResponse
-	63,  // 202: keys.Keys.AuthPasswordChange:output_type -> keys.AuthPasswordChangeResponse
-	129, // 203: keys.Keys.VaultAuth:output_type -> keys.VaultAuthResponse
-	125, // 204: keys.Keys.VaultSync:output_type -> keys.VaultSyncResponse
-	127, // 205: keys.Keys.VaultUnsync:output_type -> keys.VaultUnsyncResponse
-	131, // 206: keys.Keys.VaultStatus:output_type -> keys.VaultStatusResponse
-	133, // 207: keys.Keys.VaultUpdate:output_type -> keys.VaultUpdateResponse
-	111, // 208: keys.Keys.Collections:output_type -> keys.CollectionsResponse
-	114, // 209: keys.Keys.Documents:output_type -> keys.DocumentsResponse
-	116, // 210: keys.Keys.DocumentDelete:output_type -> keys.DocumentDeleteResponse
-	170, // 211: keys.Keys.ConfigGet:output_type -> keys.ConfigGetResponse
-	172, // 212: keys.Keys.ConfigSet:output_type -> keys.ConfigSetResponse
-	165, // 213: keys.Keys.AdminSignURL:output_type -> keys.AdminSignURLResponse
-	167, // 214: keys.Keys.AdminCheck:output_type -> keys.AdminCheckResponse
-	145, // 215: keys.Keys.Channels:output_type -> keys.ChannelsResponse
-	147, // 216: keys.Keys.ChannelCreate:output_type -> keys.ChannelCreateResponse
-	150, // 217: keys.Keys.ChannelUsers:output_type -> keys.ChannelUsersResponse
-	152, // 218: keys.Keys.ChannelInvitesCreate:output_type -> keys.ChannelInvitesCreateResponse
-	154, // 219: keys.Keys.ChannelUninvite:output_type -> keys.ChannelUninviteResponse
-	157, // 220: keys.Keys.ChannelInvites:output_type -> keys.ChannelInvitesResponse
-	159, // 221: keys.Keys.ChannelUserInvites:output_type -> keys.ChannelUserInvitesResponse
-	161, // 222: keys.Keys.ChannelJoin:output_type -> keys.ChannelJoinResponse
-	163, // 223: keys.Keys.ChannelLeave:output_type -> keys.ChannelLeaveResponse
-	136, // 224: keys.Keys.MessagePrepare:output_type -> keys.MessagePrepareResponse
-	138, // 225: keys.Keys.MessageCreate:output_type -> keys.MessageCreateResponse
-	140, // 226: keys.Keys.Messages:output_type -> keys.MessagesResponse
-	142, // 227: keys.Keys.Relay:output_type -> keys.RelayOutput
-	152, // [152:228] is the sub-list for method output_type
-	76,  // [76:152] is the sub-list for method input_type
-	76,  // [76:76] is the sub-list for extension type_name
-	76,  // [76:76] is the sub-list for extension extendee
-	0,   // [0:76] is the sub-list for field type_name
+	160, // 56: keys.Config.app:type_name -> keys.Config.App
+	161, // 57: keys.Config.encrypt:type_name -> keys.Config.Encrypt
+	162, // 58: keys.Config.sign:type_name -> keys.Config.Sign
+	152, // 59: keys.ConfigGetResponse.config:type_name -> keys.Config
+	152, // 60: keys.ConfigSetRequest.config:type_name -> keys.Config
+	87,  // 61: keys.WormholeMessage.sender:type_name -> keys.Key
+	87,  // 62: keys.WormholeMessage.recipient:type_name -> keys.Key
+	11,  // 63: keys.WormholeMessage.status:type_name -> keys.WormholeMessageStatus
+	158, // 64: keys.WormholeOutput.message:type_name -> keys.WormholeMessage
+	10,  // 65: keys.WormholeOutput.status:type_name -> keys.WormholeStatus
+	73,  // 66: keys.Keys.KeyGenerate:input_type -> keys.KeyGenerateRequest
+	90,  // 67: keys.Keys.Keys:input_type -> keys.KeysRequest
+	88,  // 68: keys.Keys.Key:input_type -> keys.KeyRequest
+	83,  // 69: keys.Keys.KeyImport:input_type -> keys.KeyImportRequest
+	81,  // 70: keys.Keys.KeyExport:input_type -> keys.KeyExportRequest
+	85,  // 71: keys.Keys.KeyRemove:input_type -> keys.KeyRemoveRequest
+	12,  // 72: keys.Keys.Sign:input_type -> keys.SignRequest
+	14,  // 73: keys.Keys.SignFile:input_type -> keys.SignFileInput
+	35,  // 74: keys.Keys.SignStream:input_type -> keys.SignInput
+	16,  // 75: keys.Keys.Verify:input_type -> keys.VerifyRequest
+	22,  // 76: keys.Keys.VerifyFile:input_type -> keys.VerifyFileInput
+	20,  // 77: keys.Keys.VerifyStream:input_type -> keys.VerifyInput
+	18,  // 78: keys.Keys.VerifyDetached:input_type -> keys.VerifyDetachedRequest
+	24,  // 79: keys.Keys.VerifyDetachedFile:input_type -> keys.VerifyDetachedFileInput
+	25,  // 80: keys.Keys.VerifyDetachedStream:input_type -> keys.VerifyDetachedInput
+	38,  // 81: keys.Keys.Encrypt:input_type -> keys.EncryptRequest
+	42,  // 82: keys.Keys.EncryptStream:input_type -> keys.EncryptInput
+	40,  // 83: keys.Keys.EncryptFile:input_type -> keys.EncryptFileInput
+	44,  // 84: keys.Keys.Decrypt:input_type -> keys.DecryptRequest
+	48,  // 85: keys.Keys.DecryptStream:input_type -> keys.DecryptInput
+	46,  // 86: keys.Keys.DecryptFile:input_type -> keys.DecryptFileInput
+	27,  // 87: keys.Keys.Sigchain:input_type -> keys.SigchainRequest
+	29,  // 88: keys.Keys.Statement:input_type -> keys.StatementRequest
+	31,  // 89: keys.Keys.StatementCreate:input_type -> keys.StatementCreateRequest
+	33,  // 90: keys.Keys.StatementRevoke:input_type -> keys.StatementRevokeRequest
+	118, // 91: keys.Keys.User:input_type -> keys.UserRequest
+	120, // 92: keys.Keys.UserSearch:input_type -> keys.UserSearchRequest
+	75,  // 93: keys.Keys.UserService:input_type -> keys.UserServiceRequest
+	77,  // 94: keys.Keys.UserSign:input_type -> keys.UserSignRequest
+	79,  // 95: keys.Keys.UserAdd:input_type -> keys.UserAddRequest
+	122, // 96: keys.Keys.Search:input_type -> keys.SearchRequest
+	93,  // 97: keys.Keys.Secret:input_type -> keys.SecretRequest
+	95,  // 98: keys.Keys.SecretSave:input_type -> keys.SecretSaveRequest
+	97,  // 99: keys.Keys.SecretRemove:input_type -> keys.SecretRemoveRequest
+	99,  // 100: keys.Keys.Secrets:input_type -> keys.SecretsRequest
+	105, // 101: keys.Keys.Pull:input_type -> keys.PullRequest
+	107, // 102: keys.Keys.Push:input_type -> keys.PushRequest
+	157, // 103: keys.Keys.Wormhole:input_type -> keys.WormholeInput
+	52,  // 104: keys.Keys.AuthSetup:input_type -> keys.AuthSetupRequest
+	54,  // 105: keys.Keys.AuthVault:input_type -> keys.AuthVaultRequest
+	56,  // 106: keys.Keys.AuthUnlock:input_type -> keys.AuthUnlockRequest
+	67,  // 107: keys.Keys.AuthLock:input_type -> keys.AuthLockRequest
+	69,  // 108: keys.Keys.AuthReset:input_type -> keys.AuthResetRequest
+	71,  // 109: keys.Keys.AuthRecover:input_type -> keys.AuthRecoverRequest
+	50,  // 110: keys.Keys.RuntimeStatus:input_type -> keys.RuntimeStatusRequest
+	101, // 111: keys.Keys.Rand:input_type -> keys.RandRequest
+	103, // 112: keys.Keys.RandPassword:input_type -> keys.RandPasswordRequest
+	58,  // 113: keys.Keys.AuthProvision:input_type -> keys.AuthProvisionRequest
+	60,  // 114: keys.Keys.AuthDeprovision:input_type -> keys.AuthDeprovisionRequest
+	65,  // 115: keys.Keys.AuthProvisions:input_type -> keys.AuthProvisionsRequest
+	62,  // 116: keys.Keys.AuthPasswordChange:input_type -> keys.AuthPasswordChangeRequest
+	128, // 117: keys.Keys.VaultAuth:input_type -> keys.VaultAuthRequest
+	124, // 118: keys.Keys.VaultSync:input_type -> keys.VaultSyncRequest
+	126, // 119: keys.Keys.VaultUnsync:input_type -> keys.VaultUnsyncRequest
+	130, // 120: keys.Keys.VaultStatus:input_type -> keys.VaultStatusRequest
+	132, // 121: keys.Keys.VaultUpdate:input_type -> keys.VaultUpdateRequest
+	110, // 122: keys.Keys.Collections:input_type -> keys.CollectionsRequest
+	113, // 123: keys.Keys.Documents:input_type -> keys.DocumentsRequest
+	115, // 124: keys.Keys.DocumentDelete:input_type -> keys.DocumentDeleteRequest
+	153, // 125: keys.Keys.ConfigGet:input_type -> keys.ConfigGetRequest
+	155, // 126: keys.Keys.ConfigSet:input_type -> keys.ConfigSetRequest
+	148, // 127: keys.Keys.AdminSignURL:input_type -> keys.AdminSignURLRequest
+	150, // 128: keys.Keys.AdminCheck:input_type -> keys.AdminCheckRequest
+	144, // 129: keys.Keys.Channels:input_type -> keys.ChannelsRequest
+	146, // 130: keys.Keys.ChannelCreate:input_type -> keys.ChannelCreateRequest
+	135, // 131: keys.Keys.MessagePrepare:input_type -> keys.MessagePrepareRequest
+	137, // 132: keys.Keys.MessageCreate:input_type -> keys.MessageCreateRequest
+	139, // 133: keys.Keys.Messages:input_type -> keys.MessagesRequest
+	141, // 134: keys.Keys.Relay:input_type -> keys.RelayRequest
+	74,  // 135: keys.Keys.KeyGenerate:output_type -> keys.KeyGenerateResponse
+	91,  // 136: keys.Keys.Keys:output_type -> keys.KeysResponse
+	89,  // 137: keys.Keys.Key:output_type -> keys.KeyResponse
+	84,  // 138: keys.Keys.KeyImport:output_type -> keys.KeyImportResponse
+	82,  // 139: keys.Keys.KeyExport:output_type -> keys.KeyExportResponse
+	86,  // 140: keys.Keys.KeyRemove:output_type -> keys.KeyRemoveResponse
+	13,  // 141: keys.Keys.Sign:output_type -> keys.SignResponse
+	15,  // 142: keys.Keys.SignFile:output_type -> keys.SignFileOutput
+	36,  // 143: keys.Keys.SignStream:output_type -> keys.SignOutput
+	17,  // 144: keys.Keys.Verify:output_type -> keys.VerifyResponse
+	23,  // 145: keys.Keys.VerifyFile:output_type -> keys.VerifyFileOutput
+	21,  // 146: keys.Keys.VerifyStream:output_type -> keys.VerifyOutput
+	19,  // 147: keys.Keys.VerifyDetached:output_type -> keys.VerifyDetachedResponse
+	19,  // 148: keys.Keys.VerifyDetachedFile:output_type -> keys.VerifyDetachedResponse
+	19,  // 149: keys.Keys.VerifyDetachedStream:output_type -> keys.VerifyDetachedResponse
+	39,  // 150: keys.Keys.Encrypt:output_type -> keys.EncryptResponse
+	43,  // 151: keys.Keys.EncryptStream:output_type -> keys.EncryptOutput
+	41,  // 152: keys.Keys.EncryptFile:output_type -> keys.EncryptFileOutput
+	45,  // 153: keys.Keys.Decrypt:output_type -> keys.DecryptResponse
+	49,  // 154: keys.Keys.DecryptStream:output_type -> keys.DecryptOutput
+	47,  // 155: keys.Keys.DecryptFile:output_type -> keys.DecryptFileOutput
+	28,  // 156: keys.Keys.Sigchain:output_type -> keys.SigchainResponse
+	30,  // 157: keys.Keys.Statement:output_type -> keys.StatementResponse
+	32,  // 158: keys.Keys.StatementCreate:output_type -> keys.StatementCreateResponse
+	34,  // 159: keys.Keys.StatementRevoke:output_type -> keys.StatementRevokeResponse
+	119, // 160: keys.Keys.User:output_type -> keys.UserResponse
+	121, // 161: keys.Keys.UserSearch:output_type -> keys.UserSearchResponse
+	76,  // 162: keys.Keys.UserService:output_type -> keys.UserServiceResponse
+	78,  // 163: keys.Keys.UserSign:output_type -> keys.UserSignResponse
+	80,  // 164: keys.Keys.UserAdd:output_type -> keys.UserAddResponse
+	123, // 165: keys.Keys.Search:output_type -> keys.SearchResponse
+	94,  // 166: keys.Keys.Secret:output_type -> keys.SecretResponse
+	96,  // 167: keys.Keys.SecretSave:output_type -> keys.SecretSaveResponse
+	98,  // 168: keys.Keys.SecretRemove:output_type -> keys.SecretRemoveResponse
+	100, // 169: keys.Keys.Secrets:output_type -> keys.SecretsResponse
+	106, // 170: keys.Keys.Pull:output_type -> keys.PullResponse
+	108, // 171: keys.Keys.Push:output_type -> keys.PushResponse
+	159, // 172: keys.Keys.Wormhole:output_type -> keys.WormholeOutput
+	53,  // 173: keys.Keys.AuthSetup:output_type -> keys.AuthSetupResponse
+	55,  // 174: keys.Keys.AuthVault:output_type -> keys.AuthVaultResponse
+	57,  // 175: keys.Keys.AuthUnlock:output_type -> keys.AuthUnlockResponse
+	68,  // 176: keys.Keys.AuthLock:output_type -> keys.AuthLockResponse
+	70,  // 177: keys.Keys.AuthReset:output_type -> keys.AuthResetResponse
+	72,  // 178: keys.Keys.AuthRecover:output_type -> keys.AuthRecoverResponse
+	51,  // 179: keys.Keys.RuntimeStatus:output_type -> keys.RuntimeStatusResponse
+	102, // 180: keys.Keys.Rand:output_type -> keys.RandResponse
+	104, // 181: keys.Keys.RandPassword:output_type -> keys.RandPasswordResponse
+	59,  // 182: keys.Keys.AuthProvision:output_type -> keys.AuthProvisionResponse
+	61,  // 183: keys.Keys.AuthDeprovision:output_type -> keys.AuthDeprovisionResponse
+	66,  // 184: keys.Keys.AuthProvisions:output_type -> keys.AuthProvisionsResponse
+	63,  // 185: keys.Keys.AuthPasswordChange:output_type -> keys.AuthPasswordChangeResponse
+	129, // 186: keys.Keys.VaultAuth:output_type -> keys.VaultAuthResponse
+	125, // 187: keys.Keys.VaultSync:output_type -> keys.VaultSyncResponse
+	127, // 188: keys.Keys.VaultUnsync:output_type -> keys.VaultUnsyncResponse
+	131, // 189: keys.Keys.VaultStatus:output_type -> keys.VaultStatusResponse
+	133, // 190: keys.Keys.VaultUpdate:output_type -> keys.VaultUpdateResponse
+	111, // 191: keys.Keys.Collections:output_type -> keys.CollectionsResponse
+	114, // 192: keys.Keys.Documents:output_type -> keys.DocumentsResponse
+	116, // 193: keys.Keys.DocumentDelete:output_type -> keys.DocumentDeleteResponse
+	154, // 194: keys.Keys.ConfigGet:output_type -> keys.ConfigGetResponse
+	156, // 195: keys.Keys.ConfigSet:output_type -> keys.ConfigSetResponse
+	149, // 196: keys.Keys.AdminSignURL:output_type -> keys.AdminSignURLResponse
+	151, // 197: keys.Keys.AdminCheck:output_type -> keys.AdminCheckResponse
+	145, // 198: keys.Keys.Channels:output_type -> keys.ChannelsResponse
+	147, // 199: keys.Keys.ChannelCreate:output_type -> keys.ChannelCreateResponse
+	136, // 200: keys.Keys.MessagePrepare:output_type -> keys.MessagePrepareResponse
+	138, // 201: keys.Keys.MessageCreate:output_type -> keys.MessageCreateResponse
+	140, // 202: keys.Keys.Messages:output_type -> keys.MessagesResponse
+	142, // 203: keys.Keys.Relay:output_type -> keys.RelayOutput
+	135, // [135:204] is the sub-list for method output_type
+	66,  // [66:135] is the sub-list for method input_type
+	66,  // [66:66] is the sub-list for extension type_name
+	66,  // [66:66] is the sub-list for extension extendee
+	0,   // [0:66] is the sub-list for field type_name
 }
 
 func init() { file_keys_proto_init() }
@@ -13363,198 +12391,6 @@ func file_keys_proto_init() {
 			}
 		}
 		file_keys_proto_msgTypes[136].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ChannelUser); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_keys_proto_msgTypes[137].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ChannelUsersRequest); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_keys_proto_msgTypes[138].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ChannelUsersResponse); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_keys_proto_msgTypes[139].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ChannelInvitesCreateRequest); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_keys_proto_msgTypes[140].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ChannelInvitesCreateResponse); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_keys_proto_msgTypes[141].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ChannelUninviteRequest); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_keys_proto_msgTypes[142].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ChannelUninviteResponse); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_keys_proto_msgTypes[143].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ChannelInvite); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_keys_proto_msgTypes[144].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ChannelInvitesRequest); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_keys_proto_msgTypes[145].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ChannelInvitesResponse); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_keys_proto_msgTypes[146].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ChannelUserInvitesRequest); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_keys_proto_msgTypes[147].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ChannelUserInvitesResponse); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_keys_proto_msgTypes[148].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ChannelJoinRequest); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_keys_proto_msgTypes[149].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ChannelJoinResponse); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_keys_proto_msgTypes[150].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ChannelLeaveRequest); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_keys_proto_msgTypes[151].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ChannelLeaveResponse); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_keys_proto_msgTypes[152].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AdminSignURLRequest); i {
 			case 0:
 				return &v.state
@@ -13566,7 +12402,7 @@ func file_keys_proto_init() {
 				return nil
 			}
 		}
-		file_keys_proto_msgTypes[153].Exporter = func(v interface{}, i int) interface{} {
+		file_keys_proto_msgTypes[137].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AdminSignURLResponse); i {
 			case 0:
 				return &v.state
@@ -13578,7 +12414,7 @@ func file_keys_proto_init() {
 				return nil
 			}
 		}
-		file_keys_proto_msgTypes[154].Exporter = func(v interface{}, i int) interface{} {
+		file_keys_proto_msgTypes[138].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AdminCheckRequest); i {
 			case 0:
 				return &v.state
@@ -13590,7 +12426,7 @@ func file_keys_proto_init() {
 				return nil
 			}
 		}
-		file_keys_proto_msgTypes[155].Exporter = func(v interface{}, i int) interface{} {
+		file_keys_proto_msgTypes[139].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AdminCheckResponse); i {
 			case 0:
 				return &v.state
@@ -13602,7 +12438,7 @@ func file_keys_proto_init() {
 				return nil
 			}
 		}
-		file_keys_proto_msgTypes[156].Exporter = func(v interface{}, i int) interface{} {
+		file_keys_proto_msgTypes[140].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Config); i {
 			case 0:
 				return &v.state
@@ -13614,7 +12450,7 @@ func file_keys_proto_init() {
 				return nil
 			}
 		}
-		file_keys_proto_msgTypes[157].Exporter = func(v interface{}, i int) interface{} {
+		file_keys_proto_msgTypes[141].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ConfigGetRequest); i {
 			case 0:
 				return &v.state
@@ -13626,7 +12462,7 @@ func file_keys_proto_init() {
 				return nil
 			}
 		}
-		file_keys_proto_msgTypes[158].Exporter = func(v interface{}, i int) interface{} {
+		file_keys_proto_msgTypes[142].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ConfigGetResponse); i {
 			case 0:
 				return &v.state
@@ -13638,7 +12474,7 @@ func file_keys_proto_init() {
 				return nil
 			}
 		}
-		file_keys_proto_msgTypes[159].Exporter = func(v interface{}, i int) interface{} {
+		file_keys_proto_msgTypes[143].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ConfigSetRequest); i {
 			case 0:
 				return &v.state
@@ -13650,7 +12486,7 @@ func file_keys_proto_init() {
 				return nil
 			}
 		}
-		file_keys_proto_msgTypes[160].Exporter = func(v interface{}, i int) interface{} {
+		file_keys_proto_msgTypes[144].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ConfigSetResponse); i {
 			case 0:
 				return &v.state
@@ -13662,7 +12498,7 @@ func file_keys_proto_init() {
 				return nil
 			}
 		}
-		file_keys_proto_msgTypes[161].Exporter = func(v interface{}, i int) interface{} {
+		file_keys_proto_msgTypes[145].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*WormholeInput); i {
 			case 0:
 				return &v.state
@@ -13674,7 +12510,7 @@ func file_keys_proto_init() {
 				return nil
 			}
 		}
-		file_keys_proto_msgTypes[162].Exporter = func(v interface{}, i int) interface{} {
+		file_keys_proto_msgTypes[146].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*WormholeMessage); i {
 			case 0:
 				return &v.state
@@ -13686,7 +12522,7 @@ func file_keys_proto_init() {
 				return nil
 			}
 		}
-		file_keys_proto_msgTypes[163].Exporter = func(v interface{}, i int) interface{} {
+		file_keys_proto_msgTypes[147].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*WormholeOutput); i {
 			case 0:
 				return &v.state
@@ -13698,7 +12534,7 @@ func file_keys_proto_init() {
 				return nil
 			}
 		}
-		file_keys_proto_msgTypes[164].Exporter = func(v interface{}, i int) interface{} {
+		file_keys_proto_msgTypes[148].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Config_App); i {
 			case 0:
 				return &v.state
@@ -13710,7 +12546,7 @@ func file_keys_proto_init() {
 				return nil
 			}
 		}
-		file_keys_proto_msgTypes[165].Exporter = func(v interface{}, i int) interface{} {
+		file_keys_proto_msgTypes[149].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Config_Encrypt); i {
 			case 0:
 				return &v.state
@@ -13722,7 +12558,7 @@ func file_keys_proto_init() {
 				return nil
 			}
 		}
-		file_keys_proto_msgTypes[166].Exporter = func(v interface{}, i int) interface{} {
+		file_keys_proto_msgTypes[150].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Config_Sign); i {
 			case 0:
 				return &v.state
@@ -13741,7 +12577,7 @@ func file_keys_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_keys_proto_rawDesc,
 			NumEnums:      12,
-			NumMessages:   167,
+			NumMessages:   151,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

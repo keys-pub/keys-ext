@@ -15,6 +15,7 @@ import (
 
 func (s *Server) postMessage(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
+	ctx := c.Request().Context()
 
 	body, st, err := readBody(c, true, 64*1024)
 	if err != nil {
@@ -24,6 +25,15 @@ func (s *Server) postMessage(c echo.Context) error {
 	channel, err := s.auth(c, newAuth("Authorization", "cid", body))
 	if err != nil {
 		return ErrForbidden(c, err)
+	}
+
+	path := dstore.Path("channels", channel.KID)
+	doc, err := s.fi.Get(ctx, path)
+	if err != nil {
+		return ErrInternalServer(c, err)
+	}
+	if doc == nil {
+		return ErrNotFound(c, keys.NewErrNotFound(channel.KID.String()))
 	}
 
 	if err := s.sendMessage(c, channel.KID, body); err != nil {
@@ -68,14 +78,23 @@ func (s *Server) notifyChannelMessage(ctx context.Context, channel keys.ID, idx 
 
 func (s *Server) getMessages(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
+	ctx := c.Request().Context()
 
 	channel, err := s.auth(c, newAuth("Authorization", "cid", nil))
 	if err != nil {
 		return ErrForbidden(c, err)
 	}
 
-	limit := 1000
 	path := dstore.Path("channels", channel.KID)
+	doc, err := s.fi.Get(ctx, path)
+	if err != nil {
+		return ErrInternalServer(c, err)
+	}
+	if doc == nil {
+		return ErrNotFound(c, keys.NewErrNotFound(channel.KID.String()))
+	}
+
+	limit := 1000
 	resp, st, err := s.events(c, path, limit)
 	if err != nil {
 		return ErrResponse(c, st, err)

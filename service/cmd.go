@@ -62,10 +62,6 @@ func fmtKey(w io.Writer, key *Key) {
 		fmt.Fprint(w, " ")
 		fmt.Fprint(w, fmtUser(key.User))
 	}
-	if key.User != nil {
-		fmt.Fprint(w, " ")
-		fmt.Fprint(w, fmtUser(key.User))
-	}
 	fmt.Fprintf(w, "\n")
 }
 

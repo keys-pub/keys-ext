@@ -124,6 +124,10 @@ func (s *service) Messages(ctx context.Context, req *MessagesRequest) (*Messages
 	if err != nil {
 		return nil, errors.Wrapf(err, "invalid channel")
 	}
+	channelKey, err := s.edx25519Key(channel)
+	if err != nil {
+		return nil, err
+	}
 	user, err := s.lookup(ctx, req.User, nil)
 	if err != nil {
 		return nil, err
@@ -135,7 +139,7 @@ func (s *service) Messages(ctx context.Context, req *MessagesRequest) (*Messages
 		}
 	}
 
-	messages, err := s.messages(ctx, channel)
+	messages, err := s.messages(ctx, channelKey)
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +149,7 @@ func (s *service) Messages(ctx context.Context, req *MessagesRequest) (*Messages
 	}, nil
 }
 
-func (s *service) message(ctx context.Context, path string) (*Message, error) {
+func (s *service) message(ctx context.Context, channelKey *keys.EdX25519Key, path string) (*Message, error) {
 	doc, err := s.db.Get(ctx, path)
 	if err != nil {
 		return nil, err
@@ -159,7 +163,7 @@ func (s *service) message(ctx context.Context, path string) (*Message, error) {
 		return nil, err
 	}
 
-	msg, err := api.DecryptMessage(&event, s.vault)
+	msg, err := api.DecryptMessageFromEvent(&event, channelKey)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +171,7 @@ func (s *service) message(ctx context.Context, path string) (*Message, error) {
 	return s.messageToRPC(ctx, msg)
 }
 
-func (s *service) messages(ctx context.Context, channel keys.ID) ([]*Message, error) {
+func (s *service) messages(ctx context.Context, channel *keys.EdX25519Key) ([]*Message, error) {
 	path := dstore.Path("messages", channel.ID())
 	iter, err := s.db.DocumentIterator(ctx, path, dstore.NoData())
 	if err != nil {
@@ -184,7 +188,7 @@ func (s *service) messages(ctx context.Context, channel keys.ID) ([]*Message, er
 			break
 		}
 		logger.Debugf("Message %s", e.Path)
-		message, err := s.message(ctx, e.Path)
+		message, err := s.message(ctx, channel, e.Path)
 		if err != nil {
 			return nil, err
 		}
@@ -252,7 +256,7 @@ func (s *service) pullMessagesNext(ctx context.Context, channelKey *keys.EdX2551
 		// TODO: Gracefully handle message errors (continue?)
 
 		// Decrypt message temporarily to update channel state.
-		msg, err := api.DecryptMessage(event, s.vault)
+		msg, err := api.DecryptMessageFromEvent(event, channelKey)
 		if err != nil {
 			return false, err
 		}
@@ -350,19 +354,12 @@ func (s *service) messageText(ctx context.Context, msg *api.Message, sender *Key
 	}
 
 	// Notifications
-	if msg.ChannelInvites != nil {
-		uks, err := s.resolveKeys(ctx, msg.ChannelInvites.Users)
+	if msg.ChannelInvite != nil {
+		recipient, err := s.resolveKey(ctx, msg.ChannelInvite.Recipient)
 		if err != nil {
 			return nil, err
 		}
-		texts = append(texts, fmt.Sprintf("%s invited %s", sender.userName(), keyUserNames(uks)))
-	}
-	if msg.ChannelUninvites != nil {
-		uks, err := s.resolveKeys(ctx, msg.ChannelUninvites.Users)
-		if err != nil {
-			return nil, err
-		}
-		texts = append(texts, fmt.Sprintf("%s uninvited %s", sender.userName(), keyUserNames(uks)))
+		texts = append(texts, fmt.Sprintf("%s invited %s", sender.userName(), recipient.userName()))
 	}
 	if msg.ChannelJoin != nil {
 		texts = append(texts, fmt.Sprintf("%s joined", sender.userName()))

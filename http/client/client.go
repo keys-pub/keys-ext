@@ -13,6 +13,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/http"
 	"github.com/keys-pub/keys/tsutil"
@@ -121,7 +122,7 @@ func (c *Client) urlFor(path string, params url.Values) (string, error) {
 	return urs, nil
 }
 
-func (c *Client) req(ctx context.Context, method string, path string, params url.Values, body io.Reader, contentHash string, auth http.AuthProvider) (*http.Response, error) {
+func (c *Client) req(ctx context.Context, method string, path string, params url.Values, body io.Reader, contentHash string, auth *keys.EdX25519Key) (*http.Response, error) {
 	urs, err := c.urlFor(path, params)
 	if err != nil {
 		return nil, err
@@ -186,7 +187,7 @@ func (c *Client) response(path string, resp *http.Response) (*Response, error) {
 	return out, nil
 }
 
-func (c *Client) get(ctx context.Context, path string, params url.Values, auth http.AuthProvider) (*Response, error) {
+func (c *Client) get(ctx context.Context, path string, params url.Values, auth *keys.EdX25519Key) (*Response, error) {
 	resp, err := c.req(ctx, "GET", path, params, nil, "", auth)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to GET")
@@ -205,7 +206,7 @@ func (c *Client) get(ctx context.Context, path string, params url.Values, auth h
 	return c.response(path, resp)
 }
 
-func (c *Client) head(ctx context.Context, path string, params url.Values, auth http.AuthProvider) (*http.Response, error) {
+func (c *Client) head(ctx context.Context, path string, params url.Values, auth *keys.EdX25519Key) (*http.Response, error) {
 	resp, err := c.req(ctx, "HEAD", path, params, nil, "", auth)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to HEAD")
@@ -220,7 +221,7 @@ func (c *Client) head(ctx context.Context, path string, params url.Values, auth 
 	return resp, nil
 }
 
-func (c *Client) put(ctx context.Context, path string, params url.Values, reader io.Reader, contentHash string, auth http.AuthProvider) (*Response, error) {
+func (c *Client) put(ctx context.Context, path string, params url.Values, reader io.Reader, contentHash string, auth *keys.EdX25519Key) (*Response, error) {
 	resp, err := c.req(ctx, "PUT", path, params, reader, contentHash, auth)
 	if err != nil {
 		return nil, err
@@ -235,7 +236,7 @@ func (c *Client) put(ctx context.Context, path string, params url.Values, reader
 	return c.response(path, resp)
 }
 
-func (c *Client) putRetryOnConflict(ctx context.Context, path string, params url.Values, b []byte, contentHash string, auth http.AuthProvider, attempt int, maxAttempts int, delay time.Duration) (*Response, error) {
+func (c *Client) putRetryOnConflict(ctx context.Context, path string, params url.Values, b []byte, contentHash string, auth *keys.EdX25519Key, attempt int, maxAttempts int, delay time.Duration) (*Response, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
@@ -255,7 +256,7 @@ func (c *Client) putRetryOnConflict(ctx context.Context, path string, params url
 	return resp, nil
 }
 
-func (c *Client) post(ctx context.Context, path string, params url.Values, reader io.Reader, contentHash string, auth http.AuthProvider) (*Response, error) {
+func (c *Client) post(ctx context.Context, path string, params url.Values, reader io.Reader, contentHash string, auth *keys.EdX25519Key) (*Response, error) {
 	resp, err := c.req(ctx, "POST", path, params, reader, contentHash, auth)
 	if err != nil {
 		return nil, err
@@ -270,7 +271,7 @@ func (c *Client) post(ctx context.Context, path string, params url.Values, reade
 	return c.response(path, resp)
 }
 
-func (c *Client) delete(ctx context.Context, path string, params url.Values, reader io.Reader, contentHash string, auth http.AuthProvider) (*http.Response, error) {
+func (c *Client) delete(ctx context.Context, path string, params url.Values, reader io.Reader, contentHash string, auth *keys.EdX25519Key) (*http.Response, error) {
 	resp, err := c.req(ctx, "DELETE", path, params, reader, contentHash, auth)
 	if err != nil {
 		return nil, err

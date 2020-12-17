@@ -104,14 +104,7 @@ service Keys {
   // Channels
   rpc Channels(ChannelsRequest) returns (ChannelsResponse) {}
   rpc ChannelCreate(ChannelCreateRequest) returns (ChannelCreateResponse) {}
-  rpc ChannelUsers(ChannelUsersRequest) returns (ChannelUsersResponse) {}
-  rpc ChannelInvitesCreate(ChannelInvitesCreateRequest) returns (ChannelInvitesCreateResponse) {}
-  rpc ChannelUninvite(ChannelUninviteRequest) returns (ChannelUninviteResponse) {}
-  rpc ChannelInvites(ChannelInvitesRequest) returns (ChannelInvitesResponse) {}
-  rpc ChannelUserInvites(ChannelUserInvitesRequest) returns (ChannelUserInvitesResponse) {}  
-  rpc ChannelJoin(ChannelJoinRequest) returns (ChannelJoinResponse) {}
-  rpc ChannelLeave(ChannelLeaveRequest) returns (ChannelLeaveResponse) {}
- 
+  
   // Messages
   rpc MessagePrepare(MessagePrepareRequest) returns (MessagePrepareResponse) {}
   rpc MessageCreate(MessageCreateRequest) returns (MessageCreateResponse) {}
@@ -974,71 +967,6 @@ message ChannelCreateRequest {
 }
 message ChannelCreateResponse {
   Channel channel = 1;
-}
-
-message ChannelUser {
-  Key key = 1;
-}
-
-message ChannelUsersRequest {
-  string channel = 1;
-  string user = 2;
-}
-message ChannelUsersResponse {
-  repeated ChannelUser users = 1;
-}
-
-message ChannelInvitesCreateRequest {
-  string channel = 1;
-  string sender = 2;
-  repeated string recipients = 3;
-}
-message ChannelInvitesCreateResponse {
-  Message message = 1;
-}
-
-message ChannelUninviteRequest {
-  string channel = 1;
-  string sender = 2;
-  string recipient = 3;
-}
-message ChannelUninviteResponse {
-  Message message = 1;
-}
-
-message ChannelInvite {
-  Channel channel = 1;
-  Key recipient = 2;
-  Key sender = 3;
-}
-
-message ChannelInvitesRequest {
-  string channel = 1;
-  string user = 2;
-}
-message ChannelInvitesResponse {
-  repeated ChannelInvite invites = 1;
-}
-
-message ChannelUserInvitesRequest {
-  string user = 1;
-}
-message ChannelUserInvitesResponse {
-  repeated ChannelInvite invites = 1;
-}
-
-message ChannelJoinRequest {
-  string channel = 1;
-  string user = 2; 
-}
-message ChannelJoinResponse {}
-
-message ChannelLeaveRequest {
-  string channel = 1;
-  string user = 2;
-}
-message ChannelLeaveResponse {
-  Message message = 1;
 }
 
 message AdminSignURLRequest {

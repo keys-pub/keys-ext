@@ -27,7 +27,7 @@ func (s *Server) events(c echo.Context, path string, max int) (*api.EventsRespon
 		limit = max
 	}
 
-	pdir := c.QueryParam("dir")
+	pdir := c.QueryParam("order")
 	if pdir == "" {
 		pdir = "asc"
 	}
@@ -39,7 +39,7 @@ func (s *Server) events(c echo.Context, path string, max int) (*api.EventsRespon
 	case "desc":
 		dir = events.Descending
 	default:
-		return nil, http.StatusBadRequest, errors.Errorf("invalid dir")
+		return nil, http.StatusBadRequest, errors.Errorf("invalid order")
 	}
 
 	s.logger.Infof("Events %s (from=%d)", path, index)

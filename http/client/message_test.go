@@ -9,7 +9,6 @@ import (
 	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys/dstore/events"
-	"github.com/keys-pub/keys/saltpack"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/stretchr/testify/require"
 )
@@ -47,17 +46,12 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	info := &api.ChannelInfo{Name: "test"}
 	_, err := aliceClient.ChannelCreate(ctx, channel, alice, info)
 	require.NoError(t, err)
-	// Invite bob
-	_, err = aliceClient.InviteToChannel(ctx, channel, info, alice, bob.ID())
-	require.NoError(t, err)
-	_, err = bobClient.ChannelJoin(ctx, bob, channel)
-	require.NoError(t, err)
 
 	// Messages
 	msgs, err := aliceClient.Messages(ctx, channel, alice, nil)
 	require.NoError(t, err)
-	require.Equal(t, int64(3), msgs.Index)
-	require.Equal(t, 3, len(msgs.Messages))
+	require.Equal(t, int64(1), msgs.Index)
+	require.Equal(t, 1, len(msgs.Messages))
 	require.False(t, msgs.Truncated)
 
 	// MessageSend #1
@@ -73,18 +67,18 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	// Messages
 	msgs, err = aliceClient.Messages(ctx, channel, alice, nil)
 	require.NoError(t, err)
-	require.Equal(t, 5, len(msgs.Messages))
+	require.Equal(t, 3, len(msgs.Messages))
 	require.False(t, msgs.Truncated)
-	out1, err := api.DecryptMessageFromEvent(msgs.Messages[3], saltpack.NewKeyring(channel))
+	out1, err := api.DecryptMessageFromEvent(msgs.Messages[1], channel)
 	require.NoError(t, err)
 	require.Equal(t, msg1.Text, out1.Text)
 	require.Equal(t, alice.ID(), out1.Sender)
-	out2, err := api.DecryptMessageFromEvent(msgs.Messages[4], saltpack.NewKeyring(channel))
+	out2, err := api.DecryptMessageFromEvent(msgs.Messages[2], channel)
 	require.NoError(t, err)
 	require.Equal(t, msg2.Text, out2.Text)
 	require.Equal(t, bob.ID(), out2.Sender)
-	require.NotEmpty(t, msgs.Messages[0].Timestamp)
-	require.NotEmpty(t, msgs.Messages[0].Index)
+	require.NotEmpty(t, msgs.Messages[2].Timestamp)
+	require.NotEmpty(t, msgs.Messages[2].Index)
 
 	// MessageSend #3
 	msg3 := api.NewMessage(alice.ID()).WithPrev(msg2.ID).WithText("3pm").WithTimestamp(env.clock.NowMillis())
@@ -95,27 +89,28 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	msgs, err = aliceClient.Messages(ctx, channel, alice, &client.MessagesOpts{Index: msgs.Index})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(msgs.Messages))
-	out3, err := api.DecryptMessageFromEvent(msgs.Messages[0], saltpack.NewKeyring(channel))
+	out3, err := api.DecryptMessageFromEvent(msgs.Messages[0], channel)
 	require.NoError(t, err)
 	require.Equal(t, msg3.Text, out3.Text)
 	require.Equal(t, alice.ID(), out3.Sender)
 
 	// Messages (desc)
-	msgs, err = aliceClient.Messages(ctx, channel, alice, &client.MessagesOpts{Direction: events.Descending})
+	msgs, err = aliceClient.Messages(ctx, channel, alice, &client.MessagesOpts{Order: events.Descending})
 	require.NoError(t, err)
-	require.Equal(t, 6, len(msgs.Messages))
-	out1, err = api.DecryptMessageFromEvent(msgs.Messages[0], saltpack.NewKeyring(channel))
+	require.Equal(t, 4, len(msgs.Messages))
+	out1, err = api.DecryptMessageFromEvent(msgs.Messages[0], channel)
 	require.NoError(t, err)
 	require.Equal(t, msg3.Text, out1.Text)
-	out2, err = api.DecryptMessageFromEvent(msgs.Messages[1], saltpack.NewKeyring(channel))
+	out2, err = api.DecryptMessageFromEvent(msgs.Messages[1], channel)
 	require.NoError(t, err)
 	require.Equal(t, msg2.Text, out2.Text)
-	out3, err = api.DecryptMessageFromEvent(msgs.Messages[2], saltpack.NewKeyring(channel))
+	out3, err = api.DecryptMessageFromEvent(msgs.Messages[2], channel)
 	require.NoError(t, err)
 	require.Equal(t, msg1.Text, out3.Text)
 
 	// Unknown channel
 	unknown := keys.GenerateEdX25519Key()
-	_, err = aliceClient.Messages(ctx, unknown, alice, nil)
-	require.EqualError(t, err, "auth failed (403)")
+	msgs, err = aliceClient.Messages(ctx, unknown, alice, nil)
+	require.NoError(t, err)
+	require.Nil(t, msgs)
 }
