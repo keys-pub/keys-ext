@@ -31,6 +31,7 @@ func UserFromResult(result *user.Result) *User {
 		Name:       result.User.Name,
 		URL:        result.User.URL,
 		Status:     result.Status,
+		Statement:  result.Statement,
 		VerifiedAt: result.VerifiedAt,
 		Timestamp:  result.Timestamp,
 		Err:        result.Err,
@@ -46,6 +47,7 @@ type User struct {
 	Service    string      `json:"service,omitempty"`
 	URL        string      `json:"url,omitempty"`
 	Status     user.Status `json:"status,omitempty"`
+	Statement  string      `json:"statement,omitempty"`
 	VerifiedAt int64       `json:"verifiedAt,omitempty"`
 	Timestamp  int64       `json:"ts,omitempty"`
 	MatchField string      `json:"mf,omitempty"`

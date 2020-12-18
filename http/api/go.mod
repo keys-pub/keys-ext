@@ -5,7 +5,7 @@ go 1.12
 require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/golang/protobuf v1.4.3 // indirect
-	github.com/keys-pub/keys v0.1.18-0.20201217003538-138e9a15ccb4
+	github.com/keys-pub/keys v0.1.18-0.20201218205715-618ff87d91d4
 	github.com/keys-pub/keys-ext/ws/api v0.0.0-20201208014450-6b7883173a82
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.5.1
