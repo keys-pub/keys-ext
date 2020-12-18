@@ -24,16 +24,16 @@ func (s *Server) postInviteCode(c echo.Context) error {
 
 	auth, err := s.auth(c, newAuth("Authorization", "kid", nil))
 	if err != nil {
-		return ErrForbidden(c, err)
+		return s.ErrForbidden(c, err)
 	}
 
 	recipient := c.Param("rid")
 	if recipient == "" {
-		return ErrBadRequest(c, errors.Errorf("no recipient id"))
+		return s.ErrBadRequest(c, errors.Errorf("no recipient id"))
 	}
 	rid, err := keys.ParseID(recipient)
 	if err != nil {
-		return ErrBadRequest(c, err)
+		return s.ErrBadRequest(c, err)
 	}
 
 	inv := invite{
@@ -42,7 +42,7 @@ func (s *Server) postInviteCode(c echo.Context) error {
 	}
 	ib, err := json.Marshal(inv)
 	if err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 
 	var code string
@@ -50,7 +50,7 @@ func (s *Server) postInviteCode(c echo.Context) error {
 		randWords := keys.RandWords(3)
 		existing, err := s.rds.Get(ctx, code)
 		if err != nil {
-			return ErrInternalServer(c, err)
+			return s.ErrInternalServer(c, err)
 		}
 		if existing != "" {
 			s.logger.Errorf("invite code conflict")
@@ -60,16 +60,16 @@ func (s *Server) postInviteCode(c echo.Context) error {
 		break
 	}
 	if code == "" {
-		return ErrInternalServer(c, errors.Errorf("invite code conflict"))
+		return s.ErrInternalServer(c, errors.Errorf("invite code conflict"))
 	}
 
 	codeKey := fmt.Sprintf("code %s", code)
 	if err := s.rds.Set(ctx, codeKey, string(ib)); err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 	// TODO: Configurable expiry?
 	if err := s.rds.Expire(ctx, codeKey, time.Hour); err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 
 	s.logger.Debugf("Created code: %s", code)
@@ -86,25 +86,25 @@ func (s *Server) getInviteCode(c echo.Context) error {
 
 	auth, err := s.auth(c, newAuth("Authorization", "", nil))
 	if err != nil {
-		return ErrForbidden(c, err)
+		return s.ErrForbidden(c, err)
 	}
 
 	code, err := url.QueryUnescape(c.Param("code"))
 	if err != nil {
-		return ErrBadRequest(c, err)
+		return s.ErrBadRequest(c, err)
 	}
 	key := fmt.Sprintf("code %s", code)
 	s.logger.Debugf("Get code: %s", key)
 	out, err := s.rds.Get(ctx, key)
 	if err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 	if out == "" {
-		return ErrNotFound(c, errors.Errorf("code not found"))
+		return s.ErrNotFound(c, errors.Errorf("code not found"))
 	}
 	var inv invite
 	if err := json.Unmarshal([]byte(out), &inv); err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 
 	// Only allow the sender or recipient to view the invite.
@@ -112,11 +112,11 @@ func (s *Server) getInviteCode(c echo.Context) error {
 	// which one to use.
 	if inv.Recipient != auth.KID && inv.Sender != auth.KID {
 		s.logger.Debugf("Recipient mistmatch: %s != %s", inv.Recipient, auth.KID)
-		return ErrNotFound(c, errors.Errorf("code not found"))
+		return s.ErrNotFound(c, errors.Errorf("code not found"))
 	}
 	// TODO: Remove on access or when it's used?
 	// if err := s.rds.Delete(ctx, key); err != nil {
-	// 	return ErrInternalServer(c, err)
+	// 	return s.ErrInternalServer(c, err)
 	// }
 
 	resp := api.InviteCodeResponse{

@@ -21,25 +21,25 @@ func (s *Server) listVault(c echo.Context) error {
 
 	auth, err := s.auth(c, newAuth("Authorization", "kid", nil))
 	if err != nil {
-		return ErrForbidden(c, err)
+		return s.ErrForbidden(c, err)
 	}
 
 	deleted, err := s.isVaultDeleted(c, auth.KID)
 	if err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 	if deleted {
-		return ErrNotFound(c, errVaultDeleted)
+		return s.ErrNotFound(c, errVaultDeleted)
 	}
 
 	limit := 1000
 	path := dstore.Path("vaults", auth.KID)
 	resp, st, err := s.events(c, path, limit)
 	if err != nil {
-		return ErrResponse(c, st, err)
+		return s.ErrResponse(c, st, err)
 	}
 	if len(resp.Events) == 0 && resp.Index == 0 {
-		return ErrNotFound(c, errVaultNotFound)
+		return s.ErrNotFound(c, errVaultNotFound)
 	}
 	truncated := false
 	if len(resp.Events) >= limit {
@@ -61,29 +61,29 @@ func (s *Server) postVault(c echo.Context) error {
 	// TODO: max vault size
 
 	if c.Request().Body == nil {
-		return ErrBadRequest(c, errors.Errorf("no body data"))
+		return s.ErrBadRequest(c, errors.Errorf("no body data"))
 	}
 	b, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 
 	auth, err := s.auth(c, newAuth("Authorization", "kid", b))
 	if err != nil {
-		return ErrForbidden(c, err)
+		return s.ErrForbidden(c, err)
 	}
 
 	deleted, err := s.isVaultDeleted(c, auth.KID)
 	if err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 	if deleted {
-		return ErrNotFound(c, errVaultDeleted)
+		return s.ErrNotFound(c, errVaultDeleted)
 	}
 
 	var req []*api.Data
 	if err := json.Unmarshal(b, &req); err != nil {
-		return ErrBadRequest(c, err)
+		return s.ErrBadRequest(c, err)
 	}
 
 	ctx := c.Request().Context()
@@ -93,7 +93,7 @@ func (s *Server) postVault(c echo.Context) error {
 		data = append(data, d.Data)
 	}
 	if _, _, err := s.fi.EventsAdd(ctx, cpath, data); err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 
 	var out struct{}
@@ -106,28 +106,28 @@ func (s *Server) deleteVault(c echo.Context) error {
 
 	auth, err := s.auth(c, newAuth("Authorization", "kid", nil))
 	if err != nil {
-		return ErrForbidden(c, err)
+		return s.ErrForbidden(c, err)
 	}
 
 	deleted, err := s.isVaultDeleted(c, auth.KID)
 	if err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 	if deleted {
-		return ErrNotFound(c, errVaultDeleted)
+		return s.ErrNotFound(c, errVaultDeleted)
 	}
 
 	if err := s.setVaultDeleted(c, auth.KID); err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 
 	cpath := dstore.Path("vaults", auth.KID)
 	exists, err := s.fi.EventsDelete(ctx, cpath)
 	if err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 	if !exists {
-		return ErrNotFound(c, errVaultNotFound)
+		return s.ErrNotFound(c, errVaultNotFound)
 	}
 
 	var resp struct{}
@@ -140,29 +140,29 @@ func (s *Server) headVault(c echo.Context) error {
 
 	auth, err := s.auth(c, newAuth("Authorization", "kid", nil))
 	if err != nil {
-		return ErrForbidden(c, err)
+		return s.ErrForbidden(c, err)
 	}
 
 	deleted, err := s.isVaultDeleted(c, auth.KID)
 	if err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 	if deleted {
-		return ErrNotFound(c, errVaultDeleted)
+		return s.ErrNotFound(c, errVaultDeleted)
 	}
 
 	path := dstore.Path("vaults", auth.KID)
 	iter, err := s.fi.Events(ctx, path, events.Limit(1))
 	if err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 	defer iter.Release()
 	event, err := iter.Next()
 	if err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 	if event == nil {
-		return ErrNotFound(c, errVaultNotFound)
+		return s.ErrNotFound(c, errVaultNotFound)
 	}
 
 	return c.NoContent(http.StatusOK)

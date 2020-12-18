@@ -20,7 +20,7 @@ func TestCheck(t *testing.T) {
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 
 	// Alice sign user statement
-	st := userMock(t, alice, "alice", "github", env.req, clock)
+	st := userMock(t, alice, "alice", "github", env.client, clock)
 
 	// PUT /sigchain/:id/:seq
 	b, err := st.Bytes()

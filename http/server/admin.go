@@ -18,43 +18,43 @@ func (s *Server) adminCheck(c echo.Context) error {
 
 	auth, err := s.auth(c, newAuth("Authorization", "", nil))
 	if err != nil {
-		return ErrForbidden(c, err)
+		return s.ErrForbidden(c, err)
 	}
 
 	if !s.isAdmin(auth.KID) {
-		return ErrForbidden(c, errors.Errorf("not authorized"))
+		return s.ErrForbidden(c, errors.Errorf("not authorized"))
 	}
 
 	switch c.Param("kid") {
 	case "all":
 		kids, err := s.users.KIDs(ctx)
 		if err != nil {
-			return ErrInternalServer(c, err)
+			return s.ErrInternalServer(c, err)
 		}
 		s.logger.Infof("Queue all (%d)", len(kids))
 		if err := s.queueKeyChecks(ctx, kids); err != nil {
-			return ErrInternalServer(c, err)
+			return s.ErrInternalServer(c, err)
 		}
 	case "content-not-found":
 		if err := s.queueByUserStatus(ctx, user.StatusContentNotFound); err != nil {
-			return ErrInternalServer(c, err)
+			return s.ErrInternalServer(c, err)
 		}
 	case "connection-fail":
 		if err := s.queueByUserStatus(ctx, user.StatusConnFailure); err != nil {
-			return ErrInternalServer(c, err)
+			return s.ErrInternalServer(c, err)
 		}
 	case "expired":
 		if err := s.queueByExpired(ctx, time.Hour*6, time.Hour*24*7); err != nil {
-			return ErrInternalServer(c, err)
+			return s.ErrInternalServer(c, err)
 		}
 	default:
 		kid, err := keys.ParseID(c.Param("kid"))
 		if err != nil {
-			return ErrNotFound(c, errors.Errorf("invalid kid"))
+			return s.ErrNotFound(c, errors.Errorf("invalid kid"))
 		}
 		s.logger.Infof("Queueing %s", kid)
 		if err := s.checkKID(ctx, kid, HighPriority); err != nil {
-			return ErrInternalServer(c, err)
+			return s.ErrInternalServer(c, err)
 		}
 	}
 

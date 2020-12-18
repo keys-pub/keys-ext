@@ -17,17 +17,17 @@ func (s *Server) postFollow(c echo.Context) error {
 
 	auth, err := s.auth(c, newAuth("Authorization", "kid", nil))
 	if err != nil {
-		return ErrForbidden(c, err)
+		return s.ErrForbidden(c, err)
 	}
 
 	user, err := keys.ParseID(c.Param("user"))
 	if err != nil {
-		return ErrBadRequest(c, errors.Errorf("invalid user"))
+		return s.ErrBadRequest(c, errors.Errorf("invalid user"))
 	}
 
 	follow := &api.Follow{KID: auth.KID, User: user}
 	if err := s.fi.Set(ctx, dstore.Path("follows", auth.KID, "users", user), dstore.From(follow)); err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 
 	var out struct{}
@@ -44,25 +44,25 @@ func (s *Server) getFollows(c echo.Context) error {
 
 	auth, err := s.auth(c, newAuth("Authorization", "kid", nil))
 	if err != nil {
-		return ErrForbidden(c, err)
+		return s.ErrForbidden(c, err)
 	}
 
 	iter, err := s.fi.DocumentIterator(ctx, dstore.Path("follows", auth.KID, "users"))
 	if err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 	follows := []*api.Follow{}
 	for {
 		doc, err := iter.Next()
 		if err != nil {
-			return ErrInternalServer(c, err)
+			return s.ErrInternalServer(c, err)
 		}
 		if doc == nil {
 			break
 		}
 		var follow api.Follow
 		if err := doc.To(&follow); err != nil {
-			return ErrInternalServer(c, err)
+			return s.ErrInternalServer(c, err)
 		}
 		follows = append(follows, &follow)
 	}
@@ -77,20 +77,20 @@ func (s *Server) deleteFollow(c echo.Context) error {
 
 	auth, err := s.auth(c, newAuth("Authorization", "kid", nil))
 	if err != nil {
-		return ErrForbidden(c, err)
+		return s.ErrForbidden(c, err)
 	}
 
 	user, err := keys.ParseID(c.Param("user"))
 	if err != nil {
-		return ErrBadRequest(c, errors.Errorf("invalid user"))
+		return s.ErrBadRequest(c, errors.Errorf("invalid user"))
 	}
 
 	ok, err := s.fi.Delete(ctx, dstore.Path("follows", auth.KID, "users", user))
 	if err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 	if !ok {
-		return ErrNotFound(c, errors.Errorf("follow not found"))
+		return s.ErrNotFound(c, errors.Errorf("follow not found"))
 	}
 
 	var out struct{}

@@ -19,25 +19,25 @@ func (s *Server) postMessage(c echo.Context) error {
 
 	body, st, err := readBody(c, true, 64*1024)
 	if err != nil {
-		return ErrResponse(c, st, err)
+		return s.ErrResponse(c, st, err)
 	}
 
 	channel, err := s.auth(c, newAuth("Authorization", "cid", body))
 	if err != nil {
-		return ErrForbidden(c, err)
+		return s.ErrForbidden(c, err)
 	}
 
 	path := dstore.Path("channels", channel.KID)
 	doc, err := s.fi.Get(ctx, path)
 	if err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 	if doc == nil {
-		return ErrNotFound(c, keys.NewErrNotFound(channel.KID.String()))
+		return s.ErrNotFound(c, keys.NewErrNotFound(channel.KID.String()))
 	}
 
 	if err := s.sendMessage(c, channel.KID, body); err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 
 	var out struct{}
@@ -82,22 +82,22 @@ func (s *Server) getMessages(c echo.Context) error {
 
 	channel, err := s.auth(c, newAuth("Authorization", "cid", nil))
 	if err != nil {
-		return ErrForbidden(c, err)
+		return s.ErrForbidden(c, err)
 	}
 
 	path := dstore.Path("channels", channel.KID)
 	doc, err := s.fi.Get(ctx, path)
 	if err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 	if doc == nil {
-		return ErrNotFound(c, keys.NewErrNotFound(channel.KID.String()))
+		return s.ErrNotFound(c, keys.NewErrNotFound(channel.KID.String()))
 	}
 
 	limit := 1000
 	resp, st, err := s.events(c, path, limit)
 	if err != nil {
-		return ErrResponse(c, st, err)
+		return s.ErrResponse(c, st, err)
 	}
 
 	truncated := false

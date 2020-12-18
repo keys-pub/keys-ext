@@ -16,11 +16,11 @@ func (s *Server) check(c echo.Context) error {
 
 	auth, err := s.auth(c, newAuth("Authorization", "", nil))
 	if err != nil {
-		return ErrForbidden(c, err)
+		return s.ErrForbidden(c, err)
 	}
 
 	if err := s.checkKID(ctx, auth.KID, HighPriority); err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 
 	var resp struct{}

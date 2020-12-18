@@ -20,18 +20,18 @@ func (s *Server) putChannel(c echo.Context) error {
 
 	body, st, err := readBody(c, false, 64*1024)
 	if err != nil {
-		return ErrResponse(c, st, err)
+		return s.ErrResponse(c, st, err)
 	}
 
 	channel, err := s.auth(c, newAuth("Authorization", "cid", body))
 	if err != nil {
-		return ErrForbidden(c, err)
+		return s.ErrForbidden(c, err)
 	}
 
 	var req api.ChannelCreateRequest
 	if len(body) != 0 {
 		if err := json.Unmarshal(body, &req); err != nil {
-			return ErrBadRequest(c, errors.Errorf("invalid channel create request"))
+			return s.ErrBadRequest(c, errors.Errorf("invalid channel create request"))
 		}
 	}
 
@@ -45,18 +45,18 @@ func (s *Server) putChannel(c echo.Context) error {
 	if err := s.fi.Create(ctx, path, dstore.From(create)); err != nil {
 		switch err.(type) {
 		case dstore.ErrPathExists:
-			return ErrConflict(c, errors.Errorf("channel already exists"))
+			return s.ErrConflict(c, errors.Errorf("channel already exists"))
 		}
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 
 	if err := s.notifyChannelCreated(ctx, channel.KID); err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 
 	if len(req.Message) > 0 {
 		if err := s.sendMessage(c, channel.KID, req.Message); err != nil {
-			return ErrInternalServer(c, err)
+			return s.ErrInternalServer(c, err)
 		}
 	}
 
@@ -84,28 +84,28 @@ func (s *Server) getChannel(c echo.Context) error {
 
 	channel, err := s.auth(c, newAuth("Authorization", "cid", nil))
 	if err != nil {
-		return ErrForbidden(c, err)
+		return s.ErrForbidden(c, err)
 	}
 
 	path := dstore.Path("channels", channel.KID)
 
 	doc, err := s.fi.Get(ctx, path)
 	if err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 	if doc == nil {
-		return ErrNotFound(c, keys.NewErrNotFound(channel.KID.String()))
+		return s.ErrNotFound(c, keys.NewErrNotFound(channel.KID.String()))
 	}
 
 	var out api.Channel
 	if err := doc.To(&out); err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 	out.Timestamp = tsutil.Millis(doc.UpdatedAt)
 
 	positions, err := s.fi.EventPositions(ctx, []string{path})
 	if err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 	if len(positions) > 0 {
 		out.Index = positions[0].Index

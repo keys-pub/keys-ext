@@ -58,16 +58,16 @@ func (s *Server) getSigchain(c echo.Context) error {
 
 	kid, err := keys.ParseID(c.Param("kid"))
 	if err != nil {
-		return ErrNotFound(c, nil)
+		return s.ErrNotFound(c, nil)
 	}
 
 	s.logger.Infof("Loading sigchain: %s", kid)
 	sc, md, err := s.sigchain(c, kid)
 	if err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 	if sc.Length() == 0 {
-		return ErrNotFound(c, errors.Errorf("sigchain not found"))
+		return s.ErrNotFound(c, errors.Errorf("sigchain not found"))
 	}
 	resp := api.SigchainResponse{
 		KID:        kid,
@@ -86,19 +86,19 @@ func (s *Server) getSigchainStatement(c echo.Context) error {
 
 	kid, err := keys.ParseID(c.Param("kid"))
 	if err != nil {
-		return ErrNotFound(c, err)
+		return s.ErrNotFound(c, err)
 	}
 	i, err := strconv.Atoi(c.Param("seq"))
 	if err != nil {
-		return ErrNotFound(c, err)
+		return s.ErrNotFound(c, err)
 	}
 	path := dstore.Path("sigchain", kid.WithSeq(i))
 	st, doc, err := s.statement(ctx, path)
 	if st == nil {
-		return ErrNotFound(c, errors.Errorf("statement not found"))
+		return s.ErrNotFound(c, errors.Errorf("statement not found"))
 	}
 	if err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 	if !doc.CreatedAt.IsZero() {
 		c.Response().Header().Set("CreatedAt", doc.CreatedAt.Format(http.TimeFormat))
@@ -117,57 +117,57 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	if c.Request().Body == nil {
-		return ErrBadRequest(c, errors.Errorf("missing body"))
+		return s.ErrBadRequest(c, errors.Errorf("missing body"))
 	}
 
 	b, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 	st, err := s.statementFromBytes(ctx, b)
 	if err != nil {
-		return ErrBadRequest(c, err)
+		return s.ErrBadRequest(c, err)
 	}
 	if len(st.Data) > 16*1024 {
-		return ErrBadRequest(c, errors.Errorf("too much data for sigchain statement (greater than 16KiB)"))
+		return s.ErrBadRequest(c, errors.Errorf("too much data for sigchain statement (greater than 16KiB)"))
 	}
 
 	if c.Param("kid") != st.KID.String() {
-		return ErrBadRequest(c, errors.Errorf("invalid kid"))
+		return s.ErrBadRequest(c, errors.Errorf("invalid kid"))
 	}
 	if c.Param("seq") != fmt.Sprintf("%d", st.Seq) {
-		return ErrBadRequest(c, errors.Errorf("invalid seq"))
+		return s.ErrBadRequest(c, errors.Errorf("invalid seq"))
 	}
 	if st.Seq <= 0 {
-		return ErrBadRequest(c, errors.Errorf("invalid seq"))
+		return s.ErrBadRequest(c, errors.Errorf("invalid seq"))
 	}
 
 	path := dstore.Path("sigchain", keys.StatementID(st.KID, st.Seq))
 
 	exists, err := s.fi.Exists(ctx, path)
 	if err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 	if exists {
-		return ErrConflict(c, errors.Errorf("statement already exists"))
+		return s.ErrConflict(c, errors.Errorf("statement already exists"))
 	}
 
 	sc, _, err := s.sigchain(c, st.KID)
 	if err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 
 	if sc.Length() >= 1024 {
 		// TODO: Increase limits
-		return ErrEntityTooLarge(c, errors.Errorf("sigchain limit reached, contact gabriel@github to bump the limits"))
+		return s.ErrEntityTooLarge(c, errors.Errorf("sigchain limit reached, contact gabriel@github to bump the limits"))
 	}
 
 	prev := sc.Last()
 	if err := sc.VerifyStatement(st, prev); err != nil {
-		return ErrBadRequest(c, err)
+		return s.ErrBadRequest(c, err)
 	}
 	if err := sc.Add(st); err != nil {
-		return ErrBadRequest(c, err)
+		return s.ErrBadRequest(c, err)
 	}
 
 	// Check we don't have an existing user with a different key, which would cause duplicates in search.
@@ -176,26 +176,26 @@ func (s *Server) putSigchainStatement(c echo.Context) error {
 	// it will limit them. If we find spaming this is a problem, we can get more strict.
 	existing, err := s.users.CheckForExisting(ctx, sc)
 	if err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 	if existing != "" {
 		if err := s.checkKID(ctx, existing, HighPriority); err != nil {
-			return ErrInternalServer(c, err)
+			return s.ErrInternalServer(c, err)
 		}
-		return ErrResponse(c, http.StatusConflict, errors.Errorf("user already exists with key %s, if you removed or revoked the previous statement you may need to wait briefly for search to update", existing))
+		return s.ErrResponse(c, http.StatusConflict, errors.Errorf("user already exists with key %s, if you removed or revoked the previous statement you may need to wait briefly for search to update", existing))
 	}
 
 	s.logger.Infof("Statement, set %s", path)
 	if err := s.fi.Create(ctx, path, dstore.Data(b)); err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 
 	if err := s.sigchains.Index(st.KID); err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 
 	if err := s.checkKID(ctx, st.KID, HighPriority); err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 
 	var resp struct{}
@@ -240,14 +240,14 @@ func (s *Server) getSigchainAliased(c echo.Context) error {
 	if c.Request().Host == "sigcha.in" {
 		return s.getSigchain(c)
 	}
-	return ErrNotFound(c, nil)
+	return s.ErrNotFound(c, nil)
 
 }
 func (s *Server) getSigchainStatementAliased(c echo.Context) error {
 	if c.Request().Host == "sigcha.in" {
 		return s.getSigchainStatement(c)
 	}
-	return ErrNotFound(c, nil)
+	return s.ErrNotFound(c, nil)
 }
 
 func (s *Server) putSigchainStatementAliased(c echo.Context) error {
@@ -258,7 +258,7 @@ func (s *Server) putSigchainStatementAliased(c echo.Context) error {
 	// if c.Request().Host == "sigcha.in" {
 	// 	return s.putSigchainStatement(c)
 	// }
-	// return ErrNotFound(c, nil)
+	// return s.ErrNotFound(c, nil)
 
 	return s.putSigchainStatement(c)
 }

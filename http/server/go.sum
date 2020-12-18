@@ -202,6 +202,8 @@ github.com/keys-pub/keys v0.1.18-0.20201217003538-138e9a15ccb4 h1:yLAjE2ZWHpBCnP
 github.com/keys-pub/keys v0.1.18-0.20201217003538-138e9a15ccb4/go.mod h1:CgoPVi0AZw87ncg5xCYnhlY9h+WQmAVsokthREKygzw=
 github.com/keys-pub/keys v0.1.18-0.20201218000102-4aa1cf84e7f3 h1:aFJk8oJMzYdNyjQDDSr1Yz9W3O1NenpTC62QbopzV3s=
 github.com/keys-pub/keys v0.1.18-0.20201218000102-4aa1cf84e7f3/go.mod h1:CgoPVi0AZw87ncg5xCYnhlY9h+WQmAVsokthREKygzw=
+github.com/keys-pub/keys v0.1.18-0.20201218205715-618ff87d91d4 h1:GkbnxeM6sqJkfZGwNzdahPYaVetf/M3atEUbsaWZSIQ=
+github.com/keys-pub/keys v0.1.18-0.20201218205715-618ff87d91d4/go.mod h1:CgoPVi0AZw87ncg5xCYnhlY9h+WQmAVsokthREKygzw=
 github.com/keys-pub/keys-ext v0.1.4 h1:KkuJQJvAjlQaXUMAuBaNPMHdKw5wkPVl5Rzkpmt/hbE=
 github.com/keys-pub/keys-ext v0.1.5 h1:o302Kkt1yTpNhdBn0dPqdmbTNity9Q9VQRiTVQvM/Ck=
 github.com/keys-pub/keys-ext v0.1.20 h1:KZs+L8GtJj00bKh+xhQqHNkSQgq2fUCYwBsrP2vV23g=
@@ -253,6 +255,8 @@ github.com/keys-pub/keys-ext/http/api v0.0.0-20201209191407-ff734efbdcb7 h1:7Adk
 github.com/keys-pub/keys-ext/http/api v0.0.0-20201209191407-ff734efbdcb7/go.mod h1:4IfSY+YyuZgorw6y71ROFy25vMnrw8T6W4/V0pSkLuo=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20201217184537-bbf6e26a08c5 h1:/WjOv6LcRnq7VDizufjpzlowhaHZpDhg2gTA2NhYn/Q=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20201217184537-bbf6e26a08c5/go.mod h1:KbvAxu8RQbK726jjU3U3W5kApNbaI+RQAKd+MQGxjUE=
+github.com/keys-pub/keys-ext/http/api v0.0.0-20201218211059-81db8e866f8c h1:hPv0kt9c5BFRfSoTIs1WnU3oYvEQaXEQspMVD7DuBm8=
+github.com/keys-pub/keys-ext/http/api v0.0.0-20201218211059-81db8e866f8c/go.mod h1:451jdIx16diwamH031hNjqyaY93WhCF6c6cOH6m1Mrs=
 github.com/keys-pub/keys-ext/ws/api v0.0.0-20201118000734-c321e1dba334 h1:fwwhYzjk6o0Ddc29n3NDILbla7J4YhmN7mSlIMHasPk=
 github.com/keys-pub/keys-ext/ws/api v0.0.0-20201118000734-c321e1dba334/go.mod h1:K41OgD6x/MGJfkpC3fmGxBbvhVbiRqMTeNh8DQ+CJ44=
 github.com/keys-pub/keys-ext/ws/api v0.0.0-20201120040216-9bb267d5584f h1:DIDDqjmMgffrxAHY1iOENdrw5ObnEmG+vJVO3U1QsSQ=

@@ -74,12 +74,14 @@ func (s *Server) taskCheck(c echo.Context) error {
 
 	kid, err := keys.ParseID(c.Param("kid"))
 	if err != nil {
-		return ErrBadRequest(c, err)
+		return s.ErrBadRequest(c, err)
 	}
 
-	if _, err := s.users.Update(ctx, kid); err != nil {
-		return ErrInternalServer(c, err)
+	res, err := s.users.Update(ctx, kid)
+	if err != nil {
+		return s.ErrInternalServer(c, err)
 	}
+	s.logger.Debugf("User result: %v", res)
 	return c.String(http.StatusOK, "")
 }
 
@@ -114,12 +116,12 @@ func (s *Server) cronCheck(c echo.Context) error {
 	// TODO: Need to test this
 
 	if err := s.queueByUserStatus(ctx, user.StatusConnFailure); err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 
 	// Check expired
 	if err := s.queueByExpired(ctx, time.Hour*12, time.Hour*24*60); err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 
 	return c.String(http.StatusOK, "")

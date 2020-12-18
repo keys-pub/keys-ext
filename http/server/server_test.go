@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	nethttp "net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/keys-pub/keys"
@@ -12,7 +14,6 @@ import (
 	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/http"
-	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keys/user"
 	"github.com/stretchr/testify/require"
@@ -60,7 +61,7 @@ func TestFireCreatedAt(t *testing.T) {
 type env struct {
 	clock    tsutil.Clock
 	fi       server.Fire
-	req      *request.MockRequestor
+	client   *http.Mock
 	logLevel server.LogLevel
 }
 
@@ -71,18 +72,18 @@ func newEnv(t *testing.T) *env {
 }
 
 func newEnvWithFire(t *testing.T, fi server.Fire, clock tsutil.Clock) *env {
-	req := request.NewMockRequestor()
+	client := http.NewMock()
 	return &env{
 		clock:    clock,
 		fi:       fi,
-		req:      req,
+		client:   client,
 		logLevel: server.NoLevel,
 	}
 }
 
 func newTestServer(t *testing.T, env *env) *testServer {
 	rds := server.NewRedisTest(env.clock)
-	srv := server.New(env.fi, rds, env.req, env.clock, server.NewLogger(env.logLevel))
+	srv := server.New(env.fi, rds, env.client, env.clock, server.NewLogger(env.logLevel))
 	tasks := server.NewTestTasks(srv)
 	srv.SetTasks(tasks)
 	srv.SetInternalAuth(encoding.MustEncode(keys.RandBytes(32), encoding.Base62))
@@ -94,7 +95,7 @@ func newTestServer(t *testing.T, env *env) *testServer {
 	}
 }
 
-func (s *testServer) Serve(req *http.Request) (int, http.Header, string) {
+func (s *testServer) Serve(req *http.Request) (int, nethttp.Header, string) {
 	rr := httptest.NewRecorder()
 	s.Handler.ServeHTTP(rr, req)
 	return rr.Code, rr.Header(), rr.Body.String()
@@ -142,11 +143,13 @@ func testKeysRandom() testKeys {
 	}
 }
 
-func userMock(t *testing.T, key *keys.EdX25519Key, name string, service string, mock *request.MockRequestor, clock tsutil.Clock) *keys.Statement {
+func userMock(t *testing.T, key *keys.EdX25519Key, name string, service string, mock *http.Mock, clock tsutil.Clock) *keys.Statement {
 	url := ""
+	api := ""
 	switch service {
 	case "github":
 		url = fmt.Sprintf("https://gist.github.com/%s/1", name)
+		api = "https://api.github.com/gists/1"
 	default:
 		t.Fatal("unsupported service in test")
 	}
@@ -159,9 +162,24 @@ func userMock(t *testing.T, key *keys.EdX25519Key, name string, service string, 
 
 	msg, err := usr.Sign(key)
 	require.NoError(t, err)
-	mock.SetResponse(url, []byte(msg))
+	mock.SetResponse(api, []byte(githubMock(name, "1", msg)))
 
 	return st
+}
+
+func githubMock(name string, id string, msg string) string {
+	msg = strings.ReplaceAll(msg, "\n", "")
+	return `{
+		"id": "` + id + `",
+		"files": {
+			"gistfile1.txt": {
+				"content": "` + msg + `"
+			}		  
+		},
+		"owner": {
+			"login": "` + name + `"
+		}
+	  }`
 }
 
 func TestInternalAuth(t *testing.T) {

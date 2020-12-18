@@ -23,12 +23,12 @@ func (s *Server) getUserSearch(c echo.Context) error {
 	}
 	limit, err := strconv.Atoi(plimit)
 	if err != nil {
-		return ErrBadRequest(c, errors.Wrapf(err, "invalid limit"))
+		return s.ErrBadRequest(c, errors.Wrapf(err, "invalid limit"))
 	}
 
 	results, err := s.users.Search(ctx, &users.SearchRequest{Query: q, Limit: limit})
 	if err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 
 	usrs := make([]*api.User, 0, len(results))
@@ -48,15 +48,15 @@ func (s *Server) getUser(c echo.Context) error {
 
 	kid, err := keys.ParseID(c.Param("kid"))
 	if err != nil {
-		return ErrNotFound(c, errors.Errorf("kid not found"))
+		return s.ErrNotFound(c, errors.Errorf("kid not found"))
 	}
 
 	userResult, err := s.users.Find(ctx, kid)
 	if err != nil {
-		return ErrInternalServer(c, err)
+		return s.ErrInternalServer(c, err)
 	}
 	if userResult == nil {
-		return ErrNotFound(c, errors.Errorf("user not found"))
+		return s.ErrNotFound(c, errors.Errorf("user not found"))
 	}
 
 	resp := api.UserResponse{

@@ -3,16 +3,12 @@ package server
 import (
 	"encoding/json"
 	"io/ioutil"
-	"net/http"
-	"os"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/dstore/events"
-	"github.com/keys-pub/keys/request"
+	"github.com/keys-pub/keys/http"
 	"github.com/keys-pub/keys/tsutil"
-	"github.com/keys-pub/keys/user"
-	"github.com/keys-pub/keys/user/services"
 	"github.com/keys-pub/keys/users"
 	"github.com/labstack/echo/v4"
 
@@ -29,6 +25,7 @@ type Server struct {
 	rds    Redis
 	clock  tsutil.Clock
 	logger Logger
+	client http.Client
 
 	// URL (base) of form http(s)://host:port with no trailing slash to help
 	// authorization checks in testing where the host is ambiguous.
@@ -52,20 +49,14 @@ type Fire interface {
 }
 
 // New creates a Server.
-func New(fi Fire, rds Redis, req request.Requestor, clock tsutil.Clock, logger Logger) *Server {
+func New(fi Fire, rds Redis, client http.Client, clock tsutil.Clock, logger Logger) *Server {
 	sigchains := keys.NewSigchains(fi)
 
-	// TODO: Make this configurable?
-	user.AddService(services.NewTwitter(os.Getenv("TWITTER_BEARER_TOKEN")))
-	user.AddService(services.NewGithub())
-	user.AddService(services.NewEcho())
-	user.AddService(services.NewHTTPS())
-	user.AddService(services.NewReddit())
-
-	usrs := users.New(fi, sigchains, users.Requestor(req), users.Clock(clock))
+	usrs := users.New(fi, sigchains, users.Client(client), users.Clock(clock))
 	return &Server{
 		fi:        fi,
 		rds:       rds,
+		client:    client,
 		clock:     tsutil.NewClock(),
 		tasks:     newUnsetTasks(),
 		sigchains: sigchains,
@@ -161,6 +152,9 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	e.GET("/follows/:kid", s.getFollows)           // List follows
 	e.DELETE("/follow/:kid/:user", s.deleteFollow) // Unfollow
 
+	// Twitter
+	e.POST("/twitter/check/:name/:id", s.checkTwitter)
+
 	// Admin
 	e.POST("/admin/check/:kid", s.adminCheck)
 }
@@ -188,14 +182,14 @@ func JSON(c echo.Context, status int, i interface{}) error {
 
 func (s *Server) checkInternalAuth(c echo.Context) error {
 	if s.internalAuth == "" {
-		return ErrForbidden(c, errors.Errorf("no auth token set on server"))
+		return s.ErrForbidden(c, errors.Errorf("no auth token set on server"))
 	}
 	auth := c.Request().Header.Get("Authorization")
 	if auth == "" {
-		return ErrForbidden(c, errors.Errorf("no auth token specified"))
+		return s.ErrForbidden(c, errors.Errorf("no auth token specified"))
 	}
 	if auth != s.internalAuth {
-		return ErrForbidden(c, errors.Errorf("invalid auth token"))
+		return s.ErrForbidden(c, errors.Errorf("invalid auth token"))
 	}
 	return nil
 }
