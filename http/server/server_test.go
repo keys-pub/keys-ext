@@ -147,8 +147,6 @@ func userMock(t *testing.T, key *keys.EdX25519Key, name string, service string, 
 	switch service {
 	case "github":
 		url = fmt.Sprintf("https://gist.github.com/%s/1", name)
-	case "twitter":
-		url = fmt.Sprintf("https://twitter.com/%s/status/1", name)
 	default:
 		t.Fatal("unsupported service in test")
 	}

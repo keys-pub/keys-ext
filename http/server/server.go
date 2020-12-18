@@ -4,12 +4,15 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"os"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/dstore/events"
 	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/tsutil"
+	"github.com/keys-pub/keys/user"
+	"github.com/keys-pub/keys/user/services"
 	"github.com/keys-pub/keys/users"
 	"github.com/labstack/echo/v4"
 
@@ -51,6 +54,14 @@ type Fire interface {
 // New creates a Server.
 func New(fi Fire, rds Redis, req request.Requestor, clock tsutil.Clock, logger Logger) *Server {
 	sigchains := keys.NewSigchains(fi)
+
+	// TODO: Make this configurable?
+	user.AddService(services.NewTwitter(os.Getenv("TWITTER_BEARER_TOKEN")))
+	user.AddService(services.NewGithub())
+	user.AddService(services.NewEcho())
+	user.AddService(services.NewHTTPS())
+	user.AddService(services.NewReddit())
+
 	usrs := users.New(fi, sigchains, users.Requestor(req), users.Clock(clock))
 	return &Server{
 		fi:        fi,
