@@ -166,7 +166,7 @@ func pretty(t *testing.T, s string) string {
 	var pretty bytes.Buffer
 	err := json.Indent(&pretty, []byte(s), "", "  ")
 	require.NoError(t, err)
-	return string(pretty.Bytes())
+	return pretty.String()
 }
 
 func TestUserGet(t *testing.T) {
