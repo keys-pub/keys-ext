@@ -26,6 +26,7 @@ type Logger interface {
 	Infof(format string, args ...interface{})
 	Warningf(format string, args ...interface{})
 	Errorf(format string, args ...interface{})
+	Fatalf(format string, args ...interface{})
 }
 
 // LogLevel ...
@@ -90,6 +91,10 @@ func (l defaultLog) Errorf(format string, args ...interface{}) {
 	if l.Level >= 0 {
 		pkglog.Printf("[ERR]  "+format+"\n", args...)
 	}
+}
+
+func (l defaultLog) Fatalf(format string, args ...interface{}) {
+	pkglog.Fatalf(format, args...)
 }
 
 // ContextLogger interface used in this package with request context.
