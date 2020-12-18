@@ -31,20 +31,20 @@ func (s *Server) adminCheck(c echo.Context) error {
 		if err != nil {
 			return ErrInternalServer(c, err)
 		}
-		s.logger.Infof("Checking all (%d)", len(kids))
-		if err := s.checkKeys(ctx, kids); err != nil {
+		s.logger.Infof("Queue all (%d)", len(kids))
+		if err := s.queueKeyChecks(ctx, kids); err != nil {
 			return ErrInternalServer(c, err)
 		}
 	case "content-not-found":
-		if err := s.checkUserStatus(ctx, user.StatusContentNotFound); err != nil {
+		if err := s.queueByUserStatus(ctx, user.StatusContentNotFound); err != nil {
 			return ErrInternalServer(c, err)
 		}
 	case "connection-fail":
-		if err := s.checkUserStatus(ctx, user.StatusConnFailure); err != nil {
+		if err := s.queueByUserStatus(ctx, user.StatusConnFailure); err != nil {
 			return ErrInternalServer(c, err)
 		}
 	case "expired":
-		if err := s.checkExpired(ctx, time.Hour*6, time.Hour*24*7); err != nil {
+		if err := s.queueByExpired(ctx, time.Hour*6, time.Hour*24*7); err != nil {
 			return ErrInternalServer(c, err)
 		}
 	default:
@@ -52,7 +52,7 @@ func (s *Server) adminCheck(c echo.Context) error {
 		if err != nil {
 			return ErrNotFound(c, errors.Errorf("invalid kid"))
 		}
-		s.logger.Infof("Checking %s", kid)
+		s.logger.Infof("Queueing %s", kid)
 		if err := s.checkKID(ctx, kid, HighPriority); err != nil {
 			return ErrInternalServer(c, err)
 		}

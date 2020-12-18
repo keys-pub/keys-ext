@@ -83,25 +83,25 @@ func (s *Server) taskCheck(c echo.Context) error {
 	return c.String(http.StatusOK, "")
 }
 
-func (s *Server) checkUserStatus(ctx context.Context, status user.Status) error {
+func (s *Server) queueByUserStatus(ctx context.Context, status user.Status) error {
 	kids, err := s.users.Status(ctx, status)
 	if err != nil {
 		return err
 	}
 	s.logger.Infof("Checking %s (%d)", status, len(kids))
-	if err := s.checkKeys(ctx, kids); err != nil {
+	if err := s.queueKeyChecks(ctx, kids); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *Server) checkExpired(ctx context.Context, dt time.Duration, maxAge time.Duration) error {
+func (s *Server) queueByExpired(ctx context.Context, dt time.Duration, maxAge time.Duration) error {
 	kids, err := s.users.Expired(ctx, dt, maxAge)
 	if err != nil {
 		return err
 	}
 	s.logger.Infof("Checking expired (%d)", len(kids))
-	if err := s.checkKeys(ctx, kids); err != nil {
+	if err := s.queueKeyChecks(ctx, kids); err != nil {
 		return err
 	}
 	return nil
@@ -113,21 +113,21 @@ func (s *Server) cronCheck(c echo.Context) error {
 
 	// TODO: Need to test this
 
-	if err := s.checkUserStatus(ctx, user.StatusConnFailure); err != nil {
+	if err := s.queueByUserStatus(ctx, user.StatusConnFailure); err != nil {
 		return ErrInternalServer(c, err)
 	}
 
 	// Check expired
-	if err := s.checkExpired(ctx, time.Hour*12, time.Hour*24*60); err != nil {
+	if err := s.queueByExpired(ctx, time.Hour*12, time.Hour*24*60); err != nil {
 		return ErrInternalServer(c, err)
 	}
 
 	return c.String(http.StatusOK, "")
 }
 
-func (s *Server) checkKeys(ctx context.Context, kids []keys.ID) error {
+func (s *Server) queueKeyChecks(ctx context.Context, kids []keys.ID) error {
 	if len(kids) > 0 {
-		s.logger.Infof("Checking %d keys...", len(kids))
+		s.logger.Infof("Queueing %d keys...", len(kids))
 	}
 
 	for _, kid := range kids {
