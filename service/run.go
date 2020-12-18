@@ -21,11 +21,11 @@ import (
 	"github.com/keys-pub/keys-ext/wormhole"
 	"github.com/keys-pub/keys-ext/wormhole/sctp"
 	wsclient "github.com/keys-pub/keys-ext/ws/client"
-	"github.com/keys-pub/keys/link"
 	"github.com/keys-pub/keys/request"
 	"github.com/keys-pub/keys/saltpack"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keys/user"
+	"github.com/keys-pub/keys/user/services"
 	"github.com/mercari/go-grpc-interceptor/panichandler"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -102,10 +102,10 @@ func Run(build Build) {
 	SetLogger(lg)
 	client.SetLogger(newPackageLogger(lg, "keys-ext/http/client"))
 	keys.SetLogger(newPackageLogger(lg, "keys"))
-	link.SetLogger(newPackageLogger(lg, "keys/link"))
 	saltpack.SetLogger(newPackageLogger(lg, "keys/saltpack"))
 	sctp.SetLogger(newPackageLogger(lg, "keys-ext/wormhole/sctp"))
 	user.SetLogger(newPackageLogger(lg, "keys/user"))
+	services.SetLogger(newPackageLogger(lg, "keys/user/services"))
 	vault.SetLogger(newPackageLogger(lg, "keys-ext/vault"))
 	wormhole.SetLogger(newPackageLogger(lg, "keys-ext/wormhole"))
 	wsclient.SetLogger(newPackageLogger(lg, "keys-ext/ws/client"))

@@ -4,19 +4,28 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys-ext/http/client"
-	"github.com/keys-pub/keys/link"
 	"github.com/keys-pub/keys/user"
+	"github.com/keys-pub/keys/user/services"
 	"github.com/keys-pub/keys/users"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
+
+func init() {
+	user.AddService(services.NewTwitter(os.Getenv("TWITTER_BEARER_TOKEN")))
+	user.AddService(services.NewGithub())
+	user.AddService(services.NewEcho())
+	user.AddService(services.NewHTTPS())
+	user.AddService(services.NewReddit())
+}
 
 // UserSearch (RPC) ...
 func (s *service) UserSearch(ctx context.Context, req *UserSearchRequest) (*UserSearchResponse, error) {
@@ -177,7 +186,7 @@ func (s *service) sigchainUserAdd(ctx context.Context, key *keys.EdX25519Key, se
 		return nil, nil, err
 	}
 
-	linkService, err := link.NewService(service)
+	linkService, err := user.LookupService(service)
 	if err != nil {
 		return nil, nil, err
 	}
