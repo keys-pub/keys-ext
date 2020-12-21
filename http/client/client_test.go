@@ -2,7 +2,6 @@ package client_test
 
 import (
 	"bytes"
-	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -10,7 +9,7 @@ import (
 	"github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys-ext/http/server"
 	"github.com/keys-pub/keys/dstore"
-	"github.com/keys-pub/keys/request"
+	"github.com/keys-pub/keys/http"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keys/users"
 	"github.com/stretchr/testify/require"
@@ -20,7 +19,7 @@ type env struct {
 	clock      tsutil.Clock
 	fi         server.Fire
 	users      *users.Users
-	req        *request.MockRequestor
+	client     http.Client
 	logger     server.Logger
 	srv        *server.Server
 	httpServer *httptest.Server
@@ -28,7 +27,7 @@ type env struct {
 }
 
 func newEnv(t *testing.T) (*env, func()) {
-	return newEnvWithOptions(t, nil)
+	return newEnvWithOptions(t, &envOptions{logLevel: server.NoLevel})
 }
 
 type handlerFn func(w http.ResponseWriter, req *http.Request) bool
@@ -47,7 +46,7 @@ func (p proxyHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 type envOptions struct {
 	fi        server.Fire
 	clock     tsutil.Clock
-	logger    server.Logger
+	logLevel  server.LogLevel
 	handlerFn handlerFn
 }
 
@@ -63,14 +62,12 @@ func newEnvWithOptions(t *testing.T, opts *envOptions) (*env, func()) {
 		mem.SetClock(opts.clock)
 		opts.fi = mem
 	}
-	if opts.logger == nil {
-		opts.logger = client.NewLogger(client.ErrLevel)
-	}
 	rds := server.NewRedisTest(opts.clock)
-	req := request.NewMockRequestor()
-	usrs := users.New(opts.fi, keys.NewSigchains(opts.fi), users.Requestor(req), users.Clock(opts.clock))
+	client := http.NewClient()
+	usrs := users.New(opts.fi, keys.NewSigchains(opts.fi), users.Client(client), users.Clock(opts.clock))
 
-	srv := server.New(opts.fi, rds, req, opts.clock, opts.logger)
+	serverLogger := server.NewLogger(opts.logLevel)
+	srv := server.New(opts.fi, rds, client, opts.clock, serverLogger)
 	srv.SetClock(opts.clock)
 	tasks := server.NewTestTasks(srv)
 	srv.SetTasks(tasks)
@@ -92,8 +89,7 @@ func newEnvWithOptions(t *testing.T, opts *envOptions) (*env, func()) {
 		clock:      opts.clock,
 		fi:         opts.fi,
 		users:      usrs,
-		req:        req,
-		logger:     opts.logger,
+		client:     client,
 		srv:        srv,
 		httpServer: httpServer,
 		handler:    handler,

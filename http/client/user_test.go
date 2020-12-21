@@ -3,22 +3,29 @@ package client_test
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/client"
+	"github.com/keys-pub/keys/http"
 	"github.com/keys-pub/keys/user"
 	"github.com/stretchr/testify/require"
 )
 
 func saveUser(t *testing.T, env *env, cl *client.Client, key *keys.EdX25519Key, name string, service string) *keys.Statement {
 	url := ""
+	api := ""
+
+	id := hex.EncodeToString(sha256.New().Sum([]byte(service + "/" + name))[:8])
+
 	switch service {
 	case "github":
-		url = fmt.Sprintf("https://gist.github.com/%s/1", name)
-	case "twitter":
-		url = fmt.Sprintf("https://twitter.com/%s/status/1", name)
+		url = fmt.Sprintf("https://gist.github.com/%s/%s", name, id)
+		api = "https://api.github.com/gists/" + id
 	default:
 		t.Fatal("unsupported service in test")
 	}
@@ -31,7 +38,10 @@ func saveUser(t *testing.T, env *env, cl *client.Client, key *keys.EdX25519Key, 
 
 	msg, err := usr.Sign(key)
 	require.NoError(t, err)
-	env.req.SetResponse(url, []byte(msg))
+
+	env.client.SetProxy(api, func(ctx context.Context, req *http.Request, headers []http.Header) http.ProxyResponse {
+		return http.ProxyResponse{Body: []byte(githubMock(name, id, msg))}
+	})
 
 	err = cl.SigchainSave(context.TODO(), st)
 	require.NoError(t, err)
@@ -40,6 +50,21 @@ func saveUser(t *testing.T, env *env, cl *client.Client, key *keys.EdX25519Key, 
 	// require.NoError(t, err)
 
 	return st
+}
+
+func githubMock(name string, id string, msg string) string {
+	msg = strings.ReplaceAll(msg, "\n", "")
+	return `{
+		"id": "` + id + `",
+		"files": {
+			"gistfile1.txt": {
+				"content": "` + msg + `"
+			}		  
+		},
+		"owner": {
+			"login": "` + name + `"
+		}
+	  }`
 }
 
 func TestUserSearch(t *testing.T) {

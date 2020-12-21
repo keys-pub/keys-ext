@@ -7,7 +7,9 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/client"
+	"github.com/keys-pub/keys/http"
 	"github.com/keys-pub/keys/user"
+	"github.com/keys-pub/keys/user/services"
 )
 
 func ExampleClient_Sigchain() {
@@ -35,8 +37,8 @@ func ExampleClient_Sigchain() {
 	}
 	fmt.Printf("%+v\n", usr)
 
-	// Request the User URL and verify it.
-	result := usr.RequestVerify(context.TODO())
+	// Verify the user.
+	result := services.Verify(context.TODO(), services.HTTPS, http.NewClient(), usr)
 	if result.Status != user.StatusOK {
 		log.Fatalf("User check failed: %+v", result)
 	}

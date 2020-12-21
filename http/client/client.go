@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net"
+	nethttp "net/http"
 	"net/url"
 	"strings"
 	"time"
@@ -23,7 +24,7 @@ import (
 // Client ...
 type Client struct {
 	url        *url.URL
-	httpClient *http.Client
+	httpClient *nethttp.Client
 	clock      tsutil.Clock
 }
 
@@ -43,13 +44,13 @@ func New(urs string) (*Client, error) {
 }
 
 // SetHTTPClient sets the http.Client to use.
-func (c *Client) SetHTTPClient(httpClient *http.Client) {
+func (c *Client) SetHTTPClient(httpClient *nethttp.Client) {
 	c.httpClient = httpClient
 }
 
 // TODO: are these timeouts too agressive?
-func defaultHTTPClient() *http.Client {
-	return &http.Client{
+func defaultHTTPClient() *nethttp.Client {
+	return &nethttp.Client{
 		Timeout: time.Second * 10,
 		Transport: &http.Transport{
 			Dial: (&net.Dialer{

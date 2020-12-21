@@ -9,18 +9,9 @@ import (
 	"github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/user"
-	"github.com/keys-pub/keys/user/services"
 	"github.com/keys-pub/keys/users"
 	"github.com/stretchr/testify/require"
 )
-
-func init() {
-	user.AddService(services.NewTwitter(os.Getenv("TWITTER_BEARER_TOKEN")))
-	user.AddService(services.NewGithub())
-	user.AddService(services.NewEcho())
-	user.AddService(services.NewHTTPS())
-	user.AddService(services.NewReddit())
-}
 
 func TestTwitter(t *testing.T) {
 	if os.Getenv("TWITTER_BEARER_TOKEN") == "" {

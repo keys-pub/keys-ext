@@ -4,10 +4,10 @@ go 1.14
 
 require (
 	github.com/davecgh/go-spew v1.1.1
-	github.com/keys-pub/keys v0.1.18-0.20201218000102-4aa1cf84e7f3
+	github.com/keys-pub/keys v0.1.18-0.20201221024928-926fad6581ab
 	github.com/keys-pub/keys-ext/firestore v0.0.0-20201120035752-fc8566e1f7c4
-	github.com/keys-pub/keys-ext/http/api v0.0.0-20201217184537-bbf6e26a08c5
-	github.com/keys-pub/keys-ext/http/server v0.0.0-20201217212639-fc124fb22380
+	github.com/keys-pub/keys-ext/http/api v0.0.0-20201218211059-81db8e866f8c
+	github.com/keys-pub/keys-ext/http/server v0.0.0-20201221022604-418ba635ab03
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.5.1
 	github.com/vmihailenco/msgpack/v4 v4.3.12
