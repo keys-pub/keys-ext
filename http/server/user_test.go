@@ -50,9 +50,9 @@ func TestUserSearch(t *testing.T) {
       "kid": "kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077",
       "seq": 1,
       "service": "github",
-      "url": "https://gist.github.com/alice/1",
+      "url": "https://gist.github.com/alice/6769746875622f61",
       "status": "ok",
-      "statement": "BEGIN MESSAGE.\nhi2DoUIOXFOdiK7 r6Ht2MaFmehwy2P qWUnb52ECX63NDa 2PS2LDehUAUdNJcg3Zv9UizJDXm40W oujU6wo8U1lTCKq 6Xr2MZHgg4UNRDb Zy2loGoGN3Mvxd4r7FIwpZOJPE1JEq D2gGjkgLByR9CFG 2aCgRgZZwl5UAa4 6bmBzjEOhmsiW0KTDXulMpC51JXgyc 1MliDDv03o9DXy5 mbXLLP0PDrc9ziK lQqXFL3j737xB4VyAwvIctTRYqHeOH X5y2fFloY3UDRhy WVBDwb.\nEND MESSAGE.",
+      "statement": "BEGIN MESSAGE.\nY24cziOYlfrf5Jo StDTUuPnS6LKuhx awYPRXyhwwlRHUA c0pXakmOZjgjMzs8DCAifCEdAkZfEU VDk6hs3Z2OGTCKq 6Xr2MZHgg4UNRDb Zy2loGoGN3Mvxd4r7FIwpZOJPE1JEq D2gGjkgLByR9CFG 2aCgRgZZwl5UAa4 6bmBzjEOhmsiW0KTDXulMpC51JXgyc 1MliDDv03o9DXy5 mbXLLP0PDrc9ziK lQqXFL3j737xB4VyAwvIctTRYqHeOH X5y51pUcCb2s5VI uU0x96I37FiTbk8 BW9SG90C6ST.\nEND MESSAGE.",
       "verifiedAt": 1234567890004,
       "ts": 1234567890004
     }
@@ -73,9 +73,9 @@ func TestUserSearch(t *testing.T) {
       "kid": "kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077",
       "seq": 1,
       "service": "github",
-      "url": "https://gist.github.com/alice/1",
+      "url": "https://gist.github.com/alice/6769746875622f61",
       "status": "ok",
-      "statement": "BEGIN MESSAGE.\nhi2DoUIOXFOdiK7 r6Ht2MaFmehwy2P qWUnb52ECX63NDa 2PS2LDehUAUdNJcg3Zv9UizJDXm40W oujU6wo8U1lTCKq 6Xr2MZHgg4UNRDb Zy2loGoGN3Mvxd4r7FIwpZOJPE1JEq D2gGjkgLByR9CFG 2aCgRgZZwl5UAa4 6bmBzjEOhmsiW0KTDXulMpC51JXgyc 1MliDDv03o9DXy5 mbXLLP0PDrc9ziK lQqXFL3j737xB4VyAwvIctTRYqHeOH X5y2fFloY3UDRhy WVBDwb.\nEND MESSAGE.",
+      "statement": "BEGIN MESSAGE.\nY24cziOYlfrf5Jo StDTUuPnS6LKuhx awYPRXyhwwlRHUA c0pXakmOZjgjMzs8DCAifCEdAkZfEU VDk6hs3Z2OGTCKq 6Xr2MZHgg4UNRDb Zy2loGoGN3Mvxd4r7FIwpZOJPE1JEq D2gGjkgLByR9CFG 2aCgRgZZwl5UAa4 6bmBzjEOhmsiW0KTDXulMpC51JXgyc 1MliDDv03o9DXy5 mbXLLP0PDrc9ziK lQqXFL3j737xB4VyAwvIctTRYqHeOH X5y51pUcCb2s5VI uU0x96I37FiTbk8 BW9SG90C6ST.\nEND MESSAGE.",
       "verifiedAt": 1234567890004,
       "ts": 1234567890004
     }
@@ -96,9 +96,9 @@ func TestUserSearch(t *testing.T) {
       "kid": "kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077",
       "seq": 1,
       "service": "github",
-      "url": "https://gist.github.com/alice/1",
+      "url": "https://gist.github.com/alice/6769746875622f61",
       "status": "ok",
-      "statement": "BEGIN MESSAGE.\nhi2DoUIOXFOdiK7 r6Ht2MaFmehwy2P qWUnb52ECX63NDa 2PS2LDehUAUdNJcg3Zv9UizJDXm40W oujU6wo8U1lTCKq 6Xr2MZHgg4UNRDb Zy2loGoGN3Mvxd4r7FIwpZOJPE1JEq D2gGjkgLByR9CFG 2aCgRgZZwl5UAa4 6bmBzjEOhmsiW0KTDXulMpC51JXgyc 1MliDDv03o9DXy5 mbXLLP0PDrc9ziK lQqXFL3j737xB4VyAwvIctTRYqHeOH X5y2fFloY3UDRhy WVBDwb.\nEND MESSAGE.",
+      "statement": "BEGIN MESSAGE.\nY24cziOYlfrf5Jo StDTUuPnS6LKuhx awYPRXyhwwlRHUA c0pXakmOZjgjMzs8DCAifCEdAkZfEU VDk6hs3Z2OGTCKq 6Xr2MZHgg4UNRDb Zy2loGoGN3Mvxd4r7FIwpZOJPE1JEq D2gGjkgLByR9CFG 2aCgRgZZwl5UAa4 6bmBzjEOhmsiW0KTDXulMpC51JXgyc 1MliDDv03o9DXy5 mbXLLP0PDrc9ziK lQqXFL3j737xB4VyAwvIctTRYqHeOH X5y51pUcCb2s5VI uU0x96I37FiTbk8 BW9SG90C6ST.\nEND MESSAGE.",
       "verifiedAt": 1234567890004,
       "ts": 1234567890004,
       "mf": "kid"
@@ -120,35 +120,12 @@ func TestUserSearch(t *testing.T) {
       "kid": "kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077",
       "seq": 1,
       "service": "github",
-      "url": "https://gist.github.com/alice/1",
+      "url": "https://gist.github.com/alice/6769746875622f61",
       "status": "ok",
-      "statement": "BEGIN MESSAGE.\nhi2DoUIOXFOdiK7 r6Ht2MaFmehwy2P qWUnb52ECX63NDa 2PS2LDehUAUdNJcg3Zv9UizJDXm40W oujU6wo8U1lTCKq 6Xr2MZHgg4UNRDb Zy2loGoGN3Mvxd4r7FIwpZOJPE1JEq D2gGjkgLByR9CFG 2aCgRgZZwl5UAa4 6bmBzjEOhmsiW0KTDXulMpC51JXgyc 1MliDDv03o9DXy5 mbXLLP0PDrc9ziK lQqXFL3j737xB4VyAwvIctTRYqHeOH X5y2fFloY3UDRhy WVBDwb.\nEND MESSAGE.",
+      "statement": "BEGIN MESSAGE.\nY24cziOYlfrf5Jo StDTUuPnS6LKuhx awYPRXyhwwlRHUA c0pXakmOZjgjMzs8DCAifCEdAkZfEU VDk6hs3Z2OGTCKq 6Xr2MZHgg4UNRDb Zy2loGoGN3Mvxd4r7FIwpZOJPE1JEq D2gGjkgLByR9CFG 2aCgRgZZwl5UAa4 6bmBzjEOhmsiW0KTDXulMpC51JXgyc 1MliDDv03o9DXy5 mbXLLP0PDrc9ziK lQqXFL3j737xB4VyAwvIctTRYqHeOH X5y51pUcCb2s5VI uU0x96I37FiTbk8 BW9SG90C6ST.\nEND MESSAGE.",
       "verifiedAt": 1234567890004,
       "ts": 1234567890004,
       "mf": "kid"
-    }
-  ]
-}`
-	require.Equal(t, expected, pretty(t, body))
-
-	// GET /user/search?q=alice@github
-	req, err = http.NewRequest("GET", "/user/search?q=alice@github", nil)
-	require.NoError(t, err)
-	code, _, body = srv.Serve(req)
-	require.Equal(t, http.StatusOK, code)
-	expected = `{
-  "users": [
-    {
-      "id": "alice@github",
-      "name": "alice",
-      "kid": "kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077",
-      "seq": 1,
-      "service": "github",
-      "url": "https://gist.github.com/alice/1",
-      "status": "ok",
-      "statement": "BEGIN MESSAGE.\nhi2DoUIOXFOdiK7 r6Ht2MaFmehwy2P qWUnb52ECX63NDa 2PS2LDehUAUdNJcg3Zv9UizJDXm40W oujU6wo8U1lTCKq 6Xr2MZHgg4UNRDb Zy2loGoGN3Mvxd4r7FIwpZOJPE1JEq D2gGjkgLByR9CFG 2aCgRgZZwl5UAa4 6bmBzjEOhmsiW0KTDXulMpC51JXgyc 1MliDDv03o9DXy5 mbXLLP0PDrc9ziK lQqXFL3j737xB4VyAwvIctTRYqHeOH X5y2fFloY3UDRhy WVBDwb.\nEND MESSAGE.",
-      "verifiedAt": 1234567890004,
-      "ts": 1234567890004
     }
   ]
 }`
@@ -200,9 +177,9 @@ func TestUserGet(t *testing.T) {
     "kid": "kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077",
     "seq": 1,
     "service": "github",
-    "url": "https://gist.github.com/alice/1",
+    "url": "https://gist.github.com/alice/6769746875622f61",
     "status": "ok",
-    "statement": "BEGIN MESSAGE.\nhi2DoUIOXFOdiK7 r6Ht2MaFmehwy2P qWUnb52ECX63NDa 2PS2LDehUAUdNJcg3Zv9UizJDXm40W oujU6wo8U1lTCKq 6Xr2MZHgg4UNRDb Zy2loGoGN3Mvxd4r7FIwpZOJPE1JEq D2gGjkgLByR9CFG 2aCgRgZZwl5UAa4 6bmBzjEOhmsiW0KTDXulMpC51JXgyc 1MliDDv03o9DXy5 mbXLLP0PDrc9ziK lQqXFL3j737xB4VyAwvIctTRYqHeOH X5y2fFloY3UDRhy WVBDwb.\nEND MESSAGE.",
+    "statement": "BEGIN MESSAGE.\nY24cziOYlfrf5Jo StDTUuPnS6LKuhx awYPRXyhwwlRHUA c0pXakmOZjgjMzs8DCAifCEdAkZfEU VDk6hs3Z2OGTCKq 6Xr2MZHgg4UNRDb Zy2loGoGN3Mvxd4r7FIwpZOJPE1JEq D2gGjkgLByR9CFG 2aCgRgZZwl5UAa4 6bmBzjEOhmsiW0KTDXulMpC51JXgyc 1MliDDv03o9DXy5 mbXLLP0PDrc9ziK lQqXFL3j737xB4VyAwvIctTRYqHeOH X5y51pUcCb2s5VI uU0x96I37FiTbk8 BW9SG90C6ST.\nEND MESSAGE.",
     "verifiedAt": 1234567890004,
     "ts": 1234567890004
   }
@@ -212,6 +189,36 @@ func TestUserGet(t *testing.T) {
 	// GET /user/:kid (not found)
 	key := keys.GenerateEdX25519Key()
 	req, err = http.NewRequest("GET", "/user/"+key.ID().String(), nil)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusNotFound, code)
+	require.Equal(t, `{"error":{"code":404,"message":"user not found"}}`, body)
+
+	// GET /user/search?q=alice@github
+	req, err = http.NewRequest("GET", "/user/search?q=alice@github", nil)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusOK, code)
+	expected = `{
+  "users": [
+    {
+      "id": "alice@github",
+      "name": "alice",
+      "kid": "kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077",
+      "seq": 1,
+      "service": "github",
+      "url": "https://gist.github.com/alice/6769746875622f61",
+      "status": "ok",
+      "statement": "BEGIN MESSAGE.\nY24cziOYlfrf5Jo StDTUuPnS6LKuhx awYPRXyhwwlRHUA c0pXakmOZjgjMzs8DCAifCEdAkZfEU VDk6hs3Z2OGTCKq 6Xr2MZHgg4UNRDb Zy2loGoGN3Mvxd4r7FIwpZOJPE1JEq D2gGjkgLByR9CFG 2aCgRgZZwl5UAa4 6bmBzjEOhmsiW0KTDXulMpC51JXgyc 1MliDDv03o9DXy5 mbXLLP0PDrc9ziK lQqXFL3j737xB4VyAwvIctTRYqHeOH X5y51pUcCb2s5VI uU0x96I37FiTbk8 BW9SG90C6ST.\nEND MESSAGE.",
+      "verifiedAt": 1234567890004,
+      "ts": 1234567890004
+    }
+  ]
+}`
+	require.Equal(t, expected, pretty(t, body))
+
+	// GET /user/:user (bob@github)
+	req, err = http.NewRequest("GET", "/user/bob@github", nil)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)
@@ -229,9 +236,30 @@ func TestUserGet(t *testing.T) {
     "kid": "kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077",
     "seq": 1,
     "service": "github",
-    "url": "https://gist.github.com/alice/1",
+    "url": "https://gist.github.com/alice/6769746875622f61",
     "status": "ok",
-    "statement": "BEGIN MESSAGE.\nhi2DoUIOXFOdiK7 r6Ht2MaFmehwy2P qWUnb52ECX63NDa 2PS2LDehUAUdNJcg3Zv9UizJDXm40W oujU6wo8U1lTCKq 6Xr2MZHgg4UNRDb Zy2loGoGN3Mvxd4r7FIwpZOJPE1JEq D2gGjkgLByR9CFG 2aCgRgZZwl5UAa4 6bmBzjEOhmsiW0KTDXulMpC51JXgyc 1MliDDv03o9DXy5 mbXLLP0PDrc9ziK lQqXFL3j737xB4VyAwvIctTRYqHeOH X5y2fFloY3UDRhy WVBDwb.\nEND MESSAGE.",
+    "statement": "BEGIN MESSAGE.\nY24cziOYlfrf5Jo StDTUuPnS6LKuhx awYPRXyhwwlRHUA c0pXakmOZjgjMzs8DCAifCEdAkZfEU VDk6hs3Z2OGTCKq 6Xr2MZHgg4UNRDb Zy2loGoGN3Mvxd4r7FIwpZOJPE1JEq D2gGjkgLByR9CFG 2aCgRgZZwl5UAa4 6bmBzjEOhmsiW0KTDXulMpC51JXgyc 1MliDDv03o9DXy5 mbXLLP0PDrc9ziK lQqXFL3j737xB4VyAwvIctTRYqHeOH X5y51pUcCb2s5VI uU0x96I37FiTbk8 BW9SG90C6ST.\nEND MESSAGE.",
+    "verifiedAt": 1234567890004,
+    "ts": 1234567890004
+  }
+}`
+	require.Equal(t, expected, pretty(t, body))
+
+	// GET /user/kbx1rvd43h2sag2tvrdp0duse5p82nvhpjd6hpjwhv7q7vqklega8atshec5ws
+	req, err = http.NewRequest("GET", "/user/kbx1rvd43h2sag2tvrdp0duse5p82nvhpjd6hpjwhv7q7vqklega8atshec5ws", nil)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusOK, code)
+	expected = `{
+  "user": {
+    "id": "alice@github",
+    "name": "alice",
+    "kid": "kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077",
+    "seq": 1,
+    "service": "github",
+    "url": "https://gist.github.com/alice/6769746875622f61",
+    "status": "ok",
+    "statement": "BEGIN MESSAGE.\nY24cziOYlfrf5Jo StDTUuPnS6LKuhx awYPRXyhwwlRHUA c0pXakmOZjgjMzs8DCAifCEdAkZfEU VDk6hs3Z2OGTCKq 6Xr2MZHgg4UNRDb Zy2loGoGN3Mvxd4r7FIwpZOJPE1JEq D2gGjkgLByR9CFG 2aCgRgZZwl5UAa4 6bmBzjEOhmsiW0KTDXulMpC51JXgyc 1MliDDv03o9DXy5 mbXLLP0PDrc9ziK lQqXFL3j737xB4VyAwvIctTRYqHeOH X5y51pUcCb2s5VI uU0x96I37FiTbk8 BW9SG90C6ST.\nEND MESSAGE.",
     "verifiedAt": 1234567890004,
     "ts": 1234567890004
   }
@@ -273,9 +301,9 @@ func TestUserDuplicate(t *testing.T) {
       "kid": "kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077",
       "seq": 1,
       "service": "github",
-      "url": "https://gist.github.com/alice/1",
+      "url": "https://gist.github.com/alice/6769746875622f61",
       "status": "ok",
-      "statement": "BEGIN MESSAGE.\nhi2DoUIOXFOdiK7 r6Ht2MaFmehwy2P qWUnb52ECX63NDa 2PS2LDehUAUdNJcg3Zv9UizJDXm40W oujU6wo8U1lTCKq 6Xr2MZHgg4UNRDb Zy2loGoGN3Mvxd4r7FIwpZOJPE1JEq D2gGjkgLByR9CFG 2aCgRgZZwl5UAa4 6bmBzjEOhmsiW0KTDXulMpC51JXgyc 1MliDDv03o9DXy5 mbXLLP0PDrc9ziK lQqXFL3j737xB4VyAwvIctTRYqHeOH X5y2fFloY3UDRhy WVBDwb.\nEND MESSAGE.",
+      "statement": "BEGIN MESSAGE.\nY24cziOYlfrf5Jo StDTUuPnS6LKuhx awYPRXyhwwlRHUA c0pXakmOZjgjMzs8DCAifCEdAkZfEU VDk6hs3Z2OGTCKq 6Xr2MZHgg4UNRDb Zy2loGoGN3Mvxd4r7FIwpZOJPE1JEq D2gGjkgLByR9CFG 2aCgRgZZwl5UAa4 6bmBzjEOhmsiW0KTDXulMpC51JXgyc 1MliDDv03o9DXy5 mbXLLP0PDrc9ziK lQqXFL3j737xB4VyAwvIctTRYqHeOH X5y51pUcCb2s5VI uU0x96I37FiTbk8 BW9SG90C6ST.\nEND MESSAGE.",
       "verifiedAt": 1234567890004,
       "ts": 1234567890004
     }

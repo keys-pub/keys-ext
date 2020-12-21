@@ -3,6 +3,8 @@ package server_test
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	nethttp "net/http"
 	"net/http/httptest"
@@ -61,7 +63,7 @@ func TestFireCreatedAt(t *testing.T) {
 type env struct {
 	clock    tsutil.Clock
 	fi       server.Fire
-	client   *http.Mock
+	client   http.Client
 	logLevel server.LogLevel
 }
 
@@ -72,7 +74,7 @@ func newEnv(t *testing.T) *env {
 }
 
 func newEnvWithFire(t *testing.T, fi server.Fire, clock tsutil.Clock) *env {
-	client := http.NewMock()
+	client := http.NewClient()
 	return &env{
 		clock:    clock,
 		fi:       fi,
@@ -143,13 +145,16 @@ func testKeysRandom() testKeys {
 	}
 }
 
-func userMock(t *testing.T, key *keys.EdX25519Key, name string, service string, mock *http.Mock, clock tsutil.Clock) *keys.Statement {
+func userMock(t *testing.T, key *keys.EdX25519Key, name string, service string, client http.Client, clock tsutil.Clock) *keys.Statement {
 	url := ""
 	api := ""
+
+	id := hex.EncodeToString(sha256.New().Sum([]byte(service + "/" + name))[:8])
+
 	switch service {
 	case "github":
-		url = fmt.Sprintf("https://gist.github.com/%s/1", name)
-		api = "https://api.github.com/gists/1"
+		url = fmt.Sprintf("https://gist.github.com/%s/"+id, name)
+		api = "https://api.github.com/gists/" + id
 	default:
 		t.Fatal("unsupported service in test")
 	}
@@ -162,7 +167,9 @@ func userMock(t *testing.T, key *keys.EdX25519Key, name string, service string, 
 
 	msg, err := usr.Sign(key)
 	require.NoError(t, err)
-	mock.SetResponse(api, []byte(githubMock(name, "1", msg)))
+	client.SetProxy(api, func(ctx context.Context, req *http.Request, headers []http.Header) http.ProxyResponse {
+		return http.ProxyResponse{Body: []byte(githubMock(name, "1", msg))}
+	})
 
 	return st
 }

@@ -101,7 +101,7 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	e.POST("/check", s.check)
 
 	e.GET("/user/search", s.getUserSearch)
-	e.GET("/user/:kid", s.getUser)
+	e.GET("/user/:user", s.getUser)
 
 	// Tasks
 	e.POST("/task/check/:kid", s.taskCheck)
@@ -153,7 +153,7 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	e.DELETE("/follow/:kid/:user", s.deleteFollow) // Unfollow
 
 	// Twitter
-	e.POST("/twitter/check/:name/:id", s.checkTwitter)
+	e.POST("/twitter/:kid/:name/:id", s.checkTwitter)
 
 	// Admin
 	e.POST("/admin/check/:kid", s.adminCheck)

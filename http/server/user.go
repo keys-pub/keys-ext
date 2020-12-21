@@ -3,9 +3,11 @@ package server
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
+	"github.com/keys-pub/keys/user"
 	"github.com/keys-pub/keys/users"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
@@ -46,15 +48,27 @@ func (s *Server) getUser(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	kid, err := keys.ParseID(c.Param("kid"))
-	if err != nil {
-		return s.ErrNotFound(c, errors.Errorf("kid not found"))
+	param := strings.TrimSpace(c.Param("user"))
+
+	var userResult *user.Result
+	if strings.Contains(param, "@") {
+		ur, err := s.users.User(ctx, param)
+		if err != nil {
+			return s.ErrInternalServer(c, err)
+		}
+		userResult = ur
+	} else {
+		kid, err := keys.ParseID(param)
+		if err != nil {
+			return s.ErrNotFound(c, errors.Errorf("user not found"))
+		}
+		ur, err := s.users.Find(ctx, kid)
+		if err != nil {
+			return s.ErrInternalServer(c, err)
+		}
+		userResult = ur
 	}
 
-	userResult, err := s.users.Find(ctx, kid)
-	if err != nil {
-		return s.ErrInternalServer(c, err)
-	}
 	if userResult == nil {
 		return s.ErrNotFound(c, errors.Errorf("user not found"))
 	}

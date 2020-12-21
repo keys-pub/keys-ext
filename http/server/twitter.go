@@ -1,9 +1,9 @@
 package server
 
 import (
-	"fmt"
-
+	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/http"
+	"github.com/keys-pub/keys/user"
 	"github.com/keys-pub/keys/user/services"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
@@ -12,6 +12,10 @@ import (
 func (s *Server) checkTwitter(c echo.Context) error {
 	ctx := c.Request().Context()
 
+	kid, err := keys.ParseID(c.Param("kid"))
+	if err != nil {
+		return s.ErrBadRequest(c, errors.Errorf("invalid kid"))
+	}
 	name := c.Param("name")
 	if name == "" {
 		return s.ErrBadRequest(c, errors.Errorf("invalid name"))
@@ -22,13 +26,16 @@ func (s *Server) checkTwitter(c echo.Context) error {
 	}
 
 	twitter := services.Twitter
-	api, err := twitter.ValidateURL(name, fmt.Sprintf("https://twitter.com/%s/status/%s", name, id))
+
+	urs := "https://twitter.com/" + name + "/status/" + id
+	// TODO: Key and seq
+	usr, err := user.New(kid, "twitter", name, urs, 1)
 	if err != nil {
-		return s.ErrBadRequest(c, errors.Errorf("invalid request"))
+		return s.ErrBadRequest(c, err)
 	}
 
 	// TODO: Rate limit
-	body, err := twitter.Request(ctx, s.client, api)
+	_, body, err := twitter.Request(ctx, s.client, usr)
 	if err != nil {
 		return s.ErrBadRequest(c, errors.Errorf("twitter request failed"))
 	}
@@ -36,7 +43,7 @@ func (s *Server) checkTwitter(c echo.Context) error {
 		return s.ErrNotFound(c, errors.Errorf("tweet not found"))
 	}
 
-	msg, err := twitter.CheckContent(name, body)
+	_, msg, err := twitter.Verify(ctx, body, usr)
 	if err != nil {
 		return s.ErrNotFound(c, nil)
 	}
