@@ -90,10 +90,10 @@ func (v *Vault) Keys() ([]*api.Key, error) {
 	for _, i := range items {
 		key, err := i.Key()
 		if err != nil {
-			// TODO: Ok to skip keys that don't resolve?
-			// logger.Errorf("Failed to resolve key (%s): %v", i.ID, err)
-			// continue
-			return nil, err
+			// Skip keys that don't resolve, which could happen if older clients
+			// load newer keys.
+			logger.Errorf("Failed to resolve key (%s): %v", i.ID, err)
+			continue
 		}
 		if key == nil {
 			continue

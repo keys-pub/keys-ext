@@ -15,7 +15,7 @@ import (
 	"github.com/keys-pub/keys-ext/vault"
 	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/encoding"
-	"github.com/keys-pub/keys/request"
+	"github.com/keys-pub/keys/http"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/stretchr/testify/require"
 )
@@ -117,10 +117,10 @@ func newTestEnv(t *testing.T, logger server.Logger) *testEnv {
 	clock := tsutil.NewTestClock()
 	fi := dstore.NewMem()
 	fi.SetClock(clock)
-	req := request.NewMockRequestor()
+	client := http.NewClient()
 
 	rds := server.NewRedisTest(clock)
-	srv := server.New(fi, rds, req, clock, logger)
+	srv := server.New(fi, rds, client, clock, logger)
 	srv.SetClock(clock)
 	srv.SetInternalAuth("testtoken")
 	handler := server.NewHandler(srv)
