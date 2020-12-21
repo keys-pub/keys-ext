@@ -28,7 +28,6 @@ func (s *Server) checkTwitter(c echo.Context) error {
 	twitter := services.Twitter
 
 	urs := "https://twitter.com/" + name + "/status/" + id
-	// TODO: Key and seq
 	usr, err := user.New(kid, "twitter", name, urs, 1)
 	if err != nil {
 		return s.ErrBadRequest(c, err)

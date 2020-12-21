@@ -153,7 +153,7 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	e.DELETE("/follow/:kid/:user", s.deleteFollow) // Unfollow
 
 	// Twitter
-	e.POST("/twitter/:kid/:name/:id", s.checkTwitter)
+	e.GET("/twitter/:kid/:name/:id", s.checkTwitter)
 
 	// Admin
 	e.POST("/admin/check/:kid", s.adminCheck)
