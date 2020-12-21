@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
-	httpclient "github.com/keys-pub/keys-ext/http/client"
+	"github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys-ext/sdb"
 	"github.com/keys-pub/keys-ext/vault"
-	"github.com/keys-pub/keys/request"
+	khttp "github.com/keys-pub/keys/http"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keys/users"
 )
@@ -21,7 +21,7 @@ type service struct {
 	build  Build
 	auth   *auth
 	db     *sdb.DB
-	client *httpclient.Client
+	client *client.Client
 	scs    *keys.Sigchains
 	users  *users.Users
 	clock  tsutil.Clock
@@ -33,17 +33,13 @@ type service struct {
 	checkMtx      sync.Mutex
 	checking      bool
 	checkCancelFn func()
-
-	// relay    *wsclient.Client
-	// relayChs map[string]chan *RelayOutput
-	// relayMtx sync.Mutex
 }
 
 const cdbPath = "cache.sdb"
 const vdbPath = "vault.vdb"
 
-func newService(env *Env, build Build, auth *auth, req request.Requestor, clock tsutil.Clock) (*service, error) {
-	client, err := httpclient.New(env.Server())
+func newService(env *Env, build Build, auth *auth, hclient khttp.Client, clock tsutil.Clock) (*service, error) {
+	client, err := client.New(env.Server())
 	if err != nil {
 		return nil, err
 	}
@@ -59,19 +55,18 @@ func newService(env *Env, build Build, auth *auth, req request.Requestor, clock 
 	db := sdb.New()
 	db.SetClock(clock)
 	scs := keys.NewSigchains(db)
-	usrs := users.New(db, scs, users.Requestor(req), users.Clock(clock))
+	usrs := users.New(db, scs, users.Client(hclient), users.Clock(clock))
 
 	return &service{
-		auth:   auth,
-		build:  build,
-		env:    env,
-		scs:    scs,
-		db:     db,
-		users:  usrs,
-		client: client,
-		vault:  vlt,
-		clock:  clock,
-		// relayChs:      map[string]chan *RelayOutput{},
+		auth:          auth,
+		build:         build,
+		env:           env,
+		scs:           scs,
+		db:            db,
+		users:         usrs,
+		client:        client,
+		vault:         vlt,
+		clock:         clock,
 		checkCancelFn: func() {},
 	}, nil
 }

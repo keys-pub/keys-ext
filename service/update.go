@@ -5,6 +5,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/user"
+	"github.com/keys-pub/keys/users"
 	"github.com/pkg/errors"
 )
 
@@ -94,7 +95,7 @@ func (s *service) updateUser(ctx context.Context, kid keys.ID) (*user.Result, er
 		return nil, err
 	}
 
-	res, err := s.users.Update(ctx, kid)
+	res, err := s.users.Update(ctx, kid, users.UseTwitterProxy())
 	if err != nil {
 		return nil, err
 	}

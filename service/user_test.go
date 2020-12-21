@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/http"
 	"github.com/keys-pub/keys/user"
 	"github.com/stretchr/testify/require"
 )
@@ -149,7 +150,7 @@ func TestUserAdd(t *testing.T) {
 	require.Equal(t, 1, len(resp.Users))
 	require.Equal(t, "alice", resp.Users[0].Name)
 
-	err = userSetupGithub(env, service, alice, "alice2")
+	_, err = userSetupGithub(env, service, alice, "alice2")
 	require.EqualError(t, err, "failed to generate user statement: user set in sigchain already")
 
 	sc2, err := service.scs.Sigchain(alice.ID())
@@ -180,7 +181,7 @@ func TestUserAdd(t *testing.T) {
 		Name:    "bob",
 		URL:     "file://gist.github.com/alice/1",
 	})
-	require.EqualError(t, err, "failed to create user: invalid scheme for url file://gist.github.com/alice/1")
+	require.EqualError(t, err, "invalid scheme for url file://gist.github.com/alice/1")
 }
 
 func TestUserAddGithub(t *testing.T) {
@@ -198,8 +199,9 @@ func TestUserAddGithub(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	url := "https://gist.github.com/bob/1"
-	env.req.SetResponse(url, []byte(resp.Message))
+	env.client.SetProxy("", func(ctx context.Context, req *http.Request, headers []http.Header) http.ProxyResponse {
+		return http.ProxyResponse{Body: []byte(githubMock("bob", "1", resp.Message))}
+	})
 
 	// Bob
 	addResp, err := service.UserAdd(context.TODO(), &UserAddRequest{
@@ -231,9 +233,11 @@ func TestUserAddReddit(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	url := "https://www.reddit.com/r/keyspubmsgs/comments/123/bob"
-	rmsg := mockRedditMessage("bob", resp.Message, "keyspubmsgs")
-	env.req.SetResponse(url+".json", []byte(rmsg))
+	// url := "https://www.reddit.com/r/keyspubmsgs/comments/123/bob"
+	rmsg := redditMock("bob", resp.Message, "keyspubmsgs")
+	env.client.SetProxy("", func(ctx context.Context, req *http.Request, headers []http.Header) http.ProxyResponse {
+		return http.ProxyResponse{Body: []byte(rmsg)}
+	})
 
 	// Bob, with funky URL input
 	_, err = service.UserAdd(context.TODO(), &UserAddRequest{
@@ -319,26 +323,9 @@ func TestSearchUsers(t *testing.T) {
 		keyResp, err := service.KeyGenerate(ctx, &KeyGenerateRequest{Type: string(keys.EdX25519)})
 		require.NoError(t, err)
 		username := fmt.Sprintf("username%d", i)
-		kid, err := keys.ParseID(keyResp.KID)
+		key, err := service.vault.Key(keys.ID(keyResp.KID))
 		require.NoError(t, err)
-
-		resp, err := service.UserSign(context.TODO(), &UserSignRequest{
-			KID:     kid.String(),
-			Service: "github",
-			Name:    username,
-		})
-		require.NoError(t, err)
-
-		url := fmt.Sprintf("https://gist.github.com/%s/1", username)
-		env.req.SetResponse(url, []byte(resp.Message))
-
-		_, err = service.UserAdd(context.TODO(), &UserAddRequest{
-			KID:     kid.String(),
-			Service: "github",
-			Name:    username,
-			URL:     url,
-		})
-		require.NoError(t, err)
+		testUserSetupGithub(t, env, service, key.AsEdX25519(), username)
 	}
 
 	resp, err := service.UserSearch(ctx, &UserSearchRequest{})

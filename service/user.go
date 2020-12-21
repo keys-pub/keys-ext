@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -12,20 +11,12 @@ import (
 	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys/user"
-	"github.com/keys-pub/keys/user/services"
+	"github.com/keys-pub/keys/user/validate"
 	"github.com/keys-pub/keys/users"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
-
-func init() {
-	user.AddService(services.NewTwitter(os.Getenv("TWITTER_BEARER_TOKEN")))
-	user.AddService(services.NewGithub())
-	user.AddService(services.NewEcho())
-	user.AddService(services.NewHTTPS())
-	user.AddService(services.NewReddit())
-}
 
 // UserSearch (RPC) ...
 func (s *service) UserSearch(ctx context.Context, req *UserSearchRequest) (*UserSearchResponse, error) {
@@ -186,22 +177,27 @@ func (s *service) sigchainUserAdd(ctx context.Context, key *keys.EdX25519Key, se
 		return nil, nil, err
 	}
 
-	linkService, err := user.LookupService(service)
+	linkService, err := validate.Lookup(service)
 	if err != nil {
 		return nil, nil, err
 	}
 	name = linkService.NormalizeName(name)
-	urs, err = linkService.NormalizeURLString(name, urs)
+	urs, err = linkService.NormalizeURL(name, urs)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	usr, err := user.New(key.ID(), service, name, urs, sc.LastSeq()+1)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to create user")
+		return nil, nil, err
 	}
 
-	userResult := s.users.RequestVerify(ctx, usr)
+	userService, err := users.LookupService(service, users.UseTwitterProxy(), users.IsCreate())
+	if err != nil {
+		return nil, nil, err
+	}
+
+	userResult := s.users.RequestVerify(ctx, userService, usr)
 	if userResult.Status != user.StatusOK {
 		return nil, nil, errors.Errorf("user check failed: %s", userResult.Err)
 	}
@@ -231,7 +227,7 @@ func (s *service) sigchainUserAdd(ctx context.Context, key *keys.EdX25519Key, se
 		return nil, nil, err
 	}
 
-	if _, err = s.users.Update(ctx, key.ID()); err != nil {
+	if _, err = s.users.Update(ctx, key.ID(), users.UseTwitterProxy(), users.IsCreate()); err != nil {
 		return nil, nil, err
 	}
 

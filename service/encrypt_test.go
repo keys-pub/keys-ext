@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/request"
+	"github.com/keys-pub/keys/http"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/status"
 )
@@ -480,7 +480,7 @@ func TestEncryptVerifyFailed(t *testing.T) {
 	defer bobCloseFn()
 	testAuthSetup(t, bobService)
 	testImportKey(t, bobService, bob)
-	testUserSetupGithub(t, env, bobService, bob, "bob")
+	tub := testUserSetupGithub(t, env, bobService, bob, "bob")
 
 	// Encrypt (not found)
 	_, err := aliceService.Encrypt(context.TODO(), &EncryptRequest{
@@ -493,7 +493,9 @@ func TestEncryptVerifyFailed(t *testing.T) {
 	testPull(t, aliceService, bob.ID())
 
 	// Set 500 error for bob@github
-	env.req.SetError("https://gist.github.com/bob/1", request.ErrHTTP{StatusCode: 500})
+	env.client.SetProxy(tub.URL, func(ctx context.Context, req *http.Request, headers []http.Header) http.ProxyResponse {
+		return http.ProxyResponse{Err: http.Error{StatusCode: 500}}
+	})
 
 	testPull(t, aliceService, bob.ID())
 

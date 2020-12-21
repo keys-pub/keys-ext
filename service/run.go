@@ -21,7 +21,7 @@ import (
 	"github.com/keys-pub/keys-ext/wormhole"
 	"github.com/keys-pub/keys-ext/wormhole/sctp"
 	wsclient "github.com/keys-pub/keys-ext/ws/client"
-	"github.com/keys-pub/keys/request"
+	"github.com/keys-pub/keys/http"
 	"github.com/keys-pub/keys/saltpack"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keys/user"
@@ -33,15 +33,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
-
-func newProtoService(env *Env, build Build, auth *auth) (*service, error) {
-	req := request.NewHTTPRequestor()
-	srv, err := newService(env, build, auth, req, tsutil.NewClock())
-	if err != nil {
-		return nil, err
-	}
-	return srv, nil
-}
 
 func setupLogging(logLevel LogLevel, logPath string) (*logrus.Logger, LogInterceptor) {
 	return setupLogrus(logLevel, logPath)
@@ -193,7 +184,8 @@ func NewServiceFn(env *Env, build Build, cert *keys.CertificateKey, lgi LogInter
 	)
 	grpcServer := grpc.NewServer(opts...)
 
-	service, err := newProtoService(env, build, auth)
+	client := http.NewClient()
+	service, err := newService(env, build, auth, client, tsutil.NewClock())
 	if err != nil {
 		return nil, nil, err
 	}

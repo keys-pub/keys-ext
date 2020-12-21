@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/request"
+	"github.com/keys-pub/keys/http"
 	"github.com/keys-pub/keys/saltpack"
 	"github.com/stretchr/testify/require"
 )
@@ -263,14 +263,16 @@ func TestVerifyUnverified(t *testing.T) {
 	defer bobCloseFn()
 	testAuthSetup(t, bobService)
 	testImportKey(t, bobService, bob)
-	testUserSetupGithub(t, env, bobService, bob, "bob")
+	tub := testUserSetupGithub(t, env, bobService, bob, "bob")
 
 	testPull(t, aliceService, bob.ID())
 
 	env.clock.Add(time.Hour * 24)
 
 	// Set 500 error for bob@github
-	env.req.SetError("https://gist.github.com/bob/1", request.ErrHTTP{StatusCode: 500})
+	env.client.SetProxy(tub.URL, func(ctx context.Context, req *http.Request, headers []http.Header) http.ProxyResponse {
+		return http.ProxyResponse{Err: http.Error{StatusCode: 500}}
+	})
 
 	// Sign (bob)
 	signResp, err := bobService.Sign(context.TODO(), &SignRequest{

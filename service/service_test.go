@@ -3,7 +3,9 @@ package service
 import (
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base32"
+	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"net/http/httptest"
@@ -14,7 +16,7 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/server"
 	"github.com/keys-pub/keys/dstore"
-	"github.com/keys-pub/keys/request"
+	"github.com/keys-pub/keys/http"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keys/users"
 	"github.com/stretchr/testify/require"
@@ -61,22 +63,22 @@ func testFire(t *testing.T, clock tsutil.Clock) server.Fire {
 // }
 
 type testEnv struct {
-	clock tsutil.Clock
-	fi    server.Fire
-	req   *request.MockRequestor
-	users *users.Users
+	clock  tsutil.Clock
+	fi     server.Fire
+	client http.Client
+	users  *users.Users
 }
 
 func newTestEnv(t *testing.T) *testEnv {
 	clock := tsutil.NewTestClock()
 	fi := testFire(t, clock)
-	req := request.NewMockRequestor()
-	usrs := users.New(fi, keys.NewSigchains(fi), users.Requestor(req), users.Clock(clock))
+	client := http.NewClient()
+	usrs := users.New(fi, keys.NewSigchains(fi), users.Client(client), users.Clock(clock))
 	return &testEnv{
-		clock: clock,
-		fi:    fi,
-		req:   req,
-		users: usrs,
+		clock:  clock,
+		fi:     fi,
+		client: client,
+		users:  usrs,
 	}
 }
 
@@ -87,7 +89,7 @@ func newTestService(t *testing.T, tenv *testEnv) (*service, CloseFn) {
 	env, closeFn := newEnv(t, appName, serverEnv.url)
 	auth := newAuth(env)
 
-	svc, err := newService(env, Build{Version: "1.2.3", Commit: "deadbeef"}, auth, tenv.req, tenv.clock)
+	svc, err := newService(env, Build{Version: "1.2.3", Commit: "deadbeef"}, auth, tenv.client, tenv.clock)
 	require.NoError(t, err)
 
 	err = svc.Open()
@@ -156,62 +158,61 @@ func testImportID(t *testing.T, service *service, kid keys.ID) {
 	require.NoError(t, err)
 }
 
-func userSetupGithub(env *testEnv, service *service, key *keys.EdX25519Key, username string) error {
+type testUser struct {
+	URL      string
+	Response string
+}
+
+func userSetupGithub(env *testEnv, service *service, key *keys.EdX25519Key, username string) (*testUser, error) {
+	serviceName := "github"
 	resp, err := service.UserSign(context.TODO(), &UserSignRequest{
 		KID:     key.ID().String(),
-		Service: "github",
+		Service: serviceName,
 		Name:    username,
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	url := fmt.Sprintf("https://gist.github.com/%s/1", username)
-	env.req.SetResponse(url, []byte(resp.Message))
+	id := hex.EncodeToString(sha256.New().Sum([]byte(serviceName + "/" + username))[:8])
+	url := fmt.Sprintf("https://gist.github.com/%s/%s", username, id)
+	api := "https://api.github.com/gists/" + id
+	body := []byte(githubMock(username, id, resp.Message))
+	env.client.SetProxy(api, func(ctx context.Context, req *http.Request, headers []http.Header) http.ProxyResponse {
+		return http.ProxyResponse{Body: body}
+	})
 
 	_, err = service.UserAdd(context.TODO(), &UserAddRequest{
 		KID:     key.ID().String(),
-		Service: "github",
+		Service: serviceName,
 		Name:    username,
 		URL:     url,
 	})
-	return err
+	return &testUser{URL: api, Response: string(body)}, err
 }
 
-func testUserSetupGithub(t *testing.T, env *testEnv, service *service, key *keys.EdX25519Key, username string) {
-	err := userSetupGithub(env, service, key, username)
+func testUserSetupGithub(t *testing.T, env *testEnv, service *service, key *keys.EdX25519Key, username string) *testUser {
+	tu, err := userSetupGithub(env, service, key, username)
 	require.NoError(t, err)
+	return tu
 }
 
-// func userSetupReddit(env *testEnv, service *service, key *keys.EdX25519Key, username string) error {
-// 	resp, err := service.UserSign(context.TODO(), &UserSignRequest{
-// 		KID:     key.ID().String(),
-// 		Service: "reddit",
-// 		Name:    username,
-// 	})
-// 	if err != nil {
-// 		return err
-// 	}
+func githubMock(name string, id string, msg string) string {
+	msg = strings.ReplaceAll(msg, "\n", "")
+	return `{
+		"id": "` + id + `",
+		"files": {
+			"gistfile1.txt": {
+				"content": "` + msg + `"
+			}		  
+		},
+		"owner": {
+			"login": "` + name + `"
+		}
+	  }`
+}
 
-// 	url := fmt.Sprintf("https://reddit.com/r/keyspubmsgs/comments/123/%s", username)
-// 	rmsg := mockRedditMessage(username, resp.Message, "keyspubmsgs")
-// 	env.req.SetResponse(url+".json", []byte(rmsg))
-
-// 	_, err = service.UserAdd(context.TODO(), &UserAddRequest{
-// 		KID:     key.ID().String(),
-// 		Service: "reddit",
-// 		Name:    username,
-// 		URL:     url,
-// 	})
-// 	return err
-// }
-
-// func testUserSetupReddit(t *testing.T, env *testEnv, service *service, key *keys.EdX25519Key, username string) {
-// 	err := userSetupReddit(env, service, key, username)
-// 	require.NoError(t, err)
-// }
-
-func mockRedditMessage(author string, msg string, subreddit string) string {
+func redditMock(author string, msg string, subreddit string) string {
 	msg = strings.ReplaceAll(msg, "\n", " ")
 	return `[{   
 		"kind": "Listing",
@@ -271,7 +272,7 @@ type serverEnv struct {
 
 func newTestServerEnv(t *testing.T, env *testEnv) *serverEnv {
 	rds := server.NewRedisTest(env.clock)
-	srv := server.New(env.fi, rds, env.req, env.clock, logger)
+	srv := server.New(env.fi, rds, env.client, env.clock, server.NewLogger(server.NoLevel))
 	srv.SetClock(env.clock)
 	tasks := server.NewTestTasks(srv)
 	srv.SetTasks(tasks)
@@ -315,8 +316,6 @@ func TestCheckKeys(t *testing.T) {
 }
 
 func TestServiceCheck(t *testing.T) {
-	var err error
-
 	// SetLogger(NewLogger(DebugLevel))
 	// vault.SetLogger(NewLogger(DebugLevel))
 	env := newTestEnv(t)
@@ -325,9 +324,6 @@ func TestServiceCheck(t *testing.T) {
 
 	testAuthSetup(t, service)
 	require.True(t, service.checking)
-
-	_, err = service.VaultSync(context.TODO(), &VaultSyncRequest{})
-	require.NoError(t, err)
 
 	testAuthLock(t, service)
 	require.False(t, service.checking)
