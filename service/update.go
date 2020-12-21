@@ -5,6 +5,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/user"
+	"github.com/keys-pub/keys/user/services"
 	"github.com/keys-pub/keys/users"
 	"github.com/pkg/errors"
 )
@@ -45,7 +46,7 @@ func (s *service) checkForExpiredKey(ctx context.Context, kid keys.ID) error {
 		now := s.clock.Now()
 		if (res.Status != user.StatusOK && res.IsTimestampExpired(now, userCheckFailureExpire)) ||
 			res.IsTimestampExpired(now, userCheckExpire) {
-			_, err := s.updateUser(ctx, kid)
+			_, err := s.updateUser(ctx, kid, true)
 			if err != nil {
 				return err
 			}
@@ -61,14 +62,14 @@ func (s *service) updateAllKeys(ctx context.Context) error {
 		return err
 	}
 	for _, pk := range pks {
-		if _, err := s.updateUser(ctx, pk.ID()); err != nil {
+		if _, err := s.updateUser(ctx, pk.ID(), true); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (s *service) updateUser(ctx context.Context, kid keys.ID) (*user.Result, error) {
+func (s *service) updateUser(ctx context.Context, kid keys.ID, allowProxyCache bool) (*user.Result, error) {
 	logger.Infof("Update user %s", kid)
 
 	// TODO: Only get new sigchain entries.
@@ -95,10 +96,29 @@ func (s *service) updateUser(ctx context.Context, kid keys.ID) (*user.Result, er
 		return nil, err
 	}
 
-	res, err := s.users.Update(ctx, kid, users.UseTwitterProxy())
+	service := func(usr *user.User) services.Service {
+		switch usr.Service {
+		case "twitter":
+			if allowProxyCache {
+				return services.KeysPub
+			}
+			return services.Proxy
+		}
+		return nil
+	}
+
+	res, err := s.users.Update(ctx, kid, users.UseService(service))
 	if err != nil {
 		return nil, err
 	}
 
 	return res, nil
+}
+
+func twitterProxy(usr *user.User) services.Service {
+	switch usr.Service {
+	case "twitter":
+		return services.Proxy
+	}
+	return nil
 }

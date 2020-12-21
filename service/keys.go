@@ -138,5 +138,5 @@ func (s *service) userResultOrUpdate(ctx context.Context, kid keys.ID) (*user.Re
 	if user != nil {
 		return s.users.Get(ctx, kid)
 	}
-	return s.updateUser(ctx, kid)
+	return s.updateUser(ctx, kid, false)
 }

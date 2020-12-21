@@ -65,7 +65,7 @@ func (s *service) User(ctx context.Context, req *UserRequest) (*UserResponse, er
 				return nil, err
 			}
 			if resp != nil {
-				res, err := s.updateUser(ctx, resp.User.KID)
+				res, err := s.updateUser(ctx, resp.User.KID, true)
 				if err != nil {
 					return nil, err
 				}
@@ -192,7 +192,7 @@ func (s *service) sigchainUserAdd(ctx context.Context, key *keys.EdX25519Key, se
 		return nil, nil, err
 	}
 
-	userService, err := users.LookupService(service, users.UseTwitterProxy(), users.IsCreate())
+	userService, err := users.LookupService(usr, users.UseService(twitterProxy))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -227,7 +227,7 @@ func (s *service) sigchainUserAdd(ctx context.Context, key *keys.EdX25519Key, se
 		return nil, nil, err
 	}
 
-	if _, err = s.users.Update(ctx, key.ID(), users.UseTwitterProxy(), users.IsCreate()); err != nil {
+	if _, err = s.users.Update(ctx, key.ID(), users.UseService(twitterProxy)); err != nil {
 		return nil, nil, err
 	}
 
@@ -283,6 +283,7 @@ func userResultToRPC(result *user.Result) *User {
 		Status:     userStatus(result.Status),
 		VerifiedAt: result.VerifiedAt,
 		Timestamp:  result.Timestamp,
+		Proxied:    result.Proxied,
 		Err:        result.Err,
 	}
 }
@@ -325,7 +326,7 @@ func (s *service) searchRemoteCheckUser(ctx context.Context, query string) (*Use
 	if user.ID != query {
 		return nil, errors.Errorf("user search mismatch %s != %s", user.ID, query)
 	}
-	res, err := s.updateUser(ctx, keys.ID(user.KID))
+	res, err := s.updateUser(ctx, keys.ID(user.KID), true)
 	if err != nil {
 		return nil, err
 	}
@@ -405,7 +406,7 @@ func (s *service) ensureUserVerified(ctx context.Context, kid keys.ID) error {
 
 	// Our verify expired, re-check.
 	logger.Infof("Checking user %v", res)
-	resNew, err := s.updateUser(ctx, res.User.KID)
+	resNew, err := s.updateUser(ctx, res.User.KID, true)
 	if err != nil {
 		return err
 	}

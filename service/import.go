@@ -27,7 +27,7 @@ func (s *service) KeyImport(ctx context.Context, req *KeyImportRequest) (*KeyImp
 		return nil, err
 	}
 
-	if _, err := s.updateUser(ctx, key.ID()); err != nil {
+	if _, err := s.updateUser(ctx, key.ID(), false); err != nil {
 		return nil, err
 	}
 

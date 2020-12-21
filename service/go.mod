@@ -11,12 +11,12 @@ require (
 	github.com/golang/snappy v0.0.2 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/keybase/go-keychain v0.0.0-20201121013009-976c83ec27a6 // indirect
-	github.com/keys-pub/keys v0.1.18-0.20201221024928-926fad6581ab
+	github.com/keys-pub/keys v0.1.19-0.20201221195739-7490f3244390
 	github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20201218004539-7f8afbf3d488
 	github.com/keys-pub/keys-ext/auth/mock v0.0.0-20201018000238-7b6186f1fe97
 	github.com/keys-pub/keys-ext/http/api v0.0.0-20201218211059-81db8e866f8c
 	github.com/keys-pub/keys-ext/http/client v0.0.0-20201221025613-72a657ea35c1
-	github.com/keys-pub/keys-ext/http/server v0.0.0-20201221022604-418ba635ab03
+	github.com/keys-pub/keys-ext/http/server v0.0.0-20201221200600-7c9e6e8730aa
 	github.com/keys-pub/keys-ext/sdb v0.0.0-20201218004539-7f8afbf3d488
 	github.com/keys-pub/keys-ext/vault v0.0.0-20201221025816-0324f4b664dc
 	github.com/keys-pub/keys-ext/wormhole v0.0.0-20201218004539-7f8afbf3d488

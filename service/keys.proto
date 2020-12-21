@@ -826,6 +826,7 @@ message User {
   UserStatus status = 10;
   int64 verifiedAt = 11; 
   int64 timestamp = 12;
+  bool proxied = 13;
   
   string err = 20;
 }

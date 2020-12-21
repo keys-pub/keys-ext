@@ -216,6 +216,8 @@ github.com/keys-pub/keys v0.1.18-0.20201218205715-618ff87d91d4/go.mod h1:CgoPVi0
 github.com/keys-pub/keys v0.1.18-0.20201221022455-0512e1665806/go.mod h1:CgoPVi0AZw87ncg5xCYnhlY9h+WQmAVsokthREKygzw=
 github.com/keys-pub/keys v0.1.18-0.20201221024928-926fad6581ab h1:wFVsXqFs5FvDBgF+SiOpcsgaTTYN0bVA7UIhNZYIKV4=
 github.com/keys-pub/keys v0.1.18-0.20201221024928-926fad6581ab/go.mod h1:CgoPVi0AZw87ncg5xCYnhlY9h+WQmAVsokthREKygzw=
+github.com/keys-pub/keys v0.1.19-0.20201221195739-7490f3244390 h1:Afr5cTfUV+DWnR5tKZuD113kQ3deE7IYgvhcvbaHwmQ=
+github.com/keys-pub/keys v0.1.19-0.20201221195739-7490f3244390/go.mod h1:CgoPVi0AZw87ncg5xCYnhlY9h+WQmAVsokthREKygzw=
 github.com/keys-pub/keys-ext v0.1.20 h1:KZs+L8GtJj00bKh+xhQqHNkSQgq2fUCYwBsrP2vV23g=
 github.com/keys-pub/keys-ext v0.1.21-0.20201023185358-3aa021ac522b h1:KtnQeluO4nhs2SRB71vnQcSUKDMsW6fzTjHUQlXss6o=
 github.com/keys-pub/keys-ext v0.1.21-0.20201027204032-04296a431295 h1:J5pKPITbp2yYiDkvTWCoo4Wh9bhnJ1BNlo5MpgxgyNA=
@@ -352,6 +354,8 @@ github.com/keys-pub/keys-ext/http/server v0.0.0-20201217212639-fc124fb22380 h1:K
 github.com/keys-pub/keys-ext/http/server v0.0.0-20201217212639-fc124fb22380/go.mod h1:TdKZFVBsWl7X/dr0wAYVQRe9N01Ce0RKU5y/2yF1fiI=
 github.com/keys-pub/keys-ext/http/server v0.0.0-20201221022604-418ba635ab03 h1:L/htdIBq1bd+VTx5TOQWOpUyuH5LEvahV1IbY+DWiGU=
 github.com/keys-pub/keys-ext/http/server v0.0.0-20201221022604-418ba635ab03/go.mod h1:mBula0pl025c9LGKzhJY9lXvVbWvuWXl8IM8xmfg3x0=
+github.com/keys-pub/keys-ext/http/server v0.0.0-20201221200600-7c9e6e8730aa h1:Av792pn0RaKHHvYMSzov6WhXhzXQ+Vv1M10BjubW0/I=
+github.com/keys-pub/keys-ext/http/server v0.0.0-20201221200600-7c9e6e8730aa/go.mod h1:F0+G7tXZOvUyfoAArR3W5kXcrri6WQzGQ/gtTWMOJ9E=
 github.com/keys-pub/keys-ext/sdb v0.0.0-20200917215110-bda938100d21 h1:kQE/wWdNcKgXmR/PLjPIsh89Q1Wf0/wWUd5JYSMTSBI=
 github.com/keys-pub/keys-ext/sdb v0.0.0-20200917215110-bda938100d21/go.mod h1:a2kdlrU3Q860hDBlcpzqEzXMSQPh6C1rXdXmyVP8MGo=
 github.com/keys-pub/keys-ext/sdb v0.0.0-20201023200942-48e5f880045e h1:kwFLA7TqxFsGjpwEdxdRkyLY6YqiQHCEh7/Ra7SOGcM=

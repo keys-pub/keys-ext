@@ -51,7 +51,7 @@ func (s *service) pullUser(ctx context.Context, kid keys.ID) (*user.Result, erro
 	if err := s.importID(kid); err != nil {
 		return nil, err
 	}
-	res, err := s.updateUser(ctx, kid)
+	res, err := s.updateUser(ctx, kid, false)
 	if err != nil {
 		return nil, err
 	}
