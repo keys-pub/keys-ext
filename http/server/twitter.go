@@ -39,13 +39,14 @@ func (s *Server) checkTwitter(c echo.Context) error {
 		return s.ErrBadRequest(c, errors.Errorf("twitter request failed"))
 	}
 	if body == nil {
-		return s.ErrNotFound(c, errors.Errorf("tweet not found"))
+		return s.ErrBadRequest(c, errors.Errorf("tweet not found"))
 	}
 
-	_, msg, err := twitter.Verify(ctx, body, usr)
-	if err != nil {
-		return s.ErrNotFound(c, nil)
+	status, verified, err := twitter.Verify(ctx, body, usr)
+	if err != nil || status != user.StatusOK {
+		// TODO: Send status through with error
+		return s.ErrBadRequest(c, errors.Errorf("failed %s (%s)", status, err))
 	}
 
-	return c.Blob(http.StatusOK, echo.MIMEOctetStream, []byte(msg))
+	return c.Blob(http.StatusOK, echo.MIMEOctetStream, []byte(verified.Statement))
 }
