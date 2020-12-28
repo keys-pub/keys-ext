@@ -39,19 +39,19 @@ func (f *Firestore) EventsAdd(ctx context.Context, path string, data [][]byte) (
 }
 
 // EventPositions returns positions for event logs.
-func (f *Firestore) EventPositions(ctx context.Context, paths []string) ([]*events.Position, error) {
-	positions := []*events.Position{}
+func (f *Firestore) EventPositions(ctx context.Context, paths []string) (map[string]*events.Position, error) {
+	positions := map[string]*events.Position{}
 	docs, err := f.GetAll(ctx, paths)
 	if err != nil {
 		return nil, err
 	}
 	for _, doc := range docs {
 		idx, _ := doc.Int64("idx")
-		positions = append(positions, &events.Position{
+		positions[doc.Path] = &events.Position{
 			Path:      doc.Path,
 			Index:     int64(idx),
 			Timestamp: tsutil.Millis(doc.UpdatedAt),
-		})
+		}
 	}
 	return positions, nil
 }
