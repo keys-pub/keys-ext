@@ -32,12 +32,8 @@ type Message struct {
 	// ChannelInfo sets info.
 	ChannelInfo *ChannelInfo `json:"channelInfo,omitempty" msgpack:"channelInfo,omitempty"`
 
-	// Actions
-	ChannelJoin  *ChannelJoin  `json:"channelJoin,omitempty" msgpack:"channelAccept,omitempty"`
-	ChannelLeave *ChannelLeave `json:"channelLeave,omitempty" msgpack:"channelLeave,omitempty"`
-
-	// ChannelInvite to invite to a new channel.
-	ChannelInvite *ChannelInvite `json:"channelInvite,omitempty" msgpack:"channelInvite,omitempty"`
+	// ChannelInvites to invite to a new channel.
+	ChannelInvites []*ChannelInvite `json:"channelInvites,omitempty" msgpack:"channelInvites,omitempty"`
 
 	// RemoteIndex is set from the remote events API (untrusted).
 	RemoteIndex int64 `json:"-" msgpack:"-"`
@@ -160,23 +156,9 @@ func NewMessageForChannelInfo(sender keys.ID, info *ChannelInfo) *Message {
 	return msg
 }
 
-// NewMessageForChannelInvite ...
-func NewMessageForChannelInvite(invite *ChannelInvite) *Message {
-	msg := NewMessage(invite.Sender)
-	msg.ChannelInvite = invite
-	return msg
-}
-
-// NewMessageForChannelJoin ...
-func NewMessageForChannelJoin(sender keys.ID, user keys.ID) *Message {
+// NewMessageForChannelInvites ...
+func NewMessageForChannelInvites(sender keys.ID, invites []*ChannelInvite) *Message {
 	msg := NewMessage(sender)
-	msg.ChannelJoin = &ChannelJoin{User: user}
-	return msg
-}
-
-// NewMessageForChannelLeave ...
-func NewMessageForChannelLeave(sender keys.ID, user keys.ID) *Message {
-	msg := NewMessage(sender)
-	msg.ChannelLeave = &ChannelLeave{User: user}
+	msg.ChannelInvites = invites
 	return msg
 }
