@@ -82,13 +82,13 @@ func TestExportImportKey(t *testing.T) {
 	require.NoError(t, err)
 
 	password := "testpassword"
-	msg, err := vlt.ExportSaltpack(sk.ID(), password)
+	msg, err := vlt.ExportKey(sk.ID(), password)
 	require.NoError(t, err)
 
 	vlt2, closeFn2 := NewTestVault(t, &TestVaultOptions{Unlock: true})
 	defer closeFn2()
 
-	out, err := vlt2.ImportSaltpack(msg, "testpassword", false)
+	out, err := vlt2.ImportKey(msg, "testpassword")
 	require.NoError(t, err)
 	require.Equal(t, sk.ID(), out.ID)
 }

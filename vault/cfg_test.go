@@ -52,7 +52,7 @@ func TestSetGetValue(t *testing.T) {
 	tm, err := vlt.getTime("/test/time")
 	require.NoError(t, err)
 	require.True(t, tm.IsZero())
-	now := tsutil.ConvertMillis(tsutil.Millis(time.Now()))
+	now := tsutil.ParseMillis(tsutil.Millis(time.Now()))
 	err = vlt.setTime("/test/time", now)
 	require.NoError(t, err)
 	tm, err = vlt.getTime("/test/time")

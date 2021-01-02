@@ -123,6 +123,7 @@ func newTestEnv(t *testing.T, logger server.Logger) *testEnv {
 	srv := server.New(fi, rds, client, clock, logger)
 	srv.SetClock(clock)
 	srv.SetInternalAuth("testtoken")
+	srv.SetInternalKey("6a169a699f7683c04d127504a12ace3b326e8b56a61a9b315cf6b42e20d6a44a")
 	handler := server.NewHandler(srv)
 	httpServer := httptest.NewServer(handler)
 	srv.URL = httpServer.URL
@@ -221,7 +222,7 @@ func testVaultGet(t *testing.T, vlt *vault.Vault) {
 	require.NotNil(t, out)
 	require.Equal(t, "abc", out.ID)
 	require.Equal(t, []byte("password"), out.Data)
-	require.Equal(t, tsutil.Millis(now), tsutil.Millis(out.CreatedAt))
+	require.Equal(t, tsutil.Millis(now), tsutil.Millis(out.Timestamp))
 
 	// Update
 	item.Data = []byte("newpassword")
@@ -233,7 +234,7 @@ func testVaultGet(t *testing.T, vlt *vault.Vault) {
 	require.NotNil(t, out)
 	require.Equal(t, "abc", out.ID)
 	require.Equal(t, []byte("newpassword"), out.Data)
-	require.Equal(t, tsutil.Millis(now), tsutil.Millis(out.CreatedAt))
+	require.Equal(t, tsutil.Millis(now), tsutil.Millis(out.Timestamp))
 
 	// Set "xyz"
 	err = vlt.Set(vault.NewItem("xyz", []byte("xpassword"), "type2", time.Now()))

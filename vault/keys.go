@@ -21,7 +21,7 @@ func newItemForKey(key *api.Key) (*Item, error) {
 	if err != nil {
 		return nil, err
 	}
-	item := NewItem(key.ID.String(), b, keyItemType, tsutil.ConvertMillis(key.CreatedAt))
+	item := NewItem(key.ID.String(), b, keyItemType, tsutil.ParseMillis(key.CreatedAt))
 	return item, nil
 }
 
@@ -103,9 +103,9 @@ func (v *Vault) Keys() ([]*api.Key, error) {
 	return out, nil
 }
 
-// ImportSaltpack imports key into the vault from a Saltpack message.
-func (v *Vault) ImportSaltpack(msg string, password string, isHTML bool) (*api.Key, error) {
-	key, err := api.DecryptKeyWithPassword(msg, password)
+// ImportKey imports key into the vault.
+func (v *Vault) ImportKey(msg string, password string) (*api.Key, error) {
+	key, err := api.DecodeKey(msg, password)
 	if err != nil {
 		return nil, err
 	}
@@ -115,8 +115,8 @@ func (v *Vault) ImportSaltpack(msg string, password string, isHTML bool) (*api.K
 	return key, nil
 }
 
-// ExportSaltpack exports a Key from the vault to a Saltpack message.
-func (v *Vault) ExportSaltpack(id keys.ID, password string) (string, error) {
+// ExportKey a Key from the vault.
+func (v *Vault) ExportKey(id keys.ID, password string) (string, error) {
 	item, err := v.Get(id.String())
 	if err != nil {
 		return "", err
@@ -128,7 +128,7 @@ func (v *Vault) ExportSaltpack(id keys.ID, password string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return key.EncryptWithPassword(password)
+	return api.EncodeKey(key, password)
 }
 
 // EdX25519Keys implements wormhole.Keyring.

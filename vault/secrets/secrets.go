@@ -242,6 +242,9 @@ func asSecret(item *vault.Item) (*Secret, error) {
 	if err := json.Unmarshal(item.Data, &secret); err != nil {
 		return nil, err
 	}
+	if secret.ID != item.ID {
+		return nil, errors.Errorf("secret id mismatch")
+	}
 	return &secret, nil
 }
 
@@ -254,7 +257,7 @@ func newItemForSecret(secret *Secret) (*vault.Item, error) {
 		return nil, errors.Errorf("no secret id")
 	}
 	b := marshalSecret(secret)
-	return vault.NewItem(secret.ID, b, secretItemType, secret.CreatedAt), nil
+	return vault.NewItem(secret.ID, b, secretItemType, secret.UpdatedAt), nil
 }
 
 func marshalSecret(secret *Secret) []byte {

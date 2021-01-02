@@ -15,20 +15,20 @@ type Item struct {
 	// Type for item data.
 	Type string `msgpack:"typ,omitempty"`
 
-	// CreatedAt when item was created.
-	CreatedAt time.Time `msgpack:"cts,omitempty"`
+	// Timestamp for item.
+	Timestamp time.Time `msgpack:"cts,omitempty"`
 
 	// TODO: Specify prev item (for chaining).
 }
 
 // NewItem creates an item.
 // Item IDs are NOT encrypted locally and are provided for fast lookups.
-func NewItem(id string, b []byte, typ string, createdAt time.Time) *Item {
+func NewItem(id string, b []byte, typ string, ts time.Time) *Item {
 	return &Item{
 		ID:        id,
 		Data:      b,
 		Type:      typ,
-		CreatedAt: createdAt,
+		Timestamp: ts,
 	}
 }
 

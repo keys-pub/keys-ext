@@ -70,7 +70,7 @@ func (v *Vault) getTime(key string) (time.Time, error) {
 	if n == 0 {
 		return time.Time{}, nil
 	}
-	return tsutil.ConvertMillis(n), nil
+	return tsutil.ParseMillis(n), nil
 }
 
 func (v *Vault) getBool(key string) (bool, error) {
