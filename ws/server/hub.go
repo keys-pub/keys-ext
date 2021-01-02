@@ -1,12 +1,9 @@
 package server
 
 import (
-	"context"
 	"log"
-	"time"
 
 	"github.com/keys-pub/keys-ext/ws/api"
-	"github.com/pkg/errors"
 )
 
 // Hub maintains the set of active clients and broadcasts messages to the
@@ -52,29 +49,6 @@ func NewHub(url string) *Hub {
 		clientsByToken: make(map[string]map[string]*client),
 	}
 	return h
-}
-
-func (h *Hub) rdsNonceCheck(ctx context.Context, nonce string) error {
-	if h.rds == nil {
-		return errors.Errorf("redis not set")
-	}
-	if nonce == "" {
-		return errors.Errorf("empty nonce")
-	}
-	val, err := h.rds.Get(ctx, nonce)
-	if err != nil {
-		return err
-	}
-	if val != "" {
-		return errors.Errorf("nonce collision")
-	}
-	if err := h.rds.Set(ctx, nonce, "1"); err != nil {
-		return err
-	}
-	if err := h.rds.Expire(ctx, nonce, time.Hour); err != nil {
-		return err
-	}
-	return nil
 }
 
 // Run hub.
@@ -159,3 +133,28 @@ func (h *Hub) findClients(token string) []*client {
 	}
 	return out
 }
+
+/*
+func (h *Hub) rdsNonceCheck(ctx context.Context, nonce string) error {
+	if h.rds == nil {
+		return errors.Errorf("redis not set")
+	}
+	if nonce == "" {
+		return errors.Errorf("empty nonce")
+	}
+	val, err := h.rds.Get(ctx, nonce)
+	if err != nil {
+		return err
+	}
+	if val != "" {
+		return errors.Errorf("nonce collision")
+	}
+	if err := h.rds.Set(ctx, nonce, "1"); err != nil {
+		return err
+	}
+	if err := h.rds.Expire(ctx, nonce, time.Hour); err != nil {
+		return err
+	}
+	return nil
+}
+*/

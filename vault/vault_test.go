@@ -123,7 +123,7 @@ func newTestEnv(t *testing.T, logger server.Logger) *testEnv {
 	srv := server.New(fi, rds, client, clock, logger)
 	srv.SetClock(clock)
 	srv.SetInternalAuth("testtoken")
-	srv.SetInternalKey("6a169a699f7683c04d127504a12ace3b326e8b56a61a9b315cf6b42e20d6a44a")
+	_ = srv.SetInternalKey("6a169a699f7683c04d127504a12ace3b326e8b56a61a9b315cf6b42e20d6a44a")
 	handler := server.NewHandler(srv)
 	httpServer := httptest.NewServer(handler)
 	srv.URL = httpServer.URL

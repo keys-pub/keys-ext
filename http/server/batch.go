@@ -10,9 +10,14 @@ import (
 	"github.com/pkg/errors"
 )
 
+const batchEnabled = false
+
 // Experimental, not enabled.
 func (s *Server) postBatch(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
+	if !batchEnabled {
+		return s.ErrBadRequest(c, errors.Errorf("batch not enabled"))
+	}
 
 	body, st, err := readBody(c, false, 64*1024)
 	if err != nil {

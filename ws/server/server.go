@@ -34,9 +34,9 @@ func decodeKey(secretKey string) (*[32]byte, error) {
 
 // ListenAndServe starts the server.
 func ListenAndServe(addr string, url string, secretKey string, opts *ServeOptions) error {
-	if opts == nil {
-		opts = &ServeOptions{}
-	}
+	// if opts == nil {
+	// 	opts = &ServeOptions{}
+	// }
 
 	sk, err := decodeKey(secretKey)
 	if err != nil {

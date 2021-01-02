@@ -162,7 +162,7 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	e.POST("/channels/status", s.postChannelsStatus) // Get channels status
 
 	// Batch
-	// e.POST("/batch", s.postBatch) // Batch
+	e.POST("/batch", s.postBatch) // Batch
 
 	// Drop
 	e.PUT("/drop/auth/:kid", s.putDropAuth) // Configure drop auth

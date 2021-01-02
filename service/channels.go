@@ -155,17 +155,17 @@ func (s *service) channels(ctx context.Context) ([]*Channel, error) {
 	return channels, nil
 }
 
-func (s *service) channel(ctx context.Context, id keys.ID) (*Channel, error) {
-	var channelStatus channelStatus
-	ok, err := s.db.Load(ctx, dstore.Path("channels", id), &channelStatus)
-	if err != nil {
-		return nil, err
-	}
-	if !ok {
-		return nil, nil
-	}
-	return channelToRPC(channelStatus), nil
-}
+// func (s *service) channel(ctx context.Context, id keys.ID) (*Channel, error) {
+// 	var channelStatus channelStatus
+// 	ok, err := s.db.Load(ctx, dstore.Path("channels", id), &channelStatus)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	if !ok {
+// 		return nil, nil
+// 	}
+// 	return channelToRPC(channelStatus), nil
+// }
 
 func channelToRPC(channelStatus channelStatus) *Channel {
 	return &Channel{

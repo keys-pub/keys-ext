@@ -22,16 +22,6 @@ func TestMessages(t *testing.T) {
 	testMessages(t, env, testKeysSeeded())
 }
 
-func TestMessagesFirestore(t *testing.T) {
-	if os.Getenv("TEST_FIRESTORE") != "1" {
-		t.Skip()
-	}
-	// firestore.SetContextLogger(firestore.NewContextLogger(firestore.DebugLevel))
-	env := newEnvWithFire(t, testFirestore(t), tsutil.NewTestClock())
-	// env.logLevel = server.DebugLevel
-	testMessages(t, env, testKeysRandom())
-}
-
 func testMessages(t *testing.T, env *env, tk testKeys) {
 	// keys.SetLogger(keys.NewLogger(keys.DebugLevel))
 
@@ -185,6 +175,10 @@ func TestMessagesAuth(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
+	var channelCreate api.ChannelCreateResponse
+	testJSONUnmarshal(t, []byte(body), &channelCreate)
+	require.Equal(t, channel.ID(), channelCreate.Channel.ID)
+	require.NotEmpty(t, channelCreate.Channel.Token)
 
 	// GET /channel/:cid/msgs
 	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs"), nil, "", clock.Now(), channel)
@@ -246,4 +240,14 @@ func TestMessagesAuth(t *testing.T) {
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
 	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, body)
+}
+
+func TestMessagesFirestore(t *testing.T) {
+	if os.Getenv("TEST_FIRESTORE") != "1" {
+		t.Skip()
+	}
+	// firestore.SetContextLogger(firestore.NewContextLogger(firestore.DebugLevel))
+	env := newEnvWithFire(t, testFirestore(t), tsutil.NewTestClock())
+	// env.logLevel = server.DebugLevel
+	testMessages(t, env, testKeysRandom())
 }
