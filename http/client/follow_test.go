@@ -18,10 +18,9 @@ func TestFollow(t *testing.T) {
 	bobClient := newTestClient(t, env)
 	alice, bob := tk.alice, tk.bob
 	ctx := context.TODO()
-	aliceToken := "alicetoken"
 
 	// Alice follow bob
-	err := aliceClient.Follow(ctx, alice, bob.ID(), aliceToken)
+	err := aliceClient.Follow(ctx, alice, bob.ID())
 	require.NoError(t, err)
 
 	// Follows
@@ -30,14 +29,12 @@ func TestFollow(t *testing.T) {
 	require.Equal(t, 1, len(follows))
 	require.Equal(t, alice.ID(), follows[0].Sender)
 	require.Equal(t, bob.ID(), follows[0].Recipient)
-	require.Equal(t, "alicetoken", follows[0].Token)
 
 	// FollowedBy
 	follow, err := bobClient.FollowedBy(ctx, alice.ID(), bob)
 	require.NoError(t, err)
 	require.Equal(t, alice.ID(), follow.Sender)
 	require.Equal(t, bob.ID(), follow.Recipient)
-	require.Equal(t, "alicetoken", follow.Token)
 
 	// Unfollow
 	err = bobClient.Unfollow(ctx, alice, bob.ID())

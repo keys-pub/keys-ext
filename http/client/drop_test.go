@@ -25,9 +25,8 @@ func TestDrop(t *testing.T) {
 	alice, bob := tk.alice, tk.bob
 	ctx := context.TODO()
 
-	// Drop auth
-	bobToken := "bobtoken"
-	err := bobClient.DropAuth(ctx, bob, bobToken)
+	// Follow
+	err := bobClient.Follow(ctx, bob, alice.ID())
 	require.NoError(t, err)
 
 	// Drops
@@ -39,7 +38,7 @@ func TestDrop(t *testing.T) {
 
 	// Drop #1
 	msg1 := api.NewMessage(alice.ID()).WithText("hi bob").WithTimestamp(env.clock.NowMillis())
-	err = aliceClient.Drop(ctx, msg1, alice, bob.ID(), bobToken)
+	err = aliceClient.Drop(ctx, msg1, alice, bob.ID())
 	require.NoError(t, err)
 
 	var out1 *api.Message
@@ -57,7 +56,7 @@ func TestDrop(t *testing.T) {
 
 	// Drop #3
 	msg3 := api.NewMessage(alice.ID()).WithText("here it is").WithTimestamp(env.clock.NowMillis())
-	err = aliceClient.Drop(ctx, msg3, alice, bob.ID(), bobToken)
+	err = aliceClient.Drop(ctx, msg3, alice, bob.ID())
 	require.NoError(t, err)
 
 	// Drops (from idx)

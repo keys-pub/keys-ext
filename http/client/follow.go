@@ -3,28 +3,18 @@ package client
 import (
 	"context"
 	"encoding/json"
-	"net/url"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/dstore"
-	"github.com/keys-pub/keys/encoding"
 )
 
-// GenerateToken generates a token.
-func GenerateToken() string {
-	return encoding.MustEncode(keys.RandBytes(32), encoding.Base62)
-}
-
 // Follow recipient, sharing your drop token.
-func (c *Client) Follow(ctx context.Context, sender *keys.EdX25519Key, recipient keys.ID, token string) error {
-	params := url.Values{}
-	params.Set("token", token)
+func (c *Client) Follow(ctx context.Context, sender *keys.EdX25519Key, recipient keys.ID) error {
 	path := dstore.Path("follow", sender.ID(), recipient)
 	req := request{
 		Method: "PUT",
 		Path:   path,
-		Body:   []byte(params.Encode()),
 		Key:    sender,
 	}
 	if _, err := c.req(ctx, req); err != nil {

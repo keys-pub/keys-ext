@@ -86,15 +86,15 @@ func (c *Client) ChannelsStatus(ctx context.Context, channelTokens ...*api.Chann
 }
 
 // InviteToChannel sends a direct message containing a channel key.
-func (c *Client) InviteToChannel(ctx context.Context, invite *api.ChannelInvite, sender *keys.EdX25519Key, dropToken string) (*api.Message, error) {
+func (c *Client) InviteToChannel(ctx context.Context, invite *api.ChannelInvite, sender *keys.EdX25519Key) error {
 	if sender.ID() != invite.Sender {
-		return nil, errors.Errorf("invite sender mismatch")
+		return errors.Errorf("invite sender mismatch")
 	}
-	msg := api.NewMessageForChannelInvite(invite)
-	if err := c.Drop(ctx, msg, sender, invite.Recipient, dropToken); err != nil {
-		return nil, err
+	msg := api.NewMessageForChannelInvites(invite.Sender, []*api.ChannelInvite{invite})
+	if err := c.Drop(ctx, msg, sender, invite.Recipient); err != nil {
+		return err
 	}
-	return msg, nil
+	return nil
 }
 
 // ChannelInvites ..
@@ -116,8 +116,8 @@ func (c *Client) ChannelInvites(ctx context.Context, recipient *keys.EdX25519Key
 	}
 	invites := []*api.ChannelInvite{}
 	for _, msg := range msgs {
-		if msg.ChannelInvite != nil {
-			invites = append(invites, msg.ChannelInvite)
+		if msg.ChannelInvites != nil {
+			invites = append(invites, msg.ChannelInvites...)
 		}
 	}
 	return &ChannelInvites{

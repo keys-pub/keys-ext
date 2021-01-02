@@ -2,47 +2,24 @@ package client
 
 import (
 	"context"
-	"net/url"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/dstore"
-	"github.com/keys-pub/keys/http"
 )
 
-// DropAuth sets the drop token.
-func (c *Client) DropAuth(ctx context.Context, key *keys.EdX25519Key, token string) error {
-	params := url.Values{}
-	params.Set("token", token)
-
-	path := dstore.Path("/drop/auth", key.ID())
-	req := request{
-		Method: "PUT",
-		Path:   path,
-		Body:   []byte(params.Encode()),
-		Key:    key,
-	}
-	if _, err := c.req(ctx, req); err != nil {
-		return err
-	}
-	return nil
-}
-
 // Drop an encrypted message.
-func (c *Client) Drop(ctx context.Context, message *api.Message, sender *keys.EdX25519Key, recipient keys.ID, token string) error {
+func (c *Client) Drop(ctx context.Context, message *api.Message, sender *keys.EdX25519Key, recipient keys.ID) error {
 	encrypted, err := message.Encrypt(sender, recipient)
 	if err != nil {
 		return err
 	}
-	path := dstore.Path("drop", recipient)
+	path := dstore.Path("drop", sender.ID(), recipient)
 	req := request{
 		Method: "POST",
 		Path:   path,
 		Body:   encrypted,
-		Headers: []http.Header{http.Header{
-			Name:  "Authorization",
-			Value: token,
-		}},
+		Key:    sender,
 	}
 	if _, err := c.req(ctx, req); err != nil {
 		return err

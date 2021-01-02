@@ -60,14 +60,13 @@ func testChannel(t *testing.T, env *env, tk testKeys) {
 		Key:       kapi.NewKey(channel),
 		Token:     create1.Channel.Token,
 	}
-	_, err = aliceClient.InviteToChannel(ctx, invite, alice, "")
+	err = aliceClient.InviteToChannel(ctx, invite, alice)
 	require.EqualError(t, err, "auth failed (403)")
 
-	bobToken := client.GenerateToken()
-	err = bobClient.DropAuth(ctx, bob, bobToken)
+	err = bobClient.Follow(ctx, bob, alice.ID())
 	require.NoError(t, err)
 
-	_, err = aliceClient.InviteToChannel(ctx, invite, alice, bobToken)
+	err = aliceClient.InviteToChannel(ctx, invite, alice)
 	require.NoError(t, err)
 
 	invites, err := bobClient.ChannelInvites(ctx, bob, nil)
