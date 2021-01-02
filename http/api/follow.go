@@ -1,11 +1,19 @@
 package api
 
-import "github.com/keys-pub/keys"
+import (
+	"github.com/keys-pub/keys"
+)
 
-// Follow user from kid.
+// Follow user.
 type Follow struct {
-	KID  keys.ID `json:"kid" msgpack:"kid"`
-	User keys.ID `json:"user" msgpack:"user"`
+	Sender    keys.ID `json:"sender" msgpack:"sender"`
+	Recipient keys.ID `json:"recipient" msgpack:"recipient"`
+	Token     string  `json:"token" msgpack:"token"`
+}
+
+// FollowResponse ...
+type FollowResponse struct {
+	Follow *Follow `json:"follow" msgpack:"follow"`
 }
 
 // FollowsResponse ...

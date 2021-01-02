@@ -80,13 +80,28 @@ func (m *Message) WithTimestamp(ts int64) *Message {
 // Encrypt message.
 // Experimental!
 func (m *Message) Encrypt(sender *keys.EdX25519Key, recipient keys.ID) ([]byte, error) {
+	if m.RemoteTimestamp != 0 {
+		return nil, errors.Errorf("remote timestamp should be omitted on send")
+	}
+	if m.RemoteIndex != 0 {
+		return nil, errors.Errorf("remote index should be omitted on send")
+	}
+	if m.Timestamp == 0 {
+		return nil, errors.Errorf("message timestamp is not set")
+	}
 	if m.Sender == "" {
 		return nil, errors.Errorf("message sender not set")
 	}
 	if m.Sender != sender.ID() {
 		return nil, errors.Errorf("message sender mismatch")
 	}
-	b, err := msgpack.Marshal(m)
+	return Encrypt(m, sender, recipient)
+}
+
+// Encrypt marshals to msgpack, crypto_sign and then crypto_box_seal.
+// We are doing sign then encrypt to hide the sender.
+func Encrypt(i interface{}, sender *keys.EdX25519Key, recipient keys.ID) ([]byte, error) {
+	b, err := msgpack.Marshal(i)
 	if err != nil {
 		return nil, err
 	}
@@ -103,21 +118,28 @@ func (m *Message) Encrypt(sender *keys.EdX25519Key, recipient keys.ID) ([]byte, 
 // DecryptMessage decrypts message.
 // Experimental!
 func DecryptMessage(b []byte, key *keys.EdX25519Key) (*Message, error) {
-	decrypted, err := keys.CryptoBoxSealOpen(b, key.X25519Key())
+	var message Message
+	sig, err := Decrypt(b, &message, key)
+	if err != nil {
+		return nil, err
+	}
+	pk := api.NewKey(message.Sender).AsEdX25519Public()
+	if _, err := pk.Verify(sig); err != nil {
+		return nil, err
+	}
+	return &message, nil
+}
+
+// Decrypt value, returning signature.
+func Decrypt(b []byte, v interface{}, key *keys.EdX25519Key) ([]byte, error) {
+	sig, err := keys.CryptoBoxSealOpen(b, key.X25519Key())
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to decrypt message")
 	}
-	var message Message
-	if err := msgpack.Unmarshal(decrypted[keys.SignOverhead:], &message); err != nil {
+	if err := msgpack.Unmarshal(sig[keys.SignOverhead:], v); err != nil {
 		return nil, errors.Wrapf(err, "failed to unmarshal message")
 	}
-
-	pk := api.NewKey(message.Sender).AsEdX25519Public()
-	if _, err := pk.Verify(decrypted); err != nil {
-		return nil, err
-	}
-
-	return &message, nil
+	return sig, nil
 }
 
 // DecryptMessageFromEvent decrypts a remote Event from Messages.
@@ -139,8 +161,8 @@ func NewMessageForChannelInfo(sender keys.ID, info *ChannelInfo) *Message {
 }
 
 // NewMessageForChannelInvite ...
-func NewMessageForChannelInvite(sender keys.ID, invite *ChannelInvite) *Message {
-	msg := NewMessage(sender)
+func NewMessageForChannelInvite(invite *ChannelInvite) *Message {
+	msg := NewMessage(invite.Sender)
 	msg.ChannelInvite = invite
 	return msg
 }
