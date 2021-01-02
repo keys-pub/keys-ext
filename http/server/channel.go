@@ -1,18 +1,16 @@
 package server
 
 import (
-	"context"
 	"encoding/json"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
-	wsapi "github.com/keys-pub/keys-ext/ws/api"
 	"github.com/keys-pub/keys/dstore"
+	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/http"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
-	"github.com/vmihailenco/msgpack/v4"
 )
 
 func (s *Server) putChannel(c echo.Context) error {
@@ -38,8 +36,10 @@ func (s *Server) putChannel(c echo.Context) error {
 	ctx := c.Request().Context()
 	path := dstore.Path("channels", channel.KID)
 
+	token := encoding.MustEncode(keys.RandBytes(32), encoding.Base62)
 	create := &api.Channel{
-		ID: channel.KID,
+		ID:    channel.KID,
+		Token: token,
 	}
 
 	if err := s.fi.Create(ctx, path, dstore.From(create)); err != nil {
@@ -50,32 +50,20 @@ func (s *Server) putChannel(c echo.Context) error {
 		return s.ErrInternalServer(c, err)
 	}
 
-	if err := s.notifyChannelCreated(ctx, channel.KID); err != nil {
-		return s.ErrInternalServer(c, err)
-	}
-
 	if len(req.Message) > 0 {
-		if err := s.sendMessage(c, channel.KID, req.Message); err != nil {
+		ct := &api.ChannelToken{
+			ID:    channel.KID,
+			Token: token,
+		}
+		if err := s.sendMessage(c, ct, req.Message); err != nil {
 			return s.ErrInternalServer(c, err)
 		}
 	}
 
-	var out struct{}
+	out := &api.ChannelCreateResponse{
+		Channel: create,
+	}
 	return JSON(c, http.StatusOK, out)
-}
-
-func (s *Server) notifyChannelCreated(ctx context.Context, channel keys.ID) error {
-	pub := &wsapi.Event{
-		Channel: channel,
-	}
-	b, err := msgpack.Marshal(pub)
-	if err != nil {
-		return err
-	}
-	if err := s.rds.Publish(ctx, wsapi.EventPubSub, b); err != nil {
-		return err
-	}
-	return nil
 }
 
 func (s *Server) getChannel(c echo.Context) error {
@@ -107,11 +95,74 @@ func (s *Server) getChannel(c echo.Context) error {
 	if err != nil {
 		return s.ErrInternalServer(c, err)
 	}
-	if len(positions) > 0 {
-		out.Index = positions[0].Index
-		if positions[0].Timestamp > 0 {
-			out.Timestamp = positions[0].Timestamp
+	position := positions[path]
+	if position != nil {
+		out.Index = position.Index
+		if position.Timestamp > 0 {
+			out.Timestamp = position.Timestamp
 		}
+	}
+	return c.JSON(http.StatusOK, out)
+}
+
+func (s *Server) postChannelsStatus(c echo.Context) error {
+	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
+	ctx := c.Request().Context()
+
+	body, st, err := readBody(c, false, 64*1024)
+	if err != nil {
+		return s.ErrResponse(c, st, err)
+	}
+	var req api.ChannelsStatusRequest
+	if err := json.Unmarshal(body, &req); err != nil {
+		return s.ErrBadRequest(c, errors.Errorf("invalid request"))
+	}
+
+	paths := []string{}
+	for cid := range req.Channels {
+		channel, err := keys.ParseID(string(cid))
+		if err != nil {
+			return s.ErrBadRequest(c, errors.Errorf("invalid request"))
+		}
+		paths = append(paths, dstore.Path("channels", channel))
+	}
+
+	docs, err := s.fi.GetAll(ctx, paths)
+	if err != nil {
+		return s.ErrInternalServer(c, err)
+	}
+	positions, err := s.fi.EventPositions(ctx, paths)
+	if err != nil {
+		return s.ErrInternalServer(c, err)
+	}
+
+	channels := make([]*api.ChannelStatus, 0, len(docs))
+	for _, doc := range docs {
+		var channel api.Channel
+		if err := doc.To(&channel); err != nil {
+			return s.ErrInternalServer(c, err)
+		}
+		token := req.Channels[channel.ID]
+		if token == "" || token != channel.Token {
+			continue
+		}
+		channel.Timestamp = tsutil.Millis(doc.UpdatedAt)
+		position := positions[doc.Path]
+		if position != nil {
+			channel.Index = position.Index
+			if position.Timestamp > 0 {
+				channel.Timestamp = position.Timestamp
+			}
+		}
+		channels = append(channels, &api.ChannelStatus{
+			ID:        channel.ID,
+			Index:     channel.Index,
+			Timestamp: channel.Timestamp,
+		})
+	}
+
+	out := api.ChannelsStatusResponse{
+		Channels: channels,
 	}
 	return c.JSON(http.StatusOK, out)
 }

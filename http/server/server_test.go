@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	nethttp "net/http"
 	"net/http/httptest"
@@ -89,6 +90,7 @@ func newTestServer(t *testing.T, env *env) *testServer {
 	tasks := server.NewTestTasks(srv)
 	srv.SetTasks(tasks)
 	srv.SetInternalAuth(encoding.MustEncode(keys.RandBytes(32), encoding.Base62))
+	srv.SetInternalKey("6a169a699f7683c04d127504a12ace3b326e8b56a61a9b315cf6b42e20d6a44a")
 	srv.SetClock(env.clock)
 	handler := server.NewHandler(srv)
 	return &testServer{
@@ -187,6 +189,17 @@ func githubMock(name string, id string, msg string) string {
 			"login": "` + name + `"
 		}
 	  }`
+}
+
+func testJSONMarshal(t *testing.T, i interface{}) []byte {
+	b, err := json.Marshal(i)
+	require.NoError(t, err)
+	return b
+}
+
+func testJSONUnmarshal(t *testing.T, b []byte, v interface{}) {
+	err := json.Unmarshal(b, v)
+	require.NoError(t, err)
 }
 
 func TestInternalAuth(t *testing.T) {

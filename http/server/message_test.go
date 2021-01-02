@@ -60,8 +60,11 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	req, err = http.NewAuthRequest("PUT", dstore.Path("channel", channel.ID()), nil, "", clock.Now(), channel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
-	require.Equal(t, `{}`, body)
 	require.Equal(t, http.StatusOK, code)
+	var createResp api.ChannelCreateResponse
+	testJSONUnmarshal(t, []byte(body), &createResp)
+	require.Equal(t, channel.ID(), createResp.Channel.ID)
+	require.NotEmpty(t, createResp.Channel.Token)
 
 	// GET /channel/:cid/msgs
 	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs"), nil, "", clock.Now(), channel)
@@ -181,7 +184,6 @@ func TestMessagesAuth(t *testing.T) {
 	req, err := http.NewAuthRequest("PUT", dstore.Path("channel", channel.ID()), nil, "", clock.Now(), channel)
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
-	require.Equal(t, `{}`, body)
 	require.Equal(t, http.StatusOK, code)
 
 	// GET /channel/:cid/msgs

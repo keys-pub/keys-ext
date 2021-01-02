@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 
 	"github.com/keys-pub/keys"
@@ -22,21 +21,25 @@ func (s *Server) postMessage(c echo.Context) error {
 		return s.ErrResponse(c, st, err)
 	}
 
-	channel, err := s.auth(c, newAuth("Authorization", "cid", body))
+	auth, err := s.auth(c, newAuth("Authorization", "cid", body))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}
 
-	path := dstore.Path("channels", channel.KID)
+	path := dstore.Path("channels", auth.KID)
 	doc, err := s.fi.Get(ctx, path)
 	if err != nil {
 		return s.ErrInternalServer(c, err)
 	}
 	if doc == nil {
-		return s.ErrNotFound(c, keys.NewErrNotFound(channel.KID.String()))
+		return s.ErrNotFound(c, keys.NewErrNotFound(auth.KID.String()))
+	}
+	var channel api.Channel
+	if err := doc.To(&channel); err != nil {
+		return s.ErrInternalServer(c, err)
 	}
 
-	if err := s.sendMessage(c, channel.KID, body); err != nil {
+	if err := s.sendMessage(c, &api.ChannelToken{ID: channel.ID, Token: channel.Token}, body); err != nil {
 		return s.ErrInternalServer(c, err)
 	}
 
@@ -44,29 +47,36 @@ func (s *Server) postMessage(c echo.Context) error {
 	return JSON(c, http.StatusOK, out)
 }
 
-func (s *Server) sendMessage(c echo.Context, channel keys.ID, msg []byte) error {
+func (s *Server) sendMessage(c echo.Context, ct *api.ChannelToken, msg []byte) error {
 	if len(msg) == 0 {
-		return errors.Errorf("no message data")
+		return errors.Errorf("empty message data")
+	}
+	if ct.Token == "" {
+		return errors.Errorf("empty token")
 	}
 	ctx := c.Request().Context()
-	path := dstore.Path("channels", channel)
+	path := dstore.Path("channels", ct.ID)
 
 	_, idx, err := s.fi.EventsAdd(ctx, path, [][]byte{msg})
 	if err != nil {
 		return err
 	}
-	if err := s.notifyChannelMessage(ctx, channel, idx); err != nil {
+	if err := s.notifyChannelMessage(ctx, ct, idx); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *Server) notifyChannelMessage(ctx context.Context, channel keys.ID, idx int64) error {
-	event := &wsapi.Event{
-		Channel: channel,
-		Index:   idx,
+func (s *Server) notifyChannelMessage(ctx context.Context, ct *api.ChannelToken, idx int64) error {
+	if s.internalKey == nil {
+		return errors.Errorf("no secret key set")
 	}
-	b, err := json.Marshal(event)
+	event := &wsapi.Event{
+		Channel: ct.ID,
+		Index:   idx,
+		Token:   ct.Token,
+	}
+	b, err := wsapi.Encrypt(event, s.internalKey)
 	if err != nil {
 		return err
 	}

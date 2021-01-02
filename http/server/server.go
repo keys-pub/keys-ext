@@ -7,6 +7,7 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/dstore/events"
+	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/http"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keys/users"
@@ -40,6 +41,9 @@ type Server struct {
 
 	// admins are key ids that can do admin actions on the server.
 	admins []keys.ID
+
+	// internalKey for encrypting between internal services.
+	internalKey *[32]byte
 }
 
 // Fire defines interface for remote store (like Firestore).
@@ -68,6 +72,19 @@ func New(fi Fire, rds Redis, client http.Client, clock tsutil.Clock, logger Logg
 // SetInternalAuth for authorizing internal requests, like tasks.
 func (s *Server) SetInternalAuth(internalAuth string) {
 	s.internalAuth = internalAuth
+}
+
+// SetInternalKey for encrypting between internal services.
+func (s *Server) SetInternalKey(internalKey string) error {
+	if internalKey == "" {
+		return errors.Errorf("empty secret key")
+	}
+	sk, err := encoding.Decode(internalKey, encoding.Hex)
+	if err != nil {
+		return err
+	}
+	s.internalKey = keys.Bytes32(sk)
+	return nil
 }
 
 // SetAdmins sets authorized admins.
@@ -138,19 +155,25 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	//
 
 	// Channel
-	e.PUT("/channel/:cid", s.putChannel)        // Create a channel
-	e.GET("/channel/:cid", s.getChannel)        // Get a channel
-	e.POST("/channel/:cid/msgs", s.postMessage) // Send message
-	e.GET("/channel/:cid/msgs", s.getMessages)  // List messages
+	e.PUT("/channel/:cid", s.putChannel)             // Create a channel
+	e.GET("/channel/:cid", s.getChannel)             // Get a channel
+	e.POST("/channel/:cid/msgs", s.postMessage)      // Send message
+	e.GET("/channel/:cid/msgs", s.getMessages)       // List messages
+	e.POST("/channels/status", s.postChannelsStatus) // Get channels status
 
-	// Direct
-	e.POST("/dm/:to/:from", s.postDirect) // Send direct message to :kid from :sid
-	e.GET("/dm/:kid", s.getDirects)       // List direct messages
+	// Batch
+	// e.POST("/batch", s.postBatch) // Batch
+
+	// Drop
+	e.PUT("/drop/auth/:kid", s.putDropAuth) // Configure drop auth
+	e.POST("/drop/:kid", s.postDrop)        // Drop
+	e.GET("/drop/:kid", s.getDrops)         // List drop
 
 	// Follow
-	e.POST("/follow/:kid/:user", s.postFollow)     // Follow
-	e.GET("/follows/:kid", s.getFollows)           // List follows
-	e.DELETE("/follow/:kid/:user", s.deleteFollow) // Unfollow
+	e.PUT("/follow/:sender/:recipient", s.putFollow)       // Follow
+	e.GET("/follows/:recipient", s.getFollows)             // List follows
+	e.GET("/follow/:sender/:recipient", s.getFollow)       // Get follow
+	e.DELETE("/follow/:sender/:recipient", s.deleteFollow) // Unfollow
 
 	// Twitter
 	e.GET("/twitter/:kid/:name/:id", s.checkTwitter)

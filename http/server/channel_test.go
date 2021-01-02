@@ -2,9 +2,11 @@ package server_test
 
 import (
 	"bytes"
+	"encoding/json"
 	"testing"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/http"
 	"github.com/stretchr/testify/require"
@@ -37,8 +39,12 @@ func testChannel(t *testing.T, env *env, tk testKeys) {
 	req, err := http.NewAuthRequest("PUT", dstore.Path("channel", channel.ID()), nil, "", clock.Now(), channel)
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
-	require.Equal(t, `{}`, body)
+	var create api.ChannelCreateResponse
+	err = json.Unmarshal([]byte(body), &create)
+	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, code)
+	require.NotEmpty(t, create.Channel.Token)
+	require.Equal(t, channel.ID(), create.Channel.ID)
 
 	// PUT /channel/:cid (already exists)
 	req, err = http.NewAuthRequest("PUT", dstore.Path("channel", channel.ID()), nil, "", clock.Now(), channel)
@@ -51,7 +57,10 @@ func testChannel(t *testing.T, env *env, tk testKeys) {
 	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID()), nil, "", clock.Now(), channel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
-	require.Equal(t, `{"id":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","ts":1234567890004}`+"\n", body)
+	var channelOut api.Channel
+	testJSONUnmarshal(t, []byte(body), &channelOut)
+	require.Equal(t, keys.ID("kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep"), channelOut.ID)
+	require.Equal(t, int64(1234567890004), channelOut.Timestamp)
 	require.Equal(t, http.StatusOK, code)
 
 	// GET /channel/:cid (not found, forbidden)
@@ -69,10 +78,17 @@ func testChannel(t *testing.T, env *env, tk testKeys) {
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, `{}`, body)
 
-	// GET /channel/:cid
-	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID()), nil, "", clock.Now(), channel)
+	// POST /channels/status
+	statusReq := api.ChannelsStatusRequest{
+		Channels: map[keys.ID]string{channel.ID(): create.Channel.Token},
+	}
+	req, err = http.NewRequest("POST", "/channels/status", bytes.NewReader(testJSONMarshal(t, statusReq)))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
-	require.Equal(t, `{"id":"kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep","idx":1,"ts":1234567890004}`+"\n", body)
+	var statusResp api.ChannelsStatusResponse
+	testJSONUnmarshal(t, []byte(body), &statusResp)
 	require.Equal(t, http.StatusOK, code)
+	require.Equal(t, keys.ID("kex1fzlrdfy4wlyaturcqkfq92ywj7lft9awtdg70d2yftzhspmc45qsvghhep"), statusResp.Channels[0].ID)
+	require.Equal(t, int64(1234567890004), statusResp.Channels[0].Timestamp)
+	require.Equal(t, int64(1), statusResp.Channels[0].Index)
 }
