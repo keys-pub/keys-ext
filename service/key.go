@@ -188,6 +188,20 @@ func (s *service) convertIfX25519ID(kid keys.ID) (keys.ID, error) {
 	return kid, nil
 }
 
+func (s *service) vaultKey(kid keys.ID) (*api.Key, error) {
+	if kid == "" {
+		return nil, nil
+	}
+	key, err := s.vault.Key(kid)
+	if err != nil {
+		return nil, err
+	}
+	if key == nil {
+		return nil, keys.NewErrNotFound(kid.String())
+	}
+	return key, nil
+}
+
 func (s *service) edx25519Key(kid keys.ID) (*keys.EdX25519Key, error) {
 	if kid == "" {
 		return nil, nil

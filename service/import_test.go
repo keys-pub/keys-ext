@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/api"
 	"github.com/stretchr/testify/require"
 )
 
@@ -17,7 +18,7 @@ func TestKeyImport(t *testing.T) {
 	testAuthSetup(t, service)
 
 	key := keys.GenerateEdX25519Key()
-	export, err := keys.EncodeSaltpackKey(key, "testpassword")
+	export, err := api.EncodeKey(api.NewKey(key), "testpassword")
 	require.NoError(t, err)
 
 	// Import
@@ -58,7 +59,7 @@ func TestKeyImport(t *testing.T) {
 
 	// Import (error)
 	_, err = service.KeyImport(ctx, &KeyImportRequest{In: []byte{}})
-	require.EqualError(t, err, "unknown key format")
+	require.EqualError(t, err, "failed to decode key")
 }
 
 func TestKeyImportSaltpack(t *testing.T) {

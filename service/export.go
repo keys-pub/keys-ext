@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/api"
 	"github.com/pkg/errors"
 )
 
@@ -12,15 +13,6 @@ func (s *service) KeyExport(ctx context.Context, req *KeyExportRequest) (*KeyExp
 	id, err := keys.ParseID(req.KID)
 	if err != nil {
 		return nil, err
-	}
-
-	typ := req.Type
-	if typ == DefaultExport {
-		typ = SaltpackExport
-	}
-
-	if req.Public && typ != SSHExport {
-		return nil, errors.Errorf("public key only supported for ssh export")
 	}
 
 	key, err := s.vault.Key(id)
@@ -36,35 +28,36 @@ func (s *service) KeyExport(ctx context.Context, req *KeyExportRequest) (*KeyExp
 	}
 
 	if !req.NoPassword && !req.Public && req.Password == "" {
-		return nil, errors.Errorf("password required for export")
+		return nil, errors.Errorf("password required for export (or set no password option)")
 	}
 
-	var out keys.Key
-	if req.Public {
-		out = key.AsPublic()
-	} else {
-		out = key.As()
-	}
-
-	enc, err := exportTypeFromRPC(typ)
-	if err != nil {
-		return nil, err
-	}
-	msg, err := keys.EncodeKey(out, enc, req.Password)
-	if err != nil {
-		return nil, err
-	}
-
-	return &KeyExportResponse{Export: []byte(msg)}, nil
-}
-
-func exportTypeFromRPC(typ ExportType) (keys.Encoding, error) {
-	switch typ {
-	case SaltpackExport:
-		return keys.SaltpackEncoding, nil
+	switch req.Type {
 	case SSHExport:
-		return keys.SSHEncoding, nil
+		var kk keys.Key
+		if req.Public {
+			kk = key.AsPublic()
+		} else {
+			kk = key.As()
+		}
+		out, err := keys.EncodeSSHKey(kk, req.Password)
+		if err != nil {
+			return nil, err
+		}
+		return &KeyExportResponse{Export: []byte(out)}, nil
+	case DefaultExport:
+		if req.Public {
+			key = &api.Key{
+				ID:     key.ID,
+				Public: key.Public,
+				Type:   key.Type,
+			}
+		}
+		out, err := api.EncodeKey(key, req.Password)
+		if err != nil {
+			return nil, err
+		}
+		return &KeyExportResponse{Export: []byte(out)}, nil
 	default:
-		return keys.UnknownEncoding, errors.Errorf("unknown export type %s", typ)
+		return nil, errors.Errorf("unknown export type %s", req.Type)
 	}
 }

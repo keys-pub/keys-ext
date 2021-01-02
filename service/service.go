@@ -76,6 +76,8 @@ func (s *service) Open() error {
 	if err := s.vault.Open(); err != nil {
 		return err
 	}
+
+	// TODO: We can remove this soon (for old keyring conversions)...
 	if err := checkKeyringConvert(s.env, s.vault); err != nil {
 		return err
 	}

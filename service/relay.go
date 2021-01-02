@@ -5,29 +5,29 @@ import (
 
 	"github.com/keys-pub/keys-ext/ws/api"
 	wsclient "github.com/keys-pub/keys-ext/ws/client"
-	"github.com/pkg/errors"
 )
 
 // Relay (RPC) ...
 func (s *service) Relay(req *RelayRequest, srv Keys_RelayServer) error {
 	ctx := srv.Context()
 
-	sks, err := s.lookupEdX25519Keys(ctx, req.Keys)
-	if err != nil {
-		return err
-	}
-	if len(sks) == 0 {
-		return errors.Errorf("no keys specified for relay")
-	}
-
 	relay, err := wsclient.New("wss://relay.keys.pub/ws")
 	if err != nil {
 		return err
 	}
 
-	for _, key := range sks {
-		relay.Authorize(key)
+	cks, err := s.channelKeys()
+	if err != nil {
+		return err
 	}
+
+	tokens := []string{}
+	for _, ck := range cks {
+		if ck.Token != "" {
+			tokens = append(tokens, ck.Token)
+		}
+	}
+	relay.Authorize(tokens)
 
 	if err := relay.Connect(); err != nil {
 		return err
@@ -69,11 +69,17 @@ func (s *service) Relay(req *RelayRequest, srv Keys_RelayServer) error {
 					return ctx.Err()
 				default:
 					logger.Infof("Relay event %s", event.Channel)
-					// TODO: Channel user
-					// if err := s.pullMessages(ctx, event.Channel, keys.ID("")); err != nil {
-					// 	return err
-					// }
-					return errors.Errorf("not implemented")
+					ck, err := s.vaultKey(event.Channel)
+					if err != nil {
+						return err
+					}
+					if ck == nil {
+						logger.Infof("Channel key not found: %s", event.Channel)
+						continue
+					}
+					if err := s.pullMessages(ctx, ck); err != nil {
+						return err
+					}
 				}
 			}
 			for _, event := range events {

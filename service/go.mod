@@ -3,7 +3,7 @@ module github.com/keys-pub/keys-ext/service
 go 1.14
 
 require (
-	github.com/alta/protopatch v0.0.0-20201129223125-3bceb77d56ba
+	github.com/alta/protopatch v0.2.0
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1
 	github.com/gogo/protobuf v1.3.1 // indirect
@@ -11,17 +11,17 @@ require (
 	github.com/golang/snappy v0.0.2 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/keybase/go-keychain v0.0.0-20201121013009-976c83ec27a6 // indirect
-	github.com/keys-pub/keys v0.1.19-0.20201221195739-7490f3244390
-	github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20201218004539-7f8afbf3d488
+	github.com/keys-pub/keys v0.1.20-0.20210102022201-ffb45798b8ab
+	github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20201221200935-cda646bb0b44
 	github.com/keys-pub/keys-ext/auth/mock v0.0.0-20201018000238-7b6186f1fe97
-	github.com/keys-pub/keys-ext/http/api v0.0.0-20201218211059-81db8e866f8c
-	github.com/keys-pub/keys-ext/http/client v0.0.0-20201221025613-72a657ea35c1
-	github.com/keys-pub/keys-ext/http/server v0.0.0-20201221200600-7c9e6e8730aa
-	github.com/keys-pub/keys-ext/sdb v0.0.0-20201218004539-7f8afbf3d488
-	github.com/keys-pub/keys-ext/vault v0.0.0-20201221025816-0324f4b664dc
-	github.com/keys-pub/keys-ext/wormhole v0.0.0-20201218004539-7f8afbf3d488
-	github.com/keys-pub/keys-ext/ws/api v0.0.0-20201218004539-7f8afbf3d488
-	github.com/keys-pub/keys-ext/ws/client v0.0.0-20201218004539-7f8afbf3d488
+	github.com/keys-pub/keys-ext/http/api v0.0.0-20210102023225-d2e7279d30fc
+	github.com/keys-pub/keys-ext/http/client v0.0.0-20210102030049-6622ca14f3bc
+	github.com/keys-pub/keys-ext/http/server v0.0.0-20210102023718-fd43795e6300
+	github.com/keys-pub/keys-ext/sdb v0.0.0-20201221200935-cda646bb0b44
+	github.com/keys-pub/keys-ext/vault v0.0.0-20210102030049-6622ca14f3bc
+	github.com/keys-pub/keys-ext/wormhole v0.0.0-20210102030049-6622ca14f3bc
+	github.com/keys-pub/keys-ext/ws/api v0.0.0-20210102025937-6613f1e38363
+	github.com/keys-pub/keys-ext/ws/client v0.0.0-20210102030049-6622ca14f3bc
 	github.com/konsorten/go-windows-terminal-sequences v1.0.3 // indirect
 	github.com/mercari/go-grpc-interceptor v0.0.0-20180110035004-b8ad3827e82a
 	github.com/mitchellh/go-ps v1.0.0
@@ -34,8 +34,9 @@ require (
 	github.com/urfave/cli v1.22.5
 	github.com/vmihailenco/msgpack/v4 v4.3.12
 	github.com/vmihailenco/tagparser v0.1.2 // indirect
-	golang.org/x/crypto v0.0.0-20201217014255-9d1352758620
-	golang.org/x/sys v0.0.0-20201218084310-7d0127a74742 // indirect
+	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
+	golang.org/x/net v0.0.0-20201224014010-6772e930b67b // indirect
+	golang.org/x/sys v0.0.0-20201223074533-0d417f636930 // indirect
 	golang.org/x/term v0.0.0-20201210144234-2321bbc49cbf
 	google.golang.org/appengine v1.6.7
 	google.golang.org/genproto v0.0.0-20201214200347-8c77b98c765d // indirect

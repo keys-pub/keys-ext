@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys/api"
 	"github.com/stretchr/testify/require"
 )
 
@@ -29,18 +30,23 @@ func TestKeyExport(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, export.Export)
 
-	out, err := keys.DecodeSaltpackKey(string(export.Export), "testpassword", false)
+	out, err := api.DecodeKey(string(export.Export), "testpassword")
 	require.NoError(t, err)
-	require.Equal(t, kid, out.ID())
+	require.Equal(t, kid, out.ID)
 
-	_, err = service.KeyExport(ctx, &KeyExportRequest{
+	// Public
+	export, err = service.KeyExport(ctx, &KeyExportRequest{
 		KID:      kid.String(),
 		Password: "testpassword",
 		Public:   true,
 	})
-	require.EqualError(t, err, "public key only supported for ssh export")
+	require.NoError(t, err)
+	require.NotEmpty(t, export.Export)
+	out, err = api.DecodeKey(string(export.Export), "testpassword")
+	require.NoError(t, err)
+	require.Equal(t, kid, out.ID)
 
-	// Export public key (SSH)
+	// Public (SSH)
 	pk := keys.GenerateEdX25519Key().PublicKey()
 	_, err = service.KeyImport(ctx, &KeyImportRequest{
 		In: []byte(pk.ID().String()),
@@ -55,6 +61,7 @@ func TestKeyExport(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, strings.HasPrefix(string(export.Export), "ssh-ed25519 "))
 
+	// Export public with password
 	_, err = service.KeyExport(ctx, &KeyExportRequest{
 		KID:      pk.String(),
 		Type:     SSHExport,
@@ -81,7 +88,7 @@ func TestKeySSHExport(t *testing.T) {
 		KID:  kid.String(),
 		Type: SSHExport,
 	})
-	require.EqualError(t, err, "password required for export")
+	require.EqualError(t, err, "password required for export (or set no password option)")
 
 	resp, err := service.KeyExport(ctx, &KeyExportRequest{
 		KID:      kid.String(),

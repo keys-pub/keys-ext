@@ -123,8 +123,8 @@ func secretFromRPC(s *Secret) *secrets.Secret {
 		Password:  s.Password,
 		URL:       s.URL,
 		Notes:     s.Notes,
-		CreatedAt: tsutil.ConvertMillis(s.CreatedAt),
-		UpdatedAt: tsutil.ConvertMillis(s.UpdatedAt),
+		CreatedAt: tsutil.ParseMillis(s.CreatedAt),
+		UpdatedAt: tsutil.ParseMillis(s.UpdatedAt),
 	}
 }
 

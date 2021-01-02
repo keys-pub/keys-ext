@@ -90,6 +90,9 @@ type KeysClient interface {
 	// Channels
 	Channels(ctx context.Context, in *ChannelsRequest, opts ...grpc.CallOption) (*ChannelsResponse, error)
 	ChannelCreate(ctx context.Context, in *ChannelCreateRequest, opts ...grpc.CallOption) (*ChannelCreateResponse, error)
+	// Follow
+	Follow(ctx context.Context, in *FollowRequest, opts ...grpc.CallOption) (*FollowResponse, error)
+	Follows(ctx context.Context, in *FollowsRequest, opts ...grpc.CallOption) (*FollowsResponse, error)
 	// Messages
 	MessagePrepare(ctx context.Context, in *MessagePrepareRequest, opts ...grpc.CallOption) (*MessagePrepareResponse, error)
 	MessageCreate(ctx context.Context, in *MessageCreateRequest, opts ...grpc.CallOption) (*MessageCreateResponse, error)
@@ -939,6 +942,24 @@ func (c *keysClient) ChannelCreate(ctx context.Context, in *ChannelCreateRequest
 	return out, nil
 }
 
+func (c *keysClient) Follow(ctx context.Context, in *FollowRequest, opts ...grpc.CallOption) (*FollowResponse, error) {
+	out := new(FollowResponse)
+	err := c.cc.Invoke(ctx, "/keys.Keys/Follow", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *keysClient) Follows(ctx context.Context, in *FollowsRequest, opts ...grpc.CallOption) (*FollowsResponse, error) {
+	out := new(FollowsResponse)
+	err := c.cc.Invoke(ctx, "/keys.Keys/Follows", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *keysClient) MessagePrepare(ctx context.Context, in *MessagePrepareRequest, opts ...grpc.CallOption) (*MessagePrepareResponse, error) {
 	out := new(MessagePrepareResponse)
 	err := c.cc.Invoke(ctx, "/keys.Keys/MessagePrepare", in, out, opts...)
@@ -1075,6 +1096,9 @@ type KeysServer interface {
 	// Channels
 	Channels(context.Context, *ChannelsRequest) (*ChannelsResponse, error)
 	ChannelCreate(context.Context, *ChannelCreateRequest) (*ChannelCreateResponse, error)
+	// Follow
+	Follow(context.Context, *FollowRequest) (*FollowResponse, error)
+	Follows(context.Context, *FollowsRequest) (*FollowsResponse, error)
 	// Messages
 	MessagePrepare(context.Context, *MessagePrepareRequest) (*MessagePrepareResponse, error)
 	MessageCreate(context.Context, *MessageCreateRequest) (*MessageCreateResponse, error)
@@ -1282,6 +1306,12 @@ func (*UnimplementedKeysServer) Channels(context.Context, *ChannelsRequest) (*Ch
 }
 func (*UnimplementedKeysServer) ChannelCreate(context.Context, *ChannelCreateRequest) (*ChannelCreateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ChannelCreate not implemented")
+}
+func (*UnimplementedKeysServer) Follow(context.Context, *FollowRequest) (*FollowResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Follow not implemented")
+}
+func (*UnimplementedKeysServer) Follows(context.Context, *FollowsRequest) (*FollowsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Follows not implemented")
 }
 func (*UnimplementedKeysServer) MessagePrepare(context.Context, *MessagePrepareRequest) (*MessagePrepareResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method MessagePrepare not implemented")
@@ -2559,6 +2589,42 @@ func _Keys_ChannelCreate_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Keys_Follow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FollowRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KeysServer).Follow(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/keys.Keys/Follow",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KeysServer).Follow(ctx, req.(*FollowRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Keys_Follows_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FollowsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KeysServer).Follows(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/keys.Keys/Follows",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KeysServer).Follows(ctx, req.(*FollowsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Keys_MessagePrepare_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MessagePrepareRequest)
 	if err := dec(in); err != nil {
@@ -2853,6 +2919,14 @@ var _Keys_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ChannelCreate",
 			Handler:    _Keys_ChannelCreate_Handler,
+		},
+		{
+			MethodName: "Follow",
+			Handler:    _Keys_Follow_Handler,
+		},
+		{
+			MethodName: "Follows",
+			Handler:    _Keys_Follows_Handler,
 		},
 		{
 			MethodName: "MessagePrepare",

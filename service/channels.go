@@ -2,9 +2,9 @@ package service
 
 import (
 	"context"
-	"sort"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
 	kapi "github.com/keys-pub/keys/api"
@@ -13,15 +13,11 @@ import (
 )
 
 func (s *service) Channels(ctx context.Context, req *ChannelsRequest) (*ChannelsResponse, error) {
-	user, err := s.lookup(ctx, req.User, nil)
-	if err != nil {
-		return nil, err
-	}
-	if err := s.pullChannels(ctx, user); err != nil {
+	if err := s.pullChannels(ctx); err != nil {
 		return nil, err
 	}
 
-	channels, err := s.channels(ctx, user)
+	channels, err := s.channels(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -50,62 +46,65 @@ func (s *service) ChannelCreate(ctx context.Context, req *ChannelCreateRequest) 
 	}
 
 	// Create channel key
-	channelKey := keys.GenerateEdX25519Key()
+	key := keys.GenerateEdX25519Key()
 
 	info := &api.ChannelInfo{Name: name}
-	if _, err := s.client.ChannelCreate(ctx, channelKey, userKey, info); err != nil {
+	created, err := s.client.ChannelCreate(ctx, key, userKey, info)
+	if err != nil {
 		return nil, err
 	}
 
-	if err := s.vault.SaveKey(kapi.NewKey(channelKey)); err != nil {
+	ck := kapi.NewKey(key).Created(s.clock.NowMillis()).WithLabel("channel")
+	ck.Token = created.Channel.Token
+	if err := s.vault.SaveKey(ck); err != nil {
 		return nil, err
 	}
 
 	return &ChannelCreateResponse{
 		Channel: &Channel{
-			ID: channelKey.ID().String(),
+			ID: ck.ID.String(),
 		},
 	}, nil
 }
 
-type channelsState struct {
-	Channels []*api.Channel `json:"channels"`
-}
+func (s *service) pullChannels(ctx context.Context) error {
+	logger.Infof("Pull channels...")
 
-func (s *service) pullChannels(ctx context.Context, user keys.ID) error {
-	logger.Infof("Pull channels (%s)...", user)
-
-	// userKey, err := s.edx25519Key(user)
-	// if err != nil {
-	// 	return err
-	// }
-	channels := []*api.Channel{}
-	// channels, err := s.client.Channels(ctx, userKey)
-	// if err != nil {
-	// 	return err
-	// }
-	sort.Slice(channels, func(i, j int) bool {
-		return channels[i].Timestamp > channels[j].Timestamp
-	})
-
-	path := dstore.Path("users", user, "channels")
-	if err := s.db.Set(ctx, path, dstore.From(channelsState{Channels: channels})); err != nil {
+	cks, err := s.channelKeys()
+	if err != nil {
 		return err
+	}
+	tokens := []*api.ChannelToken{}
+	for _, ck := range cks {
+		token := &api.ChannelToken{
+			ID:    ck.ID,
+			Token: ck.Token,
+		}
+		tokens = append(tokens, token)
+	}
+	remoteStatus, err := s.client.ChannelsStatus(ctx, tokens...)
+	if err != nil {
+		return err
+	}
+	logger.Debugf("Channels status (remote): %s", spew.Sdump(remoteStatus))
+	remoteStatusBy := map[keys.ID]*api.ChannelStatus{}
+	for _, rs := range remoteStatus {
+		remoteStatusBy[rs.ID] = rs
 	}
 
 	// TODO: Pull channels in a single (bulk) call
-	for _, channel := range channels {
+	for _, ck := range cks {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
-			pullState, err := s.channelPullState(ctx, channel.ID)
+			remoteStatus := remoteStatusBy[ck.ID]
+			status, err := s.channelStatus(ctx, ck.ID)
 			if err != nil {
 				return err
 			}
-
-			if pullState.Index < channel.Index {
-				if err := s.pullMessages(ctx, channel.ID, user); err != nil {
+			if remoteStatus != nil && status.Index < remoteStatus.Index {
+				if err := s.pullMessages(ctx, ck); err != nil {
 					return err
 				}
 			}
@@ -114,7 +113,7 @@ func (s *service) pullChannels(ctx context.Context, user keys.ID) error {
 	return nil
 }
 
-type channelInfo struct {
+type channelStatus struct {
 	ID              keys.ID `json:"id,omitempty" msgpack:"id,omitempty"`
 	Name            string  `json:"name,omitempty" msgpack:"name,omitempty"`
 	Description     string  `json:"desc,omitempty" msgpack:"desc,omitempty"`
@@ -124,56 +123,72 @@ type channelInfo struct {
 	RemoteTimestamp int64   `json:"rts,omitempty" msgpack:"rts,omitempty"`
 }
 
-func (s *service) channel(ctx context.Context, channel keys.ID) (*Channel, error) {
-	// channelInfo is set during pullMessages
-	var info channelInfo
-	ok, err := s.db.Load(ctx, dstore.Path("channel", channel.ID(), "info"), &info)
+func (s *service) channelStatus(ctx context.Context, cid keys.ID) (*channelStatus, error) {
+	// channelStatus is set during pullMessages
+	var cs channelStatus
+	ok, err := s.db.Load(ctx, dstore.Path("channels", cid), &cs)
 	if err != nil {
 		return nil, err
 	}
 	if !ok {
-		return &Channel{
-			ID:   channel.String(),
-			Name: channel.String(),
+		return &channelStatus{
+			ID:   cid,
+			Name: cid.String(),
 		}, nil
 	}
-
-	return &Channel{
-		ID:        info.ID.String(),
-		Name:      info.Name,
-		Snippet:   info.Snippet,
-		UpdatedAt: info.RemoteTimestamp,
-		Index:     info.Index,
-	}, nil
+	return &cs, nil
 }
 
-// func (s *service) channelInfo(ctx context.Context, channel keys.ID) (*api.ChannelInfo, error) {
-// 	ch, err := s.channel(ctx, channel)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return &api.ChannelInfo{Name: ch.Name}, nil
-// }
-
-func (s *service) channels(ctx context.Context, users keys.ID) ([]*Channel, error) {
-	path := dstore.Path("users", users, "channels")
-	doc, err := s.db.Get(ctx, path)
+func (s *service) channels(ctx context.Context) ([]*Channel, error) {
+	docs, err := s.db.Documents(ctx, dstore.Path("channels"))
 	if err != nil {
 		return nil, err
 	}
-	var state channelsState
-	if err := doc.To(&state); err != nil {
-		return nil, err
-	}
-
-	out := make([]*Channel, 0, len(state.Channels))
-	for _, channel := range state.Channels {
-		c, err := s.channel(ctx, channel.ID)
-		if err != nil {
+	channels := []*Channel{}
+	for _, doc := range docs {
+		var channelStatus channelStatus
+		if err := doc.To(&channelStatus); err != nil {
 			return nil, err
 		}
-		out = append(out, c)
+		channels = append(channels, channelToRPC(channelStatus))
 	}
-	logger.Debugf("Found %d channels in %s", len(out), users)
+	return channels, nil
+}
+
+func (s *service) channel(ctx context.Context, id keys.ID) (*Channel, error) {
+	var channelStatus channelStatus
+	ok, err := s.db.Load(ctx, dstore.Path("channels", id), &channelStatus)
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		return nil, nil
+	}
+	return channelToRPC(channelStatus), nil
+}
+
+func channelToRPC(channelStatus channelStatus) *Channel {
+	return &Channel{
+		ID:        channelStatus.ID.String(),
+		Name:      channelStatus.Name,
+		Snippet:   channelStatus.Snippet,
+		UpdatedAt: channelStatus.RemoteTimestamp,
+		Index:     channelStatus.Index,
+	}
+}
+
+func (s *service) channelKeys() ([]*kapi.Key, error) {
+	ks, err := s.vault.Keys()
+	if err != nil {
+		return nil, err
+	}
+	out := []*kapi.Key{}
+	for _, key := range ks {
+		if !key.HasLabel("channel") {
+			continue
+		}
+		out = append(out, key)
+	}
+	logger.Debugf("Found %d channels", len(out))
 	return out, nil
 }

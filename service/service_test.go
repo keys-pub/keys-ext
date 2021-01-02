@@ -1,6 +1,7 @@
 package service
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
@@ -15,6 +16,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/server"
+	"github.com/keys-pub/keys/api"
 	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/http"
 	"github.com/keys-pub/keys/tsutil"
@@ -58,9 +60,9 @@ func testFire(t *testing.T, clock tsutil.Clock) server.Fire {
 	return fi
 }
 
-// func testSeed(b byte) *[32]byte {
-// 	return keys.Bytes32(bytes.Repeat([]byte{b}, 32))
-// }
+func testSeed(b byte) *[32]byte {
+	return keys.Bytes32(bytes.Repeat([]byte{b}, 32))
+}
 
 type testEnv struct {
 	clock  tsutil.Clock
@@ -142,10 +144,10 @@ func testAuthUnlock(t *testing.T, service *service) {
 // }
 
 func testImportKey(t *testing.T, service *service, key *keys.EdX25519Key) {
-	saltpack, err := keys.EncodeSaltpackKey(key, authPassword)
+	encoded, err := api.EncodeKey(api.NewKey(key), authPassword)
 	require.NoError(t, err)
 	_, err = service.KeyImport(context.TODO(), &KeyImportRequest{
-		In:       []byte(saltpack),
+		In:       []byte(encoded),
 		Password: authPassword,
 	})
 	require.NoError(t, err)
@@ -277,6 +279,7 @@ func newTestServerEnv(t *testing.T, env *testEnv) *serverEnv {
 	tasks := server.NewTestTasks(srv)
 	srv.SetTasks(tasks)
 	srv.SetInternalAuth("testtoken")
+	srv.SetInternalKey("6a169a699f7683c04d127504a12ace3b326e8b56a61a9b315cf6b42e20d6a44a")
 	handler := server.NewHandler(srv)
 	testServer := httptest.NewServer(handler)
 	srv.URL = testServer.URL

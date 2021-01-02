@@ -15,7 +15,7 @@ func exportCommands(client *Client) []cli.Command {
 			Usage: "Export a key",
 			Flags: []cli.Flag{
 				cli.StringFlag{Name: "kid, k", Usage: "kid"},
-				cli.StringFlag{Name: "type, t", Value: "default", Usage: "default, saltpack, ssh"},
+				cli.StringFlag{Name: "type, t", Value: "default", Usage: "default, ssh"},
 				cli.BoolFlag{Name: "public", Usage: "export public part only"},
 				cli.StringFlag{Name: "password, p", Usage: "password"},
 				cli.BoolFlag{Name: "no-password", Usage: "export without password"},
@@ -67,8 +67,6 @@ func exportTypeFromString(s string) (ExportType, error) {
 	switch s {
 	case "", "default":
 		return DefaultExport, nil
-	case "saltpack":
-		return SaltpackExport, nil
 	case "ssh":
 		return SSHExport, nil
 	default:

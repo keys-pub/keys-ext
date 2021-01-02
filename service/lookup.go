@@ -92,27 +92,3 @@ func (s *service) lookupKID(ctx context.Context, key string, searchRemote bool) 
 	}
 	return kid, nil
 }
-
-func (s *service) lookupEdX25519Key(ctx context.Context, key string) (*keys.EdX25519Key, error) {
-	kid, err := s.lookup(ctx, key, nil)
-	if err != nil {
-		return nil, err
-	}
-	sk, err := s.edx25519Key(kid)
-	if err != nil {
-		return nil, err
-	}
-	return sk, nil
-}
-
-func (s *service) lookupEdX25519Keys(ctx context.Context, ks []string) ([]*keys.EdX25519Key, error) {
-	out := []*keys.EdX25519Key{}
-	for _, k := range ks {
-		sk, err := s.lookupEdX25519Key(ctx, k)
-		if err != nil {
-			return nil, err
-		}
-		out = append(out, sk)
-	}
-	return out, nil
-}

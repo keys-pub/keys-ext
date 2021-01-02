@@ -8,6 +8,7 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys-ext/http/client"
+	kapi "github.com/keys-pub/keys/api"
 	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/dstore/events"
 	"github.com/keys-pub/keys/encoding"
@@ -87,7 +88,7 @@ func (s *service) MessageCreate(ctx context.Context, req *MessageCreateRequest) 
 	if err != nil {
 		return nil, err
 	}
-	channelKey, err := s.edx25519Key(channel)
+	ck, err := s.vaultKey(channel)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +105,7 @@ func (s *service) MessageCreate(ctx context.Context, req *MessageCreateRequest) 
 		Timestamp: s.clock.NowMillis(),
 	}
 
-	if err := s.client.MessageSend(ctx, msg, senderKey, channelKey); err != nil {
+	if err := s.client.MessageSend(ctx, msg, senderKey, ck.AsEdX25519()); err != nil {
 		return nil, err
 	}
 
@@ -124,22 +125,18 @@ func (s *service) Messages(ctx context.Context, req *MessagesRequest) (*Messages
 	if err != nil {
 		return nil, errors.Wrapf(err, "invalid channel")
 	}
-	channelKey, err := s.edx25519Key(channel)
-	if err != nil {
-		return nil, err
-	}
-	user, err := s.lookup(ctx, req.User, nil)
+	ck, err := s.vaultKey(channel)
 	if err != nil {
 		return nil, err
 	}
 
 	if req.Update {
-		if err := s.pullMessages(ctx, channel, user); err != nil {
+		if err := s.pullMessages(ctx, ck); err != nil {
 			return nil, err
 		}
 	}
 
-	messages, err := s.messages(ctx, channelKey)
+	messages, err := s.messages(ctx, ck)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +146,7 @@ func (s *service) Messages(ctx context.Context, req *MessagesRequest) (*Messages
 	}, nil
 }
 
-func (s *service) message(ctx context.Context, channelKey *keys.EdX25519Key, path string) (*Message, error) {
+func (s *service) message(ctx context.Context, ck *kapi.Key, path string) (*Message, error) {
 	doc, err := s.db.Get(ctx, path)
 	if err != nil {
 		return nil, err
@@ -163,7 +160,7 @@ func (s *service) message(ctx context.Context, channelKey *keys.EdX25519Key, pat
 		return nil, err
 	}
 
-	msg, err := api.DecryptMessageFromEvent(&event, channelKey)
+	msg, err := api.DecryptMessageFromEvent(&event, ck.AsEdX25519())
 	if err != nil {
 		return nil, err
 	}
@@ -171,8 +168,8 @@ func (s *service) message(ctx context.Context, channelKey *keys.EdX25519Key, pat
 	return s.messageToRPC(ctx, msg)
 }
 
-func (s *service) messages(ctx context.Context, channel *keys.EdX25519Key) ([]*Message, error) {
-	path := dstore.Path("messages", channel.ID())
+func (s *service) messages(ctx context.Context, ck *kapi.Key) ([]*Message, error) {
+	path := dstore.Path("messages", ck.ID)
 	iter, err := s.db.DocumentIterator(ctx, path, dstore.NoData())
 	if err != nil {
 		return nil, err
@@ -188,7 +185,7 @@ func (s *service) messages(ctx context.Context, channel *keys.EdX25519Key) ([]*M
 			break
 		}
 		logger.Debugf("Message %s", e.Path)
-		message, err := s.message(ctx, channel, e.Path)
+		message, err := s.message(ctx, ck, e.Path)
 		if err != nil {
 			return nil, err
 		}
@@ -197,26 +194,13 @@ func (s *service) messages(ctx context.Context, channel *keys.EdX25519Key) ([]*M
 	return messages, nil
 }
 
-type channelPullState struct {
-	Index int64 `json:"idx"`
-}
-
-func (s *service) pullMessages(ctx context.Context, channel keys.ID, user keys.ID) error {
-	channelKey, err := s.edx25519Key(channel)
-	if err != nil {
-		return err
-	}
-	userKey, err := s.edx25519Key(user)
-	if err != nil {
-		return err
-	}
-
+func (s *service) pullMessages(ctx context.Context, ck *kapi.Key) error {
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
-			truncated, err := s.pullMessagesNext(ctx, channelKey, userKey)
+			truncated, err := s.pullMessagesNext(ctx, ck)
 			if err != nil {
 				return err
 			}
@@ -227,28 +211,29 @@ func (s *service) pullMessages(ctx context.Context, channel keys.ID, user keys.I
 	}
 }
 
-func (s *service) pullMessagesNext(ctx context.Context, channelKey *keys.EdX25519Key, userKey *keys.EdX25519Key) (bool, error) {
-	logger.Infof("Pull messages (%s)...", channelKey.ID())
+func (s *service) pullMessagesNext(ctx context.Context, ck *kapi.Key) (bool, error) {
+	logger.Infof("Pull messages (%s)...", ck.ID)
 
-	pullState, err := s.channelPullState(ctx, channelKey.ID())
+	status, err := s.channelStatus(ctx, ck.ID)
 	if err != nil {
 		return false, err
+	}
+	if status == nil {
+		status = &channelStatus{}
 	}
 
 	// Get messages.
-	logger.Infof("Pull state: %v", pullState)
-	msgs, err := s.client.Messages(ctx, channelKey, userKey, &client.MessagesOpts{Index: pullState.Index})
+	logger.Infof("Pull state: %d", status.Index)
+	msgs, err := s.client.Messages(ctx, ck.AsEdX25519(), &client.MessagesOpts{Index: status.Index})
 	if err != nil {
 		return false, err
 	}
 
-	logger.Infof("Received %d messages", len(msgs.Messages))
+	logger.Infof("Received %d messages", len(msgs.Events))
 
-	info := &channelInfo{ID: channelKey.ID()}
-
-	for _, event := range msgs.Messages {
+	for _, event := range msgs.Events {
 		logger.Debugf("Saving message %d", event.Index)
-		path := dstore.Path("messages", channelKey.ID(), pad(event.Index))
+		path := dstore.Path("messages", ck.ID, pad(event.Index))
 		if err := s.db.Set(ctx, path, dstore.From(event)); err != nil {
 			return false, err
 		}
@@ -256,7 +241,7 @@ func (s *service) pullMessagesNext(ctx context.Context, channelKey *keys.EdX2551
 		// TODO: Gracefully handle message errors (continue?)
 
 		// Decrypt message temporarily to update channel state.
-		msg, err := api.DecryptMessageFromEvent(event, channelKey)
+		msg, err := api.DecryptMessageFromEvent(event, ck.AsEdX25519())
 		if err != nil {
 			return false, err
 		}
@@ -267,44 +252,29 @@ func (s *service) pullMessagesNext(ctx context.Context, channelKey *keys.EdX2551
 			return false, err
 		}
 		if len(rmsg.Text) > 0 {
-			info.Snippet = rmsg.Text[len(rmsg.Text)-1]
+			status.Snippet = rmsg.Text[len(rmsg.Text)-1]
 		}
 
 		// Update channel info
 		if msg.ChannelInfo != nil {
 			if msg.ChannelInfo.Name != "" {
-				info.Name = msg.ChannelInfo.Name
+				status.Name = msg.ChannelInfo.Name
 			}
 			if msg.ChannelInfo.Description != "" {
-				info.Description = msg.ChannelInfo.Description
+				status.Description = msg.ChannelInfo.Description
 			}
 		}
-		info.Timestamp = msg.Timestamp
-		info.RemoteTimestamp = msg.RemoteTimestamp
+		status.Timestamp = msg.Timestamp
+		status.RemoteTimestamp = msg.RemoteTimestamp
 	}
-	info.Index = msgs.Index
+	status.Index = msgs.Index
 
-	// Save channel state.
-	if err := s.db.Set(ctx, dstore.Path("channel", channelKey.ID(), "info"), dstore.From(info), dstore.MergeAll()); err != nil {
-		return false, err
-	}
-
-	// Update pull state.
-	pullState.Index = msgs.Index
-	if err := s.db.Set(ctx, dstore.Path("channel", channelKey.ID(), "pull"), dstore.From(pullState)); err != nil {
+	// Save channel status.
+	if err := s.db.Set(ctx, dstore.Path("channels", ck.ID), dstore.From(status), dstore.MergeAll()); err != nil {
 		return false, err
 	}
 
 	return msgs.Truncated, nil
-}
-
-func (s *service) channelPullState(ctx context.Context, channel keys.ID) (*channelPullState, error) {
-	pullStatePath := dstore.Path("channel", channel, "pull")
-	var pullState channelPullState
-	if _, err := s.db.Load(ctx, pullStatePath, &pullState); err != nil {
-		return nil, err
-	}
-	return &pullState, nil
 }
 
 func pad(n int64) string {

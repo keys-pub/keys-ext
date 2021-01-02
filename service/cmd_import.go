@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/keys-pub/keys"
 	"github.com/urfave/cli"
 )
 
@@ -42,18 +41,7 @@ func importCommands(client *Client) []cli.Command {
 					b = in
 				}
 
-				b, typ := keys.DetectEncoding(b)
-				if typ == keys.IDEncoding {
-					req := &KeyImportRequest{
-						In: b,
-					}
-					resp, err := client.KeysClient().KeyImport(context.TODO(), req)
-					if err != nil {
-						return err
-					}
-					fmt.Println(resp.KID)
-					return nil
-				}
+				// TODO: Fix import of key IDs.
 
 				password := c.String("password")
 				noPassword := c.Bool("no-password")

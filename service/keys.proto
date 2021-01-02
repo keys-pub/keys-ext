@@ -104,6 +104,10 @@ service Keys {
   // Channels
   rpc Channels(ChannelsRequest) returns (ChannelsResponse) {}
   rpc ChannelCreate(ChannelCreateRequest) returns (ChannelCreateResponse) {}
+
+  // Follow
+  rpc Follow(FollowRequest) returns (FollowResponse) {}
+  rpc Follows(FollowsRequest) returns (FollowsResponse) {}
   
   // Messages
   rpc MessagePrepare(MessagePrepareRequest) returns (MessagePrepareResponse) {}
@@ -576,8 +580,7 @@ enum ExportType {
   option (go.enum) = {name: "ExportType"};
   
   DEFAULT_EXPORT_TYPE = 0 [(go.value) = {name: "DefaultExport"}];
-  SALTPACK_EXPORT_TYPE = 1 [(go.value) = {name: "SaltpackExport"}];
-  SSH_EXPORT_TYPE = 2 [(go.value) = {name: "SSHExport"}];
+  SSH_EXPORT_TYPE = 1 [(go.value) = {name: "SSHExport"}];
 }
 
 message KeyExportRequest {
@@ -594,6 +597,7 @@ message KeyExportResponse {
 message KeyImportRequest {
   bytes in = 1;
   string password = 2;  
+  bool update = 3;
 }
 message KeyImportResponse {
   string kid = 1 [(go.field) = {name: "KID"}];
@@ -917,7 +921,6 @@ message MessageCreateResponse {
 
 message MessagesRequest {  
   string channel = 1;
-  string user = 2;
   
   // Update, if true will update from the server.
   bool update = 5;  
@@ -933,8 +936,7 @@ message RelayRequest {
 
 message RelayOutput {
   string channel = 1;
-  string user = 2;
-  int64 index = 3;
+  int64 index = 2;
 }
 
 message Channel {
@@ -945,9 +947,7 @@ message Channel {
   int64 index = 5;
 }
 
-message ChannelsRequest {
-  string user = 1;
-}
+message ChannelsRequest {}
 message ChannelsResponse {
   repeated Channel channels = 1;
 }
@@ -958,6 +958,27 @@ message ChannelCreateRequest {
 }
 message ChannelCreateResponse {
   Channel channel = 1;
+}
+
+message Follow {
+  string recipient = 1;
+  string sender = 2;
+}
+
+message FollowRequest {
+  string recipient = 1;
+  string sender = 2;
+
+}
+message FollowResponse {
+  Follow follow = 1;
+}
+
+message FollowsRequest {
+  string recipient = 1;
+}
+message FollowsResponse {
+  repeated Follow follows = 1;
 }
 
 message AdminSignURLRequest {

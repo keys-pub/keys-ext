@@ -26,14 +26,6 @@ func TestLookup(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, alice.ID(), kid)
 
-	sk, err := aliceService.lookupEdX25519Key(ctx, "alice@github")
-	require.NoError(t, err)
-	require.Equal(t, alice.ID(), sk.ID())
-
-	sk, err = aliceService.lookupEdX25519Key(ctx, "kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077")
-	require.NoError(t, err)
-	require.Equal(t, alice.ID(), sk.ID())
-
 	// Bob service
 	bobService, bobCloseFn := newTestService(t, env)
 	defer bobCloseFn()
@@ -47,11 +39,5 @@ func TestLookup(t *testing.T) {
 	require.Equal(t, alice.ID(), kid)
 
 	_, err = bobService.edx25519Key(kid)
-	require.EqualError(t, err, "kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077 not found")
-
-	_, err = bobService.lookupEdX25519Key(ctx, "alice@github")
-	require.EqualError(t, err, "kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077 not found")
-
-	_, err = bobService.lookupEdX25519Key(ctx, "kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077")
 	require.EqualError(t, err, "kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077 not found")
 }
