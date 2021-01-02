@@ -2,9 +2,7 @@ package server_test
 
 import (
 	"encoding/json"
-	"net/url"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/keys-pub/keys-ext/http/api"
@@ -27,9 +25,7 @@ func testFollow(t *testing.T, env *env, tk testKeys) {
 	alice, bob := tk.alice, tk.bob
 
 	// PUT /follow/:bob/:alice (bob follow alice)
-	follow := url.Values{}
-	follow.Set("token", "token1")
-	req, err := http.NewAuthRequest("PUT", dstore.Path("follow", bob.ID(), alice.ID()), strings.NewReader(follow.Encode()), http.ContentHash([]byte(follow.Encode())), clock.Now(), bob)
+	req, err := http.NewAuthRequest("PUT", dstore.Path("follow", bob.ID(), alice.ID()), nil, "", clock.Now(), bob)
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, `{}`, body)
@@ -46,7 +42,6 @@ func testFollow(t *testing.T, env *env, tk testKeys) {
 	require.Equal(t, 1, len(followsResp.Follows))
 	require.Equal(t, alice.ID(), followsResp.Follows[0].Recipient)
 	require.Equal(t, bob.ID(), followsResp.Follows[0].Sender)
-	require.Equal(t, "token1", followsResp.Follows[0].Token)
 
 	// GET /follow/:bob/:alice
 	req, err = http.NewAuthRequest("GET", dstore.Path("follow", bob.ID(), alice.ID()), nil, "", clock.Now(), alice)
@@ -58,7 +53,6 @@ func testFollow(t *testing.T, env *env, tk testKeys) {
 	require.NoError(t, err)
 	require.Equal(t, alice.ID(), followResp.Follow.Recipient)
 	require.Equal(t, bob.ID(), followResp.Follow.Sender)
-	require.Equal(t, "token1", followResp.Follow.Token)
 
 	// GET /follow/:bob/:alice (invalid auth)
 	req, err = http.NewAuthRequest("GET", dstore.Path("follow", bob.ID(), alice.ID()), nil, "", clock.Now(), bob)

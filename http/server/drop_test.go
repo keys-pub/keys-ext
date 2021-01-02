@@ -3,9 +3,7 @@ package server_test
 import (
 	"bytes"
 	"encoding/json"
-	"net/url"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/keys-pub/keys-ext/http/api"
@@ -25,26 +23,23 @@ func testDrop(t *testing.T, env *env, tk testKeys) {
 	srv := newTestServer(t, env)
 	clock := env.clock
 
-	bob := tk.bob
+	alice, bob := tk.alice, tk.bob
 
-	// PUT /drop/auth/:bob
-	drop := url.Values{}
-	drop.Set("token", "token1")
-	req, err := http.NewAuthRequest("PUT", dstore.Path("/drop/auth", bob.ID()), strings.NewReader(drop.Encode()), http.ContentHash([]byte(drop.Encode())), clock.Now(), bob)
+	// PUT /follow/:bob/:alice
+	req, err := http.NewAuthRequest("PUT", dstore.Path("follow", bob.ID(), alice.ID()), nil, "", clock.Now(), bob)
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, `{}`, body)
 
-	// POST /drop/:bob (with token)
-	req, err = http.NewRequest("POST", dstore.Path("drop", bob.ID()), bytes.NewReader([]byte("hi")))
-	req.Header.Set("Authorization", "token1")
+	// POST /drop/:alice/:bob
+	req, err = http.NewAuthRequest("POST", dstore.Path("drop", alice.ID(), bob.ID()), bytes.NewReader([]byte("hi")), http.ContentHash([]byte("hi")), clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, `{}`, body)
 	require.Equal(t, http.StatusOK, code)
 
-	// GET /drop/:kid (bob)
+	// GET /drop/:bob
 	req, err = http.NewAuthRequest("GET", dstore.Path("drop", bob.ID()), nil, "", clock.Now(), bob)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
@@ -56,16 +51,8 @@ func testDrop(t *testing.T, env *env, tk testKeys) {
 	require.Equal(t, 1, len(msgsResp.Messages))
 	require.Equal(t, []byte("hi"), msgsResp.Messages[0].Data)
 
-	// POST /drop/:bob
-	req, err = http.NewRequest("POST", dstore.Path("drop", bob.ID()), bytes.NewReader([]byte("content")))
-	require.NoError(t, err)
-	code, _, body = srv.Serve(req)
-	require.Equal(t, http.StatusForbidden, code)
-	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, body)
-
-	// POST /drop/:bob (with invalid token)
-	req, err = http.NewRequest("POST", dstore.Path("drop", bob.ID()), bytes.NewReader([]byte("content")))
-	req.Header.Set("Authorization", "invalidtoken1")
+	// POST /drop/:bob/:alice (alice doesn't follow bob)
+	req, err = http.NewAuthRequest("POST", dstore.Path("drop", bob.ID(), alice.ID()), bytes.NewReader([]byte("hi")), http.ContentHash([]byte("hi")), clock.Now(), bob)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)

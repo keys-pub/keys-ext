@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"net/url"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
@@ -16,12 +15,7 @@ func (s *Server) putFollow(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	body, st, err := readBody(c, true, 64*1024)
-	if err != nil {
-		return s.ErrResponse(c, st, err)
-	}
-
-	auth, err := s.auth(c, newAuth("Authorization", "sender", body))
+	auth, err := s.auth(c, newAuth("Authorization", "sender", nil))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}
@@ -30,16 +24,8 @@ func (s *Server) putFollow(c echo.Context) error {
 	if err != nil {
 		return s.ErrBadRequest(c, errors.Errorf("invalid recipient"))
 	}
-	form, err := url.ParseQuery(string(body))
-	if err != nil {
-		return s.ErrBadRequest(c, err)
-	}
-	token := form.Get("token")
-	if token == "" {
-		return s.ErrBadRequest(c, errors.Errorf("invalid token"))
-	}
 
-	follow := &api.Follow{Sender: auth.KID, Recipient: recipient, Token: token}
+	follow := &api.Follow{Sender: auth.KID, Recipient: recipient}
 	if err := s.fi.Set(ctx, dstore.Path("follows", recipient, "users", auth.KID), dstore.From(follow)); err != nil {
 		return s.ErrInternalServer(c, err)
 	}

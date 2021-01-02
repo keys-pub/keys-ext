@@ -165,9 +165,8 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	e.POST("/batch", s.postBatch) // Batch
 
 	// Drop
-	e.PUT("/drop/auth/:kid", s.putDropAuth) // Configure drop auth
-	e.POST("/drop/:kid", s.postDrop)        // Drop
-	e.GET("/drop/:kid", s.getDrops)         // List drop
+	e.POST("/drop/:sender/:recipient", s.postDrop) // Drop
+	e.GET("/drop/:recipient", s.getDrops)          // List drops
 
 	// Follow
 	e.PUT("/follow/:sender/:recipient", s.putFollow)       // Follow

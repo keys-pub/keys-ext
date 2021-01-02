@@ -7,7 +7,7 @@ require (
 	github.com/gorilla/websocket v1.4.2
 	github.com/keys-pub/keys v0.1.20-0.20210102022201-ffb45798b8ab
 	github.com/keys-pub/keys-ext/firestore v0.0.0-20210102023225-d2e7279d30fc
-	github.com/keys-pub/keys-ext/http/api v0.0.0-20210102023225-d2e7279d30fc
+	github.com/keys-pub/keys-ext/http/api v0.0.0-20210102234606-16f23aaf0966
 	github.com/keys-pub/keys-ext/ws/api v0.0.0-20210102023225-d2e7279d30fc
 	github.com/labstack/echo/v4 v4.1.17
 	github.com/labstack/gommon v0.3.0

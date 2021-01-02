@@ -282,6 +282,8 @@ github.com/keys-pub/keys-ext/http/api v0.0.0-20210102023115-ac5cde2210b8 h1:9Q+C
 github.com/keys-pub/keys-ext/http/api v0.0.0-20210102023115-ac5cde2210b8/go.mod h1:Ew2xnkYRu01NRiO5b+5avDzeEIy6tsNufRmAaoC9ncA=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20210102023225-d2e7279d30fc h1:E/tYHiC+xiV9ciKeHVPGEeXm5Y7z4OYZrY67CSgPl3A=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20210102023225-d2e7279d30fc/go.mod h1:Ew2xnkYRu01NRiO5b+5avDzeEIy6tsNufRmAaoC9ncA=
+github.com/keys-pub/keys-ext/http/api v0.0.0-20210102234606-16f23aaf0966 h1:bMquZ1F3PMdJL4JTFgiiq7xJ/6jL2brBz+oYl463Az8=
+github.com/keys-pub/keys-ext/http/api v0.0.0-20210102234606-16f23aaf0966/go.mod h1:Ew2xnkYRu01NRiO5b+5avDzeEIy6tsNufRmAaoC9ncA=
 github.com/keys-pub/keys-ext/ws/api v0.0.0-20201118000734-c321e1dba334 h1:fwwhYzjk6o0Ddc29n3NDILbla7J4YhmN7mSlIMHasPk=
 github.com/keys-pub/keys-ext/ws/api v0.0.0-20201118000734-c321e1dba334/go.mod h1:K41OgD6x/MGJfkpC3fmGxBbvhVbiRqMTeNh8DQ+CJ44=
 github.com/keys-pub/keys-ext/ws/api v0.0.0-20201120040216-9bb267d5584f h1:DIDDqjmMgffrxAHY1iOENdrw5ObnEmG+vJVO3U1QsSQ=
