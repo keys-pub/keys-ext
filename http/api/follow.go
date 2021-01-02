@@ -8,7 +8,6 @@ import (
 type Follow struct {
 	Sender    keys.ID `json:"sender" msgpack:"sender"`
 	Recipient keys.ID `json:"recipient" msgpack:"recipient"`
-	Token     string  `json:"token" msgpack:"token"`
 }
 
 // FollowResponse ...
