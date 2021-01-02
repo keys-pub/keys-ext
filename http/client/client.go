@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net"
 	nethttp "net/http"
@@ -63,9 +62,9 @@ func defaultHTTPClient() *nethttp.Client {
 
 // Error ...
 type Error struct {
-	StatusCode int
-	Message    string
-	URL        *url.URL
+	StatusCode int      `json:"code"`
+	Message    string   `json:"message"`
+	URL        *url.URL `json:"url,omitempty"`
 }
 
 func (e Error) Error() string {
@@ -123,30 +122,60 @@ func (c *Client) urlFor(path string, params url.Values) (string, error) {
 	return urs, nil
 }
 
-func (c *Client) req(ctx context.Context, method string, path string, params url.Values, body io.Reader, contentHash string, auth *keys.EdX25519Key) (*http.Response, error) {
-	urs, err := c.urlFor(path, params)
+type request struct {
+	Method string
+	Path   string
+	Params url.Values
+	// Body        io.Reader
+	// ContentHash string
+	Body    []byte
+	Key     *keys.EdX25519Key
+	Headers []http.Header
+}
+
+func (c *Client) req(ctx context.Context, req request) (*Response, error) {
+	urs, err := c.urlFor(req.Path, req.Params)
 	if err != nil {
 		return nil, err
 	}
 
-	logger.Debugf("Client req %s %s", method, urs)
+	logger.Debugf("Client req %s %s", req.Method, urs)
 
-	var req *http.Request
-	if auth != nil {
-		r, err := http.NewAuthRequest(method, urs, body, contentHash, c.clock.Now(), auth)
+	var httpReq *http.Request
+	if req.Key != nil {
+		r, err := http.NewAuthRequest(req.Method, urs, bytes.NewReader(req.Body), http.ContentHash(req.Body), c.clock.Now(), req.Key)
 		if err != nil {
 			return nil, err
 		}
-		req = r
+		httpReq = r
 	} else {
-		r, err := http.NewRequest(method, urs, body)
+		r, err := http.NewRequest(req.Method, urs, bytes.NewReader(req.Body))
 		if err != nil {
 			return nil, err
 		}
-		req = r
+		httpReq = r
 	}
 
-	return c.httpClient.Do(req.WithContext(ctx))
+	for _, h := range req.Headers {
+		httpReq.Header.Set(h.Name, h.Value)
+	}
+
+	resp, err := c.httpClient.Do(httpReq.WithContext(ctx))
+	if err != nil {
+		return nil, err
+	}
+	if (req.Method == "GET" || req.Method == "HEAD") && resp.StatusCode == 404 {
+		logger.Debugf("Not found %s", req.Path)
+		return nil, nil
+	}
+	if err := checkResponse(resp); err != nil {
+		return nil, err
+	}
+	if resp == nil {
+		return nil, nil
+	}
+	defer resp.Body.Close()
+	return c.response(req.Path, resp)
 }
 
 // Response ...
@@ -188,60 +217,11 @@ func (c *Client) response(path string, resp *http.Response) (*Response, error) {
 	return out, nil
 }
 
-func (c *Client) get(ctx context.Context, path string, params url.Values, auth *keys.EdX25519Key) (*Response, error) {
-	resp, err := c.req(ctx, "GET", path, params, nil, "", auth)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to GET")
-	}
-	if resp.StatusCode == 404 {
-		logger.Debugf("Not found %s", path)
-		return nil, nil
-	}
-	if err := checkResponse(resp); err != nil {
-		return nil, err
-	}
-	if resp == nil {
-		return nil, nil
-	}
-	defer resp.Body.Close()
-	return c.response(path, resp)
-}
-
-func (c *Client) head(ctx context.Context, path string, params url.Values, auth *keys.EdX25519Key) (*http.Response, error) {
-	resp, err := c.req(ctx, "HEAD", path, params, nil, "", auth)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to HEAD")
-	}
-	if resp.StatusCode == 404 {
-		logger.Debugf("Not found %s", path)
-		return nil, nil
-	}
-	if err := checkResponse(resp); err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
-
-func (c *Client) put(ctx context.Context, path string, params url.Values, reader io.Reader, contentHash string, auth *keys.EdX25519Key) (*Response, error) {
-	resp, err := c.req(ctx, "PUT", path, params, reader, contentHash, auth)
-	if err != nil {
-		return nil, err
-	}
-	if err := checkResponse(resp); err != nil {
-		return nil, err
-	}
-	if resp == nil {
-		return nil, nil
-	}
-	defer resp.Body.Close()
-	return c.response(path, resp)
-}
-
-func (c *Client) putRetryOnConflict(ctx context.Context, path string, params url.Values, b []byte, contentHash string, auth *keys.EdX25519Key, attempt int, maxAttempts int, delay time.Duration) (*Response, error) {
+func (c *Client) retryOnConflict(ctx context.Context, req request, attempt int, maxAttempts int, delay time.Duration) (*Response, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
-	resp, err := c.put(ctx, path, params, bytes.NewReader(b), contentHash, auth)
+	resp, err := c.req(ctx, req)
 	if err != nil {
 		var rerr Error
 		if attempt < maxAttempts && errors.As(err, &rerr) && rerr.StatusCode == http.StatusConflict {
@@ -250,34 +230,8 @@ func (c *Client) putRetryOnConflict(ctx context.Context, path string, params url
 				return nil, ctx.Err()
 			case <-time.After(delay):
 			}
-			return c.putRetryOnConflict(ctx, path, params, b, contentHash, auth, attempt+1, maxAttempts, delay)
+			return c.retryOnConflict(ctx, req, attempt+1, maxAttempts, delay)
 		}
-		return nil, err
-	}
-	return resp, nil
-}
-
-func (c *Client) post(ctx context.Context, path string, params url.Values, reader io.Reader, contentHash string, auth *keys.EdX25519Key) (*Response, error) {
-	resp, err := c.req(ctx, "POST", path, params, reader, contentHash, auth)
-	if err != nil {
-		return nil, err
-	}
-	if err := checkResponse(resp); err != nil {
-		return nil, err
-	}
-	if resp == nil {
-		return nil, nil
-	}
-	defer resp.Body.Close()
-	return c.response(path, resp)
-}
-
-func (c *Client) delete(ctx context.Context, path string, params url.Values, reader io.Reader, contentHash string, auth *keys.EdX25519Key) (*http.Response, error) {
-	resp, err := c.req(ctx, "DELETE", path, params, reader, contentHash, auth)
-	if err != nil {
-		return nil, err
-	}
-	if err := checkResponse(resp); err != nil {
 		return nil, err
 	}
 	return resp, nil

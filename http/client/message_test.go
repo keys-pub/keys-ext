@@ -48,10 +48,10 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	require.NoError(t, err)
 
 	// Messages
-	msgs, err := aliceClient.Messages(ctx, channel, alice, nil)
+	msgs, err := aliceClient.Messages(ctx, channel, nil)
 	require.NoError(t, err)
 	require.Equal(t, int64(1), msgs.Index)
-	require.Equal(t, 1, len(msgs.Messages))
+	require.Equal(t, 1, len(msgs.Events))
 	require.False(t, msgs.Truncated)
 
 	// MessageSend #1
@@ -65,20 +65,20 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	require.NoError(t, err)
 
 	// Messages
-	msgs, err = aliceClient.Messages(ctx, channel, alice, nil)
+	msgs, err = aliceClient.Messages(ctx, channel, nil)
 	require.NoError(t, err)
-	require.Equal(t, 3, len(msgs.Messages))
+	require.Equal(t, 3, len(msgs.Events))
 	require.False(t, msgs.Truncated)
-	out1, err := api.DecryptMessageFromEvent(msgs.Messages[1], channel)
+	out1, err := api.DecryptMessageFromEvent(msgs.Events[1], channel)
 	require.NoError(t, err)
 	require.Equal(t, msg1.Text, out1.Text)
 	require.Equal(t, alice.ID(), out1.Sender)
-	out2, err := api.DecryptMessageFromEvent(msgs.Messages[2], channel)
+	out2, err := api.DecryptMessageFromEvent(msgs.Events[2], channel)
 	require.NoError(t, err)
 	require.Equal(t, msg2.Text, out2.Text)
 	require.Equal(t, bob.ID(), out2.Sender)
-	require.NotEmpty(t, msgs.Messages[2].Timestamp)
-	require.NotEmpty(t, msgs.Messages[2].Index)
+	require.NotEmpty(t, msgs.Events[2].Timestamp)
+	require.NotEmpty(t, msgs.Events[2].Index)
 
 	// MessageSend #3
 	msg3 := api.NewMessage(alice.ID()).WithPrev(msg2.ID).WithText("3pm").WithTimestamp(env.clock.NowMillis())
@@ -86,31 +86,31 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	require.NoError(t, err)
 
 	// Messages (from idx)
-	msgs, err = aliceClient.Messages(ctx, channel, alice, &client.MessagesOpts{Index: msgs.Index})
+	msgs, err = aliceClient.Messages(ctx, channel, &client.MessagesOpts{Index: msgs.Index})
 	require.NoError(t, err)
-	require.Equal(t, 1, len(msgs.Messages))
-	out3, err := api.DecryptMessageFromEvent(msgs.Messages[0], channel)
+	require.Equal(t, 1, len(msgs.Events))
+	out3, err := api.DecryptMessageFromEvent(msgs.Events[0], channel)
 	require.NoError(t, err)
 	require.Equal(t, msg3.Text, out3.Text)
 	require.Equal(t, alice.ID(), out3.Sender)
 
 	// Messages (desc)
-	msgs, err = aliceClient.Messages(ctx, channel, alice, &client.MessagesOpts{Order: events.Descending})
+	msgs, err = aliceClient.Messages(ctx, channel, &client.MessagesOpts{Order: events.Descending})
 	require.NoError(t, err)
-	require.Equal(t, 4, len(msgs.Messages))
-	out1, err = api.DecryptMessageFromEvent(msgs.Messages[0], channel)
+	require.Equal(t, 4, len(msgs.Events))
+	out1, err = api.DecryptMessageFromEvent(msgs.Events[0], channel)
 	require.NoError(t, err)
 	require.Equal(t, msg3.Text, out1.Text)
-	out2, err = api.DecryptMessageFromEvent(msgs.Messages[1], channel)
+	out2, err = api.DecryptMessageFromEvent(msgs.Events[1], channel)
 	require.NoError(t, err)
 	require.Equal(t, msg2.Text, out2.Text)
-	out3, err = api.DecryptMessageFromEvent(msgs.Messages[2], channel)
+	out3, err = api.DecryptMessageFromEvent(msgs.Events[2], channel)
 	require.NoError(t, err)
 	require.Equal(t, msg1.Text, out3.Text)
 
 	// Unknown channel
 	unknown := keys.GenerateEdX25519Key()
-	msgs, err = aliceClient.Messages(ctx, unknown, alice, nil)
+	msgs, err = aliceClient.Messages(ctx, unknown, nil)
 	require.NoError(t, err)
 	require.Nil(t, msgs)
 }

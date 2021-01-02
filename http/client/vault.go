@@ -1,7 +1,6 @@
 package client
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"net/url"
@@ -11,7 +10,6 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/dstore"
-	"github.com/keys-pub/keys/http"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
 	"github.com/vmihailenco/msgpack/v4"
@@ -47,7 +45,6 @@ type VaultEvent struct {
 // Events are encrypted with the key before saving.
 func (c *Client) VaultSend(ctx context.Context, key *keys.EdX25519Key, events []*VaultEvent) error {
 	path := dstore.Path("vault", key.ID())
-	vals := url.Values{}
 
 	out := []*api.Data{}
 	for _, event := range events {
@@ -72,7 +69,7 @@ func (c *Client) VaultSend(ctx context.Context, key *keys.EdX25519Key, events []
 		return err
 	}
 
-	if _, err := c.post(ctx, path, vals, bytes.NewReader(b), http.ContentHash(b), key); err != nil {
+	if _, err := c.req(ctx, request{Method: "POST", Path: path, Body: b, Key: key}); err != nil {
 		return err
 	}
 	return nil
@@ -126,7 +123,7 @@ func (c *Client) Vault(ctx context.Context, key *keys.EdX25519Key, opt ...VaultO
 		return nil, errors.Errorf("limit not currently supported")
 	}
 
-	resp, err := c.get(ctx, path, params, key)
+	resp, err := c.req(ctx, request{Method: "GET", Path: path, Params: params, Key: key})
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +150,7 @@ func vaultDecryptResponse(resp *api.VaultResponse, key *keys.EdX25519Key) (*Vaul
 		if err := msgpack.Unmarshal(decrypted, &event); err != nil {
 			return nil, err
 		}
-		event.RemoteTimestamp = tsutil.ConvertMillis(revent.Timestamp)
+		event.RemoteTimestamp = tsutil.ParseMillis(revent.Timestamp)
 		event.RemoteIndex = revent.Index
 		out = append(out, &event)
 	}
@@ -171,9 +168,7 @@ func vaultDecrypt(b []byte, key *keys.EdX25519Key) ([]byte, error) {
 // VaultDelete removes a vault.
 func (c *Client) VaultDelete(ctx context.Context, key *keys.EdX25519Key) error {
 	path := dstore.Path("vault", key.ID())
-	vals := url.Values{}
-
-	if _, err := c.delete(ctx, path, vals, nil, "", key); err != nil {
+	if _, err := c.req(ctx, request{Method: "DELETE", Path: path, Key: key}); err != nil {
 		return err
 	}
 	return nil
@@ -183,7 +178,7 @@ func (c *Client) VaultDelete(ctx context.Context, key *keys.EdX25519Key) error {
 func (c *Client) VaultExists(ctx context.Context, key *keys.EdX25519Key) (bool, error) {
 	path := dstore.Path("vault", key.ID())
 	params := url.Values{}
-	resp, err := c.head(ctx, path, params, key)
+	resp, err := c.req(ctx, request{Method: "HEAD", Path: path, Params: params, Key: key})
 	if err != nil {
 		return false, err
 	}

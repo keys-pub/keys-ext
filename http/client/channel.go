@@ -1,20 +1,25 @@
 package client
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"net/url"
+	"sort"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
-	kapi "github.com/keys-pub/keys/api"
 	"github.com/keys-pub/keys/dstore"
-	"github.com/keys-pub/keys/http"
+	"github.com/pkg/errors"
 )
 
+// ChannelCreated ...
+type ChannelCreated struct {
+	Channel *api.Channel
+	Message *api.Message
+}
+
 // ChannelCreate creates a channel.
-func (c *Client) ChannelCreate(ctx context.Context, channel *keys.EdX25519Key, user *keys.EdX25519Key, info *api.ChannelInfo) (*api.Message, error) {
+func (c *Client) ChannelCreate(ctx context.Context, channel *keys.EdX25519Key, user *keys.EdX25519Key, info *api.ChannelInfo) (*ChannelCreated, error) {
 	path := dstore.Path("channel", channel.ID())
 
 	var msg *api.Message
@@ -36,24 +41,88 @@ func (c *Client) ChannelCreate(ctx context.Context, channel *keys.EdX25519Key, u
 	}
 
 	params := url.Values{}
-	if _, err := c.put(ctx, path, params, bytes.NewReader(body), http.ContentHash(body), channel); err != nil {
+	resp, err := c.req(ctx, request{Method: "PUT", Path: path, Params: params, Body: body, Key: channel})
+	if err != nil {
+		return nil, err
+	}
+	var out api.ChannelCreateResponse
+	if err := json.Unmarshal(resp.Data, &out); err != nil {
+		return nil, err
+	}
+	return &ChannelCreated{
+		Channel: out.Channel,
+		Message: msg,
+	}, nil
+}
+
+// ChannelsStatus lists channel status.
+func (c *Client) ChannelsStatus(ctx context.Context, channelTokens ...*api.ChannelToken) ([]*api.ChannelStatus, error) {
+	statusReq := api.ChannelsStatusRequest{
+		Channels: map[keys.ID]string{},
+	}
+	for _, ct := range channelTokens {
+		statusReq.Channels[ct.ID] = ct.Token
+	}
+
+	body, err := json.Marshal(statusReq)
+	if err != nil {
+		return nil, err
+	}
+
+	params := url.Values{}
+	resp, err := c.req(ctx, request{Method: "POST", Path: "/channels/status", Params: params, Body: body})
+	if err != nil {
+		return nil, err
+	}
+
+	var out api.ChannelsStatusResponse
+	if err := json.Unmarshal(resp.Data, &out); err != nil {
+		return nil, err
+	}
+	sort.Slice(out.Channels, func(i, j int) bool {
+		return out.Channels[i].Timestamp > out.Channels[j].Timestamp
+	})
+	return out.Channels, nil
+}
+
+// InviteToChannel sends a direct message containing a channel key.
+func (c *Client) InviteToChannel(ctx context.Context, invite *api.ChannelInvite, sender *keys.EdX25519Key, dropToken string) (*api.Message, error) {
+	if sender.ID() != invite.Sender {
+		return nil, errors.Errorf("invite sender mismatch")
+	}
+	msg := api.NewMessageForChannelInvite(invite)
+	if err := c.Drop(ctx, msg, sender, invite.Recipient, dropToken); err != nil {
 		return nil, err
 	}
 	return msg, nil
 }
 
-// InviteToChannel sends a direct message containing a channel key.
-func (c *Client) InviteToChannel(ctx context.Context, channel *keys.EdX25519Key, info *api.ChannelInfo, sender *keys.EdX25519Key, recipient keys.ID) (*api.Message, error) {
-	invite := &api.ChannelInvite{
-		Channel:   channel.ID(),
-		Recipient: recipient,
-		Key:       kapi.NewKey(channel),
-		Info:      info,
-	}
+// ChannelInvites ..
+type ChannelInvites struct {
+	Invites   []*api.ChannelInvite
+	Index     int64
+	Truncated bool
+}
 
-	msg := api.NewMessageForChannelInvite(sender.ID(), invite)
-	if err := c.DirectMessageSend(ctx, msg, sender, recipient); err != nil {
+// ChannelInvites lists channel invites from drops.
+func (c *Client) ChannelInvites(ctx context.Context, recipient *keys.EdX25519Key, opts *MessagesOpts) (*ChannelInvites, error) {
+	drops, err := c.Drops(ctx, recipient, opts)
+	if err != nil {
 		return nil, err
 	}
-	return msg, nil
+	msgs, err := drops.Decrypt(recipient)
+	if err != nil {
+		return nil, err
+	}
+	invites := []*api.ChannelInvite{}
+	for _, msg := range msgs {
+		if msg.ChannelInvite != nil {
+			invites = append(invites, msg.ChannelInvite)
+		}
+	}
+	return &ChannelInvites{
+		Invites:   invites,
+		Index:     drops.Index,
+		Truncated: drops.Truncated,
+	}, nil
 }

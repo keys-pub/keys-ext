@@ -14,7 +14,7 @@ import (
 // If check is "all" (not recommended), it will check all keys.
 func (c *Client) AdminCheck(ctx context.Context, check string, admin *keys.EdX25519Key) error {
 	params := url.Values{}
-	_, err := c.post(ctx, "/admin/check/"+check, params, nil, "", admin)
+	_, err := c.req(ctx, request{Method: "POST", Path: "/admin/check/" + check, Params: params, Key: admin})
 	if err != nil {
 		return err
 	}

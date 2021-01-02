@@ -72,6 +72,7 @@ func newEnvWithOptions(t *testing.T, opts *envOptions) (*env, func()) {
 	tasks := server.NewTestTasks(srv)
 	srv.SetTasks(tasks)
 	srv.SetInternalAuth("testtoken")
+	srv.SetInternalKey("6a169a699f7683c04d127504a12ace3b326e8b56a61a9b315cf6b42e20d6a44a")
 
 	handler := server.NewHandler(srv)
 	if opts.handlerFn != nil {
@@ -105,19 +106,23 @@ func newTestClient(t *testing.T, env *env) *client.Client {
 }
 
 type testKeys struct {
-	alice   *keys.EdX25519Key
-	bob     *keys.EdX25519Key
-	channel *keys.EdX25519Key
+	alice    *keys.EdX25519Key
+	bob      *keys.EdX25519Key
+	channel  *keys.EdX25519Key
+	channel2 *keys.EdX25519Key
 }
 
+var alice = keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
+var bob = keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
+var channel = keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0xef}, 32)))
+var channel2 = keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0xf0}, 32)))
+
 func testKeysSeeded() testKeys {
-	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
-	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
-	channel := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0xef}, 32)))
 	return testKeys{
-		alice:   alice,
-		bob:     bob,
-		channel: channel,
+		alice:    alice,
+		bob:      bob,
+		channel:  channel,
+		channel2: channel2,
 	}
 }
 
@@ -125,9 +130,11 @@ func testKeysRandom() testKeys {
 	alice := keys.GenerateEdX25519Key()
 	bob := keys.GenerateEdX25519Key()
 	channel := keys.GenerateEdX25519Key()
+	channel2 := keys.GenerateEdX25519Key()
 	return testKeys{
-		alice:   alice,
-		bob:     bob,
-		channel: channel,
+		alice:    alice,
+		bob:      bob,
+		channel:  channel,
+		channel2: channel2,
 	}
 }

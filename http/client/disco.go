@@ -1,14 +1,12 @@
 package client
 
 import (
-	"bytes"
 	"context"
 	"net/url"
 	"time"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/dstore"
-	"github.com/keys-pub/keys/http"
 	"github.com/pkg/errors"
 )
 
@@ -37,7 +35,7 @@ func (c *Client) DiscoSave(ctx context.Context, sender *keys.EdX25519Key, recipi
 	path := dstore.Path("disco", sender.ID(), recipient, string(typ))
 	vals := url.Values{}
 	vals.Set("expire", expire.String())
-	if _, err := c.put(ctx, path, vals, bytes.NewReader(encrypted), http.ContentHash(encrypted), sender); err != nil {
+	if _, err := c.req(ctx, request{Method: "PUT", Path: path, Params: vals, Body: encrypted, Key: sender}); err != nil {
 		return err
 	}
 	return nil
@@ -52,7 +50,7 @@ func (c *Client) Disco(ctx context.Context, sender keys.ID, recipient *keys.EdX2
 
 	path := dstore.Path("disco", sender, recipient, string(typ))
 	vals := url.Values{}
-	resp, err := c.get(ctx, path, vals, recipient)
+	resp, err := c.req(ctx, request{Method: "GET", Path: path, Params: vals, Key: recipient})
 	if err != nil {
 		return "", err
 	}
@@ -72,7 +70,7 @@ func (c *Client) Disco(ctx context.Context, sender keys.ID, recipient *keys.EdX2
 func (c *Client) DiscoDelete(ctx context.Context, sender *keys.EdX25519Key, recipient keys.ID) error {
 	path := dstore.Path("disco", sender.ID(), recipient)
 	vals := url.Values{}
-	if _, err := c.delete(ctx, path, vals, nil, "", sender); err != nil {
+	if _, err := c.req(ctx, request{Method: "DELETE", Path: path, Params: vals, Key: sender}); err != nil {
 		return err
 	}
 	return nil

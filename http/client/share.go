@@ -1,14 +1,12 @@
 package client
 
 import (
-	"bytes"
 	"context"
 	"net/url"
 	"time"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/dstore"
-	"github.com/keys-pub/keys/http"
 )
 
 // ShareSeal saves a secret on remote with expire.
@@ -18,7 +16,7 @@ func (c *Client) ShareSeal(ctx context.Context, key *keys.EdX25519Key, data []by
 	path := dstore.Path("share", key.ID())
 	vals := url.Values{}
 	vals.Set("expire", expire.String())
-	if _, err := c.put(ctx, path, vals, bytes.NewReader(encrypted), http.ContentHash(encrypted), key); err != nil {
+	if _, err := c.req(ctx, request{Method: "PUT", Path: path, Params: vals, Body: encrypted, Key: key}); err != nil {
 		return err
 	}
 	return nil
@@ -28,7 +26,7 @@ func (c *Client) ShareSeal(ctx context.Context, key *keys.EdX25519Key, data []by
 func (c *Client) ShareOpen(ctx context.Context, key *keys.EdX25519Key) ([]byte, error) {
 	path := dstore.Path("share", key.ID())
 	vals := url.Values{}
-	resp, err := c.get(ctx, path, vals, key)
+	resp, err := c.req(ctx, request{Method: "GET", Path: path, Params: vals, Key: key})
 	if err != nil {
 		return nil, err
 	}

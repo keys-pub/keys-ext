@@ -1,7 +1,6 @@
 package client
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -12,26 +11,10 @@ import (
 	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/dstore/events"
-	"github.com/keys-pub/keys/http"
-	"github.com/pkg/errors"
 )
 
 // MessageSend sends an encrypted message to a channel.
-// TODO: expire time.Duration
 func (c *Client) MessageSend(ctx context.Context, message *api.Message, sender *keys.EdX25519Key, channel *keys.EdX25519Key) error {
-	// if expire == time.Duration(0) {
-	// 	return errors.Errorf("no expire specified")
-	// }
-	if message.RemoteTimestamp != 0 {
-		return errors.Errorf("remote timestamp should be omitted on send")
-	}
-	if message.RemoteIndex != 0 {
-		return errors.Errorf("remote index should be omitted on send")
-	}
-	if message.Timestamp == 0 {
-		return errors.Errorf("message timestamp is not set")
-	}
-
 	encrypted, err := message.Encrypt(sender, channel.ID())
 	if err != nil {
 		return err
@@ -40,7 +23,7 @@ func (c *Client) MessageSend(ctx context.Context, message *api.Message, sender *
 	path := dstore.Path("channel", channel.ID(), "msgs")
 	vals := url.Values{}
 	// vals.Set("expire", expire.String())
-	if _, err := c.post(ctx, path, vals, bytes.NewReader(encrypted), http.ContentHash(encrypted), channel); err != nil {
+	if _, err := c.req(ctx, request{Method: "POST", Path: path, Params: vals, Body: encrypted, Key: channel}); err != nil {
 		return err
 	}
 	return nil
@@ -58,21 +41,39 @@ type MessagesOpts struct {
 
 // Messages response.
 type Messages struct {
-	Messages  []*events.Event
+	Events    []*events.Event
 	Index     int64
 	Truncated bool
+}
+
+// Decrypt messages.
+func (m Messages) Decrypt(key *keys.EdX25519Key) ([]*api.Message, error) {
+	msgs := make([]*api.Message, 0, len(m.Events))
+	for _, event := range m.Events {
+		msg, err := api.DecryptMessageFromEvent(event, key)
+		if err != nil {
+			// TODO: Skip invalid messages
+			return nil, err
+		}
+		msgs = append(msgs, msg)
+	}
+	return msgs, nil
 }
 
 // Messages returns encrypted messages (as event.Event) and current index from a
 // previous index.
 // If truncated, there are more results if you call again with the new index.
 // To decrypt to api.Message, use DecryptMessage.
-func (c *Client) Messages(ctx context.Context, channel *keys.EdX25519Key, sender *keys.EdX25519Key, opts *MessagesOpts) (*Messages, error) {
+func (c *Client) Messages(ctx context.Context, channel *keys.EdX25519Key, opts *MessagesOpts) (*Messages, error) {
+	path := dstore.Path("channel", channel.ID(), "msgs")
+	return c.messages(ctx, path, channel, opts)
+}
+
+func (c *Client) messages(ctx context.Context, path string, key *keys.EdX25519Key, opts *MessagesOpts) (*Messages, error) {
 	if opts == nil {
 		opts = &MessagesOpts{}
 	}
 
-	path := dstore.Path("channel", channel.ID(), "msgs")
 	params := url.Values{}
 	if opts.Index != 0 {
 		params.Add("idx", strconv.FormatInt(opts.Index, 10))
@@ -84,7 +85,12 @@ func (c *Client) Messages(ctx context.Context, channel *keys.EdX25519Key, sender
 		params.Add("limit", fmt.Sprintf("%d", opts.Limit))
 	}
 
-	resp, err := c.get(ctx, path, params, channel)
+	resp, err := c.req(ctx, request{
+		Method: "GET",
+		Path:   path,
+		Params: params,
+		Key:    key,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +104,7 @@ func (c *Client) Messages(ctx context.Context, channel *keys.EdX25519Key, sender
 	}
 
 	return &Messages{
-		Messages:  out.Messages,
+		Events:    out.Messages,
 		Index:     out.Index,
 		Truncated: out.Truncated,
 	}, nil
