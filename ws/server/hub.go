@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/ws/api"
 	"github.com/pkg/errors"
 )
@@ -20,11 +19,11 @@ type Hub struct {
 	// Registered clients.
 	clients map[string]*client
 
-	// Clients by key.
-	clientsForKey map[keys.ID]map[string]*client
+	// Clients by token.
+	clientsByToken map[string]map[string]*client
 
 	// Inbound messages.
-	broadcast chan *api.PubSubEvent
+	broadcast chan *api.Event
 
 	// Inbound auth.
 	auth chan *authClient
@@ -34,27 +33,24 @@ type Hub struct {
 
 	// Unregister requests from clients.
 	unregister chan *client
-
-	nonceCheck api.NonceCheck
 }
 
 type authClient struct {
 	client *client
-	kid    keys.ID
+	token  string
 }
 
 // NewHub ...
 func NewHub(url string) *Hub {
 	h := &Hub{
-		url:           url,
-		broadcast:     make(chan *api.PubSubEvent),
-		auth:          make(chan *authClient, 10),
-		register:      make(chan *client),
-		unregister:    make(chan *client),
-		clients:       make(map[string]*client),
-		clientsForKey: make(map[keys.ID]map[string]*client),
+		url:            url,
+		broadcast:      make(chan *api.Event),
+		auth:           make(chan *authClient, 10),
+		register:       make(chan *client),
+		unregister:     make(chan *client),
+		clients:        make(map[string]*client),
+		clientsByToken: make(map[string]map[string]*client),
 	}
-	h.nonceCheck = h.rdsNonceCheck
 	return h
 }
 
@@ -97,30 +93,11 @@ func (h *Hub) Run() {
 		case auth := <-h.auth:
 			// log.Printf("register auth %s\n", auth.client.id)
 			h.registerAuth(auth)
-			log.Printf("send hello %s\n", auth.kid)
-			auth.client.send <- &api.Event{Type: api.HelloEventType, User: auth.kid}
-		case pevent := <-h.broadcast:
-			switch pevent.Type {
-			case api.ChannelCreatedEventType:
-				clients := h.findClients(pevent.User)
-				event := &api.Event{
-					Channel: pevent.Channel,
-					User:    pevent.User,
-					Type:    api.ChannelCreatedEventType,
-				}
-				h.send(clients, event)
-			case api.ChannelMessageEventType:
-				for _, user := range pevent.Recipients {
-					clients := h.findClients(user)
-					event := &api.Event{
-						Channel: pevent.Channel,
-						User:    user,
-						Index:   pevent.Index,
-						Type:    api.ChannelMessageEventType,
-					}
-					h.send(clients, event)
-				}
-			}
+			// log.Printf("send hello %s\n", auth.kid)
+			// auth.client.send <- &api.Event{}
+		case event := <-h.broadcast:
+			clients := h.findClients(event.Token)
+			h.send(clients, event)
 		}
 	}
 }
@@ -138,38 +115,38 @@ func (h *Hub) send(clients []*client, event *api.Event) {
 }
 
 func (h *Hub) registerAuth(auth *authClient) {
-	h.registerKID(auth.client, auth.kid)
+	h.registerClient(auth.client, auth.token)
 }
 
-func (h *Hub) registerKID(cl *client, kid keys.ID) {
+func (h *Hub) registerClient(cl *client, token string) {
 	// log.Printf("auth %s => %s\n", auth.client.id, auth.kid)
-	if cl.kids == nil {
-		cl.kids = []keys.ID{}
+	if cl.tokens == nil {
+		cl.tokens = []string{}
 	}
-	cl.kids = append(cl.kids, kid)
-	clients, ok := h.clientsForKey[kid]
+	cl.tokens = append(cl.tokens, token)
+	clients, ok := h.clientsByToken[token]
 	if !ok {
 		clients = map[string]*client{}
-		h.clientsForKey[kid] = clients
+		h.clientsByToken[token] = clients
 	}
 	clients[cl.id] = cl
 }
 
 func (h *Hub) unregisterAuth(cl *client) {
-	for _, kid := range cl.kids {
-		clientsForKey, ok := h.clientsForKey[kid]
+	for _, token := range cl.tokens {
+		clientsByToken, ok := h.clientsByToken[token]
 		if !ok {
 			continue
 		}
 		// log.Printf("deauth %s => %s\n", cl.id, kid)
-		delete(clientsForKey, cl.id)
+		delete(clientsByToken, cl.id)
 	}
 	delete(h.clients, cl.id)
-	cl.kids = nil
+	cl.tokens = nil
 }
 
-func (h *Hub) findClients(kid keys.ID) []*client {
-	clients, ok := h.clientsForKey[kid]
+func (h *Hub) findClients(token string) []*client {
+	clients, ok := h.clientsByToken[token]
 	if !ok {
 		return nil
 	}

@@ -1,13 +1,11 @@
 package main
 
 import (
-	"context"
 	"log"
 	"os"
 
 	"github.com/joho/godotenv"
 	"github.com/keys-pub/keys-ext/ws/server"
-	"github.com/pkg/errors"
 )
 
 func main() {
@@ -16,19 +14,6 @@ func main() {
 		log.Fatal("Failed to load .env")
 	}
 
-	// In memory nonce check
-	nonces := map[string]bool{}
-	opts := &server.ServeOptions{
-		NonceCheck: func(ctx context.Context, nonce string) error {
-			_, ok := nonces[nonce]
-			if ok {
-				return errors.Errorf("nonce collision")
-			}
-			nonces[nonce] = true
-			return nil
-		},
-	}
-
 	sk := os.Getenv("SECRET_KEY")
-	log.Fatal(server.ListenAndServe(":8080", "ws://localhost:8080/ws", sk, opts))
+	log.Fatal(server.ListenAndServe(":8080", "ws://localhost:8080/ws", sk, nil))
 }

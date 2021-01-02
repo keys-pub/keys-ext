@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys-ext/ws/api"
 	"github.com/keys-pub/keys/encoding"
 	"github.com/pkg/errors"
 )
@@ -20,10 +19,7 @@ func readiness(w http.ResponseWriter, r *http.Request) {
 }
 
 // ServeOptions ...
-type ServeOptions struct {
-	// NonceCheck to override default nonce check.
-	NonceCheck api.NonceCheck
-}
+type ServeOptions struct{}
 
 func decodeKey(secretKey string) (*[32]byte, error) {
 	if secretKey == "" {
@@ -50,10 +46,6 @@ func ListenAndServe(addr string, url string, secretKey string, opts *ServeOption
 	hub := NewHub(url)
 	rds := NewRedis(hub, sk)
 	hub.rds = rds
-
-	if opts.NonceCheck != nil {
-		hub.nonceCheck = opts.NonceCheck
-	}
 
 	go func() {
 		for {

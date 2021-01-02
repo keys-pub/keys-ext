@@ -65,7 +65,7 @@ func (r *Redis) Subscribe() error {
 		switch v := psc.Receive().(type) {
 		case redis.Message:
 			log.Printf("channel %s (%d)\n", v.Channel, len(v.Data))
-			var event api.PubSubEvent
+			var event api.Event
 			if err := api.Decrypt(v.Data, &event, r.secretKey); err != nil {
 				log.Printf("error decrypting event: %v\n", err)
 			}

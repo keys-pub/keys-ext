@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"os"
 
@@ -39,7 +40,7 @@ func main() {
 	redisConn := redisPool.Get()
 	defer redisConn.Close()
 
-	send := func(event *api.PubSubEvent) error {
+	send := func(event *api.Event) error {
 		b, err := api.Encrypt(event, secretKey)
 		if err != nil {
 			return err
@@ -50,16 +51,12 @@ func main() {
 		return nil
 	}
 
-	channel := keys.NewEdX25519KeyFromSeed(testSeed(0xef))
-
-	ids := []keys.ID{}
-	for i := 0; i < 20; i++ {
-		user := keys.NewEdX25519KeyFromSeed(testSeed(byte(i)))
-		ids = append(ids, user.ID())
-	}
-
-	if err := send(&api.PubSubEvent{Channel: channel.ID(), Recipients: ids, Index: 1}); err != nil {
-		log.Fatal(err)
+	for i := 0; i < 20; i += 2 {
+		channel := keys.NewEdX25519KeyFromSeed(testSeed(byte(i)))
+		token := fmt.Sprintf("testtoken%d", i)
+		if err := send(&api.Event{Channel: channel.ID(), Index: 1, Token: token}); err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 

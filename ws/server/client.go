@@ -1,10 +1,10 @@
 package server
 
 import (
-	"context"
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -41,7 +41,7 @@ type client struct {
 	// The websocket connection.
 	conn *websocket.Conn
 
-	kids []keys.ID
+	tokens []string
 
 	// Buffered channel of outbound messages.
 	send chan *api.Event
@@ -74,19 +74,22 @@ func (c *client) readPump() {
 		_, data, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("read error: %v", err)
+				log.Printf("read error: %v\n", err)
 			}
 			break
 		}
 
-		// log.Printf("authorize %s\n", c.id)
-		kid, err := api.Authorize(context.TODO(), data, time.Now(), c.hub.url, c.hub.nonceCheck)
-		if err != nil {
-			log.Printf("auth err: %v\n", err)
-			break
+		tokens := strings.Split(string(data), ",")
+		for _, token := range tokens {
+			if token == "" {
+				log.Printf("invalid token\n")
+				break
+			}
 		}
 
-		c.hub.auth <- &authClient{client: c, kid: kid}
+		for _, token := range tokens {
+			c.hub.auth <- &authClient{client: c, token: token}
+		}
 	}
 }
 
