@@ -63,7 +63,7 @@ func testFollow(t *testing.T, env *env, tk testKeys) {
 	// GET /follow/:bob/:alice (invalid auth)
 	req, err = http.NewAuthRequest("GET", dstore.Path("follow", bob.ID(), alice.ID()), nil, "", clock.Now(), bob)
 	require.NoError(t, err)
-	code, _, body = srv.Serve(req)
+	code, _, _ = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
 
 	// DELETE /follow/:bob/:alice (bob unfollow alice)
