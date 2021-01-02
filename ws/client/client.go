@@ -3,11 +3,11 @@ package client
 import (
 	"encoding/json"
 	"net/url"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/ws/api"
 	"github.com/pkg/errors"
 )
@@ -32,7 +32,7 @@ type Client struct {
 	connectMtx sync.Mutex
 	writeMtx   sync.Mutex
 
-	keys []*keys.EdX25519Key
+	tokens []string
 }
 
 // New creates a websocket client.
@@ -42,17 +42,17 @@ func New(urs string) (*Client, error) {
 		return nil, err
 	}
 	return &Client{
-		url:  url,
-		keys: []*keys.EdX25519Key{},
+		url:    url,
+		tokens: []string{},
 	}, nil
 }
 
 // Authorize with key.
-func (c *Client) Authorize(key *keys.EdX25519Key) {
+func (c *Client) Authorize(tokens []string) {
 	// logger.Infof("auth %s", key.ID())
-	c.keys = append(c.keys, key)
+	c.tokens = append(c.tokens, tokens...)
 	if c.connected {
-		if err := c.sendAuth(key); err != nil {
+		if err := c.sendTokens(tokens); err != nil {
 			c.close()
 		}
 	}
@@ -107,10 +107,8 @@ func (c *Client) Connect() error {
 		return err
 	}
 
-	for _, key := range c.keys {
-		if err := c.sendAuth(key); err != nil {
-			return errors.Wrapf(err, "failed to send auth")
-		}
+	if err := c.sendTokens(c.tokens); err != nil {
+		return errors.Wrapf(err, "failed to send auth")
 	}
 
 	return nil
@@ -138,13 +136,11 @@ func (c *Client) ReadEvents() ([]*api.Event, error) {
 	return events, nil
 }
 
-func (c *Client) sendAuth(key *keys.EdX25519Key) error {
+func (c *Client) sendTokens(tokens []string) error {
 	c.writeMtx.Lock()
 	defer c.writeMtx.Unlock()
 
-	logger.Infof("Send auth %s", key.ID())
-	b := api.GenerateAuth(key, c.url.String())
-
+	b := []byte(strings.Join(tokens, ","))
 	if err := c.conn.WriteMessage(websocket.TextMessage, b); err != nil {
 		return errors.Wrapf(err, "failed to write message")
 	}

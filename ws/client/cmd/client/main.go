@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"flag"
+	"fmt"
 	"os"
 	"os/signal"
 	"time"
@@ -43,10 +44,11 @@ func main() {
 		}
 	}()
 
+	tokens := []string{}
 	for i := 0; i < 20; i++ {
-		key := keys.NewEdX25519KeyFromSeed(testSeed(byte(i)))
-		cl.Authorize(key)
+		tokens = append(tokens, fmt.Sprintf("testtoken%d", i))
 	}
+	cl.Authorize(tokens)
 
 	<-interrupt
 	cl.Close()
