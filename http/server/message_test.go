@@ -175,7 +175,10 @@ func TestMessagesAuth(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, `{}`, body)
+	var channelCreate api.ChannelCreateResponse
+	testJSONUnmarshal(t, []byte(body), &channelCreate)
+	require.Equal(t, channel.ID(), channelCreate.Channel.ID)
+	require.NotEmpty(t, channelCreate.Channel.Token)
 
 	// GET /channel/:cid/msgs
 	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs"), nil, "", clock.Now(), channel)
