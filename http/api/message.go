@@ -12,11 +12,25 @@ import (
 	"github.com/vmihailenco/msgpack/v4"
 )
 
-// MessagesResponse ...
-type MessagesResponse struct {
-	Messages  []*events.Event `json:"msgs"`
+// Events ...
+type Events struct {
+	Events    []*events.Event `json:"events"`
 	Index     int64           `json:"idx"`
 	Truncated bool            `json:"truncated,omitempty"`
+}
+
+// Decrypt events into messages.
+func (e Events) Decrypt(key *keys.EdX25519Key) ([]*Message, error) {
+	msgs := make([]*Message, 0, len(e.Events))
+	for _, event := range e.Events {
+		msg, err := DecryptMessageFromEvent(event, key)
+		if err != nil {
+			// TODO: Skip invalid messages
+			return nil, err
+		}
+		msgs = append(msgs, msg)
+	}
+	return msgs, nil
 }
 
 // Message is encrypted by clients.

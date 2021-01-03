@@ -34,8 +34,8 @@ type ChannelStatus struct {
 
 // ChannelToken ...
 type ChannelToken struct {
-	ID    keys.ID
-	Token string
+	Channel keys.ID
+	Token   string
 }
 
 // ChannelsStatusRequest ...
