@@ -39,7 +39,8 @@ func (s *Server) postMessage(c echo.Context) error {
 		return s.ErrInternalServer(c, err)
 	}
 
-	if err := s.sendMessage(c, &api.ChannelToken{ID: channel.ID, Token: channel.Token}, body); err != nil {
+	ct := &api.ChannelToken{Channel: channel.ID, Token: channel.Token}
+	if err := s.sendMessage(c, ct, body); err != nil {
 		return s.ErrInternalServer(c, err)
 	}
 
@@ -55,7 +56,7 @@ func (s *Server) sendMessage(c echo.Context, ct *api.ChannelToken, msg []byte) e
 		return errors.Errorf("empty token")
 	}
 	ctx := c.Request().Context()
-	path := dstore.Path("channels", ct.ID)
+	path := dstore.Path("channels", ct.Channel)
 
 	_, idx, err := s.fi.EventsAdd(ctx, path, [][]byte{msg})
 	if err != nil {
@@ -72,7 +73,7 @@ func (s *Server) notifyChannelMessage(ctx context.Context, ct *api.ChannelToken,
 		return errors.Errorf("no secret key set")
 	}
 	event := &wsapi.Event{
-		Channel: ct.ID,
+		Channel: ct.Channel,
 		Index:   idx,
 		Token:   ct.Token,
 	}
@@ -90,18 +91,22 @@ func (s *Server) getMessages(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	channel, err := s.auth(c, newAuth("Authorization", "cid", nil))
+	auth, err := s.auth(c, newAuth("Authorization", "cid", nil))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}
 
-	path := dstore.Path("channels", channel.KID)
+	path := dstore.Path("channels", auth.KID)
 	doc, err := s.fi.Get(ctx, path)
 	if err != nil {
 		return s.ErrInternalServer(c, err)
 	}
 	if doc == nil {
-		return s.ErrNotFound(c, keys.NewErrNotFound(channel.KID.String()))
+		return s.ErrNotFound(c, keys.NewErrNotFound(auth.KID.String()))
+	}
+	var channel api.Channel
+	if err := doc.To(&channel); err != nil {
+		return s.ErrInternalServer(c, err)
 	}
 
 	limit := 1000
@@ -116,8 +121,8 @@ func (s *Server) getMessages(c echo.Context) error {
 		truncated = true
 	}
 
-	out := &api.MessagesResponse{
-		Messages:  resp.Events,
+	out := &api.Events{
+		Events:    resp.Events,
 		Index:     resp.Index,
 		Truncated: truncated,
 	}

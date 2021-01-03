@@ -60,7 +60,10 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs"), nil, "", clock.Now(), channel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
-	require.Equal(t, `{"msgs":[],"idx":0}`, body)
+	var messagesResp api.Events
+	testJSONUnmarshal(t, []byte(body), &messagesResp)
+	require.Empty(t, messagesResp.Events)
+	require.Empty(t, messagesResp.Index)
 	require.Equal(t, http.StatusOK, code)
 
 	// POST /channel/:cid/msgs (no body)
@@ -99,24 +102,24 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	var resp api.MessagesResponse
+	var resp api.Events
 	err = json.Unmarshal([]byte(body), &resp)
 	require.NoError(t, err)
 	require.Equal(t, int64(1), resp.Index)
-	require.Equal(t, 1, len(resp.Messages))
-	require.Equal(t, []byte("test1"), resp.Messages[0].Data)
+	require.Equal(t, 1, len(resp.Events))
+	require.Equal(t, []byte("test1"), resp.Events[0].Data)
 
 	// GET /channel/:cid/msgs?idx=next
 	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs")+"?idx="+strconv.Itoa(int(resp.Index)), nil, "", clock.Now(), channel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	var resp2 api.MessagesResponse
+	var resp2 api.Events
 	err = json.Unmarshal([]byte(body), &resp2)
 	require.NoError(t, err)
 	require.Equal(t, int64(2), resp2.Index)
-	require.Equal(t, 1, len(resp2.Messages))
-	require.Equal(t, []byte("test2"), resp2.Messages[0].Data)
+	require.Equal(t, 1, len(resp2.Events))
+	require.Equal(t, []byte("test2"), resp2.Events[0].Data)
 
 	// POST /channel/:cid/msgs
 	content3 := []byte("test3")
@@ -131,25 +134,25 @@ func testMessages(t *testing.T, env *env, tk testKeys) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	var resp3 api.MessagesResponse
+	var resp3 api.EventsResponse
 	err = json.Unmarshal([]byte(body), &resp3)
 	require.NoError(t, err)
-	require.Equal(t, 3, len(resp3.Messages))
-	require.Equal(t, []byte("test1"), resp3.Messages[0].Data)
-	require.Equal(t, []byte("test2"), resp3.Messages[1].Data)
-	require.Equal(t, []byte("test3"), resp3.Messages[2].Data)
+	require.Equal(t, 3, len(resp3.Events))
+	require.Equal(t, []byte("test1"), resp3.Events[0].Data)
+	require.Equal(t, []byte("test2"), resp3.Events[1].Data)
+	require.Equal(t, []byte("test3"), resp3.Events[2].Data)
 
 	// GET /channel/:cid/msgs (descending, limit=2)
 	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs")+"?order=desc&limit=2", nil, "", clock.Now(), channel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	var resp4 api.MessagesResponse
+	var resp4 api.EventsResponse
 	err = json.Unmarshal([]byte(body), &resp4)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(resp4.Messages))
-	require.Equal(t, []byte("test3"), resp4.Messages[0].Data)
-	require.Equal(t, []byte("test2"), resp4.Messages[1].Data)
+	require.Equal(t, 2, len(resp4.Events))
+	require.Equal(t, []byte("test3"), resp4.Events[0].Data)
+	require.Equal(t, []byte("test2"), resp4.Events[1].Data)
 
 	// POST /channel/:cid/msgs (message too large)
 	large := bytes.Repeat([]byte{0x01}, 65*1024)
@@ -184,8 +187,11 @@ func TestMessagesAuth(t *testing.T) {
 	req, err = http.NewAuthRequest("GET", dstore.Path("channel", channel.ID(), "msgs"), nil, "", clock.Now(), channel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
+	var messagesResp api.Events
+	testJSONUnmarshal(t, []byte(body), &messagesResp)
+	require.Empty(t, messagesResp.Events)
+	require.Empty(t, messagesResp.Index)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, `{"msgs":[],"idx":0}`, body)
 
 	// GET /channel/:cid/msgs (no auth)
 	req, err = http.NewRequest("GET", dstore.Path("channel", channel.ID(), "msgs"), nil)
@@ -199,7 +205,9 @@ func TestMessagesAuth(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, `{"msgs":[],"idx":0}`, body)
+	testJSONUnmarshal(t, []byte(body), &messagesResp)
+	require.Empty(t, messagesResp.Events)
+	require.Empty(t, messagesResp.Index)
 
 	// Replay last request
 	reqReplay, err := http.NewRequest("GET", req.URL.String(), nil)

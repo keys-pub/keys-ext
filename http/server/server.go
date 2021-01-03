@@ -164,9 +164,10 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	// Batch
 	e.POST("/batch", s.postBatch) // Batch
 
-	// Drop
-	e.POST("/drop/:sender/:recipient", s.postDrop) // Drop
-	e.GET("/drop/:recipient", s.getDrops)          // List drops
+	// Direct Messages
+	e.POST("/dm/:sender/:recipient", s.postDirectMessage) // Send direct message
+	e.GET("/dm/:recipient", s.getDirectMessages)          // List direct messages
+	e.GET("/dm/token/:recipient", s.getDirectToken)       // Direct token
 
 	// Follow
 	e.PUT("/follow/:sender/:recipient", s.putFollow)       // Follow

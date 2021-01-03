@@ -52,8 +52,8 @@ func (s *Server) putChannel(c echo.Context) error {
 
 	if len(req.Message) > 0 {
 		ct := &api.ChannelToken{
-			ID:    channel.KID,
-			Token: token,
+			Channel: channel.KID,
+			Token:   token,
 		}
 		if err := s.sendMessage(c, ct, req.Message); err != nil {
 			return s.ErrInternalServer(c, err)

@@ -13,13 +13,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestDrop(t *testing.T) {
+func TestDirectMessages(t *testing.T) {
 	env := newEnv(t)
 	// env.logLevel = server.DebugLevel
-	testDrop(t, env, testKeysSeeded())
+	testDirectMessages(t, env, testKeysSeeded())
 }
 
-func testDrop(t *testing.T, env *env, tk testKeys) {
+func testDirectMessages(t *testing.T, env *env, tk testKeys) {
 	srv := newTestServer(t, env)
 	clock := env.clock
 
@@ -32,39 +32,39 @@ func testDrop(t *testing.T, env *env, tk testKeys) {
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, `{}`, body)
 
-	// POST /drop/:alice/:bob
-	req, err = http.NewAuthRequest("POST", dstore.Path("drop", alice.ID(), bob.ID()), bytes.NewReader([]byte("hi")), http.ContentHash([]byte("hi")), clock.Now(), alice)
+	// POST /direct/:alice/:bob
+	req, err = http.NewAuthRequest("POST", dstore.Path("dm", alice.ID(), bob.ID()), bytes.NewReader([]byte("hi")), http.ContentHash([]byte("hi")), clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, `{}`, body)
 	require.Equal(t, http.StatusOK, code)
 
-	// GET /drop/:bob
-	req, err = http.NewAuthRequest("GET", dstore.Path("drop", bob.ID()), nil, "", clock.Now(), bob)
+	// GET /direct/:bob
+	req, err = http.NewAuthRequest("GET", dstore.Path("dm", bob.ID()), nil, "", clock.Now(), bob)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	var msgsResp api.MessagesResponse
+	var msgsResp api.Events
 	err = json.Unmarshal([]byte(body), &msgsResp)
 	require.NoError(t, err)
 	require.Equal(t, int64(1), msgsResp.Index)
-	require.Equal(t, 1, len(msgsResp.Messages))
-	require.Equal(t, []byte("hi"), msgsResp.Messages[0].Data)
+	require.Equal(t, 1, len(msgsResp.Events))
+	require.Equal(t, []byte("hi"), msgsResp.Events[0].Data)
 
-	// POST /drop/:bob/:alice (alice doesn't follow bob)
-	req, err = http.NewAuthRequest("POST", dstore.Path("drop", bob.ID(), alice.ID()), bytes.NewReader([]byte("hi")), http.ContentHash([]byte("hi")), clock.Now(), bob)
+	// POST /direct/:bob/:alice (alice doesn't follow bob)
+	req, err = http.NewAuthRequest("POST", dstore.Path("dm", bob.ID(), alice.ID()), bytes.NewReader([]byte("hi")), http.ContentHash([]byte("hi")), clock.Now(), bob)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
 	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, body)
 }
 
-func TestDropFirestore(t *testing.T) {
+func TestDirectMessagesFirestore(t *testing.T) {
 	if os.Getenv("TEST_FIRESTORE") != "1" {
 		t.Skip()
 	}
 	// firestore.SetContextLogger(firestore.NewContextLogger(firestore.DebugLevel))
 	env := newEnvWithFire(t, testFirestore(t), tsutil.NewTestClock())
 	// env.logLevel = server.DebugLevel
-	testDrop(t, env, testKeysRandom())
+	testDirectMessages(t, env, testKeysRandom())
 }
