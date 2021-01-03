@@ -39,37 +39,16 @@ type MessagesOpts struct {
 	Limit int
 }
 
-// Messages response.
-type Messages struct {
-	Events    []*events.Event
-	Index     int64
-	Truncated bool
-}
-
-// Decrypt messages.
-func (m Messages) Decrypt(key *keys.EdX25519Key) ([]*api.Message, error) {
-	msgs := make([]*api.Message, 0, len(m.Events))
-	for _, event := range m.Events {
-		msg, err := api.DecryptMessageFromEvent(event, key)
-		if err != nil {
-			// TODO: Skip invalid messages
-			return nil, err
-		}
-		msgs = append(msgs, msg)
-	}
-	return msgs, nil
-}
-
 // Messages returns encrypted messages (as event.Event) and current index from a
 // previous index.
 // If truncated, there are more results if you call again with the new index.
-// To decrypt to api.Message, use DecryptMessage.
-func (c *Client) Messages(ctx context.Context, channel *keys.EdX25519Key, opts *MessagesOpts) (*Messages, error) {
+// To decrypt to api.Event, use api.DecryptMessageFromEvent.
+func (c *Client) Messages(ctx context.Context, channel *keys.EdX25519Key, opts *MessagesOpts) (*api.Events, error) {
 	path := dstore.Path("channel", channel.ID(), "msgs")
-	return c.messages(ctx, path, channel, opts)
+	return c.events(ctx, path, channel, opts)
 }
 
-func (c *Client) messages(ctx context.Context, path string, key *keys.EdX25519Key, opts *MessagesOpts) (*Messages, error) {
+func (c *Client) events(ctx context.Context, path string, key *keys.EdX25519Key, opts *MessagesOpts) (*api.Events, error) {
 	if opts == nil {
 		opts = &MessagesOpts{}
 	}
@@ -98,14 +77,10 @@ func (c *Client) messages(ctx context.Context, path string, key *keys.EdX25519Ke
 		return nil, nil
 	}
 
-	var out api.MessagesResponse
+	var out api.Events
 	if err := json.Unmarshal(resp.Data, &out); err != nil {
 		return nil, err
 	}
 
-	return &Messages{
-		Events:    out.Messages,
-		Index:     out.Index,
-		Truncated: out.Truncated,
-	}, nil
+	return &out, nil
 }

@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestDrop(t *testing.T) {
+func TestDirectMessages(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
 	// api.SetLogger(NewLogger(DebugLevel))
 	// server.SetContextLogger(NewContextLogger(DebugLevel))
@@ -29,23 +29,28 @@ func TestDrop(t *testing.T) {
 	err := bobClient.Follow(ctx, bob, alice.ID())
 	require.NoError(t, err)
 
-	// Drops
-	msgs, err := aliceClient.Drops(ctx, alice, nil)
+	// DirectToken
+	token, err := aliceClient.DirectToken(ctx, alice)
+	require.NoError(t, err)
+	require.NotEmpty(t, token)
+
+	// DirectMessages
+	msgs, err := aliceClient.DirectMessages(ctx, alice, nil)
 	require.NoError(t, err)
 	require.Equal(t, int64(0), msgs.Index)
 	require.Equal(t, 0, len(msgs.Events))
 	require.False(t, msgs.Truncated)
 
-	// Drop #1
+	// DirectMessageSend #1
 	msg1 := api.NewMessage(alice.ID()).WithText("hi bob").WithTimestamp(env.clock.NowMillis())
-	err = aliceClient.Drop(ctx, msg1, alice, bob.ID())
+	err = aliceClient.DirectMessageSend(ctx, msg1, alice, bob.ID())
 	require.NoError(t, err)
 
 	var out1 *api.Message
 	var out3 *api.Message
 
-	// Drops
-	msgs, err = bobClient.Drops(ctx, bob, nil)
+	// DirectMessages
+	msgs, err = bobClient.DirectMessages(ctx, bob, nil)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(msgs.Events))
 	require.False(t, msgs.Truncated)
@@ -54,13 +59,13 @@ func TestDrop(t *testing.T) {
 	require.Equal(t, msg1.Text, out1.Text)
 	require.Equal(t, alice.ID(), out1.Sender)
 
-	// Drop #3
+	// DirectMessageSend #3
 	msg3 := api.NewMessage(alice.ID()).WithText("here it is").WithTimestamp(env.clock.NowMillis())
-	err = aliceClient.Drop(ctx, msg3, alice, bob.ID())
+	err = aliceClient.DirectMessageSend(ctx, msg3, alice, bob.ID())
 	require.NoError(t, err)
 
-	// Drops (from idx)
-	msgs, err = bobClient.Drops(ctx, bob, &client.MessagesOpts{Index: msgs.Index})
+	// DirectMessages (from idx)
+	msgs, err = bobClient.DirectMessages(ctx, bob, &client.MessagesOpts{Index: msgs.Index})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(msgs.Events))
 	out3, err = api.DecryptMessageFromEvent(msgs.Events[0], bob)
@@ -68,8 +73,8 @@ func TestDrop(t *testing.T) {
 	require.Equal(t, msg3.Text, out3.Text)
 	require.Equal(t, alice.ID(), out3.Sender)
 
-	// Drops (desc)
-	msgs, err = bobClient.Drops(ctx, bob, &client.MessagesOpts{Order: events.Descending})
+	// DirectMessages (desc)
+	msgs, err = bobClient.DirectMessages(ctx, bob, &client.MessagesOpts{Order: events.Descending})
 	require.NoError(t, err)
 	require.Equal(t, 2, len(msgs.Events))
 	out1, err = api.DecryptMessageFromEvent(msgs.Events[0], bob)
@@ -81,7 +86,7 @@ func TestDrop(t *testing.T) {
 
 	// Unknown
 	unknown := keys.GenerateEdX25519Key()
-	msgs, err = aliceClient.Drops(ctx, unknown, nil)
+	msgs, err = aliceClient.DirectMessages(ctx, unknown, nil)
 	require.NoError(t, err)
 	require.Empty(t, msgs.Events)
 }

@@ -61,7 +61,7 @@ func (c *Client) ChannelsStatus(ctx context.Context, channelTokens ...*api.Chann
 		Channels: map[keys.ID]string{},
 	}
 	for _, ct := range channelTokens {
-		statusReq.Channels[ct.ID] = ct.Token
+		statusReq.Channels[ct.Channel] = ct.Token
 	}
 
 	body, err := json.Marshal(statusReq)
@@ -91,7 +91,7 @@ func (c *Client) InviteToChannel(ctx context.Context, invite *api.ChannelInvite,
 		return errors.Errorf("invite sender mismatch")
 	}
 	msg := api.NewMessageForChannelInvites(invite.Sender, []*api.ChannelInvite{invite})
-	if err := c.Drop(ctx, msg, sender, invite.Recipient); err != nil {
+	if err := c.DirectMessageSend(ctx, msg, sender, invite.Recipient); err != nil {
 		return err
 	}
 	return nil
@@ -104,13 +104,13 @@ type ChannelInvites struct {
 	Truncated bool
 }
 
-// ChannelInvites lists channel invites from drops.
+// ChannelInvites lists channel invites from directs.
 func (c *Client) ChannelInvites(ctx context.Context, recipient *keys.EdX25519Key, opts *MessagesOpts) (*ChannelInvites, error) {
-	drops, err := c.Drops(ctx, recipient, opts)
+	directs, err := c.DirectMessages(ctx, recipient, opts)
 	if err != nil {
 		return nil, err
 	}
-	msgs, err := drops.Decrypt(recipient)
+	msgs, err := directs.Decrypt(recipient)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func (c *Client) ChannelInvites(ctx context.Context, recipient *keys.EdX25519Key
 	}
 	return &ChannelInvites{
 		Invites:   invites,
-		Index:     drops.Index,
-		Truncated: drops.Truncated,
+		Index:     directs.Index,
+		Truncated: directs.Truncated,
 	}, nil
 }

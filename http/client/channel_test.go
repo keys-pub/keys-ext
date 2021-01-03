@@ -29,12 +29,12 @@ func testChannel(t *testing.T, env *env, tk testKeys) {
 	info := &api.ChannelInfo{Name: "test"}
 	create1, err := aliceClient.ChannelCreate(ctx, channel, alice, info)
 	require.NoError(t, err)
-	token1 := &api.ChannelToken{ID: channel.ID(), Token: create1.Channel.Token}
+	token1 := &api.ChannelToken{Channel: channel.ID(), Token: create1.Channel.Token}
 
 	info2 := &api.ChannelInfo{Name: "test2"}
 	create2, err := aliceClient.ChannelCreate(ctx, channel2, alice, info2)
 	require.NoError(t, err)
-	token2 := &api.ChannelToken{ID: channel2.ID(), Token: create2.Channel.Token}
+	token2 := &api.ChannelToken{Channel: channel2.ID(), Token: create2.Channel.Token}
 
 	channels, err := aliceClient.ChannelsStatus(ctx, token1, token2)
 	require.NoError(t, err)

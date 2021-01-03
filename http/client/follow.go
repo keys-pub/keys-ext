@@ -9,7 +9,7 @@ import (
 	"github.com/keys-pub/keys/dstore"
 )
 
-// Follow recipient, sharing your drop token.
+// Follow recipient, allows direct messages.
 func (c *Client) Follow(ctx context.Context, sender *keys.EdX25519Key, recipient keys.ID) error {
 	path := dstore.Path("follow", sender.ID(), recipient)
 	req := request{
