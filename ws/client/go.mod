@@ -7,7 +7,7 @@ require (
 	github.com/golang/protobuf v1.4.3 // indirect
 	github.com/gorilla/websocket v1.4.2
 	github.com/keys-pub/keys v0.1.18-0.20201029233150-785ac922181d
-	github.com/keys-pub/keys-ext/ws/api v0.0.0-20210102025937-6613f1e38363
+	github.com/keys-pub/keys-ext/ws/api v0.0.0-20210103224830-a8720c3ddd9b
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.7.0
 	github.com/vmihailenco/msgpack/v4 v4.3.12 // indirect
@@ -20,4 +20,4 @@ require (
 
 // replace github.com/keys-pub/keys => ../../../keys
 
-replace github.com/keys-pub/keys-ext/ws/api => ../api
+// replace github.com/keys-pub/keys-ext/ws/api => ../api
