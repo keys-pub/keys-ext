@@ -13,6 +13,15 @@ import (
 )
 
 func (s *service) Channels(ctx context.Context, req *ChannelsRequest) (*ChannelsResponse, error) {
+	userKey, err := s.lookupKey(ctx, req.User, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.pullDirectMessages(ctx, userKey); err != nil {
+		return nil, err
+	}
+
 	if err := s.pullChannels(ctx); err != nil {
 		return nil, err
 	}
@@ -67,6 +76,56 @@ func (s *service) ChannelCreate(ctx context.Context, req *ChannelCreateRequest) 
 	}, nil
 }
 
+func (s *service) ChannelInvite(ctx context.Context, req *ChannelInviteRequest) (*ChannelInviteResponse, error) {
+	senderKey, err := s.lookupKey(ctx, req.Sender, nil)
+	if err != nil {
+		return nil, err
+	}
+	channel, err := keys.ParseID(req.Channel)
+	if err != nil {
+		return nil, err
+	}
+	channelKey, err := s.vaultKey(channel)
+	if err != nil {
+		return nil, err
+	}
+
+	channelStatus, err := s.channelStatus(ctx, channelKey.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	invites := []*api.ChannelInvite{}
+	for _, r := range req.Recipients {
+		recipient, err := s.lookup(ctx, r, nil)
+		if err != nil {
+			return nil, err
+		}
+
+		invite := &api.ChannelInvite{
+			Channel:   channelKey.ID,
+			Recipient: recipient,
+			Sender:    senderKey.ID,
+			Key:       channelKey,
+			Token:     channelKey.Token,
+			Info:      channelStatus.Info(),
+		}
+		if err := s.client.InviteToChannel(ctx, invite, senderKey.AsEdX25519()); err != nil {
+			return nil, err
+		}
+		invites = append(invites, &api.ChannelInvite{Sender: senderKey.ID, Recipient: recipient})
+	}
+
+	msg, err := s.messageToRPC(ctx, api.NewMessageForChannelInvites(senderKey.ID, invites))
+	if err != nil {
+		return nil, err
+	}
+
+	return &ChannelInviteResponse{
+		Message: msg,
+	}, nil
+}
+
 func (s *service) pullChannels(ctx context.Context) error {
 	logger.Infof("Pull channels...")
 
@@ -77,8 +136,8 @@ func (s *service) pullChannels(ctx context.Context) error {
 	tokens := []*api.ChannelToken{}
 	for _, ck := range cks {
 		token := &api.ChannelToken{
-			ID:    ck.ID,
-			Token: ck.Token,
+			Channel: ck.ID,
+			Token:   ck.Token,
 		}
 		tokens = append(tokens, token)
 	}
@@ -123,6 +182,23 @@ type channelStatus struct {
 	RemoteTimestamp int64   `json:"rts,omitempty" msgpack:"rts,omitempty"`
 }
 
+func (s channelStatus) Info() *api.ChannelInfo {
+	return &api.ChannelInfo{
+		Name:        s.Name,
+		Description: s.Description,
+	}
+}
+
+func (s channelStatus) Channel() *Channel {
+	return &Channel{
+		ID:        s.ID.String(),
+		Name:      s.Name,
+		Snippet:   s.Snippet,
+		UpdatedAt: s.RemoteTimestamp,
+		Index:     s.Index,
+	}
+}
+
 func (s *service) channelStatus(ctx context.Context, cid keys.ID) (*channelStatus, error) {
 	// channelStatus is set during pullMessages
 	var cs channelStatus
@@ -150,31 +226,9 @@ func (s *service) channels(ctx context.Context) ([]*Channel, error) {
 		if err := doc.To(&channelStatus); err != nil {
 			return nil, err
 		}
-		channels = append(channels, channelToRPC(channelStatus))
+		channels = append(channels, channelStatus.Channel())
 	}
 	return channels, nil
-}
-
-// func (s *service) channel(ctx context.Context, id keys.ID) (*Channel, error) {
-// 	var channelStatus channelStatus
-// 	ok, err := s.db.Load(ctx, dstore.Path("channels", id), &channelStatus)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	if !ok {
-// 		return nil, nil
-// 	}
-// 	return channelToRPC(channelStatus), nil
-// }
-
-func channelToRPC(channelStatus channelStatus) *Channel {
-	return &Channel{
-		ID:        channelStatus.ID.String(),
-		Name:      channelStatus.Name,
-		Snippet:   channelStatus.Snippet,
-		UpdatedAt: channelStatus.RemoteTimestamp,
-		Index:     channelStatus.Index,
-	}
 }
 
 func (s *service) channelKeys() ([]*kapi.Key, error) {

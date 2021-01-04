@@ -16,12 +16,25 @@ func (s *service) Relay(req *RelayRequest, srv Keys_RelayServer) error {
 		return err
 	}
 
+	tokens := []string{}
+
+	if req.User != "" {
+		userKey, err := s.lookupKey(ctx, req.User, nil)
+		if err != nil {
+			return err
+		}
+		token, err := s.client.DirectToken(ctx, userKey.AsEdX25519())
+		if err != nil {
+			return err
+		}
+		tokens = append(tokens, token.Token)
+	}
+
 	cks, err := s.channelKeys()
 	if err != nil {
 		return err
 	}
 
-	tokens := []string{}
 	for _, ck := range cks {
 		if ck.Token != "" {
 			tokens = append(tokens, ck.Token)
@@ -68,23 +81,39 @@ func (s *service) Relay(req *RelayRequest, srv Keys_RelayServer) error {
 				case <-ctx.Done():
 					return ctx.Err()
 				default:
-					logger.Infof("Relay event %s", event.Channel)
-					ck, err := s.vaultKey(event.Channel)
-					if err != nil {
-						return err
+					logger.Infof("Relay event %v", event)
+					if event.Channel != "" {
+						ck, err := s.vaultKey(event.Channel)
+						if err != nil {
+							return err
+						}
+						if ck == nil {
+							logger.Infof("Channel key not found: %s", event.Channel)
+							continue
+						}
+						if err := s.pullMessages(ctx, ck); err != nil {
+							return err
+						}
 					}
-					if ck == nil {
-						logger.Infof("Channel key not found: %s", event.Channel)
-						continue
-					}
-					if err := s.pullMessages(ctx, ck); err != nil {
-						return err
+					if event.User != "" {
+						uk, err := s.vaultKey(event.User)
+						if err != nil {
+							return err
+						}
+						if uk == nil {
+							logger.Infof("User key not found: %s", event.User)
+							continue
+						}
+						if err := s.pullDirectMessages(ctx, uk); err != nil {
+							return err
+						}
 					}
 				}
 			}
 			for _, event := range events {
 				out := &RelayOutput{
 					Channel: event.Channel.String(),
+					User:    event.User.String(),
 				}
 				if err := srv.Send(out); err != nil {
 					return err

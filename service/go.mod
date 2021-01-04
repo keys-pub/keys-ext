@@ -11,17 +11,17 @@ require (
 	github.com/golang/snappy v0.0.2 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/keybase/go-keychain v0.0.0-20201121013009-976c83ec27a6 // indirect
-	github.com/keys-pub/keys v0.1.20-0.20210102022201-ffb45798b8ab
+	github.com/keys-pub/keys v0.1.20-0.20210102234532-ff048354dd2b
 	github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20201221200935-cda646bb0b44
 	github.com/keys-pub/keys-ext/auth/mock v0.0.0-20201018000238-7b6186f1fe97
-	github.com/keys-pub/keys-ext/http/api v0.0.0-20210102023225-d2e7279d30fc
-	github.com/keys-pub/keys-ext/http/client v0.0.0-20210102030049-6622ca14f3bc
-	github.com/keys-pub/keys-ext/http/server v0.0.0-20210102023718-fd43795e6300
+	github.com/keys-pub/keys-ext/http/api v0.0.0-20210103224716-09cb2ea897fb
+	github.com/keys-pub/keys-ext/http/client v0.0.0-20210103225355-6c9a198ac42a
+	github.com/keys-pub/keys-ext/http/server v0.0.0-20210103224830-a8720c3ddd9b
 	github.com/keys-pub/keys-ext/sdb v0.0.0-20201221200935-cda646bb0b44
 	github.com/keys-pub/keys-ext/vault v0.0.0-20210102030049-6622ca14f3bc
 	github.com/keys-pub/keys-ext/wormhole v0.0.0-20210102030049-6622ca14f3bc
-	github.com/keys-pub/keys-ext/ws/api v0.0.0-20210102025937-6613f1e38363
-	github.com/keys-pub/keys-ext/ws/client v0.0.0-20210102030049-6622ca14f3bc
+	github.com/keys-pub/keys-ext/ws/api v0.0.0-20210103224830-a8720c3ddd9b
+	github.com/keys-pub/keys-ext/ws/client v0.0.0-20210103225355-6c9a198ac42a
 	github.com/konsorten/go-windows-terminal-sequences v1.0.3 // indirect
 	github.com/mercari/go-grpc-interceptor v0.0.0-20180110035004-b8ad3827e82a
 	github.com/mitchellh/go-ps v1.0.0

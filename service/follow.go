@@ -4,35 +4,50 @@ import (
 	"context"
 
 	"github.com/keys-pub/keys"
-	"github.com/pkg/errors"
 )
 
 func (s *service) Follow(ctx context.Context, req *FollowRequest) (*FollowResponse, error) {
-	recipient, err := keys.ParseID(req.Recipient)
+	recipient, err := s.lookup(ctx, req.Recipient, nil)
 	if err != nil {
 		return nil, err
 	}
-	sender, err := keys.ParseID(req.Sender)
+	senderKey, err := s.lookupKey(ctx, req.Sender, nil)
 	if err != nil {
 		return nil, err
 	}
-	senderKey, err := s.vaultKey(sender)
-	if err != nil {
-		return nil, err
-	}
-	token := senderKey.Token
-	if token == "" {
-		return nil, errors.Errorf("no token for sender")
-	}
-
-	if err := s.client.Follow(ctx, senderKey.AsEdX25519(), recipient, token); err != nil {
+	if err := s.client.Follow(ctx, senderKey.AsEdX25519(), recipient); err != nil {
 		return nil, err
 	}
 
 	return &FollowResponse{
 		Follow: &Follow{
 			Recipient: recipient.String(),
-			Sender:    sender.String(),
+			Sender:    senderKey.ID.String(),
 		},
+	}, nil
+}
+
+func (s *service) Follows(ctx context.Context, req *FollowsRequest) (*FollowsResponse, error) {
+	recipient, err := keys.ParseID(req.Recipient)
+	if err != nil {
+		return nil, err
+	}
+	recipientKey, err := s.vaultKey(recipient)
+	if err != nil {
+		return nil, err
+	}
+
+	follows, err := s.client.Follows(ctx, recipientKey.AsEdX25519())
+	if err != nil {
+		return nil, err
+	}
+
+	out := []*Follow{}
+	for _, follow := range follows {
+		out = append(out, &Follow{Sender: follow.Sender.String(), Recipient: follow.Recipient.String()})
+	}
+
+	return &FollowsResponse{
+		Follows: out,
 	}, nil
 }

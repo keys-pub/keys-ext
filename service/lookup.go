@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/keys-pub/keys"
+	kapi "github.com/keys-pub/keys/api"
 	"github.com/keys-pub/keys/user"
 	"github.com/pkg/errors"
 )
@@ -91,4 +92,16 @@ func (s *service) lookupKID(ctx context.Context, key string, searchRemote bool) 
 		}
 	}
 	return kid, nil
+}
+
+func (s *service) lookupKey(ctx context.Context, key string, opts *lookupOpts) (*kapi.Key, error) {
+	kid, err := s.lookup(ctx, key, nil)
+	if err != nil {
+		return nil, err
+	}
+	k, err := s.vaultKey(kid)
+	if err != nil {
+		return nil, err
+	}
+	return k, nil
 }

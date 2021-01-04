@@ -33,7 +33,9 @@ func TestChannel(t *testing.T) {
 	channel := channelCreate.Channel
 
 	// Channels (alice)
-	channels, err := aliceService.Channels(ctx, &ChannelsRequest{})
+	channels, err := aliceService.Channels(ctx, &ChannelsRequest{
+		User: alice.ID().String(),
+	})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(channels.Channels))
 	require.Equal(t, "Test", channels.Channels[0].Name)
@@ -58,7 +60,7 @@ func TestChannel(t *testing.T) {
 		In: export.Export,
 	})
 	require.NoError(t, err)
-	channels, err = bobService.Channels(ctx, &ChannelsRequest{})
+	channels, err = bobService.Channels(ctx, &ChannelsRequest{User: bob.ID().String()})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(channels.Channels))
 	require.Equal(t, channel.ID, channels.Channels[0].ID)

@@ -104,6 +104,7 @@ service Keys {
   // Channels
   rpc Channels(ChannelsRequest) returns (ChannelsResponse) {}
   rpc ChannelCreate(ChannelCreateRequest) returns (ChannelCreateResponse) {}
+  rpc ChannelInvite(ChannelInviteRequest) returns (ChannelInviteResponse) {}
 
   // Follow
   rpc Follow(FollowRequest) returns (FollowResponse) {}
@@ -932,11 +933,13 @@ message MessagesResponse {
 
 message RelayRequest {
   repeated string keys = 1;
+  string user = 2;
 }
 
 message RelayOutput {
   string channel = 1;
-  int64 index = 2;
+  string user = 2;
+  int64 index = 3;
 }
 
 message Channel {
@@ -947,7 +950,9 @@ message Channel {
   int64 index = 5;
 }
 
-message ChannelsRequest {}
+message ChannelsRequest {
+  string user = 1;
+}
 message ChannelsResponse {
   repeated Channel channels = 1;
 }
@@ -958,6 +963,15 @@ message ChannelCreateRequest {
 }
 message ChannelCreateResponse {
   Channel channel = 1;
+}
+
+message ChannelInviteRequest {
+  string channel = 1;
+  repeated string recipients = 2;
+  string sender = 3;
+}
+message ChannelInviteResponse {
+  Message message = 1;
 }
 
 message Follow {
@@ -976,6 +990,7 @@ message FollowResponse {
 
 message FollowsRequest {
   string recipient = 1;
+  bool update = 2;
 }
 message FollowsResponse {
   repeated Follow follows = 1;

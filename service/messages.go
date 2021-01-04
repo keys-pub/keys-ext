@@ -68,7 +68,7 @@ func (s *service) MessageCreate(ctx context.Context, req *MessageCreateRequest) 
 
 	text := processText(req.Text)
 	if strings.HasPrefix(text, "/") {
-		msg, err := s.channelCommand(ctx, text, req.Sender, req.Channel)
+		msg, err := s.command(ctx, text, req.Sender, req.Channel)
 		if err != nil {
 			return nil, err
 		}
@@ -184,7 +184,7 @@ func (s *service) messages(ctx context.Context, ck *kapi.Key) ([]*Message, error
 		if e == nil {
 			break
 		}
-		logger.Debugf("Message %s", e.Path)
+		// logger.Debugf("Message %s", e.Path)
 		message, err := s.message(ctx, ck, e.Path)
 		if err != nil {
 			return nil, err
@@ -222,8 +222,8 @@ func (s *service) pullMessagesNext(ctx context.Context, ck *kapi.Key) (bool, err
 		status = &channelStatus{}
 	}
 
-	// Get messages.
-	logger.Infof("Pull state: %d", status.Index)
+	// Get messages
+	logger.Infof("Pull messages from %d", status.Index)
 	msgs, err := s.client.Messages(ctx, ck.AsEdX25519(), &client.MessagesOpts{Index: status.Index})
 	if err != nil {
 		return false, err
@@ -232,7 +232,7 @@ func (s *service) pullMessagesNext(ctx context.Context, ck *kapi.Key) (bool, err
 	logger.Infof("Received %d messages", len(msgs.Events))
 
 	for _, event := range msgs.Events {
-		logger.Debugf("Saving message %d", event.Index)
+		// logger.Debugf("Saving message %d", event.Index)
 		path := dstore.Path("messages", ck.ID, pad(event.Index))
 		if err := s.db.Set(ctx, path, dstore.From(event)); err != nil {
 			return false, err
@@ -240,7 +240,7 @@ func (s *service) pullMessagesNext(ctx context.Context, ck *kapi.Key) (bool, err
 
 		// TODO: Gracefully handle message errors (continue?)
 
-		// Decrypt message temporarily to update channel state.
+		// Decrypt message temporarily to update channel state
 		msg, err := api.DecryptMessageFromEvent(event, ck.AsEdX25519())
 		if err != nil {
 			return false, err
@@ -269,7 +269,7 @@ func (s *service) pullMessagesNext(ctx context.Context, ck *kapi.Key) (bool, err
 	}
 	status.Index = msgs.Index
 
-	// Save channel status.
+	// Save channel status
 	if err := s.db.Set(ctx, dstore.Path("channels", ck.ID), dstore.From(status), dstore.MergeAll()); err != nil {
 		return false, err
 	}
@@ -324,18 +324,12 @@ func (s *service) messageText(ctx context.Context, msg *api.Message, sender *Key
 	}
 
 	// Notifications
-	if msg.ChannelInvite != nil {
-		recipient, err := s.resolveKey(ctx, msg.ChannelInvite.Recipient)
+	for _, invite := range msg.ChannelInvites {
+		recipient, err := s.resolveKey(ctx, invite.Recipient)
 		if err != nil {
 			return nil, err
 		}
 		texts = append(texts, fmt.Sprintf("%s invited %s", sender.userName(), recipient.userName()))
-	}
-	if msg.ChannelJoin != nil {
-		texts = append(texts, fmt.Sprintf("%s joined", sender.userName()))
-	}
-	if msg.ChannelLeave != nil {
-		texts = append(texts, fmt.Sprintf("%s left", sender.userName()))
 	}
 
 	return texts, nil
