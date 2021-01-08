@@ -6,7 +6,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/keys-pub/keys v0.1.20-0.20210102022201-ffb45798b8ab
 	github.com/keys-pub/keys-ext/firestore v0.0.0-20210102023225-d2e7279d30fc
-	github.com/keys-pub/keys-ext/http/api v0.0.0-20210103224716-09cb2ea897fb
+	github.com/keys-pub/keys-ext/http/api v0.0.0-20210108232832-6bce3e9124fe
 	github.com/keys-pub/keys-ext/http/server v0.0.0-20210103224830-a8720c3ddd9b
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.5.1
