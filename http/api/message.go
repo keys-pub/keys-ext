@@ -4,12 +4,10 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/keys/api"
 	"github.com/keys-pub/keys/dstore/events"
 	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
-	"github.com/vmihailenco/msgpack/v4"
 )
 
 // Events ...
@@ -88,7 +86,6 @@ func (m *Message) WithTimestamp(ts int64) *Message {
 }
 
 // Encrypt message.
-// Experimental!
 func (m *Message) Encrypt(sender *keys.EdX25519Key, recipient keys.ID) ([]byte, error) {
 	if m.RemoteTimestamp != 0 {
 		return nil, errors.Errorf("remote timestamp should be omitted on send")
@@ -106,61 +103,6 @@ func (m *Message) Encrypt(sender *keys.EdX25519Key, recipient keys.ID) ([]byte, 
 		return nil, errors.Errorf("message sender mismatch")
 	}
 	return Encrypt(m, sender, recipient)
-}
-
-// Encrypt marshals to msgpack, crypto_sign and then crypto_box_seal.
-// We are doing sign then encrypt to hide the sender.
-func Encrypt(i interface{}, sender *keys.EdX25519Key, recipient keys.ID) ([]byte, error) {
-	b, err := msgpack.Marshal(i)
-	if err != nil {
-		return nil, err
-	}
-	signed := sender.Sign(b)
-
-	pk := api.NewKey(recipient).AsX25519Public()
-	if pk == nil {
-		return nil, errors.Errorf("invalid message recipient")
-	}
-	encrypted := keys.CryptoBoxSeal(signed, pk)
-	return encrypted, nil
-}
-
-// DecryptMessage decrypts message.
-// Experimental!
-func DecryptMessage(b []byte, key *keys.EdX25519Key) (*Message, error) {
-	var message Message
-	sig, err := Decrypt(b, &message, key)
-	if err != nil {
-		return nil, err
-	}
-	pk := api.NewKey(message.Sender).AsEdX25519Public()
-	if _, err := pk.Verify(sig); err != nil {
-		return nil, err
-	}
-	return &message, nil
-}
-
-// Decrypt value, returning signature.
-func Decrypt(b []byte, v interface{}, key *keys.EdX25519Key) ([]byte, error) {
-	sig, err := keys.CryptoBoxSealOpen(b, key.X25519Key())
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to decrypt message")
-	}
-	if err := msgpack.Unmarshal(sig[keys.SignOverhead:], v); err != nil {
-		return nil, errors.Wrapf(err, "failed to unmarshal message")
-	}
-	return sig, nil
-}
-
-// DecryptMessageFromEvent decrypts a remote Event from Messages.
-func DecryptMessageFromEvent(event *events.Event, key *keys.EdX25519Key) (*Message, error) {
-	message, err := DecryptMessage(event.Data, key)
-	if err != nil {
-		return nil, err
-	}
-	message.RemoteIndex = event.Index
-	message.RemoteTimestamp = event.Timestamp
-	return message, nil
 }
 
 // NewMessageForChannelInfo ...

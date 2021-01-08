@@ -17,21 +17,6 @@ func testSeed(b byte) *[32]byte {
 	return keys.Bytes32(bytes.Repeat([]byte{b}, 32))
 }
 
-func TestMessageEncrypt(t *testing.T) {
-	alice := keys.NewEdX25519KeyFromSeed(testSeed(0x01))
-	bob := keys.NewEdX25519KeyFromSeed(testSeed(0x02))
-
-	msg := api.NewMessage(alice.ID()).WithText("test message")
-
-	encrypted, err := msg.Encrypt(alice, bob.ID())
-	require.NoError(t, err)
-
-	out, err := api.DecryptMessage(encrypted, bob)
-	require.NoError(t, err)
-	require.Equal(t, msg, out)
-	require.Equal(t, alice.ID(), out.Sender)
-}
-
 func TestMessageMarshal(t *testing.T) {
 	clock := tsutil.NewTestClock()
 

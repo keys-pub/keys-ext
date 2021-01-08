@@ -83,6 +83,7 @@ github.com/keys-pub/keys v0.1.18-0.20201218205715-618ff87d91d4/go.mod h1:CgoPVi0
 github.com/keys-pub/keys v0.1.20-0.20210102022201-ffb45798b8ab h1:xDpj5hWX5RHSh/mPhfaWKoqO+s0c6Hfu7XluKsbE/OE=
 github.com/keys-pub/keys v0.1.20-0.20210102022201-ffb45798b8ab/go.mod h1:CgoPVi0AZw87ncg5xCYnhlY9h+WQmAVsokthREKygzw=
 github.com/keys-pub/keys-ext v0.1.20 h1:KZs+L8GtJj00bKh+xhQqHNkSQgq2fUCYwBsrP2vV23g=
+github.com/keys-pub/keys-ext v0.2.3 h1:P6Tl8MCPylFxeH0l3VRkbEN2r33JIIPURZtvsDiSitQ=
 github.com/keys-pub/keys-ext/ws/api v0.0.0-20201208014450-6b7883173a82 h1:l3vndQ+tAHm4wO4POy8gz5VqPB4rrHhbB3TPwqNphoc=
 github.com/keys-pub/keys-ext/ws/api v0.0.0-20201208014450-6b7883173a82/go.mod h1:LbgwcQT1R5W8EBRHmDeE6d2lr0t4EYS6J9ih2Jv4iN8=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f h1:LLsdI2XManLH0JonKqB6OYmHdHk/WwJByDbHI3hCEcs=
