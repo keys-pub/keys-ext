@@ -31,8 +31,6 @@ type Client struct {
 
 	connectMtx sync.Mutex
 	writeMtx   sync.Mutex
-
-	tokens []string
 }
 
 // New creates a websocket client.
@@ -42,20 +40,22 @@ func New(urs string) (*Client, error) {
 		return nil, err
 	}
 	return &Client{
-		url:    url,
-		tokens: []string{},
+		url: url,
 	}, nil
 }
 
-// Authorize with key.
-func (c *Client) Authorize(tokens []string) {
-	// logger.Infof("auth %s", key.ID())
-	c.tokens = append(c.tokens, tokens...)
-	if c.connected {
-		if err := c.sendTokens(tokens); err != nil {
-			c.close()
-		}
+// Authorize tokens.
+func (c *Client) Authorize(tokens []string) error {
+	if c.conn == nil {
+		return errors.Errorf("not connected")
 	}
+	if len(tokens) == 0 {
+		return nil
+	}
+	if err := c.sendTokens(tokens); err != nil {
+		return err
+	}
+	return nil
 }
 
 // Close ...
@@ -106,11 +106,6 @@ func (c *Client) Connect() error {
 	if err := c.connect(); err != nil {
 		return err
 	}
-
-	if err := c.sendTokens(c.tokens); err != nil {
-		return errors.Wrapf(err, "failed to send auth")
-	}
-
 	return nil
 }
 
@@ -147,8 +142,8 @@ func (c *Client) sendTokens(tokens []string) error {
 	return nil
 }
 
-// SendPing sends a ping message.
-func (c *Client) SendPing() error {
+// Ping sends a ping message.
+func (c *Client) Ping() error {
 	if c.conn == nil {
 		return errors.Errorf("not connected")
 	}
