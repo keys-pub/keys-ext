@@ -17,7 +17,7 @@ func TestConfig(t *testing.T) {
 	resp, err := service.ConfigGet(context.TODO(), &ConfigGetRequest{Name: "encrypt"})
 	require.NoError(t, err)
 	require.NotNil(t, resp)
-	require.Nil(t, resp.Config)
+	require.Empty(t, resp.Config)
 
 	config := &Config{
 		Encrypt: &Config_Encrypt{
