@@ -57,7 +57,7 @@ func importCommands(client *Client) []cli.Command {
 					In:       b,
 					Password: password,
 				}
-				resp, err := client.KeysClient().KeyImport(context.TODO(), req)
+				resp, err := client.RPCClient().KeyImport(context.TODO(), req)
 				if err != nil {
 					return err
 				}

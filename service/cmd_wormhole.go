@@ -24,7 +24,7 @@ func wormholeCommands(client *Client) []cli.Command {
 			},
 			Hidden: true,
 			Action: func(c *cli.Context) error {
-				client, err := client.KeysClient().Wormhole(context.TODO())
+				client, err := client.RPCClient().Wormhole(context.TODO())
 				if err != nil {
 					return err
 				}

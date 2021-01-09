@@ -30,7 +30,7 @@ func userCommands(client *Client) []cli.Command {
 						if err != nil {
 							return err
 						}
-						resp, err := client.KeysClient().User(context.TODO(), &UserRequest{
+						resp, err := client.RPCClient().User(context.TODO(), &UserRequest{
 							KID:   kid,
 							Local: c.Bool("local"),
 						})
@@ -56,7 +56,7 @@ func userCommands(client *Client) []cli.Command {
 						if err != nil {
 							return err
 						}
-						searchResp, err := client.KeysClient().UserSearch(context.TODO(), &UserSearchRequest{
+						searchResp, err := client.RPCClient().UserSearch(context.TODO(), &UserSearchRequest{
 							Query: query,
 							Limit: int32(c.Int("limit")),
 							Local: c.Bool("local"),
@@ -122,7 +122,7 @@ func userCommands(client *Client) []cli.Command {
 						}
 						name := strings.TrimSpace(strings.ToLower(uin))
 
-						signResp, err := client.KeysClient().UserSign(context.TODO(), &UserSignRequest{
+						signResp, err := client.RPCClient().UserSign(context.TODO(), &UserSignRequest{
 							KID:     kid,
 							Service: service,
 							Name:    name,
@@ -172,7 +172,7 @@ func userCommands(client *Client) []cli.Command {
 						}
 						url := strings.TrimSpace(strings.ToLower(surl))
 
-						_, err = client.KeysClient().UserAdd(context.TODO(), &UserAddRequest{
+						_, err = client.RPCClient().UserAdd(context.TODO(), &UserAddRequest{
 							KID:     kid,
 							Service: service,
 							Name:    name,
@@ -196,7 +196,7 @@ func userCommands(client *Client) []cli.Command {
 						cli.StringFlag{Name: "name"},
 					},
 					Action: func(c *cli.Context) error {
-						resp, err := client.KeysClient().UserSign(context.TODO(), &UserSignRequest{
+						resp, err := client.RPCClient().UserSign(context.TODO(), &UserSignRequest{
 							KID:     c.String("kid"),
 							Service: c.String("service"),
 							Name:    c.String("name"),
@@ -220,7 +220,7 @@ func userCommands(client *Client) []cli.Command {
 						cli.BoolFlag{Name: "local", Usage: "Don't save to the key server"},
 					},
 					Action: func(c *cli.Context) error {
-						resp, err := client.KeysClient().UserAdd(context.TODO(), &UserAddRequest{
+						resp, err := client.RPCClient().UserAdd(context.TODO(), &UserAddRequest{
 							KID:     c.String("kid"),
 							Service: c.String("service"),
 							Name:    c.String("name"),

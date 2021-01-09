@@ -196,7 +196,7 @@ func (s *service) encryptWriter(ctx context.Context, w io.Writer, enc *encrypt) 
 }
 
 // EncryptFile (RPC) ...
-func (s *service) EncryptFile(srv Keys_EncryptFileServer) error {
+func (s *service) EncryptFile(srv RPC_EncryptFileServer) error {
 	req, err := srv.Recv()
 	if err != nil {
 		return err
@@ -229,7 +229,7 @@ func (s *service) EncryptFile(srv Keys_EncryptFileServer) error {
 }
 
 // EncryptStream (RPC) ...
-func (s *service) EncryptStream(srv Keys_EncryptStreamServer) error {
+func (s *service) EncryptStream(srv RPC_EncryptStreamServer) error {
 	init := false
 
 	var stream io.WriteCloser

@@ -36,7 +36,7 @@ func dbCommands(client *Client) []cli.Command {
 							Parent: path,
 							DB:     c.String("db"),
 						}
-						resp, err := client.KeysClient().Collections(context.TODO(), req)
+						resp, err := client.RPCClient().Collections(context.TODO(), req)
 						if err != nil {
 							return err
 						}
@@ -62,7 +62,7 @@ func dbCommands(client *Client) []cli.Command {
 						path := strings.TrimSpace(c.Args().First())
 
 						if path == "" {
-							resp, err := client.KeysClient().Collections(context.TODO(), &CollectionsRequest{
+							resp, err := client.RPCClient().Collections(context.TODO(), &CollectionsRequest{
 								DB: c.String("db"),
 							})
 							if err != nil {
@@ -76,7 +76,7 @@ func dbCommands(client *Client) []cli.Command {
 							Prefix: path,
 							DB:     c.String("db"),
 						}
-						resp, err := client.KeysClient().Documents(context.TODO(), req)
+						resp, err := client.RPCClient().Documents(context.TODO(), req)
 						if err != nil {
 							return err
 						}
@@ -98,7 +98,7 @@ func documentDeleteCommand(client *Client) cli.Command {
 		},
 		Hidden: true,
 		Action: func(c *cli.Context) error {
-			_, err := client.KeysClient().DocumentDelete(context.TODO(), &DocumentDeleteRequest{
+			_, err := client.RPCClient().DocumentDelete(context.TODO(), &DocumentDeleteRequest{
 				Path: c.Args().First(),
 				DB:   c.String("db"),
 			})

@@ -52,7 +52,7 @@ func exportCommands(client *Client) []cli.Command {
 					Public:     public,
 					NoPassword: noPassword,
 				}
-				resp, err := client.KeysClient().KeyExport(context.TODO(), req)
+				resp, err := client.RPCClient().KeyExport(context.TODO(), req)
 				if err != nil {
 					return err
 				}

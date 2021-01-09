@@ -24,7 +24,7 @@ func keyCommands(client *Client) []cli.Command {
 				cli.StringSliceFlag{Name: "type, t", Usage: "only these types (" + genTypes + ")"},
 			},
 			Action: func(c *cli.Context) error {
-				resp, err := client.KeysClient().Keys(context.TODO(), &KeysRequest{Types: c.StringSlice("type")})
+				resp, err := client.RPCClient().Keys(context.TODO(), &KeysRequest{Types: c.StringSlice("type")})
 				if err != nil {
 					return err
 				}
@@ -41,7 +41,7 @@ func keyCommands(client *Client) []cli.Command {
 				if key == "" {
 					return errors.Errorf("specify kid or user@service")
 				}
-				resp, err := client.KeysClient().Key(context.TODO(), &KeyRequest{
+				resp, err := client.RPCClient().Key(context.TODO(), &KeyRequest{
 					Key: key,
 				})
 				if err != nil {
@@ -64,7 +64,7 @@ func keyCommands(client *Client) []cli.Command {
 				req := &KeyGenerateRequest{
 					Type: c.String("type"),
 				}
-				resp, err := client.KeysClient().KeyGenerate(context.TODO(), req)
+				resp, err := client.RPCClient().KeyGenerate(context.TODO(), req)
 				if err != nil {
 					return err
 				}
@@ -83,7 +83,7 @@ func keyCommands(client *Client) []cli.Command {
 				if err != nil {
 					return err
 				}
-				if _, err := client.KeysClient().KeyRemove(context.TODO(), &KeyRemoveRequest{
+				if _, err := client.RPCClient().KeyRemove(context.TODO(), &KeyRemoveRequest{
 					KID: kid,
 				}); err != nil {
 					return err

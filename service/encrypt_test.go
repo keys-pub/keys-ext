@@ -248,7 +248,7 @@ func testEncryptStream(t *testing.T, env *testEnv, service *service, plaintext [
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 
-	streamClient, streamErr := client.KeysClient().EncryptStream(ctx)
+	streamClient, streamErr := client.RPCClient().EncryptStream(ctx)
 	require.NoError(t, streamErr)
 
 	chunkSize := 1024 * 1024
@@ -311,7 +311,7 @@ func testDecryptStream(t *testing.T, env *testEnv, service *service, b []byte) (
 
 	chunkSize := 1024 * 1024
 
-	streamClient, err := client.KeysClient().DecryptStream(ctx)
+	streamClient, err := client.RPCClient().DecryptStream(ctx)
 	if err != nil {
 		return nil, nil, DefaultEncrypt, err
 	}

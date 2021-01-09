@@ -19,7 +19,7 @@ func pullCommands(client *Client) []cli.Command {
 				req := &PullRequest{
 					Key: key,
 				}
-				resp, err := client.KeysClient().Pull(context.TODO(), req)
+				resp, err := client.RPCClient().Pull(context.TODO(), req)
 				if err != nil {
 					return err
 				}
@@ -46,7 +46,7 @@ func pullCommands(client *Client) []cli.Command {
 					Key:         key,
 					RemoteCheck: c.Bool("check"),
 				}
-				resp, err := client.KeysClient().Push(context.TODO(), req)
+				resp, err := client.RPCClient().Push(context.TODO(), req)
 				if err != nil {
 					return err
 				}

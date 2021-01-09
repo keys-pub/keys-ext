@@ -23,7 +23,7 @@ func otherCommands(client *Client) []cli.Command {
 				if err != nil {
 					return err
 				}
-				rand, err := client.KeysClient().Rand(context.TODO(), &RandRequest{
+				rand, err := client.RPCClient().Rand(context.TODO(), &RandRequest{
 					NumBytes:  int32(c.Int("num-bytes")),
 					Encoding:  enc,
 					NoPadding: c.Bool("no-padding"),
@@ -43,7 +43,7 @@ func otherCommands(client *Client) []cli.Command {
 						cli.IntFlag{Name: "length, l", Usage: "length of password", Value: 20},
 					},
 					Action: func(c *cli.Context) error {
-						rand, err := client.KeysClient().RandPassword(context.TODO(), &RandPasswordRequest{
+						rand, err := client.RPCClient().RandPassword(context.TODO(), &RandPasswordRequest{
 							Length: int32(c.Int("length")),
 						})
 						if err != nil {
@@ -58,7 +58,7 @@ func otherCommands(client *Client) []cli.Command {
 					Usage: "Generate random passphrase",
 					Flags: []cli.Flag{},
 					Action: func(c *cli.Context) error {
-						rand, err := client.KeysClient().Rand(context.TODO(), &RandRequest{
+						rand, err := client.RPCClient().Rand(context.TODO(), &RandRequest{
 							NumBytes: 16,
 							Encoding: BIP39,
 						})

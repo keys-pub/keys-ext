@@ -196,7 +196,7 @@ func NewServiceFn(env *Env, build Build, cert *keys.CertificateKey, lgi LogInter
 
 	// Keys service
 	logger.Infof("Registering Keys service...")
-	RegisterKeysServer(grpcServer, service)
+	RegisterRPCServer(grpcServer, service)
 
 	// FIDO2
 	fido2Plugin, err := fido2.OpenPlugin(filepath.Join(exeDir(), "fido2.so"))

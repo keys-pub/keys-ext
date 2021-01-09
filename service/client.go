@@ -26,7 +26,7 @@ import (
 // Client defines the RPC client.
 type Client struct {
 	sync.Mutex
-	keysClient  KeysClient
+	keysClient  RPCClient
 	fido2Client fido2.FIDO2Client
 	conn        *grpc.ClientConn
 	env         *Env
@@ -66,7 +66,7 @@ func (c *Client) Connect(env *Env, authToken string) error {
 		return err
 	}
 	c.conn = conn
-	c.keysClient = NewKeysClient(conn)
+	c.keysClient = NewRPCClient(conn)
 	c.fido2Client = fido2.NewFIDO2Client(conn)
 	return nil
 }
@@ -94,8 +94,8 @@ func connectLocal(env *Env, authToken string) (*grpc.ClientConn, error) {
 	return grpc.Dial(addr, opts...)
 }
 
-// KeysClient returns Keys RPC client.
-func (c *Client) KeysClient() KeysClient {
+// RPCClient returns Keys RPC client.
+func (c *Client) RPCClient() RPCClient {
 	return c.keysClient
 }
 
@@ -253,7 +253,7 @@ func connect(env *Env, client *Client, build Build, authToken string, reconnect 
 	}
 
 	logger.Debugf("Service status...")
-	status, err := client.KeysClient().RuntimeStatus(context.TODO(), &RuntimeStatusRequest{})
+	status, err := client.RPCClient().RuntimeStatus(context.TODO(), &RuntimeStatusRequest{})
 	if err != nil {
 		return err
 	}

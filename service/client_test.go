@@ -35,7 +35,7 @@ func newTestRPCClient(t *testing.T, srvc *service, tenv *testEnv, appName string
 	}
 
 	server := grpc.NewServer()
-	RegisterKeysServer(server, srvc)
+	RegisterRPCServer(server, srvc)
 	go func() {
 		serveErr := server.Serve(listener.lis)
 		require.NoError(t, serveErr)

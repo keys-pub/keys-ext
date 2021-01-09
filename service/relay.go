@@ -10,7 +10,7 @@ import (
 )
 
 type relayClient struct {
-	ui Keys_RelayServer
+	ui RPC_RelayServer
 	ws *wsclient.Client
 }
 
@@ -58,7 +58,7 @@ func (r *relay) Authorize(tokens []string) {
 }
 
 // Relay (RPC) ...
-func (s *service) Relay(req *RelayRequest, srv Keys_RelayServer) error {
+func (s *service) Relay(req *RelayRequest, srv RPC_RelayServer) error {
 	ctx := srv.Context()
 
 	relay, err := wsclient.New("wss://relay.keys.pub/ws")

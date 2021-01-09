@@ -102,7 +102,7 @@ func testSignStream(t *testing.T, env *testEnv, service *service, plaintext []by
 	cl, clientCloseFn := newTestRPCClient(t, service, env, "", &clientOut)
 	defer clientCloseFn()
 
-	streamClient, streamErr := cl.KeysClient().SignStream(ctx)
+	streamClient, streamErr := cl.RPCClient().SignStream(ctx)
 	require.NoError(t, streamErr)
 
 	chunkSize := 1024 * 1024
@@ -159,7 +159,7 @@ func testSignStream(t *testing.T, env *testEnv, service *service, plaintext []by
 	require.Equal(t, plaintext, out)
 
 	// Verify stream
-	outClient, streamErr := cl.KeysClient().VerifyStream(ctx)
+	outClient, streamErr := cl.RPCClient().VerifyStream(ctx)
 	require.NoError(t, streamErr)
 
 	go func() {

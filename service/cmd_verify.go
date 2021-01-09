@@ -53,7 +53,7 @@ func verifyCommands(client *Client) []cli.Command {
 				}
 
 				logger.Debugf("Verify stream (cmd)")
-				verifyClient, err := NewVerifyStreamClient(context.TODO(), client.KeysClient())
+				verifyClient, err := NewVerifyStreamClient(context.TODO(), client.RPCClient())
 				if err != nil {
 					return err
 				}
@@ -148,7 +148,7 @@ func verifyFile(client *Client, in string, out string, signer string) (string, e
 		}
 	}
 
-	verifyClient, err := client.KeysClient().VerifyFile(context.TODO())
+	verifyClient, err := client.RPCClient().VerifyFile(context.TODO())
 	if err != nil {
 		return "", err
 	}
@@ -196,7 +196,7 @@ func verifyDetachedFile(client *Client, in string, sigFile string, signer string
 		return err
 	}
 
-	verifyClient, err := client.KeysClient().VerifyDetachedFile(context.TODO())
+	verifyClient, err := client.RPCClient().VerifyDetachedFile(context.TODO())
 	if err != nil {
 		return err
 	}
@@ -227,7 +227,7 @@ func verifyDetachedStream(client *Client, reader io.Reader, sigFile string, sign
 		return err
 	}
 
-	verifyClient, err := client.KeysClient().VerifyDetachedStream(context.TODO())
+	verifyClient, err := client.RPCClient().VerifyDetachedStream(context.TODO())
 	if err != nil {
 		return err
 	}

@@ -45,7 +45,7 @@ func authCommands(client *Client) []cli.Command {
 					}
 				}
 
-				status, err := client.KeysClient().RuntimeStatus(context.TODO(), &RuntimeStatusRequest{})
+				status, err := client.RPCClient().RuntimeStatus(context.TODO(), &RuntimeStatusRequest{})
 				if err != nil {
 					return err
 				}
@@ -108,7 +108,7 @@ func authCommands(client *Client) []cli.Command {
 			Usage: "Lock",
 			Flags: []cli.Flag{},
 			Action: func(c *cli.Context) error {
-				_, err := client.KeysClient().AuthLock(context.TODO(), &AuthLockRequest{})
+				_, err := client.RPCClient().AuthLock(context.TODO(), &AuthLockRequest{})
 				if err != nil {
 					return err
 				}
@@ -132,7 +132,7 @@ func authVaultCommand(client *Client) cli.Command {
 			if err != nil {
 				return err
 			}
-			if _, err := client.KeysClient().AuthVault(context.TODO(), &AuthVaultRequest{
+			if _, err := client.RPCClient().AuthVault(context.TODO(), &AuthVaultRequest{
 				Phrase: phrase,
 			}); err != nil {
 				return err
@@ -156,7 +156,7 @@ func changePasswordCommand(client *Client) cli.Command {
 			if err != nil {
 				return err
 			}
-			if _, err := client.KeysClient().AuthPasswordChange(context.TODO(), &AuthPasswordChangeRequest{
+			if _, err := client.RPCClient().AuthPasswordChange(context.TODO(), &AuthPasswordChangeRequest{
 				Old: old,
 				New: new,
 			}); err != nil {
@@ -177,7 +177,7 @@ func authProvisionCommand(client *Client) cli.Command {
 			cli.StringFlag{Name: "device", Value: "", Usage: "device path or product name"},
 		},
 		Action: func(c *cli.Context) error {
-			rts, err := client.KeysClient().RuntimeStatus(context.TODO(), &RuntimeStatusRequest{})
+			rts, err := client.RPCClient().RuntimeStatus(context.TODO(), &RuntimeStatusRequest{})
 			if err != nil {
 				return err
 			}
@@ -276,7 +276,7 @@ func authResetCommand(client *Client) cli.Command {
 				}
 			}
 
-			_, err := client.KeysClient().AuthReset(context.TODO(), &AuthResetRequest{
+			_, err := client.RPCClient().AuthReset(context.TODO(), &AuthResetRequest{
 				AppName: c.String("app"),
 			})
 			if err != nil {
@@ -330,7 +330,7 @@ func authProvisionsCommand(client *Client) cli.Command {
 		Flags: []cli.Flag{},
 		Action: func(c *cli.Context) error {
 			ctx := context.TODO()
-			resp, err := client.KeysClient().AuthProvisions(ctx, &AuthProvisionsRequest{})
+			resp, err := client.RPCClient().AuthProvisions(ctx, &AuthProvisionsRequest{})
 			if err != nil {
 				return err
 			}
@@ -350,7 +350,7 @@ func authDeprovisionCommand(client *Client) cli.Command {
 			if id == "" {
 				return errors.Errorf("specify a provision id")
 			}
-			_, err := client.KeysClient().AuthDeprovision(context.TODO(), &AuthDeprovisionRequest{
+			_, err := client.RPCClient().AuthDeprovision(context.TODO(), &AuthDeprovisionRequest{
 				ID: id,
 			})
 			if err != nil {

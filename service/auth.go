@@ -31,15 +31,15 @@ type auth struct {
 func newAuth(env *Env) *auth {
 	// We don't need auth for the following methods.
 	allowlist := dstore.NewStringSet(
-		"/keys.Keys/AuthSetup",
-		"/keys.Keys/AuthUnlock",
-		"/keys.Keys/AuthLock",
-		"/keys.Keys/AuthVault",
-		"/keys.Keys/AuthReset",
-		"/keys.Keys/AuthRecover",
-		"/keys.Keys/Rand",
-		"/keys.Keys/RandPassword",
-		"/keys.Keys/RuntimeStatus",
+		"/service.RPC/AuthSetup",
+		"/service.RPC/AuthUnlock",
+		"/service.RPC/AuthLock",
+		"/service.RPC/AuthVault",
+		"/service.RPC/AuthReset",
+		"/service.RPC/AuthRecover",
+		"/service.RPC/Rand",
+		"/service.RPC/RandPassword",
+		"/service.RPC/RuntimeStatus",
 	)
 
 	return &auth{

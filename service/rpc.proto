@@ -3,12 +3,12 @@ syntax = "proto3";
 // Proto field names should be snake_case, but some plugins don't convert to 
 // camel like they should, so we use camelCase here.
 
-package keys;
+package service;
 option go_package=".;service";
 
 import "patch/go.proto";
 
-service Keys {  
+service RPC {  
   rpc KeyGenerate(KeyGenerateRequest) returns (KeyGenerateResponse) {}
   rpc Keys(KeysRequest) returns (KeysResponse) {}
   rpc Key(KeyRequest) returns (KeyResponse) {}

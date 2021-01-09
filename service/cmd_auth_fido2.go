@@ -30,7 +30,7 @@ func fido2AuthSetup(ctx context.Context, client *Client, clientName string, devi
 	}
 
 	fmt.Fprintln(os.Stderr, "Let's create a credential, you may need to interact with the key...")
-	if _, err := client.KeysClient().AuthSetup(ctx, &AuthSetupRequest{
+	if _, err := client.RPCClient().AuthSetup(ctx, &AuthSetupRequest{
 		Secret: pin,
 		Type:   FIDO2HMACSecretAuth,
 		Device: device,
@@ -39,7 +39,7 @@ func fido2AuthSetup(ctx context.Context, client *Client, clientName string, devi
 	}
 
 	fmt.Fprintln(os.Stderr, "Getting the credential, you may need to interact with the key...")
-	unlockResp, err := client.KeysClient().AuthUnlock(ctx, &AuthUnlockRequest{
+	unlockResp, err := client.RPCClient().AuthUnlock(ctx, &AuthUnlockRequest{
 		Secret: pin,
 		Type:   FIDO2HMACSecretAuth,
 		Client: clientName,
@@ -61,7 +61,7 @@ func fido2AuthUnlock(ctx context.Context, client *Client, clientName string, pin
 	}
 
 	fmt.Fprintln(os.Stderr, "Getting the credential, you may need to interact with the key...")
-	unlock, err := client.KeysClient().AuthUnlock(context.TODO(), &AuthUnlockRequest{
+	unlock, err := client.RPCClient().AuthUnlock(context.TODO(), &AuthUnlockRequest{
 		Secret: pin,
 		Type:   FIDO2HMACSecretAuth,
 		Client: clientName,
@@ -104,7 +104,7 @@ func fido2AuthProvision(ctx context.Context, client *Client, device string, pin 
 
 func fido2AuthGenerate(ctx context.Context, client *Client, pin string, device string) error {
 	fmt.Fprintln(os.Stderr, "Let's create a credential, you may need to interact with the key...")
-	if _, err := client.KeysClient().AuthProvision(ctx, &AuthProvisionRequest{
+	if _, err := client.RPCClient().AuthProvision(ctx, &AuthProvisionRequest{
 		Device:   device,
 		Secret:   pin,
 		Type:     FIDO2HMACSecretAuth,
@@ -117,7 +117,7 @@ func fido2AuthGenerate(ctx context.Context, client *Client, pin string, device s
 
 func fido2AuthCredential(ctx context.Context, client *Client, pin string, device string) error {
 	fmt.Fprintln(os.Stderr, "Getting the credential, you may need to interact with the key (again)...")
-	if _, err := client.KeysClient().AuthProvision(ctx, &AuthProvisionRequest{
+	if _, err := client.RPCClient().AuthProvision(ctx, &AuthProvisionRequest{
 		Device: device,
 		Secret: pin,
 		Type:   FIDO2HMACSecretAuth,

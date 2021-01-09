@@ -36,7 +36,7 @@ func (s *service) Sign(ctx context.Context, req *SignRequest) (*SignResponse, er
 }
 
 // SignFile (RPC) ...
-func (s *service) SignFile(srv Keys_SignFileServer) error {
+func (s *service) SignFile(srv RPC_SignFileServer) error {
 	req, err := srv.Recv()
 	if err != nil {
 		return err
@@ -78,7 +78,7 @@ func (s *service) SignFile(srv Keys_SignFileServer) error {
 }
 
 // SignStream (RPC) ...
-func (s *service) SignStream(srv Keys_SignStreamServer) error {
+func (s *service) SignStream(srv RPC_SignStreamServer) error {
 	init := false
 
 	var stream io.WriteCloser

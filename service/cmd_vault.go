@@ -17,7 +17,7 @@ func vaultCommands(client *Client) []cli.Command {
 					Name:  "sync",
 					Usage: "Sync vault",
 					Action: func(c *cli.Context) error {
-						_, err := client.KeysClient().VaultSync(context.TODO(), &VaultSyncRequest{})
+						_, err := client.RPCClient().VaultSync(context.TODO(), &VaultSyncRequest{})
 						if err != nil {
 							return err
 						}
@@ -28,7 +28,7 @@ func vaultCommands(client *Client) []cli.Command {
 					Name:  "auth",
 					Usage: "Vault auth (single use, expiring)",
 					Action: func(c *cli.Context) error {
-						resp, err := client.KeysClient().VaultAuth(context.TODO(), &VaultAuthRequest{})
+						resp, err := client.RPCClient().VaultAuth(context.TODO(), &VaultAuthRequest{})
 						if err != nil {
 							return err
 						}

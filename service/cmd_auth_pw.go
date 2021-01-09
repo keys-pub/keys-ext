@@ -16,14 +16,14 @@ func passwordAuthSetup(ctx context.Context, client *Client, clientName string, p
 		password = p
 	}
 
-	if _, err := client.KeysClient().AuthSetup(ctx, &AuthSetupRequest{
+	if _, err := client.RPCClient().AuthSetup(ctx, &AuthSetupRequest{
 		Secret: password,
 		Type:   PasswordAuth,
 	}); err != nil {
 		return "", err
 	}
 
-	unlockResp, err := client.KeysClient().AuthUnlock(ctx, &AuthUnlockRequest{
+	unlockResp, err := client.RPCClient().AuthUnlock(ctx, &AuthUnlockRequest{
 		Secret: password,
 		Type:   PasswordAuth,
 		Client: clientName,
@@ -44,7 +44,7 @@ func passwordAuthUnlock(ctx context.Context, client *Client, clientName string, 
 		password = p
 	}
 
-	unlock, err := client.KeysClient().AuthUnlock(context.TODO(), &AuthUnlockRequest{
+	unlock, err := client.RPCClient().AuthUnlock(context.TODO(), &AuthUnlockRequest{
 		Secret: password,
 		Type:   PasswordAuth,
 		Client: clientName,
@@ -65,7 +65,7 @@ func passwordAuthProvision(ctx context.Context, client *Client, password string)
 		password = p
 	}
 
-	if _, err := client.KeysClient().AuthProvision(ctx, &AuthProvisionRequest{
+	if _, err := client.RPCClient().AuthProvision(ctx, &AuthProvisionRequest{
 		Secret: password,
 		Type:   PasswordAuth,
 	}); err != nil {

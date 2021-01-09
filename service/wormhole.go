@@ -13,7 +13,7 @@ import (
 // ErrWormholeTimedOut is timed out.
 var ErrWormholeTimedOut = errors.New("wormhole timed out")
 
-func (s *service) wormholeInit(ctx context.Context, req *WormholeInput, wh *wormhole.Wormhole, srv Keys_WormholeServer) error {
+func (s *service) wormholeInit(ctx context.Context, req *WormholeInput, wh *wormhole.Wormhole, srv RPC_WormholeServer) error {
 	if req.ID != "" || len(req.Text) != 0 {
 		return errors.Errorf("first request should not include a message")
 	}
@@ -116,7 +116,7 @@ func (s *service) wormholeInput(ctx context.Context, req *WormholeInput, wh *wor
 	return nil
 }
 
-func (s *service) wormholeReadSend(ctx context.Context, wh *wormhole.Wormhole, srv Keys_WormholeServer) error {
+func (s *service) wormholeReadSend(ctx context.Context, wh *wormhole.Wormhole, srv RPC_WormholeServer) error {
 	msg, err := wh.ReadMessage(ctx, true)
 	if err != nil {
 		return err
@@ -136,7 +136,7 @@ func (s *service) wormholeReadSend(ctx context.Context, wh *wormhole.Wormhole, s
 }
 
 // Wormhole (RPC) ...
-func (s *service) Wormhole(srv Keys_WormholeServer) error {
+func (s *service) Wormhole(srv RPC_WormholeServer) error {
 	// TODO: EOF's if auth token is stale? Need better error?
 
 	wh, err := wormhole.New(s.env.Server(), s.vault)

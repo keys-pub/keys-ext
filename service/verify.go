@@ -52,7 +52,7 @@ func (s *service) VerifyDetached(ctx context.Context, req *VerifyDetachedRequest
 }
 
 // VerifyFile (RPC) ...
-func (s *service) VerifyFile(srv Keys_VerifyFileServer) error {
+func (s *service) VerifyFile(srv RPC_VerifyFileServer) error {
 	req, err := srv.Recv()
 	if err != nil {
 		return err
@@ -88,7 +88,7 @@ func (s *service) VerifyFile(srv Keys_VerifyFileServer) error {
 }
 
 // VerifyDetachedFile (RPC) ...
-func (s *service) VerifyDetachedFile(srv Keys_VerifyDetachedFileServer) error {
+func (s *service) VerifyDetachedFile(srv RPC_VerifyDetachedFileServer) error {
 	req, err := srv.Recv()
 	if err != nil {
 		return err
@@ -110,7 +110,7 @@ func (s *service) VerifyDetachedFile(srv Keys_VerifyDetachedFileServer) error {
 }
 
 // VerifyStream (RPC) ...
-func (s *service) VerifyStream(srv Keys_VerifyStreamServer) error {
+func (s *service) VerifyStream(srv RPC_VerifyStreamServer) error {
 	return s.verifyStream(srv, false)
 }
 
@@ -158,7 +158,7 @@ func (s *service) verifyStream(srv verifyStreamServer, armored bool) error {
 }
 
 // VerifyDetachedStream (RPC) ...
-func (s *service) VerifyDetachedStream(srv Keys_VerifyDetachedStreamServer) error {
+func (s *service) VerifyDetachedStream(srv RPC_VerifyDetachedStreamServer) error {
 	ctx := srv.Context()
 
 	first, err := srv.Recv()
@@ -204,7 +204,7 @@ type VerifyStreamClient interface {
 }
 
 // NewVerifyStreamClient ...
-func NewVerifyStreamClient(ctx context.Context, cl KeysClient) (VerifyStreamClient, error) {
+func NewVerifyStreamClient(ctx context.Context, cl RPCClient) (VerifyStreamClient, error) {
 	return cl.VerifyStream(ctx)
 }
 

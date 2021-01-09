@@ -15,7 +15,7 @@ import (
 )
 
 type service struct {
-	UnimplementedKeysServer
+	UnimplementedRPCServer
 
 	env    *Env
 	build  Build

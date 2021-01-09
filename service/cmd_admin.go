@@ -30,7 +30,7 @@ func adminCommands(client *Client) []cli.Command {
 							Method: c.String("method"),
 							URL:    c.String("url"),
 						}
-						resp, err := client.KeysClient().AdminSignURL(context.TODO(), req)
+						resp, err := client.RPCClient().AdminSignURL(context.TODO(), req)
 						if err != nil {
 							return err
 						}
@@ -51,7 +51,7 @@ func adminCommands(client *Client) []cli.Command {
 							Signer: c.String("signer"),
 							Check:  c.String("check"),
 						}
-						resp, err := client.KeysClient().AdminCheck(context.TODO(), req)
+						resp, err := client.RPCClient().AdminCheck(context.TODO(), req)
 						if err != nil {
 							return err
 						}

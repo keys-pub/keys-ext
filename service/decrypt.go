@@ -56,7 +56,7 @@ func (s *service) Decrypt(ctx context.Context, req *DecryptRequest) (*DecryptRes
 }
 
 // DecryptFile (RPC) ...
-func (s *service) DecryptFile(srv Keys_DecryptFileServer) error {
+func (s *service) DecryptFile(srv RPC_DecryptFileServer) error {
 	req, err := srv.Recv()
 	if err != nil {
 		return err
@@ -94,7 +94,7 @@ type DecryptStreamClient interface {
 }
 
 // NewDecryptStreamClient returns DecryptStreamClient based on options.
-func NewDecryptStreamClient(ctx context.Context, cl KeysClient) (DecryptStreamClient, error) {
+func NewDecryptStreamClient(ctx context.Context, cl RPCClient) (DecryptStreamClient, error) {
 	return cl.DecryptStream(ctx)
 	// return cl.DecryptArmoredStream(ctx)
 	// return cl.SigncryptOpenStream(ctx)
@@ -102,7 +102,7 @@ func NewDecryptStreamClient(ctx context.Context, cl KeysClient) (DecryptStreamCl
 }
 
 // DecryptStream (RPC) ...
-func (s *service) DecryptStream(srv Keys_DecryptStreamServer) error {
+func (s *service) DecryptStream(srv RPC_DecryptStreamServer) error {
 	return s.decryptStream(srv)
 }
 
