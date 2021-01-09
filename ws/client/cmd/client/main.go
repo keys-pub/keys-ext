@@ -42,11 +42,17 @@ func main() {
 		}
 	}()
 
+	if err := cl.Connect(); err != nil {
+		log.Fatal(err)
+	}
+
 	tokens := []string{}
 	for i := 0; i < 20; i++ {
 		tokens = append(tokens, fmt.Sprintf("testtoken%d", i))
 	}
-	cl.Authorize(tokens)
+	if err := cl.Authorize(tokens); err != nil {
+		log.Fatal(err)
+	}
 
 	<-interrupt
 	cl.Close()
