@@ -290,6 +290,19 @@ func (d *DB) DeleteAll(ctx context.Context, paths []string) error {
 	return nil
 }
 
+// DeleteCollection to at paths at parent.
+func (d *DB) DeleteCollection(ctx context.Context, parent string) error {
+	docs, err := d.Documents(ctx, parent, dstore.NoData())
+	if err != nil {
+		return err
+	}
+	paths := []string{}
+	for _, d := range docs {
+		paths = append(paths, d.Path)
+	}
+	return d.DeleteAll(ctx, paths)
+}
+
 func newDocument(doc *document) *dstore.Document {
 	out := dstore.NewDocument(doc.Path)
 	out.SetAll(doc.Values)
