@@ -26,6 +26,7 @@ type service struct {
 	users  *users.Users
 	clock  tsutil.Clock
 	vault  *vault.Vault
+	relay  *relay
 
 	unlocked  bool
 	unlockMtx sync.Mutex
@@ -66,6 +67,7 @@ func newService(env *Env, build Build, auth *auth, hclient khttp.Client, clock t
 		users:         usrs,
 		client:        client,
 		vault:         vlt,
+		relay:         newRelay(),
 		clock:         clock,
 		checkCancelFn: func() {},
 	}, nil

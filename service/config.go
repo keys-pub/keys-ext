@@ -12,13 +12,11 @@ func (s *service) ConfigGet(ctx context.Context, req *ConfigGetRequest) (*Config
 	if err != nil {
 		return nil, err
 	}
-	if doc == nil {
-		return &ConfigGetResponse{}, nil
-	}
-
 	var config Config
-	if err := doc.To(&config); err != nil {
-		return nil, err
+	if doc != nil {
+		if err := doc.To(&config); err != nil {
+			return nil, err
+		}
 	}
 
 	return &ConfigGetResponse{

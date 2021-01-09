@@ -14,14 +14,14 @@ require (
 	github.com/keys-pub/keys v0.1.20-0.20210102234532-ff048354dd2b
 	github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20201221200935-cda646bb0b44
 	github.com/keys-pub/keys-ext/auth/mock v0.0.0-20201018000238-7b6186f1fe97
-	github.com/keys-pub/keys-ext/http/api v0.0.0-20210103224716-09cb2ea897fb
-	github.com/keys-pub/keys-ext/http/client v0.0.0-20210103225355-6c9a198ac42a
+	github.com/keys-pub/keys-ext/http/api v0.0.0-20210108232832-6bce3e9124fe
+	github.com/keys-pub/keys-ext/http/client v0.0.0-20210109001315-76134396e9aa
 	github.com/keys-pub/keys-ext/http/server v0.0.0-20210103224830-a8720c3ddd9b
-	github.com/keys-pub/keys-ext/sdb v0.0.0-20201221200935-cda646bb0b44
+	github.com/keys-pub/keys-ext/sdb v0.0.0-20210109001315-76134396e9aa
 	github.com/keys-pub/keys-ext/vault v0.0.0-20210102030049-6622ca14f3bc
 	github.com/keys-pub/keys-ext/wormhole v0.0.0-20210102030049-6622ca14f3bc
 	github.com/keys-pub/keys-ext/ws/api v0.0.0-20210103224830-a8720c3ddd9b
-	github.com/keys-pub/keys-ext/ws/client v0.0.0-20210103225355-6c9a198ac42a
+	github.com/keys-pub/keys-ext/ws/client v0.0.0-20210109001315-76134396e9aa
 	github.com/konsorten/go-windows-terminal-sequences v1.0.3 // indirect
 	github.com/mercari/go-grpc-interceptor v0.0.0-20180110035004-b8ad3827e82a
 	github.com/mitchellh/go-ps v1.0.0

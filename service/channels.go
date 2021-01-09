@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"sort"
 	"strings"
 
 	"github.com/davecgh/go-spew/spew"
@@ -18,7 +19,7 @@ func (s *service) Channels(ctx context.Context, req *ChannelsRequest) (*Channels
 		return nil, err
 	}
 
-	if err := s.pullDirectMessages(ctx, userKey); err != nil {
+	if _, err := s.pullDirectMessages(ctx, userKey); err != nil {
 		return nil, err
 	}
 
@@ -69,10 +70,22 @@ func (s *service) ChannelCreate(ctx context.Context, req *ChannelCreateRequest) 
 		return nil, err
 	}
 
+	if err := s.pullMessages(ctx, ck); err != nil {
+		return nil, err
+	}
+
+	status, err := s.channelStatus(ctx, ck.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	s.relay.Authorize([]string{created.Channel.Token})
+	s.relay.Send(&RelayOutput{
+		Channel: created.Channel.ID.String(),
+	})
+
 	return &ChannelCreateResponse{
-		Channel: &Channel{
-			ID: ck.ID.String(),
-		},
+		Channel: status.Channel(),
 	}, nil
 }
 
@@ -172,6 +185,54 @@ func (s *service) pullChannels(ctx context.Context) error {
 	return nil
 }
 
+func (s *service) ChannelRead(ctx context.Context, req *ChannelReadRequest) (*ChannelReadResponse, error) {
+	channel, err := keys.ParseID(req.Channel)
+	if err != nil {
+		return nil, err
+	}
+	update := map[string]interface{}{
+		"readIndex": req.Index,
+	}
+	if err := s.db.Set(ctx, dstore.Path("channels", channel), update, dstore.MergeAll()); err != nil {
+		return nil, err
+	}
+
+	s.relay.Send(&RelayOutput{
+		Channel: channel.String(),
+	})
+
+	return &ChannelReadResponse{}, nil
+}
+
+func (s *service) ChannelLeave(ctx context.Context, req *ChannelLeaveRequest) (*ChannelLeaveResponse, error) {
+	channel, err := keys.ParseID(req.Channel)
+	if err != nil {
+		return nil, err
+	}
+
+	ok, err := s.vault.Delete(channel.String())
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		return nil, keys.NewErrNotFound(channel.String())
+	}
+
+	if _, err := s.db.Delete(ctx, dstore.Path("channels", channel)); err != nil {
+		return nil, err
+	}
+
+	if err := s.db.DeleteCollection(ctx, dstore.Path("messages", channel)); err != nil {
+		return nil, err
+	}
+
+	s.relay.Send(&RelayOutput{
+		Channel: channel.String(),
+	})
+
+	return &ChannelLeaveResponse{}, nil
+}
+
 type channelStatus struct {
 	ID              keys.ID `json:"id,omitempty" msgpack:"id,omitempty"`
 	Name            string  `json:"name,omitempty" msgpack:"name,omitempty"`
@@ -180,6 +241,7 @@ type channelStatus struct {
 	Index           int64   `json:"index,omitempty" msgpack:"index,omitempty"`
 	Timestamp       int64   `json:"ts,omitempty" msgpack:"ts,omitempty"`
 	RemoteTimestamp int64   `json:"rts,omitempty" msgpack:"rts,omitempty"`
+	ReadIndex       int64   `json:"readIndex,omitempty" msgpack:"readIndex,omitempty"`
 }
 
 func (s channelStatus) Info() *api.ChannelInfo {
@@ -196,6 +258,7 @@ func (s channelStatus) Channel() *Channel {
 		Snippet:   s.Snippet,
 		UpdatedAt: s.RemoteTimestamp,
 		Index:     s.Index,
+		ReadIndex: s.ReadIndex,
 	}
 }
 
@@ -215,11 +278,19 @@ func (s *service) channelStatus(ctx context.Context, cid keys.ID) (*channelStatu
 	return &cs, nil
 }
 
+func (s *service) updateChannelStatus(ctx context.Context, status *channelStatus) error {
+	if err := s.db.Set(ctx, dstore.Path("channels", status.ID), dstore.From(status), dstore.MergeAll()); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *service) channels(ctx context.Context) ([]*Channel, error) {
 	docs, err := s.db.Documents(ctx, dstore.Path("channels"))
 	if err != nil {
 		return nil, err
 	}
+
 	channels := []*Channel{}
 	for _, doc := range docs {
 		var channelStatus channelStatus
@@ -228,6 +299,9 @@ func (s *service) channels(ctx context.Context) ([]*Channel, error) {
 		}
 		channels = append(channels, channelStatus.Channel())
 	}
+	sort.Slice(channels, func(i, j int) bool {
+		return channels[i].UpdatedAt > channels[j].UpdatedAt
+	})
 	return channels, nil
 }
 

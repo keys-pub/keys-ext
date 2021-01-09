@@ -24,7 +24,11 @@ func (s *service) command(ctx context.Context, cmd string, user string, channel 
 		}
 		return resp.Message, nil
 	case "/leave":
-		return nil, errors.Errorf("not implemented")
+		_, err := s.ChannelLeave(ctx, &ChannelLeaveRequest{Channel: channel})
+		if err != nil {
+			return nil, err
+		}
+		return nil, nil
 	case "/create":
 		_, err := s.ChannelCreate(ctx, &ChannelCreateRequest{Name: args[0], User: user})
 		if err != nil {

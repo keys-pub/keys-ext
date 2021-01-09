@@ -162,7 +162,14 @@ func (s *service) message(ctx context.Context, ck *kapi.Key, path string) (*Mess
 
 	msg, err := api.DecryptMessageFromEvent(&event, ck.AsEdX25519())
 	if err != nil {
-		return nil, err
+		logger.Errorf("Failed to decrypt message %s: %v", path, err)
+		msg := &Message{
+			ID:        fmt.Sprintf("%s-%d", ck.ID, event.Index),
+			Status:    MessageError,
+			Text:      []string{err.Error()},
+			CreatedAt: event.Timestamp,
+		}
+		return msg, nil
 	}
 
 	return s.messageToRPC(ctx, msg)
@@ -187,6 +194,7 @@ func (s *service) messages(ctx context.Context, ck *kapi.Key) ([]*Message, error
 		// logger.Debugf("Message %s", e.Path)
 		message, err := s.message(ctx, ck, e.Path)
 		if err != nil {
+
 			return nil, err
 		}
 		messages = append(messages, message)
@@ -238,43 +246,49 @@ func (s *service) pullMessagesNext(ctx context.Context, ck *kapi.Key) (bool, err
 			return false, err
 		}
 
-		// TODO: Gracefully handle message errors (continue?)
-
-		// Decrypt message temporarily to update channel state
-		msg, err := api.DecryptMessageFromEvent(event, ck.AsEdX25519())
-		if err != nil {
-			return false, err
+		if err := s.updateStatusFromMessage(ctx, event, status, ck); err != nil {
+			logger.Errorf("Failed to decrypt message: %v", err)
+			continue
 		}
-
-		// Update snippet
-		rmsg, err := s.messageToRPC(ctx, msg)
-		if err != nil {
-			return false, err
-		}
-		if len(rmsg.Text) > 0 {
-			status.Snippet = rmsg.Text[len(rmsg.Text)-1]
-		}
-
-		// Update channel info
-		if msg.ChannelInfo != nil {
-			if msg.ChannelInfo.Name != "" {
-				status.Name = msg.ChannelInfo.Name
-			}
-			if msg.ChannelInfo.Description != "" {
-				status.Description = msg.ChannelInfo.Description
-			}
-		}
-		status.Timestamp = msg.Timestamp
-		status.RemoteTimestamp = msg.RemoteTimestamp
 	}
 	status.Index = msgs.Index
 
-	// Save channel status
-	if err := s.db.Set(ctx, dstore.Path("channels", ck.ID), dstore.From(status), dstore.MergeAll()); err != nil {
+	if err := s.updateChannelStatus(ctx, status); err != nil {
 		return false, err
 	}
 
 	return msgs.Truncated, nil
+}
+
+func (s *service) updateStatusFromMessage(ctx context.Context, event *events.Event, status *channelStatus, ck *kapi.Key) error {
+	// Decrypt message temporarily to update channel state
+	msg, err := api.DecryptMessageFromEvent(event, ck.AsEdX25519())
+	if err != nil {
+		return err
+	}
+
+	// Update snippet
+	rmsg, err := s.messageToRPC(ctx, msg)
+	if err != nil {
+		return err
+	}
+	if len(rmsg.Text) > 0 {
+		status.Snippet = rmsg.Text[len(rmsg.Text)-1]
+	}
+
+	// Update channel info
+	if msg.ChannelInfo != nil {
+		if msg.ChannelInfo.Name != "" {
+			status.Name = msg.ChannelInfo.Name
+		}
+		if msg.ChannelInfo.Description != "" {
+			status.Description = msg.ChannelInfo.Description
+		}
+	}
+	status.Timestamp = msg.Timestamp
+	status.RemoteTimestamp = msg.RemoteTimestamp
+
+	return nil
 }
 
 func pad(n int64) string {

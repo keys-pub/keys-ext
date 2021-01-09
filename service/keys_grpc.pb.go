@@ -91,6 +91,8 @@ type KeysClient interface {
 	Channels(ctx context.Context, in *ChannelsRequest, opts ...grpc.CallOption) (*ChannelsResponse, error)
 	ChannelCreate(ctx context.Context, in *ChannelCreateRequest, opts ...grpc.CallOption) (*ChannelCreateResponse, error)
 	ChannelInvite(ctx context.Context, in *ChannelInviteRequest, opts ...grpc.CallOption) (*ChannelInviteResponse, error)
+	ChannelLeave(ctx context.Context, in *ChannelLeaveRequest, opts ...grpc.CallOption) (*ChannelLeaveResponse, error)
+	ChannelRead(ctx context.Context, in *ChannelReadRequest, opts ...grpc.CallOption) (*ChannelReadResponse, error)
 	// Follow
 	Follow(ctx context.Context, in *FollowRequest, opts ...grpc.CallOption) (*FollowResponse, error)
 	Follows(ctx context.Context, in *FollowsRequest, opts ...grpc.CallOption) (*FollowsResponse, error)
@@ -952,6 +954,24 @@ func (c *keysClient) ChannelInvite(ctx context.Context, in *ChannelInviteRequest
 	return out, nil
 }
 
+func (c *keysClient) ChannelLeave(ctx context.Context, in *ChannelLeaveRequest, opts ...grpc.CallOption) (*ChannelLeaveResponse, error) {
+	out := new(ChannelLeaveResponse)
+	err := c.cc.Invoke(ctx, "/keys.Keys/ChannelLeave", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *keysClient) ChannelRead(ctx context.Context, in *ChannelReadRequest, opts ...grpc.CallOption) (*ChannelReadResponse, error) {
+	out := new(ChannelReadResponse)
+	err := c.cc.Invoke(ctx, "/keys.Keys/ChannelRead", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *keysClient) Follow(ctx context.Context, in *FollowRequest, opts ...grpc.CallOption) (*FollowResponse, error) {
 	out := new(FollowResponse)
 	err := c.cc.Invoke(ctx, "/keys.Keys/Follow", in, out, opts...)
@@ -1107,6 +1127,8 @@ type KeysServer interface {
 	Channels(context.Context, *ChannelsRequest) (*ChannelsResponse, error)
 	ChannelCreate(context.Context, *ChannelCreateRequest) (*ChannelCreateResponse, error)
 	ChannelInvite(context.Context, *ChannelInviteRequest) (*ChannelInviteResponse, error)
+	ChannelLeave(context.Context, *ChannelLeaveRequest) (*ChannelLeaveResponse, error)
+	ChannelRead(context.Context, *ChannelReadRequest) (*ChannelReadResponse, error)
 	// Follow
 	Follow(context.Context, *FollowRequest) (*FollowResponse, error)
 	Follows(context.Context, *FollowsRequest) (*FollowsResponse, error)
@@ -1320,6 +1342,12 @@ func (*UnimplementedKeysServer) ChannelCreate(context.Context, *ChannelCreateReq
 }
 func (*UnimplementedKeysServer) ChannelInvite(context.Context, *ChannelInviteRequest) (*ChannelInviteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ChannelInvite not implemented")
+}
+func (*UnimplementedKeysServer) ChannelLeave(context.Context, *ChannelLeaveRequest) (*ChannelLeaveResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChannelLeave not implemented")
+}
+func (*UnimplementedKeysServer) ChannelRead(context.Context, *ChannelReadRequest) (*ChannelReadResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChannelRead not implemented")
 }
 func (*UnimplementedKeysServer) Follow(context.Context, *FollowRequest) (*FollowResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Follow not implemented")
@@ -2621,6 +2649,42 @@ func _Keys_ChannelInvite_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Keys_ChannelLeave_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChannelLeaveRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KeysServer).ChannelLeave(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/keys.Keys/ChannelLeave",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KeysServer).ChannelLeave(ctx, req.(*ChannelLeaveRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Keys_ChannelRead_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChannelReadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KeysServer).ChannelRead(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/keys.Keys/ChannelRead",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KeysServer).ChannelRead(ctx, req.(*ChannelReadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Keys_Follow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(FollowRequest)
 	if err := dec(in); err != nil {
@@ -2955,6 +3019,14 @@ var _Keys_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ChannelInvite",
 			Handler:    _Keys_ChannelInvite_Handler,
+		},
+		{
+			MethodName: "ChannelLeave",
+			Handler:    _Keys_ChannelLeave_Handler,
+		},
+		{
+			MethodName: "ChannelRead",
+			Handler:    _Keys_ChannelRead_Handler,
 		},
 		{
 			MethodName: "Follow",

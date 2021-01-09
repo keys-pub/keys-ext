@@ -1,11 +1,61 @@
 package service
 
 import (
+	"context"
+	"sync"
 	"time"
 
 	"github.com/keys-pub/keys-ext/ws/api"
 	wsclient "github.com/keys-pub/keys-ext/ws/client"
 )
+
+type relayClient struct {
+	ui Keys_RelayServer
+	ws *wsclient.Client
+}
+
+type relay struct {
+	sync.Mutex
+	client *relayClient
+}
+
+func newRelay() *relay {
+	return &relay{}
+}
+
+func (r *relay) Register(client *relayClient) {
+	r.Lock()
+	defer r.Unlock()
+	r.client = client
+}
+
+func (r *relay) Unregister(client *relayClient) {
+	r.Lock()
+	defer r.Unlock()
+	if client == r.client {
+		r.client = nil
+	}
+}
+
+func (r *relay) Send(out *RelayOutput) {
+	r.Lock()
+	defer r.Unlock()
+	if r.client != nil {
+		if err := r.client.ui.Send(out); err != nil {
+			logger.Errorf("Failed to relay event: %v", err)
+		}
+	}
+}
+
+func (r *relay) Authorize(tokens []string) {
+	r.Lock()
+	defer r.Unlock()
+	if r.client != nil {
+		if err := r.client.ws.Authorize(tokens); err != nil {
+			logger.Errorf("Failed to relay auth: %v", err)
+		}
+	}
+}
 
 // Relay (RPC) ...
 func (s *service) Relay(req *RelayRequest, srv Keys_RelayServer) error {
@@ -16,46 +66,38 @@ func (s *service) Relay(req *RelayRequest, srv Keys_RelayServer) error {
 		return err
 	}
 
-	tokens := []string{}
-
-	if req.User != "" {
-		userKey, err := s.lookupKey(ctx, req.User, nil)
-		if err != nil {
-			return err
-		}
-		token, err := s.client.DirectToken(ctx, userKey.AsEdX25519())
-		if err != nil {
-			return err
-		}
-		tokens = append(tokens, token.Token)
-	}
-
-	cks, err := s.channelKeys()
-	if err != nil {
-		return err
-	}
-
-	for _, ck := range cks {
-		if ck.Token != "" {
-			tokens = append(tokens, ck.Token)
-		}
-	}
-	relay.Authorize(tokens)
-
 	if err := relay.Connect(); err != nil {
 		return err
 	}
 	defer relay.Close()
 
+	client := &relayClient{ui: srv, ws: relay}
+	s.relay.Register(client)
+	defer s.relay.Unregister(client)
+
+	tokens, err := s.relayTokens(ctx, req.User)
+	if err != nil {
+		return err
+	}
+
+	if err := relay.Authorize(tokens); err != nil {
+		return err
+	}
+
+	// Send empty message to ui after connect and auth
+	if err := srv.Send(&RelayOutput{}); err != nil {
+		return err
+	}
+
 	chEvents := make(chan []*api.Event)
-	chErr := make(chan error)
 
 	go func() {
 		for {
 			logger.Infof("Read relay events...")
 			events, err := relay.ReadEvents()
 			if err != nil {
-				chErr <- err
+				logger.Errorf("Error reading events: %v", err)
+				relay.Close()
 				return
 			}
 			chEvents <- events
@@ -66,14 +108,13 @@ func (s *service) Relay(req *RelayRequest, srv Keys_RelayServer) error {
 
 	for {
 		select {
-		case <-ticker.C:
-			if err := relay.SendPing(); err != nil {
-				return err
-			}
 		case <-ctx.Done():
 			return ctx.Err()
-		case err := <-chErr:
-			return err
+		case <-ticker.C:
+			logger.Debugf("Send ping...")
+			if err := relay.Ping(); err != nil {
+				return err
+			}
 		case events := <-chEvents:
 			logger.Infof("Got relay events...")
 			for _, event := range events {
@@ -104,7 +145,11 @@ func (s *service) Relay(req *RelayRequest, srv Keys_RelayServer) error {
 							logger.Infof("User key not found: %s", event.User)
 							continue
 						}
-						if err := s.pullDirectMessages(ctx, uk); err != nil {
+						dms, err := s.pullDirectMessages(ctx, uk)
+						if err != nil {
+							return err
+						}
+						if err := relay.Authorize(dms.Tokens); err != nil {
 							return err
 						}
 					}
@@ -121,4 +166,32 @@ func (s *service) Relay(req *RelayRequest, srv Keys_RelayServer) error {
 			}
 		}
 	}
+}
+
+func (s *service) relayTokens(ctx context.Context, user string) ([]string, error) {
+	tokens := []string{}
+
+	if user != "" {
+		userKey, err := s.lookupKey(ctx, user, nil)
+		if err != nil {
+			return nil, err
+		}
+		token, err := s.client.DirectToken(ctx, userKey.AsEdX25519())
+		if err != nil {
+			return nil, err
+		}
+		tokens = append(tokens, token.Token)
+	}
+
+	cks, err := s.channelKeys()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, ck := range cks {
+		if ck.Token != "" {
+			tokens = append(tokens, ck.Token)
+		}
+	}
+	return tokens, nil
 }
