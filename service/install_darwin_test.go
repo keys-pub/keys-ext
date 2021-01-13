@@ -14,7 +14,7 @@ import (
 func TestUninstall(t *testing.T) {
 	var out bytes.Buffer
 	var err error
-	env, err := NewEnv("KeyTest")
+	env, err := NewEnv("KeyTest", build)
 	require.NoError(t, err)
 	err = Uninstall(&out, env)
 	require.NoError(t, err)
@@ -30,7 +30,7 @@ Uninstalled "KeyTest".
 func TestUninstallSymlink(t *testing.T) {
 	var out bytes.Buffer
 	var err error
-	env, err := NewEnv("KeyTest")
+	env, err := NewEnv("KeyTest", build)
 	require.NoError(t, err)
 
 	env.linkDir = filepath.Join(os.TempDir())
@@ -43,7 +43,7 @@ func TestUninstallSymlink(t *testing.T) {
 	home := kenv.MustHomeDir()
 	expected := fmt.Sprintf(`Removing "%s/Library/Application Support/KeyTest".
 Removing "%s/Library/Logs/KeyTest".
-Removed "%s/keys".
+Removed "%s/keystest".
 Uninstalled "KeyTest".
 `, home, home, env.linkDir)
 	require.Equal(t, expected, out.String())

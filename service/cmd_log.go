@@ -6,7 +6,7 @@ import (
 	"github.com/urfave/cli"
 )
 
-func logCommands(client *Client) []cli.Command {
+func logCommands(client *Client, build Build) []cli.Command {
 	return []cli.Command{
 		cli.Command{
 			Name:   "log",
@@ -14,7 +14,7 @@ func logCommands(client *Client) []cli.Command {
 			Flags:  []cli.Flag{},
 			Hidden: true,
 			Action: func(c *cli.Context) error {
-				env, err := newClientEnv(c)
+				env, err := newClientEnv(c, build)
 				if err != nil {
 					return err
 				}

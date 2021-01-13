@@ -54,7 +54,7 @@ type args struct {
 // Run the service.
 func Run(build Build) {
 	args := args{}
-	args.appName = flag.String("app", "Keys", "app name")
+	args.appName = flag.String("app", build.DefaultAppName, "app name")
 	args.logPath = flag.String("log-path", "", "log path")
 	args.version = flag.Bool("version", false, "print version")
 	args.port = flag.Int("port", 0, "port to listen")
@@ -72,7 +72,7 @@ func Run(build Build) {
 		logFatal(errors.Errorf("invalid log level"))
 	}
 
-	env, err := NewEnv(*args.appName)
+	env, err := NewEnv(*args.appName, build)
 	if err != nil {
 		logFatal(errors.Wrapf(err, "failed to load config"))
 	}

@@ -13,9 +13,14 @@ var (
 
 func main() {
 	build := service.Build{
-		Version: version,
-		Commit:  commit,
-		Date:    date,
+		Version:        version,
+		Commit:         commit,
+		Date:           date,
+		DefaultAppName: "Keys",
+		DefaultPort:    22405,
+		ServiceName:    "keysd",
+		CmdName:        "keys",
+		Description:    "Key management, signing and encryption.",
 	}
 	service.RunClient(build)
 }

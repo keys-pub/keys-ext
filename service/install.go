@@ -21,20 +21,18 @@ func exeDir() string {
 	return filepath.Dir(exe)
 }
 
-func defaultBinPath() string {
+func defaultBinPath(name string) string {
 	dir := exeDir()
-	name := "keys"
 	if runtime.GOOS == "windows" {
-		name = "keys.exe"
+		name += ".exe"
 	}
 	return filepath.Join(dir, name)
 }
 
-func defaultServicePath() string {
+func defaultServicePath(name string) string {
 	dir := exeDir()
-	name := "keysd"
 	if runtime.GOOS == "windows" {
-		name = "keysd.exe"
+		name += ".exe"
 	}
 	return filepath.Join(dir, name)
 }
@@ -137,7 +135,7 @@ func installSymlink(env *Env) error {
 		return errors.Errorf("not implemented on this platform")
 	}
 
-	binPath := defaultBinPath()
+	binPath := defaultBinPath(env.build.CmdName)
 
 	if strings.HasPrefix(binPath, "/Volumes/") {
 		return errors.Errorf("currently running from Volumes")
@@ -177,7 +175,7 @@ func removeSymlink(env *Env) (bool, error) {
 		return false, nil
 	}
 
-	binPath := defaultBinPath()
+	binPath := defaultBinPath(env.build.CmdName)
 	linkPath := env.linkPath()
 	fi, err := os.Lstat(linkPath)
 	if err != nil {
@@ -198,7 +196,7 @@ func removeSymlink(env *Env) (bool, error) {
 	return false, nil
 }
 
-func checkForAppConflict() error {
+func checkForAppConflict(appName string) error {
 	path, err := executablePath()
 	if err != nil {
 		return err
@@ -212,7 +210,8 @@ func checkForAppConflict() error {
 	var check []string
 	switch runtime.GOOS {
 	case "darwin":
-		check = []string{"/Applications/Keys.app", filepath.Join(usr.HomeDir, "Applications", "Keys.app")}
+		appDir := appName + ".app"
+		check = []string{"/Applications/" + appDir, filepath.Join(usr.HomeDir, "Applications", appDir)}
 	case "windows":
 		// TODO
 	}

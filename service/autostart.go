@@ -69,7 +69,7 @@ var errAlreadyRunning = errors.New("already running")
 
 func startProcess(env *Env) error {
 	logger.Debugf("Start process")
-	ps, err := findProcessByName("keysd")
+	ps, err := findProcessByName(env.build.ServiceName)
 	if err != nil {
 		return err
 	}
@@ -77,7 +77,7 @@ func startProcess(env *Env) error {
 		return errAlreadyRunning
 	}
 
-	binPath := defaultServicePath()
+	binPath := defaultServicePath(env.build.ServiceName)
 	appName := env.AppName()
 	logPath, err := env.LogsPath("keysd.log", true)
 	if err != nil {
@@ -95,7 +95,7 @@ func startProcess(env *Env) error {
 
 func stopProcess(env *Env) error {
 	logger.Debugf("Stop process")
-	ps, err := findProcessByName("keysd")
+	ps, err := findProcessByName(env.build.ServiceName)
 	if err != nil {
 		return err
 	}

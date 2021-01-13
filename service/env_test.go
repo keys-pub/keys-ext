@@ -9,15 +9,22 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var build = Build{
+	Version:     "test",
+	ServiceName: "keystestd",
+	CmdName:     "keystest",
+	DefaultPort: 9999,
+}
+
 func TestEnv(t *testing.T) {
-	env, err := NewEnv("KeysTest")
+	env, err := NewEnv("KeysTest", build)
 	require.NoError(t, err)
 	defer func() {
 		removeErr := os.RemoveAll(env.AppDir())
 		require.NoError(t, removeErr)
 	}()
 	require.Equal(t, "KeysTest", env.AppName())
-	require.Equal(t, 22405, env.Port())
+	require.Equal(t, 9999, env.Port())
 
 	env.SetInt("port", 3001)
 	env.Set("server", "https://server.url")
@@ -25,7 +32,7 @@ func TestEnv(t *testing.T) {
 	err = env.Save()
 	require.NoError(t, err)
 
-	env2, err := NewEnv("KeysTest")
+	env2, err := NewEnv("KeysTest", build)
 	require.NoError(t, err)
 	require.Equal(t, 3001, env2.Port())
 	require.Equal(t, "https://server.url", env2.Server())
@@ -34,7 +41,7 @@ func TestEnv(t *testing.T) {
 
 func TestAppPath(t *testing.T) {
 	appName := "KeysTest-" + keys.RandFileName()
-	env, err := NewEnv(appName)
+	env, err := NewEnv(appName, build)
 	require.NoError(t, err)
 
 	path, err := env.AppPath("", false)

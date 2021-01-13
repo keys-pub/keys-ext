@@ -8,7 +8,7 @@ import (
 )
 
 func TestDirs(t *testing.T) {
-	env, err := NewEnv("KeysTest")
+	env, err := NewEnv("KeysTest", build)
 	require.NoError(t, err)
 	require.Equal(t, "KeysTest", env.AppName())
 

@@ -28,7 +28,7 @@ func newEnv(t *testing.T, appName string, serverURL string) (*Env, CloseFn) {
 	if appName == "" {
 		appName = "KeysTest-" + randName()
 	}
-	env, err := NewEnv(appName)
+	env, err := NewEnv(appName, build)
 	require.NoError(t, err)
 	env.Set(serverCfgKey, serverURL)
 

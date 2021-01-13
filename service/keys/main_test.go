@@ -6,5 +6,5 @@ import (
 
 func TestClient(t *testing.T) {
 	// TODO: Test
-	//service.RunClient(service.BuildEnv{})
+	//service.RunClient()
 }

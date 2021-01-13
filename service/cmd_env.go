@@ -7,7 +7,7 @@ import (
 	"github.com/urfave/cli"
 )
 
-func envCommands(client *Client) []cli.Command {
+func envCommands(client *Client, build Build) []cli.Command {
 	return []cli.Command{
 		cli.Command{
 			Name:  "env",
@@ -24,7 +24,7 @@ func envCommands(client *Client) []cli.Command {
 						key := c.Args().Get(0)
 						value := c.Args().Get(1)
 
-						env, err := newClientEnv(c)
+						env, err := newClientEnv(c, build)
 						if err != nil {
 							return err
 						}
@@ -48,7 +48,7 @@ func envCommands(client *Client) []cli.Command {
 				},
 			},
 			Action: func(c *cli.Context) error {
-				env, err := newClientEnv(c)
+				env, err := newClientEnv(c, build)
 				if err != nil {
 					return err
 				}

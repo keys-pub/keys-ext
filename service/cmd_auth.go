@@ -40,7 +40,8 @@ func authCommands(client *Client) []cli.Command {
 			},
 			Action: func(c *cli.Context) error {
 				if !c.GlobalBool("test") {
-					if err := checkForAppConflict(); err != nil {
+					appName := c.GlobalString("app")
+					if err := checkForAppConflict(appName); err != nil {
 						logger.Warningf("%s", err)
 					}
 				}

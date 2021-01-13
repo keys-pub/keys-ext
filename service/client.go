@@ -26,7 +26,7 @@ import (
 // Client defines the RPC client.
 type Client struct {
 	sync.Mutex
-	keysClient  RPCClient
+	rpcClient   RPCClient
 	fido2Client fido2.FIDO2Client
 	conn        *grpc.ClientConn
 	env         *Env
@@ -66,7 +66,7 @@ func (c *Client) Connect(env *Env, authToken string) error {
 		return err
 	}
 	c.conn = conn
-	c.keysClient = NewRPCClient(conn)
+	c.rpcClient = NewRPCClient(conn)
 	c.fido2Client = fido2.NewFIDO2Client(conn)
 	return nil
 }
@@ -96,7 +96,7 @@ func connectLocal(env *Env, authToken string) (*grpc.ClientConn, error) {
 
 // RPCClient returns Keys RPC client.
 func (c *Client) RPCClient() RPCClient {
-	return c.keysClient
+	return c.rpcClient
 }
 
 // FIDO2Client returns FIDO2 Authenticators RPC client.
@@ -111,7 +111,7 @@ func (c *Client) Close() error {
 		err = c.conn.Close()
 		c.conn = nil
 	}
-	c.keysClient = nil
+	c.rpcClient = nil
 	c.fido2Client = nil
 	return err
 }
@@ -133,19 +133,19 @@ func RunClient(build Build) {
 	runClient(build, os.Args, client, clientFatal)
 }
 
-func newClientEnv(c *cli.Context) (*Env, error) {
+func newClientEnv(c *cli.Context, build Build) (*Env, error) {
 	appName := c.GlobalString("app")
 	if appName == "" {
 		return nil, errors.Errorf("no app name")
 	}
-	return NewEnv(appName)
+	return NewEnv(appName, build)
 }
 
 func runClient(build Build, args []string, client *Client, errorFn func(err error)) {
 	app := cli.NewApp()
-	app.Name = "keys"
+	app.Name = build.CmdName
 	app.Version = build.String()
-	app.Usage = "Cryptographic key management, signing and encryption."
+	app.Usage = build.Description
 
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
@@ -155,7 +155,7 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 		},
 		cli.StringFlag{
 			Name:  "app",
-			Value: "Keys",
+			Value: build.DefaultAppName,
 			Usage: "app name",
 		},
 	}
@@ -170,7 +170,7 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 	SetLogger(logger)
 
 	cmds := []cli.Command{}
-	cmds = append(cmds, startCommands()...)
+	cmds = append(cmds, startCommands(build)...)
 	cmds = append(cmds, authCommands(client)...)
 	cmds = append(cmds, signCommands(client)...)
 	cmds = append(cmds, verifyCommands(client)...)
@@ -183,8 +183,8 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 	cmds = append(cmds, otherCommands(client)...)
 	cmds = append(cmds, userCommands(client)...)
 	cmds = append(cmds, keyCommands(client)...)
-	cmds = append(cmds, envCommands(client)...)
-	cmds = append(cmds, logCommands(client)...)
+	cmds = append(cmds, envCommands(client, build)...)
+	cmds = append(cmds, logCommands(client, build)...)
 	cmds = append(cmds, wormholeCommands(client)...)
 	cmds = append(cmds, fido2Commands(client)...)
 	cmds = append(cmds, adminCommands(client)...)
@@ -209,7 +209,7 @@ func runClient(build Build, args []string, client *Client, errorFn func(err erro
 		logger.Debugf("UID: %d", os.Getuid())
 		logger.Debugf("OS: %s", runtime.GOOS)
 
-		env, err := newClientEnv(c)
+		env, err := newClientEnv(c, build)
 		if err != nil {
 			errorFn(err)
 			return err

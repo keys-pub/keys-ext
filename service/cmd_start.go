@@ -10,14 +10,14 @@ import (
 	"github.com/urfave/cli"
 )
 
-func startCommands() []cli.Command {
+func startCommands(build Build) []cli.Command {
 	return []cli.Command{
 		cli.Command{
 			Name:  "restart",
 			Usage: "Restart the service",
 			Flags: []cli.Flag{},
 			Action: func(c *cli.Context) error {
-				env, err := newClientEnv(c)
+				env, err := newClientEnv(c, build)
 				if err != nil {
 					return err
 				}
@@ -37,7 +37,7 @@ func startCommands() []cli.Command {
 				cli.IntFlag{Name: "port", Usage: "port", Hidden: true},
 			},
 			Action: func(c *cli.Context) error {
-				env, err := newClientEnv(c)
+				env, err := newClientEnv(c, build)
 				if err != nil {
 					return err
 				}
@@ -67,7 +67,7 @@ func startCommands() []cli.Command {
 			Usage: "Stop the service",
 			Flags: []cli.Flag{},
 			Action: func(c *cli.Context) error {
-				env, err := newClientEnv(c)
+				env, err := newClientEnv(c, build)
 				if err != nil {
 					return err
 				}
@@ -85,7 +85,7 @@ func startCommands() []cli.Command {
 				cli.BoolFlag{Name: "force", Usage: "force"},
 			},
 			Action: func(c *cli.Context) error {
-				env, err := newClientEnv(c)
+				env, err := newClientEnv(c, build)
 				if err != nil {
 					return err
 				}

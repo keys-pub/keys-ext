@@ -19,17 +19,19 @@ import (
 // Env is not authenticated.
 type Env struct {
 	appName string
+	build   Build
 	values  map[string]string
 	linkDir string
 }
 
 // NewEnv loads the Env.
-func NewEnv(appName string) (*Env, error) {
+func NewEnv(appName string, build Build) (*Env, error) {
 	if appName == "" {
 		return nil, errors.Errorf("no app name")
 	}
 	env := &Env{
 		appName: appName,
+		build:   build,
 		linkDir: filepath.Join("usr", "local", "bin"),
 	}
 	if err := env.Load(); err != nil {
@@ -39,7 +41,7 @@ func NewEnv(appName string) (*Env, error) {
 }
 
 func (c Env) linkPath() string {
-	return filepath.Join(c.linkDir, "keys")
+	return filepath.Join(c.linkDir, c.build.CmdName)
 }
 
 // Env key names
@@ -58,11 +60,9 @@ func (c Env) IsKey(s string) bool {
 	return false
 }
 
-const defaultPort = 22405
-
 // Port to connect.
 func (c Env) Port() int {
-	return c.GetInt(portCfgKey, defaultPort)
+	return c.GetInt(portCfgKey, c.build.DefaultPort)
 }
 
 // Server to connect to.
@@ -72,9 +72,14 @@ func (c Env) Server() string {
 
 // Build describes build flags.
 type Build struct {
-	Version string
-	Commit  string
-	Date    string
+	Version        string
+	Commit         string
+	Date           string
+	DefaultAppName string
+	DefaultPort    int
+	ServiceName    string
+	CmdName        string
+	Description    string
 }
 
 func (b Build) String() string {
