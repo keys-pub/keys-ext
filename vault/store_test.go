@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/keys-pub/keys-ext/vault"
+	"github.com/keys-pub/keys-ext/vault/leveldb"
 	"github.com/stretchr/testify/require"
 )
 
@@ -13,9 +14,9 @@ func TestStoreMem(t *testing.T) {
 	testStore(t, mem)
 }
 
-func TestStoreDB(t *testing.T) {
+func TestStoreLevelDB(t *testing.T) {
 	path := testPath()
-	db := vault.NewDB(path)
+	db := leveldb.New(path)
 	defer func() {
 		err := db.Close()
 		require.NoError(t, err)

@@ -61,6 +61,7 @@ func (v *Vault) Store() Store {
 
 // Open vault.
 func (v *Vault) Open() error {
+	logger.Infof("Open %s", v.store.Path())
 	if err := v.store.Open(); err != nil {
 		return errors.Wrapf(err, "failed to open vault")
 	}
@@ -73,6 +74,7 @@ func (v *Vault) Close() error {
 		v.auto.Stop()
 		v.auto = nil
 	}
+	logger.Infof("Close %s", v.store.Path())
 	// TODO: Sync could still be running when we close, this might be
 	//       ok, since it will error and eventually stop?
 	if err := v.store.Close(); err != nil {

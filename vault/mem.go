@@ -19,8 +19,8 @@ type mem struct {
 	entries map[string][]byte
 }
 
-func (m *mem) Name() string {
-	return "mem"
+func (m *mem) Path() string {
+	return "mem://"
 }
 
 func (m *mem) Open() error {

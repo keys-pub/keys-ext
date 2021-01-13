@@ -10,6 +10,7 @@ require (
 	github.com/keys-pub/keys-ext/http/api v0.0.0-20210102023225-d2e7279d30fc
 	github.com/keys-pub/keys-ext/http/client v0.0.0-20210102023902-79f9e8a3358a
 	github.com/keys-pub/keys-ext/http/server v0.0.0-20210102023718-fd43795e6300
+	github.com/mutecomm/go-sqlcipher/v4 v4.4.2 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.5.1

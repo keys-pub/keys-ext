@@ -1,43 +1,42 @@
-package vault
+package leveldb
 
 import (
 	"os"
 
+	"github.com/keys-pub/keys-ext/vault"
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
 	ldbutil "github.com/syndtr/goleveldb/leveldb/util"
 )
 
-var _ Store = &DB{}
+var _ vault.Store = &ldb{}
 
-// DB Store.
-type DB struct {
+type ldb struct {
 	ldb  *leveldb.DB
 	path string
 }
 
-// NewDB creates DB Store.
-func NewDB(path string) *DB {
-	return &DB{
+// New creates leveldb Store.
+func New(path string) vault.Store {
+	return &ldb{
 		path: path,
 	}
 }
 
-// Name for Store.
-func (d *DB) Name() string {
-	return "vdb"
+// Path to store.
+func (d *ldb) Path() string {
+	return d.path
 }
 
 // Open db.
-func (d *DB) Open() error {
+func (d *ldb) Open() error {
 	if d.ldb != nil {
-		return ErrAlreadyOpen
+		return vault.ErrAlreadyOpen
 	}
 	if d.path == "" || d.path == "/" || d.path == `\` {
 		return errors.Errorf("invalid path")
 	}
 
-	logger.Infof("Open %s", d.path)
 	ldb, err := leveldb.OpenFile(d.path, nil)
 	if err != nil {
 		return err
@@ -47,7 +46,7 @@ func (d *DB) Open() error {
 }
 
 // Close db.
-func (d *DB) Close() error {
+func (d *ldb) Close() error {
 	if d.ldb != nil {
 		if err := d.ldb.Close(); err != nil {
 			return err
@@ -58,7 +57,7 @@ func (d *DB) Close() error {
 }
 
 // Reset db.
-func (d *DB) Reset() error {
+func (d *ldb) Reset() error {
 	wasOpen := false
 	if d.ldb != nil {
 		wasOpen = true
@@ -78,9 +77,9 @@ func (d *DB) Reset() error {
 }
 
 // Set in DB.
-func (d *DB) Set(path string, b []byte) error {
+func (d *ldb) Set(path string, b []byte) error {
 	if d.ldb == nil {
-		return ErrNotOpen
+		return vault.ErrNotOpen
 	}
 	if err := d.ldb.Put([]byte(path), b, nil); err != nil {
 		return err
@@ -89,9 +88,9 @@ func (d *DB) Set(path string, b []byte) error {
 }
 
 // Get from DB.
-func (d *DB) Get(path string) ([]byte, error) {
+func (d *ldb) Get(path string) ([]byte, error) {
 	if d.ldb == nil {
-		return nil, ErrNotOpen
+		return nil, vault.ErrNotOpen
 	}
 	b, err := d.ldb.Get([]byte(path), nil)
 	if err != nil {
@@ -104,9 +103,9 @@ func (d *DB) Get(path string) ([]byte, error) {
 }
 
 // Delete from DB.
-func (d *DB) Delete(path string) (bool, error) {
+func (d *ldb) Delete(path string) (bool, error) {
 	if d.ldb == nil {
-		return false, ErrNotOpen
+		return false, vault.ErrNotOpen
 	}
 	exists, err := d.ldb.Has([]byte(path), nil)
 	if err != nil {
@@ -122,27 +121,27 @@ func (d *DB) Delete(path string) (bool, error) {
 }
 
 // List ...
-func (d *DB) List(opts *ListOptions) ([]*Entry, error) {
+func (d *ldb) List(opts *vault.ListOptions) ([]*vault.Entry, error) {
 	if d.ldb == nil {
-		return nil, ErrNotOpen
+		return nil, vault.ErrNotOpen
 	}
 	if opts == nil {
-		opts = &ListOptions{}
+		opts = &vault.ListOptions{}
 	}
 
 	prefix := opts.Prefix
 	iter := d.ldb.NewIterator(ldbutil.BytesPrefix([]byte(prefix)), nil)
 	defer iter.Release()
 
-	out := []*Entry{}
+	out := []*vault.Entry{}
 	for iter.Next() {
 		if opts.Limit > 0 && len(out) >= opts.Limit {
 			break
 		}
 		path := string(iter.Key())
-		entry := &Entry{Path: path}
+		entry := &vault.Entry{Path: path}
 		if !opts.NoData {
-			// Remember that the contents of the returned slice should not be modified, and
+			// Remember that the contents of the returned slice should not be modified, and are
 			// only valid until the next call to Next.
 			b := copyBytes(iter.Value())
 			entry.Data = b
@@ -163,9 +162,9 @@ func copyBytes(source []byte) []byte {
 }
 
 // Exists if path exists.
-func (d *DB) Exists(path string) (bool, error) {
+func (d *ldb) Exists(path string) (bool, error) {
 	if d.ldb == nil {
-		return false, ErrNotOpen
+		return false, vault.ErrNotOpen
 	}
 	return d.ldb.Has([]byte(path), nil)
 }

@@ -12,9 +12,9 @@ import (
 )
 
 func TestSync(t *testing.T) {
-	db1, closeFn1 := newTestDB(t)
+	db1, closeFn1 := newTestLevelDB(t)
 	defer closeFn1()
-	db2, closeFn2 := newTestDB(t)
+	db2, closeFn2 := newTestLevelDB(t)
 	defer closeFn2()
 	testSync(t, db1, db2)
 }
@@ -254,7 +254,7 @@ func TestUnsync(t *testing.T) {
 	ctx := context.TODO()
 	clock := tsutil.NewTestClock()
 
-	db, closeFn := newTestDB(t)
+	db, closeFn := newTestLevelDB(t)
 	defer closeFn()
 
 	client := testClient(t, env)

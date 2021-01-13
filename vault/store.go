@@ -14,8 +14,8 @@ type Entry struct {
 
 // Store is the interface used to store data.
 type Store interface {
-	// Name of the Store implementation.
-	Name() string
+	// Path to store.
+	Path() string
 
 	// Get bytes.
 	Get(path string) ([]byte, error)

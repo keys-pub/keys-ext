@@ -10,9 +10,9 @@ import (
 )
 
 func TestCloneDB(t *testing.T) {
-	db1, close1 := newTestDB(t)
+	db1, close1 := newTestLevelDB(t)
 	defer close1()
-	db2, close2 := newTestDB(t)
+	db2, close2 := newTestLevelDB(t)
 	defer close2()
 
 	testClone(t, db1, db2)

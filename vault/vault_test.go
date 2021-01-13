@@ -13,6 +13,7 @@ import (
 	"github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys-ext/http/server"
 	"github.com/keys-pub/keys-ext/vault"
+	"github.com/keys-pub/keys-ext/vault/leveldb"
 	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/http"
@@ -61,7 +62,7 @@ func NewTestVault(t *testing.T, opts *TestVaultOptions) (*vault.Vault, func()) {
 	case Mem:
 		st, closeFn = newTestMem(t)
 	case DB:
-		st, closeFn = newTestDB(t)
+		st, closeFn = newTestLevelDB(t)
 	}
 
 	vlt := vault.New(st, vault.WithClock(opts.Clock))
@@ -86,9 +87,9 @@ func newTestMem(t *testing.T) (vault.Store, func()) {
 	return mem, closeFn
 }
 
-func newTestDB(t *testing.T) (vault.Store, func()) {
+func newTestLevelDB(t *testing.T) (vault.Store, func()) {
 	path := testPath()
-	db := vault.NewDB(path)
+	db := leveldb.New(path)
 	err := db.Open()
 	require.NoError(t, err)
 	close := func() {
@@ -144,7 +145,7 @@ func testClient(t *testing.T, env *testEnv) *client.Client {
 }
 
 func TestIsEmpty(t *testing.T) {
-	db, closeFn := newTestDB(t)
+	db, closeFn := newTestLevelDB(t)
 	defer closeFn()
 	vlt := vault.New(db)
 	empty, err := vlt.IsEmpty()
@@ -184,7 +185,7 @@ func TestErrors(t *testing.T) {
 }
 
 func TestVaultGet(t *testing.T) {
-	db, closeFn := newTestDB(t)
+	db, closeFn := newTestLevelDB(t)
 	defer closeFn()
 	vlt := vault.New(db)
 	testVaultGet(t, vlt)
@@ -266,7 +267,7 @@ func testVaultGet(t *testing.T, vlt *vault.Vault) {
 }
 
 func TestSetupUnlockProvision(t *testing.T) {
-	db, closeFn := newTestDB(t)
+	db, closeFn := newTestLevelDB(t)
 	defer closeFn()
 	testSetupUnlockProvision(t, db)
 }
@@ -351,7 +352,7 @@ func TestSetErrors(t *testing.T) {
 }
 
 func TestProtocol(t *testing.T) {
-	st, closeFn := newTestDB(t)
+	st, closeFn := newTestLevelDB(t)
 	defer closeFn()
 	vlt := vault.New(st)
 
