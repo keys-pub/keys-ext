@@ -228,7 +228,10 @@ func (v *Vault) authUnlock(key *[32]byte) (string, *[32]byte, error) {
 		if len(item.Data) != 32 {
 			continue
 		}
+
+		// Convert old ids for compatibility.
 		id := convertID(item.ID)
+
 		return id, keys.Bytes32(item.Data), nil
 	}
 	return "", nil, nil
