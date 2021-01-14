@@ -1,6 +1,6 @@
 credentials.json
 .env
 dist/
-keys
-keysd
+service/keys/keys
+service/keysd/keysd
 id_ed25519
