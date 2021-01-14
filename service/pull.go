@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/vault/keyring"
 	"github.com/keys-pub/keys/user"
 	"github.com/pkg/errors"
 )
@@ -28,7 +29,8 @@ func (s *service) Pull(ctx context.Context, req *PullRequest) (*PullResponse, er
 
 	// Update existing if no kid or user specified
 	pulled := []string{}
-	spks, err := s.vault.EdX25519PublicKeys()
+	kr := keyring.New(s.vault)
+	spks, err := kr.EdX25519PublicKeys()
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load keys")
 	}

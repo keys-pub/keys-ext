@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/vault/keyring"
 	"github.com/keys-pub/keys/http"
 	"github.com/keys-pub/keys/user"
 	"github.com/stretchr/testify/require"
@@ -318,12 +319,13 @@ func TestSearchUsers(t *testing.T) {
 	ctx := context.TODO()
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
+	kr := keyring.New(service.vault)
 
 	for i := 0; i < 3; i++ {
 		keyResp, err := service.KeyGenerate(ctx, &KeyGenerateRequest{Type: string(keys.EdX25519)})
 		require.NoError(t, err)
 		username := fmt.Sprintf("username%d", i)
-		key, err := service.vault.Key(keys.ID(keyResp.KID))
+		key, err := kr.Get(keys.ID(keyResp.KID))
 		require.NoError(t, err)
 		testUserSetupGithub(t, env, service, key.AsEdX25519(), username)
 	}

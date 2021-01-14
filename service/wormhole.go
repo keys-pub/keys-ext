@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/vault/keyring"
 	"github.com/keys-pub/keys-ext/wormhole"
 	"github.com/keys-pub/keys-ext/wormhole/sctp"
 	"github.com/pkg/errors"
@@ -139,7 +140,8 @@ func (s *service) wormholeReadSend(ctx context.Context, wh *wormhole.Wormhole, s
 func (s *service) Wormhole(srv RPC_WormholeServer) error {
 	// TODO: EOF's if auth token is stale? Need better error?
 
-	wh, err := wormhole.New(s.env.Server(), s.vault)
+	kr := keyring.New(s.vault)
+	wh, err := wormhole.New(s.env.Server(), kr)
 	if err != nil {
 		return err
 	}

@@ -5,6 +5,7 @@ import (
 	"context"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/vault/keyring"
 	"github.com/pkg/errors"
 )
 
@@ -26,7 +27,8 @@ func (s *service) Push(ctx context.Context, req *PushRequest) (*PushResponse, er
 
 	// TODO: Is remote check appropriate here?
 	if req.RemoteCheck {
-		key, err := s.vault.Key(kid)
+		kr := keyring.New(s.vault)
+		key, err := kr.Get(kid)
 		if err != nil {
 			return nil, err
 		}

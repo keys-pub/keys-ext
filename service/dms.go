@@ -6,6 +6,7 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys-ext/http/client"
+	"github.com/keys-pub/keys-ext/vault/keyring"
 	kapi "github.com/keys-pub/keys/api"
 	"github.com/keys-pub/keys/dstore"
 )
@@ -59,6 +60,7 @@ func (s *service) pullDirectMessagesNext(ctx context.Context, userKey *kapi.Key)
 	if err != nil {
 		return nil, err
 	}
+	kr := keyring.New(s.vault)
 	tokens := []string{}
 	for _, event := range directs.Events {
 		msg, err := api.DecryptMessageFromEvent(event, key)
@@ -73,7 +75,7 @@ func (s *service) pullDirectMessagesNext(ctx context.Context, userKey *kapi.Key)
 		for _, invite := range msg.ChannelInvites {
 			key := invite.Key.WithLabel("channel")
 			key.Token = invite.Token
-			if err := s.vault.SaveKey(key); err != nil {
+			if err := kr.Save(key); err != nil {
 				return nil, err
 			}
 			tokens = append(tokens, invite.Token)

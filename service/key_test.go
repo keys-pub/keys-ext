@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/vault/keyring"
 	"github.com/keys-pub/keys/api"
 	"github.com/stretchr/testify/require"
 )
@@ -159,6 +160,7 @@ func TestKeyGenerate(t *testing.T) {
 	defer closeFn()
 	ctx := context.TODO()
 	testAuthSetup(t, service)
+	kr := keyring.New(service.vault)
 
 	// Generate EdX25519
 	genResp, err := service.KeyGenerate(ctx, &KeyGenerateRequest{Type: string(keys.EdX25519)})
@@ -173,7 +175,7 @@ func TestKeyGenerate(t *testing.T) {
 	// Get EdX25519 key by X25519 ID
 	kid, err := keys.ParseID(genResp.KID)
 	require.NoError(t, err)
-	sk, err := service.vault.EdX25519Key(kid)
+	sk, err := kr.EdX25519Key(kid)
 	require.NoError(t, err)
 	bkid := sk.PublicKey().X25519PublicKey().ID()
 	resp, err = service.Key(ctx, &KeyRequest{
@@ -204,12 +206,13 @@ func TestKeyRemove(t *testing.T) {
 	ctx := context.TODO()
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
+	kr := keyring.New(service.vault)
 
 	genResp, err := service.KeyGenerate(ctx, &KeyGenerateRequest{Type: string(keys.EdX25519)})
 	require.NoError(t, err)
 	kid, err := keys.ParseID(genResp.KID)
 	require.NoError(t, err)
-	key, err := service.vault.EdX25519Key(kid)
+	key, err := kr.EdX25519Key(kid)
 	require.NoError(t, err)
 	require.NotNil(t, key)
 

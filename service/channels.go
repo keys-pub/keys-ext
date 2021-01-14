@@ -8,6 +8,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
+	"github.com/keys-pub/keys-ext/vault/keyring"
 	kapi "github.com/keys-pub/keys/api"
 	"github.com/keys-pub/keys/dstore"
 	"github.com/pkg/errors"
@@ -66,7 +67,8 @@ func (s *service) ChannelCreate(ctx context.Context, req *ChannelCreateRequest) 
 
 	ck := kapi.NewKey(key).Created(s.clock.NowMillis()).WithLabel("channel")
 	ck.Token = created.Channel.Token
-	if err := s.vault.SaveKey(ck); err != nil {
+	kr := keyring.New(s.vault)
+	if err := kr.Save(ck); err != nil {
 		return nil, err
 	}
 
@@ -306,7 +308,8 @@ func (s *service) channels(ctx context.Context) ([]*Channel, error) {
 }
 
 func (s *service) channelKeys() ([]*kapi.Key, error) {
-	ks, err := s.vault.Keys()
+	kr := keyring.New(s.vault)
+	ks, err := kr.List()
 	if err != nil {
 		return nil, err
 	}

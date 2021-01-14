@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/vault/keyring"
 	"github.com/keys-pub/keys/api"
 	"github.com/pkg/errors"
 )
@@ -15,7 +16,8 @@ func (s *service) KeyExport(ctx context.Context, req *KeyExportRequest) (*KeyExp
 		return nil, err
 	}
 
-	key, err := s.vault.Key(id)
+	kr := keyring.New(s.vault)
+	key, err := kr.Get(id)
 	if err != nil {
 		return nil, err
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/vault/keyring"
 	"github.com/keys-pub/keys/api"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
@@ -62,7 +63,8 @@ func (s *service) keyToRPC(ctx context.Context, key *api.Key, saved bool) (*Key,
 }
 
 func (s *service) key(ctx context.Context, kid keys.ID) (*Key, error) {
-	key, err := s.vault.Key(kid)
+	kr := keyring.New(s.vault)
+	key, err := kr.Get(kid)
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +144,8 @@ func (s *service) KeyGenerate(ctx context.Context, req *KeyGenerateRequest) (*Ke
 	now := s.clock.NowMillis()
 	vk.CreatedAt = now
 	vk.UpdatedAt = now
-	if err := s.vault.SaveKey(vk); err != nil {
+	kr := keyring.New(s.vault)
+	if err := kr.Save(vk); err != nil {
 		return nil, err
 	}
 	if err := s.scs.Index(vk.ID); err != nil {
@@ -173,7 +176,8 @@ func (s *service) convertIfX25519ID(kid keys.ID) (keys.ID, error) {
 	}
 	if kid.IsX25519() {
 		logger.Debugf("Convert sender %s", kid)
-		spk, err := s.vault.FindEdX25519PublicKey(kid)
+		kr := keyring.New(s.vault)
+		spk, err := kr.FindEdX25519PublicKey(kid)
 		if err != nil {
 			return "", err
 		}
@@ -192,7 +196,8 @@ func (s *service) vaultKey(kid keys.ID) (*api.Key, error) {
 	if kid == "" {
 		return nil, nil
 	}
-	key, err := s.vault.Key(kid)
+	kr := keyring.New(s.vault)
+	key, err := kr.Get(kid)
 	if err != nil {
 		return nil, err
 	}
@@ -206,7 +211,8 @@ func (s *service) edx25519Key(kid keys.ID) (*keys.EdX25519Key, error) {
 	if kid == "" {
 		return nil, nil
 	}
-	key, err := s.vault.Key(kid)
+	kr := keyring.New(s.vault)
+	key, err := kr.Get(kid)
 	if err != nil {
 		return nil, err
 	}
@@ -224,7 +230,8 @@ func (s *service) x25519Key(kid keys.ID) (*keys.X25519Key, error) {
 	if kid == "" {
 		return nil, nil
 	}
-	key, err := s.vault.Key(kid)
+	kr := keyring.New(s.vault)
+	key, err := kr.Get(kid)
 	if err != nil {
 		return nil, err
 	}
