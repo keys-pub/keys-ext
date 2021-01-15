@@ -1,19 +1,30 @@
-package vault
+package keyring
 
 import (
 	"bytes"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/vault"
 	"github.com/keys-pub/keys/api"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
 	"github.com/vmihailenco/msgpack/v4"
 )
 
+// Keyring vault.
+type Keyring struct {
+	*vault.Vault
+}
+
+// New keyring vault.
+func New(vlt *vault.Vault) *Keyring {
+	return &Keyring{vlt}
+}
+
 // keyItemType for a generic api.Key.
 const keyItemType = "key"
 
-func newItemForKey(key *api.Key) (*Item, error) {
+func newItemForKey(key *api.Key) (*vault.Item, error) {
 	if key.ID == "" {
 		return nil, errors.Errorf("no key id")
 	}
@@ -21,7 +32,7 @@ func newItemForKey(key *api.Key) (*Item, error) {
 	if err != nil {
 		return nil, err
 	}
-	item := NewItem(key.ID.String(), b, keyItemType, tsutil.ParseMillis(key.CreatedAt))
+	item := vault.NewItem(key.ID.String(), b, keyItemType, tsutil.ParseMillis(key.CreatedAt))
 	return item, nil
 }
 
@@ -29,20 +40,20 @@ func marshalKey(key *api.Key) ([]byte, error) {
 	return msgpack.Marshal(key)
 }
 
-// Key from vault.
-func (v *Vault) Key(id keys.ID) (*api.Key, error) {
-	item, err := v.Get(id.String())
+// Get key from vault.
+func (v *Keyring) Get(id keys.ID) (*api.Key, error) {
+	item, err := v.Vault.Get(id.String())
 	if err != nil {
 		return nil, err
 	}
 	if item == nil {
 		return nil, nil
 	}
-	return item.Key()
+	return keyForItem(item)
 }
 
-// SaveKey saves key to vault.
-func (v *Vault) SaveKey(key *api.Key) error {
+// Save key to vault.
+func (v *Keyring) Save(key *api.Key) error {
 	if key == nil {
 		return errors.Errorf("nil key")
 	}
@@ -63,13 +74,12 @@ func (v *Vault) SaveKey(key *api.Key) error {
 }
 
 // Key for Item or nil if not a recognized key type.
-func (i *Item) Key() (*api.Key, error) {
+func keyForItem(i *vault.Item) (*api.Key, error) {
 	switch i.Type {
 	case keyItemType:
 		return unmarshalKey(i.Data)
 	}
-
-	return i.keyV1()
+	return keyV1ForItem(i)
 }
 
 func unmarshalKey(b []byte) (*api.Key, error) {
@@ -80,19 +90,19 @@ func unmarshalKey(b []byte) (*api.Key, error) {
 	return &key, nil
 }
 
-// Keys returns keys from the vault.
-func (v *Vault) Keys() ([]*api.Key, error) {
+// List keys from the vault.
+func (v *Keyring) List() ([]*api.Key, error) {
 	items, err := v.Items()
 	if err != nil {
 		return nil, err
 	}
 	out := make([]*api.Key, 0, len(items))
 	for _, i := range items {
-		key, err := i.Key()
+		key, err := keyForItem(i)
 		if err != nil {
 			// Skip keys that don't resolve, which could happen if older clients
 			// load newer keys.
-			logger.Errorf("Failed to resolve key (%s): %v", i.ID, err)
+			// logger.Errorf("Failed to resolve key (%s): %v", i.ID, err)
 			continue
 		}
 		if key == nil {
@@ -104,27 +114,27 @@ func (v *Vault) Keys() ([]*api.Key, error) {
 }
 
 // ImportKey imports key into the vault.
-func (v *Vault) ImportKey(msg string, password string) (*api.Key, error) {
+func (v *Keyring) ImportKey(msg string, password string) (*api.Key, error) {
 	key, err := api.DecodeKey(msg, password)
 	if err != nil {
 		return nil, err
 	}
-	if err := v.SaveKey(key); err != nil {
+	if err := v.Save(key); err != nil {
 		return nil, err
 	}
 	return key, nil
 }
 
 // ExportKey a Key from the vault.
-func (v *Vault) ExportKey(id keys.ID, password string) (string, error) {
-	item, err := v.Get(id.String())
+func (v *Keyring) ExportKey(id keys.ID, password string) (string, error) {
+	item, err := v.Vault.Get(id.String())
 	if err != nil {
 		return "", err
 	}
 	if item == nil {
 		return "", keys.NewErrNotFound(id.String())
 	}
-	key, err := item.Key()
+	key, err := keyForItem(item)
 	if err != nil {
 		return "", err
 	}
@@ -132,8 +142,8 @@ func (v *Vault) ExportKey(id keys.ID, password string) (string, error) {
 }
 
 // EdX25519Keys implements wormhole.Keyring.
-func (v *Vault) EdX25519Keys() ([]*keys.EdX25519Key, error) {
-	ks, err := v.Keys()
+func (v *Keyring) EdX25519Keys() ([]*keys.EdX25519Key, error) {
+	ks, err := v.List()
 	if err != nil {
 		return nil, err
 	}
@@ -149,8 +159,8 @@ func (v *Vault) EdX25519Keys() ([]*keys.EdX25519Key, error) {
 }
 
 // X25519Keys implements saltpack.Keyring.
-func (v *Vault) X25519Keys() ([]*keys.X25519Key, error) {
-	ks, err := v.Keys()
+func (v *Keyring) X25519Keys() ([]*keys.X25519Key, error) {
+	ks, err := v.List()
 	if err != nil {
 		return nil, err
 	}
@@ -167,8 +177,8 @@ func (v *Vault) X25519Keys() ([]*keys.X25519Key, error) {
 
 // FindEdX25519PublicKey searches all our EdX25519 public keys for a match to a converted
 // X25519 public key.
-func (v *Vault) FindEdX25519PublicKey(kid keys.ID) (*keys.EdX25519PublicKey, error) {
-	logger.Debugf("Finding edx25519 key from an x25519 key %s", kid)
+func (v *Keyring) FindEdX25519PublicKey(kid keys.ID) (*keys.EdX25519PublicKey, error) {
+	// logger.Debugf("Finding edx25519 key from an x25519 key %s", kid)
 	if !kid.IsX25519() {
 		return nil, errors.Errorf("not an x25519 key")
 	}
@@ -182,18 +192,18 @@ func (v *Vault) FindEdX25519PublicKey(kid keys.ID) (*keys.EdX25519PublicKey, err
 	}
 	for _, spk := range spks {
 		if bytes.Equal(spk.X25519PublicKey().Bytes(), bpk.Bytes()) {
-			logger.Debugf("Found ed25519 key %s", spk.ID())
+			// logger.Debugf("Found ed25519 key %s", spk.ID())
 			return spk, nil
 		}
 	}
-	logger.Debugf("EdX25519 public key not found (for X25519 public key)")
+	// logger.Debugf("EdX25519 public key not found (for X25519 public key)")
 	return nil, err
 }
 
 // EdX25519PublicKeys from the vault.
 // Includes public keys of EdX25519Key's.
-func (v *Vault) EdX25519PublicKeys() ([]*keys.EdX25519PublicKey, error) {
-	ks, err := v.Keys()
+func (v *Keyring) EdX25519PublicKeys() ([]*keys.EdX25519PublicKey, error) {
+	ks, err := v.List()
 	if err != nil {
 		return nil, err
 	}
@@ -209,8 +219,8 @@ func (v *Vault) EdX25519PublicKeys() ([]*keys.EdX25519PublicKey, error) {
 }
 
 // EdX25519Key ...
-func (v *Vault) EdX25519Key(kid keys.ID) (*keys.EdX25519Key, error) {
-	key, err := v.Key(kid)
+func (v *Keyring) EdX25519Key(kid keys.ID) (*keys.EdX25519Key, error) {
+	key, err := v.Get(kid)
 	if err != nil {
 		return nil, err
 	}

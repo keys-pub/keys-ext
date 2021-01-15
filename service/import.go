@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/vault/keyring"
 	"github.com/keys-pub/keys/api"
 )
 
@@ -22,7 +23,8 @@ func (s *service) KeyImport(ctx context.Context, req *KeyImportRequest) (*KeyImp
 	if key.UpdatedAt == 0 {
 		key.UpdatedAt = now
 	}
-	if err := s.vault.SaveKey(key); err != nil {
+	kr := keyring.New(s.vault)
+	if err := kr.Save(key); err != nil {
 		return nil, err
 	}
 
@@ -44,7 +46,8 @@ func (s *service) KeyImport(ctx context.Context, req *KeyImportRequest) (*KeyImp
 
 func (s *service) importID(id keys.ID) error {
 	// Check if key already exists and skip if so.
-	key, err := s.vault.Key(id)
+	kr := keyring.New(s.vault)
+	key, err := kr.Get(id)
 	if err != nil {
 		return err
 	}
@@ -55,7 +58,7 @@ func (s *service) importID(id keys.ID) error {
 	now := s.clock.NowMillis()
 	vk.CreatedAt = now
 	vk.UpdatedAt = now
-	if err := s.vault.SaveKey(vk); err != nil {
+	if err := kr.Save(vk); err != nil {
 		return err
 	}
 	if err := s.scs.Index(id); err != nil {

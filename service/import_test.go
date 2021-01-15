@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/vault/keyring"
 	"github.com/keys-pub/keys/api"
 	"github.com/stretchr/testify/require"
 )
@@ -34,12 +35,13 @@ func TestKeyImport(t *testing.T) {
 	require.Equal(t, key.ID().String(), keyResp.Key.ID)
 
 	// Check key
-	out, err := service.vault.EdX25519Key(key.ID())
+	kr := keyring.New(service.vault)
+	out, err := kr.EdX25519Key(key.ID())
 	require.NoError(t, err)
 	require.NotNil(t, out)
 	require.Equal(t, out.ID(), key.ID())
 
-	sks, err := service.vault.EdX25519Keys()
+	sks, err := kr.EdX25519Keys()
 	require.NoError(t, err)
 	require.Equal(t, 1, len(sks))
 

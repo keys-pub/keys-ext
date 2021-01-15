@@ -18,7 +18,7 @@ require (
 	github.com/keys-pub/keys-ext/http/client v0.0.0-20210109001315-76134396e9aa
 	github.com/keys-pub/keys-ext/http/server v0.0.0-20210103224830-a8720c3ddd9b
 	github.com/keys-pub/keys-ext/sdb v0.0.0-20210109001315-76134396e9aa
-	github.com/keys-pub/keys-ext/vault v0.0.0-20210102030049-6622ca14f3bc
+	github.com/keys-pub/keys-ext/vault v0.0.0-20210114210042-9547899d11f5
 	github.com/keys-pub/keys-ext/wormhole v0.0.0-20210102030049-6622ca14f3bc
 	github.com/keys-pub/keys-ext/ws/api v0.0.0-20210103224830-a8720c3ddd9b
 	github.com/keys-pub/keys-ext/ws/client v0.0.0-20210109001315-76134396e9aa

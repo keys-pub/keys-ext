@@ -1,15 +1,15 @@
-package vault
+package keyring
 
 import (
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/vault"
 	"github.com/keys-pub/keys/api"
 	"github.com/pkg/errors"
 )
 
-// keyV1
 // Keys used to be stored as item data directly instead of as a marshaled
 // api.Key.
-func (i *Item) keyV1() (*api.Key, error) {
+func keyV1ForItem(i *vault.Item) (*api.Key, error) {
 	switch i.Type {
 	case "ed25519-public":
 		if len(i.Data) != 32 {

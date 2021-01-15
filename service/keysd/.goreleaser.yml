@@ -1,0 +1,28 @@
+project_name: "keys"
+builds:  
+  - id: keysd
+    main: ./main.go
+    binary: keysd
+    env:
+      - CGO_ENABLED=1
+    goos:
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - 386
+    ignore:
+      - goos: darwin
+        goarch: 386
+    hooks:
+      post: ../../scripts/codesign.sh {{ .Path }}
+archives:
+  - replacements:
+      386: i386
+      amd64: x86_64
+release:
+  prerelease: true
+changelog:
+  skip: true
+snapshot:
+  name_template: "{{ .Tag }}-next"

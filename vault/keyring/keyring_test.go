@@ -1,10 +1,11 @@
-package vault_test
+package keyring_test
 
 import (
 	"sync"
 	"testing"
 
 	"github.com/keys-pub/keys-ext/vault"
+	"github.com/keys-pub/keys-ext/vault/keyring"
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/api"
@@ -16,29 +17,31 @@ func TestSaveKeyDelete(t *testing.T) {
 	vlt, closeFn := NewTestVault(t, &TestVaultOptions{Unlock: true})
 	defer closeFn()
 
+	kr := keyring.New(vlt)
+
 	sk := keys.GenerateEdX25519Key()
 	vk := api.NewKey(sk)
 	require.NoError(t, err)
 
-	err = vlt.SaveKey(vk)
+	err = kr.Save(vk)
 	require.NoError(t, err)
 
-	key, err := vlt.Key(sk.ID())
+	key, err := kr.Get(sk.ID())
 	require.NoError(t, err)
 	require.NotNil(t, key)
 	skOut := key.AsEdX25519()
 	require.NotNil(t, skOut)
 	require.Equal(t, sk, skOut)
 
-	ok, err := vlt.Delete(sk.ID().String())
+	ok, err := kr.Delete(sk.ID().String())
 	require.NoError(t, err)
 	require.True(t, ok)
 
-	out, err := vlt.Key(sk.ID())
+	out, err := kr.Get(sk.ID())
 	require.NoError(t, err)
 	require.Nil(t, out)
 
-	ok, err = vlt.Delete(sk.ID().String())
+	ok, err = kr.Delete(sk.ID().String())
 	require.NoError(t, err)
 	require.False(t, ok)
 }
@@ -47,24 +50,25 @@ func TestStoreConcurrent(t *testing.T) {
 	var err error
 	vlt, closeFn := NewTestVault(t, &TestVaultOptions{Unlock: true})
 	defer closeFn()
+	kr := keyring.New(vlt)
 
 	sk := keys.GenerateEdX25519Key()
 	key := api.NewKey(sk)
-	err = vlt.SaveKey(key)
+	err = kr.Save(key)
 	require.NoError(t, err)
 
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
 		for i := 0; i < 2000; i++ {
-			item, err := vlt.Key(sk.ID())
+			item, err := kr.Get(sk.ID())
 			require.NoError(t, err)
 			require.NotNil(t, item)
 		}
 		wg.Done()
 	}()
 	for i := 0; i < 2000; i++ {
-		item, err := vlt.Key(sk.ID())
+		item, err := kr.Get(sk.ID())
 		require.NoError(t, err)
 		require.NotNil(t, item)
 	}
@@ -75,20 +79,22 @@ func TestExportImportKey(t *testing.T) {
 	var err error
 	vlt, closeFn := NewTestVault(t, &TestVaultOptions{Unlock: true})
 	defer closeFn()
+	kr := keyring.New(vlt)
 
 	sk := keys.GenerateEdX25519Key()
 	key := api.NewKey(sk)
-	err = vlt.SaveKey(key)
+	err = kr.Save(key)
 	require.NoError(t, err)
 
 	password := "testpassword"
-	msg, err := vlt.ExportKey(sk.ID(), password)
+	msg, err := kr.ExportKey(sk.ID(), password)
 	require.NoError(t, err)
 
-	vlt2, closeFn2 := NewTestVault(t, &TestVaultOptions{Unlock: true})
+	vault2, closeFn2 := NewTestVault(t, &TestVaultOptions{Unlock: true})
 	defer closeFn2()
+	kr2 := keyring.New(vault2)
 
-	out, err := vlt2.ImportKey(msg, "testpassword")
+	out, err := kr2.ImportKey(msg, "testpassword")
 	require.NoError(t, err)
 	require.Equal(t, sk.ID(), out.ID)
 }
@@ -97,6 +103,7 @@ func TestKeysV1(t *testing.T) {
 	var err error
 	vlt, closeFn := NewTestVault(t, &TestVaultOptions{Unlock: true})
 	defer closeFn()
+	kr := keyring.New(vlt)
 
 	sk := keys.GenerateEdX25519Key()
 
@@ -106,10 +113,10 @@ func TestKeysV1(t *testing.T) {
 	require.NoError(t, err)
 
 	// Overwrite key
-	err = vlt.SaveKey(api.NewKey(sk))
+	err = kr.Save(api.NewKey(sk))
 	require.NoError(t, err)
 
-	out, err := vlt.Keys()
+	out, err := kr.List()
 	require.NoError(t, err)
 	require.Equal(t, 1, len(out))
 	require.Equal(t, sk.ID(), out[0].ID)

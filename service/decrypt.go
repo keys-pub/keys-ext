@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/vault/keyring"
 	"github.com/keys-pub/keys/saltpack"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
@@ -27,7 +28,8 @@ func (s *service) findSender(ctx context.Context, kid keys.ID) (*Key, error) {
 
 // Decrypt (RPC) data.
 func (s *service) Decrypt(ctx context.Context, req *DecryptRequest) (*DecryptResponse, error) {
-	out, key, enc, err := saltpack.Open(req.Data, s.vault)
+	kr := keyring.New(s.vault)
+	out, key, enc, err := saltpack.Open(req.Data, kr)
 	if err != nil {
 		if err.Error() == "failed to read header bytes" {
 			return nil, errors.Errorf("invalid data")
@@ -123,7 +125,8 @@ func (s *service) decryptStream(srv decryptStreamServer) error {
 
 	reader := newStreamReader(srv.Context(), recvFn)
 
-	out, key, enc, err := saltpack.NewReader(reader, s.vault)
+	kr := keyring.New(s.vault)
+	out, key, enc, err := saltpack.NewReader(reader, kr)
 	if err != nil {
 		return err
 	}
@@ -173,7 +176,8 @@ func (s *service) decryptWriteInOut(ctx context.Context, in string, out string) 
 	}()
 	reader := bufio.NewReader(inFile)
 
-	decReader, key, enc, err := saltpack.NewReader(reader, s.vault)
+	kr := keyring.New(s.vault)
+	decReader, key, enc, err := saltpack.NewReader(reader, kr)
 	if err != nil {
 		return nil, DefaultEncrypt, err
 	}

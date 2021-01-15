@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/vault/keyring"
 	"github.com/keys-pub/keys/api"
 	"github.com/keys-pub/keys/user"
 	"github.com/pkg/errors"
@@ -20,7 +21,8 @@ func (s *service) Keys(ctx context.Context, req *KeysRequest) (*KeysResponse, er
 	}
 	sortDirection := req.SortDirection
 
-	vks, err := s.vault.Keys()
+	kr := keyring.New(s.vault)
+	vks, err := kr.List()
 	if err != nil {
 		return nil, err
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/vault/keyring"
 	"github.com/keys-pub/keys/user"
 	"github.com/keys-pub/keys/user/services"
 	"github.com/keys-pub/keys/users"
@@ -12,7 +13,8 @@ import (
 
 func (s *service) checkKeys(ctx context.Context) error {
 	logger.Infof("Checking keys...")
-	pks, err := s.vault.EdX25519PublicKeys()
+	kr := keyring.New(s.vault)
+	pks, err := kr.EdX25519PublicKeys()
 	if err != nil {
 		return errors.Wrapf(err, "failed to list public keys")
 	}
@@ -57,7 +59,8 @@ func (s *service) checkForExpiredKey(ctx context.Context, kid keys.ID) error {
 
 func (s *service) updateAllKeys(ctx context.Context) error {
 	logger.Infof("Updating keys...")
-	pks, err := s.vault.EdX25519PublicKeys()
+	kr := keyring.New(s.vault)
+	pks, err := kr.EdX25519PublicKeys()
 	if err != nil {
 		return err
 	}

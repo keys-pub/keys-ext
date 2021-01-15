@@ -11,7 +11,8 @@ import (
 )
 
 func (s *service) Secret(ctx context.Context, req *SecretRequest) (*SecretResponse, error) {
-	secret, err := secrets.Get(s.vault, req.ID)
+	secrets := secrets.New(s.vault)
+	secret, err := secrets.Get(req.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +35,8 @@ func (s *service) SecretSave(ctx context.Context, req *SecretSaveRequest) (*Secr
 		return nil, errors.Errorf("no name specified")
 	}
 
-	out, _, err := secrets.Save(s.vault, secret)
+	secrets := secrets.New(s.vault)
+	out, _, err := secrets.Save(secret)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +66,8 @@ func (s *service) Secrets(ctx context.Context, req *SecretsRequest) (*SecretsRes
 		req.SortField = "name"
 	}
 
-	secrets, err := secrets.List(s.vault,
+	sv := secrets.New(s.vault)
+	results, err := sv.List(
 		secrets.WithQuery(req.Query),
 		secrets.WithSort(req.SortField),
 		secrets.WithSortDirection(sortDirectionToVault(req.SortDirection)),
@@ -72,7 +75,7 @@ func (s *service) Secrets(ctx context.Context, req *SecretsRequest) (*SecretsRes
 	if err != nil {
 		return nil, err
 	}
-	out := secretsToRPC(secrets)
+	out := secretsToRPC(results)
 
 	return &SecretsResponse{
 		Secrets:       out,

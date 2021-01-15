@@ -29,6 +29,16 @@ type Secret struct {
 	UpdatedAt time.Time `json:"updatedAt,omitempty"`
 }
 
+// Secrets vault.
+type Secrets struct {
+	*vault.Vault
+}
+
+// New secrets vault.
+func New(vlt *vault.Vault) *Secrets {
+	return &Secrets{vlt}
+}
+
 // Type types for secret.
 type Type string
 
@@ -64,7 +74,7 @@ func NewPassword(name string, username string, password string, url string) *Sec
 
 // Save a secret.
 // Returns true if secret was updated.
-func Save(v *vault.Vault, secret *Secret) (*Secret, bool, error) {
+func (v *Secrets) Save(secret *Secret) (*Secret, bool, error) {
 	if secret == nil {
 		return nil, false, errors.Errorf("nil secret")
 	}
@@ -73,7 +83,7 @@ func Save(v *vault.Vault, secret *Secret) (*Secret, bool, error) {
 		secret.ID = newSecretID()
 	}
 
-	item, err := v.Get(secret.ID)
+	item, err := v.Vault.Get(secret.ID)
 	if err != nil {
 		return nil, false, err
 	}
@@ -104,8 +114,8 @@ func Save(v *vault.Vault, secret *Secret) (*Secret, bool, error) {
 }
 
 // Get a secret.
-func Get(v *vault.Vault, id string) (*Secret, error) {
-	item, err := v.Get(id)
+func (v *Secrets) Get(id string) (*Secret, error) {
+	item, err := v.Vault.Get(id)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +154,7 @@ func newSecretsOptions(opts ...Option) Options {
 }
 
 // List ...
-func List(v *vault.Vault, opt ...Option) ([]*Secret, error) {
+func (v *Secrets) List(opt ...Option) ([]*Secret, error) {
 	opts := newSecretsOptions(opt...)
 	items, err := v.Items()
 	if err != nil {
