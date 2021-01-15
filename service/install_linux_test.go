@@ -12,7 +12,7 @@ import (
 func TestUninstall(t *testing.T) {
 	var out bytes.Buffer
 	var err error
-	env, err := NewEnv("KeyTest")
+	env, err := NewEnv("KeyTest", build)
 	require.NoError(t, err)
 	err = Uninstall(&out, env)
 	require.NoError(t, err)
