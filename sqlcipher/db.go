@@ -8,9 +8,7 @@ import (
 	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
-
-	// For sqlite3
-	_ "github.com/mutecomm/go-sqlcipher/v4"
+	// For sqlite3 driver
 )
 
 // ErrNotOpen if not open.
@@ -56,20 +54,8 @@ func (d *DB) OpenAtPath(ctx context.Context, path string, key SecretKey) error {
 	logger.Infof("Open %s", path)
 	d.path = path
 
-	// TODO: Key
-
-	db, err := sql.Open("sqlite3", d.path)
+	db, err := open(path, key)
 	if err != nil {
-		return err
-	}
-
-	sqlStmt := `create table if not exists documents (
-		path text not null primary key, 
-		vals blob, 
-		createdAt timestamp not null, 
-		updatedAt timestamp not null
-	);`
-	if _, err = db.Exec(sqlStmt); err != nil {
 		return err
 	}
 
@@ -131,7 +117,7 @@ func (d *DB) Create(ctx context.Context, path string, values map[string]interfac
 		UpdatedAt: now,
 	}
 
-	if err := d.put(path, r); err != nil {
+	if err := d.insertOrReplace(path, r); err != nil {
 		return err
 	}
 
@@ -176,7 +162,7 @@ func (d *DB) set(ctx context.Context, path string, values map[string]interface{}
 		r.UpdatedAt = now
 	}
 
-	if err := d.put(path, r); err != nil {
+	if err := d.insertOrReplace(path, r); err != nil {
 		return err
 	}
 
@@ -232,19 +218,9 @@ func (d *DB) DocumentIterator(ctx context.Context, parent string, opt ...dstore.
 	if d.db == nil {
 		return nil, errors.Errorf("db not open")
 	}
+	parent = dstore.Path(parent)
 
 	return d.iterator(ctx, parent, opt...)
-}
-
-func (d *DB) iterator(ctx context.Context, parent string, opt ...dstore.Option) (*iterator, error) {
-	opts := dstore.NewOptions(opt...)
-
-	// opts.Prefix
-	return &iterator{
-		index:  opts.Index,
-		limit:  opts.Limit,
-		noData: opts.NoData,
-	}, nil
 }
 
 // Documents ...
@@ -273,7 +249,8 @@ func (d *DB) Collections(ctx context.Context, parent string) ([]*dstore.Collecti
 	if d.db == nil {
 		return nil, errors.Errorf("db not open")
 	}
-	if dstore.Path(parent) != "/" {
+	parent = dstore.Path(parent)
+	if parent != "/" {
 		// TODO: Support nested collections
 		return nil, errors.Errorf("only root collections supported")
 	}

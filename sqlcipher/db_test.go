@@ -40,118 +40,137 @@ func testPath() string {
 	return filepath.Join(os.TempDir(), fmt.Sprintf("%s.db", keys.RandFileName()))
 }
 
+type Message struct {
+	Text      string  `json:"text"`
+	Sender    keys.ID `json:"sender"`
+	Recipient keys.ID `json:"recipient"`
+	Timestamp float64 `json:"ts"`
+}
+
+func testMessage(text string, sender keys.ID, recipient keys.ID, ts int64) *Message {
+	return &Message{Text: text, Sender: sender, Recipient: recipient, Timestamp: float64(ts)}
+}
+
 func TestDB(t *testing.T) {
-	// SetLogger(NewLogger(DebugLevel))
+	// sqlcipher.SetLogger(sqlcipher.NewLogger(sqlcipher.DebugLevel))
+
 	db, closeFn := testDB(t)
 	defer closeFn()
 
 	require.True(t, db.IsOpen())
 
 	ctx := context.TODO()
+	alice := keys.NewEdX25519KeyFromSeed(testSeed(0x01))
+	bob := keys.NewEdX25519KeyFromSeed(testSeed(0x02))
 
-	for i := 10; i <= 30; i = i + 10 {
-		p := dstore.Path("test1", fmt.Sprintf("key%d", i))
-		err := db.Create(ctx, p, dstore.Data([]byte(fmt.Sprintf("value%d", i))))
+	for i := 0; i < 3; i++ {
+		p := dstore.Path("channel0", fmt.Sprintf("id%d", i))
+		msg := testMessage(fmt.Sprintf("channel0 test message %d", i), alice.ID(), bob.ID(), tsutil.NowMillis())
+		err := db.Create(ctx, p, dstore.From(msg))
 		require.NoError(t, err)
 	}
-	for i := 10; i <= 30; i = i + 10 {
-		p := dstore.Path("test0", fmt.Sprintf("key%d", i))
-		err := db.Create(ctx, p, dstore.Data([]byte(fmt.Sprintf("value%d", i))))
+	for i := 3; i < 6; i++ {
+		p := dstore.Path("channel0", fmt.Sprintf("id%d", i))
+		msg := testMessage(fmt.Sprintf("channel0 test message %d", i), bob.ID(), alice.ID(), tsutil.NowMillis())
+		err := db.Create(ctx, p, dstore.From(msg))
+		require.NoError(t, err)
+	}
+	for i := 0; i < 3; i++ {
+		p := dstore.Path("channel1", fmt.Sprintf("id%d", i))
+		msg := testMessage(fmt.Sprintf("channel1 test message %d", i), alice.ID(), bob.ID(), tsutil.NowMillis())
+		err := db.Create(ctx, p, dstore.From(msg))
 		require.NoError(t, err)
 	}
 
-	iter, err := db.DocumentIterator(ctx, "test0")
+	var out Message
+
+	iter, err := db.DocumentIterator(ctx, "channel0")
 	require.NoError(t, err)
 	doc, err := iter.Next()
 	require.NoError(t, err)
-	require.NotNil(t, doc)
-	require.Equal(t, "/test0/key10", doc.Path)
-	require.Equal(t, "value10", string(doc.Data()))
 	iter.Release()
-
-	out, err := db.Documents(ctx, "test0")
+	require.NotNil(t, doc)
+	require.Equal(t, "/channel0/id0", doc.Path)
+	err = doc.To(&out)
 	require.NoError(t, err)
-	require.Equal(t, 3, len(out))
-	require.Equal(t, "/test0/key10", out[0].Path)
-	require.Equal(t, "value10", string(out[0].Data()))
+	require.Equal(t, "channel0 test message 0", out.Text)
 
-	ok, err := db.Exists(ctx, "/test0/key10")
+	docs, err := db.Documents(ctx, "channel0")
+	require.NoError(t, err)
+	require.Equal(t, 6, len(docs))
+	require.Equal(t, "/channel0/id0", docs[0].Path)
+	err = doc.To(&out)
+	require.NoError(t, err)
+	require.Equal(t, "channel0 test message 0", out.Text)
+
+	ok, err := db.Exists(ctx, "/channel0/id0")
 	require.NoError(t, err)
 	require.True(t, ok)
-	doc, err = db.Get(ctx, "/test0/key10")
+	doc, err = db.Get(ctx, "/channel0/id0")
 	require.NoError(t, err)
 	require.NotNil(t, doc)
-	require.Equal(t, "value10", string(doc.Data()))
-
-	err = db.Create(ctx, "/test0/key10", dstore.Data([]byte{}))
-	require.EqualError(t, err, "path already exists /test0/key10")
-	err = db.Set(ctx, "/test0/key10", dstore.Data([]byte("overwrite")))
+	err = doc.To(&out)
 	require.NoError(t, err)
-	err = db.Create(ctx, "/test0/key10", dstore.Data([]byte("overwrite")))
-	require.EqualError(t, err, "path already exists /test0/key10")
-	doc, err = db.Get(ctx, "/test0/key10")
+	require.Equal(t, "channel0 test message 0", out.Text)
+
+	empty := map[string]interface{}{}
+	err = db.Create(ctx, "/channel0/id0", empty)
+	require.EqualError(t, err, "path already exists /channel0/id0")
+
+	overwrite := testMessage("channel0 test message overwrite", alice.ID(), bob.ID(), tsutil.NowMillis())
+	err = db.Set(ctx, "/channel0/id0", dstore.From(overwrite))
+	require.NoError(t, err)
+
+	err = db.Create(ctx, "/channel0/id0", empty)
+	require.EqualError(t, err, "path already exists /channel0/id0")
+
+	doc, err = db.Get(ctx, "/channel0/id0")
 	require.NoError(t, err)
 	require.NotNil(t, doc)
-	require.Equal(t, "overwrite", string(doc.Data()))
-
-	out, err = db.GetAll(ctx, []string{"/test0/key10", "/test0/key20"})
+	err = doc.To(&out)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(out))
-	require.Equal(t, "/test0/key10", out[0].Path)
-	require.Equal(t, "/test0/key20", out[1].Path)
+	require.Equal(t, &out, overwrite)
 
-	ok, err = db.Delete(ctx, "/test1/key10")
+	docs, err = db.GetAll(ctx, []string{"/channel0/id0", "/channel0/id1"})
+	require.NoError(t, err)
+	require.Equal(t, 2, len(docs))
+	require.Equal(t, "/channel0/id0", docs[0].Path)
+	require.Equal(t, "/channel0/id1", docs[1].Path)
+
+	ok, err = db.Delete(ctx, "/channel1/id0")
 	require.True(t, ok)
 	require.NoError(t, err)
-	ok, err = db.Delete(ctx, "/test1/key10")
+	ok, err = db.Delete(ctx, "/channel1/id0")
 	require.False(t, ok)
 	require.NoError(t, err)
 
-	ok, err = db.Exists(ctx, "/test1/key10")
+	ok, err = db.Exists(ctx, "/channel1/id0")
 	require.NoError(t, err)
 	require.False(t, ok)
 
-	expected := `/test0/key10 overwrite
-/test0/key20 value20
-/test0/key30 value30
-`
-	var b bytes.Buffer
-	iter, err = db.DocumentIterator(context.TODO(), "test0")
-	require.NoError(t, err)
-	err = dstore.SpewOut(iter, &b)
-	require.NoError(t, err)
-	require.Equal(t, expected, b.String())
-	iter.Release()
-
-	iter, err = db.DocumentIterator(context.TODO(), "test0")
-	require.NoError(t, err)
-	spew, err := dstore.Spew(iter)
-	require.NoError(t, err)
-	require.Equal(t, b.String(), spew.String())
-	require.Equal(t, expected, spew.String())
-	iter.Release()
-
-	iter, err = db.DocumentIterator(context.TODO(), "test0", dstore.Prefix("key1"), dstore.NoData())
+	iter, err = db.DocumentIterator(context.TODO(), "channel0", dstore.Prefix("id0"), dstore.NoData())
 	require.NoError(t, err)
 	doc, err = iter.Next()
 	require.NoError(t, err)
-	require.Equal(t, "/test0/key10", doc.Path)
+	require.NotNil(t, doc)
+	require.Equal(t, "/channel0/id0", doc.Path)
 	doc, err = iter.Next()
 	require.NoError(t, err)
 	require.Nil(t, doc)
 	iter.Release()
 
-	err = db.Create(ctx, "", dstore.Data([]byte{}))
+	err = db.Create(ctx, "", empty)
 	require.EqualError(t, err, "invalid path /")
-	err = db.Set(ctx, "", dstore.Data([]byte{}))
+	err = db.Set(ctx, "", empty)
 	require.EqualError(t, err, "invalid path /")
 
 	cols, err := db.Collections(ctx, "")
 	require.NoError(t, err)
-	require.Equal(t, "/test0", cols[0].Path)
-	require.Equal(t, "/test1", cols[1].Path)
+	require.Equal(t, 2, len(cols))
+	require.Equal(t, "/channel0", cols[0].Path)
+	require.Equal(t, "/channel1", cols[1].Path)
 
-	_, err = db.Collections(ctx, "/test0")
+	_, err = db.Collections(ctx, "/channel0")
 	require.EqualError(t, err, "only root collections supported")
 }
 
@@ -184,6 +203,7 @@ func TestDocumentsPath(t *testing.T) {
 
 	cols, err := db.Collections(ctx, "")
 	require.NoError(t, err)
+	require.Equal(t, 1, len(cols))
 	require.Equal(t, "/test", cols[0].Path)
 }
 
@@ -233,28 +253,6 @@ func TestDBListOptions(t *testing.T) {
 		paths = append(paths, doc.Path)
 	}
 	require.Equal(t, []string{"/test/1", "/test/2", "/test/3"}, paths)
-	iter.Release()
-
-	iter, err = db.DocumentIterator(context.TODO(), "test")
-	require.NoError(t, err)
-	b, err := dstore.Spew(iter)
-	require.NoError(t, err)
-	expected := `/test/1 val1
-/test/2 val2
-/test/3 val3
-`
-	require.Equal(t, expected, b.String())
-	iter.Release()
-
-	iter, err = db.DocumentIterator(context.TODO(), "test", dstore.NoData())
-	require.NoError(t, err)
-	b, err = dstore.Spew(iter)
-	require.NoError(t, err)
-	expected = `/test/1
-/test/2
-/test/3
-`
-	require.Equal(t, expected, b.String())
 	iter.Release()
 
 	iter, err = db.DocumentIterator(ctx, "b", dstore.Prefix("eb"))
@@ -447,4 +445,8 @@ func TestCreate(t *testing.T) {
 
 	err = db.Create(ctx, path, dstore.Data([]byte("value1")))
 	require.EqualError(t, err, fmt.Sprintf("path already exists %s", path))
+}
+
+func testSeed(b byte) *[32]byte {
+	return keys.Bytes32(bytes.Repeat([]byte{b}, 32))
 }
