@@ -12,8 +12,9 @@ jobs:
       - uses: actions/checkout@v2
       - name: Run gosec
         uses: cedrickring/golang-action@1.6.0
+        shell: bash
         with:
-          args: sh security.sh
+          args: ./security.sh
   golangci-lint:
     name: Linter
     runs-on: macos-latest
@@ -26,7 +27,8 @@ jobs:
         run: |
           brew install golangci/tap/golangci-lint
       - name: Run golangci-lint
-        run: sh lint.sh
+        shell: bash
+        run: ./lint.sh
   test:
     strategy:
       matrix:
@@ -61,17 +63,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Test
         shell: bash
-        run: |
-          (cd auth/fido2 && go test -v ./...)          
-          (cd auth/mock && go test -v ./...)          
-          (cd http/api && go test -v ./...)
-          (cd http/client && go test -v ./...)
-          (cd http/server && go test -v ./...)
-          (cd sdb && go test -v ./...)
-          (cd service && go test -v ./...)
-          (cd sqlchipher && go test -v ./...)
-          (cd vault && go test -v ./...)
-          # (cd wormhole && go test -v ./...)
+        run: ./test.sh          
       - name: Test (macos)
         if: matrix.os == 'macos-latest'
         run: |
