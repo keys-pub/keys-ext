@@ -13,6 +13,6 @@ cd "$dir"
 (cd http/server && go test -v ./...)
 (cd sdb && go test -v ./...)
 (cd service && go test -v ./...)
-(cd sqlchipher && go test -v ./...)
+(cd sqlcipher && go test -v ./...)
 (cd vault && go test -v ./...)
 # (cd wormhole && go test -v ./...)
