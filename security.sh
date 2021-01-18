@@ -15,6 +15,7 @@ go get github.com/securego/gosec/cmd/gosec;
 (cd http/server && gosec ./...) 
 (cd sdb && gosec ./...)
 (cd service && gosec ./...)
+(cd sqlcipher  && gosec ./...)
 (cd vault && gosec ./...)
 (cd wormhole && gosec .)
 (cd ws/api && gosec .)

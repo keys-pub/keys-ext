@@ -13,7 +13,7 @@ jobs:
       - name: Run gosec
         uses: cedrickring/golang-action@1.6.0
         with:
-          args: go get github.com/securego/gosec/cmd/gosec; (cd auth/fido2 && gosec ./...) && (cd auth/mock && gosec ./...) && (cd auth/rpc && gosec ./...) && (cd firestore && gosec ./...) && (cd http/api && gosec ./...) && (cd http/client && gosec ./...) && (cd http/server && gosec ./...) && (cd sdb && gosec ./...) && (cd service && gosec ./...) && (cd vault && gosec ./...) && (cd wormhole && gosec .) && (cd ws/api && gosec .) && (cd ws/client && gosec .) && (cd ws/server && gosec .)
+          args: sh security.sh
   golangci-lint:
     name: Linter
     runs-on: macos-latest
@@ -26,21 +26,7 @@ jobs:
         run: |
           brew install golangci/tap/golangci-lint
       - name: Run golangci-lint
-        run: |
-          (cd auth/fido2 && golangci-lint run --timeout 10m)
-          (cd auth/mock && golangci-lint run --timeout 10m)
-          (cd auth/rpc && golangci-lint run --timeout 10m)
-          (cd firestore && golangci-lint run --timeout 10m)
-          (cd http/api && golangci-lint run --timeout 10m)
-          (cd http/client && golangci-lint run --timeout 10m)
-          (cd http/server && golangci-lint run --timeout 10m)
-          (cd sdb && golangci-lint run --timeout 10m)
-          (cd service && golangci-lint run --timeout 10m)
-          (cd vault && golangci-lint run --timeout 10m)
-          (cd wormhole && golangci-lint run --timeout 10m)
-          (cd ws/api && golangci-lint run --timeout 10m)
-          (cd ws/client && golangci-lint run --timeout 10m)
-          (cd ws/server && golangci-lint run --timeout 10m)
+        run: sh lint.sh
   test:
     strategy:
       matrix:
@@ -83,6 +69,7 @@ jobs:
           (cd http/server && go test -v ./...)
           (cd sdb && go test -v ./...)
           (cd service && go test -v ./...)
+          (cd sqlchipher && go test -v ./...)
           (cd vault && go test -v ./...)
           # (cd wormhole && go test -v ./...)
       - name: Test (macos)

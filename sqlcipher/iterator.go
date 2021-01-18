@@ -15,20 +15,28 @@ type iterator struct {
 }
 
 func (i *iterator) Next() (*dstore.Document, error) {
-	if !i.rows.Next() {
-		// Catch auto commit errors? (This may be unnecessary in our context?)
-		if err := i.rows.Close(); err != nil {
+	for i.rows.Next() {
+		i.count++
+		if i.index > i.count-1 {
+			continue
+		}
+		if i.limit != 0 && i.count > i.limit {
+			return nil, nil
+		}
+
+		record, err := rowToRecord(i.rows)
+		if err != nil {
 			return nil, err
 		}
-		return nil, i.rows.Err()
+		return record.Document(), nil
 	}
-	record, err := rowToRecord(i.rows)
-	if err != nil {
+	// Catch auto commit errors? (This may be unnecessary in our context?)
+	if err := i.rows.Close(); err != nil {
 		return nil, err
 	}
-	return record.Document(), nil
+	return nil, i.rows.Err()
 }
 
 func (i *iterator) Release() {
-	i.rows.Close()
+	_ = i.rows.Close()
 }

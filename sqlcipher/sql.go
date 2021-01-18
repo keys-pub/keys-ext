@@ -80,8 +80,7 @@ func (d *DB) insertOrReplace(path string, r *record) error {
 	if _, err = stmt.Exec(path, b, r.CreatedAt, r.UpdatedAt); err != nil {
 		return err
 	}
-	tx.Commit()
-	return nil
+	return tx.Commit()
 }
 
 func (d *DB) get(path string) (*record, error) {
