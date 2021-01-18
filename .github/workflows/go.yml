@@ -13,19 +13,17 @@ jobs:
       - name: Run gosec
         uses: cedrickring/golang-action@1.6.0
         shell: bash
-        with:
-          args: ./security.sh
+        run: ./security.sh
+        
   golangci-lint:
     name: Linter
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
       - name: Install dependencies
-        run: |
-          brew install keys-pub/tap/libfido2
+        run: brew install keys-pub/tap/libfido2
       - name: Install golangci-lint
-        run: |
-          brew install golangci/tap/golangci-lint
+        run: brew install golangci/tap/golangci-lint
       - name: Run golangci-lint
         shell: bash
         run: ./lint.sh
