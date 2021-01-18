@@ -14,6 +14,7 @@ cd "$dir"
 (cd http/server && golangci-lint run --timeout 10m)
 (cd sdb && golangci-lint run --timeout 10m)
 (cd service && golangci-lint run --timeout 10m)
+(cd sqlcipher && golangci-lint run --timeout 10m)
 (cd vault && golangci-lint run --timeout 10m)
 (cd wormhole && golangci-lint run --timeout 10m)
 (cd ws/api && golangci-lint run --timeout 10m)
