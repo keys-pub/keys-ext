@@ -185,19 +185,6 @@ func (d *DB) iterator(ctx context.Context, parent string, opt ...dstore.Option) 
 	}, nil
 }
 
-// Query ...
-func (d *DB) Query(where string, args ...interface{}) (dstore.Iterator, error) {
-	sql := fmt.Sprintf("select path, doc, createdAt, updatedAt from documents where %s", where)
-	rows, err := d.db.Query(sql, args...)
-	if err != nil {
-		return nil, err
-	}
-
-	return &iterator{
-		rows: rows,
-	}, nil
-}
-
 // Spew ...
 func (d *DB) Spew(w io.Writer) error {
 	rows, err := d.db.Query("select path, doc, createdAt, updatedAt from documents")
