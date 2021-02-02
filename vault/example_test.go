@@ -23,7 +23,7 @@ func ExampleNew() {
 	}
 
 	// Save item.
-	// Item IDs are NOT encrypted locally and are provided for fast lookups.
+	// Item IDs are NOT encrypted locally.
 	item := vault.NewItem("id1", []byte("mysecret"), "", time.Now())
 	if err := vlt.Set(item); err != nil {
 		log.Fatal(err)

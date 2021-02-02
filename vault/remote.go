@@ -46,7 +46,7 @@ func (v *Vault) Clone(ctx context.Context, remote *Remote) error {
 	}
 
 	logger.Infof("Requesting remote vault...")
-	vault, err := v.client.Vault(ctx, remote.Key)
+	events, err := v.client.Vault(ctx, remote.Key, 0)
 	if err != nil {
 		return err
 	}
@@ -55,7 +55,7 @@ func (v *Vault) Clone(ctx context.Context, remote *Remote) error {
 		return err
 	}
 
-	if err := v.saveRemoteVault(vault); err != nil {
+	if err := v.saveRemoteVault(events); err != nil {
 		return err
 	}
 

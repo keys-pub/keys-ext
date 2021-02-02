@@ -10,7 +10,6 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/keys-pub/keys"
-	httpclient "github.com/keys-pub/keys-ext/http/client"
 	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/pkg/errors"
@@ -28,7 +27,7 @@ type Vault struct {
 	mtx sync.Mutex
 
 	store  Store
-	client *httpclient.Client
+	client *Client
 	clock  tsutil.Clock
 
 	mk     *[32]byte
@@ -97,7 +96,7 @@ func (v *Vault) Reset() error {
 }
 
 // SetClient sets the client.
-func (v *Vault) SetClient(client *httpclient.Client) {
+func (v *Vault) SetClient(client *Client) {
 	v.client = client
 }
 
@@ -284,7 +283,7 @@ func (v *Vault) push(ctx context.Context) error {
 	}
 
 	paths := []string{}
-	events := []*httpclient.VaultEvent{}
+	events := []*Event{}
 
 	// Get events from push.
 	path := dstore.Path("push")
@@ -297,7 +296,7 @@ func (v *Vault) push(ctx context.Context) error {
 		logger.Debugf("Push %s", doc.Path)
 		paths = append(paths, doc.Path)
 		path := dstore.PathFrom(doc.Path, 2)
-		event := &httpclient.VaultEvent{Path: path, Data: doc.Data}
+		event := &Event{Path: path, Data: doc.Data}
 		events = append(events, event)
 	}
 
@@ -351,7 +350,7 @@ func (v *Vault) pullNext(ctx context.Context) (bool, error) {
 	}
 
 	logger.Infof("Pulling vault items")
-	vault, err := v.client.Vault(ctx, v.remote.Key, httpclient.VaultIndex(index))
+	vault, err := v.client.Vault(ctx, v.remote.Key, index)
 	if err != nil {
 		return false, err
 	}
@@ -362,7 +361,7 @@ func (v *Vault) pullNext(ctx context.Context) (bool, error) {
 	return vault.Truncated, nil
 }
 
-func (v *Vault) saveRemoteVault(vault *httpclient.Vault) error {
+func (v *Vault) saveRemoteVault(vault *Events) error {
 	if vault == nil {
 		return errors.Errorf("vault not found")
 	}

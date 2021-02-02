@@ -33,12 +33,12 @@ func testClone(t *testing.T, st1 vault.Store, st2 vault.Store) {
 	defer env.closeFn()
 
 	// Client #1
-	client1 := testClient(t, env)
+	client1 := newTestClient(t, env)
 	v1 := vault.New(st1)
 	v1.SetClient(client1)
 
 	// Client #2
-	client2 := testClient(t, env)
+	client2 := newTestClient(t, env)
 	v2 := vault.New(st2)
 	v2.SetClient(client2)
 

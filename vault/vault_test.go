@@ -112,7 +112,7 @@ type testEnv struct {
 
 func newTestEnv(t *testing.T, logger server.Logger) *testEnv {
 	if logger == nil {
-		logger = client.NewLogger(client.ErrLevel)
+		logger = client.NewLogger(client.LogLevel(-1))
 	}
 	clock := tsutil.NewTestClock()
 	fi := dstore.NewMem()
@@ -135,12 +135,12 @@ func testPath() string {
 	return filepath.Join(os.TempDir(), fmt.Sprintf("%s.vdb", keys.RandFileName()))
 }
 
-func testClient(t *testing.T, env *testEnv) *client.Client {
+func newTestClient(t *testing.T, env *testEnv) *vault.Client {
 	cl, err := client.New(env.httpServer.URL)
 	require.NoError(t, err)
 	cl.SetHTTPClient(env.httpServer.Client())
 	cl.SetClock(env.clock)
-	return cl
+	return vault.NewClient(cl)
 }
 
 func TestIsEmpty(t *testing.T) {

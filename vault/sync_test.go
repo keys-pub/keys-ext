@@ -37,7 +37,7 @@ func testSync(t *testing.T, st1 vault.Store, st2 vault.Store) {
 	clock := tsutil.NewTestClock()
 
 	// Client #1
-	client1 := testClient(t, env)
+	client1 := newTestClient(t, env)
 
 	v1 := vault.New(st1)
 	v1.SetClient(client1)
@@ -75,7 +75,7 @@ func testSync(t *testing.T, st1 vault.Store, st2 vault.Store) {
 	remote := v1.Remote()
 
 	// Client #2
-	client2 := testClient(t, env)
+	client2 := newTestClient(t, env)
 
 	v2 := vault.New(st2)
 	v2.SetClient(client2)
@@ -257,7 +257,7 @@ func TestUnsync(t *testing.T) {
 	db, closeFn := newTestDB(t)
 	defer closeFn()
 
-	client := testClient(t, env)
+	client := newTestClient(t, env)
 
 	vlt := vault.New(db)
 	vlt.SetClient(client)
