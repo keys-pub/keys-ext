@@ -4,7 +4,6 @@ go 1.14
 
 require (
 	cloud.google.com/go v0.75.0 // indirect
-	github.com/davecgh/go-spew v1.1.1
 	github.com/keys-pub/keys v0.1.20-0.20210102022201-ffb45798b8ab
 	github.com/keys-pub/keys-ext/firestore v0.0.0-20210118231903-89d20ffc493c
 	github.com/keys-pub/keys-ext/http/api v0.0.0-20210118231903-89d20ffc493c
@@ -12,7 +11,6 @@ require (
 	github.com/keys-pub/keys-ext/ws/api v0.0.0-20210118231903-89d20ffc493c // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.0
-	github.com/vmihailenco/msgpack/v4 v4.3.12
 	go.opencensus.io v0.22.6 // indirect
 	golang.org/x/mod v0.4.1 // indirect
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777 // indirect
