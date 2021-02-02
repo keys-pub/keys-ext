@@ -41,7 +41,7 @@ func (c *Client) ChannelCreate(ctx context.Context, channel *keys.EdX25519Key, u
 	}
 
 	params := url.Values{}
-	resp, err := c.req(ctx, request{Method: "PUT", Path: path, Params: params, Body: body, Key: channel})
+	resp, err := c.Request(ctx, &Request{Method: "PUT", Path: path, Params: params, Body: body, Key: channel})
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func (c *Client) ChannelsStatus(ctx context.Context, channelTokens ...*api.Chann
 	}
 
 	params := url.Values{}
-	resp, err := c.req(ctx, request{Method: "POST", Path: "/channels/status", Params: params, Body: body})
+	resp, err := c.Request(ctx, &Request{Method: "POST", Path: "/channels/status", Params: params, Body: body})
 	if err != nil {
 		return nil, err
 	}

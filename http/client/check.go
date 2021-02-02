@@ -12,7 +12,7 @@ import (
 // to do it right away.
 func (c *Client) Check(ctx context.Context, key *keys.EdX25519Key) error {
 	params := url.Values{}
-	if _, err := c.req(ctx, request{Method: "POST", Path: "/check", Params: params, Key: key}); err != nil {
+	if _, err := c.Request(ctx, &Request{Method: "POST", Path: "/check", Params: params, Key: key}); err != nil {
 		return err
 	}
 	return nil

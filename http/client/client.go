@@ -122,7 +122,8 @@ func (c *Client) urlFor(path string, params url.Values) (string, error) {
 	return urs, nil
 }
 
-type request struct {
+// Request ...
+type Request struct {
 	Method string
 	Path   string
 	Params url.Values
@@ -133,7 +134,8 @@ type request struct {
 	Headers []http.Header
 }
 
-func (c *Client) req(ctx context.Context, req request) (*Response, error) {
+// Request makes a request.
+func (c *Client) Request(ctx context.Context, req *Request) (*Response, error) {
 	urs, err := c.urlFor(req.Path, req.Params)
 	if err != nil {
 		return nil, err
@@ -217,11 +219,11 @@ func (c *Client) response(path string, resp *http.Response) (*Response, error) {
 	return out, nil
 }
 
-func (c *Client) retryOnConflict(ctx context.Context, req request, attempt int, maxAttempts int, delay time.Duration) (*Response, error) {
+func (c *Client) retryOnConflict(ctx context.Context, req *Request, attempt int, maxAttempts int, delay time.Duration) (*Response, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
-	resp, err := c.req(ctx, req)
+	resp, err := c.Request(ctx, req)
 	if err != nil {
 		var rerr Error
 		if attempt < maxAttempts && errors.As(err, &rerr) && rerr.StatusCode == http.StatusConflict {

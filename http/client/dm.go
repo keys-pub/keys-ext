@@ -16,13 +16,13 @@ func (c *Client) DirectMessageSend(ctx context.Context, message *api.Message, se
 		return err
 	}
 	path := dstore.Path("dm", sender.ID(), recipient)
-	req := request{
+	req := &Request{
 		Method: "POST",
 		Path:   path,
 		Body:   encrypted,
 		Key:    sender,
 	}
-	if _, err := c.req(ctx, req); err != nil {
+	if _, err := c.Request(ctx, req); err != nil {
 		return err
 	}
 	return nil
@@ -39,12 +39,12 @@ func (c *Client) DirectMessages(ctx context.Context, key *keys.EdX25519Key, opts
 // DirectToken ...
 func (c *Client) DirectToken(ctx context.Context, recipient *keys.EdX25519Key) (*api.DirectToken, error) {
 	path := dstore.Path("/dm/token", recipient.ID())
-	req := request{
+	req := &Request{
 		Method: "GET",
 		Path:   path,
 		Key:    recipient,
 	}
-	resp, err := c.req(ctx, req)
+	resp, err := c.Request(ctx, req)
 	if err != nil {
 		return nil, err
 	}

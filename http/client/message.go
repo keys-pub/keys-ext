@@ -23,7 +23,7 @@ func (c *Client) MessageSend(ctx context.Context, message *api.Message, sender *
 	path := dstore.Path("channel", channel.ID(), "msgs")
 	vals := url.Values{}
 	// vals.Set("expire", expire.String())
-	if _, err := c.req(ctx, request{Method: "POST", Path: path, Params: vals, Body: encrypted, Key: channel}); err != nil {
+	if _, err := c.Request(ctx, &Request{Method: "POST", Path: path, Params: vals, Body: encrypted, Key: channel}); err != nil {
 		return err
 	}
 	return nil
@@ -64,7 +64,7 @@ func (c *Client) events(ctx context.Context, path string, key *keys.EdX25519Key,
 		params.Add("limit", fmt.Sprintf("%d", opts.Limit))
 	}
 
-	resp, err := c.req(ctx, request{
+	resp, err := c.Request(ctx, &Request{
 		Method: "GET",
 		Path:   path,
 		Params: params,

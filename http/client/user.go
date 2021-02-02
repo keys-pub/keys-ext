@@ -19,7 +19,7 @@ func (c *Client) UserSearch(ctx context.Context, query string, limit int) (*api.
 		params.Add("limit", strconv.Itoa(limit))
 	}
 
-	resp, err := c.req(ctx, request{Method: "GET", Path: "/user/search", Params: params})
+	resp, err := c.Request(ctx, &Request{Method: "GET", Path: "/user/search", Params: params})
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +38,7 @@ func (c *Client) UserSearch(ctx context.Context, query string, limit int) (*api.
 // User ...
 func (c *Client) User(ctx context.Context, kid keys.ID) (*api.UserResponse, error) {
 	params := url.Values{}
-	resp, err := c.req(ctx, request{Method: "GET", Path: "/user/" + kid.String(), Params: params})
+	resp, err := c.Request(ctx, &Request{Method: "GET", Path: "/user/" + kid.String(), Params: params})
 	if err != nil {
 		return nil, err
 	}

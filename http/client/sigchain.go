@@ -19,7 +19,7 @@ func (c *Client) SigchainSave(ctx context.Context, st *keys.Statement) error {
 	if err != nil {
 		return err
 	}
-	_, err = c.retryOnConflict(ctx, request{Method: "PUT", Path: path, Body: b}, 1, 3, 2*time.Second)
+	_, err = c.retryOnConflict(ctx, &Request{Method: "PUT", Path: path, Body: b}, 1, 3, 2*time.Second)
 	if err != nil {
 		return err
 	}
@@ -33,7 +33,7 @@ func (c *Client) Sigchain(ctx context.Context, kid keys.ID) (*api.SigchainRespon
 
 	params := url.Values{}
 	params.Add("include", "md")
-	resp, err := c.req(ctx, request{Method: "GET", Path: path, Params: params})
+	resp, err := c.Request(ctx, &Request{Method: "GET", Path: path, Params: params})
 	if err != nil {
 		return nil, err
 	}
