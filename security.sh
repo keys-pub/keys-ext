@@ -5,7 +5,7 @@ set -e -u -o pipefail # Fail on error
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd "$dir"
 
-go get github.com/securego/gosec/cmd/gosec; 
+go get -u github.com/securego/gosec/cmd/gosec;
 (cd auth/fido2 && gosec ./...)
 (cd auth/mock && gosec ./...) 
 (cd auth/rpc && gosec ./...) 
