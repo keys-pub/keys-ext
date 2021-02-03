@@ -11,6 +11,7 @@ import (
 	"github.com/keys-pub/keys/dstore/events"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
+	"github.com/vmihailenco/msgpack/v4"
 )
 
 var errVaultNotFound = errors.New("vault not found")
@@ -19,7 +20,7 @@ var errVaultDeleted = errors.New("vault was deleted")
 func (s *Server) listVault(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	auth, err := s.auth(c, newAuth("Authorization", "kid", nil))
+	auth, ext, err := s.auth(c, newAuth("Authorization", "kid", nil))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}
@@ -52,7 +53,13 @@ func (s *Server) listVault(c echo.Context) error {
 		Index:     resp.Index,
 		Truncated: truncated,
 	}
-	return JSON(c, http.StatusOK, out)
+
+	switch ext {
+	case "msgpack":
+		return Msgpack(c, http.StatusOK, out)
+	default:
+		return JSON(c, http.StatusOK, out)
+	}
 }
 
 func (s *Server) postVault(c echo.Context) error {
@@ -68,7 +75,7 @@ func (s *Server) postVault(c echo.Context) error {
 		return s.ErrInternalServer(c, err)
 	}
 
-	auth, err := s.auth(c, newAuth("Authorization", "kid", b))
+	auth, ext, err := s.auth(c, newAuth("Authorization", "kid", b))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}
@@ -82,8 +89,15 @@ func (s *Server) postVault(c echo.Context) error {
 	}
 
 	var req []*api.Data
-	if err := json.Unmarshal(b, &req); err != nil {
-		return s.ErrBadRequest(c, err)
+	switch ext {
+	case "msgpack":
+		if err := msgpack.Unmarshal(b, &req); err != nil {
+			return s.ErrBadRequest(c, err)
+		}
+	default:
+		if err := json.Unmarshal(b, &req); err != nil {
+			return s.ErrBadRequest(c, err)
+		}
 	}
 
 	ctx := c.Request().Context()
@@ -104,7 +118,7 @@ func (s *Server) deleteVault(c echo.Context) error {
 	ctx := c.Request().Context()
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	auth, err := s.auth(c, newAuth("Authorization", "kid", nil))
+	auth, _, err := s.auth(c, newAuth("Authorization", "kid", nil))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}
@@ -138,7 +152,7 @@ func (s *Server) headVault(c echo.Context) error {
 	ctx := c.Request().Context()
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	auth, err := s.auth(c, newAuth("Authorization", "kid", nil))
+	auth, _, err := s.auth(c, newAuth("Authorization", "kid", nil))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}

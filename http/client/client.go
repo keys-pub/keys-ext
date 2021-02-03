@@ -50,7 +50,7 @@ func (c *Client) SetHTTPClient(httpClient *nethttp.Client) {
 // TODO: are these timeouts too agressive?
 func defaultHTTPClient() *nethttp.Client {
 	return &nethttp.Client{
-		Timeout: time.Second * 10,
+		Timeout: time.Second * 30,
 		Transport: &http.Transport{
 			Dial: (&net.Dialer{
 				Timeout: 5 * time.Second,

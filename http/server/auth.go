@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/keys-pub/keys"
@@ -38,7 +39,7 @@ func newAuth(header string, param string, content []byte) *auth {
 // 	return a
 // }
 
-func (s *Server) auth(c echo.Context, auth *auth) (*http.AuthResult, error) {
+func (s *Server) auth(c echo.Context, auth *auth) (*http.AuthResult, string, error) {
 	request := c.Request()
 
 	if auth.Now.IsZero() {
@@ -51,36 +52,43 @@ func (s *Server) auth(c echo.Context, auth *auth) (*http.AuthResult, error) {
 		auth.BaseURL = s.URL
 	}
 
-	authReq, err := authRequest(c, auth)
+	authReq, ext, err := authRequest(c, auth)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	res, err := http.Authorize(request.Context(), authReq)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
-	return res, nil
+	return res, ext, nil
 }
 
-func authRequest(c echo.Context, auth *auth) (*http.AuthRequest, error) {
+func authRequest(c echo.Context, auth *auth) (*http.AuthRequest, string, error) {
 	request := c.Request()
 	url := auth.BaseURL + c.Request().URL.String()
 	contentHash := http.ContentHash(auth.Content)
 
 	var kid keys.ID
+	var ext string
 	if auth.Param != "" {
-		k, err := keys.ParseID(c.Param(auth.Param))
+		p := c.Param(auth.Param)
+		spl := strings.SplitN(p, ".", 2)
+		id := spl[0]
+		if len(spl) == 2 {
+			ext = spl[1]
+		}
+		k, err := keys.ParseID(id)
 		if err != nil {
-			return nil, errors.Wrapf(err, "invalid param")
+			return nil, "", errors.Wrapf(err, "invalid param")
 		}
 		kid = k
 	}
 	if auth.Header == "" {
-		return nil, errors.Errorf("no auth header name, specified")
+		return nil, "", errors.Errorf("no auth header name, specified")
 	}
 	val := request.Header.Get(auth.Header)
 	if val == "" {
-		return nil, errors.Errorf("missing %s header", auth.Header)
+		return nil, "", errors.Errorf("missing %s header", auth.Header)
 	}
 
 	return &http.AuthRequest{
@@ -91,7 +99,7 @@ func authRequest(c echo.Context, auth *auth) (*http.AuthRequest, error) {
 		ContentHash: contentHash,
 		Now:         auth.Now,
 		NonceCheck:  auth.NonceCheck,
-	}, nil
+	}, ext, nil
 }
 
 func nonceCheck(rds Redis) http.NonceCheck {

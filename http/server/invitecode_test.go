@@ -31,7 +31,7 @@ func TestInviteCode(t *testing.T) {
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	var created api.InviteCodeCreateResponse
-	err = json.Unmarshal([]byte(body), &created)
+	err = json.Unmarshal([]byte(string(body)), &created)
 	require.NoError(t, err)
 	require.NotEmpty(t, created.Code)
 
@@ -43,9 +43,9 @@ func TestInviteCode(t *testing.T) {
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	expected := `{"sender":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","recipient":"kex1a4yj333g68pvd6hfqvufqkv4vy54jfe6t33ljd3kc9rpfty8xlgs2u3qxr"}`
-	require.Equal(t, expected, body)
+	require.Equal(t, expected, string(body))
 	var invite api.InviteCodeResponse
-	err = json.Unmarshal([]byte(body), &invite)
+	err = json.Unmarshal([]byte(string(body)), &invite)
 	require.NoError(t, err)
 	require.Equal(t, charlie.ID(), invite.Recipient)
 
@@ -54,5 +54,5 @@ func TestInviteCode(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)
-	require.Equal(t, `{"error":{"code":404,"message":"code not found"}}`, body)
+	require.Equal(t, `{"error":{"code":404,"message":"code not found"}}`, string(body))
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/keys-pub/keys/users"
 	"github.com/labstack/echo/v4"
+	"github.com/vmihailenco/msgpack/v4"
 
 	"github.com/pkg/errors"
 )
@@ -201,6 +202,22 @@ func JSON(c echo.Context, status int, i interface{}) error {
 		b = mb
 	}
 	return c.Blob(status, echo.MIMEApplicationJSONCharsetUTF8, b)
+}
+
+// Msgpack response.
+func Msgpack(c echo.Context, status int, i interface{}) error {
+	var b []byte
+	switch v := i.(type) {
+	case []byte:
+		b = v
+	default:
+		mb, err := msgpack.Marshal(i)
+		if err != nil {
+			panic(err)
+		}
+		b = mb
+	}
+	return c.Blob(status, echo.MIMEApplicationMsgpack, b)
 }
 
 func (s *Server) checkInternalAuth(c echo.Context) error {

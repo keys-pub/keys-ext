@@ -15,7 +15,7 @@ func (s *Server) putFollow(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	auth, err := s.auth(c, newAuth("Authorization", "sender", nil))
+	auth, _, err := s.auth(c, newAuth("Authorization", "sender", nil))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}
@@ -38,7 +38,7 @@ func (s *Server) getFollow(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	auth, err := s.auth(c, newAuth("Authorization", "recipient", nil))
+	auth, _, err := s.auth(c, newAuth("Authorization", "recipient", nil))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}
@@ -72,7 +72,7 @@ func (s *Server) getFollows(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	auth, err := s.auth(c, newAuth("Authorization", "recipient", nil))
+	auth, _, err := s.auth(c, newAuth("Authorization", "recipient", nil))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}
@@ -105,7 +105,7 @@ func (s *Server) deleteFollow(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	auth, err := s.auth(c, newAuth("Authorization", "sender", nil))
+	auth, _, err := s.auth(c, newAuth("Authorization", "sender", nil))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}

@@ -50,7 +50,7 @@ func testChannel(t *testing.T, env *env, tk testKeys) {
 	req, err = http.NewAuthRequest("PUT", dstore.Path("channel", channel.ID()), nil, "", clock.Now(), channel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
-	require.Equal(t, `{"error":{"code":409,"message":"channel already exists"}}`, body)
+	require.Equal(t, `{"error":{"code":409,"message":"channel already exists"}}`, string(body))
 	require.Equal(t, http.StatusConflict, code)
 
 	// GET /channel/:cid
@@ -67,7 +67,7 @@ func testChannel(t *testing.T, env *env, tk testKeys) {
 	req, err = http.NewAuthRequest("GET", dstore.Path("channel", randKey.ID()), nil, "", clock.Now(), channel)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
-	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, body)
+	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, string(body))
 	require.Equal(t, http.StatusForbidden, code)
 
 	// POST /channel/:cid/msgs
@@ -76,7 +76,7 @@ func testChannel(t *testing.T, env *env, tk testKeys) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, `{}`, body)
+	require.Equal(t, `{}`, string(body))
 
 	// POST /channels/status
 	statusReq := api.ChannelsStatusRequest{

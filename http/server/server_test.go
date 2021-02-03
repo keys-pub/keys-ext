@@ -99,10 +99,10 @@ func newTestServer(t *testing.T, env *env) *testServer {
 	}
 }
 
-func (s *testServer) Serve(req *http.Request) (int, nethttp.Header, string) {
+func (s *testServer) Serve(req *http.Request) (int, nethttp.Header, []byte) {
 	rr := httptest.NewRecorder()
 	s.Handler.ServeHTTP(rr, req)
-	return rr.Code, rr.Header(), rr.Body.String()
+	return rr.Code, rr.Header(), rr.Body.Bytes()
 }
 
 func testSeed(b byte) *[32]byte {
@@ -213,7 +213,7 @@ func TestInternalAuth(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
-	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, body)
+	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, string(body))
 
 	// Set internal auth token
 	srv.Server.SetInternalAuth("testtoken")
@@ -224,5 +224,5 @@ func TestInternalAuth(t *testing.T) {
 	req.Header.Set("Authorization", "testtoken")
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, "", body)
+	require.Equal(t, "", string(body))
 }

@@ -22,7 +22,7 @@ func (s *Server) postDirectMessage(c echo.Context) error {
 		return s.ErrResponse(c, st, err)
 	}
 
-	auth, err := s.auth(c, newAuth("Authorization", "sender", body))
+	auth, _, err := s.auth(c, newAuth("Authorization", "sender", body))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}
@@ -97,7 +97,7 @@ func (s *Server) getDirectMessages(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	// ctx := c.Request().Context()
 
-	auth, err := s.auth(c, newAuth("Authorization", "recipient", nil))
+	auth, _, err := s.auth(c, newAuth("Authorization", "recipient", nil))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}
@@ -128,7 +128,7 @@ func (s *Server) getDirectToken(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	auth, err := s.auth(c, newAuth("Authorization", "recipient", nil))
+	auth, _, err := s.auth(c, newAuth("Authorization", "recipient", nil))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}

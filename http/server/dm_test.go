@@ -30,13 +30,13 @@ func testDirectMessages(t *testing.T, env *env, tk testKeys) {
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, `{}`, body)
+	require.Equal(t, `{}`, string(body))
 
 	// POST /direct/:alice/:bob
 	req, err = http.NewAuthRequest("POST", dstore.Path("dm", alice.ID(), bob.ID()), bytes.NewReader([]byte("hi")), http.ContentHash([]byte("hi")), clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
-	require.Equal(t, `{}`, body)
+	require.Equal(t, `{}`, string(body))
 	require.Equal(t, http.StatusOK, code)
 
 	// GET /direct/:bob
@@ -45,7 +45,7 @@ func testDirectMessages(t *testing.T, env *env, tk testKeys) {
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	var msgsResp api.Events
-	err = json.Unmarshal([]byte(body), &msgsResp)
+	err = json.Unmarshal([]byte(string(body)), &msgsResp)
 	require.NoError(t, err)
 	require.Equal(t, int64(1), msgsResp.Index)
 	require.Equal(t, 1, len(msgsResp.Events))
@@ -56,7 +56,7 @@ func testDirectMessages(t *testing.T, env *env, tk testKeys) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
-	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, body)
+	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, string(body))
 }
 
 func TestDirectMessagesFirestore(t *testing.T) {

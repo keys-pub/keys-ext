@@ -21,7 +21,7 @@ func (s *Server) postMessage(c echo.Context) error {
 		return s.ErrResponse(c, st, err)
 	}
 
-	auth, err := s.auth(c, newAuth("Authorization", "cid", body))
+	auth, _, err := s.auth(c, newAuth("Authorization", "cid", body))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}
@@ -91,7 +91,7 @@ func (s *Server) getMessages(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	auth, err := s.auth(c, newAuth("Authorization", "cid", nil))
+	auth, _, err := s.auth(c, newAuth("Authorization", "cid", nil))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}

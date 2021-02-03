@@ -21,7 +21,7 @@ func TestUserSearch(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, `{"users":[]}`, body)
+	require.Equal(t, `{"users":[]}`, string(body))
 
 	// Alice
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
@@ -35,7 +35,7 @@ func TestUserSearch(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, "{}", body)
+	require.Equal(t, "{}", string(body))
 
 	// GET /user/search
 	req, err = http.NewRequest("GET", "/user/search", nil)
@@ -136,12 +136,12 @@ func TestUserSearch(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, `{"users":[]}`, body)
+	require.Equal(t, `{"users":[]}`, string(body))
 }
 
-func pretty(t *testing.T, s string) string {
+func pretty(t *testing.T, b []byte) string {
 	var pretty bytes.Buffer
-	err := json.Indent(&pretty, []byte(s), "", "  ")
+	err := json.Indent(&pretty, b, "", "  ")
 	require.NoError(t, err)
 	return pretty.String()
 }
@@ -163,7 +163,7 @@ func TestUserGet(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, "{}", body)
+	require.Equal(t, "{}", string(body))
 
 	// GET /user/kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077 (alice)
 	req, err = http.NewRequest("GET", "/user/kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077", nil)
@@ -192,7 +192,7 @@ func TestUserGet(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)
-	require.Equal(t, `{"error":{"code":404,"message":"user not found"}}`, body)
+	require.Equal(t, `{"error":{"code":404,"message":"user not found"}}`, string(body))
 
 	// GET /user/search?q=alice@github
 	req, err = http.NewRequest("GET", "/user/search?q=alice@github", nil)
@@ -222,7 +222,7 @@ func TestUserGet(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)
-	require.Equal(t, `{"error":{"code":404,"message":"user not found"}}`, body)
+	require.Equal(t, `{"error":{"code":404,"message":"user not found"}}`, string(body))
 
 	// GET /user/kbx1rvd43h2sag2tvrdp0duse5p82nvhpjd6hpjwhv7q7vqklega8atshec5ws
 	req, err = http.NewRequest("GET", "/user/kbx1rvd43h2sag2tvrdp0duse5p82nvhpjd6hpjwhv7q7vqklega8atshec5ws", nil)
@@ -286,7 +286,7 @@ func TestUserDuplicate(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, "{}", body)
+	require.Equal(t, "{}", string(body))
 
 	// GET /user/search
 	req, err = http.NewRequest("GET", "/user/search", nil)
@@ -319,5 +319,5 @@ func TestUserDuplicate(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusConflict, code)
-	require.Equal(t, `{"error":{"code":409,"message":"user already exists with key kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077, if you removed or revoked the previous statement you may need to wait briefly for search to update"}}`, body)
+	require.Equal(t, `{"error":{"code":409,"message":"user already exists with key kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077, if you removed or revoked the previous statement you may need to wait briefly for search to update"}}`, string(body))
 }

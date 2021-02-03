@@ -28,7 +28,7 @@ func testFollow(t *testing.T, env *env, tk testKeys) {
 	req, err := http.NewAuthRequest("PUT", dstore.Path("follow", bob.ID(), alice.ID()), nil, "", clock.Now(), bob)
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
-	require.Equal(t, `{}`, body)
+	require.Equal(t, `{}`, string(body))
 	require.Equal(t, http.StatusOK, code)
 
 	// GET /follows/:alice
@@ -37,7 +37,7 @@ func testFollow(t *testing.T, env *env, tk testKeys) {
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	var followsResp api.FollowsResponse
-	err = json.Unmarshal([]byte(body), &followsResp)
+	err = json.Unmarshal([]byte(string(body)), &followsResp)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(followsResp.Follows))
 	require.Equal(t, alice.ID(), followsResp.Follows[0].Recipient)
@@ -49,7 +49,7 @@ func testFollow(t *testing.T, env *env, tk testKeys) {
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	var followResp api.FollowResponse
-	err = json.Unmarshal([]byte(body), &followResp)
+	err = json.Unmarshal([]byte(string(body)), &followResp)
 	require.NoError(t, err)
 	require.Equal(t, alice.ID(), followResp.Follow.Recipient)
 	require.Equal(t, bob.ID(), followResp.Follow.Sender)
@@ -65,14 +65,14 @@ func testFollow(t *testing.T, env *env, tk testKeys) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, `{}`, body)
+	require.Equal(t, `{}`, string(body))
 
 	// GET /follows/:bob
 	req, err = http.NewAuthRequest("GET", dstore.Path("follows", bob.ID()), nil, "", clock.Now(), bob)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, `{"follows":[]}`, body)
+	require.Equal(t, `{"follows":[]}`, string(body))
 }
 
 func TestFollowFirestore(t *testing.T) {

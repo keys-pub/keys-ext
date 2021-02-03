@@ -28,7 +28,7 @@ func TestSigchains(t *testing.T) {
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)
 	expected := `{"error":{"code":404,"message":"resource not found"}}`
-	require.Equal(t, expected, body)
+	require.Equal(t, expected, string(body))
 
 	// PUT /sigchains (method not allowed)
 	req, err = http.NewRequest("PUT", "/sigchains", bytes.NewReader([]byte("test")))
@@ -36,7 +36,7 @@ func TestSigchains(t *testing.T) {
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusMethodNotAllowed, code)
 	expected = `{"error":{"code":405,"message":"method not allowed"}}`
-	require.Equal(t, expected, body)
+	require.Equal(t, expected, string(body))
 
 	// Alice sign "testing"
 	sca := keys.NewSigchain(alice.ID())
@@ -52,7 +52,7 @@ func TestSigchains(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, "{}", body)
+	require.Equal(t, "{}", string(body))
 
 	// PUT /sigchain/:kid/:seq again (conflict error)
 	req, err = http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/1", alice.ID()), bytes.NewReader(staBytes))
@@ -60,7 +60,7 @@ func TestSigchains(t *testing.T) {
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusConflict, code)
 	expected = `{"error":{"code":409,"message":"statement already exists"}}`
-	require.Equal(t, expected, body)
+	require.Equal(t, expected, string(body))
 
 	// Bob sign "testing"
 	scb := keys.NewSigchain(bob.ID())
@@ -75,7 +75,7 @@ func TestSigchains(t *testing.T) {
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusBadRequest, code)
 	expected = `{"error":{"code":400,"message":"invalid kid"}}`
-	require.Equal(t, expected, body)
+	require.Equal(t, expected, string(body))
 
 	// PUT /sigchain/:kid/:seq (empty json)
 	req, err = http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/1", alice.ID()), bytes.NewReader([]byte("{}")))
@@ -83,7 +83,7 @@ func TestSigchains(t *testing.T) {
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusBadRequest, code)
 	expected = `{"error":{"code":400,"message":"not enough bytes for statement"}}`
-	require.Equal(t, expected, body)
+	require.Equal(t, expected, string(body))
 
 	// PUT /sigchain/:kid/:seq (no body)
 	req, err = http.NewRequest("PUT", fmt.Sprintf("/sigchain/%s/1", alice.ID()), nil)
@@ -91,7 +91,7 @@ func TestSigchains(t *testing.T) {
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusBadRequest, code)
 	expected = `{"error":{"code":400,"message":"missing body"}}`
-	require.Equal(t, expected, body)
+	require.Equal(t, expected, string(body))
 
 	// GET /sigchain/:kid/:seq
 	req, err = http.NewRequest("GET", fmt.Sprintf("/sigchain/%s/1", alice.ID()), nil)
@@ -103,7 +103,7 @@ func TestSigchains(t *testing.T) {
 	require.Equal(t, "Fri, 13 Feb 2009 23:31:30 GMT", header.Get("Last-Modified"))
 	require.Equal(t, "2009-02-13T23:31:30.002Z", header.Get("Last-Modified-RFC3339M"))
 	expectedSigned := `{".sig":"j5FZVQKWrnclXHHHIVX7JZ0letgR22cGl7ItlAUHqEsW+kCCMZvDBGEunVJScjVphrqGrPb7oCuMZouGv7GwCQ==","data":"dGVzdGluZw==","kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","seq":1,"ts":1234567890001}`
-	require.Equal(t, expectedSigned, body)
+	require.Equal(t, expectedSigned, string(body))
 
 	// GET /sigchain/:kid
 	req, err = http.NewRequest("GET", fmt.Sprintf("/sigchain/%s", alice.ID()), nil)
@@ -111,14 +111,14 @@ func TestSigchains(t *testing.T) {
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	expectedSigchain := `{"kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","statements":[{".sig":"j5FZVQKWrnclXHHHIVX7JZ0letgR22cGl7ItlAUHqEsW+kCCMZvDBGEunVJScjVphrqGrPb7oCuMZouGv7GwCQ==","data":"dGVzdGluZw==","kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","seq":1,"ts":1234567890001}]}`
-	require.Equal(t, expectedSigchain, body)
+	require.Equal(t, expectedSigchain, string(body))
 
 	// GET /sigchain/:kid (not found)
 	req, err = http.NewRequest("GET", dstore.Path("sigchain", keys.RandID("kex")), nil)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)
-	require.Equal(t, `{"error":{"code":404,"message":"sigchain not found"}}`, body)
+	require.Equal(t, `{"error":{"code":404,"message":"sigchain not found"}}`, string(body))
 
 	// GET /sigchain/:kid?include=md
 	req, err = http.NewRequest("GET", fmt.Sprintf("/sigchain/%s?include=md", alice.ID()), nil)
@@ -126,7 +126,7 @@ func TestSigchains(t *testing.T) {
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	expectedSigchain2 := `{"kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","md":{"/kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077/1":{"createdAt":"2009-02-13T23:31:30.002Z","updatedAt":"2009-02-13T23:31:30.002Z"}},"statements":[{".sig":"j5FZVQKWrnclXHHHIVX7JZ0letgR22cGl7ItlAUHqEsW+kCCMZvDBGEunVJScjVphrqGrPb7oCuMZouGv7GwCQ==","data":"dGVzdGluZw==","kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","seq":1,"ts":1234567890001}]}`
-	require.Equal(t, expectedSigchain2, body)
+	require.Equal(t, expectedSigchain2, string(body))
 
 	// GET /sigchains
 	// req, err = http.NewRequest("GET", "/sigchains", nil)
@@ -134,7 +134,7 @@ func TestSigchains(t *testing.T) {
 	// code, _, body = srv.Serve(req)
 	// require.Equal(t, http.StatusOK, code)
 	// expectedSigs := `{"statements":[{".sig":"j5FZVQKWrnclXHHHIVX7JZ0letgR22cGl7ItlAUHqEsW+kCCMZvDBGEunVJScjVphrqGrPb7oCuMZouGv7GwCQ==","data":"dGVzdGluZw==","kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","seq":1,"ts":1234567890001}],"version":"1234567890003"}`
-	// require.Equal(t, expectedSigs, body)
+	// require.Equal(t, expectedSigs, string(body))
 
 	// GET /sigchains?include=md&limit=1
 	// req, err = http.NewRequest("GET", "/sigchains?include=md&limit=1", nil)
@@ -142,7 +142,7 @@ func TestSigchains(t *testing.T) {
 	// code, _, body = srv.Serve(req)
 	// require.Equal(t, http.StatusOK, code)
 	// expectedSigsWithMetadata := `{"md":{"/kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077/1":{"createdAt":"2009-02-13T23:31:30.002Z","updatedAt":"2009-02-13T23:31:30.002Z"}},"statements":[{".sig":"j5FZVQKWrnclXHHHIVX7JZ0letgR22cGl7ItlAUHqEsW+kCCMZvDBGEunVJScjVphrqGrPb7oCuMZouGv7GwCQ==","data":"dGVzdGluZw==","kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","seq":1,"ts":1234567890001}],"version":"1234567890003"}`
-	// require.Equal(t, expectedSigsWithMetadata, body)
+	// require.Equal(t, expectedSigsWithMetadata, string(body))
 
 	// GET /:kid
 	req, err = http.NewRequest("GET", dstore.Path(alice.ID()), nil)
@@ -151,7 +151,7 @@ func TestSigchains(t *testing.T) {
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	expectedSigchain = `{"kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","statements":[{".sig":"j5FZVQKWrnclXHHHIVX7JZ0letgR22cGl7ItlAUHqEsW+kCCMZvDBGEunVJScjVphrqGrPb7oCuMZouGv7GwCQ==","data":"dGVzdGluZw==","kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","seq":1,"ts":1234567890001}]}`
-	require.Equal(t, expectedSigchain, body)
+	require.Equal(t, expectedSigchain, string(body))
 
 	// Alice sign "testing2"
 	sta2, err := keys.NewSigchainStatement(sca, []byte("testing2"), alice, "", clock.Now())
@@ -170,7 +170,7 @@ func TestSigchains(t *testing.T) {
 	require.Equal(t, "Fri, 13 Feb 2009 23:31:30 GMT", header.Get("Last-Modified"))
 	require.Equal(t, "2009-02-13T23:31:30.002Z", header.Get("Last-Modified-RFC3339M"))
 	expectedSigned = `{".sig":"j5FZVQKWrnclXHHHIVX7JZ0letgR22cGl7ItlAUHqEsW+kCCMZvDBGEunVJScjVphrqGrPb7oCuMZouGv7GwCQ==","data":"dGVzdGluZw==","kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","seq":1,"ts":1234567890001}`
-	require.Equal(t, expectedSigned, body)
+	require.Equal(t, expectedSigned, string(body))
 
 	// PUT /:kid/:seq
 	b, err = sta2.Bytes()
@@ -180,14 +180,14 @@ func TestSigchains(t *testing.T) {
 	req.Host = "sigcha.in"
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, "{}", body)
+	require.Equal(t, "{}", string(body))
 
 	// PUT /invalidloc/1
 	req, err = http.NewRequest("PUT", dstore.Path("invalidloc", 1), bytes.NewReader(b))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusBadRequest, code)
-	require.Equal(t, `{"error":{"code":400,"message":"invalid kid"}}`, body)
+	require.Equal(t, `{"error":{"code":400,"message":"invalid kid"}}`, string(body))
 
 	// Alice sign large message
 	large := bytes.Repeat([]byte{0x01}, 17*1024)
@@ -203,19 +203,19 @@ func TestSigchains(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusBadRequest, code)
-	require.Equal(t, `{"error":{"code":400,"message":"too much data for sigchain statement (greater than 16KiB)"}}`, body)
+	require.Equal(t, `{"error":{"code":400,"message":"too much data for sigchain statement (greater than 16KiB)"}}`, string(body))
 
 	// GET /foo/bar
 	req, err = http.NewRequest("GET", "/foo/bar", nil)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)
-	require.Equal(t, `{"error":{"code":404,"message":"resource not found"}}`, body)
+	require.Equal(t, `{"error":{"code":404,"message":"resource not found"}}`, string(body))
 
 	// GET /:kid/bar
 	req, err = http.NewRequest("GET", dstore.Path(alice.ID(), "bar"), nil)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusNotFound, code)
-	require.Equal(t, `{"error":{"code":404,"message":"resource not found"}}`, body)
+	require.Equal(t, `{"error":{"code":404,"message":"resource not found"}}`, string(body))
 }

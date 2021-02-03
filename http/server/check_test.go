@@ -29,12 +29,12 @@ func TestCheck(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, "{}", body)
+	require.Equal(t, "{}", string(string(body)))
 
 	// POST /check
 	req, err = http.NewAuthRequest("POST", "/check", nil, "", clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, "{}", body)
+	require.Equal(t, "{}", string(body))
 }

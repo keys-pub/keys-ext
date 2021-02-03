@@ -24,6 +24,6 @@ func TestTwitter(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	expected := "BEGIN MESSAGE.\nEqcgDt8RfXvPq9b 4qCV8S3VPKIQKqa N7Rc1YruQQYuVS8 niHzUv7jdykkEPSrKGcJQCNTkNE7uF swPuwfpaZX6TCKq 6Xr2MZHgg6S0Mjg WFMJ1KHxazTuXs4icK3k8SZCR8mVLQ MSVhFeMrvz0qJOm A96zW9RAY6whsLo 5fC8i3fRJjyo9mQJZid8MwBXJl1XDL 5ZOSkLYs6sk6a2g CiGyA2IP.\nEND MESSAGE."
-	require.Equal(t, expected, body)
+	require.Equal(t, expected, string(body))
 	require.Equal(t, http.StatusOK, code)
 }
