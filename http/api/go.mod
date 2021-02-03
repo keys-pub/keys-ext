@@ -6,7 +6,6 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/golang/protobuf v1.4.3 // indirect
 	github.com/keys-pub/keys v0.1.20-0.20210102022201-ffb45798b8ab
-	github.com/keys-pub/keys-ext/ws/api v0.0.0-20201208014450-6b7883173a82
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.5.1
 	github.com/tyler-smith/go-bip39 v1.1.0 // indirect
