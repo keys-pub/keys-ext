@@ -7,7 +7,7 @@ import (
 
 func messageCommands(client *Client) []cli.Command {
 	return []cli.Command{
-		cli.Command{
+		{
 			Name:  "message",
 			Usage: "Message",
 			Flags: []cli.Flag{
@@ -16,7 +16,7 @@ func messageCommands(client *Client) []cli.Command {
 			},
 			Hidden: true,
 			Subcommands: []cli.Command{
-				cli.Command{
+				{
 					Name:  "send",
 					Usage: "Send",
 					Flags: []cli.Flag{

@@ -9,11 +9,11 @@ import (
 
 func fido2Commands(client *Client) []cli.Command {
 	return []cli.Command{
-		cli.Command{
+		{
 			Name:  "fido2",
 			Usage: "FIDO2",
 			Subcommands: []cli.Command{
-				cli.Command{
+				{
 					Name:  "devices",
 					Usage: "Show devices",
 					Flags: []cli.Flag{},
@@ -27,7 +27,7 @@ func fido2Commands(client *Client) []cli.Command {
 						return nil
 					},
 				},
-				cli.Command{
+				{
 					Name:  "device-info",
 					Usage: "Device info",
 					Flags: []cli.Flag{
@@ -45,7 +45,7 @@ func fido2Commands(client *Client) []cli.Command {
 						return nil
 					},
 				},
-				cli.Command{
+				{
 					Name:  "credentials-info",
 					Usage: "Credentials info",
 					Flags: []cli.Flag{
@@ -65,7 +65,7 @@ func fido2Commands(client *Client) []cli.Command {
 						return nil
 					},
 				},
-				cli.Command{
+				{
 					Name:  "credentials",
 					Usage: "Credentials",
 					Flags: []cli.Flag{

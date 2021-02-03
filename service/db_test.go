@@ -34,13 +34,13 @@ func TestDocuments(t *testing.T) {
 	require.NoError(t, err)
 
 	expectedCols := []*Collection{
-		&Collection{Path: "/kid"},
-		&Collection{Path: "/rkl"},
-		&Collection{Path: "/search"},
-		&Collection{Path: "/service"},
-		&Collection{Path: "/sigchain"},
-		&Collection{Path: "/test"},
-		&Collection{Path: "/user"},
+		{Path: "/kid"},
+		{Path: "/rkl"},
+		{Path: "/search"},
+		{Path: "/service"},
+		{Path: "/sigchain"},
+		{Path: "/test"},
+		{Path: "/user"},
 	}
 	require.Equal(t, expectedCols, respCols.Collections)
 

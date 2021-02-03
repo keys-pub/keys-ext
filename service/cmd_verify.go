@@ -18,7 +18,7 @@ import (
 
 func verifyCommands(client *Client) []cli.Command {
 	return []cli.Command{
-		cli.Command{
+		{
 			Name:  "verify",
 			Usage: "Verify",
 			Flags: []cli.Flag{

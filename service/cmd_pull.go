@@ -10,7 +10,7 @@ import (
 
 func pullCommands(client *Client) []cli.Command {
 	return []cli.Command{
-		cli.Command{
+		{
 			Name:      "pull",
 			Usage:     "Pull from the key server",
 			ArgsUsage: "kid or user@service",
@@ -29,7 +29,7 @@ func pullCommands(client *Client) []cli.Command {
 				return nil
 			},
 		},
-		cli.Command{
+		{
 			Name:      "push",
 			Usage:     "Publish to the key server",
 			ArgsUsage: "kid or user@service",

@@ -14,11 +14,11 @@ import (
 
 func userCommands(client *Client) []cli.Command {
 	return []cli.Command{
-		cli.Command{
+		{
 			Name:  "user",
 			Usage: "Link and search users",
 			Subcommands: []cli.Command{
-				cli.Command{
+				{
 					Name:  "find",
 					Usage: "Find by kid",
 					Flags: []cli.Flag{
@@ -43,7 +43,7 @@ func userCommands(client *Client) []cli.Command {
 						return nil
 					},
 				},
-				cli.Command{
+				{
 					Name:  "search",
 					Usage: "Search for users",
 					Flags: []cli.Flag{
@@ -78,7 +78,7 @@ func userCommands(client *Client) []cli.Command {
 						return nil
 					},
 				},
-				cli.Command{
+				{
 					Name:  "setup",
 					Usage: "Link a key to an account (Twitter, Github, Reddit)",
 					Flags: []cli.Flag{
@@ -186,7 +186,7 @@ func userCommands(client *Client) []cli.Command {
 						return nil
 					},
 				},
-				cli.Command{
+				{
 					Name:      "sign",
 					Usage:     "Create a signed user statement",
 					ArgsUsage: "",
@@ -208,7 +208,7 @@ func userCommands(client *Client) []cli.Command {
 						return nil
 					},
 				},
-				cli.Command{
+				{
 					Name:      "add",
 					Usage:     "Add a verified user statement to a sigchain",
 					ArgsUsage: "",

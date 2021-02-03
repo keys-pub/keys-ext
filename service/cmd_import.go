@@ -13,7 +13,7 @@ import (
 
 func importCommands(client *Client) []cli.Command {
 	return []cli.Command{
-		cli.Command{
+		{
 			Name:  "import",
 			Usage: "Import a key",
 			Flags: []cli.Flag{

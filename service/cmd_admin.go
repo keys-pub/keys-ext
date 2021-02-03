@@ -9,12 +9,12 @@ import (
 
 func adminCommands(client *Client) []cli.Command {
 	return []cli.Command{
-		cli.Command{
+		{
 			Name:   "admin",
 			Usage:  "Admin",
 			Hidden: true,
 			Subcommands: []cli.Command{
-				cli.Command{
+				{
 					Name:  "sign-url",
 					Usage: "Sign URL",
 					Flags: []cli.Flag{
@@ -38,7 +38,7 @@ func adminCommands(client *Client) []cli.Command {
 						return nil
 					},
 				},
-				cli.Command{
+				{
 					Name:   "check",
 					Usage:  "Check key",
 					Hidden: true,

@@ -14,7 +14,7 @@ import (
 
 func signCommands(client *Client) []cli.Command {
 	return []cli.Command{
-		cli.Command{
+		{
 			Name:  "sign",
 			Usage: "Sign",
 			Flags: []cli.Flag{

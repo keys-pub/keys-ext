@@ -14,12 +14,12 @@ import (
 
 func dbCommands(client *Client) []cli.Command {
 	return []cli.Command{
-		cli.Command{
+		{
 			Name:   "db",
 			Usage:  "DB",
 			Hidden: true,
 			Subcommands: []cli.Command{
-				cli.Command{
+				{
 					Name:  "collections",
 					Usage: "List collections",
 					Flags: []cli.Flag{
@@ -44,7 +44,7 @@ func dbCommands(client *Client) []cli.Command {
 						return nil
 					},
 				},
-				cli.Command{
+				{
 					Name:  "documents",
 					Usage: "List documents",
 					Flags: []cli.Flag{

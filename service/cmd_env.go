@@ -9,11 +9,11 @@ import (
 
 func envCommands(client *Client, build Build) []cli.Command {
 	return []cli.Command{
-		cli.Command{
+		{
 			Name:  "env",
 			Usage: "Env",
 			Subcommands: []cli.Command{
-				cli.Command{
+				{
 					Name:      "set",
 					Usage:     "Set env value",
 					ArgsUsage: "key value",

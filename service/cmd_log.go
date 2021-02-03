@@ -8,7 +8,7 @@ import (
 
 func logCommands(client *Client, build Build) []cli.Command {
 	return []cli.Command{
-		cli.Command{
+		{
 			Name:   "log",
 			Usage:  "Log path",
 			Flags:  []cli.Flag{},

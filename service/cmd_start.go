@@ -12,7 +12,7 @@ import (
 
 func startCommands(build Build) []cli.Command {
 	return []cli.Command{
-		cli.Command{
+		{
 			Name:  "restart",
 			Usage: "Restart the service",
 			Flags: []cli.Flag{},
@@ -29,7 +29,7 @@ func startCommands(build Build) []cli.Command {
 				return nil
 			},
 		},
-		cli.Command{
+		{
 			Name:  "start",
 			Usage: "Start the service",
 			Flags: []cli.Flag{
@@ -62,7 +62,7 @@ func startCommands(build Build) []cli.Command {
 				return nil
 			},
 		},
-		cli.Command{
+		{
 			Name:  "stop",
 			Usage: "Stop the service",
 			Flags: []cli.Flag{},
@@ -78,7 +78,7 @@ func startCommands(build Build) []cli.Command {
 				return nil
 			},
 		},
-		cli.Command{
+		{
 			Name:  "uninstall",
 			Usage: "Uninstall",
 			Flags: []cli.Flag{

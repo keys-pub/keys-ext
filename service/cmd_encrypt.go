@@ -15,7 +15,7 @@ import (
 
 func encryptCommands(client *Client) []cli.Command {
 	return []cli.Command{
-		cli.Command{
+		{
 			Name:  "encrypt",
 			Usage: "Encrypt",
 			Flags: []cli.Flag{
@@ -98,7 +98,7 @@ func encryptCommands(client *Client) []cli.Command {
 				}
 			},
 		},
-		cli.Command{
+		{
 			Name:  "decrypt",
 			Usage: "Decrypt",
 			Flags: []cli.Flag{

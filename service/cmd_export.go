@@ -10,7 +10,7 @@ import (
 
 func exportCommands(client *Client) []cli.Command {
 	return []cli.Command{
-		cli.Command{
+		{
 			Name:  "export",
 			Usage: "Export a key",
 			Flags: []cli.Flag{

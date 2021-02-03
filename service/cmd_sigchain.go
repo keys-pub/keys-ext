@@ -14,11 +14,11 @@ import (
 
 func sigchainCommands(client *Client) []cli.Command {
 	return []cli.Command{
-		cli.Command{
+		{
 			Name:  "sigchain",
 			Usage: "Sigchains",
 			Subcommands: []cli.Command{
-				cli.Command{
+				{
 					Name:  "show",
 					Usage: "Show sigchain",
 					Flags: []cli.Flag{
@@ -78,11 +78,11 @@ func sigchainCommands(client *Client) []cli.Command {
 						return nil
 					},
 				},
-				cli.Command{
+				{
 					Name:  "statement",
 					Usage: "Sigchain statements",
 					Subcommands: []cli.Command{
-						cli.Command{
+						{
 							Name:      "add",
 							Usage:     "Add a signed statement to a sigchain (from stdin)",
 							ArgsUsage: "stdin",
@@ -124,7 +124,7 @@ func sigchainCommands(client *Client) []cli.Command {
 								return nil
 							},
 						},
-						cli.Command{
+						{
 							Name:  "revoke",
 							Usage: "Revoke a signed statement in a sigchain",
 							Flags: []cli.Flag{

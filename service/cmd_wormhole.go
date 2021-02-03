@@ -14,7 +14,7 @@ import (
 
 func wormholeCommands(client *Client) []cli.Command {
 	return []cli.Command{
-		cli.Command{
+		{
 			Name:  "wormhole",
 			Usage: "Wormhole",
 			Flags: []cli.Flag{

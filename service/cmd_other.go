@@ -9,14 +9,14 @@ import (
 
 func otherCommands(client *Client) []cli.Command {
 	return []cli.Command{
-		cli.Command{
+		{
 			Name:  "rand",
 			Usage: "Generate randomness",
 			Flags: []cli.Flag{
 				cli.IntFlag{Name: "num-bytes, n", Usage: "number of bytes", Value: 32},
 				cli.StringFlag{Name: "encoding, enc, e", Usage: "encoding (base64, base62, base58, base32, base16, hex, bip39, saltpack)", Value: "base62"},
-				cli.BoolFlag{Name: "no-padding", Usage: "no padding (base64, base32"},
-				cli.BoolFlag{Name: "lower", Usage: "lowercase (base64, base32"},
+				cli.BoolFlag{Name: "no-padding", Usage: "no padding (base64, base32)"},
+				cli.BoolFlag{Name: "lower", Usage: "lowercase (base32)"},
 			},
 			Action: func(c *cli.Context) error {
 				enc, err := encodingToRPC(c.String("enc"))
@@ -36,7 +36,7 @@ func otherCommands(client *Client) []cli.Command {
 				return nil
 			},
 			Subcommands: []cli.Command{
-				cli.Command{
+				{
 					Name:  "password",
 					Usage: "Generate random password",
 					Flags: []cli.Flag{
@@ -53,7 +53,7 @@ func otherCommands(client *Client) []cli.Command {
 						return nil
 					},
 				},
-				cli.Command{
+				{
 					Name:  "passphrase",
 					Usage: "Generate random passphrase",
 					Flags: []cli.Flag{},

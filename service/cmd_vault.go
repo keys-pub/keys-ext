@@ -9,11 +9,11 @@ import (
 
 func vaultCommands(client *Client) []cli.Command {
 	return []cli.Command{
-		cli.Command{
+		{
 			Name:  "vault",
 			Usage: "Vault",
 			Subcommands: []cli.Command{
-				cli.Command{
+				{
 					Name:  "sync",
 					Usage: "Sync vault",
 					Action: func(c *cli.Context) error {
@@ -24,7 +24,7 @@ func vaultCommands(client *Client) []cli.Command {
 						return nil
 					},
 				},
-				cli.Command{
+				{
 					Name:  "auth",
 					Usage: "Vault auth (single use, expiring)",
 					Action: func(c *cli.Context) error {

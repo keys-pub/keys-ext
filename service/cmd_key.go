@@ -17,7 +17,7 @@ var genTypes = strings.Join([]string{
 
 func keyCommands(client *Client) []cli.Command {
 	return []cli.Command{
-		cli.Command{
+		{
 			Name:  "list",
 			Usage: "List keys",
 			Flags: []cli.Flag{
@@ -32,7 +32,7 @@ func keyCommands(client *Client) []cli.Command {
 				return nil
 			},
 		},
-		cli.Command{
+		{
 			Name:      "key",
 			Usage:     "Show key",
 			ArgsUsage: "kid or user",
@@ -54,7 +54,7 @@ func keyCommands(client *Client) []cli.Command {
 				return nil
 			},
 		},
-		cli.Command{
+		{
 			Name:  "generate",
 			Usage: "Generate a key",
 			Flags: []cli.Flag{
@@ -72,7 +72,7 @@ func keyCommands(client *Client) []cli.Command {
 				return nil
 			},
 		},
-		cli.Command{
+		{
 			Name:  "remove",
 			Usage: "Remove a key",
 			Flags: []cli.Flag{

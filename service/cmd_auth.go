@@ -18,7 +18,7 @@ import (
 
 func authCommands(client *Client) []cli.Command {
 	return []cli.Command{
-		cli.Command{
+		{
 			Name:  "auth",
 			Usage: "Authorize",
 			Flags: []cli.Flag{
@@ -104,7 +104,7 @@ func authCommands(client *Client) []cli.Command {
 				return nil
 			},
 		},
-		cli.Command{
+		{
 			Name:  "lock",
 			Usage: "Lock",
 			Flags: []cli.Flag{},
