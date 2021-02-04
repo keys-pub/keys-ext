@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net"
 	nethttp "net/http"
@@ -129,9 +130,22 @@ type Request struct {
 	Params url.Values
 	// Body        io.Reader
 	// ContentHash string
-	Body    []byte
-	Key     *keys.EdX25519Key
-	Headers []http.Header
+	Body     []byte
+	Key      *keys.EdX25519Key
+	Headers  []http.Header
+	Progress func(n int64)
+}
+
+// ProgressReader reports progress while reading.
+type progressReader struct {
+	io.Reader
+	Progress func(r int64)
+}
+
+func (pr *progressReader) Read(p []byte) (n int, err error) {
+	n, err = pr.Reader.Read(p)
+	pr.Progress(int64(n))
+	return
 }
 
 // Request makes a request.
@@ -143,15 +157,25 @@ func (c *Client) Request(ctx context.Context, req *Request) (*Response, error) {
 
 	logger.Debugf("Client req %s %s", req.Method, urs)
 
+	var reader io.Reader
+	if req.Progress != nil {
+		pr := &progressReader{}
+		pr.Reader = bytes.NewReader(req.Body)
+		pr.Progress = req.Progress
+		reader = pr
+	} else {
+		reader = bytes.NewReader(req.Body)
+	}
+
 	var httpReq *http.Request
 	if req.Key != nil {
-		r, err := http.NewAuthRequest(req.Method, urs, bytes.NewReader(req.Body), http.ContentHash(req.Body), c.clock.Now(), req.Key)
+		r, err := http.NewAuthRequest(req.Method, urs, reader, http.ContentHash(req.Body), c.clock.Now(), req.Key)
 		if err != nil {
 			return nil, err
 		}
 		httpReq = r
 	} else {
-		r, err := http.NewRequest(req.Method, urs, bytes.NewReader(req.Body))
+		r, err := http.NewRequest(req.Method, urs, reader)
 		if err != nil {
 			return nil, err
 		}
