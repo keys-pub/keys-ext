@@ -30,7 +30,7 @@ func (s *Server) getUserSearch(c echo.Context) error {
 
 	results, err := s.users.Search(ctx, &users.SearchRequest{Query: q, Limit: limit})
 	if err != nil {
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 
 	usrs := make([]*api.User, 0, len(results))
@@ -54,7 +54,7 @@ func (s *Server) getUser(c echo.Context) error {
 	if strings.Contains(param, "@") {
 		ur, err := s.users.User(ctx, param)
 		if err != nil {
-			return s.ErrInternalServer(c, err)
+			return s.ErrResponse(c, err)
 		}
 		userResult = ur
 	} else {
@@ -64,7 +64,7 @@ func (s *Server) getUser(c echo.Context) error {
 		}
 		ur, err := s.users.Find(ctx, kid)
 		if err != nil {
-			return s.ErrInternalServer(c, err)
+			return s.ErrResponse(c, err)
 		}
 		userResult = ur
 	}

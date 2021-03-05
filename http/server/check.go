@@ -20,7 +20,7 @@ func (s *Server) check(c echo.Context) error {
 	}
 
 	if err := s.checkKID(ctx, auth.KID, HighPriority); err != nil {
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 
 	var resp struct{}

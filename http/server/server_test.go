@@ -169,7 +169,7 @@ func userMock(t *testing.T, key *keys.EdX25519Key, name string, service string, 
 
 	msg, err := usr.Sign(key)
 	require.NoError(t, err)
-	client.SetProxy(api, func(ctx context.Context, req *http.Request, headers []http.Header) http.ProxyResponse {
+	client.SetProxy(api, func(ctx context.Context, req *http.Request) http.ProxyResponse {
 		return http.ProxyResponse{Body: []byte(githubMock(name, "1", msg))}
 	})
 

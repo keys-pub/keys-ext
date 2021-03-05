@@ -300,8 +300,9 @@ func TestVaultMsgpack(t *testing.T) {
 	clock := env.clock
 
 	// POST /vault/:kid
-	vault := []*api.Data{
-		{Data: []byte("test1")},
+	vault := [][]byte{
+		[]byte("test1"),
+		[]byte("test2"),
 	}
 	data, err := msgpack.Marshal(vault)
 	require.NoError(t, err)
@@ -320,7 +321,8 @@ func TestVaultMsgpack(t *testing.T) {
 	var resp api.VaultResponse
 	err = msgpack.Unmarshal(body, &resp)
 	require.NoError(t, err)
-	require.Equal(t, int64(1), resp.Index)
-	require.Equal(t, 1, len(resp.Vault))
+	require.Equal(t, int64(2), resp.Index)
+	require.Equal(t, 2, len(resp.Vault))
 	require.Equal(t, []byte("test1"), resp.Vault[0].Data)
+	require.Equal(t, []byte("test2"), resp.Vault[1].Data)
 }

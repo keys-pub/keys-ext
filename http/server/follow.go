@@ -27,7 +27,7 @@ func (s *Server) putFollow(c echo.Context) error {
 
 	follow := &api.Follow{Sender: auth.KID, Recipient: recipient}
 	if err := s.fi.Set(ctx, dstore.Path("follows", recipient, "users", auth.KID), dstore.From(follow)); err != nil {
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 
 	var out struct{}
@@ -49,7 +49,7 @@ func (s *Server) getFollow(c echo.Context) error {
 
 	follow, err := s.follow(ctx, sender, auth.KID)
 	if err != nil {
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 
 	out := api.FollowResponse{Follow: follow}
@@ -79,20 +79,20 @@ func (s *Server) getFollows(c echo.Context) error {
 
 	iter, err := s.fi.DocumentIterator(ctx, dstore.Path("follows", auth.KID, "users"))
 	if err != nil {
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 	follows := []*api.Follow{}
 	for {
 		doc, err := iter.Next()
 		if err != nil {
-			return s.ErrInternalServer(c, err)
+			return s.ErrResponse(c, err)
 		}
 		if doc == nil {
 			break
 		}
 		var follow api.Follow
 		if err := doc.To(&follow); err != nil {
-			return s.ErrInternalServer(c, err)
+			return s.ErrResponse(c, err)
 		}
 		follows = append(follows, &follow)
 	}
@@ -117,7 +117,7 @@ func (s *Server) deleteFollow(c echo.Context) error {
 
 	ok, err := s.fi.Delete(ctx, dstore.Path("follows", recipient, "users", auth.KID))
 	if err != nil {
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 	if !ok {
 		return s.ErrNotFound(c, errors.Errorf("follow not found"))

@@ -28,7 +28,7 @@ type Client struct {
 	clock      tsutil.Clock
 }
 
-// New creates a Client for the keys.pub Web API.
+// New creates a Client for the a Web API.
 func New(urs string) (*Client, error) {
 	urs = strings.TrimSuffix(urs, "/")
 	urp, err := url.Parse(urs)

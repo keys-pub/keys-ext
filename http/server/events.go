@@ -9,18 +9,18 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *Server) events(c echo.Context, path string, max int) (*api.EventsResponse, int, error) {
+func (s *Server) events(c echo.Context, path string, max int) (*api.EventsResponse, error) {
 	request := c.Request()
 	ctx := request.Context()
 
 	index, err := queryParamInt(c, "idx", 0)
 	if err != nil {
-		return nil, http.StatusBadRequest, err
+		return nil, newError(http.StatusBadRequest, err)
 	}
 
 	limit, err := queryParamInt(c, "limit", 0)
 	if err != nil {
-		return nil, http.StatusBadRequest, err
+		return nil, newError(http.StatusBadRequest, err)
 	}
 
 	if limit == 0 || limit > max {
@@ -39,13 +39,13 @@ func (s *Server) events(c echo.Context, path string, max int) (*api.EventsRespon
 	case "desc":
 		dir = events.Descending
 	default:
-		return nil, http.StatusBadRequest, errors.Errorf("invalid order")
+		return nil, newError(http.StatusBadRequest, errors.Errorf("invalid order"))
 	}
 
 	s.logger.Infof("Events %s (from=%d)", path, index)
 	iter, err := s.fi.Events(ctx, path, events.Index(int64(index)), events.Limit(int64(limit)), events.WithDirection(dir))
 	if err != nil {
-		return nil, http.StatusInternalServerError, err
+		return nil, newError(http.StatusInternalServerError, err)
 	}
 	defer iter.Release()
 	to := int64(index)
@@ -53,7 +53,7 @@ func (s *Server) events(c echo.Context, path string, max int) (*api.EventsRespon
 	for {
 		event, err := iter.Next()
 		if err != nil {
-			return nil, http.StatusInternalServerError, err
+			return nil, newError(http.StatusInternalServerError, err)
 		}
 		if event == nil {
 			break
@@ -66,5 +66,5 @@ func (s *Server) events(c echo.Context, path string, max int) (*api.EventsRespon
 	return &api.EventsResponse{
 		Events: events,
 		Index:  to,
-	}, http.StatusOK, nil
+	}, nil
 }

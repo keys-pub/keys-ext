@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"io/ioutil"
 
@@ -45,6 +46,8 @@ type Server struct {
 
 	// internalKey for encrypting between internal services.
 	internalKey *[32]byte
+
+	firebaseAuth FirebaseAuth
 }
 
 // Fire defines interface for remote store (like Firestore).
@@ -73,6 +76,17 @@ func New(fi Fire, rds Redis, client http.Client, clock tsutil.Clock, logger Logg
 // SetInternalAuth for authorizing internal requests, like tasks.
 func (s *Server) SetInternalAuth(internalAuth string) {
 	s.internalAuth = internalAuth
+}
+
+// FirebaseAuth interface for firebase auth
+type FirebaseAuth interface {
+	CreateEmailUser(ctx context.Context, email string, password string) (string, error)
+	SendEmailVerification(ctx context.Context, email string, password string) error
+}
+
+// SetFirebaseAuth if using Firebase auth.
+func (s *Server) SetFirebaseAuth(f FirebaseAuth) {
+	s.firebaseAuth = f
 }
 
 // SetInternalKey for encrypting between internal services.
@@ -181,6 +195,10 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 
 	// Admin
 	e.POST("/admin/check/:kid", s.adminCheck)
+
+	// Account
+	e.PUT("/account/:kid", s.putAccount)
+	e.GET("/account/:kid", s.getAccount)
 }
 
 // SetClock sets clock.
@@ -234,24 +252,24 @@ func (s *Server) checkInternalAuth(c echo.Context) error {
 	return nil
 }
 
-func readBody(c echo.Context, required bool, maxLength int) ([]byte, int, error) {
+func readBody(c echo.Context, required bool, maxLength int) ([]byte, error) {
 	br := c.Request().Body
 	if br == nil {
 		if !required {
-			return []byte{}, 0, nil
+			return []byte{}, nil
 		}
-		return nil, http.StatusBadRequest, errors.Errorf("missing body")
+		return nil, newError(http.StatusBadRequest, errors.Errorf("missing body"))
 	}
 	b, err := ioutil.ReadAll(br)
 	if err != nil {
-		return nil, http.StatusInternalServerError, err
+		return nil, newError(http.StatusInternalServerError, err)
 	}
 	if len(b) > maxLength {
 		// TODO: Check length before reading data
-		return nil, http.StatusRequestEntityTooLarge, errors.Errorf("request too large")
+		return nil, newError(http.StatusRequestEntityTooLarge, errors.Errorf("request too large"))
 	}
 	if len(b) == 0 && required {
-		return nil, http.StatusBadRequest, errors.Errorf("no body data")
+		return nil, newError(http.StatusBadRequest, errors.Errorf("no body data"))
 	}
-	return b, 0, nil
+	return b, nil
 }

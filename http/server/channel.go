@@ -16,9 +16,9 @@ import (
 func (s *Server) putChannel(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	body, st, err := readBody(c, false, 64*1024)
+	body, err := readBody(c, false, 64*1024)
 	if err != nil {
-		return s.ErrResponse(c, st, err)
+		return s.ErrResponse(c, err)
 	}
 
 	channel, _, err := s.auth(c, newAuth("Authorization", "cid", body))
@@ -47,7 +47,7 @@ func (s *Server) putChannel(c echo.Context) error {
 		case dstore.ErrPathExists:
 			return s.ErrConflict(c, errors.Errorf("channel already exists"))
 		}
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 
 	if len(req.Message) > 0 {
@@ -56,7 +56,7 @@ func (s *Server) putChannel(c echo.Context) error {
 			Token:   token,
 		}
 		if err := s.sendMessage(c, ct, req.Message); err != nil {
-			return s.ErrInternalServer(c, err)
+			return s.ErrResponse(c, err)
 		}
 	}
 
@@ -79,7 +79,7 @@ func (s *Server) getChannel(c echo.Context) error {
 
 	doc, err := s.fi.Get(ctx, path)
 	if err != nil {
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 	if doc == nil {
 		return s.ErrNotFound(c, keys.NewErrNotFound(channel.KID.String()))
@@ -87,13 +87,13 @@ func (s *Server) getChannel(c echo.Context) error {
 
 	var out api.Channel
 	if err := doc.To(&out); err != nil {
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 	out.Timestamp = tsutil.Millis(doc.UpdatedAt)
 
 	positions, err := s.fi.EventPositions(ctx, []string{path})
 	if err != nil {
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 	position := positions[path]
 	if position != nil {
@@ -109,9 +109,9 @@ func (s *Server) postChannelsStatus(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	body, st, err := readBody(c, false, 64*1024)
+	body, err := readBody(c, false, 64*1024)
 	if err != nil {
-		return s.ErrResponse(c, st, err)
+		return s.ErrResponse(c, err)
 	}
 	var req api.ChannelsStatusRequest
 	if err := json.Unmarshal(body, &req); err != nil {
@@ -129,18 +129,18 @@ func (s *Server) postChannelsStatus(c echo.Context) error {
 
 	docs, err := s.fi.GetAll(ctx, paths)
 	if err != nil {
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 	positions, err := s.fi.EventPositions(ctx, paths)
 	if err != nil {
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 
 	channels := make([]*api.ChannelStatus, 0, len(docs))
 	for _, doc := range docs {
 		var channel api.Channel
 		if err := doc.To(&channel); err != nil {
-			return s.ErrInternalServer(c, err)
+			return s.ErrResponse(c, err)
 		}
 		token := req.Channels[channel.ID]
 		if token == "" || token != channel.Token {

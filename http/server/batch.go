@@ -19,9 +19,9 @@ func (s *Server) postBatch(c echo.Context) error {
 		return s.ErrBadRequest(c, errors.Errorf("batch not enabled"))
 	}
 
-	body, st, err := readBody(c, false, 64*1024)
+	body, err := readBody(c, false, 64*1024)
 	if err != nil {
-		return s.ErrResponse(c, st, err)
+		return s.ErrResponse(c, err)
 	}
 	var req api.BatchRequests
 	if err := json.Unmarshal(body, &req); err != nil {

@@ -16,7 +16,7 @@ func TestTwitter(t *testing.T) {
 	testdata, err := ioutil.ReadFile("testdata/1222706272849391616.json")
 	require.NoError(t, err)
 	api := "https://api.twitter.com/2/tweets/1222706272849391616?expansions=author_id"
-	env.client.SetProxy(api, func(ctx context.Context, req *http.Request, headers []http.Header) http.ProxyResponse {
+	env.client.SetProxy(api, func(ctx context.Context, req *http.Request) http.ProxyResponse {
 		return http.ProxyResponse{Body: []byte(testdata)}
 	})
 
