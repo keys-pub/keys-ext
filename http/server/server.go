@@ -1,7 +1,6 @@
 package server
 
 import (
-	"context"
 	"encoding/json"
 	"io/ioutil"
 
@@ -47,7 +46,7 @@ type Server struct {
 	// internalKey for encrypting between internal services.
 	internalKey *[32]byte
 
-	firebaseAuth FirebaseAuth
+	emailer Emailer
 }
 
 // Fire defines interface for remote store (like Firestore).
@@ -73,20 +72,19 @@ func New(fi Fire, rds Redis, client http.Client, clock tsutil.Clock, logger Logg
 	}
 }
 
+// Emailer sends emails.
+type Emailer interface {
+	SendVerificationEmail(email string, code string) error
+}
+
 // SetInternalAuth for authorizing internal requests, like tasks.
 func (s *Server) SetInternalAuth(internalAuth string) {
 	s.internalAuth = internalAuth
 }
 
-// FirebaseAuth interface for firebase auth
-type FirebaseAuth interface {
-	CreateEmailUser(ctx context.Context, email string, password string) (string, error)
-	SendEmailVerification(ctx context.Context, email string, password string) error
-}
-
-// SetFirebaseAuth if using Firebase auth.
-func (s *Server) SetFirebaseAuth(f FirebaseAuth) {
-	s.firebaseAuth = f
+// SetEmailer sets emailer.
+func (s *Server) SetEmailer(emailer Emailer) {
+	s.emailer = emailer
 }
 
 // SetInternalKey for encrypting between internal services.
@@ -196,9 +194,13 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	// Admin
 	e.POST("/admin/check/:kid", s.adminCheck)
 
-	// Account
+	// Accounts
 	e.PUT("/account/:kid", s.putAccount)
 	e.GET("/account/:kid", s.getAccount)
+	e.POST("/account/:kid/verifyemail", s.postAccountVerifyEmail)
+	e.GET("/account/:kid/vaults", s.getAccountVaults)
+	e.PUT("/account/:kid/vault/:vid", s.putAccountVault)
+
 }
 
 // SetClock sets clock.

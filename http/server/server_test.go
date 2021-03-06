@@ -105,6 +105,24 @@ func (s *testServer) Serve(req *http.Request) (int, nethttp.Header, []byte) {
 	return rr.Code, rr.Header(), rr.Body.Bytes()
 }
 
+type testEmailer struct {
+	sentVerificationEmail map[string]string
+}
+
+func newTestEmailer() *testEmailer {
+	return &testEmailer{sentVerificationEmail: map[string]string{}}
+}
+
+func (t *testEmailer) SentVerificationEmail(email string) string {
+	s, _ := t.sentVerificationEmail[email]
+	return s
+}
+
+func (t *testEmailer) SendVerificationEmail(email string, code string) error {
+	t.sentVerificationEmail[email] = code
+	return nil
+}
+
 func testSeed(b byte) *[32]byte {
 	return keys.Bytes32(bytes.Repeat([]byte{b}, 32))
 }

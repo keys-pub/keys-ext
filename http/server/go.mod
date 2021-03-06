@@ -4,8 +4,8 @@ go 1.14
 
 require (
 	cloud.google.com/go v0.75.0 // indirect
-	firebase.google.com/go/v4 v4.2.0
-	github.com/keys-pub/keys v0.1.20-0.20210102022201-ffb45798b8ab
+	github.com/badoux/checkmail v1.2.1
+	github.com/keys-pub/keys v0.1.20
 	github.com/keys-pub/keys-ext/firestore v0.0.0-20210118231903-89d20ffc493c
 	github.com/keys-pub/keys-ext/http/api v0.0.0-20210203191236-2bce35af93a0
 	github.com/keys-pub/keys-ext/ws/api v0.0.0-20210118231903-89d20ffc493c
@@ -15,10 +15,11 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/vmihailenco/msgpack/v4 v4.3.12
 	go.opencensus.io v0.22.6 // indirect
+	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83 // indirect
 	golang.org/x/mod v0.4.1 // indirect
-	golang.org/x/net v0.0.0-20210119194325-5f4716e94777 // indirect
+	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110 // indirect
 	golang.org/x/oauth2 v0.0.0-20210201163806-010130855d6c // indirect
-	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c // indirect
+	golang.org/x/sys v0.0.0-20210305230114-8fe3ee5dd75b // indirect
 	golang.org/x/term v0.0.0-20201210144234-2321bbc49cbf // indirect
 	golang.org/x/text v0.3.5 // indirect
 	golang.org/x/tools v0.1.0 // indirect
@@ -29,7 +30,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
 
-replace github.com/keys-pub/keys => ../../../keys
+// replace github.com/keys-pub/keys => ../../../keys
 
 // replace github.com/keys-pub/keys-ext/http/api => ../api
 
