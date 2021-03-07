@@ -41,6 +41,7 @@ func testPath() string {
 }
 
 type Message struct {
+	ID        string  `json:"id"`
 	Text      string  `json:"text"`
 	Sender    keys.ID `json:"sender"`
 	Recipient keys.ID `json:"recipient"`
@@ -48,7 +49,8 @@ type Message struct {
 }
 
 func testMessage(text string, sender keys.ID, recipient keys.ID, ts int64) *Message {
-	return &Message{Text: text, Sender: sender, Recipient: recipient, Timestamp: float64(ts)}
+	id := keys.RandBase62(32)
+	return &Message{ID: id, Text: text, Sender: sender, Recipient: recipient, Timestamp: float64(ts)}
 }
 
 func TestDB(t *testing.T) {
@@ -217,7 +219,9 @@ func TestDBListOptions(t *testing.T) {
 	require.NoError(t, err)
 	err = db.Create(ctx, "/test/2", dstore.Data([]byte("val2")))
 	require.NoError(t, err)
-	err = db.Create(ctx, "/test/3", dstore.Data([]byte("val3")))
+	err = db.Create(ctx, "/test/3a", dstore.Data([]byte("val3")))
+	require.NoError(t, err)
+	err = db.Create(ctx, "/test/3b", dstore.Data([]byte("val3")))
 	require.NoError(t, err)
 
 	for i := 1; i < 3; i++ {
@@ -243,6 +247,16 @@ func TestDBListOptions(t *testing.T) {
 
 	iter, err := db.DocumentIterator(ctx, "test")
 	require.NoError(t, err)
+	paths := drainIteratorPaths(t, iter)
+	require.Equal(t, []string{"/test/1", "/test/2", "/test/3a", "/test/3b"}, paths)
+
+	iter, err = db.DocumentIterator(ctx, "b", dstore.Prefix("eb"))
+	require.NoError(t, err)
+	paths = drainIteratorPaths(t, iter)
+	require.Equal(t, []string{"/b/eb1", "/b/eb2"}, paths)
+}
+
+func drainIteratorPaths(t *testing.T, iter dstore.Iterator) []string {
 	paths := []string{}
 	for {
 		doc, err := iter.Next()
@@ -252,22 +266,8 @@ func TestDBListOptions(t *testing.T) {
 		}
 		paths = append(paths, doc.Path)
 	}
-	require.Equal(t, []string{"/test/1", "/test/2", "/test/3"}, paths)
 	iter.Release()
-
-	iter, err = db.DocumentIterator(ctx, "b", dstore.Prefix("eb"))
-	require.NoError(t, err)
-	paths = []string{}
-	for {
-		doc, err := iter.Next()
-		require.NoError(t, err)
-		if doc == nil {
-			break
-		}
-		paths = append(paths, doc.Path)
-	}
-	iter.Release()
-	require.Equal(t, []string{"/b/eb1", "/b/eb2"}, paths)
+	return paths
 }
 
 func TestMetadata(t *testing.T) {

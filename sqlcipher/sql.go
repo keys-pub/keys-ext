@@ -42,10 +42,10 @@ func open(path string, key SecretKey) (*sql.DB, error) {
 	}
 
 	sqlStmt := `create table if not exists documents (
-		path text not null primary key, 
-		doc blob, 
-		createdAt timestamp not null, 
-		updatedAt timestamp not null
+		path TEXT NOT NULL PRIMARY KEY, 
+		doc BLOB,
+		createdAt TIMESTAMP NOT NULL, 
+		updatedAt TIMESTAMP NOT NULL
 	);`
 	if _, err = db.Exec(sqlStmt); err != nil {
 		return nil, err
@@ -171,6 +171,10 @@ func (d *DB) iterator(ctx context.Context, parent string, opt ...dstore.Option) 
 		iterPrefix = opts.Prefix
 	}
 
+	if opts.Where != nil {
+		return nil, errors.Errorf("unsupported option (where)")
+	}
+
 	logger.Debugf("Select %s", iterPrefix)
 	rows, err := d.db.Query("select path, doc, createdAt, updatedAt from documents where path like ? order by path", iterPrefix+"%")
 	if err != nil {
@@ -201,7 +205,11 @@ func (d *DB) Spew(w io.Writer) error {
 		if err := rows.Scan(&rpath, &b, &createdAt, &updatedAt); err != nil {
 			return err
 		}
-		fmt.Fprintf(w, "%s\n%s\n", rpath, spew.Sdump(b))
+		var values map[string]interface{}
+		if err := msgpack.Unmarshal(b, &values); err != nil {
+			return err
+		}
+		fmt.Fprintf(w, "%s\n%s\n", rpath, spew.Sdump(values))
 	}
 
 	if err := rows.Err(); err != nil {
