@@ -224,7 +224,7 @@ func (s *Server) Assertion(ctx context.Context, req *fido2.AssertionRequest) (*f
 		return nil, err
 	}
 
-	assertion, err := device.Assertion(req.RPID, req.ClientDataHash, req.CredentialID, req.PIN, &libfido2.AssertionOpts{Extensions: extensions, UV: uv, UP: up})
+	assertion, err := device.Assertion(req.RPID, req.ClientDataHash, req.CredentialIDs, req.PIN, &libfido2.AssertionOpts{Extensions: extensions, UV: uv, UP: up})
 	if err != nil {
 		return nil, err
 	}
@@ -401,7 +401,7 @@ func (s *Server) HMACSecret(ctx context.Context, req *fido2.HMACSecretRequest) (
 	assertion, err := device.Assertion(
 		req.RPID,
 		req.ClientDataHash,
-		req.CredentialID,
+		req.CredentialIDs,
 		req.PIN,
 		&libfido2.AssertionOpts{
 			Extensions: []libfido2.Extension{libfido2.HMACSecretExtension},

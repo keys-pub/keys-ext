@@ -1,7 +1,6 @@
 package firestore
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"log"
@@ -101,22 +100,15 @@ func TestDocuments(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, ok)
 
-	expected := collection1 + "/key10 overwrite\n" + collection1 + "/key20 value20\n" + collection1 + "/key30 value30\n"
-	var b bytes.Buffer
+	expected := []string{
+		collection1 + "/key10 map[data:overwrite]",
+		collection1 + "/key20 map[data:value20]",
+		collection1 + "/key30 map[data:value30]",
+	}
 	iter, err = ds.DocumentIterator(context.TODO(), collection1)
 	require.NoError(t, err)
-	err = dstore.SpewOut(iter, &b)
-	require.NoError(t, err)
-	require.Equal(t, expected, b.String())
-	iter.Release()
-
-	iter, err = ds.DocumentIterator(context.TODO(), collection1)
-	require.NoError(t, err)
-	spew, err := dstore.Spew(iter)
-	require.NoError(t, err)
-	require.Equal(t, b.String(), spew.String())
-	require.Equal(t, expected, spew.String())
-	iter.Release()
+	drained := drainIterator(t, iter)
+	require.Equal(t, expected, drained)
 
 	iter, err = ds.DocumentIterator(context.TODO(), collection1, dstore.Prefix("key1"), dstore.NoData())
 	require.NoError(t, err)
@@ -194,7 +186,9 @@ func TestDocumentsListOptions(t *testing.T) {
 	require.NoError(t, err)
 	err = ds.Create(ctx, dstore.Path(collection, "key2"), dstore.Data([]byte("val2")))
 	require.NoError(t, err)
-	err = ds.Create(ctx, dstore.Path(collection, "key3"), dstore.Data([]byte("val3")))
+	err = ds.Create(ctx, dstore.Path(collection, "key3a"), map[string]interface{}{"name": "val3"})
+	require.NoError(t, err)
+	err = ds.Create(ctx, dstore.Path(collection, "key3b"), map[string]interface{}{"name": "val3"})
 	require.NoError(t, err)
 
 	for i := 1; i < 3; i++ {
@@ -220,6 +214,46 @@ func TestDocumentsListOptions(t *testing.T) {
 
 	iter, err := ds.DocumentIterator(ctx, collection)
 	require.NoError(t, err)
+	paths := drainIteratorPaths(t, iter)
+	require.Equal(t, []string{
+		dstore.Path(collection, "key1"),
+		dstore.Path(collection, "key2"),
+		dstore.Path(collection, "key3a"),
+		dstore.Path(collection, "key3b"),
+	}, paths)
+
+	iter, err = ds.DocumentIterator(context.TODO(), collection)
+	require.NoError(t, err)
+	out := []string{}
+	for {
+		doc, err := iter.Next()
+		require.NoError(t, err)
+		if doc == nil {
+			break
+		}
+		out = append(out, fmt.Sprintf("%s %v", doc.Path, doc.Values()))
+	}
+	expected := []string{
+		collection + "/key1 map[data:[118 97 108 49]]",
+		collection + "/key2 map[data:[118 97 108 50]]",
+		collection + "/key3a map[name:val3]",
+		collection + "/key3b map[name:val3]",
+	}
+	require.Equal(t, expected, out)
+	iter.Release()
+
+	iter, err = ds.DocumentIterator(ctx, dstore.Path(collection+"b"), dstore.Prefix("eb"))
+	require.NoError(t, err)
+	paths = drainIteratorPaths(t, iter)
+	require.Equal(t, []string{collection + "b/eb1", collection + "b/eb2"}, paths)
+
+	iter, err = ds.DocumentIterator(ctx, collection, dstore.Where("name", "==", "val3"))
+	require.NoError(t, err)
+	paths = drainIteratorPaths(t, iter)
+	require.Equal(t, []string{collection + "/key3a", collection + "/key3b"}, paths)
+}
+
+func drainIteratorPaths(t *testing.T, iter dstore.Iterator) []string {
 	paths := []string{}
 	for {
 		doc, err := iter.Next()
@@ -229,31 +263,22 @@ func TestDocumentsListOptions(t *testing.T) {
 		}
 		paths = append(paths, doc.Path)
 	}
-	require.Equal(t, []string{dstore.Path(collection, "key1"), dstore.Path(collection, "key2"), dstore.Path(collection, "key3")}, paths)
 	iter.Release()
+	return paths
+}
 
-	iter, err = ds.DocumentIterator(context.TODO(), collection)
-	require.NoError(t, err)
-	b, err := dstore.Spew(iter)
-	require.NoError(t, err)
-	expected := collection + "/key1 val1\n" + collection + "/key2 val2\n" + collection + "/key3 val3\n"
-
-	require.Equal(t, expected, b.String())
-	iter.Release()
-
-	iter, err = ds.DocumentIterator(ctx, dstore.Path(collection+"b"), dstore.Prefix("eb"))
-	require.NoError(t, err)
-	paths = []string{}
+func drainIterator(t *testing.T, iter dstore.Iterator) []string {
+	paths := []string{}
 	for {
 		doc, err := iter.Next()
 		require.NoError(t, err)
 		if doc == nil {
 			break
 		}
-		paths = append(paths, doc.Path)
+		paths = append(paths, fmt.Sprintf("%s %s", doc.Path, doc.Values()))
 	}
 	iter.Release()
-	require.Equal(t, []string{collection + "b/eb1", collection + "b/eb2"}, paths)
+	return paths
 }
 
 func TestMetadata(t *testing.T) {

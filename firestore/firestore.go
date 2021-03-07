@@ -247,6 +247,9 @@ func (f *Firestore) DocumentIterator(ctx context.Context, parent string, opt ...
 	if opts.Prefix != "" {
 		q = q.Where(firestore.DocumentID, ">=", col.Doc(opts.Prefix))
 	}
+	if opts.Where != nil {
+		q = q.Where(opts.Where.Name, opts.Where.Op, opts.Where.Value)
+	}
 
 	// if opts.OrderBy != "" {
 	// 	q = col.OrderBy(opts.OrderBy, firestore.Asc)
@@ -267,7 +270,7 @@ func (f *Firestore) DocumentIterator(ctx context.Context, parent string, opt ...
 
 // Documents not implemented on Firestore, use DocumentIterator.
 func (f *Firestore) Documents(ctx context.Context, parent string, opt ...dstore.Option) ([]*dstore.Document, error) {
-	return nil, errors.Errorf("not use DocumentIterator instead")
+	return nil, errors.Errorf("unsupported: use DocumentIterator instead")
 }
 
 // processError tries to unmarshal Firebase JSON error, if it fails it returns
