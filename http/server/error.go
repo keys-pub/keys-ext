@@ -68,6 +68,11 @@ func (s *Server) ErrForbidden(c echo.Context, err error) error {
 	return s.ErrResponse(c, newError(http.StatusForbidden, errors.Errorf("auth failed")))
 }
 
+// ErrTooManyRequests response.
+func (s *Server) ErrTooManyRequests(c echo.Context, err error) error {
+	return s.ErrResponse(c, newError(http.StatusTooManyRequests, err))
+}
+
 // ErrConflict response.
 func (s *Server) ErrConflict(c echo.Context, err error) error {
 	return s.ErrResponse(c, newError(http.StatusConflict, err))

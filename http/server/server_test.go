@@ -114,7 +114,7 @@ func newTestEmailer() *testEmailer {
 }
 
 func (t *testEmailer) SentVerificationEmail(email string) string {
-	s, _ := t.sentVerificationEmail[email]
+	s := t.sentVerificationEmail[email]
 	return s
 }
 

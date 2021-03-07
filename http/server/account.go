@@ -124,7 +124,7 @@ func (s *Server) putAccount(c echo.Context) error {
 	return JSON(c, http.StatusOK, out)
 }
 
-func (s *Server) postSendEmailVerification(c echo.Context) error {
+func (s *Server) postAccountSendVerifyEmail(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
@@ -134,8 +134,17 @@ func (s *Server) postSendEmailVerification(c echo.Context) error {
 	}
 
 	acct, err := s.findAccount(ctx, auth.KID)
+	if err != nil {
+		return s.ErrResponse(c, err)
+	}
 	if acct == nil {
 		return s.ErrNotFound(c, keys.NewErrNotFound(auth.KID.String()))
+	}
+	if acct.VerifiedEmail {
+		return s.ErrBadRequest(c, errors.Errorf("already verified"))
+	}
+	if s.clock.Now().Sub(acct.VerifyEmailCodeAt) > time.Minute {
+		return s.ErrTooManyRequests(c, errors.Errorf("already sent verification recently"))
 	}
 
 	if err := s.sendEmailVerification(c, acct); err != nil {
@@ -159,6 +168,9 @@ func (s *Server) getAccount(c echo.Context) error {
 	}
 
 	acct, err := s.findAccount(ctx, auth.KID)
+	if err != nil {
+		return s.ErrResponse(c, err)
+	}
 	if acct == nil {
 		return s.ErrNotFound(c, keys.NewErrNotFound(auth.KID.String()))
 	}
@@ -210,11 +222,11 @@ func (s *Server) sendEmailVerification(c echo.Context, acct *Account) error {
 
 	verifyCode := keys.RandDigits(6)
 	update := struct {
-		VerifyCode   string    `json:"verifyEmailCode"`
-		VerifyCodeAt time.Time `json:"verifyEmailCodeAt"`
+		VerifyEmailCode   string    `json:"verifyEmailCode"`
+		VerifyEmailCodeAt time.Time `json:"verifyEmailCodeAt"`
 	}{
-		VerifyCode:   verifyCode,
-		VerifyCodeAt: s.clock.Now(),
+		VerifyEmailCode:   verifyCode,
+		VerifyEmailCodeAt: s.clock.Now(),
 	}
 
 	path := dstore.Path(accountsCollection, acct.KID)
@@ -251,6 +263,9 @@ func (s *Server) postAccountVerifyEmail(c echo.Context) error {
 	}
 
 	acct, err := s.findAccount(ctx, auth.KID)
+	if err != nil {
+		return s.ErrResponse(c, err)
+	}
 	if acct == nil {
 		return s.ErrNotFound(c, keys.NewErrNotFound(auth.KID.String()))
 	}
@@ -275,6 +290,9 @@ func (s *Server) postAccountVerifyEmail(c echo.Context) error {
 	}
 
 	after, err := s.findAccount(ctx, auth.KID)
+	if err != nil {
+		return s.ErrResponse(c, err)
+	}
 	if acct == nil {
 		return s.ErrNotFound(c, keys.NewErrNotFound(auth.KID.String()))
 	}

@@ -28,7 +28,7 @@ func TestAccountCreate(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	create := server.AccountCreateResponse{}
-	err = json.Unmarshal([]byte(body), &create)
+	err = json.Unmarshal(body, &create)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, alice.ID(), create.KID)
@@ -40,7 +40,7 @@ func TestAccountCreate(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	account := server.Account{}
-	testJSONUnmarshal(t, []byte(body), &account)
+	testJSONUnmarshal(t, body, &account)
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, alice.ID(), account.KID)
 	require.Equal(t, "alice@keys.pub", account.Email)
@@ -51,7 +51,7 @@ func TestAccountCreate(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	account = server.Account{}
-	testJSONUnmarshal(t, []byte(body), &account)
+	testJSONUnmarshal(t, body, &account)
 	require.Equal(t, http.StatusOK, code)
 	require.True(t, account.VerifiedEmail)
 
@@ -92,7 +92,7 @@ func TestAccountEmailCodeExpired(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	var create server.AccountCreateResponse
-	err = json.Unmarshal([]byte(body), &create)
+	err = json.Unmarshal(body, &create)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, alice.ID(), create.KID)
@@ -125,7 +125,7 @@ func TestAccountVaults(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	var create server.AccountCreateResponse
-	err = json.Unmarshal([]byte(body), &create)
+	err = json.Unmarshal(body, &create)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, code)
 	verifyCode := emailer.SentVerificationEmail("alice@keys.pub")
@@ -135,6 +135,7 @@ func TestAccountVaults(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
+	require.Equal(t, `{"email":"alice@keys.pub","kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","verifiedEmail":true}`+"\n", string(body))
 
 	// PUT /account/:kid/vault/:vid
 	vault := keys.GenerateEdX25519Key()
@@ -143,13 +144,14 @@ func TestAccountVaults(t *testing.T) {
 	code, _, body = srv.Serve(req)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, code)
+	require.Equal(t, "{}\n", string(body))
 
 	// GET /account/:kid/vaults
 	req, err = http.NewAuthRequest("GET", dstore.Path("account", alice.ID(), "vaults"), nil, "", clock.Now(), alice)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	resp := server.AccountVaultsResponse{}
-	testJSONUnmarshal(t, []byte(body), &resp)
+	testJSONUnmarshal(t, body, &resp)
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, 1, len(resp.Vaults))
 	require.Equal(t, vault.ID(), resp.Vaults[0].VID)

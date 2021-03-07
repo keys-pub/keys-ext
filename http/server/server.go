@@ -198,6 +198,7 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	e.PUT("/account/:kid", s.putAccount)
 	e.GET("/account/:kid", s.getAccount)
 	e.POST("/account/:kid/verifyemail", s.postAccountVerifyEmail)
+	e.POST("/account/:kid/sendverifyemail", s.postAccountSendVerifyEmail)
 	e.GET("/account/:kid/vaults", s.getAccountVaults)
 	e.PUT("/account/:kid/vault/:vid", s.putAccountVault)
 
