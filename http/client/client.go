@@ -48,6 +48,11 @@ func (c *Client) SetHTTPClient(httpClient *nethttp.Client) {
 	c.httpClient = httpClient
 }
 
+// HTTPClient we are using.
+func (c *Client) HTTPClient() *nethttp.Client {
+	return c.httpClient
+}
+
 // TODO: are these timeouts too agressive?
 func defaultHTTPClient() *nethttp.Client {
 	return &nethttp.Client{
