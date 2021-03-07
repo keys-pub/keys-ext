@@ -29,23 +29,23 @@ func (s *Server) adminCheck(c echo.Context) error {
 	case "all":
 		kids, err := s.users.KIDs(ctx)
 		if err != nil {
-			return s.ErrInternalServer(c, err)
+			return s.ErrResponse(c, err)
 		}
 		s.logger.Infof("Queue all (%d)", len(kids))
 		if err := s.queueKeyChecks(ctx, kids); err != nil {
-			return s.ErrInternalServer(c, err)
+			return s.ErrResponse(c, err)
 		}
 	case "content-not-found":
 		if err := s.queueByUserStatus(ctx, user.StatusContentNotFound); err != nil {
-			return s.ErrInternalServer(c, err)
+			return s.ErrResponse(c, err)
 		}
 	case "connection-fail":
 		if err := s.queueByUserStatus(ctx, user.StatusConnFailure); err != nil {
-			return s.ErrInternalServer(c, err)
+			return s.ErrResponse(c, err)
 		}
 	case "expired":
 		if err := s.queueByExpired(ctx, time.Hour*6, time.Hour*24*7); err != nil {
-			return s.ErrInternalServer(c, err)
+			return s.ErrResponse(c, err)
 		}
 	default:
 		kid, err := keys.ParseID(c.Param("kid"))
@@ -54,7 +54,7 @@ func (s *Server) adminCheck(c echo.Context) error {
 		}
 		s.logger.Infof("Queueing %s", kid)
 		if err := s.checkKID(ctx, kid, HighPriority); err != nil {
-			return s.ErrInternalServer(c, err)
+			return s.ErrResponse(c, err)
 		}
 	}
 

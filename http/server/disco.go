@@ -33,7 +33,7 @@ func (s *Server) putDisco(c echo.Context) error {
 
 	b, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 
 	if len(b) > 256 {
@@ -77,11 +77,11 @@ func (s *Server) putDisco(c echo.Context) error {
 
 	key := discoKey(auth.KID, rid, typ)
 	if err := s.rds.Set(ctx, key, string(b)); err != nil {
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 
 	if err := s.rds.Expire(ctx, key, expire); err != nil {
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 
 	var resp struct{}
@@ -117,14 +117,14 @@ func (s *Server) getDisco(c echo.Context) error {
 	key := discoKey(kid, auth.KID, typ)
 	out, err := s.rds.Get(ctx, key)
 	if err != nil {
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 	if out == "" {
 		return s.ErrNotFound(c, nil)
 	}
 	// Delete after get
 	if err := s.rds.Delete(ctx, key); err != nil {
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 	return c.Blob(http.StatusOK, echo.MIMEOctetStream, []byte(out))
 }
@@ -149,11 +149,11 @@ func (s *Server) deleteDisco(c echo.Context) error {
 
 	okey := discoKey(auth.KID, rid, "offer")
 	if err := s.rds.Delete(ctx, okey); err != nil {
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 	akey := discoKey(auth.KID, rid, "answer")
 	if err := s.rds.Delete(ctx, akey); err != nil {
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 
 	var resp struct{}

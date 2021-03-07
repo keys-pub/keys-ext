@@ -105,6 +105,24 @@ func (s *testServer) Serve(req *http.Request) (int, nethttp.Header, []byte) {
 	return rr.Code, rr.Header(), rr.Body.Bytes()
 }
 
+type testEmailer struct {
+	sentVerificationEmail map[string]string
+}
+
+func newTestEmailer() *testEmailer {
+	return &testEmailer{sentVerificationEmail: map[string]string{}}
+}
+
+func (t *testEmailer) SentVerificationEmail(email string) string {
+	s := t.sentVerificationEmail[email]
+	return s
+}
+
+func (t *testEmailer) SendVerificationEmail(email string, code string) error {
+	t.sentVerificationEmail[email] = code
+	return nil
+}
+
 func testSeed(b byte) *[32]byte {
 	return keys.Bytes32(bytes.Repeat([]byte{b}, 32))
 }
@@ -169,7 +187,7 @@ func userMock(t *testing.T, key *keys.EdX25519Key, name string, service string, 
 
 	msg, err := usr.Sign(key)
 	require.NoError(t, err)
-	client.SetProxy(api, func(ctx context.Context, req *http.Request, headers []http.Header) http.ProxyResponse {
+	client.SetProxy(api, func(ctx context.Context, req *http.Request) http.ProxyResponse {
 		return http.ProxyResponse{Body: []byte(githubMock(name, "1", msg))}
 	})
 

@@ -16,9 +16,9 @@ func (s *Server) postMessage(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	body, st, err := readBody(c, true, 64*1024)
+	body, err := readBody(c, true, 64*1024)
 	if err != nil {
-		return s.ErrResponse(c, st, err)
+		return s.ErrResponse(c, err)
 	}
 
 	auth, _, err := s.auth(c, newAuth("Authorization", "cid", body))
@@ -29,19 +29,19 @@ func (s *Server) postMessage(c echo.Context) error {
 	path := dstore.Path("channels", auth.KID)
 	doc, err := s.fi.Get(ctx, path)
 	if err != nil {
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 	if doc == nil {
 		return s.ErrNotFound(c, keys.NewErrNotFound(auth.KID.String()))
 	}
 	var channel api.Channel
 	if err := doc.To(&channel); err != nil {
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 
 	ct := &api.ChannelToken{Channel: channel.ID, Token: channel.Token}
 	if err := s.sendMessage(c, ct, body); err != nil {
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 
 	var out struct{}
@@ -99,20 +99,20 @@ func (s *Server) getMessages(c echo.Context) error {
 	path := dstore.Path("channels", auth.KID)
 	doc, err := s.fi.Get(ctx, path)
 	if err != nil {
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 	if doc == nil {
 		return s.ErrNotFound(c, keys.NewErrNotFound(auth.KID.String()))
 	}
 	var channel api.Channel
 	if err := doc.To(&channel); err != nil {
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 
 	limit := 1000
-	resp, st, err := s.events(c, path, limit)
+	resp, err := s.events(c, path, limit)
 	if err != nil {
-		return s.ErrResponse(c, st, err)
+		return s.ErrResponse(c, err)
 	}
 
 	truncated := false

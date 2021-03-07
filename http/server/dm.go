@@ -17,9 +17,9 @@ func (s *Server) postDirectMessage(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	body, st, err := readBody(c, true, 16*1024)
+	body, err := readBody(c, true, 16*1024)
 	if err != nil {
-		return s.ErrResponse(c, st, err)
+		return s.ErrResponse(c, err)
 	}
 
 	auth, _, err := s.auth(c, newAuth("Authorization", "sender", body))
@@ -35,7 +35,7 @@ func (s *Server) postDirectMessage(c echo.Context) error {
 	// Does the recipient follow the sender?
 	follow, err := s.follow(ctx, recipient, auth.KID)
 	if err != nil {
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 	if follow == nil {
 		return s.ErrForbidden(c, errors.Errorf("not authorized to direct"))
@@ -49,7 +49,7 @@ func (s *Server) postDirectMessage(c echo.Context) error {
 
 	dt, err := s.loadDirectToken(ctx, recipient)
 	if err != nil {
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 	if err := s.notifyDirectMessage(ctx, dt, idx); err != nil {
 		return err
@@ -104,9 +104,9 @@ func (s *Server) getDirectMessages(c echo.Context) error {
 
 	limit := 1000
 	path := dstore.Path("dms", auth.KID)
-	resp, st, err := s.events(c, path, limit)
+	resp, err := s.events(c, path, limit)
 	if err != nil {
-		return s.ErrResponse(c, st, err)
+		return s.ErrResponse(c, err)
 	}
 
 	truncated := false
@@ -135,7 +135,7 @@ func (s *Server) getDirectToken(c echo.Context) error {
 
 	dt, err := s.loadDirectToken(ctx, auth.KID)
 	if err != nil {
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 
 	out := &api.DirectToken{

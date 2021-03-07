@@ -20,7 +20,7 @@ func (s *Server) putShare(c echo.Context) error {
 
 	b, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 
 	if len(b) > 512 {
@@ -50,11 +50,11 @@ func (s *Server) putShare(c echo.Context) error {
 
 	key := fmt.Sprintf("s-%s", auth.KID)
 	if err := s.rds.Set(ctx, key, string(b)); err != nil {
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 
 	if err := s.rds.Expire(ctx, key, expire); err != nil {
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 
 	var resp struct{}
@@ -73,14 +73,14 @@ func (s *Server) getShare(c echo.Context) error {
 	key := fmt.Sprintf("s-%s", auth.KID)
 	out, err := s.rds.Get(ctx, key)
 	if err != nil {
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 	if out == "" {
 		return s.ErrNotFound(c, nil)
 	}
 	// Delete after get
 	if err := s.rds.Delete(ctx, key); err != nil {
-		return s.ErrInternalServer(c, err)
+		return s.ErrResponse(c, err)
 	}
 	return c.Blob(http.StatusOK, echo.MIMEOctetStream, []byte(out))
 }

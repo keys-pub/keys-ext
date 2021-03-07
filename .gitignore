@@ -1,4 +1,4 @@
-credentials.json
+credentials*.json
 .env
 dist/
 service/keys/keys
