@@ -152,7 +152,7 @@ message AssertionRequest {
     string device = 1;
     string rpId = 2 [(go.field) = {name: "RPID"}];
     bytes clientDataHash = 3;
-    bytes credentialId = 4 [(go.field) = {name: "CredentialID"}];
+    repeated bytes credentialIds = 4 [(go.field) = {name: "CredentialIDs"}];
     string pin = 5 [(go.field) = {name: "PIN"}];
 
     repeated string extensions = 100;
@@ -217,7 +217,7 @@ message HMACSecretRequest {
     
     string rpId = 10 [(go.field) = {name: "RPID"}];
     bytes clientDataHash = 11;
-    bytes credentialId = 12 [(go.field) = {name: "CredentialID"}];
+    repeated bytes credentialIds = 12 [(go.field) = {name: "CredentialIDs"}];
     bytes salt = 13;
 }
 message HMACSecretResponse {
