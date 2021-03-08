@@ -167,26 +167,8 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	// Experimental
 	//
 
-	// Channel
-	e.PUT("/channel/:cid", s.putChannel)             // Create a channel
-	e.GET("/channel/:cid", s.getChannel)             // Get a channel
-	e.POST("/channel/:cid/msgs", s.postMessage)      // Send message
-	e.GET("/channel/:cid/msgs", s.getMessages)       // List messages
-	e.POST("/channels/status", s.postChannelsStatus) // Get channels status
-
 	// Batch
 	e.POST("/batch", s.postBatch) // Batch
-
-	// Direct Messages
-	e.POST("/dm/:sender/:recipient", s.postDirectMessage) // Send direct message
-	e.GET("/dm/:recipient", s.getDirectMessages)          // List direct messages
-	e.GET("/dm/token/:recipient", s.getDirectToken)       // Direct token
-
-	// Follow
-	e.PUT("/follow/:sender/:recipient", s.putFollow)       // Follow
-	e.GET("/follows/:recipient", s.getFollows)             // List follows
-	e.GET("/follow/:sender/:recipient", s.getFollow)       // Get follow
-	e.DELETE("/follow/:sender/:recipient", s.deleteFollow) // Unfollow
 
 	// Twitter
 	e.GET("/twitter/:kid/:name/:id", s.checkTwitter)
