@@ -5,49 +5,6 @@ import (
 	"github.com/keys-pub/keys/api"
 )
 
-// Channel ...
-type Channel struct {
-	ID keys.ID `json:"id" msgpack:"id"`
-
-	Index     int64  `json:"idx,omitempty" msgpack:"idx,omitempty"`
-	Timestamp int64  `json:"ts,omitempty" msgpack:"ts,omitempty"`
-	Token     string `json:"token,omitempty" msgpack:"token,omitempty"`
-}
-
-// ChannelCreateRequest ...
-type ChannelCreateRequest struct {
-	// Message to post on create.
-	Message []byte `json:"msg,omitempty" msgpack:"msg,omitempty"`
-}
-
-// ChannelCreateResponse ...
-type ChannelCreateResponse struct {
-	Channel *Channel `json:"channel,omitempty" msgpack:"channel,omitempty"`
-}
-
-// ChannelStatus ...
-type ChannelStatus struct {
-	ID        keys.ID `json:"id" msgpack:"id"`
-	Index     int64   `json:"idx" msgpack:"idx"`
-	Timestamp int64   `json:"ts" msgpack:"ts"`
-}
-
-// ChannelToken ...
-type ChannelToken struct {
-	Channel keys.ID
-	Token   string
-}
-
-// ChannelsStatusRequest ...
-type ChannelsStatusRequest struct {
-	Channels map[keys.ID]string `json:"channels,omitempty" msgpack:"channels,omitempty"`
-}
-
-// ChannelsStatusResponse ...
-type ChannelsStatusResponse struct {
-	Channels []*ChannelStatus `json:"channels,omitempty" msgpack:"channels,omitempty"`
-}
-
 // ChannelInfo for setting channel name or description.
 type ChannelInfo struct {
 	Name        string `json:"name,omitempty" msgpack:"name,omitempty"`

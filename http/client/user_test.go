@@ -39,7 +39,7 @@ func saveUser(t *testing.T, env *env, cl *client.Client, key *keys.EdX25519Key, 
 	msg, err := usr.Sign(key)
 	require.NoError(t, err)
 
-	env.client.SetProxy(api, func(ctx context.Context, req *http.Request, headers []http.Header) http.ProxyResponse {
+	env.client.SetProxy(api, func(ctx context.Context, req *http.Request) http.ProxyResponse {
 		return http.ProxyResponse{Body: []byte(githubMock(name, id, msg))}
 	})
 
