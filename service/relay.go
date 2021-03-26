@@ -7,7 +7,6 @@ import (
 
 	"github.com/keys-pub/keys-ext/ws/api"
 	wsclient "github.com/keys-pub/keys-ext/ws/client"
-	"github.com/pkg/errors"
 )
 
 type relayClient struct {
@@ -133,7 +132,9 @@ func (s *service) Relay(req *RelayRequest, srv RPC_RelayServer) error {
 							logger.Infof("Channel key not found: %s", event.Channel)
 							continue
 						}
-						// TODO: Pull messages
+						if err := s.pullMessages(ctx, ck); err != nil {
+							return err
+						}
 					}
 					if event.User != "" {
 						uk, err := s.vaultKey(event.User)
@@ -144,11 +145,13 @@ func (s *service) Relay(req *RelayRequest, srv RPC_RelayServer) error {
 							logger.Infof("User key not found: %s", event.User)
 							continue
 						}
-						// TODO: Pull direct messages
-
-						// if err := relay.Authorize(dms.Tokens); err != nil {
-						// 	return err
-						// }
+						dms, err := s.pullDirectMessages(ctx, uk)
+						if err != nil {
+							return err
+						}
+						if err := relay.Authorize(dms.Tokens); err != nil {
+							return err
+						}
 					}
 				}
 			}
@@ -166,5 +169,29 @@ func (s *service) Relay(req *RelayRequest, srv RPC_RelayServer) error {
 }
 
 func (s *service) relayTokens(ctx context.Context, user string) ([]string, error) {
-	return nil, errors.Errorf("not implemented")
+	tokens := []string{}
+
+	if user != "" {
+		userKey, err := s.lookupKey(ctx, user, nil)
+		if err != nil {
+			return nil, err
+		}
+		token, err := s.client.DirectToken(ctx, userKey.AsEdX25519())
+		if err != nil {
+			return nil, err
+		}
+		tokens = append(tokens, token.Token)
+	}
+
+	cks, err := s.channelKeys()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, ck := range cks {
+		if ck.Token != "" {
+			tokens = append(tokens, ck.Token)
+		}
+	}
+	return tokens, nil
 }
