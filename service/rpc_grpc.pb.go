@@ -87,19 +87,6 @@ type RPCClient interface {
 	// Admin
 	AdminSignURL(ctx context.Context, in *AdminSignURLRequest, opts ...grpc.CallOption) (*AdminSignURLResponse, error)
 	AdminCheck(ctx context.Context, in *AdminCheckRequest, opts ...grpc.CallOption) (*AdminCheckResponse, error)
-	// Channels
-	Channels(ctx context.Context, in *ChannelsRequest, opts ...grpc.CallOption) (*ChannelsResponse, error)
-	ChannelCreate(ctx context.Context, in *ChannelCreateRequest, opts ...grpc.CallOption) (*ChannelCreateResponse, error)
-	ChannelInvite(ctx context.Context, in *ChannelInviteRequest, opts ...grpc.CallOption) (*ChannelInviteResponse, error)
-	ChannelLeave(ctx context.Context, in *ChannelLeaveRequest, opts ...grpc.CallOption) (*ChannelLeaveResponse, error)
-	ChannelRead(ctx context.Context, in *ChannelReadRequest, opts ...grpc.CallOption) (*ChannelReadResponse, error)
-	// Follow
-	Follow(ctx context.Context, in *FollowRequest, opts ...grpc.CallOption) (*FollowResponse, error)
-	Follows(ctx context.Context, in *FollowsRequest, opts ...grpc.CallOption) (*FollowsResponse, error)
-	// Messages
-	MessagePrepare(ctx context.Context, in *MessagePrepareRequest, opts ...grpc.CallOption) (*MessagePrepareResponse, error)
-	MessageCreate(ctx context.Context, in *MessageCreateRequest, opts ...grpc.CallOption) (*MessageCreateResponse, error)
-	Messages(ctx context.Context, in *MessagesRequest, opts ...grpc.CallOption) (*MessagesResponse, error)
 	// Relay
 	Relay(ctx context.Context, in *RelayRequest, opts ...grpc.CallOption) (RPC_RelayClient, error)
 }
@@ -927,96 +914,6 @@ func (c *rPCClient) AdminCheck(ctx context.Context, in *AdminCheckRequest, opts 
 	return out, nil
 }
 
-func (c *rPCClient) Channels(ctx context.Context, in *ChannelsRequest, opts ...grpc.CallOption) (*ChannelsResponse, error) {
-	out := new(ChannelsResponse)
-	err := c.cc.Invoke(ctx, "/service.RPC/Channels", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *rPCClient) ChannelCreate(ctx context.Context, in *ChannelCreateRequest, opts ...grpc.CallOption) (*ChannelCreateResponse, error) {
-	out := new(ChannelCreateResponse)
-	err := c.cc.Invoke(ctx, "/service.RPC/ChannelCreate", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *rPCClient) ChannelInvite(ctx context.Context, in *ChannelInviteRequest, opts ...grpc.CallOption) (*ChannelInviteResponse, error) {
-	out := new(ChannelInviteResponse)
-	err := c.cc.Invoke(ctx, "/service.RPC/ChannelInvite", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *rPCClient) ChannelLeave(ctx context.Context, in *ChannelLeaveRequest, opts ...grpc.CallOption) (*ChannelLeaveResponse, error) {
-	out := new(ChannelLeaveResponse)
-	err := c.cc.Invoke(ctx, "/service.RPC/ChannelLeave", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *rPCClient) ChannelRead(ctx context.Context, in *ChannelReadRequest, opts ...grpc.CallOption) (*ChannelReadResponse, error) {
-	out := new(ChannelReadResponse)
-	err := c.cc.Invoke(ctx, "/service.RPC/ChannelRead", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *rPCClient) Follow(ctx context.Context, in *FollowRequest, opts ...grpc.CallOption) (*FollowResponse, error) {
-	out := new(FollowResponse)
-	err := c.cc.Invoke(ctx, "/service.RPC/Follow", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *rPCClient) Follows(ctx context.Context, in *FollowsRequest, opts ...grpc.CallOption) (*FollowsResponse, error) {
-	out := new(FollowsResponse)
-	err := c.cc.Invoke(ctx, "/service.RPC/Follows", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *rPCClient) MessagePrepare(ctx context.Context, in *MessagePrepareRequest, opts ...grpc.CallOption) (*MessagePrepareResponse, error) {
-	out := new(MessagePrepareResponse)
-	err := c.cc.Invoke(ctx, "/service.RPC/MessagePrepare", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *rPCClient) MessageCreate(ctx context.Context, in *MessageCreateRequest, opts ...grpc.CallOption) (*MessageCreateResponse, error) {
-	out := new(MessageCreateResponse)
-	err := c.cc.Invoke(ctx, "/service.RPC/MessageCreate", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *rPCClient) Messages(ctx context.Context, in *MessagesRequest, opts ...grpc.CallOption) (*MessagesResponse, error) {
-	out := new(MessagesResponse)
-	err := c.cc.Invoke(ctx, "/service.RPC/Messages", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *rPCClient) Relay(ctx context.Context, in *RelayRequest, opts ...grpc.CallOption) (RPC_RelayClient, error) {
 	stream, err := c.cc.NewStream(ctx, &_RPC_serviceDesc.Streams[11], "/service.RPC/Relay", opts...)
 	if err != nil {
@@ -1123,19 +1020,6 @@ type RPCServer interface {
 	// Admin
 	AdminSignURL(context.Context, *AdminSignURLRequest) (*AdminSignURLResponse, error)
 	AdminCheck(context.Context, *AdminCheckRequest) (*AdminCheckResponse, error)
-	// Channels
-	Channels(context.Context, *ChannelsRequest) (*ChannelsResponse, error)
-	ChannelCreate(context.Context, *ChannelCreateRequest) (*ChannelCreateResponse, error)
-	ChannelInvite(context.Context, *ChannelInviteRequest) (*ChannelInviteResponse, error)
-	ChannelLeave(context.Context, *ChannelLeaveRequest) (*ChannelLeaveResponse, error)
-	ChannelRead(context.Context, *ChannelReadRequest) (*ChannelReadResponse, error)
-	// Follow
-	Follow(context.Context, *FollowRequest) (*FollowResponse, error)
-	Follows(context.Context, *FollowsRequest) (*FollowsResponse, error)
-	// Messages
-	MessagePrepare(context.Context, *MessagePrepareRequest) (*MessagePrepareResponse, error)
-	MessageCreate(context.Context, *MessageCreateRequest) (*MessageCreateResponse, error)
-	Messages(context.Context, *MessagesRequest) (*MessagesResponse, error)
 	// Relay
 	Relay(*RelayRequest, RPC_RelayServer) error
 	mustEmbedUnimplementedRPCServer()
@@ -1333,36 +1217,6 @@ func (*UnimplementedRPCServer) AdminSignURL(context.Context, *AdminSignURLReques
 }
 func (*UnimplementedRPCServer) AdminCheck(context.Context, *AdminCheckRequest) (*AdminCheckResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AdminCheck not implemented")
-}
-func (*UnimplementedRPCServer) Channels(context.Context, *ChannelsRequest) (*ChannelsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Channels not implemented")
-}
-func (*UnimplementedRPCServer) ChannelCreate(context.Context, *ChannelCreateRequest) (*ChannelCreateResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ChannelCreate not implemented")
-}
-func (*UnimplementedRPCServer) ChannelInvite(context.Context, *ChannelInviteRequest) (*ChannelInviteResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ChannelInvite not implemented")
-}
-func (*UnimplementedRPCServer) ChannelLeave(context.Context, *ChannelLeaveRequest) (*ChannelLeaveResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ChannelLeave not implemented")
-}
-func (*UnimplementedRPCServer) ChannelRead(context.Context, *ChannelReadRequest) (*ChannelReadResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ChannelRead not implemented")
-}
-func (*UnimplementedRPCServer) Follow(context.Context, *FollowRequest) (*FollowResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Follow not implemented")
-}
-func (*UnimplementedRPCServer) Follows(context.Context, *FollowsRequest) (*FollowsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Follows not implemented")
-}
-func (*UnimplementedRPCServer) MessagePrepare(context.Context, *MessagePrepareRequest) (*MessagePrepareResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method MessagePrepare not implemented")
-}
-func (*UnimplementedRPCServer) MessageCreate(context.Context, *MessageCreateRequest) (*MessageCreateResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method MessageCreate not implemented")
-}
-func (*UnimplementedRPCServer) Messages(context.Context, *MessagesRequest) (*MessagesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Messages not implemented")
 }
 func (*UnimplementedRPCServer) Relay(*RelayRequest, RPC_RelayServer) error {
 	return status.Errorf(codes.Unimplemented, "method Relay not implemented")
@@ -2595,186 +2449,6 @@ func _RPC_AdminCheck_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RPC_Channels_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ChannelsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RPCServer).Channels(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.RPC/Channels",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RPCServer).Channels(ctx, req.(*ChannelsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _RPC_ChannelCreate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ChannelCreateRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RPCServer).ChannelCreate(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.RPC/ChannelCreate",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RPCServer).ChannelCreate(ctx, req.(*ChannelCreateRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _RPC_ChannelInvite_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ChannelInviteRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RPCServer).ChannelInvite(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.RPC/ChannelInvite",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RPCServer).ChannelInvite(ctx, req.(*ChannelInviteRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _RPC_ChannelLeave_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ChannelLeaveRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RPCServer).ChannelLeave(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.RPC/ChannelLeave",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RPCServer).ChannelLeave(ctx, req.(*ChannelLeaveRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _RPC_ChannelRead_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ChannelReadRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RPCServer).ChannelRead(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.RPC/ChannelRead",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RPCServer).ChannelRead(ctx, req.(*ChannelReadRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _RPC_Follow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(FollowRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RPCServer).Follow(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.RPC/Follow",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RPCServer).Follow(ctx, req.(*FollowRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _RPC_Follows_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(FollowsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RPCServer).Follows(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.RPC/Follows",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RPCServer).Follows(ctx, req.(*FollowsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _RPC_MessagePrepare_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MessagePrepareRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RPCServer).MessagePrepare(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.RPC/MessagePrepare",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RPCServer).MessagePrepare(ctx, req.(*MessagePrepareRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _RPC_MessageCreate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MessageCreateRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RPCServer).MessageCreate(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.RPC/MessageCreate",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RPCServer).MessageCreate(ctx, req.(*MessageCreateRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _RPC_Messages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MessagesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RPCServer).Messages(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/service.RPC/Messages",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RPCServer).Messages(ctx, req.(*MessagesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _RPC_Relay_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(RelayRequest)
 	if err := stream.RecvMsg(m); err != nil {
@@ -3007,46 +2681,6 @@ var _RPC_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AdminCheck",
 			Handler:    _RPC_AdminCheck_Handler,
-		},
-		{
-			MethodName: "Channels",
-			Handler:    _RPC_Channels_Handler,
-		},
-		{
-			MethodName: "ChannelCreate",
-			Handler:    _RPC_ChannelCreate_Handler,
-		},
-		{
-			MethodName: "ChannelInvite",
-			Handler:    _RPC_ChannelInvite_Handler,
-		},
-		{
-			MethodName: "ChannelLeave",
-			Handler:    _RPC_ChannelLeave_Handler,
-		},
-		{
-			MethodName: "ChannelRead",
-			Handler:    _RPC_ChannelRead_Handler,
-		},
-		{
-			MethodName: "Follow",
-			Handler:    _RPC_Follow_Handler,
-		},
-		{
-			MethodName: "Follows",
-			Handler:    _RPC_Follows_Handler,
-		},
-		{
-			MethodName: "MessagePrepare",
-			Handler:    _RPC_MessagePrepare_Handler,
-		},
-		{
-			MethodName: "MessageCreate",
-			Handler:    _RPC_MessageCreate_Handler,
-		},
-		{
-			MethodName: "Messages",
-			Handler:    _RPC_Messages_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
