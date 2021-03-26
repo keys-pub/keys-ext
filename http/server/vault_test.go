@@ -326,3 +326,73 @@ func TestVaultMsgpack(t *testing.T) {
 	require.Equal(t, []byte("test1"), resp.Vault[0].Data)
 	require.Equal(t, []byte("test2"), resp.Vault[1].Data)
 }
+
+func TestVaultStatus(t *testing.T) {
+	env := newEnv(t)
+	// env.logLevel = server.DebugLevel
+	// keys.SetLogger(keys.NewLogger(keys.DebugLevel))
+
+	vault := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
+
+	srv := newTestServer(t, env)
+	clock := env.clock
+
+	// PUT /vault/:kid
+	req, err := http.NewAuthRequest("PUT", dstore.Path("vault", vault.ID()), nil, "", clock.Now(), vault)
+	require.NoError(t, err)
+	code, _, body := srv.Serve(req)
+	var create api.VaultToken
+	testJSONUnmarshal(t, []byte(body), &create)
+	require.Equal(t, http.StatusOK, code)
+	require.NotEmpty(t, create.Token)
+	require.Equal(t, vault.ID(), create.KID)
+	// Replay is ok
+	req, err = http.NewAuthRequest("PUT", dstore.Path("vault", vault.ID()), nil, "", clock.Now(), vault)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.NoError(t, err)
+	token := api.VaultToken{}
+	testJSONUnmarshal(t, []byte(body), &token)
+	require.Equal(t, http.StatusOK, code)
+	require.Equal(t, token, create)
+
+	// GET /vault/:kid/info
+	req, err = http.NewAuthRequest("GET", dstore.Path("vault", vault.ID(), "info"), nil, "", clock.Now(), vault)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusOK, code)
+	token = api.VaultToken{}
+	testJSONUnmarshal(t, []byte(body), &token)
+	require.Equal(t, vault.ID(), token.KID)
+	require.Equal(t, create.Token, token.Token)
+
+	// GET /vault/:kid/info (unknown)
+	unknown := keys.GenerateEdX25519Key()
+	req, err = http.NewAuthRequest("GET", dstore.Path("vault", unknown.ID(), "info"), nil, "", clock.Now(), unknown)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusNotFound, code)
+	require.Equal(t, `{"error":{"code":404,"message":"vault not found"}}`, string(body))
+
+	// POST /vault/:kid
+	req, err = http.NewJSONRequest("POST", dstore.Path("vault", vault.ID()), []*api.Data{{Data: []byte("test1")}}, http.WithTimestamp(clock.Now()), http.SignedWith(vault))
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusOK, code)
+	require.Equal(t, `{}`, string(body))
+
+	// POST /vaults/status
+	statusReq := api.VaultsStatusRequest{
+		Vaults: map[keys.ID]string{vault.ID(): create.Token},
+	}
+	req, err = http.NewRequest("POST", "/vaults/status", bytes.NewReader(testJSONMarshal(t, statusReq)))
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	var statusResp api.VaultsStatusResponse
+	testJSONUnmarshal(t, []byte(body), &statusResp)
+	require.Equal(t, http.StatusOK, code)
+	require.Equal(t, 1, len(statusResp.Vaults))
+	require.Equal(t, vault.ID(), statusResp.Vaults[0].ID)
+	require.Equal(t, int64(1234567890004), statusResp.Vaults[0].Timestamp)
+	require.Equal(t, int64(1), statusResp.Vaults[0].Index)
+}

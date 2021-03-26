@@ -140,10 +140,13 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	e.POST("/cron/check", s.cronCheck)
 
 	// Vault
+	e.PUT("/vault/:kid", s.putVault)
+	e.GET("/vault/:kid/info", s.getVaultInfo)
 	e.POST("/vault/:kid", s.postVault)
 	e.GET("/vault/:kid", s.listVault)
 	e.DELETE("/vault/:kid", s.deleteVault)
 	e.HEAD("/vault/:kid", s.headVault)
+	e.POST("/vaults/status", s.postVaultsStatus)
 
 	// Disco
 	e.PUT("/disco/:kid/:rid/:type", s.putDisco)

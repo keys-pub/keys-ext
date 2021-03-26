@@ -4,10 +4,10 @@ go 1.14
 
 require (
 	github.com/badoux/checkmail v1.2.1
-	github.com/keys-pub/keys v0.1.20
-	github.com/keys-pub/keys-ext/firestore v0.0.0-20210306221652-cf68a1890228
-	github.com/keys-pub/keys-ext/http/api v0.0.0-20210203191236-2bce35af93a0
-	github.com/keys-pub/keys-ext/ws/api v0.0.0-20210118231903-89d20ffc493c
+	github.com/keys-pub/keys v0.1.21-0.20210326150443-d3a790bc64b8
+	github.com/keys-pub/keys-ext/firestore v0.0.0-20210326150845-39fd96e22101
+	github.com/keys-pub/keys-ext/http/api v0.0.0-20210326150845-39fd96e22101
+	github.com/keys-pub/keys-ext/ws/api v0.0.0-20210326150845-39fd96e22101
 	github.com/labstack/echo/v4 v4.1.17
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/pkg/errors v0.9.1
