@@ -17,7 +17,6 @@ func TestPull(t *testing.T) {
 	testAuthSetup(t, aliceService)
 	testImportKey(t, aliceService, alice)
 	testUserSetupGithub(t, env, aliceService, alice, "alice")
-	testPush(t, aliceService, alice)
 
 	respKeys, err := aliceService.Keys(ctx, &KeysRequest{})
 	require.NoError(t, err)
@@ -30,7 +29,6 @@ func TestPull(t *testing.T) {
 	testAuthSetup(t, bobService)
 	testImportKey(t, bobService, bob)
 	testUserSetupGithub(t, env, bobService, bob, "bob")
-	testPush(t, bobService, bob)
 
 	// Alice (pull bob)
 	resp, err := aliceService.Pull(ctx, &PullRequest{Key: bob.ID().String()})
@@ -49,7 +47,6 @@ func TestPull(t *testing.T) {
 	testAuthSetup(t, charlieService)
 	testImportKey(t, charlieService, charlie)
 	testUserSetupGithub(t, env, charlieService, charlie, "charlie")
-	testPush(t, charlieService, charlie)
 
 	// Charlie (pull alice@github)
 	resp, err = charlieService.Pull(ctx, &PullRequest{Key: "alice@github"})

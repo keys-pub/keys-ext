@@ -21,11 +21,9 @@ func TestDocuments(t *testing.T) {
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
 	testUserSetupGithub(t, env, service, alice, "alice")
-	testPush(t, service, alice)
 
 	testImportKey(t, service, bob)
 	testUserSetupGithub(t, env, service, bob, "bob")
-	testPush(t, service, bob)
 
 	err = service.db.Set(ctx, "/test/key", dstore.Data([]byte("testvalue")))
 	require.NoError(t, err)

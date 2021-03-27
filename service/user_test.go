@@ -23,11 +23,9 @@ func TestUserSearch(t *testing.T) {
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
 	testUserSetupGithub(t, env, service, alice, "alice")
-	testPush(t, service, alice)
 
 	testImportKey(t, service, bob)
 	testUserSetupGithub(t, env, service, bob, "bob")
-	testPush(t, service, bob)
 
 	// Search all
 	resp, err := service.UserSearch(ctx, &UserSearchRequest{})
@@ -138,9 +136,7 @@ func TestUserAdd(t *testing.T) {
 	ctx := context.TODO()
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
-
 	testUserSetupGithub(t, env, service, alice, "alice")
-	testPush(t, service, alice)
 
 	sc, err := service.scs.Sigchain(alice.ID())
 	require.NoError(t, err)

@@ -21,7 +21,6 @@ func TestMessages(t *testing.T) {
 	ctx := context.TODO()
 	testImportKey(t, aliceService, alice)
 	testUserSetupGithub(t, env, aliceService, alice, "alice")
-	testPush(t, aliceService, alice)
 
 	// Bob service
 	bobService, bobCloseFn := newTestService(t, env)

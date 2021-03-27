@@ -20,15 +20,12 @@ func TestKeys(t *testing.T) {
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
 	testUserSetupGithub(t, env, service, alice, "alice")
-	testPush(t, service, alice)
 
 	testImportKey(t, service, bob)
 	testUserSetupGithub(t, env, service, bob, "bob")
-	testPush(t, service, bob)
 
 	testImportKey(t, service, charlie)
 	testUserSetupGithub(t, env, service, charlie, "charlie")
-	testPush(t, service, charlie)
 
 	// Default
 	resp, err := service.Keys(ctx, &KeysRequest{})
@@ -119,7 +116,6 @@ func TestKeysMissingSigchain(t *testing.T) {
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
 	testUserSetupGithub(t, env, service, alice, "alice")
-	testPush(t, service, alice)
 
 	_, err := service.scs.Delete(alice.ID())
 	require.NoError(t, err)

@@ -16,11 +16,9 @@ func TestSearch(t *testing.T) {
 	testAuthSetup(t, service)
 	testImportKey(t, service, alice)
 	testUserSetupGithub(t, env, service, alice, "alice")
-	testPush(t, service, alice)
 
 	testImportKey(t, service, bob)
 	testUserSetupGithub(t, env, service, bob, "bob")
-	testPush(t, service, bob)
 
 	resp, err := service.Search(ctx, &SearchRequest{Query: "alice"})
 	require.NoError(t, err)

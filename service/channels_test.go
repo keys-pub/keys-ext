@@ -21,7 +21,6 @@ func TestChannel(t *testing.T) {
 	ctx := context.TODO()
 	testImportKey(t, aliceService, alice)
 	testUserSetupGithub(t, env, aliceService, alice, "alice")
-	testPush(t, aliceService, alice)
 
 	// Alice creates a channel
 	channelCreate, err := aliceService.ChannelCreate(ctx, &ChannelCreateRequest{
@@ -52,7 +51,6 @@ func TestChannel(t *testing.T) {
 	testAuthSetup(t, bobService)
 	testImportKey(t, bobService, bob)
 	testUserSetupGithub(t, env, bobService, bob, "bob")
-	testPush(t, bobService, bob)
 	testPull(t, bobService, alice.ID())
 
 	// Channels (bob)

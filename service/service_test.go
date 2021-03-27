@@ -312,7 +312,6 @@ func TestCheckKeys(t *testing.T) {
 
 	testImportKey(t, service, alice)
 	testUserSetupGithub(t, env, service, alice, "alice")
-	testPush(t, service, alice)
 
 	err := service.checkKeys(context.TODO())
 	require.NoError(t, err)
