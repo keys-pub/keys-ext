@@ -65,7 +65,7 @@ func (s *service) ChannelCreate(ctx context.Context, req *ChannelCreateRequest) 
 		return nil, err
 	}
 
-	ck := kapi.NewKey(key).Created(s.clock.NowMillis()).WithLabel("channel")
+	ck := kapi.NewKey(key).Created(s.clock.NowMillis()).WithLabels("channel")
 	ck.Token = created.Channel.Token
 	kr := keyring.New(s.vault)
 	if err := kr.Save(ck); err != nil {

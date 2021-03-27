@@ -180,7 +180,7 @@ func userSetupGithub(env *testEnv, service *service, key *keys.EdX25519Key, user
 	url := fmt.Sprintf("https://gist.github.com/%s/%s", username, id)
 	api := "https://api.github.com/gists/" + id
 	body := []byte(githubMock(username, id, resp.Message))
-	env.client.SetProxy(api, func(ctx context.Context, req *http.Request, headers []http.Header) http.ProxyResponse {
+	env.client.SetProxy(api, func(ctx context.Context, req *http.Request) http.ProxyResponse {
 		return http.ProxyResponse{Body: body}
 	})
 

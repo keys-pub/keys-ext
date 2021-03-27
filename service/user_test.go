@@ -200,7 +200,7 @@ func TestUserAddGithub(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	env.client.SetProxy("", func(ctx context.Context, req *http.Request, headers []http.Header) http.ProxyResponse {
+	env.client.SetProxy("", func(ctx context.Context, req *http.Request) http.ProxyResponse {
 		return http.ProxyResponse{Body: []byte(githubMock("bob", "1", resp.Message))}
 	})
 
@@ -236,7 +236,7 @@ func TestUserAddReddit(t *testing.T) {
 
 	// url := "https://www.reddit.com/r/keyspubmsgs/comments/123/bob"
 	rmsg := redditMock("bob", resp.Message, "keyspubmsgs")
-	env.client.SetProxy("", func(ctx context.Context, req *http.Request, headers []http.Header) http.ProxyResponse {
+	env.client.SetProxy("", func(ctx context.Context, req *http.Request) http.ProxyResponse {
 		return http.ProxyResponse{Body: []byte(rmsg)}
 	})
 

@@ -270,8 +270,8 @@ func TestVerifyUnverified(t *testing.T) {
 	env.clock.Add(time.Hour * 24)
 
 	// Set 500 error for bob@github
-	env.client.SetProxy(tub.URL, func(ctx context.Context, req *http.Request, headers []http.Header) http.ProxyResponse {
-		return http.ProxyResponse{Err: http.Error{StatusCode: 500}}
+	env.client.SetProxy(tub.URL, func(ctx context.Context, req *http.Request) http.ProxyResponse {
+		return http.ProxyResponse{Err: http.Err{Code: 500}}
 	})
 
 	// Sign (bob)

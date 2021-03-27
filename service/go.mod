@@ -7,10 +7,9 @@ require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1
 	github.com/gogo/protobuf v1.3.1 // indirect
-	github.com/golang/protobuf v1.4.3
+	github.com/golang/protobuf v1.5.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
-	github.com/keybase/go-keychain v0.0.0-20201121013009-976c83ec27a6 // indirect
-	github.com/keys-pub/keys v0.1.20-0.20210102234532-ff048354dd2b
+	github.com/keys-pub/keys v0.1.21-0.20210326150443-d3a790bc64b8
 	github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20201221200935-cda646bb0b44
 	github.com/keys-pub/keys-ext/auth/mock v0.0.0-20201018000238-7b6186f1fe97
 	github.com/keys-pub/keys-ext/http/api v0.0.0-20210108232832-6bce3e9124fe
@@ -27,11 +26,11 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sirupsen/logrus v1.7.0
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	github.com/urfave/cli v1.22.5
-	golang.org/x/term v0.0.0-20201210144234-2321bbc49cbf
+	golang.org/x/term v0.0.0-20210317153231-de623e64d2a6
 	google.golang.org/grpc v1.34.0
-	google.golang.org/protobuf v1.25.0
+	google.golang.org/protobuf v1.26.0
 	gortc.io/stun v1.23.0 // indirect
 )
 

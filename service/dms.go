@@ -73,7 +73,7 @@ func (s *service) pullDirectMessagesNext(ctx context.Context, userKey *kapi.Key)
 		}
 		// If channel invite, add key
 		for _, invite := range msg.ChannelInvites {
-			key := invite.Key.WithLabel("channel")
+			key := invite.Key.WithLabels("channel")
 			key.Token = invite.Token
 			if err := kr.Save(key); err != nil {
 				return nil, err
