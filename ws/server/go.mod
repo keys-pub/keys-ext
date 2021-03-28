@@ -3,20 +3,20 @@ module github.com/keys-pub/keys-ext/ws/server
 go 1.15
 
 require (
-	github.com/golang/protobuf v1.4.3 // indirect
-	github.com/gomodule/redigo v1.8.3
+	github.com/golang/protobuf v1.5.1 // indirect
+	github.com/gomodule/redigo v1.8.4
 	github.com/gorilla/websocket v1.4.2
 	github.com/joho/godotenv v1.3.0
-	github.com/keys-pub/keys v0.1.18-0.20201029233150-785ac922181d
-	github.com/keys-pub/keys-ext/ws/api v0.0.0-20210103224830-a8720c3ddd9b
+	github.com/keys-pub/keys v0.1.21-0.20210326211358-fb3db764000f
+	github.com/keys-pub/keys-ext/ws/api v0.0.0-20210328224537-2fcd8d1dc429
 	github.com/pkg/errors v0.9.1
 	github.com/vmihailenco/msgpack/v4 v4.3.12
 	github.com/vmihailenco/tagparser v0.1.2 // indirect
-	golang.org/x/crypto v0.0.0-20201124201722-c8d3bf9c5392 // indirect
-	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b // indirect
-	golang.org/x/sys v0.0.0-20201119102817-f84b799fce68 // indirect
+	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2 // indirect
+	golang.org/x/net v0.0.0-20210326220855-61e056675ecf // indirect
+	golang.org/x/sys v0.0.0-20210326220804-49726bf1d181 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/protobuf v1.25.0 // indirect
+	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013 // indirect
 )
 
 // replace github.com/keys-pub/keys => ../../../keys
