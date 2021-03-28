@@ -11,10 +11,10 @@ const EventPubSub = "e"
 // Event to client.
 // JSON is used for websocket clients.
 type Event struct {
-	KID   keys.ID `json:"kid,omitempty" msgpack:"k,omitempty"`
-	User  keys.ID `json:"user,omitempty" msgpack:"u,omitempty"`
-	Index int64   `json:"idx,omitempty" msgpack:"i,omitempty"`
-	Token string  `json:"token,omitempty" msgpack:"t,omitempty"`
+	Channel keys.ID `json:"channel,omitempty" msgpack:"c,omitempty"`
+	User    keys.ID `json:"user,omitempty" msgpack:"u,omitempty"`
+	Index   int64   `json:"idx,omitempty" msgpack:"i,omitempty"`
+	Token   string  `json:"token,omitempty" msgpack:"t,omitempty"`
 }
 
 // Encrypt value into data (msgpack).
