@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/websocket"
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/ws/api"
@@ -41,19 +42,21 @@ type client struct {
 	// The websocket connection.
 	conn *websocket.Conn
 
-	tokens []string
+	tokens   []string
+	tokenKey *[32]byte
 
 	// Buffered channel of outbound messages.
 	send chan *api.Event
 }
 
 // newClient returns a new client.
-func newClient(hub *Hub, conn *websocket.Conn) *client {
+func newClient(hub *Hub, conn *websocket.Conn, tokenKey *[32]byte) *client {
 	return &client{
-		id:   encoding.MustEncode(keys.Rand16()[:], encoding.Base62),
-		hub:  hub,
-		conn: conn,
-		send: make(chan *api.Event, 256),
+		id:       encoding.MustEncode(keys.Rand16()[:], encoding.Base62),
+		hub:      hub,
+		conn:     conn,
+		send:     make(chan *api.Event, 256),
+		tokenKey: tokenKey,
 	}
 }
 
@@ -81,16 +84,19 @@ func (c *client) readPump() {
 
 		tokens := strings.Split(string(data), ",")
 		for _, token := range tokens {
-			if token == "" {
+			_, err := jwt.Parse(token, c.jwtTokens)
+			if err != nil {
 				log.Printf("invalid token\n")
 				break
 			}
-		}
 
-		for _, token := range tokens {
 			c.hub.auth <- &authClient{client: c, token: token}
 		}
 	}
+}
+
+func (c *client) jwtTokens(t *jwt.Token) (interface{}, error) {
+	return c.tokenKey[:], nil
 }
 
 // writePump pumps messages from the hub to the websocket connection.
@@ -161,13 +167,13 @@ func (c *client) writePump() {
 }
 
 // Serve handles websocket requests from the peer.
-func Serve(hub *Hub, w http.ResponseWriter, r *http.Request) {
+func Serve(hub *Hub, tokenKey *[32]byte, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	cl := newClient(hub, conn)
+	cl := newClient(hub, conn, tokenKey)
 	cl.hub.register <- cl
 
 	// Allow collection of memory referenced by the caller by doing all work in

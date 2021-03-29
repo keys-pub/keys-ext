@@ -15,5 +15,6 @@ func main() {
 	}
 
 	sk := os.Getenv("SECRET_KEY")
-	log.Fatal(server.ListenAndServe(":8080", "ws://localhost:8080/ws", sk, nil))
+	tk := os.Getenv("TOKEN_KEY")
+	log.Fatal(server.ListenAndServe(":8080", "ws://localhost:8080/ws", sk, tk, nil))
 }
