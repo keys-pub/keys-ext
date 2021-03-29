@@ -91,6 +91,7 @@ func newTestServer(t *testing.T, env *env) *testServer {
 	srv.SetTasks(tasks)
 	srv.SetInternalAuth(encoding.MustEncode(keys.RandBytes(32), encoding.Base62))
 	_ = srv.SetInternalKey("6a169a699f7683c04d127504a12ace3b326e8b56a61a9b315cf6b42e20d6a44a")
+	_ = srv.SetTokenKey("f41deca7f9ef4f82e53cd7351a90bc370e2bf15ed74d147226439cfde740ac18")
 	srv.SetClock(env.clock)
 	handler := server.NewHandler(srv)
 	return &testServer{

@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/badoux/checkmail v1.2.1
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/golang/protobuf v1.5.1 // indirect
 	github.com/keys-pub/keys v0.1.21-0.20210326211358-fb3db764000f
 	github.com/keys-pub/keys-ext/firestore v0.0.0-20210326150845-39fd96e22101
@@ -29,4 +30,4 @@ require (
 
 // replace github.com/keys-pub/keys-ext/firestore => ../../firestore
 
-// replace github.com/keys-pub/keys-ext/ws/api => ../../ws/api
+replace github.com/keys-pub/keys-ext/ws/api => ../../ws/api

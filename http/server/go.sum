@@ -61,6 +61,7 @@ github.com/dchest/bcrypt_pbkdf v0.0.0-20150205184540-83f37f9c154a h1:saTgr5tMLFn
 github.com/dchest/bcrypt_pbkdf v0.0.0-20150205184540-83f37f9c154a/go.mod h1:Bw9BbhOJVNR+t0jCqx2GC6zv0TGBsShs56Y3gfSCvl0=
 github.com/dchest/blake2b v1.0.0 h1:KK9LimVmE0MjRl9095XJmKqZ+iLxWATvlcpVFRtaw6s=
 github.com/dchest/blake2b v1.0.0/go.mod h1:U034kXgbJpCle2wSk5ybGIVhOSHCVLMDqOzcPEA0F7s=
+github.com/dgrijalva/jwt-go v3.2.0+incompatible h1:7qlOGliEKZXTDg6OTjfoBKDXWrumCAMpl/TFQ4/5kLM=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
@@ -150,18 +151,12 @@ github.com/keybase/saltpack v0.0.0-20200430135328-e19b1910c0c5/go.mod h1:FNSq71O
 github.com/keys-pub/keys v0.1.18-0.20201029233150-785ac922181d/go.mod h1:fp0YtOeEUxacxWJHipDOiPJygETVbNRkrKvnF82O2CM=
 github.com/keys-pub/keys v0.1.20-0.20210102022201-ffb45798b8ab/go.mod h1:CgoPVi0AZw87ncg5xCYnhlY9h+WQmAVsokthREKygzw=
 github.com/keys-pub/keys v0.1.20/go.mod h1:h7u4e6MHcP9wdIlOhqFOJWrGZgk65KnSfaN5iioL2OI=
-github.com/keys-pub/keys v0.1.21-0.20210326150443-d3a790bc64b8 h1:1QfPA/p+7vRVlHwl7bg3iTnh2wqKLRCCpWyxnyJSo2U=
-github.com/keys-pub/keys v0.1.21-0.20210326150443-d3a790bc64b8/go.mod h1:h7u4e6MHcP9wdIlOhqFOJWrGZgk65KnSfaN5iioL2OI=
 github.com/keys-pub/keys v0.1.21-0.20210326211358-fb3db764000f h1:QORnB3WDBEg402EBMmaJbTkTJXd0/BSHqR/04p0TmlA=
 github.com/keys-pub/keys v0.1.21-0.20210326211358-fb3db764000f/go.mod h1:h7u4e6MHcP9wdIlOhqFOJWrGZgk65KnSfaN5iioL2OI=
 github.com/keys-pub/keys-ext/firestore v0.0.0-20210326150845-39fd96e22101 h1:Jfib1vUGwFz1I4j9i08XoXygOIB4doGXyi8iR41yZdg=
 github.com/keys-pub/keys-ext/firestore v0.0.0-20210326150845-39fd96e22101/go.mod h1:XR5aJYx1qYfmWKXf9Hg+JexfYz71R9ju8o1ydn8Vtgk=
-github.com/keys-pub/keys-ext/http/api v0.0.0-20210328224815-66d117e28647 h1:n64kQ443TEsK+WOunGRrdlDCko+R6HZft1qIfNYID+U=
-github.com/keys-pub/keys-ext/http/api v0.0.0-20210328224815-66d117e28647/go.mod h1:FVm3GaGP/giGNJ4LyHG1L5YQANOnWst3D56UfLQynww=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20210329180739-d34ec0c002a0 h1:ZaqtI57ojdaL4iad2dlnVpmoguc0AHCoFHTovKLaiHA=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20210329180739-d34ec0c002a0/go.mod h1:FVm3GaGP/giGNJ4LyHG1L5YQANOnWst3D56UfLQynww=
-github.com/keys-pub/keys-ext/ws/api v0.0.0-20210328225408-abb780969ed5 h1:4BDQXxAKifqhG+Lrsc9nTFzganYPLoIWjOjXlNzA8Ts=
-github.com/keys-pub/keys-ext/ws/api v0.0.0-20210328225408-abb780969ed5/go.mod h1:LbgwcQT1R5W8EBRHmDeE6d2lr0t4EYS6J9ih2Jv4iN8=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f/go.mod h1:YRHMiVbZqh7u8xRm77CvwJNAZdDlNXwWvQ4DK0N9mYg=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=

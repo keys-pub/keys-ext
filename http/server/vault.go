@@ -6,12 +6,12 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
 	wsapi "github.com/keys-pub/keys-ext/ws/api"
 	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/dstore/events"
-	"github.com/keys-pub/keys/encoding"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
@@ -44,8 +44,14 @@ func (s *Server) putVault(c echo.Context) error {
 		return JSON(c, http.StatusOK, existing)
 	}
 
-	// TODO: Make token validatable
-	token := encoding.MustEncode(keys.RandBytes(16), encoding.Base62)
+	// Generate token
+	claims := jwt.StandardClaims{Subject: auth.KID.String()}
+	jt := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), claims)
+	token, err := jt.SignedString(s.tokenKey)
+	if err != nil {
+		return s.ErrResponse(c, errors.Wrapf(err, "failed to generate token"))
+	}
+
 	vault := &vaultDoc{
 		ID:    auth.KID,
 		Token: token,

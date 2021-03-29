@@ -46,6 +46,9 @@ type Server struct {
 	// internalKey for encrypting between internal services.
 	internalKey *[32]byte
 
+	// tokenKey for JWT vault tokens
+	tokenKey []byte
+
 	emailer Emailer
 }
 
@@ -82,6 +85,19 @@ func (s *Server) SetInternalAuth(internalAuth string) {
 	s.internalAuth = internalAuth
 }
 
+// SetTokenKey for setting token key.
+func (s *Server) SetTokenKey(tokenKey string) error {
+	if tokenKey == "" {
+		return errors.Errorf("empty token key")
+	}
+	k, err := encoding.Decode(tokenKey, encoding.Hex)
+	if err != nil {
+		return err
+	}
+	s.tokenKey = k
+	return nil
+}
+
 // SetEmailer sets emailer.
 func (s *Server) SetEmailer(emailer Emailer) {
 	s.emailer = emailer
@@ -90,7 +106,7 @@ func (s *Server) SetEmailer(emailer Emailer) {
 // SetInternalKey for encrypting between internal services.
 func (s *Server) SetInternalKey(internalKey string) error {
 	if internalKey == "" {
-		return errors.Errorf("empty secret key")
+		return errors.Errorf("empty internal key")
 	}
 	sk, err := encoding.Decode(internalKey, encoding.Hex)
 	if err != nil {
