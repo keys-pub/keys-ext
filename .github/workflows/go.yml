@@ -17,7 +17,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Run gosec
         shell: bash
-        run: ./security.sh
+        run: sh -x ./security.sh
         
   golangci-lint:
     name: Linter
@@ -30,7 +30,7 @@ jobs:
         run: brew install golangci/tap/golangci-lint
       - name: Run golangci-lint
         shell: bash
-        run: ./lint.sh
+        run: sh -x ./lint.sh
   test:
     strategy:
       matrix:

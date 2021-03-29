@@ -1,7 +1,6 @@
 package client_test
 
 import (
-	"bytes"
 	"net/http/httptest"
 	"testing"
 
@@ -20,7 +19,6 @@ type env struct {
 	fi         server.Fire
 	users      *users.Users
 	client     http.Client
-	logger     server.Logger
 	srv        *server.Server
 	httpServer *httptest.Server
 	handler    http.Handler
@@ -103,38 +101,4 @@ func newTestClient(t *testing.T, env *env) *client.Client {
 	cl.SetHTTPClient(env.httpServer.Client())
 	cl.SetClock(env.clock)
 	return cl
-}
-
-type testKeys struct {
-	alice    *keys.EdX25519Key
-	bob      *keys.EdX25519Key
-	channel  *keys.EdX25519Key
-	channel2 *keys.EdX25519Key
-}
-
-var alice = keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
-var bob = keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
-var channel = keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0xef}, 32)))
-var channel2 = keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0xf0}, 32)))
-
-func testKeysSeeded() testKeys {
-	return testKeys{
-		alice:    alice,
-		bob:      bob,
-		channel:  channel,
-		channel2: channel2,
-	}
-}
-
-func testKeysRandom() testKeys {
-	alice := keys.GenerateEdX25519Key()
-	bob := keys.GenerateEdX25519Key()
-	channel := keys.GenerateEdX25519Key()
-	channel2 := keys.GenerateEdX25519Key()
-	return testKeys{
-		alice:    alice,
-		bob:      bob,
-		channel:  channel,
-		channel2: channel2,
-	}
 }
