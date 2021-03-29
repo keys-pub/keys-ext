@@ -54,7 +54,7 @@ func main() {
 	for i := 0; i < 20; i += 2 {
 		channel := keys.NewEdX25519KeyFromSeed(testSeed(byte(i)))
 		token := fmt.Sprintf("testtoken%d", i)
-		if err := send(&api.Event{Channel: channel.ID(), Index: 1, Token: token}); err != nil {
+		if err := send(&api.Event{KID: channel.ID(), Index: 1, Token: token}); err != nil {
 			log.Fatal(err)
 		}
 	}

@@ -127,44 +127,6 @@ func testSeed(b byte) *[32]byte {
 	return keys.Bytes32(bytes.Repeat([]byte{b}, 32))
 }
 
-type testKeys struct {
-	alice    *keys.EdX25519Key
-	bob      *keys.EdX25519Key
-	channel  *keys.EdX25519Key
-	channel2 *keys.EdX25519Key
-	frank    *keys.EdX25519Key
-}
-
-func testKeysSeeded() testKeys {
-	alice := keys.NewEdX25519KeyFromSeed(testSeed(0x01))
-	bob := keys.NewEdX25519KeyFromSeed(testSeed(0x02))
-	channel := keys.NewEdX25519KeyFromSeed(testSeed(0xef))
-	channel2 := keys.NewEdX25519KeyFromSeed(testSeed(0xf0))
-	frank := keys.NewEdX25519KeyFromSeed(testSeed(0x06))
-	return testKeys{
-		alice:    alice,
-		bob:      bob,
-		channel:  channel,
-		channel2: channel2,
-		frank:    frank,
-	}
-}
-
-func testKeysRandom() testKeys {
-	alice := keys.GenerateEdX25519Key()
-	bob := keys.GenerateEdX25519Key()
-	channel := keys.GenerateEdX25519Key()
-	channel2 := keys.GenerateEdX25519Key()
-	frank := keys.GenerateEdX25519Key()
-	return testKeys{
-		alice:    alice,
-		bob:      bob,
-		channel:  channel,
-		channel2: channel2,
-		frank:    frank,
-	}
-}
-
 func userMock(t *testing.T, key *keys.EdX25519Key, name string, service string, client http.Client, clock tsutil.Clock) *keys.Statement {
 	url := ""
 	api := ""
