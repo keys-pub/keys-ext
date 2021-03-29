@@ -79,7 +79,7 @@ func (c *client) readPump() {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("read error: %v\n", err)
 			}
-			break
+			return
 		}
 
 		tokens := strings.Split(string(data), ",")
@@ -87,7 +87,7 @@ func (c *client) readPump() {
 			_, err := jwt.Parse(token, c.jwtTokens)
 			if err != nil {
 				log.Printf("invalid token\n")
-				break
+				return
 			}
 
 			c.hub.auth <- &authClient{client: c, token: token}
