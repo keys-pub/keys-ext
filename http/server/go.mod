@@ -7,7 +7,7 @@ require (
 	github.com/golang/protobuf v1.5.1 // indirect
 	github.com/keys-pub/keys v0.1.21-0.20210326211358-fb3db764000f
 	github.com/keys-pub/keys-ext/firestore v0.0.0-20210326150845-39fd96e22101
-	github.com/keys-pub/keys-ext/http/api v0.0.0-20210328224815-66d117e28647
+	github.com/keys-pub/keys-ext/http/api v0.0.0-20210329180739-d34ec0c002a0
 	github.com/keys-pub/keys-ext/ws/api v0.0.0-20210328225408-abb780969ed5
 	github.com/labstack/echo/v4 v4.2.1
 	github.com/mattn/go-colorable v0.1.8 // indirect

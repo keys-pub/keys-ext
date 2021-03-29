@@ -158,6 +158,8 @@ github.com/keys-pub/keys-ext/firestore v0.0.0-20210326150845-39fd96e22101 h1:Jfi
 github.com/keys-pub/keys-ext/firestore v0.0.0-20210326150845-39fd96e22101/go.mod h1:XR5aJYx1qYfmWKXf9Hg+JexfYz71R9ju8o1ydn8Vtgk=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20210328224815-66d117e28647 h1:n64kQ443TEsK+WOunGRrdlDCko+R6HZft1qIfNYID+U=
 github.com/keys-pub/keys-ext/http/api v0.0.0-20210328224815-66d117e28647/go.mod h1:FVm3GaGP/giGNJ4LyHG1L5YQANOnWst3D56UfLQynww=
+github.com/keys-pub/keys-ext/http/api v0.0.0-20210329180739-d34ec0c002a0 h1:ZaqtI57ojdaL4iad2dlnVpmoguc0AHCoFHTovKLaiHA=
+github.com/keys-pub/keys-ext/http/api v0.0.0-20210329180739-d34ec0c002a0/go.mod h1:FVm3GaGP/giGNJ4LyHG1L5YQANOnWst3D56UfLQynww=
 github.com/keys-pub/keys-ext/ws/api v0.0.0-20210328225408-abb780969ed5 h1:4BDQXxAKifqhG+Lrsc9nTFzganYPLoIWjOjXlNzA8Ts=
 github.com/keys-pub/keys-ext/ws/api v0.0.0-20210328225408-abb780969ed5/go.mod h1:LbgwcQT1R5W8EBRHmDeE6d2lr0t4EYS6J9ih2Jv4iN8=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f/go.mod h1:YRHMiVbZqh7u8xRm77CvwJNAZdDlNXwWvQ4DK0N9mYg=
