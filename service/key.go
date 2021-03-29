@@ -192,21 +192,6 @@ func (s *service) convertIfX25519ID(kid keys.ID) (keys.ID, error) {
 	return kid, nil
 }
 
-func (s *service) vaultKey(kid keys.ID) (*api.Key, error) {
-	if kid == "" {
-		return nil, nil
-	}
-	kr := keyring.New(s.vault)
-	key, err := kr.Get(kid)
-	if err != nil {
-		return nil, err
-	}
-	if key == nil {
-		return nil, keys.NewErrNotFound(kid.String())
-	}
-	return key, nil
-}
-
 func (s *service) edx25519Key(kid keys.ID) (*keys.EdX25519Key, error) {
 	if kid == "" {
 		return nil, nil
@@ -244,18 +229,3 @@ func (s *service) x25519Key(kid keys.ID) (*keys.X25519Key, error) {
 	}
 	return bk, nil
 }
-
-func (k *Key) userName() string {
-	if k.User != nil && k.User.ID != "" {
-		return k.User.ID
-	}
-	return k.ID
-}
-
-// func keyUserNames(ks []*Key) []string {
-// 	out := []string{}
-// 	for _, k := range ks {
-// 		out = append(out, k.userName())
-// 	}
-// 	return out
-// }

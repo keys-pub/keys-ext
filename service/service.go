@@ -26,7 +26,6 @@ type service struct {
 	users  *users.Users
 	clock  tsutil.Clock
 	vault  *vault.Vault
-	relay  *relay
 
 	unlocked  bool
 	unlockMtx sync.Mutex
@@ -51,7 +50,7 @@ func newService(env *Env, build Build, auth *auth, hclient khttp.Client, clock t
 		return nil, err
 	}
 	vlt := vault.New(vault.NewDB(path), vault.WithClock(clock))
-	vlt.SetClient(client)
+	vlt.SetClient(vault.NewClient(client))
 
 	db := sdb.New()
 	db.SetClock(clock)
@@ -67,7 +66,6 @@ func newService(env *Env, build Build, auth *auth, hclient khttp.Client, clock t
 		users:         usrs,
 		client:        client,
 		vault:         vlt,
-		relay:         newRelay(),
 		clock:         clock,
 		checkCancelFn: func() {},
 	}, nil

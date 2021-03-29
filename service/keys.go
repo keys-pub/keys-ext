@@ -5,10 +5,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/vault/keyring"
 	"github.com/keys-pub/keys/api"
-	"github.com/keys-pub/keys/user"
 	"github.com/pkg/errors"
 )
 
@@ -104,41 +102,4 @@ func keysSort(pks []*Key, sortField string, sortDirection SortDirection, i, j in
 		}
 		return pks[i].ID <= pks[j].ID
 	}
-}
-
-// func (s *service) resolveKeys(ctx context.Context, kids []keys.ID) ([]*Key, error) {
-// 	out := make([]*Key, 0, len(kids))
-// 	for _, kid := range kids {
-// 		key, err := s.resolveKey(ctx, kid)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		out = append(out, key)
-// 	}
-// 	return out, nil
-// }
-
-func (s *service) resolveKey(ctx context.Context, kid keys.ID) (*Key, error) {
-	// TODO: If the user was revoked, this could update every request.
-	//       The server should remove the key from channel membership on user revocation?
-	if _, err := s.userResultOrUpdate(ctx, kid); err != nil {
-		return nil, err
-	}
-	key, err := s.key(ctx, kid)
-	if err != nil {
-		return nil, err
-	}
-	return key, nil
-}
-
-// Check if we have user, if not update.
-func (s *service) userResultOrUpdate(ctx context.Context, kid keys.ID) (*user.Result, error) {
-	user, err := s.users.Get(ctx, kid)
-	if err != nil {
-		return nil, err
-	}
-	if user != nil {
-		return s.users.Get(ctx, kid)
-	}
-	return s.updateUser(ctx, kid, false)
 }

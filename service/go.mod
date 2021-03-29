@@ -9,16 +9,15 @@ require (
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/protobuf v1.5.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
-	github.com/keys-pub/keys v0.1.21-0.20210326150443-d3a790bc64b8
+	github.com/keys-pub/keys v0.1.21-0.20210326211358-fb3db764000f
 	github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20201221200935-cda646bb0b44
 	github.com/keys-pub/keys-ext/auth/mock v0.0.0-20201018000238-7b6186f1fe97
-	github.com/keys-pub/keys-ext/http/api v0.0.0-20210108232832-6bce3e9124fe
-	github.com/keys-pub/keys-ext/http/client v0.0.0-20210109001315-76134396e9aa
-	github.com/keys-pub/keys-ext/http/server v0.0.0-20210103224830-a8720c3ddd9b
+	github.com/keys-pub/keys-ext/http/api v0.0.0-20210329180739-d34ec0c002a0
+	github.com/keys-pub/keys-ext/http/client v0.0.0-20210202031128-4320eac1c167
+	github.com/keys-pub/keys-ext/http/server v0.0.0-20210329181014-5a15d0a4eba1
 	github.com/keys-pub/keys-ext/sdb v0.0.0-20210109001315-76134396e9aa
 	github.com/keys-pub/keys-ext/vault v0.0.0-20210114210042-9547899d11f5
 	github.com/keys-pub/keys-ext/wormhole v0.0.0-20210102030049-6622ca14f3bc
-	github.com/keys-pub/keys-ext/ws/api v0.0.0-20210103224830-a8720c3ddd9b
 	github.com/keys-pub/keys-ext/ws/client v0.0.0-20210109001315-76134396e9aa
 	github.com/mercari/go-grpc-interceptor v0.0.0-20180110035004-b8ad3827e82a
 	github.com/mitchellh/go-ps v1.0.0
@@ -29,7 +28,7 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/urfave/cli v1.22.5
 	golang.org/x/term v0.0.0-20210317153231-de623e64d2a6
-	google.golang.org/grpc v1.34.0
+	google.golang.org/grpc v1.36.0
 	google.golang.org/protobuf v1.26.0
 	gortc.io/stun v1.23.0 // indirect
 )
@@ -42,13 +41,13 @@ require (
 
 // replace github.com/keys-pub/keys-ext/auth/mock => ../auth/mock
 
-// replace github.com/keys-pub/keys-ext/http/api => ../http/api
+replace github.com/keys-pub/keys-ext/http/api => ../http/api
 
-// replace github.com/keys-pub/keys-ext/http/client => ../http/client
+replace github.com/keys-pub/keys-ext/http/client => ../http/client
 
-// replace github.com/keys-pub/keys-ext/http/server => ../http/server
+replace github.com/keys-pub/keys-ext/http/server => ../http/server
 
-// replace github.com/keys-pub/keys-ext/vault => ../vault
+replace github.com/keys-pub/keys-ext/vault => ../vault
 
 // replace github.com/keys-pub/keys-ext/wormhole => ../wormhole
 

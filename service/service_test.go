@@ -1,7 +1,6 @@
 package service
 
 import (
-	"bytes"
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
@@ -58,10 +57,6 @@ func testFire(t *testing.T, clock tsutil.Clock) server.Fire {
 	fi := dstore.NewMem()
 	fi.SetClock(clock)
 	return fi
-}
-
-func testSeed(b byte) *[32]byte {
-	return keys.Bytes32(bytes.Repeat([]byte{b}, 32))
 }
 
 type testEnv struct {
@@ -244,12 +239,12 @@ func redditMock(author string, msg string, subreddit string) string {
 // 	require.NoError(t, err)
 // }
 
-func testPush(t *testing.T, service *service, key *keys.EdX25519Key) {
-	_, err := service.Push(context.TODO(), &PushRequest{
-		Key: key.ID().String(),
-	})
-	require.NoError(t, err)
-}
+// func testPush(t *testing.T, service *service, key *keys.EdX25519Key) {
+// 	_, err := service.Push(context.TODO(), &PushRequest{
+// 		Key: key.ID().String(),
+// 	})
+// 	require.NoError(t, err)
+// }
 
 func testPull(t *testing.T, service *service, kid keys.ID) {
 	_, err := service.Pull(context.TODO(), &PullRequest{
