@@ -28,6 +28,10 @@ func main() {
 		log.Fatal(err)
 	}
 
+	if err := cl.Connect(); err != nil {
+		log.Fatal(err)
+	}
+
 	go func() {
 		for {
 			events, err := cl.ReadEvents()
@@ -41,10 +45,6 @@ func main() {
 			}
 		}
 	}()
-
-	if err := cl.Connect(); err != nil {
-		log.Fatal(err)
-	}
 
 	tokens := []string{}
 	for i := 0; i < 20; i++ {

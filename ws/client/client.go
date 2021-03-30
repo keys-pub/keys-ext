@@ -81,10 +81,10 @@ func (c *Client) close() {
 }
 
 func (c *Client) connect() error {
-	logger.Infof("Connect...")
 	if c.connected {
 		return errors.Errorf("already connected")
 	}
+	logger.Infof("Connect...")
 	logger.Infof("Dial %s", c.url)
 	conn, _, err := websocket.DefaultDialer.Dial(c.url.String(), nil)
 	if err != nil {
@@ -112,9 +112,7 @@ func (c *Client) Connect() error {
 // ReadEvents reads events.
 func (c *Client) ReadEvents() ([]*api.Event, error) {
 	if !c.connected {
-		if err := c.Connect(); err != nil {
-			return nil, err
-		}
+		return nil, errors.Errorf("not connected")
 	}
 
 	logger.Debugf("Read event")
@@ -132,6 +130,7 @@ func (c *Client) ReadEvents() ([]*api.Event, error) {
 }
 
 func (c *Client) sendTokens(tokens []string) error {
+	logger.Infof("Sending tokens...")
 	c.writeMtx.Lock()
 	defer c.writeMtx.Unlock()
 
