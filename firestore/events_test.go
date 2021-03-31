@@ -156,19 +156,19 @@ func TestIndex(t *testing.T) {
 	ctx := context.TODO()
 	path := testPath()
 
-	ver, err := eds.index(ctx, path, 1)
+	ver, err := eds.Increment(ctx, path, eventIdxLabel, 1)
 	require.NoError(t, err)
 	require.Equal(t, int64(1), ver)
 
-	ver, err = eds.index(ctx, path, 5)
+	ver, err = eds.Increment(ctx, path, eventIdxLabel, 5)
 	require.NoError(t, err)
 	require.Equal(t, int64(2), ver)
 
-	ver, err = eds.index(ctx, path, 3)
+	ver, err = eds.Increment(ctx, path, eventIdxLabel, 3)
 	require.NoError(t, err)
 	require.Equal(t, int64(7), ver)
 
-	ver, err = eds.index(ctx, path, 1)
+	ver, err = eds.Increment(ctx, path, eventIdxLabel, 1)
 	require.NoError(t, err)
 	require.Equal(t, int64(10), ver)
 }
