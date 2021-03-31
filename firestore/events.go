@@ -61,7 +61,7 @@ func (f *Firestore) writeBatch(ctx context.Context, path string, data [][]byte) 
 		return nil, 0, errors.Errorf("too many events to batch (max 500)")
 	}
 
-	idx, err := f.Increment(ctx, dstore.Path(path), eventIdxLabel, int64(len(data)))
+	_, idx, err := f.Increment(ctx, dstore.Path(path), eventIdxLabel, int64(len(data)))
 	if err != nil {
 		return nil, 0, errors.Wrapf(err, "failed to increment index")
 	}
@@ -201,32 +201,32 @@ func (f *Firestore) deleteCollection(ctx context.Context, path string, batchSize
 // Returns start of index.
 // If we need better performance we can shard.
 // TODO: https://firebase.google.com/docs/firestore/solutions/counters#go
-func (f *Firestore) Increment(ctx context.Context, path string, name string, n int64) (int64, error) {
+func (f *Firestore) Increment(ctx context.Context, path string, name string, n int64) (int64, int64, error) {
 	if n < 1 {
-		return 0, errors.Errorf("increment by at least 1")
+		return 0, 0, errors.Errorf("increment by at least 1")
 	}
 	exists, err := f.Exists(ctx, path)
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 	count := f.client.Doc(normalizePath(path))
 	if !exists {
 		if _, err := count.Create(ctx, map[string]interface{}{name: 0}); err != nil {
-			return 0, err
+			return 0, 0, err
 		}
 	}
 	if _, err := count.Update(ctx, []firestore.Update{
 		{Path: name, Value: firestore.Increment(n)},
 	}); err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 	res, err := count.Get(ctx)
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 	index := res.Data()[name].(int64)
 
-	return index - n + 1, nil
+	return index, index - n + 1, nil
 }
 
 func min(a int, b int) int {

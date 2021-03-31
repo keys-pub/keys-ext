@@ -156,19 +156,19 @@ func TestIndex(t *testing.T) {
 	ctx := context.TODO()
 	path := testPath()
 
-	ver, err := eds.Increment(ctx, path, eventIdxLabel, 1)
+	_, ver, err := eds.Increment(ctx, path, eventIdxLabel, 1)
 	require.NoError(t, err)
 	require.Equal(t, int64(1), ver)
 
-	ver, err = eds.Increment(ctx, path, eventIdxLabel, 5)
+	_, ver, err = eds.Increment(ctx, path, eventIdxLabel, 5)
 	require.NoError(t, err)
 	require.Equal(t, int64(2), ver)
 
-	ver, err = eds.Increment(ctx, path, eventIdxLabel, 3)
+	_, ver, err = eds.Increment(ctx, path, eventIdxLabel, 3)
 	require.NoError(t, err)
 	require.Equal(t, int64(7), ver)
 
-	ver, err = eds.Increment(ctx, path, eventIdxLabel, 1)
+	_, ver, err = eds.Increment(ctx, path, eventIdxLabel, 1)
 	require.NoError(t, err)
 	require.Equal(t, int64(10), ver)
 }
@@ -253,4 +253,21 @@ func TestUpdateWithEvents(t *testing.T) {
 	event2, err := iter.Next()
 	require.NoError(t, err)
 	require.Equal(t, []byte("test2"), event2.Data)
+}
+
+func TestIncrement(t *testing.T) {
+	eds := testFirestore(t)
+	ctx := context.TODO()
+	collection := testCollection()
+	path := dstore.Path(collection, "key1")
+
+	n, i, err := eds.Increment(ctx, path, "count", 1)
+	require.NoError(t, err)
+	require.Equal(t, int64(1), n)
+	require.Equal(t, int64(1), i)
+
+	n, i, err = eds.Increment(ctx, path, "count", 5)
+	require.NoError(t, err)
+	require.Equal(t, int64(6), n)
+	require.Equal(t, int64(2), i)
 }

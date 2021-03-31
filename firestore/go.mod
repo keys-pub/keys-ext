@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go v0.80.0 // indirect
 	cloud.google.com/go/firestore v1.5.0
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/keys-pub/keys v0.1.21-0.20210331162217-25691cb1979e
+	github.com/keys-pub/keys v0.1.21-0.20210331163518-474087d0d185
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/mod v0.4.2 // indirect
