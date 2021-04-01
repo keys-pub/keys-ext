@@ -4,13 +4,12 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
-	"github.com/keys-pub/vault/auth/api"
 )
 
 // Account ...
 type Account struct {
-	Email string  `json:"email"`
 	KID   keys.ID `json:"kid"`
+	Email string  `json:"email"`
 
 	VerifyEmailCode   string    `json:"verifyEmailCode"`
 	VerifyEmailCodeAt time.Time `json:"verifyEmailCodeAt"`
@@ -61,13 +60,11 @@ type AccountVaultsResponse struct {
 	Vaults []*AccountVault `json:"vaults"`
 }
 
-type Auth = api.Auth
-
 type AccountAuth struct {
-	AID  keys.ID `json:"aid"`
-	Auth *Auth   `json:"auth"`
+	ID   string `json:"id"`
+	Data []byte `json:"data"` // Encrypted auth data
 }
 
 type AccountAuthsResponse struct {
-	Auths []*Auth `json:"auths"`
+	Auths []*AccountAuth `json:"auths"`
 }
