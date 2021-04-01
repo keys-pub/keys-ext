@@ -19,7 +19,7 @@ func TestInviteCode(t *testing.T) {
 
 	env := newEnv(t)
 	// env.logLevel = server.DebugLevel
-	srv := newTestServer(t, env)
+	srv := newTestServerEnv(t, env)
 
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	bob := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))

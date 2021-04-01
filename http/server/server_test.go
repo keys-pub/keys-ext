@@ -12,6 +12,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/server"
 	"github.com/keys-pub/keys/dstore"
@@ -22,9 +23,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type testServer struct {
+type testServerEnv struct {
 	Server  *server.Server
 	Handler http.Handler
+	Emailer *testEmailer
 	// Addr if started
 	Addr string
 }
@@ -84,23 +86,28 @@ func newEnvWithFire(t *testing.T, fi server.Fire, clock tsutil.Clock) *env {
 	}
 }
 
-func newTestServer(t *testing.T, env *env) *testServer {
+func newTestServerEnv(t *testing.T, env *env) *testServerEnv {
 	rds := server.NewRedisTest(env.clock)
 	srv := server.New(env.fi, rds, env.client, env.clock, server.NewLogger(env.logLevel))
 	tasks := server.NewTestTasks(srv)
 	srv.SetTasks(tasks)
 	srv.SetInternalAuth(encoding.MustEncode(keys.RandBytes(32), encoding.Base62))
-	_ = srv.SetInternalKey("6a169a699f7683c04d127504a12ace3b326e8b56a61a9b315cf6b42e20d6a44a")
-	_ = srv.SetTokenKey("f41deca7f9ef4f82e53cd7351a90bc370e2bf15ed74d147226439cfde740ac18")
+	err := srv.SetInternalKey("6a169a699f7683c04d127504a12ace3b326e8b56a61a9b315cf6b42e20d6a44a")
+	require.NoError(t, err)
+	err = srv.SetTokenKey("f41deca7f9ef4f82e53cd7351a90bc370e2bf15ed74d147226439cfde740ac18")
+	require.NoError(t, err)
 	srv.SetClock(env.clock)
+	emailer := newTestEmailer()
+	srv.SetEmailer(emailer)
 	handler := server.NewHandler(srv)
-	return &testServer{
+	return &testServerEnv{
 		Server:  srv,
 		Handler: handler,
+		Emailer: emailer,
 	}
 }
 
-func (s *testServer) Serve(req *http.Request) (int, nethttp.Header, []byte) {
+func (s *testServerEnv) Serve(req *http.Request) (int, nethttp.Header, []byte) {
 	rr := httptest.NewRecorder()
 	s.Handler.ServeHTTP(rr, req)
 	return rr.Code, rr.Header(), rr.Body.Bytes()
@@ -185,7 +192,7 @@ func testJSONUnmarshal(t *testing.T, b []byte, v interface{}) {
 
 func TestInternalAuth(t *testing.T) {
 	env := newEnv(t)
-	srv := newTestServer(t, env)
+	srv := newTestServerEnv(t, env)
 
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 
@@ -194,7 +201,7 @@ func TestInternalAuth(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
-	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, string(body))
+	require.Equal(t, `{"error":{"code":403,"message":"no auth token specified"}}`, string(body))
 
 	// Set internal auth token
 	srv.Server.SetInternalAuth("testtoken")
@@ -206,4 +213,9 @@ func TestInternalAuth(t *testing.T) {
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, "", string(body))
+}
+
+func TestSpew(t *testing.T) {
+	// To avoid import warning when we use spew
+	spew.Sdump("testing")
 }

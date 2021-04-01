@@ -28,7 +28,7 @@ func (s *Server) putShare(c echo.Context) error {
 		return s.ErrBadRequest(c, errors.Errorf("message too large (greater than 512 bytes)"))
 	}
 
-	auth, _, err := s.auth(c, newAuth("Authorization", "kid", b))
+	auth, _, err := s.auth(c, newAuthRequest("Authorization", "kid", b))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}
@@ -65,7 +65,7 @@ func (s *Server) getShare(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	auth, _, err := s.auth(c, newAuth("Authorization", "kid", nil))
+	auth, _, err := s.auth(c, newAuthRequest("Authorization", "kid", nil))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}

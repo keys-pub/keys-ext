@@ -11,7 +11,7 @@ import (
 
 func TestTwitter(t *testing.T) {
 	env := newEnv(t)
-	srv := newTestServer(t, env)
+	srv := newTestServerEnv(t, env)
 
 	testdata, err := ioutil.ReadFile("testdata/1222706272849391616.json")
 	require.NoError(t, err)

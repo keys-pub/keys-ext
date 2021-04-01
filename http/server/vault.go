@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/api"
 	wsapi "github.com/keys-pub/keys-ext/ws/api"
@@ -23,20 +22,36 @@ var errVaultDeleted = errors.New("vault was deleted")
 
 func (s *Server) putVault(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
+	ctx := c.Request().Context()
 
 	body, err := readBody(c, false, 64*1024)
 	if err != nil {
 		return s.ErrResponse(c, err)
 	}
 
-	auth, _, err := s.auth(c, newAuth("Authorization", "kid", body))
+	auth, _, err := s.auth(c, newAuthRequest("Authorization", "", body))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}
 
-	ctx := c.Request().Context()
+	vid, err := keys.ParseID(c.Param("vid"))
+	if err != nil {
+		return s.ErrBadRequest(c, err)
+	}
 
-	existing, err := s.vaultInfo(ctx, auth.KID)
+	acct, err := s.findAccount(ctx, auth.KID)
+	if err != nil {
+		return s.ErrResponse(c, err)
+	}
+	if acct == nil {
+		return s.ErrForbidden(c, errors.Errorf("no account"))
+	}
+	// if !acct.VerifiedEmail {
+	// 	return s.ErrForbidden(c, errors.Errorf("account email is not verified"))
+	// }
+
+	// Check if existing
+	existing, err := s.vaultInfo(ctx, vid)
 	if err != nil {
 		return s.ErrResponse(c, err)
 	}
@@ -44,16 +59,21 @@ func (s *Server) putVault(c echo.Context) error {
 		return JSON(c, http.StatusOK, existing)
 	}
 
-	// Generate token
-	claims := jwt.StandardClaims{Subject: auth.KID.String()}
-	jt := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), claims)
-	token, err := jt.SignedString(s.tokenKey)
+	vaultCount, _, err := s.fi.Increment(ctx, dstore.Path(accountsCollection, auth.KID), "vaultCount", 1)
 	if err != nil {
-		return s.ErrResponse(c, errors.Wrapf(err, "failed to generate token"))
+		return s.ErrResponse(c, err)
+	}
+	if vaultCount > 500 {
+		return s.ErrForbidden(c, errors.Errorf("max vaults reached"))
 	}
 
-	vault := &vaultDoc{
-		ID:    auth.KID,
+	token, err := s.GenerateToken()
+	if err != nil {
+		return s.ErrResponse(c, err)
+	}
+
+	vault := &Vault{
+		ID:    vid,
 		Token: token,
 	}
 	path := dstore.Path("vaults", auth.KID)
@@ -61,7 +81,17 @@ func (s *Server) putVault(c echo.Context) error {
 		return s.ErrResponse(c, err)
 	}
 
-	out := &api.VaultToken{KID: auth.KID, Token: token}
+	// Save account vault
+	av := &api.AccountVault{
+		AID: auth.KID,
+		VID: vid,
+	}
+	accountPath := dstore.Path(accountsCollection, auth.KID, "vaults", vid)
+	if err := s.fi.Create(ctx, accountPath, dstore.From(av)); err != nil {
+		return s.ErrResponse(c, err)
+	}
+
+	out := &VaultInfo{KID: auth.KID, Token: token}
 	return JSON(c, http.StatusOK, out)
 }
 
@@ -69,26 +99,30 @@ func (s *Server) getVaultInfo(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	auth, _, err := s.auth(c, newAuth("Authorization", "kid", nil))
+	auth, _, err := s.auth(c, newAuthRequest("Authorization", "vid", nil))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}
 
-	token, err := s.vaultInfo(ctx, auth.KID)
+	info, err := s.vaultInfo(ctx, auth.KID)
 	if err != nil {
 		return s.ErrResponse(c, err)
 	}
-	if token == nil {
+	if info == nil {
 		return s.ErrNotFound(c, errors.Errorf("vault not found"))
 	}
-	return JSON(c, http.StatusOK, token)
+	return JSON(c, http.StatusOK, info)
 }
 
-func (s *Server) vaultInfo(ctx context.Context, kid keys.ID) (*api.VaultToken, error) {
+type VaultInfo struct {
+	KID   keys.ID `json:"kid"`
+	Token string  `json:"token"`
+	Usage int64   `json:"usage"`
+}
 
+func (s *Server) vaultInfo(ctx context.Context, kid keys.ID) (*VaultInfo, error) {
 	path := dstore.Path("vaults", kid)
-
-	var vault vaultDoc
+	var vault Vault
 	ok, err := s.fi.Load(ctx, path, &vault)
 	if err != nil {
 		return nil, err
@@ -97,13 +131,33 @@ func (s *Server) vaultInfo(ctx context.Context, kid keys.ID) (*api.VaultToken, e
 		return nil, nil
 	}
 
-	return &api.VaultToken{KID: kid, Token: vault.Token}, nil
+	return &VaultInfo{KID: kid, Token: vault.Token, Usage: vault.Usage}, nil
+}
+
+func (s *Server) vaults(ctx context.Context, kids []keys.ID) (map[keys.ID]*Vault, error) {
+	m := map[keys.ID]*Vault{}
+	paths := []string{}
+	for _, kid := range kids {
+		paths = append(paths, dstore.Path("vaults", kid))
+	}
+	docs, err := s.fi.GetAll(ctx, paths)
+	if err != nil {
+		return nil, err
+	}
+	for _, doc := range docs {
+		var vault Vault
+		if err := doc.To(&vault); err != nil {
+			return nil, err
+		}
+		m[vault.ID] = &vault
+	}
+	return m, nil
 }
 
 func (s *Server) listVault(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	auth, ext, err := s.auth(c, newAuth("Authorization", "kid", nil))
+	auth, ext, err := s.auth(c, newAuthRequest("Authorization", "vid", nil))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}
@@ -159,7 +213,7 @@ func (s *Server) postVault(c echo.Context) error {
 		return s.ErrResponse(c, err)
 	}
 
-	auth, ext, err := s.auth(c, newAuth("Authorization", "kid", b))
+	auth, ext, err := s.auth(c, newAuthRequest("Authorization", "vid", b))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}
@@ -173,6 +227,7 @@ func (s *Server) postVault(c echo.Context) error {
 	}
 
 	var data [][]byte
+	total := int64(0)
 	switch ext {
 	case "msgpack":
 		// Msgpack uses an array of bytes
@@ -198,13 +253,21 @@ func (s *Server) postVault(c echo.Context) error {
 		return err
 	}
 
+	// Increment usage
+	for _, d := range data {
+		total += int64(len(d))
+	}
+	if _, _, err := s.fi.Increment(ctx, path, "usage", total); err != nil {
+		return s.ErrResponse(c, err)
+	}
+
 	// If we have a vault token, notify.
 	doc, err := s.fi.Get(ctx, path)
 	if err != nil {
 		return s.ErrResponse(c, err)
 	}
 	if doc != nil {
-		var vault vaultDoc
+		var vault Vault
 		if err := doc.To(&vault); err != nil {
 			return s.ErrResponse(c, err)
 		}
@@ -221,7 +284,7 @@ func (s *Server) deleteVault(c echo.Context) error {
 	ctx := c.Request().Context()
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	auth, _, err := s.auth(c, newAuth("Authorization", "kid", nil))
+	auth, _, err := s.auth(c, newAuthRequest("Authorization", "vid", nil))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}
@@ -255,7 +318,7 @@ func (s *Server) headVault(c echo.Context) error {
 	ctx := c.Request().Context()
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	auth, _, err := s.auth(c, newAuth("Authorization", "kid", nil))
+	auth, _, err := s.auth(c, newAuthRequest("Authorization", "vid", nil))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}
@@ -327,7 +390,7 @@ func (s *Server) postVaultsStatus(c echo.Context) error {
 
 	vaults := make([]*api.VaultStatus, 0, len(docs))
 	for _, doc := range docs {
-		var vault vaultDoc
+		var vault Vault
 		if err := doc.To(&vault); err != nil {
 			return s.ErrResponse(c, err)
 		}
@@ -361,12 +424,14 @@ func (s *Server) postVaultsStatus(c echo.Context) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-type vaultDoc struct {
+type Vault struct {
 	ID keys.ID `json:"id" msgpack:"id"`
 
 	Index     int64  `json:"idx,omitempty" msgpack:"idx,omitempty"`
 	Timestamp int64  `json:"ts,omitempty" msgpack:"ts,omitempty"`
 	Token     string `json:"token,omitempty" msgpack:"token,omitempty"`
+
+	Usage int64 `json:"usage,omitempty" msgpack:"usage,omitempty"`
 }
 
 func (s *Server) notifyEvent(ctx context.Context, vt *api.VaultToken, idx int64) error {

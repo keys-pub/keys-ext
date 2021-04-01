@@ -11,8 +11,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// auth parameters for request.
-type auth struct {
+// authRequest parameters for request.
+type authRequest struct {
 	Header string
 
 	// Optional
@@ -25,8 +25,8 @@ type auth struct {
 }
 
 // newAuth returns new auth parameters.
-func newAuth(header string, param string, content []byte) *auth {
-	return &auth{
+func newAuthRequest(header string, param string, content []byte) *authRequest {
+	return &authRequest{
 		Header:  header,
 		Param:   param,
 		Content: content,
@@ -39,7 +39,7 @@ func newAuth(header string, param string, content []byte) *auth {
 // 	return a
 // }
 
-func (s *Server) auth(c echo.Context, auth *auth) (*http.AuthResult, string, error) {
+func (s *Server) auth(c echo.Context, auth *authRequest) (*http.AuthResult, string, error) {
 	request := c.Request()
 
 	if auth.Now.IsZero() {
@@ -52,7 +52,7 @@ func (s *Server) auth(c echo.Context, auth *auth) (*http.AuthResult, string, err
 		auth.BaseURL = s.URL
 	}
 
-	authReq, ext, err := authRequest(c, auth)
+	authReq, ext, err := newHTTPAuthRequest(c, auth)
 	if err != nil {
 		return nil, "", err
 	}
@@ -63,7 +63,7 @@ func (s *Server) auth(c echo.Context, auth *auth) (*http.AuthResult, string, err
 	return res, ext, nil
 }
 
-func authRequest(c echo.Context, auth *auth) (*http.AuthRequest, string, error) {
+func newHTTPAuthRequest(c echo.Context, auth *authRequest) (*http.AuthRequest, string, error) {
 	request := c.Request()
 	url := auth.BaseURL + c.Request().URL.String()
 	contentHash := http.ContentHash(auth.Content)

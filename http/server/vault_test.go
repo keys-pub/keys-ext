@@ -41,7 +41,7 @@ func TestVaultFirestore(t *testing.T) {
 }
 
 func testVault(t *testing.T, env *env, alice *keys.EdX25519Key) {
-	srv := newTestServer(t, env)
+	srv := newTestServerEnv(t, env)
 	clock := env.clock
 
 	rand := keys.GenerateEdX25519Key()
@@ -165,7 +165,7 @@ func testVault(t *testing.T, env *env, alice *keys.EdX25519Key) {
 	req, err = http.NewAuthRequest("DELETE", dstore.Path("vault", alice.ID()), nil, "", env.clock.Now(), rand)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
-	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, string(body))
+	require.Equal(t, `{"error":{"code":403,"message":"invalid kid"}}`, string(body))
 	require.Equal(t, http.StatusForbidden, code)
 
 	// DEL /vault/:kid
@@ -235,7 +235,7 @@ func TestVaultAuth(t *testing.T) {
 }
 
 func testVaultAuth(t *testing.T, env *env, key *keys.EdX25519Key) {
-	srv := newTestServer(t, env)
+	srv := newTestServerEnv(t, env)
 	clock := env.clock
 
 	randKey := keys.GenerateEdX25519Key()
@@ -245,14 +245,14 @@ func testVaultAuth(t *testing.T, env *env, key *keys.EdX25519Key) {
 	require.NoError(t, err)
 	code, _, body := srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
-	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, string(body))
+	require.Equal(t, `{"error":{"code":403,"message":"missing Authorization header"}}`, string(body))
 
 	// GET /vault/:kid (invalid key)
 	req, err = http.NewAuthRequest("GET", dstore.Path("vault", key.ID()), nil, "", clock.Now(), randKey)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
-	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, string(body))
+	require.Equal(t, `{"error":{"code":403,"message":"invalid kid"}}`, string(body))
 
 	// POST /vault/:kid (invalid key)
 	content := []byte(`[{"data":"dGVzdGluZzE="},{"data":"dGVzdGluZzI="}]`)
@@ -261,7 +261,7 @@ func testVaultAuth(t *testing.T, env *env, key *keys.EdX25519Key) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
-	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, string(body))
+	require.Equal(t, `{"error":{"code":403,"message":"invalid kid"}}`, string(body))
 
 	// GET /vault/:kid
 	req, err = http.NewAuthRequest("GET", dstore.Path("vault", key.ID()), nil, "", clock.Now(), key)
@@ -276,7 +276,7 @@ func testVaultAuth(t *testing.T, env *env, key *keys.EdX25519Key) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(reqReplay)
 	require.Equal(t, http.StatusForbidden, code)
-	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, string(body))
+	require.Equal(t, `{"error":{"code":403,"message":"nonce collision"}}`, string(body))
 
 	// GET /vault/:kid (invalid authorization)
 	authHeader := req.Header.Get("Authorization")
@@ -286,7 +286,7 @@ func testVaultAuth(t *testing.T, env *env, key *keys.EdX25519Key) {
 	req.Header.Set("Authorization", randKey.ID().String()+":"+sig)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
-	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, string(body))
+	require.Equal(t, `{"error":{"code":403,"message":"invalid kid"}}`, string(body))
 }
 
 func TestVaultMsgpack(t *testing.T) {
@@ -296,7 +296,7 @@ func TestVaultMsgpack(t *testing.T) {
 
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 
-	srv := newTestServer(t, env)
+	srv := newTestServerEnv(t, env)
 	clock := env.clock
 
 	// POST /vault/:kid
@@ -327,15 +327,108 @@ func TestVaultMsgpack(t *testing.T) {
 	require.Equal(t, []byte("test2"), resp.Vault[1].Data)
 }
 
-func TestVaultStatus(t *testing.T) {
+func TestVaultAccount(t *testing.T) {
 	env := newEnv(t)
 	// env.logLevel = server.DebugLevel
 	// keys.SetLogger(keys.NewLogger(keys.DebugLevel))
 
+	srv := newTestServerEnv(t, env)
+	clock := env.clock
+	alice := keys.NewEdX25519KeyFromSeed(testSeed(0x01))
+
 	vault := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 
-	srv := newTestServer(t, env)
+	// PUT /vault/:kid (as alice, no account)
+	req, err := http.NewAuthRequest("PUT", dstore.Path("vault", vault.ID()), nil, "", clock.Now(), alice)
+	require.NoError(t, err)
+	code, _, body := srv.Serve(req)
+	require.Equal(t, http.StatusForbidden, code)
+	require.Equal(t, `{"error":{"code":403,"message":"no account"}}`, string(body))
+
+	testAccount(t, env, srv, alice, "alice@keys.pub")
+
+	// // PUT /vault/:kid (as alice, unverified)
+	// req, err = http.NewAuthRequest("PUT", dstore.Path("vault", vault.ID()), nil, "", clock.Now(), alice)
+	// require.NoError(t, err)
+	// code, _, body = srv.Serve(req)
+	// require.Equal(t, http.StatusForbidden, code)
+	// require.Equal(t, `{"error":{"code":403,"message":"account email is not verified"}}`, string(body))
+
+	// testVerifyEmail(t, env, srv, alice, "alice@keys.pub")
+
+	// PUT /vault/:kid (as alice, ok)
+	req, err = http.NewAuthRequest("PUT", dstore.Path("vault", vault.ID()), nil, "", clock.Now(), alice)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusOK, code)
+	var create api.VaultToken
+	testJSONUnmarshal(t, []byte(body), &create)
+	require.Equal(t, http.StatusOK, code)
+	require.NotEmpty(t, create.Token)
+
+	// POST /vault/:kid
+	vault1 := [][]byte{
+		bytes.Repeat([]byte{0x01}, 1024),
+		bytes.Repeat([]byte{0x02}, 1024),
+		bytes.Repeat([]byte{0x03}, 1024),
+	}
+	data1, err := msgpack.Marshal(vault1)
+	require.NoError(t, err)
+	req, err = http.NewAuthRequest("POST", dstore.Path("vault", alice.ID())+".msgpack", bytes.NewReader(data1), http.ContentHash(data1), clock.Now(), alice)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusOK, code)
+	require.Equal(t, `{}`, string(body))
+
+	// GET /accounts/:kid/vaults
+	req, err = http.NewAuthRequest("GET", dstore.Path("account", alice.ID(), "vaults"), nil, "", clock.Now(), alice)
+	require.NoError(t, err)
+	code, _, body = srv.Serve(req)
+	require.Equal(t, http.StatusOK, code)
+	var resp api.AccountVaultsResponse
+	err = json.Unmarshal(body, &resp)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(resp.Vaults))
+	require.Equal(t, int64(3072), resp.Vaults[0].Usage)
+}
+
+func TestVaultMax(t *testing.T) {
+	env := newEnv(t)
+	// env.logLevel = server.DebugLevel
+	// keys.SetLogger(keys.NewLogger(keys.DebugLevel))
+
+	srv := newTestServerEnv(t, env)
 	clock := env.clock
+	alice := keys.NewEdX25519KeyFromSeed(testSeed(0x01))
+	testAccount(t, env, srv, alice, "alice@keys.pub")
+	testVerifyEmail(t, env, srv, alice, "alice@keys.pub")
+
+	// Add too many vaults
+	for i := 0; i < 500; i++ {
+		vault := keys.GenerateEdX25519Key()
+		req, err := http.NewAuthRequest("PUT", dstore.Path("vault", vault.ID()), nil, "", clock.Now(), alice)
+		require.NoError(t, err)
+		code, _, _ := srv.Serve(req)
+		require.Equal(t, http.StatusOK, code)
+	}
+
+	req, err := http.NewAuthRequest("PUT", dstore.Path("vault", keys.GenerateEdX25519Key().ID()), nil, "", clock.Now(), alice)
+	require.NoError(t, err)
+	code, _, body := srv.Serve(req)
+	require.Equal(t, http.StatusForbidden, code)
+	require.Equal(t, `{"error":{"code":403,"message":"max vaults reached"}}`, string(body))
+}
+
+func TestVaultStatus(t *testing.T) {
+	env := newEnv(t)
+	// env.logLevel = server.DebugLevel
+	// keys.SetLogger(keys.NewLogger(keys.DebugLevel))
+	srv := newTestServerEnv(t, env)
+	clock := env.clock
+
+	alice := keys.NewEdX25519KeyFromSeed(testSeed(0x01))
+	testAccount(t, env, srv, alice, "alice@keys.pub")
+	vault := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 
 	// PUT /vault/:kid
 	req, err := http.NewAuthRequest("PUT", dstore.Path("vault", vault.ID()), nil, "", clock.Now(), vault)
@@ -393,6 +486,6 @@ func TestVaultStatus(t *testing.T) {
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, 1, len(statusResp.Vaults))
 	require.Equal(t, vault.ID(), statusResp.Vaults[0].ID)
-	require.Equal(t, int64(1234567890004), statusResp.Vaults[0].Timestamp)
+	require.Equal(t, int64(1234567890011), statusResp.Vaults[0].Timestamp)
 	require.Equal(t, int64(1), statusResp.Vaults[0].Index)
 }

@@ -14,7 +14,7 @@ func TestAdminCheck(t *testing.T) {
 	// SetContextLogger(NewContextLogger(DebugLevel))
 
 	env := newEnv(t)
-	srv := newTestServer(t, env)
+	srv := newTestServerEnv(t, env)
 	clock := env.clock
 
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
@@ -37,14 +37,14 @@ func TestAdminCheck(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
-	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, string(body))
+	require.Equal(t, `{"error":{"code":403,"message":"not authorized"}}`, string(body))
 
 	// POST /admin/check/all
 	req, err = http.NewAuthRequest("POST", "/admin/check/"+alice.ID().String(), nil, "", clock.Now(), bob)
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
-	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, string(body))
+	require.Equal(t, `{"error":{"code":403,"message":"not authorized"}}`, string(body))
 
 	// Add admin
 	srv.Server.SetAdmins([]keys.ID{bob.ID()})

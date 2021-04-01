@@ -16,7 +16,7 @@ func (s *Server) adminCheck(c echo.Context) error {
 	request := c.Request()
 	ctx := request.Context()
 
-	auth, _, err := s.auth(c, newAuth("Authorization", "", nil))
+	auth, _, err := s.auth(c, newAuthRequest("Authorization", "", nil))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}

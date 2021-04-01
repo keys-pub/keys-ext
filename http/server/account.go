@@ -8,6 +8,7 @@ import (
 
 	"github.com/badoux/checkmail"
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/http"
 	"github.com/labstack/echo/v4"
@@ -15,58 +16,6 @@ import (
 )
 
 var accountsCollection = "accounts"
-
-// Account document.
-type Account struct {
-	Email string  `json:"email"`
-	KID   keys.ID `json:"kid"`
-
-	VerifyEmailCode   string    `json:"verifyEmailCode"`
-	VerifyEmailCodeAt time.Time `json:"verifyEmailCodeAt"`
-	VerifiedEmail     bool      `json:"verifiedEmail"`
-	VerifiedEmailAt   time.Time `json:"verifiedEmailAt"`
-}
-
-// AccountVault document.
-type AccountVault struct {
-	KID keys.ID `json:"kid"`
-	VID keys.ID `json:"vid"`
-}
-
-// SendEmailVerificationResponse ...
-type SendEmailVerificationResponse struct {
-	Email string  `json:"email"`
-	KID   keys.ID `json:"kid"`
-}
-
-// AccountCreateRequest ...
-type AccountCreateRequest struct {
-	Email string `json:"email"`
-}
-
-// AccountCreateResponse ...
-type AccountCreateResponse struct {
-	Email string  `json:"email"`
-	KID   keys.ID `json:"kid"`
-}
-
-// AccountResponse ...
-type AccountResponse struct {
-	Email         string  `json:"email"`
-	KID           keys.ID `json:"kid"`
-	VerifiedEmail bool    `json:"verifiedEmail"`
-}
-
-// AccountVerifyEmailRequest ...
-type AccountVerifyEmailRequest struct {
-	Email string `json:"email"`
-	Code  string `json:"code"`
-}
-
-// AccountVaultsResponse ...
-type AccountVaultsResponse struct {
-	Vaults []*AccountVault `json:"vaults"`
-}
 
 func (s *Server) putAccount(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
@@ -77,12 +26,12 @@ func (s *Server) putAccount(c echo.Context) error {
 		return s.ErrResponse(c, err)
 	}
 
-	auth, _, err := s.auth(c, newAuth("Authorization", "kid", body))
+	auth, _, err := s.auth(c, newAuthRequest("Authorization", "aid", body))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}
 
-	var req AccountCreateRequest
+	var req api.AccountCreateRequest
 	if err := json.Unmarshal(body, &req); err != nil {
 		return s.ErrBadRequest(c, err)
 	}
@@ -100,7 +49,7 @@ func (s *Server) putAccount(c echo.Context) error {
 
 	path := dstore.Path(accountsCollection, auth.KID)
 
-	acct := &Account{
+	acct := &api.Account{
 		Email: req.Email,
 		KID:   auth.KID,
 	}
@@ -117,7 +66,7 @@ func (s *Server) putAccount(c echo.Context) error {
 		return s.ErrResponse(c, err)
 	}
 
-	out := &AccountCreateResponse{
+	out := &api.AccountCreateResponse{
 		Email: acct.Email,
 		KID:   acct.KID,
 	}
@@ -128,7 +77,7 @@ func (s *Server) postAccountSendVerifyEmail(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	auth, _, err := s.auth(c, newAuth("Authorization", "kid", nil))
+	auth, _, err := s.auth(c, newAuthRequest("Authorization", "aid", nil))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}
@@ -151,7 +100,7 @@ func (s *Server) postAccountSendVerifyEmail(c echo.Context) error {
 		return s.ErrResponse(c, err)
 	}
 
-	out := &SendEmailVerificationResponse{
+	out := &api.SendEmailVerificationResponse{
 		Email: acct.Email,
 		KID:   acct.KID,
 	}
@@ -162,7 +111,7 @@ func (s *Server) getAccount(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	auth, _, err := s.auth(c, newAuth("Authorization", "kid", nil))
+	auth, _, err := s.auth(c, newAuthRequest("Authorization", "aid", nil))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}
@@ -175,7 +124,7 @@ func (s *Server) getAccount(c echo.Context) error {
 		return s.ErrNotFound(c, keys.NewErrNotFound(auth.KID.String()))
 	}
 
-	out := &AccountResponse{
+	out := &api.AccountResponse{
 		Email:         acct.Email,
 		KID:           acct.KID,
 		VerifiedEmail: acct.VerifiedEmail,
@@ -183,7 +132,7 @@ func (s *Server) getAccount(c echo.Context) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-func (s *Server) findAccount(ctx context.Context, kid keys.ID) (*Account, error) {
+func (s *Server) findAccount(ctx context.Context, kid keys.ID) (*api.Account, error) {
 	path := dstore.Path(accountsCollection, kid)
 
 	doc, err := s.fi.Get(ctx, path)
@@ -194,7 +143,7 @@ func (s *Server) findAccount(ctx context.Context, kid keys.ID) (*Account, error)
 		return nil, nil
 	}
 
-	var acct Account
+	var acct api.Account
 	if err := doc.To(&acct); err != nil {
 		return nil, err
 	}
@@ -202,7 +151,7 @@ func (s *Server) findAccount(ctx context.Context, kid keys.ID) (*Account, error)
 	return &acct, nil
 }
 
-func (s *Server) findAccountByEmail(ctx context.Context, email string) (*Account, error) {
+func (s *Server) findAccountByEmail(ctx context.Context, email string) (*api.Account, error) {
 	docs, err := s.fi.Documents(ctx, dstore.Path(accountsCollection), dstore.Where("email", "==", email))
 	if err != nil {
 		return nil, err
@@ -210,14 +159,14 @@ func (s *Server) findAccountByEmail(ctx context.Context, email string) (*Account
 	if len(docs) == 0 {
 		return nil, nil
 	}
-	var acct Account
+	var acct api.Account
 	if err := docs[0].To(&acct); err != nil {
 		return nil, err
 	}
 	return &acct, nil
 }
 
-func (s *Server) sendEmailVerification(c echo.Context, acct *Account) error {
+func (s *Server) sendEmailVerification(c echo.Context, acct *api.Account) error {
 	ctx := c.Request().Context()
 
 	verifyCode := keys.RandDigits(6)
@@ -252,12 +201,12 @@ func (s *Server) postAccountVerifyEmail(c echo.Context) error {
 		return s.ErrResponse(c, err)
 	}
 
-	auth, _, err := s.auth(c, newAuth("Authorization", "kid", body))
+	auth, _, err := s.auth(c, newAuthRequest("Authorization", "aid", body))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}
 
-	var req AccountVerifyEmailRequest
+	var req api.AccountVerifyEmailRequest
 	if err := json.Unmarshal(body, &req); err != nil {
 		return s.ErrBadRequest(c, err)
 	}
@@ -297,75 +246,10 @@ func (s *Server) postAccountVerifyEmail(c echo.Context) error {
 		return s.ErrNotFound(c, keys.NewErrNotFound(auth.KID.String()))
 	}
 
-	out := &AccountResponse{
+	out := &api.AccountResponse{
 		Email:         after.Email,
 		KID:           after.KID,
 		VerifiedEmail: after.VerifiedEmail,
 	}
-	return c.JSON(http.StatusOK, out)
-}
-
-func (s *Server) putAccountVault(c echo.Context) error {
-	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
-	ctx := c.Request().Context()
-
-	auth, _, err := s.auth(c, newAuth("Authorization", "kid", nil))
-	if err != nil {
-		return s.ErrForbidden(c, err)
-	}
-
-	vid, err := keys.ParseID(c.Param("vid"))
-	if err != nil {
-		return s.ErrBadRequest(c, errors.Wrapf(err, "invalid vid"))
-	}
-	path := dstore.Path(accountsCollection, auth.KID, "vaults", vid)
-
-	av := &AccountVault{
-		KID: auth.KID,
-		VID: vid,
-	}
-
-	if err := s.fi.Create(ctx, path, dstore.From(av)); err != nil {
-		switch err.(type) {
-		case dstore.ErrPathExists:
-			return s.ErrConflict(c, errors.Errorf("account already exists"))
-		}
-		return s.ErrResponse(c, err)
-	}
-
-	var out struct{}
-	return c.JSON(http.StatusOK, out)
-}
-
-func (s *Server) getAccountVaults(c echo.Context) error {
-	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
-	ctx := c.Request().Context()
-
-	auth, _, err := s.auth(c, newAuth("Authorization", "kid", nil))
-	if err != nil {
-		return s.ErrForbidden(c, err)
-	}
-	iter, err := s.fi.DocumentIterator(ctx, dstore.Path(accountsCollection, auth.KID, "vaults"))
-	if err != nil {
-		return s.ErrResponse(c, err)
-	}
-	defer iter.Release()
-
-	avs := []*AccountVault{}
-	for {
-		doc, err := iter.Next()
-		if err != nil {
-			return s.ErrResponse(c, err)
-		}
-		if doc == nil {
-			break
-		}
-		var av AccountVault
-		if err := doc.To(&av); err != nil {
-			return s.ErrResponse(c, err)
-		}
-		avs = append(avs, &av)
-	}
-	out := AccountVaultsResponse{Vaults: avs}
 	return c.JSON(http.StatusOK, out)
 }

@@ -156,12 +156,12 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	e.POST("/cron/check", s.cronCheck)
 
 	// Vault
-	e.PUT("/vault/:kid", s.putVault)
-	e.GET("/vault/:kid/info", s.getVaultInfo)
-	e.POST("/vault/:kid", s.postVault)
-	e.GET("/vault/:kid", s.listVault)
-	e.DELETE("/vault/:kid", s.deleteVault)
-	e.HEAD("/vault/:kid", s.headVault)
+	e.PUT("/vault/:vid", s.putVault)
+	e.GET("/vault/:vid/info", s.getVaultInfo)
+	e.POST("/vault/:vid", s.postVault)
+	e.GET("/vault/:vid", s.listVault)
+	e.DELETE("/vault/:vid", s.deleteVault)
+	e.HEAD("/vault/:vid", s.headVault)
 	e.POST("/vaults/status", s.postVaultsStatus)
 
 	// Disco
@@ -196,13 +196,15 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	e.POST("/admin/check/:kid", s.adminCheck)
 
 	// Accounts
-	e.PUT("/account/:kid", s.putAccount)
-	e.GET("/account/:kid", s.getAccount)
-	e.POST("/account/:kid/verifyemail", s.postAccountVerifyEmail)
-	e.POST("/account/:kid/sendverifyemail", s.postAccountSendVerifyEmail)
-	e.GET("/account/:kid/vaults", s.getAccountVaults)
-	e.PUT("/account/:kid/vault/:vid", s.putAccountVault)
+	e.PUT("/account/:aid", s.putAccount)
+	e.GET("/account/:aid", s.getAccount)
+	e.POST("/account/:aid/verifyemail", s.postAccountVerifyEmail)
+	e.POST("/account/:aid/sendverifyemail", s.postAccountSendVerifyEmail)
+	e.GET("/account/:aid/vaults", s.getAccountVaults)
 
+	e.POST("/account/:aid/auths", s.postAccountAuth)
+	e.GET("/account/:aid/auths", s.getAccountAuths)
+	e.DELETE("/account/:aid/auth/:id", s.deleteAuth)
 }
 
 // SetClock sets clock.

@@ -16,7 +16,7 @@ func TestDisco(t *testing.T) {
 
 	env := newEnv(t)
 	// env.logLevel = server.DebugLevel
-	srv := newTestServer(t, env)
+	srv := newTestServerEnv(t, env)
 
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	charlie := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x03}, 32)))
@@ -56,7 +56,7 @@ func TestDisco(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
-	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, string(body))
+	require.Equal(t, `{"error":{"code":403,"message":"invalid kid"}}`, string(body))
 
 	// DEL /disco/:kid/:rid
 	req, err = http.NewAuthRequest("DELETE", dstore.Path("disco", alice.ID(), charlie.ID()), nil, "", env.clock.Now(), alice)

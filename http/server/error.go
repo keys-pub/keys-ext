@@ -64,8 +64,7 @@ func (s *Server) ErrEntityTooLarge(c echo.Context, err error) error {
 
 // ErrForbidden response.
 func (s *Server) ErrForbidden(c echo.Context, err error) error {
-	// We hide the source of the error to not expose any metadata.
-	return s.ErrResponse(c, newError(http.StatusForbidden, errors.Errorf("auth failed")))
+	return s.ErrResponse(c, newError(http.StatusForbidden, err))
 }
 
 // ErrTooManyRequests response.

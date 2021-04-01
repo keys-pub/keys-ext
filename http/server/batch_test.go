@@ -7,7 +7,7 @@ package server_test
 
 // 	channel, channel2 := tk.channel, tk.channel2
 
-// 	srv := newTestServer(t, env)
+// 	srv := newTestServerEnv(t, env)
 // 	clock := env.clock
 
 // 	reqs := api.BatchRequests{

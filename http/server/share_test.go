@@ -16,7 +16,7 @@ func TestShare(t *testing.T) {
 
 	env := newEnv(t)
 	// env.logLevel = server.DebugLevel
-	srv := newTestServer(t, env)
+	srv := newTestServerEnv(t, env)
 
 	key := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
 	key2 := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x02}, 32)))
@@ -35,7 +35,7 @@ func TestShare(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
-	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, string(body))
+	require.Equal(t, `{"error":{"code":403,"message":"invalid kid"}}`, string(body))
 
 	// GET /share/:kid
 	req, err = http.NewAuthRequest("GET", dstore.Path("share", key.ID()), nil, "", env.clock.Now(), key)
@@ -78,5 +78,5 @@ func TestShare(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
-	require.Equal(t, `{"error":{"code":403,"message":"auth failed"}}`, string(body))
+	require.Equal(t, `{"error":{"code":403,"message":"invalid kid"}}`, string(body))
 }

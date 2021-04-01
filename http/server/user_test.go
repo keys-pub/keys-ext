@@ -14,7 +14,7 @@ import (
 func TestUserSearch(t *testing.T) {
 	env := newEnv(t)
 	// env.logLevel = server.DebugLevel
-	srv := newTestServer(t, env)
+	srv := newTestServerEnv(t, env)
 
 	// GET /user/search
 	req, err := http.NewRequest("GET", "/user/search", nil)
@@ -149,7 +149,7 @@ func pretty(t *testing.T, b []byte) string {
 func TestUserGet(t *testing.T) {
 	env := newEnv(t)
 	// env.logLevel = server.DebugLevel
-	srv := newTestServer(t, env)
+	srv := newTestServerEnv(t, env)
 
 	// Alice
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
@@ -272,7 +272,7 @@ func TestUserDuplicate(t *testing.T) {
 
 	env := newEnv(t)
 	// env.logLevel = server.DebugLevel
-	srv := newTestServer(t, env)
+	srv := newTestServerEnv(t, env)
 
 	// Alice
 	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
