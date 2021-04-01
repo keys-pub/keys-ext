@@ -31,7 +31,9 @@ jobs:
           sudo apt update
           sudo apt install libfido2-dev
       - name: Install golangci-lint
-        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.39.0
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.39.0
+          echo "::add-path::$(go env GOPATH)/bin"
       - name: Run golangci-lint
         shell: bash
         run: bash -x ./lint.sh
