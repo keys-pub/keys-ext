@@ -30,10 +30,8 @@ jobs:
           sudo apt-add-repository ppa:yubico/stable
           sudo apt update
           sudo apt install libfido2-dev
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v2
-        with:
-          version: latest
+      - name: Install golangci-lint
+        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.39.0
       - name: Run golangci-lint
         shell: bash
         run: bash -x ./lint.sh
