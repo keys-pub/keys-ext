@@ -5,7 +5,7 @@ set -e -u -o pipefail # Fail on error
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd "$dir"
 
-PATH=$PATH:$HOME/bin
+export PATH=$PATH:$(go env GOPATH)/bin
 
 (cd auth/fido2 && golangci-lint run --timeout 10m)
 (cd auth/mock && golangci-lint run --timeout 10m)
