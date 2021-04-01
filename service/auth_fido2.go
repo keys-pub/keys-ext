@@ -192,7 +192,7 @@ func hmacSecret(ctx context.Context, auths fido2.FIDO2Server, vlt *vault.Vault, 
 		PIN:            pin,
 		ClientDataHash: cdh[:],
 		RPID:           rp.ID,
-		CredentialID:   credID,
+		CredentialIDs:  [][]byte{credID},
 		Salt:           authDevice.Provision.Salt,
 	})
 	if err != nil {
