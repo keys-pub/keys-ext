@@ -84,9 +84,13 @@ func (c *client) readPump() {
 
 		tokens := strings.Split(string(data), ",")
 		for _, token := range tokens {
-			_, err := jwt.Parse(token, c.jwtTokens)
+			t, err := jwt.Parse(token, c.jwtTokens)
 			if err != nil {
 				log.Printf("invalid token\n")
+				return
+			}
+			if err := t.Claims.Valid(); err != nil {
+				log.Printf("invalid token (claims)\n")
 				return
 			}
 
