@@ -163,9 +163,16 @@ func (s *server) HMACSecret(ctx context.Context, req *fido2.HMACSecretRequest) (
 		return nil, errors.Errorf("device not found: %s", req.Device)
 	}
 
-	id := encoding.MustEncode(req.CredentialID, encoding.Base62)
-	cred, ok := dev.credentials[id]
-	if !ok {
+	var cred *credential
+	for _, credID := range req.CredentialIDs {
+		id := encoding.MustEncode(credID, encoding.Base62)
+		c := dev.credentials[id]
+		if c != nil {
+			cred = c
+			break
+		}
+	}
+	if cred == nil {
 		return nil, errors.Errorf("credential not found")
 	}
 
