@@ -11,6 +11,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/client"
+	"github.com/keys-pub/keys-ext/http/server"
 	"github.com/keys-pub/keys/http"
 	"github.com/keys-pub/keys/user"
 	"github.com/stretchr/testify/require"
@@ -70,7 +71,7 @@ func githubMock(name string, id string, msg string) string {
 func TestUserSearch(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
 	// keys.SetLogger(keys.NewLogger(keys.DebugLevel))
-	env, closeFn := newEnv(t)
+	env, closeFn := newEnv(t, server.NoLevel)
 	defer closeFn()
 
 	client := newTestClient(t, env)
@@ -111,7 +112,7 @@ func TestUserSearch(t *testing.T) {
 func TestUser(t *testing.T) {
 	// SetLogger(NewLogger(DebugLevel))
 	// keys.SetLogger(keys.NewLogger(keys.DebugLevel))
-	env, closeFn := newEnv(t)
+	env, closeFn := newEnv(t, server.NoLevel)
 	defer closeFn()
 
 	client := newTestClient(t, env)

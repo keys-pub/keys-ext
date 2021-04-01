@@ -8,6 +8,7 @@ import (
 
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/http/client"
+	"github.com/keys-pub/keys-ext/http/server"
 	"github.com/stretchr/testify/require"
 )
 
@@ -15,7 +16,7 @@ func TestDisco(t *testing.T) {
 	// api.SetLogger(NewLogger(DebugLevel))
 	// logger = NewLogger(DebugLevel)
 
-	env, closeFn := newEnv(t)
+	env, closeFn := newEnv(t, server.NoLevel)
 	defer closeFn()
 
 	aliceClient := newTestClient(t, env)

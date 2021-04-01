@@ -24,8 +24,8 @@ type env struct {
 	handler    http.Handler
 }
 
-func newEnv(t *testing.T) (*env, func()) {
-	return newEnvWithOptions(t, &envOptions{logLevel: server.NoLevel})
+func newEnv(t *testing.T, logLevel server.LogLevel) (*env, func()) {
+	return newEnvWithOptions(t, &envOptions{logLevel: logLevel})
 }
 
 type handlerFn func(w http.ResponseWriter, req *http.Request) bool
@@ -70,7 +70,12 @@ func newEnvWithOptions(t *testing.T, opts *envOptions) (*env, func()) {
 	tasks := server.NewTestTasks(srv)
 	srv.SetTasks(tasks)
 	srv.SetInternalAuth("testtoken")
-	_ = srv.SetInternalKey("6a169a699f7683c04d127504a12ace3b326e8b56a61a9b315cf6b42e20d6a44a")
+	err := srv.SetInternalKey("6a169a699f7683c04d127504a12ace3b326e8b56a61a9b315cf6b42e20d6a44a")
+	require.NoError(t, err)
+	err = srv.SetTokenKey("f41deca7f9ef4f82e53cd7351a90bc370e2bf15ed74d147226439cfde740ac18")
+	require.NoError(t, err)
+	emailer := newTestEmailer()
+	srv.SetEmailer(emailer)
 
 	handler := server.NewHandler(srv)
 	if opts.handlerFn != nil {
@@ -101,4 +106,22 @@ func newTestClient(t *testing.T, env *env) *client.Client {
 	cl.SetHTTPClient(env.httpServer.Client())
 	cl.SetClock(env.clock)
 	return cl
+}
+
+type testEmailer struct {
+	sentVerificationEmail map[string]string
+}
+
+func newTestEmailer() *testEmailer {
+	return &testEmailer{sentVerificationEmail: map[string]string{}}
+}
+
+func (t *testEmailer) SentVerificationEmail(email string) string {
+	s := t.sentVerificationEmail[email]
+	return s
+}
+
+func (t *testEmailer) SendVerificationEmail(email string, code string) error {
+	t.sentVerificationEmail[email] = code
+	return nil
 }
