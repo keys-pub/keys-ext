@@ -172,8 +172,9 @@ github.com/keys-pub/keys v0.1.20/go.mod h1:h7u4e6MHcP9wdIlOhqFOJWrGZgk65KnSfaN5i
 github.com/keys-pub/keys v0.1.21-0.20210326150443-d3a790bc64b8/go.mod h1:h7u4e6MHcP9wdIlOhqFOJWrGZgk65KnSfaN5iioL2OI=
 github.com/keys-pub/keys v0.1.21-0.20210326211358-fb3db764000f/go.mod h1:h7u4e6MHcP9wdIlOhqFOJWrGZgk65KnSfaN5iioL2OI=
 github.com/keys-pub/keys v0.1.21-0.20210331163518-474087d0d185/go.mod h1:qwiSbeSocm/ZXfF5FcX+8aBixjSR9cPffShtctYMpuM=
-github.com/keys-pub/keys v0.1.21-0.20210401205743-1f5d721f42c0 h1:7+X/2m72l9BzcER4x0fngHkyiG/kC3YZiGp1L0RyUss=
 github.com/keys-pub/keys v0.1.21-0.20210401205743-1f5d721f42c0/go.mod h1:qwiSbeSocm/ZXfF5FcX+8aBixjSR9cPffShtctYMpuM=
+github.com/keys-pub/keys v0.1.21-0.20210402011617-28dedbda9f32 h1:OqHPLiI/w/J4iCXWasUWjKRzBM+Z8C6juK5TdMpM+MM=
+github.com/keys-pub/keys v0.1.21-0.20210402011617-28dedbda9f32/go.mod h1:qwiSbeSocm/ZXfF5FcX+8aBixjSR9cPffShtctYMpuM=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20210327130412-59e9fcfcf22c h1:UzWqGlDlAJ+hydIXy+bmuwrAEdZ2nfaYvvAyib+sNRo=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20210327130412-59e9fcfcf22c/go.mod h1:gYlaSTxabOCy6S3/uKVlMx36KzwEs6D0bFy5wjwj4K4=
 github.com/keys-pub/keys-ext/firestore v0.0.0-20210326150845-39fd96e22101/go.mod h1:XR5aJYx1qYfmWKXf9Hg+JexfYz71R9ju8o1ydn8Vtgk=
@@ -191,8 +192,6 @@ github.com/keys-pub/keys-ext/ws/api v0.0.0-20210331163823-45f2f255ab89/go.mod h1
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f/go.mod h1:YRHMiVbZqh7u8xRm77CvwJNAZdDlNXwWvQ4DK0N9mYg=
 github.com/keys-pub/vault v0.0.0-20210331210903-81b7918663ab h1:8lK7YsGSsSJIucQAd8ii+X30OkEvVw6SfnvGWGPKbW4=
 github.com/keys-pub/vault v0.0.0-20210331210903-81b7918663ab/go.mod h1:sxAopp7DDlZLr09N+bPs/YMRzHt7fdyanLV+TErSFm0=
-github.com/keys-pub/vault v0.0.0-20210331212657-57f7305326e7 h1:T4GDEZW/ZIQI2D4q1/6ESusQ960LaWD8XYdVNAAYsLo=
-github.com/keys-pub/vault v0.0.0-20210331212657-57f7305326e7/go.mod h1:sxAopp7DDlZLr09N+bPs/YMRzHt7fdyanLV+TErSFm0=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/kr/fs v0.1.0/go.mod h1:FFnZGqtBN9Gxj7eW1uZ42v5BccTP0vu6NEaFoC2HwRg=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
