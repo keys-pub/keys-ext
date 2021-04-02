@@ -19,6 +19,3 @@ export PATH=$PATH:$(go env GOPATH)/bin
 (cd sqlcipher && golangci-lint run --timeout 10m)
 (cd vault && golangci-lint run --timeout 10m)
 (cd wormhole && golangci-lint run --timeout 10m)
-(cd ws/api && golangci-lint run --timeout 10m)
-(cd ws/client && golangci-lint run --timeout 10m)
-(cd ws/server && golangci-lint run --timeout 10m)

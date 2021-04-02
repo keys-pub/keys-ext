@@ -18,6 +18,3 @@ go get -u github.com/securego/gosec/cmd/gosec;
 (cd sqlcipher  && gosec ./...)
 (cd vault && gosec ./...)
 (cd wormhole && gosec .)
-(cd ws/api && gosec .)
-(cd ws/client && gosec .) 
-(cd ws/server && gosec .)
