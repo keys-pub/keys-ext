@@ -14,7 +14,7 @@ func (s *Server) check(c echo.Context) error {
 	request := c.Request()
 	ctx := request.Context()
 
-	auth, _, err := s.auth(c, newAuthRequest("Authorization", "", nil))
+	auth, err := s.auth(c, newAuthRequest("Authorization", "", nil))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}

@@ -41,7 +41,7 @@ func (s *Server) putDisco(c echo.Context) error {
 		return s.ErrBadRequest(c, errors.Errorf("message too large (greater than 256 bytes)"))
 	}
 
-	auth, _, err := s.auth(c, newAuthRequest("Authorization", "kid", b))
+	auth, err := s.auth(c, newAuthRequest("Authorization", "kid", b))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}
@@ -92,7 +92,7 @@ func (s *Server) getDisco(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	auth, _, err := s.auth(c, newAuthRequest("Authorization", "rid", nil))
+	auth, err := s.auth(c, newAuthRequest("Authorization", "rid", nil))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}
@@ -133,7 +133,7 @@ func (s *Server) deleteDisco(c echo.Context) error {
 	ctx := c.Request().Context()
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	auth, _, err := s.auth(c, newAuthRequest("Authorization", "kid", nil))
+	auth, err := s.auth(c, newAuthRequest("Authorization", "kid", nil))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}

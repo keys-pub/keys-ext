@@ -11,7 +11,6 @@ import (
 	"github.com/keys-pub/keys/dstore/events"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
-	"github.com/vmihailenco/msgpack/v4"
 )
 
 var errVaultNotFound = errors.New("vault not found")
@@ -20,7 +19,7 @@ var errVaultDeleted = errors.New("vault was deleted")
 func (s *Server) listVault(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	auth, ext, err := s.auth(c, newAuthRequest("Authorization", "vid", nil))
+	auth, err := s.auth(c, newAuthRequest("Authorization", "vid", nil))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}
@@ -54,12 +53,7 @@ func (s *Server) listVault(c echo.Context) error {
 		Truncated: truncated,
 	}
 
-	switch ext {
-	case "msgpack":
-		return Msgpack(c, http.StatusOK, out)
-	default:
-		return JSON(c, http.StatusOK, out)
-	}
+	return JSON(c, http.StatusOK, out)
 }
 
 func (s *Server) postVault(c echo.Context) error {
@@ -76,7 +70,7 @@ func (s *Server) postVault(c echo.Context) error {
 		return s.ErrResponse(c, err)
 	}
 
-	auth, ext, err := s.auth(c, newAuthRequest("Authorization", "vid", b))
+	auth, err := s.auth(c, newAuthRequest("Authorization", "vid", b))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}
@@ -91,22 +85,14 @@ func (s *Server) postVault(c echo.Context) error {
 
 	var data [][]byte
 	total := int64(0)
-	switch ext {
-	case "msgpack":
-		// Msgpack uses an array of bytes
-		if err := msgpack.Unmarshal(b, &data); err != nil {
-			return s.ErrBadRequest(c, err)
-		}
-	default:
-		// JSON format uses api.Data.
-		var req []*api.Data
-		if err := json.Unmarshal(b, &req); err != nil {
-			return s.ErrBadRequest(c, err)
-		}
-		data = make([][]byte, 0, len(req))
-		for _, d := range req {
-			data = append(data, d.Data)
-		}
+	// JSON format uses api.Data.
+	var req []*api.Data
+	if err := json.Unmarshal(b, &req); err != nil {
+		return s.ErrBadRequest(c, err)
+	}
+	data = make([][]byte, 0, len(req))
+	for _, d := range req {
+		data = append(data, d.Data)
 	}
 
 	path := dstore.Path("vaults", auth.KID)
@@ -142,7 +128,7 @@ func (s *Server) deleteVault(c echo.Context) error {
 	ctx := c.Request().Context()
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	auth, _, err := s.auth(c, newAuthRequest("Authorization", "vid", nil))
+	auth, err := s.auth(c, newAuthRequest("Authorization", "vid", nil))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}
@@ -176,7 +162,7 @@ func (s *Server) headVault(c echo.Context) error {
 	ctx := c.Request().Context()
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 
-	auth, _, err := s.auth(c, newAuthRequest("Authorization", "vid", nil))
+	auth, err := s.auth(c, newAuthRequest("Authorization", "vid", nil))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}

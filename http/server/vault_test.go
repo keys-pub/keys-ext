@@ -16,7 +16,6 @@ import (
 	"github.com/keys-pub/keys/http"
 	"github.com/keys-pub/keys/tsutil"
 	"github.com/stretchr/testify/require"
-	"github.com/vmihailenco/msgpack/v4"
 )
 
 func TestVault(t *testing.T) {
@@ -288,42 +287,4 @@ func testVaultAuth(t *testing.T, env *env, key *keys.EdX25519Key) {
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusForbidden, code)
 	require.Equal(t, `{"error":{"code":403,"message":"invalid kid"}}`, string(body))
-}
-
-func TestVaultMsgpack(t *testing.T) {
-	env := newEnv(t)
-	// env.logLevel = server.DebugLevel
-	// keys.SetLogger(keys.NewLogger(keys.DebugLevel))
-
-	alice := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
-
-	srv := newTestServerEnv(t, env)
-	clock := env.clock
-
-	// POST /vault/:kid
-	vault := [][]byte{
-		[]byte("test1"),
-		[]byte("test2"),
-	}
-	data, err := msgpack.Marshal(vault)
-	require.NoError(t, err)
-	contentHash := http.ContentHash(data)
-	req, err := http.NewAuthRequest("POST", dstore.Path("vault", alice.ID()+".msgpack"), bytes.NewReader(data), contentHash, clock.Now(), alice)
-	require.NoError(t, err)
-	code, _, body := srv.Serve(req)
-	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, `{}`, string(body))
-
-	// GET /vault/:kid
-	req, err = http.NewAuthRequest("GET", dstore.Path("vault", alice.ID()+".msgpack"), nil, "", clock.Now(), alice)
-	require.NoError(t, err)
-	code, _, body = srv.Serve(req)
-	require.Equal(t, http.StatusOK, code)
-	var resp server.VaultResponse
-	err = msgpack.Unmarshal(body, &resp)
-	require.NoError(t, err)
-	require.Equal(t, int64(2), resp.Index)
-	require.Equal(t, 2, len(resp.Vault))
-	require.Equal(t, []byte("test1"), resp.Vault[0].Data)
-	require.Equal(t, []byte("test2"), resp.Vault[1].Data)
 }

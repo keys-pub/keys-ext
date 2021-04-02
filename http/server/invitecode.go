@@ -22,7 +22,7 @@ func (s *Server) postInviteCode(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	auth, _, err := s.auth(c, newAuthRequest("Authorization", "kid", nil))
+	auth, err := s.auth(c, newAuthRequest("Authorization", "kid", nil))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}
@@ -84,7 +84,7 @@ func (s *Server) getInviteCode(c echo.Context) error {
 	s.logger.Infof("Server %s %s", c.Request().Method, c.Request().URL.String())
 	ctx := c.Request().Context()
 
-	auth, _, err := s.auth(c, newAuthRequest("Authorization", "", nil))
+	auth, err := s.auth(c, newAuthRequest("Authorization", "", nil))
 	if err != nil {
 		return s.ErrForbidden(c, err)
 	}
