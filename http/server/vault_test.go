@@ -11,6 +11,7 @@ import (
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys-ext/firestore"
 	"github.com/keys-pub/keys-ext/http/api"
+	"github.com/keys-pub/keys-ext/http/server"
 	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/http"
 	"github.com/keys-pub/keys/tsutil"
@@ -77,7 +78,7 @@ func testVault(t *testing.T, env *env, alice *keys.EdX25519Key) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	var resp api.VaultResponse
+	var resp server.VaultResponse
 	err = json.Unmarshal([]byte(body), &resp)
 	require.NoError(t, err)
 	require.Equal(t, int64(1), resp.Index)
@@ -95,7 +96,7 @@ func testVault(t *testing.T, env *env, alice *keys.EdX25519Key) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	var resp2 api.VaultResponse
+	var resp2 server.VaultResponse
 	err = json.Unmarshal([]byte(body), &resp2)
 	require.NoError(t, err)
 	require.Equal(t, 0, len(resp2.Vault))
@@ -120,7 +121,7 @@ func testVault(t *testing.T, env *env, alice *keys.EdX25519Key) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	var resp3 api.VaultResponse
+	var resp3 server.VaultResponse
 	err = json.Unmarshal([]byte(body), &resp3)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(resp3.Vault))
@@ -150,7 +151,7 @@ func testVault(t *testing.T, env *env, alice *keys.EdX25519Key) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	var resp4 api.VaultResponse
+	var resp4 server.VaultResponse
 	err = json.Unmarshal([]byte(body), &resp4)
 	require.NoError(t, err)
 	require.Equal(t, 6, len(resp4.Vault))
@@ -318,174 +319,11 @@ func TestVaultMsgpack(t *testing.T) {
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusOK, code)
-	var resp api.VaultResponse
+	var resp server.VaultResponse
 	err = msgpack.Unmarshal(body, &resp)
 	require.NoError(t, err)
 	require.Equal(t, int64(2), resp.Index)
 	require.Equal(t, 2, len(resp.Vault))
 	require.Equal(t, []byte("test1"), resp.Vault[0].Data)
 	require.Equal(t, []byte("test2"), resp.Vault[1].Data)
-}
-
-func TestVaultAccount(t *testing.T) {
-	env := newEnv(t)
-	// env.logLevel = server.DebugLevel
-	// keys.SetLogger(keys.NewLogger(keys.DebugLevel))
-
-	srv := newTestServerEnv(t, env)
-	clock := env.clock
-	alice := keys.NewEdX25519KeyFromSeed(testSeed(0x01))
-
-	vault := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
-
-	// PUT /vault/:kid (as alice, no account)
-	req, err := http.NewAuthRequest("PUT", dstore.Path("vault", vault.ID()), nil, "", clock.Now(), alice)
-	require.NoError(t, err)
-	code, _, body := srv.Serve(req)
-	require.Equal(t, http.StatusForbidden, code)
-	require.Equal(t, `{"error":{"code":403,"message":"no account"}}`, string(body))
-
-	testAccount(t, env, srv, alice, "alice@keys.pub")
-
-	// // PUT /vault/:kid (as alice, unverified)
-	// req, err = http.NewAuthRequest("PUT", dstore.Path("vault", vault.ID()), nil, "", clock.Now(), alice)
-	// require.NoError(t, err)
-	// code, _, body = srv.Serve(req)
-	// require.Equal(t, http.StatusForbidden, code)
-	// require.Equal(t, `{"error":{"code":403,"message":"account email is not verified"}}`, string(body))
-
-	// testVerifyEmail(t, env, srv, alice, "alice@keys.pub")
-
-	// PUT /vault/:kid (as alice, ok)
-	req, err = http.NewAuthRequest("PUT", dstore.Path("vault", vault.ID()), nil, "", clock.Now(), alice)
-	require.NoError(t, err)
-	code, _, body = srv.Serve(req)
-	require.Equal(t, http.StatusOK, code)
-	var create api.VaultToken
-	testJSONUnmarshal(t, []byte(body), &create)
-	require.Equal(t, http.StatusOK, code)
-	require.NotEmpty(t, create.Token)
-
-	// POST /vault/:kid
-	vault1 := [][]byte{
-		bytes.Repeat([]byte{0x01}, 1024),
-		bytes.Repeat([]byte{0x02}, 1024),
-		bytes.Repeat([]byte{0x03}, 1024),
-	}
-	data1, err := msgpack.Marshal(vault1)
-	require.NoError(t, err)
-	req, err = http.NewAuthRequest("POST", dstore.Path("vault", alice.ID())+".msgpack", bytes.NewReader(data1), http.ContentHash(data1), clock.Now(), alice)
-	require.NoError(t, err)
-	code, _, body = srv.Serve(req)
-	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, `{}`, string(body))
-
-	// GET /accounts/:kid/vaults
-	req, err = http.NewAuthRequest("GET", dstore.Path("account", alice.ID(), "vaults"), nil, "", clock.Now(), alice)
-	require.NoError(t, err)
-	code, _, body = srv.Serve(req)
-	require.Equal(t, http.StatusOK, code)
-	var resp api.AccountVaultsResponse
-	err = json.Unmarshal(body, &resp)
-	require.NoError(t, err)
-	require.Equal(t, 1, len(resp.Vaults))
-	require.Equal(t, int64(3072), resp.Vaults[0].Usage)
-}
-
-func TestVaultMax(t *testing.T) {
-	env := newEnv(t)
-	// env.logLevel = server.DebugLevel
-	// keys.SetLogger(keys.NewLogger(keys.DebugLevel))
-
-	srv := newTestServerEnv(t, env)
-	clock := env.clock
-	alice := keys.NewEdX25519KeyFromSeed(testSeed(0x01))
-	testAccount(t, env, srv, alice, "alice@keys.pub")
-	testVerifyEmail(t, env, srv, alice, "alice@keys.pub")
-
-	// Add too many vaults
-	for i := 0; i < 500; i++ {
-		vault := keys.GenerateEdX25519Key()
-		req, err := http.NewAuthRequest("PUT", dstore.Path("vault", vault.ID()), nil, "", clock.Now(), alice)
-		require.NoError(t, err)
-		code, _, _ := srv.Serve(req)
-		require.Equal(t, http.StatusOK, code)
-	}
-
-	req, err := http.NewAuthRequest("PUT", dstore.Path("vault", keys.GenerateEdX25519Key().ID()), nil, "", clock.Now(), alice)
-	require.NoError(t, err)
-	code, _, body := srv.Serve(req)
-	require.Equal(t, http.StatusForbidden, code)
-	require.Equal(t, `{"error":{"code":403,"message":"max vaults reached"}}`, string(body))
-}
-
-func TestVaultStatus(t *testing.T) {
-	env := newEnv(t)
-	// env.logLevel = server.DebugLevel
-	// keys.SetLogger(keys.NewLogger(keys.DebugLevel))
-	srv := newTestServerEnv(t, env)
-	clock := env.clock
-
-	alice := keys.NewEdX25519KeyFromSeed(testSeed(0x01))
-	testAccount(t, env, srv, alice, "alice@keys.pub")
-	vault := keys.NewEdX25519KeyFromSeed(keys.Bytes32(bytes.Repeat([]byte{0x01}, 32)))
-
-	// PUT /vault/:kid
-	req, err := http.NewAuthRequest("PUT", dstore.Path("vault", vault.ID()), nil, "", clock.Now(), vault)
-	require.NoError(t, err)
-	code, _, body := srv.Serve(req)
-	var create api.VaultToken
-	testJSONUnmarshal(t, []byte(body), &create)
-	require.Equal(t, http.StatusOK, code)
-	require.NotEmpty(t, create.Token)
-	require.Equal(t, vault.ID(), create.KID)
-	// Replay is ok
-	req, err = http.NewAuthRequest("PUT", dstore.Path("vault", vault.ID()), nil, "", clock.Now(), vault)
-	require.NoError(t, err)
-	code, _, body = srv.Serve(req)
-	require.NoError(t, err)
-	token := api.VaultToken{}
-	testJSONUnmarshal(t, []byte(body), &token)
-	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, token, create)
-
-	// GET /vault/:kid/info
-	req, err = http.NewAuthRequest("GET", dstore.Path("vault", vault.ID(), "info"), nil, "", clock.Now(), vault)
-	require.NoError(t, err)
-	code, _, body = srv.Serve(req)
-	require.Equal(t, http.StatusOK, code)
-	token = api.VaultToken{}
-	testJSONUnmarshal(t, []byte(body), &token)
-	require.Equal(t, vault.ID(), token.KID)
-	require.Equal(t, create.Token, token.Token)
-
-	// GET /vault/:kid/info (unknown)
-	unknown := keys.GenerateEdX25519Key()
-	req, err = http.NewAuthRequest("GET", dstore.Path("vault", unknown.ID(), "info"), nil, "", clock.Now(), unknown)
-	require.NoError(t, err)
-	code, _, body = srv.Serve(req)
-	require.Equal(t, http.StatusNotFound, code)
-	require.Equal(t, `{"error":{"code":404,"message":"vault not found"}}`, string(body))
-
-	// POST /vault/:kid
-	req, err = http.NewJSONRequest("POST", dstore.Path("vault", vault.ID()), []*api.Data{{Data: []byte("test1")}}, http.WithTimestamp(clock.Now()), http.SignedWith(vault))
-	require.NoError(t, err)
-	code, _, body = srv.Serve(req)
-	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, `{}`, string(body))
-
-	// POST /vaults/status
-	statusReq := api.VaultsStatusRequest{
-		Vaults: map[keys.ID]string{vault.ID(): create.Token},
-	}
-	req, err = http.NewRequest("POST", "/vaults/status", bytes.NewReader(testJSONMarshal(t, statusReq)))
-	require.NoError(t, err)
-	code, _, body = srv.Serve(req)
-	var statusResp api.VaultsStatusResponse
-	testJSONUnmarshal(t, []byte(body), &statusResp)
-	require.Equal(t, http.StatusOK, code)
-	require.Equal(t, 1, len(statusResp.Vaults))
-	require.Equal(t, vault.ID(), statusResp.Vaults[0].ID)
-	require.Equal(t, int64(1234567890011), statusResp.Vaults[0].Timestamp)
-	require.Equal(t, int64(1), statusResp.Vaults[0].Index)
 }

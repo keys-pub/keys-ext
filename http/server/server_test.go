@@ -5,7 +5,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	nethttp "net/http"
 	"net/http/httptest"
@@ -97,7 +96,6 @@ func newTestServerEnv(t *testing.T, env *env) *testServerEnv {
 	require.NoError(t, err)
 	err = srv.SetTokenKey("f41deca7f9ef4f82e53cd7351a90bc370e2bf15ed74d147226439cfde740ac18")
 	require.NoError(t, err)
-	srv.SetClock(env.clock)
 	emailer := newTestEmailer()
 	srv.SetEmailer(emailer)
 	handler := server.NewHandler(srv)
@@ -178,17 +176,6 @@ func githubMock(name string, id string, msg string) string {
 			"login": "` + name + `"
 		}
 	  }`
-}
-
-func testJSONMarshal(t *testing.T, i interface{}) []byte {
-	b, err := json.Marshal(i)
-	require.NoError(t, err)
-	return b
-}
-
-func testJSONUnmarshal(t *testing.T, b []byte, v interface{}) {
-	err := json.Unmarshal(b, v)
-	require.NoError(t, err)
 }
 
 func TestInternalAuth(t *testing.T) {
