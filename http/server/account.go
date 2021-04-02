@@ -152,15 +152,20 @@ func (s *Server) findAccount(ctx context.Context, kid keys.ID) (*api.Account, er
 }
 
 func (s *Server) findAccountByEmail(ctx context.Context, email string) (*api.Account, error) {
-	docs, err := s.fi.Documents(ctx, dstore.Path(accountsCollection), dstore.Where("email", "==", email))
+	iter, err := s.fi.DocumentIterator(ctx, dstore.Path(accountsCollection), dstore.Where("email", "==", email))
 	if err != nil {
 		return nil, err
 	}
-	if len(docs) == 0 {
+	defer iter.Release()
+	doc, err := iter.Next()
+	if err != nil {
+		return nil, err
+	}
+	if doc == nil {
 		return nil, nil
 	}
 	var acct api.Account
-	if err := docs[0].To(&acct); err != nil {
+	if err := doc.To(&acct); err != nil {
 		return nil, err
 	}
 	return &acct, nil

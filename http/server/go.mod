@@ -6,7 +6,7 @@ require (
 	github.com/badoux/checkmail v1.2.1
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/keys-pub/keys v0.1.21-0.20210401205743-1f5d721f42c0
+	github.com/keys-pub/keys v0.1.21-0.20210402011617-28dedbda9f32
 	github.com/keys-pub/keys-ext/firestore v0.0.0-20210331163823-45f2f255ab89
 	github.com/keys-pub/keys-ext/http/api v0.0.0-20210401205654-ff14cd298c61
 	github.com/keys-pub/keys-ext/ws/api v0.0.0-20210331163823-45f2f255ab89

@@ -43,6 +43,7 @@ type testServerEnv struct {
 func testFire(t *testing.T, clock tsutil.Clock) server.Fire {
 	fi := dstore.NewMem()
 	fi.SetClock(clock)
+	fi.SetMode(dstore.FirestoreCompatibilityMode)
 	return fi
 }
 
