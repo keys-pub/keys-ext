@@ -6,7 +6,7 @@ require (
 	github.com/alta/protopatch v0.3.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/google/uuid v1.2.0
-	github.com/keys-pub/go-libfido2 v1.5.2
+	github.com/keys-pub/go-libfido2 v1.5.3-0.20210401210751-db20b37a1e88
 	github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20210327130412-59e9fcfcf22c
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/pkg/errors v0.9.1

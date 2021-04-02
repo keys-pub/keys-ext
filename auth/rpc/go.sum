@@ -47,6 +47,8 @@ github.com/iancoleman/strcase v0.0.0-20180726023541-3605ed457bf7/go.mod h1:SK73t
 github.com/iancoleman/strcase v0.1.2/go.mod h1:SK73tn/9oHe+/Y0h39VT4UCxmurVJkR5NA7kMEAOgSE=
 github.com/keys-pub/go-libfido2 v1.5.2 h1:YJVK9iMOMlfRZrEzZtnJBRNO+jYB+/sfNtO4ruV7BXI=
 github.com/keys-pub/go-libfido2 v1.5.2/go.mod h1:P0V19qHwJNY0htZwZDe9Ilvs/nokGhdFX7faKFyZ6+U=
+github.com/keys-pub/go-libfido2 v1.5.3-0.20210401210751-db20b37a1e88 h1:EapVkxNhcTUuG3M4IEkXCrwPOeLs7eRHBSsmDlzWCfk=
+github.com/keys-pub/go-libfido2 v1.5.3-0.20210401210751-db20b37a1e88/go.mod h1:P0V19qHwJNY0htZwZDe9Ilvs/nokGhdFX7faKFyZ6+U=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20210307004320-f39fc126a90e h1:Htk+A0CyhddqR17xrAZkCUHV8pzgYAH7ReXHEbbFB2I=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20210307004320-f39fc126a90e/go.mod h1:gYlaSTxabOCy6S3/uKVlMx36KzwEs6D0bFy5wjwj4K4=
 github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20210307192523-fc1e66f7c97e h1:oBUOv/HTek4kosdpVAI+/qtoWn9eXoDfqeHedsq7WHU=

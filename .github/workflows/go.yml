@@ -21,13 +21,18 @@ jobs:
         
   golangci-lint:
     name: Linter
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - name: Install dependencies
-        run: brew install keys-pub/tap/libfido2
+        run: |
+          sudo apt install software-properties-common
+          sudo apt-add-repository ppa:yubico/stable
+          sudo apt update
+          sudo apt install libfido2-dev
       - name: Install golangci-lint
-        run: brew install golangci/tap/golangci-lint
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.39.0
       - name: Run golangci-lint
         shell: bash
         run: bash -x ./lint.sh
