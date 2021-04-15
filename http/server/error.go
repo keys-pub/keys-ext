@@ -38,16 +38,22 @@ func newError(code int, err error) ErrHTTP {
 }
 
 // ErrResponse is a generate error response.
+// All errors come through here.
 func (s *Server) ErrResponse(c echo.Context, err error) error {
-	s.logger.Errorf("Error: %+v", err)
-
 	switch v := err.(type) {
 	case ErrHTTP:
+		if v.Code >= 500 {
+			s.logger.Errorf("Error: %+v", err)
+		}
 		return JSON(c, v.Code, &response{Error: &v})
 	case *ErrHTTP:
+		if v.Code >= 500 {
+			s.logger.Errorf("Error: %+v", err)
+		}
 		return JSON(c, v.Code, &response{Error: v})
 	}
 
+	s.logger.Errorf("Error: %+v", err)
 	errh := newError(http.StatusInternalServerError, err)
 	return JSON(c, http.StatusInternalServerError, &response{Error: &errh})
 }

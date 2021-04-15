@@ -174,11 +174,6 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 	e.GET("/share/:kid", s.getShare)
 	e.PUT("/share/:kid", s.putShare)
 
-	// Sigchain (aliases)
-	e.GET("/:kid", s.getSigchainAliased)
-	e.GET("/:kid/:seq", s.getSigchainStatementAliased)
-	e.PUT("/:kid/:seq", s.putSigchainStatementAliased)
-
 	// Batch
 	e.POST("/batch", s.postBatch) // Batch
 
@@ -187,6 +182,11 @@ func (s *Server) AddRoutes(e *echo.Echo) {
 
 	// Admin
 	e.POST("/admin/check/:kid", s.adminCheck)
+
+	// Sigchain (aliases)
+	e.GET("/:kid", s.getSigchainAliased)
+	e.GET("/:kid/:seq", s.getSigchainStatementAliased)
+	e.PUT("/:kid/:seq", s.putSigchainStatementAliased)
 }
 
 // SetClock sets clock.
