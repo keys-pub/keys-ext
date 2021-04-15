@@ -172,7 +172,7 @@ func TestSigchains(t *testing.T) {
 	expectedSigned = `{".sig":"j5FZVQKWrnclXHHHIVX7JZ0letgR22cGl7ItlAUHqEsW+kCCMZvDBGEunVJScjVphrqGrPb7oCuMZouGv7GwCQ==","data":"dGVzdGluZw==","kid":"kex132yw8ht5p8cetl2jmvknewjawt9xwzdlrk2pyxlnwjyqrdq0dawqqph077","seq":1,"ts":1234567890001}`
 	require.Equal(t, expectedSigned, string(body))
 
-	// PUT /:kid/:seq
+	// PUT /sigchain/:kid/:seq
 	b, err = sta2.Bytes()
 	require.NoError(t, err)
 	req, err = http.NewRequest("PUT", fmt.Sprintf("/%s/2", alice.ID()), bytes.NewReader(b))
@@ -182,8 +182,8 @@ func TestSigchains(t *testing.T) {
 	require.Equal(t, http.StatusOK, code)
 	require.Equal(t, "{}", string(body))
 
-	// PUT /invalidloc/1
-	req, err = http.NewRequest("PUT", dstore.Path("invalidloc", 1), bytes.NewReader(b))
+	// PUT /sigchain/invalidloc/1
+	req, err = http.NewRequest("PUT", dstore.Path("/sigchain/invalidloc", 1), bytes.NewReader(b))
 	require.NoError(t, err)
 	code, _, body = srv.Serve(req)
 	require.Equal(t, http.StatusBadRequest, code)
