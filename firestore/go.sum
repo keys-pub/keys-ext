@@ -67,7 +67,7 @@ github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1m
 github.com/envoyproxy/go-control-plane v0.9.7/go.mod h1:cwu0lG7PUMfa9snN8LXBig5ynNVH9qI8YYLbd1fK2po=
 github.com/envoyproxy/go-control-plane v0.9.9-0.20201210154907-fd9021fe5dad/go.mod h1:cXg6YxExXjJnVBQHBLXeUAgxn2UodCpnH306RInaBQk=
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
-github.com/flynn/noise v0.0.0-20180327030543-2492fe189ae6/go.mod h1:1i71OnUq3iUe1ma7Lr6yG6/rjvM3emb6yoL7xLFzcVQ=
+github.com/flynn/noise v1.0.0/go.mod h1:xbMo+0i6+IGbYdJhF31t2eR1BIU0CYc12+BNAKwUTag=
 github.com/go-gl/glfw v0.0.0-20190409004039-e6da0acd62b1/go.mod h1:vR7hzQXu2zJy9AVAgeJqvqgH9Q5CA+iKCZ2gyEVpxRU=
 github.com/go-gl/glfw/v3.3/glfw v0.0.0-20191125211704-12ad95a8df72/go.mod h1:tQ2UAYgL5IevRw8kRxooKSPJfGvJ9fJQFa0TUsXzTg8=
 github.com/go-gl/glfw/v3.3/glfw v0.0.0-20200222043503-6f7a984d4dc4/go.mod h1:tQ2UAYgL5IevRw8kRxooKSPJfGvJ9fJQFa0TUsXzTg8=
@@ -149,10 +149,8 @@ github.com/keybase/go-keychain v0.0.0-20201121013009-976c83ec27a6/go.mod h1:N83i
 github.com/keybase/go.dbus v0.0.0-20200324223359-a94be52c0b03/go.mod h1:a8clEhrrGV/d76/f9r2I41BwANMihfZYV9C223vaxqE=
 github.com/keybase/saltpack v0.0.0-20200430135328-e19b1910c0c5 h1:X6nYzCVURqxDv0GuyptaCcRFTXPM0rSGNUrTeQ2NKUQ=
 github.com/keybase/saltpack v0.0.0-20200430135328-e19b1910c0c5/go.mod h1:FNSq71OhXv/Z1W9M37nnHxJVhXitc03z6qshCbAten8=
-github.com/keys-pub/keys v0.1.21-0.20210331162217-25691cb1979e h1:iTwc3fxEyuo7TgWAuRVx5JIwW1qm3mMVaVi+jedDS9A=
-github.com/keys-pub/keys v0.1.21-0.20210331162217-25691cb1979e/go.mod h1:qwiSbeSocm/ZXfF5FcX+8aBixjSR9cPffShtctYMpuM=
-github.com/keys-pub/keys v0.1.21-0.20210331163518-474087d0d185 h1:ogV7UtwaHDBaiAr3DvH1TX/9nEuzwKkBQ4/HZxDPDCI=
-github.com/keys-pub/keys v0.1.21-0.20210331163518-474087d0d185/go.mod h1:qwiSbeSocm/ZXfF5FcX+8aBixjSR9cPffShtctYMpuM=
+github.com/keys-pub/keys v0.1.22-0.20210523195800-d583c5244ce9 h1:o/VAKEmD06SZy1ObhLffH9OMtKva4mHVdQMYjcuy4Gg=
+github.com/keys-pub/keys v0.1.22-0.20210523195800-d583c5244ce9/go.mod h1:+41yREqLkYyGfGf4OkhUn/ljwe/+kwhrlTq1/46Jj8c=
 github.com/keys-pub/secretservice v0.0.0-20200519003656-26e44b8df47f/go.mod h1:YRHMiVbZqh7u8xRm77CvwJNAZdDlNXwWvQ4DK0N9mYg=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=

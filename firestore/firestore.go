@@ -226,6 +226,19 @@ func (f *Firestore) get(ctx context.Context, path string) (*firestore.DocumentSn
 	return doc, nil
 }
 
+func (f *Firestore) txGet(tx *firestore.Transaction, path string) (*firestore.DocumentSnapshot, error) {
+	path = normalizePath(path)
+	doc := f.client.Doc(path)
+	res, err := tx.Get(doc)
+	if err != nil {
+		if status.Code(err) == codes.NotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return res, nil
+}
+
 // DocumentIterator ...
 func (f *Firestore) DocumentIterator(ctx context.Context, parent string, opt ...dstore.Option) (dstore.Iterator, error) {
 	opts := dstore.NewOptions(opt...)

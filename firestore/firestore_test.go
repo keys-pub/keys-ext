@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keys-pub/keys"
 	"github.com/keys-pub/keys/dstore"
 	"github.com/keys-pub/keys/tsutil"
@@ -490,3 +491,6 @@ func TestCreate(t *testing.T) {
 	err = ds.Create(ctx, path, dstore.Data([]byte("value1")))
 	require.EqualError(t, err, fmt.Sprintf("path already exists %s", path))
 }
+
+// For keeping import
+var _ = spew.Sdump("")

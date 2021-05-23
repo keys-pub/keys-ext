@@ -75,13 +75,17 @@ func (i *eventIterator) Next() (*events.Event, error) {
 	if i.limit != 0 && i.count >= i.limit {
 		return nil, nil
 	}
-	var event events.Event
-	if err := doc.DataTo(&event); err != nil {
-		return nil, err
+
+	d := doc.Data()
+	idx := d["idx"].(int64)
+
+	event := &events.Event{
+		Document:  d,
+		Index:     idx,
+		Timestamp: tsutil.Millis(doc.CreateTime),
 	}
-	event.Timestamp = tsutil.Millis(doc.CreateTime)
 	i.count++
-	return &event, nil
+	return event, nil
 
 }
 

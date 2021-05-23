@@ -3,6 +3,7 @@ package firestore
 import (
 	"context"
 	"fmt"
+	"sync"
 	"testing"
 
 	"github.com/keys-pub/keys/dstore"
@@ -20,21 +21,16 @@ func TestEvents(t *testing.T) {
 	t.Logf("Path: %s", path)
 
 	length := 40
-	values := [][]byte{}
+	values := []events.Document{}
 	strs := []string{}
 	for i := 0; i < length; i++ {
 		str := fmt.Sprintf("value%d", i)
-		values = append(values, []byte(str))
+		values = append(values, dstore.Data([]byte(str)))
 		strs = append(strs, str)
 	}
-	out, idx, err := eds.EventsAdd(ctx, path, values)
+	idx, err := eds.EventsAdd(ctx, path, values)
 	require.NoError(t, err)
-	require.Equal(t, 40, len(out))
 	require.Equal(t, int64(40), idx)
-	for i, event := range out {
-		require.NotEmpty(t, event.Timestamp)
-		require.Equal(t, int64(i+1), event.Index)
-	}
 
 	// Events (limit=10, asc)
 	iter, err := eds.Events(ctx, path, events.Limit(10))
@@ -49,7 +45,7 @@ func TestEvents(t *testing.T) {
 		}
 		require.NotEmpty(t, event.Timestamp)
 		require.Equal(t, int64(i+1), event.Index)
-		eventsValues = append(eventsValues, string(event.Data))
+		eventsValues = append(eventsValues, string(event.Data()))
 		index = event.Index
 	}
 	iter.Release()
@@ -66,7 +62,7 @@ func TestEvents(t *testing.T) {
 		if event == nil {
 			break
 		}
-		eventsValues = append(eventsValues, string(event.Data))
+		eventsValues = append(eventsValues, string(event.Data()))
 		index = event.Index
 	}
 	iter.Release()
@@ -97,7 +93,7 @@ func TestEvents(t *testing.T) {
 		if event == nil {
 			break
 		}
-		eventsValues = append(eventsValues, string(event.Data))
+		eventsValues = append(eventsValues, string(event.Data()))
 		index = event.Index
 	}
 	iter.Release()
@@ -115,7 +111,7 @@ func TestEvents(t *testing.T) {
 		if event == nil {
 			break
 		}
-		eventsValues = append(eventsValues, string(event.Data))
+		eventsValues = append(eventsValues, string(event.Data()))
 		index = event.Index
 	}
 	iter.Release()
@@ -149,28 +145,74 @@ func TestEvents(t *testing.T) {
 	require.False(t, ok)
 }
 
-func TestIndex(t *testing.T) {
+func TestEventsConcurrent(t *testing.T) {
+	eds := testFirestore(t)
+	ctx := context.TODO()
+	path := testPath()
+	t.Logf("Path: %s", path)
+
+	_, err := eds.EventAdd(ctx, path, dstore.Data([]byte("testing")))
+	require.NoError(t, err)
+
+	wg := sync.WaitGroup{}
+	wg.Add(4)
+
+	fn := func(group string) {
+		var ferr error
+		for i := 1; i < 5; i++ {
+			val := fmt.Sprintf("testing-%s-%d", group, i)
+			_, ferr = eds.EventAdd(ctx, path, dstore.Data([]byte(val)))
+			if ferr != nil {
+				break
+			}
+		}
+		wg.Done()
+		require.NoError(t, ferr)
+	}
+	go fn("a")
+	go fn("b")
+	go fn("c")
+	go fn("d")
+
+	wg.Wait()
+
+	idx := int64(1)
+	iter, err := eds.Events(ctx, path)
+	require.NoError(t, err)
+	defer iter.Release()
+	for {
+		event, err := iter.Next()
+		require.NoError(t, err)
+		if event == nil {
+			break
+		}
+		require.Equal(t, idx, event.Index)
+		idx++
+	}
+}
+
+func TestIncrementIndex(t *testing.T) {
 	var err error
 	// SetContextLogger(NewContextLogger(DebugLevel))
 	eds := testFirestore(t)
 	ctx := context.TODO()
 	path := testPath()
 
-	_, ver, err := eds.Increment(ctx, path, eventIdxLabel, 1)
+	_, idx, err := eds.Increment(ctx, path, "idx", 1)
 	require.NoError(t, err)
-	require.Equal(t, int64(1), ver)
+	require.Equal(t, int64(1), idx)
 
-	_, ver, err = eds.Increment(ctx, path, eventIdxLabel, 5)
+	_, idx, err = eds.Increment(ctx, path, "idx", 5)
 	require.NoError(t, err)
-	require.Equal(t, int64(2), ver)
+	require.Equal(t, int64(2), idx)
 
-	_, ver, err = eds.Increment(ctx, path, eventIdxLabel, 3)
+	_, idx, err = eds.Increment(ctx, path, "idx", 3)
 	require.NoError(t, err)
-	require.Equal(t, int64(7), ver)
+	require.Equal(t, int64(7), idx)
 
-	_, ver, err = eds.Increment(ctx, path, eventIdxLabel, 1)
+	_, idx, err = eds.Increment(ctx, path, "idx", 1)
 	require.NoError(t, err)
-	require.Equal(t, int64(10), ver)
+	require.Equal(t, int64(10), idx)
 }
 
 func reverseCopy(s []string) []string {
@@ -182,7 +224,7 @@ func reverseCopy(s []string) []string {
 	return a
 }
 
-func TestFirestoreBatch(t *testing.T) {
+func TestBatch(t *testing.T) {
 	var err error
 	// SetContextLogger(NewContextLogger(DebugLevel))
 
@@ -191,15 +233,14 @@ func TestFirestoreBatch(t *testing.T) {
 	path := testPath()
 	t.Logf("Path: %s", path)
 
-	values := [][]byte{}
+	values := []events.Document{}
 	length := 1001
 	for i := 0; i < length; i++ {
 		str := fmt.Sprintf("value%d", i)
-		values = append(values, []byte(str))
+		values = append(values, dstore.Data([]byte(str)))
 	}
-	out, idx, err := eds.EventsAdd(ctx, path, values)
+	idx, err := eds.EventsAdd(ctx, path, values)
 	require.NoError(t, err)
-	require.Equal(t, length, len(out))
 	require.Equal(t, int64(length), idx)
 
 	iter, err := eds.Events(ctx, path)
@@ -211,7 +252,7 @@ func TestFirestoreBatch(t *testing.T) {
 		if event == nil {
 			break
 		}
-		require.Equal(t, fmt.Sprintf("value%d", i), string(event.Data))
+		require.Equal(t, fmt.Sprintf("value%d", i), string(event.Data()))
 		i++
 	}
 	iter.Release()
@@ -225,7 +266,10 @@ func TestUpdateWithEvents(t *testing.T) {
 
 	path := dstore.Path(collection, "key1")
 
-	_, _, err := ds.EventsAdd(ctx, path, [][]byte{[]byte("test1"), []byte("test2")})
+	_, err := ds.EventsAdd(ctx, path, []events.Document{
+		dstore.Data([]byte("test1")),
+		dstore.Data([]byte("test2")),
+	})
 	require.NoError(t, err)
 
 	err = ds.Set(ctx, path, map[string]interface{}{"info": "testinfo", "data": []byte("val1")}, dstore.MergeAll())
@@ -249,10 +293,10 @@ func TestUpdateWithEvents(t *testing.T) {
 	require.NoError(t, err)
 	event1, err := iter.Next()
 	require.NoError(t, err)
-	require.Equal(t, []byte("test1"), event1.Data)
+	require.Equal(t, []byte("test1"), event1.Data())
 	event2, err := iter.Next()
 	require.NoError(t, err)
-	require.Equal(t, []byte("test2"), event2.Data)
+	require.Equal(t, []byte("test2"), event2.Data())
 }
 
 func TestIncrement(t *testing.T) {

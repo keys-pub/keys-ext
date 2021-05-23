@@ -16,26 +16,36 @@ import (
 // eventIdxLabel should also match the Event firestore tag.
 const eventIdxLabel = "idx"
 
-// EventsAdd adds events.
-func (f *Firestore) EventsAdd(ctx context.Context, path string, data [][]byte) ([]*events.Event, int64, error) {
+func (f *Firestore) EventAdd(ctx context.Context, path string, doc events.Document) (int64, error) {
+	idx, err := f.EventsAdd(ctx, path, []events.Document{doc})
+	return idx, err
+}
+
+func (f *Firestore) EventsAdd(ctx context.Context, path string, docs []events.Document) (int64, error) {
 	pos := 0
-	remaining := len(data)
-	events := make([]*events.Event, 0, len(data))
+	remaining := len(docs)
 	idx := int64(0)
 	for remaining > 0 {
-		chunk := min(500, remaining)
+		chunk := min(498, remaining)
 		logger.Infof(ctx, "Writing %s (batch %d:%d)", path, pos, pos+chunk)
-		batch, bidx, err := f.writeBatch(ctx, path, data[pos:pos+chunk])
+		bidx, err := f.writeAll(ctx, normalizePath(path), docs[pos:pos+chunk])
 		if err != nil {
 			// TODO: Delete previous batch writes if pos > 0
-			return nil, 0, errors.Wrapf(err, "failed to write batch")
+			return 0, errors.Wrapf(err, "failed to write")
 		}
-		events = append(events, batch...)
 		pos = pos + chunk
 		remaining = remaining - chunk
 		idx = bidx
 	}
-	return events, idx, nil
+	return idx, nil
+}
+
+func (f *Firestore) EventPosition(ctx context.Context, path string) (*events.Position, error) {
+	res, err := f.EventPositions(ctx, []string{path})
+	if err != nil {
+		return nil, err
+	}
+	return res[path], nil
 }
 
 // EventPositions returns positions for event logs.
@@ -56,50 +66,56 @@ func (f *Firestore) EventPositions(ctx context.Context, paths []string) (map[str
 	return positions, nil
 }
 
-func (f *Firestore) writeBatch(ctx context.Context, path string, data [][]byte) ([]*events.Event, int64, error) {
-	if len(data) > 500 {
-		return nil, 0, errors.Errorf("too many events to batch (max 500)")
+func (f *Firestore) writeAll(ctx context.Context, path string, docs []events.Document) (int64, error) {
+	if len(docs) > 498 {
+		return 0, errors.Errorf("too many events (max 498)")
 	}
 
-	_, idx, err := f.Increment(ctx, dstore.Path(path), eventIdxLabel, int64(len(data)))
-	if err != nil {
-		return nil, 0, errors.Wrapf(err, "failed to increment index")
-	}
-
-	batch := f.client.Batch()
-
-	out := make([]*events.Event, 0, len(data))
-	last := int64(0)
-	for _, b := range data {
-		id := encoding.MustEncode(keys.RandBytes(32), encoding.Base62)
-		path := dstore.Path(path, "log", id)
-		// logger.Debugf(ctx, "Batching %s (%d)", path, idx)
-
-		// Map should match keys.
-		m := map[string]interface{}{
-			"data":        b,
-			eventIdxLabel: idx,
+	index := int64(0)
+	if err := f.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		// Get current event index
+		res, err := f.txGet(tx, path)
+		if err != nil {
+			return err
 		}
-		doc := f.client.Doc(normalizePath(path))
-		batch.Create(doc, m)
+		if res != nil {
+			i, ok := res.Data()[eventIdxLabel]
+			if ok {
+				index = i.(int64)
+			}
+		} else {
+			if err := tx.Create(f.client.Doc(path), map[string]interface{}{
+				eventIdxLabel: 0,
+			}); err != nil {
+				return err
+			}
+		}
 
-		out = append(out, &events.Event{
-			Data:  b,
-			Index: idx,
-		})
-		last = idx
-		idx++
-	}
+		// Write docs (incrementing index)
+		for _, doc := range docs {
+			id := encoding.MustEncode(keys.RandBytes(32), encoding.Base62)
+			lpath := dstore.Path(path, "log", id)
 
-	res, err := batch.Commit(ctx)
-	if err != nil {
-		return nil, 0, err
-	}
-	for i, event := range out {
-		event.Timestamp = tsutil.Millis(res[i].UpdateTime)
-	}
+			index++
+			docRef := f.client.Doc(normalizePath(lpath))
+			doc[eventIdxLabel] = index
+			if err := tx.Create(docRef, doc); err != nil {
+				return err
+			}
+		}
 
-	return out, last, nil
+		// Update index
+		if err := tx.Set(f.client.Doc(path), map[string]interface{}{
+			eventIdxLabel: index,
+		}, firestore.MergeAll); err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		return 0, err
+	}
+	return index, nil
 }
 
 // Events ...
@@ -197,35 +213,42 @@ func (f *Firestore) deleteCollection(ctx context.Context, path string, batchSize
 	}
 }
 
-// Increment is a very slow increment by. Limited to 1 write a second.
-// Returns start of index.
-// If we need better performance we can shard.
-// TODO: https://firebase.google.com/docs/firestore/solutions/counters#go
 func (f *Firestore) Increment(ctx context.Context, path string, name string, n int64) (int64, int64, error) {
 	if n < 1 {
 		return 0, 0, errors.Errorf("increment by at least 1")
 	}
-	exists, err := f.Exists(ctx, path)
-	if err != nil {
-		return 0, 0, err
-	}
-	count := f.client.Doc(normalizePath(path))
-	if !exists {
-		if _, err := count.Create(ctx, map[string]interface{}{name: 0}); err != nil {
-			return 0, 0, err
+	path = normalizePath(path)
+	index := int64(0)
+	if err := f.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		// Get current index
+		res, err := f.txGet(tx, path)
+		if err != nil {
+			return err
 		}
-	}
-	if _, err := count.Update(ctx, []firestore.Update{
-		{Path: name, Value: firestore.Increment(n)},
+		if res != nil {
+			i, ok := res.Data()[name]
+			if ok {
+				index = i.(int64)
+			}
+		} else {
+			if err := tx.Create(f.client.Doc(path), map[string]interface{}{
+				name: 0,
+			}); err != nil {
+				return err
+			}
+		}
+		index += n
+
+		// Update index
+		if err := tx.Set(f.client.Doc(path), map[string]interface{}{
+			name: index,
+		}, firestore.MergeAll); err != nil {
+			return err
+		}
+		return nil
 	}); err != nil {
 		return 0, 0, err
 	}
-	res, err := count.Get(ctx)
-	if err != nil {
-		return 0, 0, err
-	}
-	index := res.Data()[name].(int64)
-
 	return index, index - n + 1, nil
 }
 
