@@ -83,27 +83,26 @@ func (s *Server) postVault(c echo.Context) error {
 		return s.ErrNotFound(c, errVaultDeleted)
 	}
 
-	var data [][]byte
 	total := int64(0)
 	// JSON format uses api.Data.
 	var req []*api.Data
 	if err := json.Unmarshal(b, &req); err != nil {
 		return s.ErrBadRequest(c, err)
 	}
-	data = make([][]byte, 0, len(req))
+	docs := make([]events.Document, 0, len(req))
 	for _, d := range req {
-		data = append(data, d.Data)
+		docs = append(docs, dstore.Data(d.Data))
 	}
 
 	path := dstore.Path("vaults", auth.KID)
 
-	if _, _, err := s.fi.EventsAdd(ctx, path, data); err != nil {
+	if _, err := s.fi.EventsAdd(ctx, path, docs); err != nil {
 		return err
 	}
 
 	// Increment usage
-	for _, d := range data {
-		total += int64(len(d))
+	for _, d := range req {
+		total += int64(len(d.Data))
 	}
 	if _, _, err := s.fi.Increment(ctx, path, "usage", total); err != nil {
 		return s.ErrResponse(c, err)
@@ -211,7 +210,7 @@ type Vault struct {
 
 // VaultResponse ...
 type VaultResponse struct {
-	Vault     []*events.Event `json:"vault" msgpack:"vault"`
-	Index     int64           `json:"idx" msgpack:"idx"`
-	Truncated bool            `json:"truncated,omitempty" msgpack:"trunc,omitempty"`
+	Vault     []*api.Event `json:"vault" msgpack:"vault"`
+	Index     int64        `json:"idx" msgpack:"idx"`
+	Truncated bool         `json:"truncated,omitempty" msgpack:"trunc,omitempty"`
 }

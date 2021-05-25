@@ -49,7 +49,7 @@ func (s *Server) events(c echo.Context, path string, max int) (*api.EventsRespon
 	}
 	defer iter.Release()
 	to := int64(index)
-	events := []*events.Event{}
+	events := []*api.Event{}
 	for {
 		event, err := iter.Next()
 		if err != nil {
@@ -58,7 +58,11 @@ func (s *Server) events(c echo.Context, path string, max int) (*api.EventsRespon
 		if event == nil {
 			break
 		}
-		events = append(events, event)
+		events = append(events, &api.Event{
+			Data:      event.Data(),
+			Index:     event.Index,
+			Timestamp: event.Timestamp,
+		})
 		to = event.Index
 	}
 	s.logger.Infof("Events %s, got %d, (to=%d)", path, len(events), to)
