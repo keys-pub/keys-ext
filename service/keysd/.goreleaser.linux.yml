@@ -2,7 +2,7 @@ project_name: "keys"
 builds:
   - id: keysd
     binary: keysd
-    main: ./keysd/main.go
+    main: ./main.go
     goos:
       - linux
     goarch:
