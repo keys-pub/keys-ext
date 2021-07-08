@@ -9,7 +9,7 @@ require (
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/protobuf v1.5.2
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
-	github.com/keys-pub/keys v0.1.22-0.20210708221203-d9899bad194a
+	github.com/keys-pub/keys v0.1.22-0.20210708223433-a34d3ce96fb2
 	github.com/keys-pub/keys-ext/auth/fido2 v0.0.0-20210331211138-7be3b751d8ad
 	github.com/keys-pub/keys-ext/auth/mock v0.0.0-20210401184359-d3fda856e211
 	github.com/keys-pub/keys-ext/http/api v0.0.0-20210525002537-0c132efd0ef7
