@@ -3,8 +3,8 @@ package vault
 import (
 	"strings"
 
+	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/dstore"
-	"github.com/keys-pub/keys/dstore/events"
 	"github.com/vmihailenco/msgpack/v4"
 )
 
@@ -33,7 +33,7 @@ func (v *Vault) ItemHistory(id string) ([]*Item, error) {
 		if b == nil {
 			continue
 		}
-		var event events.Event
+		var event api.Event
 		if err := msgpack.Unmarshal(b, &event); err != nil {
 			return nil, err
 		}

@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/keys-pub/keys"
+	"github.com/keys-pub/keys-ext/http/api"
 	"github.com/keys-pub/keys/dstore"
-	"github.com/keys-pub/keys/dstore/events"
 	"github.com/pkg/errors"
 	"github.com/vmihailenco/msgpack/v4"
 )
@@ -149,7 +149,7 @@ func (v *Vault) resetLog() error {
 	index = int64(0)
 	for _, doc := range pull {
 		index++
-		var event events.Event
+		var event api.Event
 		if err := msgpack.Unmarshal(doc.Data, &event); err != nil {
 			return err
 		}

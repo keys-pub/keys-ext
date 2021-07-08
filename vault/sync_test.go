@@ -124,11 +124,8 @@ func testSync(t *testing.T, st1 vault.Store, st2 vault.Store) {
 	err = v1.Sync(ctx)
 	require.NoError(t, err)
 
-	// _ = st1.Spew("", os.Stderr)
-
 	history, err := v1.ItemHistory("key1")
 	require.NoError(t, err)
-	//vault.SpewItems(versions, os.Stderr)
 	require.Equal(t, 3, len(history))
 	require.Equal(t, []byte("mysecretdata.1a"), history[0].Data)
 	require.Equal(t, []byte("mysecretdata.1c"), history[1].Data)

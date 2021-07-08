@@ -52,13 +52,15 @@ func encryptItem(item *Item, mk *[32]byte) ([]byte, error) {
 		return nil, err
 	}
 	out := secretBoxSeal(b, mk)
-
 	return out, nil
 }
 
 func decryptItem(b []byte, mk *[32]byte, ad string) (*Item, error) {
 	if mk == nil {
 		return nil, ErrLocked
+	}
+	if b == nil {
+		return nil, errors.Errorf("nothing to decrypt")
 	}
 	decrypted, ok := secretBoxOpen(b, mk)
 	if !ok {

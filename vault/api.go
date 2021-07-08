@@ -52,6 +52,13 @@ type Event struct {
 	// Prev []byte `msgpack:"prv,omitempty"`
 }
 
+// Response ...
+type Response struct {
+	Vault     []*api.Event `json:"vault" msgpack:"vault"`
+	Index     int64        `json:"idx" msgpack:"idx"`
+	Truncated bool         `json:"truncated,omitempty" msgpack:"trunc,omitempty"`
+}
+
 // VaultSend saves events to the vault API with a key.
 // Events are encrypted with the key before saving.
 func (c *Client) VaultSend(ctx context.Context, key *keys.EdX25519Key, events []*Event) error {
@@ -104,7 +111,7 @@ func (c *Client) Vault(ctx context.Context, key *keys.EdX25519Key, index int64) 
 		return nil, nil
 	}
 
-	var out api.VaultResponse
+	var out Response
 	if err := json.Unmarshal(resp.Data, &out); err != nil {
 		return nil, err
 	}
@@ -112,7 +119,7 @@ func (c *Client) Vault(ctx context.Context, key *keys.EdX25519Key, index int64) 
 	return vaultDecryptResponse(&out, key)
 }
 
-func vaultDecryptResponse(resp *api.VaultResponse, key *keys.EdX25519Key) (*Events, error) {
+func vaultDecryptResponse(resp *Response, key *keys.EdX25519Key) (*Events, error) {
 	out := make([]*Event, 0, len(resp.Vault))
 	for _, revent := range resp.Vault {
 		decrypted, err := vaultDecrypt(revent.Data, key)
