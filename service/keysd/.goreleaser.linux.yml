@@ -9,6 +9,15 @@ builds:
       - amd64
       - 386
       # - arm
+  - id: keys
+    binary: keys
+    main: ../keys/main.go
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - 386
+      # - arm  
 archives:
   - replacements:
       386: i386

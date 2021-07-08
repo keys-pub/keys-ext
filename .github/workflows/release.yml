@@ -28,7 +28,6 @@ jobs:
           git config --global user.email "keys.pub"
           git config --global user.name "keys.pub"
           git tag -a ${GITHUB_REF##*/} -m ${GITHUB_REF##*/}
-          (cd service/keys; goreleaser)
           (cd service/keysd; goreleaser)
           (cd auth/rpc/plugin; goreleaser)
   release-linux:
@@ -55,6 +54,5 @@ jobs:
           git config --global user.email "keys.pub"
           git config --global user.name "keys.pub"
           git tag -a ${GITHUB_REF##*/} -m ${GITHUB_REF##*/}
-          (cd service/keys; $HOME/goreleaser --config=.goreleaser.linux.yml)
           (cd service/keysd; $HOME/goreleaser --config=.goreleaser.linux.yml)
           (cd auth/rpc/plugin; $HOME/goreleaser --config=.goreleaser.linux.yml)
