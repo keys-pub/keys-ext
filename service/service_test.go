@@ -220,7 +220,8 @@ func redditMock(author string, msg string, subreddit string) string {
 					"data": {
 						"author": "` + author + `",
 						"selftext": "` + msg + `",
-						"subreddit": "` + subreddit + `"
+						"subreddit": "` + subreddit + `",
+						"subreddit_type": "user"
 					}
 				}
 			]

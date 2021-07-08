@@ -143,9 +143,9 @@ func userCommands(client *Client) []cli.Command {
 							link = "https://twitter.com/intent/tweet"
 							urlq = "What's the location (URL) on twitter.com where the signed message tweet was saved?"
 						case "reddit":
-							instructions = "Save the following signed message as a post on /r/keyspubmsgs."
-							link = "https://old.reddit.com/r/keyspubmsgs/submit"
-							urlq = "What's the location (URL) on reddit.com/r/keyspubmsgs where the signed message was posted?"
+							instructions = "Save the following signed message as a post on your user subreddit."
+							link = "https://www.reddit.com/user/" + name + "/submit"
+							urlq = "What's the location (URL) where the signed message was posted?"
 						}
 						fmt.Println("")
 						fmt.Println(instructions)

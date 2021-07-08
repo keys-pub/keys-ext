@@ -230,8 +230,8 @@ func TestUserAddReddit(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// url := "https://www.reddit.com/r/keyspubmsgs/comments/123/bob"
-	rmsg := redditMock("bob", resp.Message, "keyspubmsgs")
+	// url := "https://www.reddit.com/user/bob/comments/123/keyspub"
+	rmsg := redditMock("bob", resp.Message, "u_bob")
 	env.client.SetProxy("", func(ctx context.Context, req *http.Request) http.ProxyResponse {
 		return http.ProxyResponse{Body: []byte(rmsg)}
 	})
@@ -241,7 +241,7 @@ func TestUserAddReddit(t *testing.T) {
 		KID:     bob.ID().String(),
 		Service: "reddit",
 		Name:    "bob",
-		URL:     "https://old.reddit.com/r/keyspubmsgs/comments/123/bob/?testing=1",
+		URL:     "https://www.reddit.com/user/bob/comments/123/keyspub/?testing=1",
 	})
 	require.NoError(t, err)
 
@@ -265,7 +265,7 @@ func TestUserAddReddit(t *testing.T) {
 		KID:     bob.ID().String(),
 		Service: "reddit",
 		Name:    "Bob",
-		URL:     "https://old.reddit.com/r/keyspubmsgs/comments/123/bob",
+		URL:     "https://www.reddit.com/user/bob/comments/123/keyspub",
 	})
 	require.NoError(t, err)
 }
