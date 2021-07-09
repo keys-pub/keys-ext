@@ -5,7 +5,7 @@ go 1.14
 require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/keys-pub/keys v0.1.22-0.20210523195800-d583c5244ce9
+	github.com/keys-pub/keys v0.1.22-0.20210708223433-a34d3ce96fb2
 	github.com/keys-pub/keys-ext/firestore v0.0.0-20210523201126-199b37b87949
 	github.com/keys-pub/keys-ext/http/api v0.0.0-20210525002154-62c1010a2830
 	github.com/labstack/echo/v4 v4.2.1
