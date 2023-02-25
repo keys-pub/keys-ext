@@ -10,8 +10,7 @@ require (
 	github.com/keys-pub/keys v0.1.22-0.20210523195800-d583c5244ce9
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.0
-	golang.org/x/mod v0.4.2 // indirect
-	golang.org/x/net v0.0.0-20210331060903-cb1fcc7394e5 // indirect
+	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20210323180902-22b0adad7558 // indirect
 	google.golang.org/api v0.43.0
 	google.golang.org/genproto v0.0.0-20210331142528-b7513248f0ba // indirect
